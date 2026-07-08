@@ -9,16 +9,52 @@ description: |
     8th of April.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 8,'
+    accent: every year.
+    lede: 'The April 8th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Apr 7'
+          href: /journal/04-07/
+        - label: 'Apr 9 →'
+          href: /journal/04-09/
+    related:
+        - title: 'Previous · Apr 7'
+          copy: 'Step back a day to the April 7th log.'
+          href: /journal/04-07/
+          icon: calendar
+        - title: 'Next · Apr 9'
+          copy: 'Jump ahead to the April 9th log.'
+          href: /journal/04-09/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1712251351568-1c56602c31aa?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Markets Tar Rifts
 
@@ -50,8 +86,15 @@ import { Adsense } from '@/components/astropad';
     There will be a split in the Transport Layer and Application Logic Layer that I need to do when figuring out the right paths to take.
     The websocket will take both the JSON and Binary, but as the data comes in, we will have to map and split it, a bit of a highway that takes both cars and trucks.
 
-## 2024
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Python
 
@@ -78,3 +121,7 @@ After doing that, we would look at adding more components into the Expo BBQ!
 Sadly, I was not able to get a bunch of the different components up within the package today, but instead had to restructure the way that the router functions within expo-lcagents.
 
 I migrated some of the routes into the `tabs` folder and plan to abstract away the navigation to `_nav.tsx`, there was a decent amount of learning to do with expo and react native, but I am getting the hang of it.
+
+</BentoProse>
+
+</BentoDoc>

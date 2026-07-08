@@ -10,22 +10,65 @@ description: |
     Jam Day
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 15,'
+    accent: every year.
+    lede: 'The March 15th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#tasks'
+          primary: true
+        - label: '← Mar 14'
+          href: /journal/03-14/
+        - label: 'Mar 16 →'
+          href: /journal/03-16/
+    related:
+        - title: 'Previous · Mar 14'
+          copy: 'Step back a day to the March 14th log.'
+          href: /journal/03-14/
+          icon: calendar
+        - title: 'Next · Mar 16'
+          copy: 'Jump ahead to the March 16th log.'
+          href: /journal/03-16/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1632229095740-8c75082087c5?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## Tasks
+<BentoProse id="tasks" heading="Tasks">
 
 [ ] - Prepare Discord Jam R&D
 [ ] - Travel Jam Repo
 
-## 2026
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2026" heading="2026">
 
 ### Clickhouse Vector
 
@@ -36,7 +79,9 @@ import { Adsense } from '@/components/astropad';
     We could even turn our rareicon game into something similar as well, that is something that I was thinking about earlier.
     
 
-## 2025
+</BentoProse>
+
+<BentoProse id="2025" heading="2025">
 
 ### Solana Soul
 
@@ -104,7 +149,9 @@ import { Adsense } from '@/components/astropad';
     Report + Graph under the projects astro page would be a nice update for the site.
     I will make an issue ticket with that as a future update, definitely when I want to switch out of rust and do some astro or javascript.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### Travel
 
@@ -200,4 +247,6 @@ Getting started on the `TravelBox` Menu? This will be the menu of the game, whil
 
 The gameplay for the `travelbox` and the design around it will be a bit of a test casing for us.
 
-## 2023
+</BentoProse>
+
+</BentoDoc>

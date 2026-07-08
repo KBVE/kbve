@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1635352073050-23999f4022e0?crop=entropy&c
 description: September 7th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 7,'
+    accent: every year.
+    lede: 'The September 7th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 6'
+          href: /journal/09-06/
+        - label: 'Sep 8 →'
+          href: /journal/09-08/
+    related:
+        - title: 'Previous · Sep 6'
+          copy: 'Step back a day to the September 6th log.'
+          href: /journal/09-06/
+          icon: calendar
+        - title: 'Next · Sep 8'
+          copy: 'Jump ahead to the September 8th log.'
+          href: /journal/09-08/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1635352073050-23999f4022e0?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Session - Supabase Metrics
 
@@ -30,7 +71,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Once we have the core gameplay done, I will loop back to the metrics. 
     
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Brew**
 
@@ -48,20 +97,31 @@ I think its because the game is still new and we will have to wait for the expan
 There are some plugins that we still need to test case for deployment of the HA clusters.
 The main issue is testing the recovery and the backup, but the s3 configuration still needs to be done before hand.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 7:07am - Watching Ziggy's amazing stream, its perfect!
 - 7:57am - Getting ready to write different types of test casing across the board for work and my personal websites.
 - 1:03pm - Decided to go with a basic three tab setup as an Index card. I am thinking of isolating it towards three areas, the first being the blog, second being services and finally the third being an about section. I might have some additional widgets built into it. As for after the index card, I might look at adding custom tailwindcss animation, which I need a bit more practice with.
 - 1:51pm - Let me commit this current checkpoint and then check back with the team on their k3s instance, maybe sneak in a quick league match too.
 - 2:01pm -
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Along with success comes a reputation for wisdom.
 > — <cite>Euripides</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

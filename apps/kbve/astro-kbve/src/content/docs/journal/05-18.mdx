@@ -9,12 +9,52 @@ description: |
    May 18th - The Daily Journal. More Adventures
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 18,'
+    accent: every year.
+    lede: 'The May 18th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 17'
+          href: /journal/05-17/
+        - label: 'May 19 →'
+          href: /journal/05-19/
+    related:
+        - title: 'Previous · May 17'
+          copy: 'Step back a day to the May 17th log.'
+          href: /journal/05-17/
+          icon: calendar
+        - title: 'Next · May 19'
+          copy: 'Jump ahead to the May 19th log.'
+          href: /journal/05-19/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1715997894621-e8eebc4e9278?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Nvidia Earnings Q1 FY2027
 
@@ -23,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     Preparing to sell a bunch of $235 call options, I am thinking that the stock will definitely not moon.
     There is not much else going on, I think that China's limited purchase of Nvidia hardware will hurt them in the long term.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### RareIcon Dungeon
 
@@ -59,7 +107,9 @@ import { Adsense } from '@/components/astropad';
     This will make it easier for multiplayer because it be the same layouts shared through the content but if we have a couple hundred random rooms, it should not be too much of an issue.
     We then just focus on linking the corridors and hallways.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Proxy**
 
@@ -106,8 +156,9 @@ One of the biggest objectives of the resume builder would be to automatically su
 Going to add a browser into the `atlas` docker image!
 What an adventure with setting up Chrome , the lack of native arm support was a pain to deal with too.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 9:00am - Mornings are still an emotional adrift with an aura of haziness, damn I hate jet lag. However it has been getting better, I might have to sleep earlier than 12am, so I believe that its my brain just saying I am getting too old.  I added a new habit of asking `Bard` how I felt about it and seeing what it tells me!
 
@@ -161,13 +212,21 @@ What an adventure with setting up Chrome , the lack of native arm support was a 
 
 - 7:45pm - Time to break down the tasks and see what I should aim to finish up today? I am thinking it might be great to finish up the React-based API project that I was eyeing for a while to wrap up. Oh I got Zelda, Tears of the Kingdom up and running! It looks great on the laptop, but sadly I do not have a mapped out controller to play the game right now.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > When the world is so complicated, the simple gift of friendship is within all of our hands.
 > — <cite>Maria Shriver</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Setup Legend of Zelda: Tears of the Kingdom.
+
+</BentoProse>
+
+</BentoDoc>

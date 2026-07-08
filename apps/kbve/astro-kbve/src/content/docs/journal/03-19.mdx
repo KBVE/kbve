@@ -9,14 +9,52 @@ description: |
     19th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 19,'
+    accent: every year.
+    lede: 'The March 19th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 18'
+          href: /journal/03-18/
+        - label: 'Mar 20 →'
+          href: /journal/03-20/
+    related:
+        - title: 'Previous · Mar 18'
+          copy: 'Step back a day to the March 18th log.'
+          href: /journal/03-18/
+          icon: calendar
+        - title: 'Next · Mar 20'
+          copy: 'Jump ahead to the March 20th log.'
+          href: /journal/03-20/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Talos Upgrade 
 
@@ -25,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     Spent the night trying my first talos upgrade, it was an interesting experience.
     I believe we are close to getting the wireguard setup resolve, then we can hook in the Pi and NUCs!
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Hiddencut Belt Production
 
@@ -197,3 +243,7 @@ It seems that the prettier plugin was crashing because of an astro override, I t
 #### Ammo
 
 The next move would be to use `ammo` for the front and backend!
+
+</BentoProse>
+
+</BentoDoc>

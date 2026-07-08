@@ -9,15 +9,52 @@ description: |
     14th of April.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 14,'
+    accent: every year.
+    lede: 'The April 14th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Apr 13'
+          href: /journal/04-13/
+        - label: 'Apr 15 →'
+          href: /journal/04-15/
+    related:
+        - title: 'Previous · Apr 13'
+          copy: 'Step back a day to the April 13th log.'
+          href: /journal/04-13/
+          icon: calendar
+        - title: 'Next · Apr 15'
+          copy: 'Jump ahead to the April 15th log.'
+          href: /journal/04-15/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1659646339818-6a8511cabeb1?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### RimwWorld
 
@@ -39,8 +76,15 @@ import { Adsense } from '@/components/astropad';
     The way we can handle this is to let nanostores be the tool that is directly handling both, since we can swap the file engine on it without any major issues.
     Eventually we could go into building the canvas on the worker and then have the js library do a hot swap.
 
-## 2024
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Zed
 
@@ -122,3 +166,7 @@ Granted if this works out, as I see it in my mind, we could then setup a custom 
 Afterwards, it is just packaging up the docker file and doing some quick integration tests with our docker swarm and portainer.
 
 For the authentication, we could just use an API key style, yeah this will be cake walk once we get the reverse proxy resolved.
+
+</BentoProse>
+
+</BentoDoc>

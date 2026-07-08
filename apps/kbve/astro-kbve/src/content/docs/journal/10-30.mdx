@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: October 30th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 30,'
+    accent: every year.
+    lede: 'The October 30th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 29'
+          href: /journal/10-29/
+        - label: 'Oct 31 →'
+          href: /journal/10-31/
+    related:
+        - title: 'Previous · Oct 29'
+          copy: 'Step back a day to the October 29th log.'
+          href: /journal/10-29/
+          icon: calendar
+        - title: 'Next · Oct 31'
+          copy: 'Jump ahead to the October 31st log.'
+          href: /journal/10-31/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Nvidia ByeByte
 
@@ -21,7 +62,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     If Nvidia stays above $200 then a good chunk of my call options will execute, so I will need to prepare the taxes for that.
     
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   01:50AM
 
@@ -48,3 +97,7 @@ import { Adsense, Tasks } from '@/components/astropad';
     
     Now we need to figure out how to setup the atlas but within the scope of a user.
     Yet going to move on from today, I was not able to create as many notes that I would have liked.
+
+</BentoProse>
+
+</BentoDoc>

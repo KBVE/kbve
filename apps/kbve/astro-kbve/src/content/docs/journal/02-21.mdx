@@ -8,16 +8,52 @@ img: https://images.unsplash.com/photo-1454496522488-7a8e488e8606?crop=entropy&c
 description: Daily Log for February 21st for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 21,'
+    accent: every year.
+    lede: 'The February 21st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 20'
+          href: /journal/02-20/
+        - label: 'Feb 22 →'
+          href: /journal/02-22/
+    related:
+        - title: 'Previous · Feb 20'
+          copy: 'Step back a day to the February 20th log.'
+          href: /journal/02-20/
+          icon: calendar
+        - title: 'Next · Feb 22'
+          copy: 'Jump ahead to the February 22nd log.'
+          href: /journal/02-22/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### GameJam B13
 
@@ -31,8 +67,15 @@ import { Adsense } from '@/components/astropad';
     Exhaust has been done, now I need to make some updates on how to call it without it affecting the shield.
     
 
-## 2024
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Tickets
 
@@ -71,3 +114,7 @@ This will just make the process of building the tools out easier for other websi
 Decided to pickup another account for our adventures! Obviously I will not include the name but we shall see how far we can get with this!
 
 I think if we plan around it and make sure everything works, then we should not have any major issues. Let us see how everything plays out over time.
+
+</BentoProse>
+
+</BentoDoc>

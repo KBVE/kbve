@@ -2,23 +2,94 @@
 title: KBVE Journal
 description: |
     The dev log and daily journal of random h0lythoughts.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
 sidebar:
     label: Journal Navigator
     order: 1
+ogTitle: KBVE Journal — Daily Dev Logs for Every Day of the Year
+ogDescription: One page per calendar day, stacked with notes, tasks, and quotes from every year of building KBVE.
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Journal
+          path: /journal/
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+import { Adsense } from '@/components/astropad';
+import { JOURNAL_NAV } from '@/components/dashboard/journalNav';
 
-import { Giscus, Adsense } from '@/components/astropad';
+export const backdrop = 'https://images.unsplash.com/photo-1517971129774-8a2b38fa128e?q=80&w=2400&auto=format&fit=crop';
 
-## Introduction
+export const dayCount = JOURNAL_NAV.reduce((n, g) => n + g.items.length, 0);
+export const anchorOf = (group) => group.href.split('#')[1];
+
+export const stats = [
+	{ label: 'Daily logs', value: String(dayCount), icon: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z' },
+	{ label: 'Months mapped', value: String(JOURNAL_NAV.length), icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
+	{ label: 'Years stacked', value: '2023+', icon: 'M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
+	{ label: 'Future ghost', value: '1', icon: 'M12 2a7 7 0 0 0-7 7v11l2-2 2 2 3-2 3 2 2-2 2 2V9a7 7 0 0 0-7-7zM9 10h.01M15 10h.01' },
+];
+
+<div class="journal-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE Journal">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+					<span>kbve journal</span>
+				</span>
+				<h1 class="bento-title">
+					One page per day,
+					<span class="bento-title__accent">every year.</span>
+				</h1>
+				<p class="bento-lede">
+					The dev log and daily journal of random h0lythoughts — raw
+					creativity, spiritual insights, and technical revelations
+					stacked onto the same calendar day across the years. All of it
+					feeds the future ghost.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#january">
+						Pick a day
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/blog/">Blog archive</a>
+					<a class="bento-btn bento-btn--ghost" href="/rss.xml">RSS</a>
+				</div>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			{JOURNAL_NAV.map((g) => (
+				<a class="bento-chip" href={`#${anchorOf(g)}`}>{g.label}</a>
+			))}
+		</nav>
+	</div>
+</section>
+
+<BentoProse id="introduction" eyebrow="What this is" heading="Introduction">
 
 This journal concept is a vibrant, eclectic collection of thoughts that blend raw creativity with the meticulous musings of a developer's log.
 The goals are to capture fleeting ideas, spiritual insights, and technical revelations, weaving them into a tapestry of innovation and reflection!
@@ -27,5 +98,34 @@ This will be all fed into a machine when I am old and it will merge my future gh
 
 Looking for a specific day? The [blog archive](/blog/) lists every entry grouped by month, or subscribe via [RSS](/rss.xml).
 
+</BentoProse>
 
-<Adsense />
+{JOURNAL_NAV.map((group) => (
+	<BentoShell id={anchorOf(group)} eyebrow={group.eyebrow} heading={group.label}>
+		<nav class="bento-jump journal-days" aria-label={`${group.label} days`}>
+			{group.items.map((item, d) => (
+				<a class="bento-chip" href={item.href}>{d + 1}</a>
+			))}
+		</nav>
+	</BentoShell>
+))}
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</div>
+
+<style is:global>{`
+	.journal-hub {
+		--bento-accent: #a78bfa;
+		--bento-accent-2: #f472b6;
+		--bento-btn-fg: #1e1035;
+	}
+	.journal-hub .journal-days .bento-chip {
+		min-width: 2.5rem;
+		justify-content: center;
+	}
+`}</style>

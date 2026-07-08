@@ -9,12 +9,52 @@ description: |
    May 14th - The Daily Journal
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 14,'
+    accent: every year.
+    lede: 'The May 14th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 13'
+          href: /journal/05-13/
+        - label: 'May 15 →'
+          href: /journal/05-15/
+    related:
+        - title: 'Previous · May 13'
+          copy: 'Step back a day to the May 13th log.'
+          href: /journal/05-13/
+          icon: calendar
+        - title: 'Next · May 15'
+          copy: 'Jump ahead to the May 15th log.'
+          href: /journal/05-15/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1612461313144-fc1676a1bf17?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### RedStone Minecraft Mechanics
 
@@ -24,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     These would then expand into our custom firecracker containers as well, allowing the player to execute some more advance level stone logic?
     I am still on the fence on how I want to do this exactly but I am laying down the ground work towards it.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### CICD Astro KBVE
 
@@ -92,8 +140,9 @@ import { Adsense } from '@/components/astropad';
     Once that is done, I will loop back and fix any of the issues with the new collections, aka journal and arcade.
     Finally, I will add the discord, contact, support and misc routes and then we can switch over to the new website!
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **GME**
 
@@ -116,3 +165,7 @@ Yet before I do that, I need to build a new component to help render the tailwin
 I am thinking of using this `html-react-parser` library to help render the example tailwindcss code.
 
 We had to add a syntax highlighter and decided to change the default code layout to be "shadesOfPurple", which looks great in both light and dark mode!
+
+</BentoProse>
+
+</BentoDoc>

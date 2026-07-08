@@ -9,11 +9,52 @@ description: |
   July 10th. NPC Engine Demo
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 10,'
+    accent: every year.
+    lede: 'The July 10th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 9'
+          href: /journal/07-09/
+        - label: 'Jul 11 →'
+          href: /journal/07-11/
+    related:
+        - title: 'Previous · Jul 9'
+          copy: 'Step back a day to the July 9th log.'
+          href: /journal/07-09/
+          icon: calendar
+        - title: 'Next · Jul 11'
+          copy: 'Jump ahead to the July 11th log.'
+          href: /journal/07-11/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1687731216321-8265eacdc6ca?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Astropad
 
@@ -35,8 +76,15 @@ import { Adsense } from '@/components/astropad';
 
     Zane, Bell, Fud and I have decided to start our journey into the first group quest, visiting the temple.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Chip**
 
@@ -51,17 +99,28 @@ In our current example, we went with a pixel-art stytle for the avatar but that 
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 5:40pm - The Astro core redesign is almost done, I plan to migrate away from the namespace concept and focus a bit more on refactoring the theme to take advantage of the named slots. Part of this update is to make sure it is easier to call important files and isolate the ones that would utilize the API. I am thinking of having two shell files, one being the generic one for guests and another for logged in users. 
 - 6:30pm - Okay going to try another method to solve this and maybe approach it a bit more Lego style and let the menus have slots, then pass the components that we would need through this.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Every problem has a gift for you in its hands.
 > — <cite>Richard Bach</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] - Backlog Issues
+
+</BentoProse>
+
+</BentoDoc>

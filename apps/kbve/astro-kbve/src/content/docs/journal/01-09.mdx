@@ -8,16 +8,52 @@ img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&c
 description: Daily Log for January 9th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 9,'
+    accent: every year.
+    lede: 'The January 9th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jan 8'
+          href: /journal/01-08/
+        - label: 'Jan 10 →'
+          href: /journal/01-10/
+    related:
+        - title: 'Previous · Jan 8'
+          copy: 'Step back a day to the January 8th log.'
+          href: /journal/01-08/
+          icon: calendar
+        - title: 'Next · Jan 10'
+          copy: 'Jump ahead to the January 10th log.'
+          href: /journal/01-10/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1703511606233-9c7537658701?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Supabase Login for Handy Fork
 
@@ -36,8 +72,15 @@ import { Adsense } from '@/components/astropad';
     This should make it easier to manage and keep the costs of operations localized, rather than having to deal with the cloud.
     Moving as much of this into a local machine is the goal!
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   **Helm**
 
@@ -79,8 +122,9 @@ import { Adsense } from '@/components/astropad';
 
     There were some 503 errors but we were able to get everything wired!
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
     -   3:03pm - `erust` library
         After test casing the `apps/rust_wasm_embed` , I want to move some of the `egui` functions into the `erust` library / packages / crate, so that I can use them in multiple applictions.
@@ -97,13 +141,21 @@ import { Adsense } from '@/components/astropad';
         `reqwest`, at version 0.11 and `image`.
         
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > “.”
 > — <cite></cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [x] -   No Tasks!
+
+</BentoProse>
+
+</BentoDoc>

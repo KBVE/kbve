@@ -9,12 +9,52 @@ description: |
    May 8th - The Daily Journal
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 8,'
+    accent: every year.
+    lede: 'The May 8th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 7'
+          href: /journal/05-07/
+        - label: 'May 9 →'
+          href: /journal/05-09/
+    related:
+        - title: 'Previous · May 7'
+          copy: 'Step back a day to the May 7th log.'
+          href: /journal/05-07/
+          icon: calendar
+        - title: 'Next · May 9'
+          copy: 'Jump ahead to the May 9th log.'
+          href: /journal/05-09/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Arcade Expansion
 
@@ -23,7 +63,15 @@ import { Adsense } from '@/components/astropad';
 	There are a bunch of old phaser/laser games that I want to port over to our arcade.
 	I am hoping that maybe we can also convert over some really basic games too.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Websockets KBVE
 
@@ -34,7 +82,9 @@ import { Adsense } from '@/components/astropad';
 	This way the binary data would be the same from both sides.
 	Since we already setup the comlinks, we can easily register the ws-worker and get the basics out of the way.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Resend**
 
@@ -170,7 +220,9 @@ Okay! Both packages are building, so I will go ahead and move those up a branch!
 
 We do need the `jedi` package to build and release, then go back and fix our sanitization function. 
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:30am - Dropping by the local Lenskart and asking my uncle to make two quick pair of aviator glasses for @sean and @ziggy9263. I have given this shop close to 20 pairs so far, I am definitely their customer of the month, may even become their customer of the year.  
 - 11:00am - Final visit the dentist to get some quick teeth cleaning! Through all of this, it seems that our dear friend, Fudster put me onto a quick quest. It is always interesting to be drugged up by a dentist and then open a bunch of unix terminals to setup a virtual machine. I enjoyed being in the dentist chair, half baked, typing away linux commands. If this was in the US, I am pretty sure the dentist would have violated several ethical boundaries for what I was doing haha.
@@ -179,14 +231,22 @@ We do need the `jedi` package to build and release, then go back and fix our san
 - 7:00pm - I think its time for me start researching into VCs/Venture again, just going to do some core / basic data gathering. I realized that I could add up to a million contacts onto the HubSpot CRM, so I am going to go through my older emails and reach out to some VC funds and build up an initial cold list. There are two main issues within the VC field that I am seeing, the first is the insane amount of capital going into machine learning / A.I-based startups and the second issue is that the rising interest rates is squeezing and limiting the general funds that they are willing to risk / invest. In addition to the rising rates, the recent bank collapses have also decreased the amount of risk that funds are willing to take.
 - 7:30pm - Going to start a developer environment with a new hybrid cloud setup. I was looking at some of the recent changes with vCluster and I think its right about the best time to do a couple edge test cases from scratch. There will be two phases for this, the first will be doing everything manually and keeping track of the scripts, configurations, ect.. and the second phase will be to use Ansible-Tower to automate the deployment of the whole setup. I do not expect any of this to be successful but I am down to see where I hit failure, last time it was with the storage.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Courage is what it takes to stand up and speak; courage is also what it takes to sit down and listen.
 > — <cite>Winston Churchill</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Finalize materials for the house.
 - [x] Migrate rupees from bank balance to fix deposits.
+
+</BentoProse>
+
+</BentoDoc>

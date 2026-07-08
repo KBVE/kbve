@@ -9,17 +9,52 @@ description: |
     12th of March
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 12,'
+    accent: every year.
+    lede: 'The March 12th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Mar 11'
+          href: /journal/03-11/
+        - label: 'Mar 13 →'
+          href: /journal/03-13/
+    related:
+        - title: 'Previous · Mar 11'
+          copy: 'Step back a day to the March 11th log.'
+          href: /journal/03-11/
+          icon: calendar
+        - title: 'Next · Mar 13'
+          copy: 'Jump ahead to the March 13th log.'
+          href: /journal/03-13/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1619597455322-4fbbd820250a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Kilobase v15.8.10
 
@@ -50,8 +85,15 @@ import { Adsense } from '@/components/astropad';
     While watching episode 2, I felt like the show was a perfect representation of questing in Silverpine!
     Wolf and all, it was a perfect representation of the zone, even the death of Fudster was a great representation.
 
-## 2024
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Git
 
@@ -69,3 +111,7 @@ Now back to the main setup and usage of Supabase!
 After working through all the specs, I decided that I will hold off on the Supabase integration once more.
 
 This time it is less of the postgres issues but I currently do not have enough resources to actually execute what I need, the revenue stream is not high enough to justify the amount that I would be burning on API calls.
+
+</BentoProse>
+
+</BentoDoc>

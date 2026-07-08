@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 26th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 26,'
+    accent: every year.
+    lede: 'The December 26th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Dec 25'
+          href: /journal/12-25/
+        - label: 'Dec 27 →'
+          href: /journal/12-27/
+    related:
+        - title: 'Previous · Dec 25'
+          copy: 'Step back a day to the December 25th log.'
+          href: /journal/12-25/
+          icon: calendar
+        - title: 'Next · Dec 27'
+          copy: 'Jump ahead to the December 27th log.'
+          href: /journal/12-27/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Github Hero Leaderboard
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Yeah there is no need for the react code, because we could just grab the json data from the API during the build process, then just bake it into the build.
     This way we get zero javascript overhead and could even hardcore some crazy css effects because we do not have to promise or await the data.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   09:30AM
 
@@ -47,3 +96,7 @@ import { Adsense, Tasks } from '@/components/astropad';
     We need the unity game also running, so lets go back around and make sure that rareicon game server is up and running.
     To get the gameserver up and running, we need to include the repo URL, which is `https://github.com/KBVE/kbve.git` and the branch is `dev`.
     Then enable self-healing and add the path, `/migrations/kube/charts/rareicon` and we should have the gameserver up and running for rareicon.
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?crop=entropy&c
 description: July 30th. Lore Lore Lore.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 30,'
+    accent: every year.
+    lede: 'The July 30th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 29'
+          href: /journal/07-29/
+        - label: 'Jul 31 →'
+          href: /journal/07-31/
+    related:
+        - title: 'Previous · Jul 29'
+          copy: 'Step back a day to the July 29th log.'
+          href: /journal/07-29/
+          icon: calendar
+        - title: 'Next · Jul 31'
+          copy: 'Jump ahead to the July 31st log.'
+          href: /journal/07-31/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### JamSkip Pirate 17
 
@@ -21,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     There are too many bungs and we are not too sure if AI programming was allowed for this jam, I should have asked the support over this before starting it.
     On top of all that, there is all the pirate drama, but that is just more publicity for game during the show-off.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Dialogue**
 The dialogue flow is almost ready to be on the production branch, with some minor tweaks left in the option branch.
@@ -47,8 +97,10 @@ I started to map out the action system that will trigger when certain dialogue o
 My initial concept for the action system would be to keep it simple and have it be an ULID to a factory or singleton that would execute upon clicking the action.
 It is still a bit tough to write it out without actually placing the concept into production.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 3:15pm - Currently looking at the structure for the account setup under KBVE.com repo. I believe the next move would be to just migrate the different concepts into their own MDX file. The reason we want to do this right now is because in the future, we can make it easier to add i18n into the core source. The migration of the `*.astro*` files into their own MDX file should be isolated into their own issue? This way we could maintain a structure for future developers that might want to see how I would go about it. 
 - 3:37pm - The initial files would be structured so that majority of the content would be inside of the MDX file, so that when we go about doing the translations, we have a central location for all the text. This means that if there are any errors messages, we would have the default aka English ones ready and then if there are any other languages that we would want to adapt, then those would be added on as their own MDX file. 
 - 4:20pm - We will start with a new layout astro, which is currently named the `account.astro` and from that standpoint, we will prepare for the astro v3 upgrade for this upcoming year. As I will state in the issue ticket, I am thinking of migrating all of the `.astro` components that are related to account management and officially moving them into the mdx file format. Afterwards, I want to then embed the different widgets that would be required for each action, a bit of a modular approach but it might be a bit over engineered for what we are doing at this current time, but it will make going into i18n a bit easier down the line in the future. I will start this test case by... hmm. Okay let me first make the `_account` folder, where I will store all the older code / astro files. After moving those, I would have to define the zod type for the account collection and then create the files that I would want to call? I will keep the types that I would want in zod to a bare minimum and then extend them out as I would like. 
@@ -56,13 +108,22 @@ It is still a bit tough to write it out without actually placing the concept int
 - 7:43pm - Quickly wrapping up the basic chores, now I am going to run a quick League match and review some of the updated libraries. 
 - 9:02pm - My Adventures of Superman, in the 5th episode of Season 1, Superman as Clark Kent, breaks a file cabinet then it just gets magically repaired. Why did I write this? Well there is no reason.
 - 9:05pm - I should start to refactor some of the really basic modules, hmm, I think the logout module aka react one, should be simplified. The next patch will be a bit bigger than I was thinking, a decent chunk to the general codebase, which I should have split into different pull requests, but for now I suppose it will be okay.
-## Quote
+
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > He has no enemies, but is intensely disliked by his friends.
 > — <cite>Oscar Wilde</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

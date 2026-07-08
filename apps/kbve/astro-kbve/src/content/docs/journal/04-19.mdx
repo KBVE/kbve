@@ -9,13 +9,52 @@ description: |
     Daily Log for April 19th of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 19,'
+    accent: every year.
+    lede: 'The April 19th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Apr 18'
+          href: /journal/04-18/
+        - label: 'Apr 20 →'
+          href: /journal/04-20/
+    related:
+        - title: 'Previous · Apr 18'
+          copy: 'Step back a day to the April 18th log.'
+          href: /journal/04-18/
+          icon: calendar
+        - title: 'Next · Apr 20'
+          copy: 'Jump ahead to the April 20th log.'
+          href: /journal/04-20/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1679597454485-d1d04f88b78a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Lottie Alpine
 
@@ -66,7 +105,15 @@ import { Adsense } from '@/components/astropad';
     On top of that, each of these refactors puts us back a step, thus making the movement forward more of a pain.
     BUT I would be lying if I did not enjoy the random challenges each step presents, the progress, learning and experience is worth years.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **GHA**
 
@@ -161,7 +208,9 @@ For some reason the pnpm lock is still becoming a pain point, maybe I need to lo
 
 Preparing everything to node v20 or node v21 might b
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 **India**
 
@@ -171,11 +220,15 @@ Preparing everything to node v20 or node v21 might b
 -   Integration of Portainer and Coolify still has some issues, including volume and network management. I will rise an issue after doing more R&D between both applications.
 -   Starting the AppWrite Register for Astro.
 
-## Notes
+</BentoProse>
+
+<BentoProse id="notes" heading="Notes">
 
 No notes to sync.
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [x] Upgrade Coolify to v3.12.31.
 -   [x] R&D for automated RAW image conversion.
@@ -186,7 +239,13 @@ No notes to sync.
 -   [x] Scope out local tailor for pants.
 -   [x] Ant Spray for the house in India.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Many men go fishing all of their lives without knowing that it is not fish they are after.
 > — <cite>Henry David Thoreau</cite>
+
+</BentoProse>
+
+</BentoDoc>

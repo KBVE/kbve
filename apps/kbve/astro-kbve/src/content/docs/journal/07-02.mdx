@@ -9,11 +9,52 @@ description: |
   July 2nd. FireWorks
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 2,'
+    accent: every year.
+    lede: 'The July 2nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 1'
+          href: /journal/07-01/
+        - label: 'Jul 3 →'
+          href: /journal/07-03/
+    related:
+        - title: 'Previous · Jul 1'
+          copy: 'Step back a day to the July 1st log.'
+          href: /journal/07-01/
+          icon: calendar
+        - title: 'Next · Jul 3'
+          copy: 'Jump ahead to the July 3rd log.'
+          href: /journal/07-03/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1504573801800-9699d9a43182?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### React Dashboard v2
 
@@ -22,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     Launching of KBVE Main Dashboard will be the main focus for the day.
     No other major notes, will have to loop back in the future for this.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Cough**
 
@@ -55,19 +104,29 @@ I just remembered that we will have to update the preline parts within the doc s
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 5:45pm - Going through all my monthly statements, just to make sure that everything will be paid off. I have to contact my insurance agent soon too, as I want to see if I can get a further discount on my car insurance. Usually I pay 6 months in advance, hopefully she can find me a better rate.
 - 5:50pm - Having some minor flowbite issues, I am thinking that I will add their react library and call the javascript that I need directly within the jsx file for the time being. I have it noted and I will go back and alter it when I get some time. This would be a hot fix but I need to get the basic login working within Unity. I also noticed that this login solution will not work for WebGL games, but in that situation, I will just use the ReactUnity to handle that. I am like not too far from just rebuilding a cyperpunk neopets lmao.
 - 9:00pm - I am thinking of cooking some ramen with spinach and egg! I am currently looking for recipes to work with. I am thinking of cooking the ramen and then add the layer of spinach near the end? Hmm, now there are a couple ways I could go about cooking this but I wanted to make sure I do not over cook the noodles or the eggs. I am a bit too lazy to weight out the spinach, so I am just going to throw all of it.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Argue for your limitations, and sure enough they're yours.
 > — <cite>Richard Bach</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

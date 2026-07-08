@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1722790892030-a4298d6df175?crop=entropy&c
 description: November 30th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 30,'
+    accent: every year.
+    lede: 'The November 30th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Nov 29'
+          href: /journal/11-29/
+        - label: 'Dec 1 →'
+          href: /journal/12-01/
+    related:
+        - title: 'Previous · Nov 29'
+          copy: 'Step back a day to the November 29th log.'
+          href: /journal/11-29/
+          icon: calendar
+        - title: 'Next · Dec 1'
+          copy: 'Jump ahead to the December 1st log.'
+          href: /journal/12-01/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1722790892030-a4298d6df175?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   04:04AM
 
@@ -73,3 +114,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     We are going to start building out the whole ai brain again but something that we can use just directly through the C# code.
     This way we can work on the ai brain without having to mess around directly with unity.
     Furthermore, this allows us to use this ai code in future projects as well.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

@@ -9,22 +9,72 @@ description: |
     4th of April
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 4,'
+    accent: every year.
+    lede: 'The April 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Apr 3'
+          href: /journal/04-03/
+        - label: 'Apr 5 →'
+          href: /journal/04-05/
+    related:
+        - title: 'Previous · Apr 3'
+          copy: 'Step back a day to the April 3rd log.'
+          href: /journal/04-03/
+          icon: calendar
+        - title: 'Next · Apr 5'
+          copy: 'Jump ahead to the April 5th log.'
+          href: /journal/04-05/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1603855873822-0931a843ee3a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
+<BentoProse id="notes" heading="Notes">
 
 Automation for the n8n is done! We are just going through the different endpoints to make sure that it works as planned.
 
+</BentoProse>
 
-## 2026
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2026" heading="2026">
 
 ### Single Draw Call Sprites on Bevy
 
 The main focus for the day was to get single draw calls out of the way for the bevy engine.
 
-## 2025
+</BentoProse>
+
+<BentoProse id="2025" heading="2025">
 
 ### Markets Post LibDay
 
@@ -46,7 +96,9 @@ The main focus for the day was to get single draw calls out of the way for the b
     After doing some additional research and we could use Askama instead?
     Another option would be to just move into the Disoxus but we still want to keep our astro-like website.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### KBVE
 
@@ -84,3 +136,7 @@ Here is the guide that we will be [following and using as a reference.](https://
 The new 404 page will be ready by this weekend but I do need to focus on the Discord App Pitch, which might delay a bunch of progress on the website.
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

@@ -10,17 +10,52 @@ description: |
     The drunktales of Daffy and Snappy!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 8,'
+    accent: every year.
+    lede: 'The March 8th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Mar 7'
+          href: /journal/03-07/
+        - label: 'Mar 9 →'
+          href: /journal/03-09/
+    related:
+        - title: 'Previous · Mar 7'
+          copy: 'Step back a day to the March 7th log.'
+          href: /journal/03-07/
+          icon: calendar
+        - title: 'Next · Mar 9'
+          copy: 'Jump ahead to the March 9th log.'
+          href: /journal/03-09/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1619597455322-4fbbd820250a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Ramen Soup
 
@@ -41,9 +76,15 @@ import { Adsense } from '@/components/astropad';
     It might just be too much power for my needs, I am very much going to return it and switch over to the mac book, damn buyers remorse already kicking in.
     There might be an excuse that I could come up with to keep it, I got 10 days to figure that out.
 
-## 2024
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
+<BentoProse id="2024" heading="2024">
 
 ### Phaser
 
@@ -72,3 +113,7 @@ It would be like a preluded DnD style game, this will help with character develo
 My bathroom walls are going down!
 House construction is always a pain, definitely when it comes to the kitchen and the bathroom, I never felt more like a slug than this week.
 I can smell the lack of water usage.
+
+</BentoProse>
+
+</BentoDoc>

@@ -9,14 +9,52 @@ description: |
     27th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 27,'
+    accent: every year.
+    lede: 'The March 27th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 26'
+          href: /journal/03-26/
+        - label: 'Mar 28 →'
+          href: /journal/03-28/
+    related:
+        - title: 'Previous · Mar 26'
+          copy: 'Step back a day to the March 26th log.'
+          href: /journal/03-26/
+          icon: calendar
+        - title: 'Next · Mar 28'
+          copy: 'Jump ahead to the March 28th log.'
+          href: /journal/03-28/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Unreal
 
@@ -25,7 +63,15 @@ import { Adsense } from '@/components/astropad';
   Another dev day for the unreal realm, yet I was not able to get as much as I had hoped accomplished.
   We still need to look at getting the auth system built out, but I am thinking that it might make sense to look at planning around the Rareicon execution.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Druid
 
@@ -44,8 +90,9 @@ import { Adsense } from '@/components/astropad';
     The vibe here is be a honda civic type flow, extremely fast but easy on the maintaince.
     A combination of a tesla model y and honda civic r, is the best way that I could summarize this experience.
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### iOS
 
@@ -67,3 +114,7 @@ I been debugging the whole `iOS` setup all day and its driving me crazy! I have 
 
 It seems that I was doing the `index.js` the wrong way!
 I am going to see if I can make it functional for the app as well, hmm maybe this bug is the reason why I was having the other bugs?
+
+</BentoProse>
+
+</BentoDoc>

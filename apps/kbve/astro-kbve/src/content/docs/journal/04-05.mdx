@@ -9,14 +9,52 @@ description: |
     5th of April. Godzilla has awaken.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 5,'
+    accent: every year.
+    lede: 'The April 5th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 4'
+          href: /journal/04-04/
+        - label: 'Apr 6 →'
+          href: /journal/04-06/
+    related:
+        - title: 'Previous · Apr 4'
+          copy: 'Step back a day to the April 4th log.'
+          href: /journal/04-04/
+          icon: calendar
+        - title: 'Next · Apr 6'
+          copy: 'Jump ahead to the April 6th log.'
+          href: /journal/04-06/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1603855873822-0931a843ee3a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Bevy Plugins
 
@@ -24,8 +62,15 @@ import { Adsense } from '@/components/astropad';
 
   These are just notes for my bevy plugin concepts, I am thinking that we dedicated a decent amount of the time towards building different plugins.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Disoxide
 
@@ -41,9 +86,9 @@ import { Adsense } from '@/components/astropad';
 
     Finishing up the Chipi animations?
 
+</BentoProse>
 
-## 2024
-
+<BentoProse id="2024" heading="2024">
 
 ### EarthQuake
 
@@ -68,3 +113,7 @@ The software has a decent amount of progress and provides an all-in-one solution
 We could address this concern by keeping the emails only for 72 hours and/or forwarding them over to our GMAILs, but this is all for a future date.
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

@@ -9,13 +9,52 @@ description: |
     Daily Log for April 22nd of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 22,'
+    accent: every year.
+    lede: 'The April 22nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Apr 21'
+          href: /journal/04-21/
+        - label: 'Apr 23 →'
+          href: /journal/04-23/
+    related:
+        - title: 'Previous · Apr 21'
+          copy: 'Step back a day to the April 21st log.'
+          href: /journal/04-21/
+          icon: calendar
+        - title: 'Next · Apr 23'
+          copy: 'Jump ahead to the April 23rd log.'
+          href: /journal/04-23/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1679939099475-384a2ff77e90?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Svelte 5
 
@@ -56,11 +95,21 @@ import { Adsense } from '@/components/astropad';
     The goal will be to hit the 100 performance metric across the board on the Google Pagefind.
     Wait, we could just run through the astro compress, which seems to be able to handle that for us, thus it be just the axum that we need to append.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 The journal entry for today will be a bit behind because I have to update the template that we are using!
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 **PAN**
 
@@ -78,16 +127,26 @@ The journal entry for today will be a bit behind because I have to update the te
 
 -   Following up on this story from @Fudster, [Colorado Accepts Crypto for State Taxes](https://abcnews.go.com/ABCNews/colorado-state-accept-cryptocurrency-payment-taxes/story?id=83066842) It is nice to see the organic growth of crypto from the gov. entity side. Accroding to their website, they accept crypto payments through `PayPal Cryptocurrencies Hub` and the official guidelines can be seen on their [payment portal](https://www.colorado.gov/revenueonline/_/#1).
 
-## Notes
+</BentoProse>
+
+<BentoProse id="notes" heading="Notes">
 
 Cleaning up the default journal entry format within the mdx.
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [x] Homepage 2024 Update
 -   [x] No major tasks left.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The most certain sign of wisdom is cheerfulness.
 > — <cite>Michel de Montaigne</cite>
+
+</BentoProse>
+
+</BentoDoc>

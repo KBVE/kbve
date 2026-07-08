@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&c
 description: October 11th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 11,'
+    accent: every year.
+    lede: 'The October 11th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 10'
+          href: /journal/10-10/
+        - label: 'Oct 12 →'
+          href: /journal/10-12/
+    related:
+        - title: 'Previous · Oct 10'
+          copy: 'Step back a day to the October 10th log.'
+          href: /journal/10-10/
+          icon: calendar
+        - title: 'Next · Oct 12'
+          copy: 'Jump ahead to the October 12th log.'
+          href: /journal/10-12/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693298661836-1206649639ef?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Adamantine Vein
 
@@ -36,7 +77,15 @@ import { Adsense, Tasks } from '@/components/astropad';
 
     About to start the unity session, going to get the R3 + mouse over resolved this session as the resources are being added into the game.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Animations**
 
@@ -69,3 +118,7 @@ During the table creation for the usercard, we were referencing the username tab
 The solution was to drop that column for username on the user card, then adjust the table creation by having the default fields be null and then finally adjusting the materialized view to use a join between the two tables.
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

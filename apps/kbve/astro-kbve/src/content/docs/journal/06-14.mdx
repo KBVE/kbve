@@ -9,11 +9,52 @@ description: |
   June 14th. More Github Actions.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 14,'
+    accent: every year.
+    lede: 'The June 14th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 13'
+          href: /journal/06-13/
+        - label: 'Jun 15 →'
+          href: /journal/06-15/
+    related:
+        - title: 'Previous · Jun 13'
+          copy: 'Step back a day to the June 13th log.'
+          href: /journal/06-13/
+          icon: calendar
+        - title: 'Next · Jun 15'
+          copy: 'Jump ahead to the June 15th log.'
+          href: /journal/06-15/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1559510981-10719ce4266a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Waffle
 
@@ -37,7 +78,15 @@ import { Adsense } from '@/components/astropad';
     Getting the whole register and login working again, still have not yet resolved it within the past couple months, should be the focus.
     Furthermore, we have to rewrite again the whole table structure for the profiles, thus making it another painful point that needs to be addresses.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Action Rant**
 
@@ -81,7 +130,9 @@ Khashvault will go directly into the javascript mdx within application, with an 
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 6:00am - Rise and Shine! Today will be an amazing day! I did not get as much sleep as I had hoped but I am feeling empowered and ready to tackle the world! 
 - 8:00am - Going to take a break from the internet for a while, time to touch some grass.
@@ -91,13 +142,21 @@ Khashvault will go directly into the javascript mdx within application, with an 
 - 6:40pm - Updated the OneJS and Heathen SteamWorks into the dev-holy branch, now I am going to chill out and play some sessions of League.
 - 9:30pm - Did a bit of cleaning, removed a decent amount of bulk waste from the shed, basement and the guest room. Now I back to the basic of Unity while I train up my OSRS account!
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > I cannot make my days longer, so I strive to make them better.
 > — <cite>Henry David Thoreau</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

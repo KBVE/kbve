@@ -9,13 +9,52 @@ description: |
    May 20th - The Daily Journal. VNC is my soul.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 20,'
+    accent: every year.
+    lede: 'The May 20th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 19'
+          href: /journal/05-19/
+        - label: 'May 21 →'
+          href: /journal/05-21/
+    related:
+        - title: 'Previous · May 19'
+          copy: 'Step back a day to the May 19th log.'
+          href: /journal/05-19/
+          icon: calendar
+        - title: 'Next · May 21'
+          copy: 'Jump ahead to the May 21st log.'
+          href: /journal/05-21/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1716112054546-3027ad687a62?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Post Earnings Nvidia Q1 2027.
 
@@ -24,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     No major surprise from the earnings, I will take my couple grand from the call options and move forward.
     I was really hoping that maybe the china trip recently would open up talks between the CCP and Nvidia, ideally getting some of the GPU flow back into action.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### KBVE Hero
 
@@ -50,7 +97,9 @@ import { Adsense } from '@/components/astropad';
     Emphasis on the face because the roll values and the dice face are not matching up, but that is usually a combination of euler and physics.
     This is just prep work before we implement the dice rolling in unity, tbh, which I feel like will be easier than this.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Python**
 
@@ -80,7 +129,9 @@ Just when I thought I was done with Uncle Sam, I am about to find out that I owe
 The worst is not having the right calculated cash flow set aside and then having to sell assets to cover the liability.
 Those sold assets will also trigger another tax cycle next year, its starting to get rough out here.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:00am - I am slowly getting back into the flow of the EST time zone! Today was a bit slower day as I had a couple personal issues to handle.
 
@@ -94,13 +145,21 @@ Those sold assets will also trigger another tax cycle next year, its starting to
 
 - 10:00pm - Updating to Astro v2.5.1 and a couple other packages as well for the main website. It looks like most of the updates will not impact our website and the local build was a success, so I will go ahead and push everything all the way up to main. While I am doing that, going to throw up some quick WoW and maybe a league match in a bit? Hmm.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > When you reach the end of your rope, tie a knot in it and hang on.
 > — <cite>Franklin D. Roosevelt</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] None Today! Chill day!
+
+</BentoProse>
+
+</BentoDoc>

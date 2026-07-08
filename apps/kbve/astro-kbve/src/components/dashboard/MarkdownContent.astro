@@ -7,11 +7,17 @@ import {
 	APPLICATION_ROOT,
 	buildApplicationBreadcrumb,
 } from './applicationNav';
+import {
+	JOURNAL_NAV,
+	JOURNAL_ROOT,
+	buildJournalBreadcrumb,
+} from './journalNav';
 
 const pathname = Astro.url.pathname;
 const isDashboard = pathname.startsWith('/dashboard');
 const isApplication =
 	pathname.startsWith('/application/') && pathname !== '/application/';
+const isJournal = pathname.startsWith('/journal/') && pathname !== '/journal/';
 
 const shell = isDashboard
 	? {
@@ -33,7 +39,17 @@ const shell = isDashboard
 				collapsible: true,
 				withToc: true,
 			}
-		: undefined;
+		: isJournal
+			? {
+					entries: JOURNAL_NAV,
+					root: JOURNAL_ROOT,
+					menuLabel: 'Journal days',
+					navLabel: 'Journal',
+					crumbs: buildJournalBreadcrumb(pathname),
+					collapsible: true,
+					withToc: true,
+				}
+			: undefined;
 
 const crumbs = shell?.crumbs ?? [];
 ---

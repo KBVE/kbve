@@ -20,11 +20,52 @@ tasks:
       - update
     assignee: 'Self'
   
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 17,'
+    accent: every year.
+    lede: 'The August 17th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 16'
+          href: /journal/08-16/
+        - label: 'Aug 18 →'
+          href: /journal/08-18/
+    related:
+        - title: 'Previous · Aug 16'
+          copy: 'Step back a day to the August 16th log.'
+          href: /journal/08-16/
+          icon: calendar
+        - title: 'Next · Aug 18'
+          copy: 'Jump ahead to the August 18th log.'
+          href: /journal/08-18/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1690320276492-08823be529d1?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Session - Supabase
 
@@ -33,7 +74,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     The goal for the day will be to get the Supabase integration to at least compile and not break the whole game.
     Ghost has been a great person to work with and I am looking forward to getting it all operational before the end of this month.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Monkey Pox**
 Just as we are preparing to go to Italy, there has been a rise in monkey pox cases and it would make sense to be a bit more prepared for it.
@@ -66,16 +115,17 @@ A great way to end a Saturday!
 I might not be able to get my warrior up to lvl 60 before we have to go to another nation but I will gladly get it to lvl 85 once I get back.
 A part of me can not wait for us to get really up there on the levels.
 
+</BentoProse>
 
+<BentoProse id="2023" heading="2023">
 
-
-
-## 2023
 - 5:45am - I had to get up early to fix up some of the issues with my roof's sun window? I am not too sure what they are called but there is a leak and honestly, the moment there is a roof leak, you know its going to be a problem down the line.
 
 - 10:11pm - I will have to come back and update today's journal entry after the hackathon because it seems to be causing Astro to crash a bit.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > It requires wisdom to understand wisdom: the music is nothing if the audience is deaf.
 > — <cite>Walter Lippmann</cite>
@@ -83,3 +133,7 @@ A part of me can not wait for us to get really up there on the levels.
 ---
 
 <Tasks tasks={frontmatter.tasks}  />
+
+</BentoProse>
+
+</BentoDoc>

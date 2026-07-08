@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693483923875-cdd9ef4a8046?crop=entropy&c
 description: September 18th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 18,'
+    accent: every year.
+    lede: 'The September 18th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Sep 17'
+          href: /journal/09-17/
+        - label: 'Sep 19 →'
+          href: /journal/09-19/
+    related:
+        - title: 'Previous · Sep 17'
+          copy: 'Step back a day to the September 17th log.'
+          href: /journal/09-17/
+          icon: calendar
+        - title: 'Next · Sep 19'
+          copy: 'Jump ahead to the September 19th log.'
+          href: /journal/09-19/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693483923875-cdd9ef4a8046?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 **Midnight**
 
@@ -150,19 +191,36 @@ This should help us with the
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2023" heading="2023">
+
 - 9:34am - Backups are working great! Yes! I am surprised how easy it has become with all these new reference points and documents out there, I am actually really content with how an area that is the least serve, has so many improvements xD.
 - 2:01pm - Re-organizing the KBVE.com repo so that it is a bit easier to use in the future, including the part where I would add in abstract functions. I think isolating the Appwrite functions as their own repo was a good initial idea but now I am thinking of combining them all into one and then seeing where we can go from there.
 - 3:47pm - Got most of the Appwrite functions resolved and now I am going to merge the functions into the KBVE.com repo, under the /public/ folder. The plan now will be to build out a bunch of different appwrite functions, then fine-tune train against them all so that we could have our own LLM build appwrite functions? This will be a wild project but I am all for it.
 - 7:32pm - There were some minor changes that I need to do with the repo but for now I am focused on getting the functions operational.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Meditation is the dissolution of thoughts in eternal awareness or Pure consciousness without objectification, knowing without thinking, merging finitude in infinity.
 > — <cite>Voltaire</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: November 8th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 8,'
+    accent: every year.
+    lede: 'The November 8th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Nov 7'
+          href: /journal/11-07/
+        - label: 'Nov 9 →'
+          href: /journal/11-09/
+    related:
+        - title: 'Previous · Nov 7'
+          copy: 'Step back a day to the November 7th log.'
+          href: /journal/11-07/
+          icon: calendar
+        - title: 'Next · Nov 9'
+          copy: 'Jump ahead to the November 9th log.'
+          href: /journal/11-09/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### StarYO Kube
 
@@ -27,7 +68,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     The whole session went great, we were able to resolve some of the FPS issues and now only some minor core jobs are left for us to resolve.
     I should not say that they are minor job fixes but basically we are making our own cache layer ontop of the ECS that unity provides.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   12:10PM
 
@@ -46,3 +95,7 @@ import { Adsense, Tasks } from '@/components/astropad';
     The map chunking is still broken and I am not too sure if I will be able to fix.
     Maybe instead of having the chunking done during the loading state, I might have to pre-chunk them ahead of time.
     Looking through the different examples, it seems that people use build tools to make a custom json chunkset of the map, which makes sense because javascript is not too powerful.
+
+</BentoProse>
+
+</BentoDoc>

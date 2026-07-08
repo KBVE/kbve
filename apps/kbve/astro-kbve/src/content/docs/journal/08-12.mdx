@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1689850969146-43cd8e188bbf?crop=entropy&c
 description: August 12th. MapDB.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 12,'
+    accent: every year.
+    lede: 'The August 12th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 11'
+          href: /journal/08-11/
+        - label: 'Aug 13 →'
+          href: /journal/08-13/
+    related:
+        - title: 'Previous · Aug 11'
+          copy: 'Step back a day to the August 11th log.'
+          href: /journal/08-11/
+          icon: calendar
+        - title: 'Next · Aug 13'
+          copy: 'Jump ahead to the August 13th log.'
+          href: /journal/08-13/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1689850969146-43cd8e188bbf?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### SupaJob
 
@@ -20,7 +62,15 @@ import { Adsense } from '@/components/astropad';
     Late night but worth the submission!
     I am hoping to get a job as a growth engineer or maybe in their AI field.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Rust Async**
 During the test casing for the memory usage, we were able to solve a decent amount of the bugs and get better performance!
@@ -90,8 +140,10 @@ The next library that we will be adding to the monorepo will be for a dedicated 
 
 <Adsense />
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 12:31am - I spent most of the day setting up and understanding the core concepts of Supabase! The holy trinity is almost ready to be pushed out to the masses, I suppose the next step will be to test case a couple different instances, including the mobile platform. 
 - 1:27am - Played a quick match as Shaco support before he gets that long awaited nerf. Okay we know that the session does not preflight, thus we might not need the cache at the general `getProfile`, I suppose we could rename that function to `getUser` and rename `pullProfile` to the `getProfile`. I was under the impression that the session would query against the Supabase but it does not and utilizes the JWT to get the information, which is what we want it to do anyway. 
 - 7:56am - Going through some of the current active tickets and trying to tackle a couple minor problems here and there. I want to reduce the amount of tickets that we have active from the `40` to a mid `20` range by the end of this month!
@@ -102,13 +154,21 @@ The next library that we will be adding to the monorepo will be for a dedicated 
 - 1:34pm - Time to figure out my first new character for the Gate 3, I am definitely going to go Rogue and most likely have to make a shaco-style character. This would be a great side tool in the future, one that would help people make DnD character names or even a collection of DnD style tools, this was mention before by a couple other people too! These tools should definitely be on my list of things that we must have on KBVE!
 - 11:00pm - Wrapping up the whole Gate 3 session, I definitely enjoyed and it was exactly like the meme session that I wanted to play.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > All our dreams can come true, if we have the courage to pursue them.
 > — <cite>Walt Disney</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

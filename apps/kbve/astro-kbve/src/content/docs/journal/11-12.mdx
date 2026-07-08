@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1729691692870-a957012d616a?crop=entropy&c
 description: November 12th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 12,'
+    accent: every year.
+    lede: 'The November 12th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Nov 11'
+          href: /journal/11-11/
+        - label: 'Nov 13 →'
+          href: /journal/11-13/
+    related:
+        - title: 'Previous · Nov 11'
+          copy: 'Step back a day to the November 11th log.'
+          href: /journal/11-11/
+          icon: calendar
+        - title: 'Next · Nov 13'
+          copy: 'Jump ahead to the November 13th log.'
+          href: /journal/11-13/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1729691692870-a957012d616a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   05:15AM
 
@@ -60,3 +101,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     
 
 <Adsense />
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

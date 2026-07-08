@@ -9,10 +9,52 @@ description: |
   July 14th. Dialogue System.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 14,'
+    accent: every year.
+    lede: 'The July 14th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 13'
+          href: /journal/07-13/
+        - label: 'Jul 15 →'
+          href: /journal/07-15/
+    related:
+        - title: 'Previous · Jul 13'
+          copy: 'Step back a day to the July 13th log.'
+          href: /journal/07-13/
+          icon: calendar
+        - title: 'Next · Jul 15'
+          copy: 'Jump ahead to the July 15th log.'
+          href: /journal/07-15/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1686672605288-f83df6f815f7?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### TSLA Puts
 
@@ -34,8 +76,15 @@ import { Adsense } from '@/components/astropad';
 
     Moving the user profiles into a bento grid that will utilize the react window and a bit better caching of the modal.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Zod**
 
@@ -89,20 +138,28 @@ So a cute and easy to draw spirit that will appear throughout the background sce
 The next step for the dialogue system will be to render the visual novel style but also include a way to add some color to the text when going through the typewriter effect.
 We also might want to play a sound when the character is typing out, similar to the Animal Crossing effect?
 
+</BentoProse>
 
+<BentoProse id="2023" heading="2023">
 
-
-## 2023
 - 6:00am - React Native time. I am going to try and build out an application as fast as I can? There will be a mixture of me learning how different template engines work and how to use the different routing styles.
 - 8:00am - I need to rewrite the notes from this date back into this journal entry for reference. `FLAG`
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Imagination rules the world.
 > — <cite>Napoleon</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Study React Native
+
+</BentoProse>
+
+</BentoDoc>

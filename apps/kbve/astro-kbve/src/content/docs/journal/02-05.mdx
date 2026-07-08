@@ -8,13 +8,52 @@ img: https://images.unsplash.com/photo-1738571574302-3312deda0aa3?crop=entropy&c
 description: Daily Log for February 5th for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 5,'
+    accent: every year.
+    lede: 'The February 5th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 4'
+          href: /journal/02-04/
+        - label: 'Feb 6 →'
+          href: /journal/02-06/
+    related:
+        - title: 'Previous · Feb 4'
+          copy: 'Step back a day to the February 4th log.'
+          href: /journal/02-04/
+          icon: calendar
+        - title: 'Next · Feb 6'
+          copy: 'Jump ahead to the February 6th log.'
+          href: /journal/02-06/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1738571574302-3312deda0aa3?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Markets
 
@@ -184,3 +223,13 @@ Slowly we will shift the couple routes that we have, register, login, ect... to 
 There was the idea of also including the a channel system using crossbeam, but I will hold off on pushing through that update until I get some of the unity SOA out of the way.
 
 Okay! the new validator builder would come from the `jedi` crate, which means I would have to include that crate inside of the `rust_api_profile`, 
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

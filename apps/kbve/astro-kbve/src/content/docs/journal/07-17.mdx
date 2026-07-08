@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1689071594539-a273ffe8dfed7?crop=entropy&
 description: July 17th. Dialogue System.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 17,'
+    accent: every year.
+    lede: 'The July 17th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 16'
+          href: /journal/07-16/
+        - label: 'Jul 18 →'
+          href: /journal/07-18/
+    related:
+        - title: 'Previous · Jul 16'
+          copy: 'Step back a day to the July 16th log.'
+          href: /journal/07-16/
+          icon: calendar
+        - title: 'Next · Jul 18'
+          copy: 'Jump ahead to the July 18th log.'
+          href: /journal/07-18/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1689071594539-a273ffe8dfed7?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Depot Carpet
 
@@ -30,7 +72,15 @@ import { Adsense } from '@/components/astropad';
     Everything that I try to make looks exactly the same and extremely dull.
     Even as a child, I was never into the color schemes or even enjoyed any part of painting, all my artwork was in a greyscale tone.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **State**
 I had some really bad state management with the dialogue system that set me back a day but I am moving forward with the dialogue system.
@@ -54,19 +104,30 @@ I was hoping the card style might be more towards a grander scheme, like town or
 Finally, we could introduce the bullet hell concept when it comes to bosss or major fights?
 The best way to move forward with this would be to create all three possible core scenes and then slowly build and abstract away from there.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 6:09am - It is an amazing Monday morning! The sweet and musky smell of the rain gives off a civil war-ish style vibe.
 - 6:57am - I spent a bit too much time trying to get basic powershell scripts to work for RentEarth. I created two currently as `native.ps1` and `web.ps1`, one that runs expo for the mobile emulation and the other that runs the general webserver for the nextjs. 
 - 10:37am - Migrating the state from React's state to the Nanostores state. i.e `() => tasker(status$, 'submitting')` while utilizing the tasker system. The idea would be to migrate a decent chunk of the state management / notification / variable system into the nano library. This will help improve performance and move some of the complex actions out of the main workflow. There could be a couple new issues that this might introduce, but for the most part, I think we should be able to manage them.
 - 11:42am - Going through the Unity build setup so that it works on the Unity Devops. One of the issues to note would be that scenes might be referenced through their index number rather than a string. To resolve that issue, in the ASync loading of the scenes, it only accepts the string of the scene, however we have not yet migrated to that setup. There are some external notes for Unitask / Vcontainers that we could reference.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > I can't imagine a person becoming a success who doesn't give this game of life everything he's got.
 > — <cite>Walter Cronkite</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

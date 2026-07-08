@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1688764896020-c448693ec24e?crop=entropy&c
 description: August 8th. Portainer.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 8,'
+    accent: every year.
+    lede: 'The August 8th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 7'
+          href: /journal/08-07/
+        - label: 'Aug 9 →'
+          href: /journal/08-09/
+    related:
+        - title: 'Previous · Aug 7'
+          copy: 'Step back a day to the August 7th log.'
+          href: /journal/08-07/
+          icon: calendar
+        - title: 'Next · Aug 9'
+          copy: 'Jump ahead to the August 9th log.'
+          href: /journal/08-09/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1688764896020-c448693ec24e?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Ingress Disoxide
 
@@ -22,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     The cluster finally got the external secrets operator, which was something that we needed in our previous RKE2 instance!
     There are two or three more operators that I want to add int our cluster, but that will come at a later date.    
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Portainer**
 The traefik stack needs to be updated because of a pathing issue.
@@ -74,7 +124,9 @@ Downloading and setting up the editor for the tilemap system.
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 7:30am - There are a couple issues that the RSPS project is facing, one of them would be the general management, which I know could be resolved with creating a custom docker image with NodePy as the base. We know that the python scripts can perform fairly well for general tasks but the deployment and overall management still has to be worked out. Ideally I should look into isolating the modules, such that, they are not specific to any project. I.e NodePy should have its own control panel and the custom python scripts that we use would be just drop in replacements. 
 - 8:44am - Going through my emails and I am content with the automated labeling and migration. My total inbox is currently sitting at 68 emails, a couple of the emails did not get filtered through or labeled but one of my n8n workflows was able to unsubscribe from a couple random newsletters.
@@ -89,13 +141,21 @@ Downloading and setting up the editor for the tilemap system.
 
 ---
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > He who angers you conquers you.
 > — <cite>Elizabeth Kenny</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] - Review the Email Automation Software.
+
+</BentoProse>
+
+</BentoDoc>

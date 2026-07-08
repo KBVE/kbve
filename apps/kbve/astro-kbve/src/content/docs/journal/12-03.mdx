@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1660855551646-05998824038a?crop=entropy&c
 description: Decemeber 3rd.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 3,'
+    accent: every year.
+    lede: 'The December 3rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Dec 2'
+          href: /journal/12-02/
+        - label: 'Dec 4 →'
+          href: /journal/12-04/
+    related:
+        - title: 'Previous · Dec 2'
+          copy: 'Step back a day to the December 2nd log.'
+          href: /journal/12-02/
+          icon: calendar
+        - title: 'Next · Dec 4'
+          copy: 'Jump ahead to the December 4th log.'
+          href: /journal/12-04/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1660855551646-05998824038a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   04:26AM
 
@@ -56,3 +97,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     Preparing the deployment, okay we were able to get the helm chart deployed but there was some issues with the runelite plugin that we created.
     I forgot to update the java code to the new websocket location and furthermore, the other sideeffect is that the plugin automatically starts, so we can not update the websocket uri directly.
     Okay! Now that we get the image built again, I will have to go back and update the sha256.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

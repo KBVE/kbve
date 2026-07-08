@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1691178879907-f6f1ff57de2e?crop=entropy&c
 description: August 7th. Memory Allocation.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 7,'
+    accent: every year.
+    lede: 'The August 7th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 6'
+          href: /journal/08-06/
+        - label: 'Aug 8 →'
+          href: /journal/08-08/
+    related:
+        - title: 'Previous · Aug 6'
+          copy: 'Step back a day to the August 6th log.'
+          href: /journal/08-06/
+          icon: calendar
+        - title: 'Next · Aug 8'
+          copy: 'Jump ahead to the August 8th log.'
+          href: /journal/08-08/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1691178879907-f6f1ff57de2e?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Disoxide EventBus
 
@@ -22,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     The purpose of the event bus is to just handle all the possible events that could occur via the UI/Realtime and different workers.
     Also the menu still needs a bit of work, even though its off canvas, we can definitely improve the original dom and virtual dom.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Nvidia**
 Making an educated bet that Nvidia will rise above $109 before the end of this year.
@@ -88,7 +138,10 @@ We are operating with a node version that is not v20 and its throwing some error
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 4:20pm - Time for some of the classics League memes! 
 - 4:51pm - After a couple quick sessions of the H, going to switch back to general programming and chilling. It will be a slow week this month, but I am a bit glad that it is because sometimes the extra stress is just not worth it. I been trying to find creative ways to break through those complacent loops, that might also be an interesting app concept for the future. Oh going to clean up some of the branches on the repo as well, now let us think about the general task for the day.
 - 5:02pm - We could migrate the structure for the `{content}` folder so that there is a bit of isolation among the different documentation, which would make it easier to implement future tools to help build out the eco-system. One of the concepts I was thinking of was to expand the folder options and letting n8n create new md files without alternating the main `mdx` files. I am writing this idea out as it has been in my head for a bit , yet it would make sense to include it as it could expand the library a bit more and also make it easier to introduce unique tooling examples. The test case that I wanted to introduce was having an `ai` model that would gather information and then store it as its own entity file, then have someone review and parse through it before migrating it over to the documentation. This would mean that the future `ai` tools would not directly produce the content but rather help with the research and data mining. This would mean that the final documentation still has a researcher or human entity element to it and avoid some of the hallucinations that we would run into.  
@@ -98,13 +151,21 @@ We are operating with a node version that is not v20 and its throwing some error
 - 7:30pm - Need to double check my current credit card balances and make sure that all my money is on point for this month, it feels so weird that we are already a week past the month. 
 - 12:00am - Okay it might be the 8th, so I will move these notes over to the next day. But I was able to figure out what would be the best way to handle this situation with the glob and make sure that it would work moving forward. Part of this example will be to keep the `Shell.astro` but add a new `MDX.astro` file to work with! I believe that it should resolve that problem that I was having with Astro globs earlier. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Let the beauty of what you love be what you do.
 > — <cite>Rumi</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Cover Widget + Astro Concept
+
+</BentoProse>
+
+</BentoDoc>

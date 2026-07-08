@@ -9,12 +9,52 @@ description: |
     May da 4th be with you!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 4,'
+    accent: every year.
+    lede: 'The May 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 3'
+          href: /journal/05-03/
+        - label: 'May 5 →'
+          href: /journal/05-05/
+    related:
+        - title: 'Previous · May 3'
+          copy: 'Step back a day to the May 3rd log.'
+          href: /journal/05-03/
+          icon: calendar
+        - title: 'Next · May 5'
+          copy: 'Jump ahead to the May 5th log.'
+          href: /journal/05-05/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1520358889634-04b1a67b3f0c?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### RareIcon Heal Swarming
 
@@ -40,8 +80,15 @@ import { Adsense } from '@/components/astropad';
 	Preparing the minecraft and discord bridge, later on we can look at irc and discord bridge too.
 	I am thinking that since it might be super popular, compared to our other games, we should keep them split up.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Pipeline JSON
 
@@ -50,7 +97,9 @@ import { Adsense } from '@/components/astropad';
 	Getting the JSON data out of the pipeline will be interesting because we already have it as a Bytes format.
 	So what we would want to do is convert the bytes to a Json str.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Dashboard**
 
@@ -141,7 +190,9 @@ This was the esbuild for the nodegraph but there were too many errors to deal wi
 
 Its official ESBuild and dynamically loading this graph is a huge pain, I will just move on.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 12:00pm - Review the notes on the iOS / Flutter. I will have to transfer them over to this knowledge bank later this week. There are two core pillars that I have to make sure that I get right for deploying future iOS applications. The first will be getting flutter to actually build and sign the application, so for that I will run `flutter doctor -v` and see what it requires for the iOS / iPhone build. It seems that I will need xCode and CocaPods, it was pretty straight forward for getting the xCode, as I was able to grab it from app store.
 
@@ -151,13 +202,21 @@ Its official ESBuild and dynamically loading this graph is a huge pain, I will j
 
 - 3:00pm - Going to prepare to pack up my luggage! It seems that my grandparents have some older suitcases, so I am thinking of letting them have mine, while I go grab some new ones. I am going to travel to either the `CromAs` or `InOrbit` mall and pickup two new suitcases. The total cost was around 15000 Rupees and they were pretty solid hardshell cases, they look and feel like a CSGO crate haha.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > If you want your life to be more rewarding, you have to change the way you think.
 > — <cite>Oprah Winfrey</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Install and update xCode / CocoPods.
+
+</BentoProse>
+
+</BentoDoc>

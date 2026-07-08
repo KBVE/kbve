@@ -9,13 +9,52 @@ description: |
    May 30th. The Rimmy John of the World!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 30,'
+    accent: every year.
+    lede: 'The May 30th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← May 29'
+          href: /journal/05-29/
+        - label: 'May 31 →'
+          href: /journal/05-31/
+    related:
+        - title: 'Previous · May 29'
+          copy: 'Step back a day to the May 29th log.'
+          href: /journal/05-29/
+          icon: calendar
+        - title: 'Next · May 31'
+          copy: 'Jump ahead to the May 31st log.'
+          href: /journal/05-31/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1624221023334-16e25184b8b0?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Item 31 - Fish Taco
 
@@ -63,27 +102,44 @@ import { Adsense } from '@/components/astropad';
     In a situation where an additional character loads in or a friend joins a lobby, we need to handle that event and make sure there is no de-sync.
     Thus, we need to include an additional helper.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 Taking a quick break from Programming and just melting my mind in that sweet sweet baby rays of RM!
 
 Updated journal comes later on.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:00am - Going to see if I can sell a couple cover calls and covered puts on a collection of stocks. I am looking to see if I can get into another position on $NVDA , I am looking at $380 puts this week. Furthermore, maybe enter $TSLA at under $190 and $SPY again for under $420.
 - 11:00am - Restructuring the AI cloud functions so that we can encapsulate it all into microservices. We are currently running about 3-5 different instances within KBVE but we could abstract out another 10-20 more 3rd party instances, that are then wrapped inside of the KBVE cloud functions. 
 - 3:00pm - Woke up from a nap, going to go install a backup camera onto two of the older cars in my family's fleet. The total install cost for two 7 inch backup cameras comes in at around $400 each, I am trying to see if I can get it down to $700 or maybe work out another deal with the guy.
 - 5:00pm - The shadow magic conch shell is looking better and better! I should throw up a test case for people to see under the official url of [conch](https://kbve.com/tools/conch/). I hope everyone enjoys the absolute memes that this tool will become.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Friendship, like the immortality of the soul, is too good to be believed.
 > — <cite>Ralph Waldo Emerson</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

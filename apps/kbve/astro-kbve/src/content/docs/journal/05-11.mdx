@@ -9,13 +9,52 @@ description: |
    May 11th - The Daily Journal
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 11,'
+    accent: every year.
+    lede: 'The May 11th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 10'
+          href: /journal/05-10/
+        - label: 'May 12 →'
+          href: /journal/05-12/
+    related:
+        - title: 'Previous · May 10'
+          copy: 'Step back a day to the May 10th log.'
+          href: /journal/05-10/
+          icon: calendar
+        - title: 'Next · May 12'
+          copy: 'Jump ahead to the May 12th log.'
+          href: /journal/05-12/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1682553064442-272b63b5a541?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### IRC Chat Upgrades
 
@@ -33,7 +72,15 @@ import { Adsense } from '@/components/astropad';
     Bringing back some of the classics, I might have added ruffle like three times now to the site.
     Robot unicorn attack and maybe some other classic flash games, we definitely should look into that.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity MM Items
 
@@ -75,8 +122,9 @@ import { Adsense } from '@/components/astropad';
     So we are getting an output from the build but its just exiting way too early and I need to figure out why!
     The dist folder is empty for kbve.com but not for discord.sh, so something is going wrong.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **Music**
 
@@ -114,3 +162,7 @@ I should have a vote system or feedback? At least to help remove any songs that 
 
 **Cypress**
 Preparing the error testing and making sure that the tests will work.
+
+</BentoProse>
+
+</BentoDoc>

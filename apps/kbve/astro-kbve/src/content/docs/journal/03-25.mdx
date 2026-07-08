@@ -9,23 +9,67 @@ description: |
     25th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 25,'
+    accent: every year.
+    lede: 'The March 25th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 24'
+          href: /journal/03-24/
+        - label: 'Mar 26 →'
+          href: /journal/03-26/
+    related:
+        - title: 'Previous · Mar 24'
+          copy: 'Step back a day to the March 24th log.'
+          href: /journal/03-24/
+          icon: calendar
+        - title: 'Next · Mar 26'
+          copy: 'Jump ahead to the March 26th log.'
+          href: /journal/03-26/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Blueprint Blueballs
 
   - 11:00PM
     - I am getting too old!
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Yemen War Leaks
 
@@ -43,8 +87,9 @@ import { Adsense } from '@/components/astropad';
     Having the co pilot try to autofill this journal entry... makes it even worse xD.
     All of this should be a future quest in RentEarth.
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### Actions
 
@@ -128,3 +173,7 @@ Okay now we have to work out the build phase, which is below:
                     rsync_option: "-avrh --delete"
 
     ```
+
+</BentoProse>
+
+</BentoDoc>

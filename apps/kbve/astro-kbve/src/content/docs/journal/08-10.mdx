@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1688764896020-c448693ec24e?crop=entropy&c
 description: August 10th. MapDB Zod
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 10,'
+    accent: every year.
+    lede: 'The August 10th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 9'
+          href: /journal/08-09/
+        - label: 'Aug 11 →'
+          href: /journal/08-11/
+    related:
+        - title: 'Previous · Aug 9'
+          copy: 'Step back a day to the August 9th log.'
+          href: /journal/08-09/
+          icon: calendar
+        - title: 'Next · Aug 11'
+          copy: 'Jump ahead to the August 11th log.'
+          href: /journal/08-11/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1688764896020-c448693ec24e?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Session
 
@@ -22,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     Granted we are making an offline / single player game, I just wanted to make sure that we had the multiplayer connection ready so that as we build around the single player, we can extend it.
     
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Capital Cloud City**
 The name might be better as Cloud Capital City? or Capital City of Clouds?
@@ -67,7 +117,10 @@ Updated
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 4:30am - The premarket is looking rough but I am going to get ready this early morning to do some general checks around the house .
 - 5:15am - I need to look over my current workout, my body is not getting sore and I think that is because my workouts are too isolated and are not yet pushing it to the limits. I should add on more reps and maybe go till failure more often.
 - 6:05am - Morning trip to get some breakfast! Today will be a great day, the air is filled with peaceful vibes.
@@ -79,13 +132,21 @@ Updated
 
 ---
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > You have to believe in yourself.
 > — <cite>Sun Tzu</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

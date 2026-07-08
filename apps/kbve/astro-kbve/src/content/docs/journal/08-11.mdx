@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1689509293411-b199bdbf96fb?crop=entropy&c
 description: August 11th. Map DB Integration.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 11,'
+    accent: every year.
+    lede: 'The August 11th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 10'
+          href: /journal/08-10/
+        - label: 'Aug 12 →'
+          href: /journal/08-12/
+    related:
+        - title: 'Previous · Aug 10'
+          copy: 'Step back a day to the August 10th log.'
+          href: /journal/08-10/
+          icon: calendar
+        - title: 'Next · Aug 12'
+          copy: 'Jump ahead to the August 12th log.'
+          href: /journal/08-12/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1689509293411-b199bdbf96fb?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### AC Project
 
@@ -21,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     I been thinking about this for a while, the goal would be to get a near bot based server where the NPCs and PlayerBots would be super active within the world.
     There have been some hic-ups related to this project but with our cluster now being operational, it would make sense that we look into launching this.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Atlas CT**
 Next bug to handle is the loading of the `https://cryptothrone.com` within the atlas project.
@@ -72,8 +122,10 @@ The function of `loadMap` should be in the `mapdatabase.ts` to help us quickly l
 The next update to the `devops` package should be ready to be released and deployed within the next couple of hours.
 I am going to finish up the base of the map loading and then work around the map issue.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 4:50am - FRIDAY! FRIDAY! It is ducking Friday. This will be an interesting morning as I have to test case the migration of `Supabase`, but honestly it has not been too rough. Svelte has been an interesting route to take because it will be another new framework for me to test out. 
 - 6:00am - My sleep schedule has been a bit offsetting lately, I am getting these random urges of just getting to the AI area of the project! I know that I need to catch up to the rest of the team, but at the same time, I have a rather interesting way of approaching the problem. I call it the hackers take, where I need to break the software down and guess and check until I get what I want. The downside of this method means that I have to go through a couple rounds of getting beat up and silly mistakes, BUT it will be worth it in the long run, I know of it. 
 - 8:30am - I forgot that I was assigned on one of my TSLA puts, I am glad to have those shares added into my account but the cost basis was a bit too high for my taste. I will roll these shares at the same price point that I was assigned, hopefully I can get rid of them at a decent price.
@@ -83,13 +135,21 @@ I am going to finish up the base of the map loading and then work around the map
 - 7:42pm - Svelte hCaptcha seems to be resolved, I was able to figure out how to load external javascript files and then interact with them using svelte. I can see where Astro really shines, the fact that I can easily integrate among different javascript libraries is brilliant and make things far more interesting! We will see the true scale of how far we can push the boundaries when I start to integrate 3D modeling into the front-end base. We did this earlier with the Unity Webgl but I want to take things further, mainly to see how far I can improve my front end experience. 
 - 9:00pm - I am going to wrap this day's journal up from here and start working on tomorrows journal. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Nothing is softer or more flexible than water, yet nothing can resist it.
 > — <cite>Laozi</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Integrate Supabase into the final tri-force.
+
+</BentoProse>
+
+</BentoDoc>

@@ -9,13 +9,52 @@ description: |
    May 23rd - 2 to the 3.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 23,'
+    accent: every year.
+    lede: 'The May 23rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← May 22'
+          href: /journal/05-22/
+        - label: 'May 24 →'
+          href: /journal/05-24/
+    related:
+        - title: 'Previous · May 22'
+          copy: 'Step back a day to the May 22nd log.'
+          href: /journal/05-22/
+          icon: calendar
+        - title: 'Next · May 24'
+          copy: 'Jump ahead to the May 24th log.'
+          href: /journal/05-24/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1684489453381-0547f9137387?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Astro KBVE Build Preview
 
@@ -50,7 +89,15 @@ import { Adsense } from '@/components/astropad';
     The ItemDB will just be the `/itemdb/` + `$name` and we can just build it like that, making it easier to reference.
     Now how we build the zod for the itemdb will still be an issue that I need to resolve, ugh.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **SCAR**
 
@@ -75,21 +122,31 @@ Let me update the SVGs on the front page of KBVE, replacing the random company l
 The five svgs for the front page will be a direct link to our notes.
 Furthermore, we will be removing that featured image for now until we have something worth wild to place there.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 6:00am - I got the notification of the $SPY assignment, so besides getting ready for the market, I need to do some quick workouts. I might take a nap because I am tired doe!
 - 9:00am - City vote does need a new website, layout and a general sense of direction. The best move to make would be to get the initial foundation and business plan laid out. The scope of the plan should include the basic cashflow, growth and purpose of the website.
 - 11:00am - Rebuilt my scan setup, with the files being automatically stored into Google Drive. One of the other areas that I was looking into was setting OCR, so that every file that I scan would automatically generate a document with OCR. The problem that I was facing right now was getting it to perform a bit better? It would have some issues with characters, even though they were printed? This means either the OCR software is a bit outdated or maybe I need to create an All in One / AiO type setup. I think after I finish up the Cityvote and have a bit more time on my hands, I will have that be my next project, an open source OCR software that uses multiple libraries and some machine learning to get the based position markdown output from any document and/or image. 
 - 3:00pm - I will be looking through, reading and learning how to build async constructors in JavaScript for most of the night. Boring!
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > There is a wisdom of the head, and a wisdom of the heart.
 > — <cite>Charles Dickens</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Help family member with Medicare.
 - [x] Lawn care.
+
+</BentoProse>
+
+</BentoDoc>

@@ -9,11 +9,52 @@ description: |
   June 16th. Vite.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 16,'
+    accent: every year.
+    lede: 'The June 16th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jun 15'
+          href: /journal/06-15/
+        - label: 'Jun 17 →'
+          href: /journal/06-17/
+    related:
+        - title: 'Previous · Jun 15'
+          copy: 'Step back a day to the June 15th log.'
+          href: /journal/06-15/
+          icon: calendar
+        - title: 'Next · Jun 17'
+          copy: 'Jump ahead to the June 17th log.'
+          href: /journal/06-17/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2026
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2026" heading="2026">
 
 ### ValKey Timeouts
 
@@ -31,8 +72,15 @@ import { Adsense } from '@/components/astropad';
     I will have to find a way to render the way that they look, hmm that will be an adventure itself.
     The NPCDB is definitely lack luster and needs work.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Supabase Message System
 
@@ -57,8 +105,9 @@ import { Adsense } from '@/components/astropad';
     We can focus on getting the base credits rolling through maybe social media style rewards but ehh, there might be some other ways we can do it.
     I might have to sleep through it and maybe it will come to me later on.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **Arena**
 
@@ -127,7 +176,9 @@ During the migration, we had two plugins give some rough errors, that is our rus
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:00am - Need to change my sheets again, damn weather is wild. In the summer heat, I am thinking every week the sheets might have to be changed.
 - 10:00am - I might be assigned on a couple call options for TSLA again this week! I will have to be very careful and maybe roll them out for another week, the premium of a couple hundred will be helpful to offset the RogueJester costs.
@@ -135,15 +186,23 @@ During the migration, we had two plugins give some rough errors, that is our rus
 - 5:00pm - Grabbed a quick burger with @Mrock and we went over the GoPro equipment for a future session / podcast? This is still something that is in the works, but I am thinking we could some random events / stream some meme-style content and see where it goes from there? For the burger, we went to a local joint known as 30 Burgers! I went with my usual 12, which is a bacon & egg burger and he had gotten the 7. We would say they were a solid 7 out of 10, there could have been some improvements, the burger size was just a bit too small from my point of view.
 - 11:00pm - The basics of the webmaster tool is ready for a quick test casing, however I was unable to get the storage (`nanostores`) to work as intended. One of the concepts that I was thinking was to store the domains inside of the local storage and then call it via tasks.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The first step to getting the things you want out of life is this: decide what you want.
 > — <cite>Ben Stein</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Launch initial webmaster tool onto the main KBVE website.
 - [x] Begin migration towards the vCluster within the production-2 dedicated server.
 - [x] Grab food with @MRock and do a quick podcast session.
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?crop=entropy&c
 description: September 25th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 25,'
+    accent: every year.
+    lede: 'The September 25th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 24'
+          href: /journal/09-24/
+        - label: 'Sep 26 →'
+          href: /journal/09-26/
+    related:
+        - title: 'Previous · Sep 24'
+          copy: 'Step back a day to the September 24th log.'
+          href: /journal/09-24/
+          icon: calendar
+        - title: 'Next · Sep 26'
+          copy: 'Jump ahead to the September 26th log.'
+          href: /journal/09-26/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Nvdia Clawback - circle of memes.
 
@@ -29,7 +70,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     The massive class and skill system is great to build off of as well.
     It took me some time to get the game to run on the mac, but the saving is terrible and honestly not worth it.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Fleet**
 
@@ -132,20 +181,30 @@ One of my goals would be to get around six figures in T Bill funds before the ag
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 10:05am - I completely forgot about the work backlog, so I need to focus on catching up on that end. I will dedicate a couple hours to just getting myself ahead of the backlog? I could mix it in with the other backlogs, so that I do not get too bored of handling issue tickets. 
 - 11:17am - The storage of the meta engine should really be done on Amazon or some sort of external cloud provider, I found that the metadata being on AWS was the best option in this hybrid cluster setup. The future really seems to be a combination of a hybrid cloud, where a decent amount of the important meta-data would be stored in the cloud while the heavy functions and files are held within your own instance.  
 - 4:22pm - Scaling the YoRHa UI down to just around 400px~ and keeping it there for now. This way its mobile focused at first before I migrate it be desktop / landscape friendly. I might shift out of the UX/UI area of the widget and focus more on the backend and Appwrite integration for the time being. I suppose these notes are just for getting a better understanding from my end. 
 - 6:36pm - Okay I was able to swap out the general characters for the Game! I am thinking of keeping it simple for now and only three playable characters before migrating over to a bit more advance style features. There are a couple other aspects that I wanted to overview. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Love is the only force capable of transforming an enemy into a friend.
 > — <cite>Martin Luther King Jr.</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

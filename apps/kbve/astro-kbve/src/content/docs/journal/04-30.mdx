@@ -9,12 +9,52 @@ description: |
     Daily Log for April 30th of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 30,'
+    accent: every year.
+    lede: 'The April 30th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 29'
+          href: /journal/04-29/
+        - label: 'May 1 →'
+          href: /journal/05-01/
+    related:
+        - title: 'Previous · Apr 29'
+          copy: 'Step back a day to the April 29th log.'
+          href: /journal/04-29/
+          icon: calendar
+        - title: 'Next · May 1'
+          copy: 'Jump ahead to the May 1st log.'
+          href: /journal/05-01/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Rareicon Demo
 
@@ -31,7 +71,15 @@ import { Adsense } from '@/components/astropad';
     Removing all of the extra emojis with SVGs will definitely make it feel a bit smoother.
     I am still not a huge fan of the forum, there might be more room for improvements, but I will look into it later on.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### ANDOR
 
@@ -40,7 +88,9 @@ import { Adsense } from '@/components/astropad';
     The second season of Andor has been amazing, now I am thinking I should have rewatched the first season before jumping into the 2nd but its okay.
     
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Invoice**
 
@@ -101,7 +151,9 @@ We have been doing this like if it was acid, got to go back around and do auth o
 
 ---
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 **Videos**
 
@@ -132,15 +184,23 @@ We have been doing this like if it was acid, got to go back around and do auth o
 
 ---
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Happiness mainly comes from our own attitude, rather than from external factors.
 > — <cite>Dalai Lama</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [x] Strapi Update.
 -   [x] Pay Credit Cards.
 -   [x] AppWrite Update.
+
+</BentoProse>
+
+</BentoDoc>

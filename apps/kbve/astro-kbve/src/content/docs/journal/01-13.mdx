@@ -8,17 +8,52 @@ img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&c
 description: Daily Log for January 13th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 13,'
+    accent: every year.
+    lede: 'The January 13th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jan 12'
+          href: /journal/01-12/
+        - label: 'Jan 14 →'
+          href: /journal/01-14/
+    related:
+        - title: 'Previous · Jan 12'
+          copy: 'Step back a day to the January 12th log.'
+          href: /journal/01-12/
+          icon: calendar
+        - title: 'Next · Jan 14'
+          copy: 'Jump ahead to the January 14th log.'
+          href: /journal/01-14/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1704231208356-7dab9d91e60a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 -   **WoW**
 
@@ -34,7 +69,15 @@ import { Adsense } from '@/components/astropad';
 
         I finished up the discord tags earlier at night.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
     -   1:40pm - `readme`
             I am going to rewrite the readme for the monorepo, maybe make some minor changes to how I am presenting this monorepo?
@@ -59,13 +102,21 @@ import { Adsense } from '@/components/astropad';
 
                 - [502](https://github.com/KBVE/kbve/issues/502) - Issue 502 will be for the Script Migration.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > “.”
 > — <cite></cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [x] -   Cleaning up read me.
+
+</BentoProse>
+
+</BentoDoc>

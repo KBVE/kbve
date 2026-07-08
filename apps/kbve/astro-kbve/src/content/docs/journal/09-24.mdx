@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?crop=entropy&c
 description: September 24th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 24,'
+    accent: every year.
+    lede: 'The September 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 23'
+          href: /journal/09-23/
+        - label: 'Sep 25 →'
+          href: /journal/09-25/
+    related:
+        - title: 'Previous · Sep 23'
+          copy: 'Step back a day to the September 23rd log.'
+          href: /journal/09-23/
+          icon: calendar
+        - title: 'Next · Sep 25'
+          copy: 'Jump ahead to the September 25th log.'
+          href: /journal/09-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Zombie Horde Mode
 
@@ -21,7 +62,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     We got the spawning down into the different horde squads, we just need to make the adjustments on how they will move around the map.
     There are a couple other things we need to include, but that will be for the map itself too, which is another phase in this ECS adventure.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Kilobase**
 
@@ -129,17 +178,28 @@ metadata.name: Invalid value: "kilobase-migrations-kube-charts-kilobase-supabase
 
 We could try to scale some of the names back to help with the deployment.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 9:35am - I woke up a bit late today and I think I am going to go back to sleep a bit more, I need to catch up on my ZZZs.
 - 5:03pm - Okay there are a couple things that I need to overlook when it comes to handling the YoRHa UI, but the issues are still a bit of a pain.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > No party has a monopoly on wisdom. No democracy works without compromise.
 > — <cite>Barack Obama</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

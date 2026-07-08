@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: October 29th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 29,'
+    accent: every year.
+    lede: 'The October 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 28'
+          href: /journal/10-28/
+        - label: 'Oct 30 →'
+          href: /journal/10-30/
+    related:
+        - title: 'Previous · Oct 28'
+          copy: 'Step back a day to the October 28th log.'
+          href: /journal/10-28/
+          icon: calendar
+        - title: 'Next · Oct 30'
+          copy: 'Jump ahead to the October 30th log.'
+          href: /journal/10-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Godot Rust Integration
 
@@ -21,7 +62,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Finishing up some of the core integration with the Godot!
     My entries have been a bit delayed because I been hyper focused on the FFI between Godot and Rust threads.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   12:13AM
 
@@ -75,3 +124,7 @@ import { Adsense, Tasks } from '@/components/astropad';
 
     My quick entry before the night!
     I go sidetracked by an amazing movie, American Psycho, but now I have to perform my own version of it within the binary realm.
+
+</BentoProse>
+
+</BentoDoc>

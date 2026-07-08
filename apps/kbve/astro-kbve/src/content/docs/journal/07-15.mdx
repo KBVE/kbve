@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1721069662098-f2031c2319b8?crop=entropy&c
 description: July 15th. Dialogue System.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 15,'
+    accent: every year.
+    lede: 'The July 15th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 14'
+          href: /journal/07-14/
+        - label: 'Jul 16 →'
+          href: /journal/07-16/
+    related:
+        - title: 'Previous · Jul 14'
+          copy: 'Step back a day to the July 14th log.'
+          href: /journal/07-14/
+          icon: calendar
+        - title: 'Next · Jul 16'
+          copy: 'Jump ahead to the July 16th log.'
+          href: /journal/07-16/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721069662098-f2031c2319b8?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Bitcraft Fishing
 
@@ -27,8 +69,15 @@ import { Adsense } from '@/components/astropad';
     Going to wrap up the user profile within the next couple hours and then switch focus to the main dashboard.
     The card holding all of the profile data can be updated too, it seems to be not responsive enough.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **League**
 Before getting deep into the programming grind, I am going to quickly throw up a couple quick matches.
@@ -45,18 +94,29 @@ This was an amazing set! I forgot that it was taped right after the debate but t
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 6:00am - Going through the react native code base once more. These mornings are starting to become very blurry, as I am just diving deeper and deeper into the react eco-system. 
 - 7:00am - Mapping the pipeline for the iOS / Android.
 - 4:00pm - `FLAG` - Need to process the written notes for 07-15-2023 into this journal entry.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > When you discover your mission, you will feel its demand. It will fill you with enthusiasm and a burning desire to get to work on it.
 > — <cite>W. Clement Stone</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Study React Native
+
+</BentoProse>
+
+</BentoDoc>

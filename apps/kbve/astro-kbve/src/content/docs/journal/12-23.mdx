@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 23rd.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 23,'
+    accent: every year.
+    lede: 'The December 23rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Dec 22'
+          href: /journal/12-22/
+        - label: 'Dec 24 →'
+          href: /journal/12-24/
+    related:
+        - title: 'Previous · Dec 22'
+          copy: 'Step back a day to the December 22nd log.'
+          href: /journal/12-22/
+          icon: calendar
+        - title: 'Next · Dec 24'
+          copy: 'Jump ahead to the December 24th log.'
+          href: /journal/12-24/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 #### Unity DOTS Prefab
 
@@ -32,7 +73,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Later on we can look at improving the pipeline flow.
     Okay the 404 page no longer fails and loads without issues.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   05:15AM
 
@@ -40,3 +89,7 @@ import { Adsense, Tasks } from '@/components/astropad';
 
     Before building out the helm chart, we want to make sure that the docker build is good to go.
     We need it to be published and then have the ability to pull that docker image from the hub before we can move forward with the helm chart.
+
+</BentoProse>
+
+</BentoDoc>

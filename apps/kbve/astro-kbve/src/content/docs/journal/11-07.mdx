@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: November 7th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 7,'
+    accent: every year.
+    lede: 'The November 7th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Nov 6'
+          href: /journal/11-06/
+        - label: 'Nov 8 →'
+          href: /journal/11-08/
+    related:
+        - title: 'Previous · Nov 6'
+          copy: 'Step back a day to the November 6th log.'
+          href: /journal/11-06/
+          icon: calendar
+        - title: 'Next · Nov 8'
+          copy: 'Jump ahead to the November 8th log.'
+          href: /journal/11-08/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Mana for CityVote
 
@@ -34,7 +75,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Farm will provide +25 food per turn, but use -15 labor.
     Lumber camp would provide +25 labor, but use -15 food.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   12:52AM
 
@@ -76,3 +125,7 @@ import { Adsense, Tasks } from '@/components/astropad';
 	I wonder if we could do it all through chatgpt?
 	Wild that in almost 2025 and the astro icons is still broken and not working out of the box?
 	I am somewhat surprised that I might have to create and publish a working astro package for icons.
+
+</BentoProse>
+
+</BentoDoc>

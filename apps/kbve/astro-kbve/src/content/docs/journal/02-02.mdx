@@ -8,15 +8,52 @@ img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&c
 description: Daily Log for February 2nd f each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 2,'
+    accent: every year.
+    lede: 'The February 2nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 1'
+          href: /journal/02-01/
+        - label: 'Feb 3 →'
+          href: /journal/02-03/
+    related:
+        - title: 'Previous · Feb 1'
+          copy: 'Step back a day to the February 1st log.'
+          href: /journal/02-01/
+          icon: calendar
+        - title: 'Next · Feb 3'
+          copy: 'Jump ahead to the February 3rd log.'
+          href: /journal/02-03/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1569396116180-210c182bedb8?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 -   **WoW**
 
@@ -35,7 +72,15 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   **Dual**
 
@@ -47,3 +92,7 @@ import { Adsense } from '@/components/astropad';
             Furthermore, the amount of memory and overhead also increases with each instance, if everything is done with local models, however I could implement OpenAI endpoints for some instances. hmm
             I am thinking that the first split would be this instance is kept to a local reference and the main instance is kept to OpenAI.
             Basically since this is a WSL instance, it makes it easier to communicate with a local model and the Unity instance is on Windows, thus having it communicating with OpenAI.
+
+</BentoProse>
+
+</BentoDoc>

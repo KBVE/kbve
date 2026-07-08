@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1731562956909-83b33307a156?crop=entropy&c
 description: November 16th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 16,'
+    accent: every year.
+    lede: 'The November 16th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Nov 15'
+          href: /journal/11-15/
+        - label: 'Nov 17 →'
+          href: /journal/11-17/
+    related:
+        - title: 'Previous · Nov 15'
+          copy: 'Step back a day to the November 15th log.'
+          href: /journal/11-15/
+          icon: calendar
+        - title: 'Next · Nov 17'
+          copy: 'Jump ahead to the November 17th log.'
+          href: /journal/11-17/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1731562956909-83b33307a156?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   02:43PM
 
@@ -27,3 +68,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     While making some changes to the unity game, I am going to quickly trigger a build.
     Turned the stone golem into an ally and I am thinking it is time to replace the hippo with our main character.
     Also, we could add a bunch of different ally characters and make this a bit more of an interesting bullet hell rpg style game, hmmm.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

@@ -9,13 +9,52 @@ description: |
   July 8th. The Flow!
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 8,'
+    accent: every year.
+    lede: 'The July 8th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jul 7'
+          href: /journal/07-07/
+        - label: 'Jul 9 →'
+          href: /journal/07-09/
+    related:
+        - title: 'Previous · Jul 7'
+          copy: 'Step back a day to the July 7th log.'
+          href: /journal/07-07/
+          icon: calendar
+        - title: 'Next · Jul 9'
+          copy: 'Jump ahead to the July 9th log.'
+          href: /journal/07-09/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1688040831954-3656d0544270?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### MC Server
 
@@ -24,8 +63,15 @@ import { Adsense } from '@/components/astropad';
     Looks like the mc server is back at an operation level, we just need to work out some more of the kinks related to the main integration on the website.
     As for the players that start the game, I think it would make sense to give them a quick warship to fly around in, so we can then figure out how to implement the game mode mechanics around that.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Nvdia 160
 
@@ -47,7 +93,9 @@ import { Adsense } from '@/components/astropad';
     The end goal will be that we can have multiple sites that can quickly integrate into our eco-system, making future websites easier to manage and scale up.
     I am excited to see how it goes about building this out, being able to mass produce websites is going to be a great feature for us.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **R3F**
 
@@ -73,19 +121,30 @@ I believe we will have to go through all the colors and stick to a solid combina
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 7:00pm - Late start to the PC neety life, had to touch grass.
 - 7:30pm - Caffeine check! Red bulls, yup. Coffee, was drank before I even got home. Water? A gallon of filtered water, hopefully there are no PFAS chillin in there. 
 - 8:00pm - Going through all of the backlogs and then creating issue tickets for each one! The idea here would be to have about 50-100 issues that are pending, then focus on tackling as many of them as possible. A bit of a wave function style management per say.
 - 11:00pm - I am cycling through almost 200 post-it notes and I am getting even more daily. I have to be very careful not to over extend myself and focus on getting the really basics out of the way.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Act as if what you do makes a difference. It does.
 > — <cite>William James</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] No Tasks for Saturday! Just chill and do as the gods' will.
+
+</BentoProse>
+
+</BentoDoc>

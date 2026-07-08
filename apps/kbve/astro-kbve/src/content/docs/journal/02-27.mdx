@@ -11,15 +11,52 @@ description: |
     From the sky to water to the lands.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 27,'
+    accent: every year.
+    lede: 'The February 27th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 26'
+          href: /journal/02-26/
+        - label: 'Feb 28 →'
+          href: /journal/02-28/
+    related:
+        - title: 'Previous · Feb 26'
+          copy: 'Step back a day to the February 26th log.'
+          href: /journal/02-26/
+          icon: calendar
+        - title: 'Next · Feb 28'
+          copy: 'Jump ahead to the February 28th log.'
+          href: /journal/02-28/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1708669101365-1a9e3e834ee7?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### EXPO NativeWind
 
@@ -52,7 +89,15 @@ import { Adsense } from '@/components/astropad';
     Time to rewrite the `expo-bbq` but this time for the nativewind build!
     
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Gaia
 
@@ -78,3 +123,7 @@ I took some time to write out the different components that we need to add into 
 After we wrap around those, we can expand them again after call the Astro VE directly!
 
 There might be a bit of a downside to this approach because we have to be careful on how we handle abstract colors for different websites and themes, but I think we can figure that out as we build it out.
+
+</BentoProse>
+
+</BentoDoc>

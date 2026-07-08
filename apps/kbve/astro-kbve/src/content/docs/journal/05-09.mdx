@@ -9,12 +9,52 @@ description: |
    May 9th - The Daily Journal
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 9,'
+    accent: every year.
+    lede: 'The May 9th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 8'
+          href: /journal/05-08/
+        - label: 'May 10 →'
+          href: /journal/05-10/
+    related:
+        - title: 'Previous · May 8'
+          copy: 'Step back a day to the May 8th log.'
+          href: /journal/05-08/
+          icon: calendar
+        - title: 'Next · May 10'
+          copy: 'Jump ahead to the May 10th log.'
+          href: /journal/05-10/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1664202526602-08cbc96c4b3c?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Arcade Updates
 
@@ -32,7 +72,15 @@ import { Adsense } from '@/components/astropad';
     The JSON-LD structured data update, which will make it easier to move towards more structured data.
     Afterwards, we could polish the 404 page and then loop through all the icons and further improve upon their visual representation.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Steam Markets
 
@@ -51,7 +99,9 @@ import { Adsense } from '@/components/astropad';
     First we were packaging the binary with the wrong id, instead of `$` as the id, it was suppose to be a `0`.
     Then there was the issue with not getting the right response too, patching that next.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Resend**
 
@@ -138,7 +188,9 @@ Part of this is because the hcaptcha is way too heavy and pointless to load on e
 I actually think the way that the we are calling the structured data is incorrect.
 Do we need to extend the description beyond a sentences? Like is it suppose to be the `meta` description? 
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 10:00am - Just had 500mL of cold brewed coffee that was aged in whisky and rum barrels! It might have been a bit too much caffeine to start the day, I feel like my heart trying to escape my body. Besides the overload of energy, the taste was amazing, the hints of whisky and rum notes are noticeable through initial taste and near the end. It blends so well that the exiting bitterness that comes with normal brews is almost gone! Overall it was nice to meet the creators of the brew, however they are still in the experimental stage and have not yet done any social / digital work. I was kindly given some concentrated powder to take back to the US with me, think of it like instant coffee? They said they would reach out if they need any digital work done, but I know that my costs might be too high for them.   
 
@@ -152,13 +204,21 @@ Do we need to extend the description beyond a sentences? Like is it suppose to b
 
 - 6:30pm - Okay it looks like our spell book seems to be causing a painful first page load. I am thinking that might be worth removing the splash component and then seeing how the site performs. The splash is cool but it might not be worth it in the long term, as it might be annoying and a bit of a waste to then scroll down. Speaking of which, I do need to start thinking about how I will handle the content that should be displayed on the front page. We could also remove some of the wait listing and shrink the footer to be more compressed and clean. Overall the changes could easily decrease the total size of KBVE by 10%, across the board.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > It does not matter how slowly you go as long as you do not stop.
 > — <cite>Confucius</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

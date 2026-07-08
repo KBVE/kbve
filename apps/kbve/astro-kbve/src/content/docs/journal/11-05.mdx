@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: November 5th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 5,'
+    accent: every year.
+    lede: 'The November 5th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Nov 4'
+          href: /journal/11-04/
+        - label: 'Nov 6 →'
+          href: /journal/11-06/
+    related:
+        - title: 'Previous · Nov 4'
+          copy: 'Step back a day to the November 4th log.'
+          href: /journal/11-04/
+          icon: calendar
+        - title: 'Next · Nov 6'
+          copy: 'Jump ahead to the November 6th log.'
+          href: /journal/11-06/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Burn Shader Effect
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
 	I am thinking that we have the card burn via a direction, maybe at random.
 	Then we make sure that the different shader effects are removed as we place back into the pool.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -	09:45AM
 
@@ -63,3 +112,7 @@ import { Adsense, Tasks } from '@/components/astropad';
 	Under the `public`, we have:
 		-	`before_insert_hcaptcha_verfication` with 0 arguements, a return type of trigger and security of invoker.
 		-	`create_user_profile` - with `_username` as text, a return type of void and a security definer.
+
+</BentoProse>
+
+</BentoDoc>

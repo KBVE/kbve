@@ -9,16 +9,52 @@ description: |
     The 28th of February, 75% chance its the last day of the month.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 28,'
+    accent: every year.
+    lede: 'The February 28th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 27'
+          href: /journal/02-27/
+        - label: 'Feb 29 →'
+          href: /journal/02-29/
+    related:
+        - title: 'Previous · Feb 27'
+          copy: 'Step back a day to the February 27th log.'
+          href: /journal/02-27/
+          icon: calendar
+        - title: 'Next · Feb 29'
+          copy: 'Jump ahead to the February 29th log.'
+          href: /journal/02-29/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### EXPO HQPLAN
 
@@ -34,8 +70,15 @@ pnpm nx start expo-hqplan --clear
     Instead of `@kbve/nativewind`, we might go with a bit of `expo-nativewind` instead or `nativewind-utils`, hmm.
     `windy`, or `expo-wind` both get the point across but I will stick with windy for now.
 
-## 2024
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Work
 
@@ -64,3 +107,7 @@ We are doing wine tasting and mini gala style event in Eve's bar tonight, I am a
 We got introduced to several different clans and companies that operate within the universe, with a bunch of them being very interesting.
 
 I should look into making the comics during the sessions, preparing for a couple panels and writing it out. Ah wait, even as I am writing, these backstories are wild.
+
+</BentoProse>
+
+</BentoDoc>

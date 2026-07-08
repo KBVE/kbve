@@ -8,16 +8,52 @@ img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&c
 description: Daily Log for January 4th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 4,'
+    accent: every year.
+    lede: 'The January 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jan 3'
+          href: /journal/01-03/
+        - label: 'Jan 5 →'
+          href: /journal/01-05/
+    related:
+        - title: 'Previous · Jan 3'
+          copy: 'Step back a day to the January 3rd log.'
+          href: /journal/01-03/
+          icon: calendar
+        - title: 'Next · Jan 5'
+          copy: 'Jump ahead to the January 5th log.'
+          href: /journal/01-05/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1703511606233-9c7537658701?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### OSRS MDX Files
 
@@ -28,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     Then we pull the live data from our new API endpoints and render the chart/data from there!
     Later on, we can use the db workers to keep the data safely stored in the user's browser storage.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   02:40PM
 
@@ -50,7 +94,9 @@ import { Adsense } from '@/components/astropad';
 
     While working through the AOE spells, I thought it be cool to work on the twitch stream!
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 -   11:00am - Going to aim at getting out of work earlier than before but I have some issues to prepare for, including being assigned to AAPL at $190.
     I will have to prepare around $38K to offset the 200 shares of AAPL from the two puts.
@@ -151,14 +197,21 @@ import { Adsense } from '@/components/astropad';
 
           There are a couple errors that the CLI is throwing, which were similar to the ones with Binary types.
 
+</BentoProse>
 
-## Quote
+<BentoProse id="quote" heading="Quote">
 
 > “Celebrate endings—for they precede new beginnings.”
 > — <cite>Jonathan Lockwood Huie</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [x] -   No Tasks!
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: October 21st.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 21,'
+    accent: every year.
+    lede: 'The October 21st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 20'
+          href: /journal/10-20/
+        - label: 'Oct 22 →'
+          href: /journal/10-22/
+    related:
+        - title: 'Previous · Oct 20'
+          copy: 'Step back a day to the October 20th log.'
+          href: /journal/10-20/
+          icon: calendar
+        - title: 'Next · Oct 22'
+          copy: 'Jump ahead to the October 22nd log.'
+          href: /journal/10-22/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Sleep is Lost, damnjam.
 
@@ -21,7 +62,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     I am having a tough time keeping my sleep on point through this jam, I can feel myself getting older.
     The amount of hair that is thinning is way too high for this! 
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Astro**
 
@@ -52,3 +101,7 @@ I also know that when I am home alone for a month, I will be eatting even more p
 Tonight is going to be another great tony episode, we got our old boi peters on stage.
 I remember when his parents died and his comedy kinda flatline after his parents passed away.
 Amazing episode! Yes and the ending, has to be Aris best joke so far, its definitely going to go viral lmao.
+
+</BentoProse>
+
+</BentoDoc>

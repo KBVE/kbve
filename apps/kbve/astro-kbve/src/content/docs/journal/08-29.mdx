@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692364042693-bd5aed6360d3?crop=entropy&c
 description: August 29th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 29,'
+    accent: every year.
+    lede: 'The August 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 28'
+          href: /journal/08-28/
+        - label: 'Aug 30 →'
+          href: /journal/08-30/
+    related:
+        - title: 'Previous · Aug 28'
+          copy: 'Step back a day to the August 28th log.'
+          href: /journal/08-28/
+          icon: calendar
+        - title: 'Next · Aug 30'
+          copy: 'Jump ahead to the August 30th log.'
+          href: /journal/08-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692364042693-bd5aed6360d3?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Headers
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     So maybe we need to refactor the realtime for supabase to basically become a supabase manager, having that instance handle the setup and data.
     That will be our goal for today and also the hyper-lane deployment.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Train**
 
@@ -87,7 +136,9 @@ The churchs provides a metaphysical shelter for all, while you walk around it, a
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:13am - Getting ready for the markets to open up, but before I do that, I should make sure everything is in sync. I will publish out this branch really quick before going a bit deeper into the deployments.
 
@@ -95,13 +146,21 @@ The churchs provides a metaphysical shelter for all, while you walk around it, a
 
 - 5:15pm - I am currently doing a bit of R&D on the different paths we could take for the file system management, which would also include the backup storage and the restoration. While my documentation can provide a decent roadmap for where we want to go, I think sometimes the time spent mapping out should not be overloaded because there will always be interesting and unique edge cases that will take a large chunk of time out of the implementation. This is just really a note to my future self on how to tackle those issues. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > There is no greater harm than that of time wasted.
 > — <cite>Michelangelo</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Research File Management
+
+</BentoProse>
+
+</BentoDoc>
