@@ -325,7 +325,9 @@ jobs:
                     echo "::error::MODRINTH_PASSKEY secret missing — required for v3 server listing PATCH"
                     exit 1
                   fi
-                  pip install --quiet --disable-pip-version-check cryptography requests
+                  pip install --quiet --disable-pip-version-check \
+                    --only-binary=:all: --require-hashes \
+                    -r .github/scripts/requirements-modrinth.txt
                   TOKEN="$(python .github/scripts/mint_modrinth_session.py)"
                   echo "::add-mask::$TOKEN"
                   echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
