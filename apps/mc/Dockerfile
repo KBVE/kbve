@@ -57,7 +57,7 @@ RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_pathfinder"|path = "../be
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_behavior"|path = "../bevy_behavior"|' behavior_statetree/Cargo.toml
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_chat"|path = "../bevy_chat"|' behavior_statetree/Cargo.toml
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_supa"|path = "../bevy_supa"|' mc_auth/Cargo.toml
-RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc", "bevy_supa", "bevy_pathfinder", "bevy_behavior", "bevy_chat"]\n' > Cargo.toml
+RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc", "bevy_supa", "bevy_pathfinder", "bevy_behavior", "bevy_chat"]\n\n[workspace.package]\nrust-version = "1.96"\n' > Cargo.toml
 
 RUN cargo build -p behavior_statetree -p mc_auth --release
 # Outputs:
