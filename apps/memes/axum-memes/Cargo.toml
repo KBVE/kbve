@@ -38,7 +38,7 @@ jedi = { path = "../../../packages/rust/jedi" }
 kbve = { path = "../../../packages/rust/kbve" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.6", optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
 
 [dev-dependencies]
 serial_test = "3"

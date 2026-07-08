@@ -50,7 +50,7 @@ bevy_pathfinder = { path = "../../../packages/rust/bevy/bevy_pathfinder", defaul
 bevy_db = { path = "../../../packages/rust/bevy/bevy_db", default-features = false }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.6", optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
 
 [dev-dependencies]
 serial_test = "3"
