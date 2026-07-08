@@ -62,15 +62,15 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
   },
   "files": [
     {
-      "path": "mods/fabric-api-0.141.3+1.21.11.jar",
+      "path": "mods/fabric-api-0.141.4+1.21.11.jar",
       "hashes": {
-        "sha1": "50de67eb221f0b38216da8668b09ca311327040e",
-        "sha512": "c20c017e23d6d2774690d0dd774cec84c16bfac5461da2d9345a1cd95eee495b1954333c421e3d1c66186284d24a433f6b0cced8021f62e0bfa617d2384d0471"
+        "sha1": "13d3885dfec40313e2b3bf9ee639353272b9b48a",
+        "sha512": "c092d48c6453bec3264f80f6a35bb334aba3112b5cd6c0e0b2676ce4d81e702cb1e522337f3a732348e757cc2226da3c601a314ae8766334f16af71a13bcc98d"
       },
       "downloads": [
-        "https://cdn.modrinth.com/data/P7dR8mSH/versions/i5tSkVBH/fabric-api-0.141.3%2B1.21.11.jar"
+        "https://cdn.modrinth.com/data/P7dR8mSH/versions/5zJNhXV2/fabric-api-0.141.4%2B1.21.11.jar"
       ],
-      "fileSize": 2412693,
+      "fileSize": 2413332,
       "env": { "client": "required", "server": "unsupported" }
     },
     {
@@ -398,15 +398,15 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       "env": { "client": "required", "server": "unsupported" }
     },
     {
-      "path": "mods/open-parties-and-claims-fabric-1.21.11-0.26.2.jar",
+      "path": "mods/open-parties-and-claims-fabric-1.21.11-0.27.5.jar",
       "hashes": {
-        "sha1": "af76f66591622b945ef37fbf20bee7ae36d82329",
-        "sha512": "56552c8d772ff5a01baeb897b646bd3c3ec715e46d16457aed8d1208e5662abe831eeae1b45fa0837f93a9775b28c3af14fad9d5acf3da474a1e9bd975bde1a2"
+        "sha1": "52156f795ce0751dfc89553f3e928bd4e635a4a0",
+        "sha512": "758f15e4a4f538dfe0a8b33f2e06352f0511b80e5da08d2cddd65f0ae1bf1e943897daac3c80c2c1014bc3e9ac5d461971c13dc74b5fd6c750ce9f630146693d"
       },
       "downloads": [
-        "https://cdn.modrinth.com/data/gF3BGWvG/versions/JkiXvTq4/open-parties-and-claims-fabric-1.21.11-0.26.2.jar"
+        "https://cdn.modrinth.com/data/gF3BGWvG/versions/DEb4IjSQ/open-parties-and-claims-fabric-1.21.11-0.27.5.jar"
       ],
-      "fileSize": 1649817,
+      "fileSize": 1733277,
       "env": { "client": "required", "server": "required" }
     },
     {
@@ -434,15 +434,15 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       "env": { "client": "required", "server": "required" }
     },
     {
-      "path": "mods/xaerominimap-fabric-1.21.11-26.1.4.jar",
+      "path": "mods/xaerominimap-fabric-1.21.11-26.2.0.jar",
       "hashes": {
-        "sha1": "e6e88fa30efbf2c86b54becd7f96f84e01440a42",
-        "sha512": "d782ed65dadcd1e7b99a4779cac303e377cda2f0287e1054c0bcafd6bf2765fc15638736c737448bff913ebb4819e78ea88df05e78fcf529922fc776bcb665f6"
+        "sha1": "7a3d174fd12c0406db8a8106b3d76c655e86b207",
+        "sha512": "6b9e28081f300ede43c8cb3cbd410277a704ecdeb7a2b77fa7f1a746dbc4a09652a1a91a328e4e1d523a9edc94ae9817f29c9e0f0fefe6f78d2d8dd23ce8e3d7"
       },
       "downloads": [
-        "https://cdn.modrinth.com/data/1bokaNcj/versions/rLF2AwoN/xaerominimap-fabric-1.21.11-26.1.4.jar"
+        "https://cdn.modrinth.com/data/1bokaNcj/versions/z6442Xnl/xaerominimap-fabric-1.21.11-26.2.0.jar"
       ],
-      "fileSize": 2152173,
+      "fileSize": 2190380,
       "env": { "client": "required", "server": "optional" }
     }
   ]
