@@ -11,11 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * One-time starter kit for new players: an Immersive Aircraft warship plus
- * 400 coal blocks of boiler fuel. Delivery is tracked with a persistent
- * command tag on the player, so it survives restarts and never re-fires.
+ * One-time starter kit for new players: an Immersive Aircraft warship,
+ * an eco engine upgrade (-75% fuel burn when slotted), and 400 coal
+ * blocks of boiler fuel. Delivery is tracked with a persistent command
+ * tag on the player, so it survives restarts and never re-fires.
  *
- * <p>Soft-depends on Immersive Aircraft — if the warship item isn't
+ * <p>Soft-depends on Immersive Aircraft — if the items aren't
  * registered (mod absent), the kit is skipped and the tag is NOT set so
  * the player still receives it once the mod is back.
  */
@@ -27,6 +28,7 @@ public final class StarterKit {
     private static final String KIT_TAG = "kbve_starter_kit_v1";
 
     private static final Identifier WARSHIP_ID = Identifier.of("immersive_aircraft", "warship");
+    private static final Identifier ECO_ENGINE_ID = Identifier.of("immersive_aircraft", "eco_engine");
     private static final int COAL_BLOCKS = 400;
 
     private StarterKit() {}
@@ -40,14 +42,16 @@ public final class StarterKit {
     }
 
     private static void give(ServerPlayerEntity player) {
-        if (!Registries.ITEM.containsId(WARSHIP_ID)) {
-            LOGGER.warn("[StarterKit] {} not registered — kit deferred for {}",
-                    WARSHIP_ID, player.getNameForScoreboard());
+        if (!Registries.ITEM.containsId(WARSHIP_ID) || !Registries.ITEM.containsId(ECO_ENGINE_ID)) {
+            LOGGER.warn("[StarterKit] Immersive Aircraft items not registered — kit deferred for {}",
+                    player.getNameForScoreboard());
             return;
         }
         Item warship = Registries.ITEM.get(WARSHIP_ID);
+        Item ecoEngine = Registries.ITEM.get(ECO_ENGINE_ID);
 
         player.giveItemStack(new ItemStack(warship, 1));
+        player.giveItemStack(new ItemStack(ecoEngine, 1));
         int remaining = COAL_BLOCKS;
         while (remaining > 0) {
             int n = Math.min(remaining, Items.COAL_BLOCK.getMaxCount());
@@ -56,7 +60,7 @@ public final class StarterKit {
         }
 
         player.addCommandTag(KIT_TAG);
-        LOGGER.info("[StarterKit] Issued warship + {} coal blocks to {}",
+        LOGGER.info("[StarterKit] Issued warship + eco engine + {} coal blocks to {}",
                 COAL_BLOCKS, player.getNameForScoreboard());
     }
 }

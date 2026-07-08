@@ -183,8 +183,3 @@ COPY apps/mc/mods/ /mods/
 
 # Server config overrides
 COPY apps/mc/config/ /config/
-
-# World datapacks — synced onto the PVC (world/datapacks) by the
-# sync-fabricproxy-config initContainer in fleet.yaml on every pod start,
-# same single-source-of-truth pattern as the FabricProxy template above.
-COPY apps/mc/datapacks/ /datapacks/
