@@ -2,6 +2,12 @@
 title: CubeJS
 description: |
     CubeJS is a headless business intelligence application for various forms of data, including SQL, Mongo and Snowflake. CubeJS can be extended to external data warehouses, such as, Google BigQuery, Amazon Athena and Presto.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: CubeJS
     order: 7
@@ -9,21 +15,92 @@ unsplash: 1635492491273-455af7728453
 img: https://images.unsplash.com/photo-1635492491273-455af7728453?fit=crop&w=1400&h=700&q=75
 tags:
     - database
+bento:
+    badge: application · database
+    title: 'The semantic layer,'
+    accent: CubeJS.
+    lede: >-
+        A headless business intelligence platform that connects to any
+        SQL-based data source — Postgres, ClickHouse, BigQuery, Snowflake, and
+        more — defines consistent data models, and exposes them through
+        blazing-fast REST, GraphQL, and SQL APIs. This guide covers install,
+        schema design, queries, security, and the KBVE deployment.
+    ctas:
+        - label: Install
+          href: '#install'
+          primary: true
+        - label: Data schema
+          href: '#data-schema'
+        - label: API queries
+          href: '#api-queries'
+        - label: KBVE integration
+          href: '#kbve-integration'
+    aside:
+        icon: database
+        title: One API over every source
+        body: >-
+            Whether you want an internal dashboard for business insights or a
+            customer-facing analytics feature, CubeJS models your data once and
+            serves it everywhere — with pre-aggregations cached in Cube Store
+            for sub-second responses.
+        points:
+            - <strong>Schema</strong> — cubes, measures, dimensions, joins.
+            - <strong>APIs</strong> — REST, GraphQL, and SQL from one model.
+            - <strong>Cache</strong> — Cube Store pre-aggregations built in.
+    stats:
+        - { label: API port, value: '4000', icon: server }
+        - { label: APIs, value: REST · GraphQL · SQL, icon: code }
+        - { label: Cache layer, value: Cube Store, icon: database }
+        - { label: License, value: Apache-2.0, icon: license }
+    features:
+        - title: Install
+          icon: package
+          href: '#install'
+          body: Run CubeJS via Docker with env-driven config, or scaffold a project with cubejs-cli on NodeJS.
+        - title: Data Schema
+          icon: database
+          href: '#data-schema'
+          body: Define cubes with measures, dimensions, joins, and pre-aggregations that cache query results.
+        - title: API Queries
+          icon: bolt
+          href: '#api-queries'
+          body: The shared query format across REST and GraphQL — measures, dimensions, time ranges, and filter operators.
+        - title: KBVE Integration
+          icon: deploy
+          href: '#kbve-integration'
+          body: CubeJS as a unified semantic layer over ClickHouse and Postgres, deployed on Kubernetes with Cube Store.
+    related:
+        - title: SQL
+          href: /application/sql/
+          copy: The query language behind every CubeJS data source.
+          icon: database
+        - title: Supabase
+          href: /application/supabase/
+          copy: Postgres platform that pairs with CubeJS for transactional data.
+          icon: bolt
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Where the KBVE Cube API, refresh workers, and Cube Store run.
+          icon: deploy
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1635492491273-455af7728453?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
-
+import { Aside } from '@astrojs/starlight/components';
 import { Giscus, Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 If you are looking for a powerful and flexible framework to build amazing data applications, you should check out CubeJS.
 CubeJS is an open source project that lets you connect to any SQL-based data source, define your data models in a simple and consistent way, and expose them to your applications via blazing-fast APIs.
@@ -32,9 +109,15 @@ CubeJS supports REST, [SQL](/application/sql/), and GraphQL APIs, so you can cho
 CubeJS also integrates seamlessly with popular data visualization tools, such as D3.js, Google Charts, Highcharts, and more.
 This documentation will have plenty of tutorials, examples, and demos that will help you get started and inspired.
 
-<Adsense />
+</BentoProse>
 
-## Install
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="install" eyebrow="Get running" heading="Install">
 
 There are several ways to install CubeJS, including using it as a SaaS via CubeJS Cloud.
 We will go over a couple ways in this reference document.
@@ -108,9 +191,9 @@ yarn dev
 This will start your CubeJS test case server on `http://localhost:4000`.
 You can then open this URL in your browser and follow the instructions to connect to your data source and start building your data model and queries.
 
----
+</BentoProse>
 
-## Update
+<BentoProse id="update" eyebrow="Stay current" heading="Update">
 
 To upgrade CubeJS, you need to update the version of the CubeJS package that you are using.
 There are different ways to do that, depending on how you installed CubeJS.
@@ -141,9 +224,9 @@ npm update @cubejs-backend/server
 yarn upgrade @cubejs-backend/server
 ```
 
----
+</BentoProse>
 
-## Data Schema
+<BentoProse id="data-schema" eyebrow="Model your data" heading="Data Schema">
 
 Cube.js uses a semantic layer called **Data Schema** to define metrics, dimensions, and relationships.
 Schemas are written in JavaScript/TypeScript files inside the `schema/` directory.
@@ -269,9 +352,9 @@ cube(`Orders`, {
 - `sql: 'SELECT MAX(updated_at) FROM orders'` — refresh when data changes
 - `immutable: true` — never refresh (historical data)
 
----
+</BentoProse>
 
-## API Queries
+<BentoProse id="api-queries" eyebrow="Query anywhere" heading="API Queries">
 
 Cube.js exposes REST, GraphQL, and SQL APIs. All APIs share the same query format.
 
@@ -385,9 +468,9 @@ query {
 }
 ```
 
----
+</BentoProse>
 
-## Security
+<BentoProse id="security" eyebrow="Lock it down" heading="Security">
 
 ### Multi-Tenancy
 
@@ -444,9 +527,9 @@ curl -H "Authorization: Bearer <JWT_TOKEN>" \
   -d '{"measures": ["Orders.count"]}'
 ```
 
----
+</BentoProse>
 
-## Data Modeling Best Practices
+<BentoProse id="data-modeling" eyebrow="Design patterns" heading="Data Modeling Best Practices">
 
 ### Star Schema
 
@@ -476,9 +559,9 @@ Organize cubes into fact tables (Orders, Events) and dimension tables (Users, Pr
 - **Indexes** — index foreign keys and filter columns in your database
 - **Refresh keys** — use `sql` refresh keys for incremental updates
 
----
+</BentoProse>
 
-## Configuration
+<BentoProse id="configuration" eyebrow="Tune the stack" heading="Configuration">
 
 ### Environment Variables
 
@@ -526,9 +609,9 @@ module.exports = {
 };
 ```
 
----
+</BentoProse>
 
-## KBVE Integration
+<BentoProse id="kbve-integration" eyebrow="In production" heading="KBVE Integration">
 
 KBVE uses Cube.js as a unified semantic layer over multiple data sources:
 
@@ -1156,4 +1239,12 @@ For production deployments:
 - **Kubernetes-native** — scales horizontally, integrates with existing infra
 - **No ETL needed** — query live transactional + analytical data without pipelines
 
-<Giscus />
+</BentoProse>
+
+</BentoDoc>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

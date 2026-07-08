@@ -6,6 +6,12 @@ description: |
   Whether you're just starting out or already have some experience, you'll find valuable insights and practical tips to help you navigate this dynamic field.
   Learn about the newest advancements, popular frameworks, and real-world applications.
   Perfect for anyone eager to deepen their understanding and skills in AI and ML, this resource is your go-to for all things AI and ML.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
   label: Machine Learning & AI
   order: 300
@@ -227,20 +233,90 @@ prompts:
         next:
           - condition: 'data provided'
             action: 'pathway1'
+bento:
+    badge: application · ai · ml
+    title: 'Teach the machine,'
+    accent: 'ML & AI.'
+    lede: >-
+        A reference guide to the vast realm of machine learning and artificial
+        intelligence — from computational foundations and key algorithms to
+        GPT models, Groq, LLaMa, Stable Diffusion, prompt engineering, and
+        data-processing subagent pipelines used across the KBVE stack.
+    ctas:
+        - label: ML foundations
+          href: '#ml'
+          primary: true
+        - label: GPT models
+          href: '#gpt'
+        - label: Prompt engineering
+          href: '#prompt-engineering'
+        - label: Subagent pipelines
+          href: '#data-processing-subagents'
+    aside:
+        icon: activity
+        title: One stop for all things AI
+        body: >-
+            An ever growing list of mL and AI services, concepts, and ideas —
+            covering the theory behind computational training and the models
+            and tools you can put to work today.
+        points:
+            - <strong>Foundations</strong> — supervised, unsupervised, and reinforcement learning.
+            - <strong>Models</strong> — GPT, LLaMa, Groq, and Stable Diffusion.
+            - <strong>Practice</strong> — prompt engineering and data-processing subagents.
+    stats:
+        - { label: Core language, value: Python, icon: code }
+        - { label: Learning paradigms, value: '3', icon: branch }
+        - { label: AI coined, value: '1956', icon: calendar }
+        - { label: Frameworks, value: PyTorch · TensorFlow, icon: package }
+    features:
+        - title: ML foundations
+          icon: book
+          href: '#ml'
+          body: The math, computer science, and training paradigms you need before diving into frameworks.
+        - title: Models & platforms
+          icon: bolt
+          href: '#gpt'
+          body: GPT variants, Groq's accelerated API, Meta's LLaMa, and Stable Diffusion image generation.
+        - title: Prompt engineering
+          icon: message
+          href: '#prompt-engineering'
+          body: Roles, chaining, rewrite tasks, and the Zod-validated Prompt Engine schema.
+        - title: Data-processing subagents
+          icon: gears
+          href: '#data-processing-subagents'
+          body: Build deterministic LLM pipelines with mdream pre-processing, runbooks, and validation gates.
+    related:
+        - title: Python
+          href: /application/python/
+          copy: The core language behind PyTorch, TensorFlow, and Scikit-Learn.
+          icon: code
+        - title: Javascript
+          href: /application/javascript/
+          copy: The tooling ecosystem behind mdream and agent pipelines.
+          icon: zap
+        - title: Supabase
+          href: /application/supabase/
+          copy: Store and serve the structured data your models produce.
+          icon: database
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
-
+import { Aside, Steps } from '@astrojs/starlight/components';
 import { Giscus, Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## ML
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="ml" eyebrow="Start here" heading="ML">
 
 - `Are you curious about the latest buzzword in the tech world?`
 - `Have you been wondering what machine learning is?`
@@ -257,7 +333,9 @@ Finally, you'll need to understand the various Machine Learning frameworks avail
 
 For [Python](/application/python/)
 
-## Information
+</BentoProse>
+
+<BentoProse id="information" eyebrow="Reference guide" heading="Information">
 
 This documentation is a `reference guide` to the vast realm of machine learning and artificial general intelligence with examples, concepts and libraries to help you get started!
 We want to create this whole page as a one stop shop for all your mL needs xD!
@@ -285,16 +363,21 @@ The term "artificial intelligence" was coined in 1956 during the [Dartmouth Conf
 
 ---
 
-<Adsense />
 
 ### Scope
 
 - The dream for many programmers, scientists, engineers and humans would be to create an entity that could scale past our natural intelligence.
 - This is a task that would define the 21st century and push the upper limits on humanity, naturism and metaphysics into the next industrial intelligence revolution.
 
----
+</BentoProse>
 
-## GPT
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="gpt" eyebrow="Generative transformers" heading="GPT">
 
     - GPT , currently known as GPT-3, stands for `Generative Pre-trained Transformer` with the number representing the generation via version control and is a neural network machine learning model
 
@@ -313,9 +396,9 @@ The term "artificial intelligence" was coined in 1956 during the [Dartmouth Conf
     - ### PyChatGPT
         - [Official Repo](https://github.com/rawandahmad698/PyChatGPT). PyChatGPT is an on-going API written in `Python` to help scale and integrate `ChatGPT` to various applications / eco-systems via TLS.
 
----
+</BentoProse>
 
-## GROQ
+<BentoProse id="groq" eyebrow="Hardware acceleration" heading="GROQ">
 
 Groq is an innovative company specializing in AI and machine learning (AI/ML) solutions, known for developing custom hardware designed to accelerate AI/ML workloads.
 Their hardware architecture, optimized for high performance and efficiency, enables rapid data processing and analysis, making it ideal for complex AI/ML tasks.
@@ -328,9 +411,9 @@ These examples cover a wide range of applications, from basic model deployment t
 For instance, developers can find detailed instructions on using Groq's hardware (via their API) to examine medical documents, enabling efficient processing and analysis of large volumes of medical data for improved diagnostics and patient care.
 Additionally, there are examples of utilizing Groq's capabilities to create sophisticated stock market tools, helping analysts and traders make data-driven decisions with enhanced speed and accuracy. Each recipe is designed to be easily followed, enabling users to quickly integrate Groq's powerful capabilities into their own projects, accelerate development, and achieve superior performance in their AI/ML tasks.
 
----
+</BentoProse>
 
-## LLaMa
+<BentoProse id="llama" eyebrow="Meta foundation model" heading="LLaMa">
 
 <Aside>
   **TLDR;** LLaMa, also known as, **Large Language Model Meta AI**, is actively
@@ -344,9 +427,9 @@ This state-of-the-art model is designed to assist researchers in advancing their
 By leveraging LLaMa, researchers can push the boundaries of NLP, exploring new possibilities and enhancing the capabilities of AI-driven language understanding and generation.
 Meta's commitment to innovation in AI is embodied in LLaMa, providing a powerful tool for the scientific community to develop more sophisticated and effective NLP applications.
 
----
+</BentoProse>
 
-## Stable Diffusion
+<BentoProse id="stable-diffusion" eyebrow="Image generation" heading="Stable Diffusion">
 
 Stable Diffusion is a python-based latent diffusion model that performs image generation through deep learning.
 
@@ -374,9 +457,9 @@ Fast-stable-diffusion Notebooks offer a streamlined and efficient way to utilize
 Integrating Automatic1111 (A1111), ComfyUI, and DreamBooth, these notebooks provide a comprehensive platform for users to experiment with and refine their stable diffusion models. A1111 facilitates the management and deployment of these models, while ComfyUI offers an intuitive interface for seamless interaction. DreamBooth further enhances the capabilities by allowing fine-tuning and personalization of the models.
 Together, these tools enable users to create high-quality, stable diffusion images with ease and precision.
 
----
+</BentoProse>
 
-## Prompt Engineering
+<BentoProse id="prompt-engineering" eyebrow="Better prompts" heading="Prompt Engineering">
 
 Prompt engineering theory covers a wide range of different GPT concepts, including examples and short cuts to generate the right style of questions and content.
 
@@ -462,9 +545,9 @@ Inconsistencies: Human writing may include nuanced inconsistencies, errors, or i
 
 The combination of the initial task and the follow up advice, will help generate better content.
 
----
+</BentoProse>
 
-## Data Processing Subagents
+<BentoProse id="data-processing-subagents" eyebrow="Agent pipelines" heading="Data Processing Subagents">
 
 A _data-processing subagent_ is an LLM agent pointed at a narrow, repeatable job:
 take messy source data, turn it into clean structured output, and do it the same
@@ -549,6 +632,12 @@ output contract + a validator) shrinks the model's job to the part it is actuall
 good at: reading prose and writing structured content. Cost drops, accuracy rises,
 and the same spec can be handed to many agents in parallel.
 
----
+</BentoProse>
 
-<Giscus />
+</BentoDoc>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

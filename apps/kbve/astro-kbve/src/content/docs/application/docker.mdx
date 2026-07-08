@@ -4,6 +4,12 @@ description: |
     Docker packages applications and their dependencies into portable containers that run identically across
     machines. This reference covers the Docker CLI cheatsheet, every Dockerfile instruction (FROM, RUN, CMD,
     ENTRYPOINT, and more), GPU passthrough, BuildX, WatchTower, and container management scripts.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Docker
     order: 100
@@ -41,26 +47,100 @@ jsonld:
           answer: Compose defines a multi-container application in one docker-compose.yml file. A single docker compose up -d starts every service, creates a shared network so they resolve each other by name, and provisions named volumes for persistence.
         - question: How do multi-stage builds reduce image size?
           answer: A multi-stage build compiles the application in a heavy build stage with all toolchains, then copies only the final artifact into a minimal runtime stage. The build dependencies never ship in the final image, shrinking it significantly.
+bento:
+    badge: application · containers · devops
+    title: 'Ship it anywhere,'
+    accent: Docker.
+    lede: >-
+        Package an application and its dependencies into a portable container
+        that runs identically on any machine. This working reference covers the
+        day-to-day CLI cheatsheet, every Dockerfile instruction, GPU
+        passthrough, BuildX multi-arch builds, WatchTower auto-updates, and
+        container management scripts.
+    ctas:
+        - label: CLI cheatsheet
+          href: '#cheatsheet'
+          primary: true
+        - label: Dockerfile instructions
+          href: '#dockerfile'
+        - label: BuildX
+          href: '#buildx'
+        - label: Compose
+          href: '#docker-compose'
+    aside:
+        icon: package
+        title: One image, many containers
+        body: >-
+            A Dockerfile describes how to build an immutable, layered image;
+            docker run launches isolated containers from it. Containers share
+            the host kernel, so they start in seconds and use far less memory
+            than full virtual machines.
+        points:
+            - <strong>Cheatsheet</strong> — the commands you reach for daily.
+            - <strong>Dockerfile</strong> — every instruction, explained.
+            - <strong>Automation</strong> — BuildX, WatchTower, and scripts.
+    stats:
+        - { label: Build engine, value: BuildKit, icon: gears }
+        - { label: Image recipe, value: Dockerfile, icon: code }
+        - { label: Multi-arch, value: BuildX, icon: deploy }
+        - { label: Multi-container, value: Compose, icon: box }
+    features:
+        - title: CLI cheatsheet
+          icon: code
+          href: '#cheatsheet'
+          body: Container management, inspection, networks, Compose, Swarm, and prune — the full command tables in one place.
+        - title: Dockerfile instructions
+          icon: box
+          href: '#dockerfile'
+          body: FROM, RUN, CMD, ENTRYPOINT, COPY vs ADD, HEALTHCHECK, and every other instruction with usage tables.
+        - title: BuildX multi-arch
+          icon: deploy
+          href: '#buildx'
+          body: Extended builds on BuildKit — cache export, builder instances, and multi-platform images for ARM and x86.
+        - title: WatchTower auto-updates
+          icon: clock
+          href: '#watchtower'
+          body: Automatically pull new images, restart containers, and notify your team when deployments update.
+    related:
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Orchestrate containers across clusters once one host is not enough.
+          icon: deploy
+        - title: Linux
+          href: /application/linux/
+          copy: The kernel and command-line foundation containers run on.
+          icon: server
+        - title: Portainer
+          href: /application/portainer/
+          copy: A web UI for managing Docker containers, images, and stacks.
+          icon: settings
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1605745341112-85968b19335b?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
-
+import { Aside, Steps } from '@astrojs/starlight/components';
 import { Giscus, Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Overview
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
 Docker packages an application and its dependencies into a **container** — an isolated, portable unit that runs identically on any machine with a Docker engine. Unlike a full virtual machine, containers share the host kernel, so they start in seconds and use far less memory. A `Dockerfile` describes how to build the image; `docker run` launches a container from it.
 
 This page is a working reference: the [CLI cheatsheet](#cheatsheet) for day-to-day commands, every [Dockerfile instruction](#dockerfile) explained, plus [GPU passthrough](#gpu), [BuildX](#buildx) multi-arch builds, [WatchTower](#watchtower) auto-updates, and management [scripts](#scripts).
 
-## Tools
+</BentoProse>
+
+<BentoProse id="tools" eyebrow="In the workshop" heading="Tools">
 
 <Aside type="danger" title="Docker Tool Inbound">
 
@@ -68,9 +148,15 @@ This is just a short place holder for a docker tool that I am making!
 
 </Aside>
 
-<Adsense />
+</BentoProse>
 
-## Orb
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="orb" eyebrow="macOS runtime" heading="Orb">
 
 OrbStack is a lightweight container runtime designed specifically for macOS.
 It provides full Docker CLI compatibility while using significantly less CPU and memory than Docker Desktop.
@@ -98,9 +184,9 @@ See the [Kubernetes](/application/kubernetes/) page for notes on Talos worker no
 For teams that need to run containers locally during development, OrbStack is a practical alternative that reduces overhead without sacrificing compatibility.
 See the [Getting Started](/guides/getting-started/) guide for full environment setup instructions.
 
----
+</BentoProse>
 
-## Information
+<BentoProse id="information" eyebrow="The big picture" heading="Information">
 
 In one sentence, we can describe docker as a hybrid-source application designed to deploy nested-virtual machines that are containerized applications.
 Docker is a powerful tool that can help you develop, deploy, and manage your applications.
@@ -114,9 +200,9 @@ They're also portable, so you can run them on any machine that has Docker instal
 So docker takes your source code, wraps it all into an image, then runs the image in a virtual machine aka container.
 Also, in this documentation, we will include more additional tips, such as security and optimization, for your docker adventure.
 
----
+</BentoProse>
 
-## Cheatsheet
+<BentoProse id="cheatsheet" eyebrow="Daily drivers" heading="Cheatsheet">
 
 This is a quick cheetsheet for Docker, everyone comes back to these sheet for when they run into future problems or forget a certain command.
 It is not important to understand this cheetsheet until you have a couple sessions of docker delopyment under your belt, so if you are a newbie, do not freak out!
@@ -279,9 +365,9 @@ Swarm Cheatsheet Table for Swarm Mode
 | `docker swarm unlock`                                                    | Unlock a locked manager.                           |
 | `docker swarm unlock-key`                                                | Manage the unlock key for a swarm.                 |
 
----
+</BentoProse>
 
-## DockerFile
+<BentoProse id="dockerfile" eyebrow="Image recipes" heading="DockerFile">
 
 A Dockerfile is a crucial component in building Docker images, serving as a simple script that specifies the base image and a set of instructions to assemble the final image.
 Acting as an isolated operating system for specific applications, a Dockerfile ensures all necessary libraries and dependencies are pre-installed and pre-built.
@@ -524,9 +610,15 @@ This is a form of documentation and does not actually publish the port.
 | `EXPOSE port`          | Specifies a port to be listened to by the container. For example, `EXPOSE 80`. |
 | `EXPOSE port/protocol` | Specifies a port and protocol (TCP/UDP). For example, `EXPOSE 80/tcp`.         |
 
----
+</BentoProse>
 
-## GPU
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="gpu" eyebrow="Hardware acceleration" heading="GPU">
 
 ### Windows
 
@@ -539,9 +631,9 @@ If you need assistance with WSL, refer to [WSL Help](/application/wsl/).
 -   Install the latest CUDA driver libraries from the official Nvidia website. Visit [Nvidia CUDA](https://developer.nvidia.com/cuda-downloads) for downloads and installation instructions.
 -   Ensure you have installed the latest core libraries as per the provided instructions.
 
----
+</BentoProse>
 
-## Setup
+<BentoProse id="setup" eyebrow="Getting started" heading="Setup">
 
 Docker is the future of application development because of how fast, easy and portable the software is.
 In this section of the document, we will focus on setting up the application on various operating systems, including linux, windows and mac.
@@ -581,9 +673,9 @@ Furthermore, you may need to enable the Hyper-V through your bios.
 
 The best way to setup `Docker` is by installing the engine through `Choco` because it will help keep the engine up to date.
 
----
+</BentoProse>
 
-## BuildX
+<BentoProse id="buildx" eyebrow="Multi-arch builds" heading="BuildX">
 
 Buildx is an advanced Docker CLI plugin designed to enhance the container building experience by providing extended capabilities powered by BuildKit.
 Leveraging multi-node and multi-platform builds, Buildx facilitates the creation of containers optimized for diverse architectures, such as ARM and x86.
@@ -714,9 +806,9 @@ The flexibility and power of Buildx make it an essential tool for developers see
 
 </Steps>
 
----
+</BentoProse>
 
-## WatchTower
+<BentoProse id="watchtower" eyebrow="Auto updates" heading="WatchTower">
 
 WatchTower is a powerful utility designed to automatically update running Docker containers whenever new images are pushed to a repository.
 Ensuring that applications are always running the latest version, WatchTower reduces manual intervention and minimizes downtime.
@@ -748,9 +840,9 @@ This command configures WatchTower to send email notifications regarding the sta
 Adjust the variables to suit the desired notification method and settings.
 By utilizing WatchTower and its notification features, administrators can ensure that their Docker environments remain up-to-date and secure with minimal effort.
 
----
+</BentoProse>
 
-## Scripts
+<BentoProse id="scripts" eyebrow="Automation" heading="Scripts">
 
 Shell or Bash scripts are powerful tools for automating Docker workflows. 
 These scripts allow you to string together multiple Docker commands into a single executable file, which can simplify and streamline complex operations. 
@@ -840,10 +932,9 @@ This script includes the following enhancements:
 
 Save this script to a file, for example, `docker_manage.sh`, make it executable with `chmod +x docker_manage.sh`, and then run it with `./docker_manage.sh`.
 
+</BentoProse>
 
----
-
-## Docker Compose
+<BentoProse id="docker-compose" eyebrow="Multi-container apps" heading="Docker Compose">
 
 Compose defines a multi-container app in a single declarative `docker-compose.yml`, replacing long `docker run` invocations. One `docker compose up -d` starts the whole stack; `docker compose down` tears it down.
 
@@ -878,7 +969,9 @@ volumes:
 | `docker compose ps` | List running services |
 | `docker compose exec web sh` | Open a shell in a running service |
 
-## Volumes and Networks
+</BentoProse>
+
+<BentoProse id="volumes-and-networks" eyebrow="Persistence and isolation" heading="Volumes and Networks">
 
 Containers are ephemeral — anything written to the container's writable layer is lost when it is removed. **Volumes** provide durable storage; **networks** provide isolated communication.
 
@@ -892,7 +985,9 @@ docker run -d --name db --network appnet postgres:16-alpine
 docker run -d --name web --network appnet -p 8080:80 myapp
 ```
 
-## Best Practices
+</BentoProse>
+
+<BentoProse id="best-practices" eyebrow="Do it right" heading="Best Practices">
 
 <Steps>
 
@@ -910,24 +1005,12 @@ docker run -d --name web --network appnet -p 8080:80 myapp
 
 </Steps>
 
----
+</BentoProse>
 
-## FAQ
+</BentoDoc>
 
-**What is the difference between CMD and ENTRYPOINT in a Dockerfile?**
-`ENTRYPOINT` sets the executable that always runs and is not overridden by arguments passed to `docker run`. `CMD` provides default arguments that are easily overridden. Use `ENTRYPOINT` for the fixed command and `CMD` for its default flags.
-
-**What is the difference between ADD and COPY?**
-`COPY` only copies local files and directories into the image. `ADD` does the same but also unpacks local tar archives and can fetch remote URLs. Prefer `COPY` unless you specifically need `ADD`'s extraction behavior.
-
-**How do I reduce Docker image size?**
-Use a small base image like `alpine`, combine `RUN` steps to reduce layers, leverage multi-stage builds to drop build-time dependencies, and add a `.dockerignore` to keep unneeded files out of the build context.
-
-**What is Docker BuildX used for?**
-BuildX is Docker's extended build engine built on BuildKit. It enables multi-platform (multi-arch) images, better caching, and building for architectures other than the host, such as `arm64` images from an `amd64` machine.
-
-<Adsense />
-
----
-
-<Giscus />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

@@ -5,6 +5,12 @@ description: |
     It offers unmatched flexibility, security, and performance for developers, system administrators, and tinkerers alike.
     Whether you're managing containers, automating infrastructure, or exploring the command line, Linux remains the foundation for innovation in the open-source ecosystem.
     This section explores its distributions, tools, and best practices within the KBVE stack.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Linux
     order: 2
@@ -34,20 +40,87 @@ jsonld:
           answer: Install ZSH with your package manager, then run chsh -s $(which zsh) and log out and back in. Many users add Oh My Zsh and a theme like Powerlevel10k for autocompletion, history, and prompt customization.
         - question: What is the difference between ext4 and XFS when resizing?
           answer: Both are Linux filesystems, but they grow with different tools. Use resize2fs to expand an ext4 filesystem and xfs_growfs to expand XFS. XFS can only grow, never shrink, so plan capacity accordingly.
+bento:
+    badge: application · os · sysadmin
+    title: 'The quiet force,'
+    accent: Linux.
+    lede: >-
+        The heartbeat of modern infrastructure — cloud servers, Kubernetes
+        clusters, desktops, and embedded devices alike. This guide covers the
+        everyday sysadmin skills the KBVE stack leans on: extending storage
+        with LVM, a productive ZSH shell, and the command-line essentials.
+    ctas:
+        - label: Essential commands
+          href: '#essential-commands'
+          primary: true
+        - label: LVM storage
+          href: '#lvm'
+        - label: ZSH setup
+          href: '#zsh'
+    aside:
+        icon: server
+        title: Everywhere, often invisible
+        body: >-
+            From the servers powering your favorite websites to the clusters
+            orchestrating entire cloud platforms — understanding Linux means
+            understanding the language of modern computing.
+        points:
+            - <strong>Storage</strong> — resize volumes live with LVM.
+            - <strong>Shell</strong> — ZSH with Oh My Zsh and Powerlevel10k.
+            - <strong>Reference</strong> — the commands you reach for daily.
+    stats:
+        - { label: Storage layer, value: LVM, icon: database }
+        - { label: Shell, value: ZSH, icon: code }
+        - { label: Init system, value: systemd, icon: gears }
+        - { label: Kernel license, value: GPLv2, icon: license }
+    features:
+        - title: Essential commands
+          icon: code
+          href: '#essential-commands'
+          body: The quick-reference toolkit — files, permissions, processes, systemd services, disk usage, and search.
+        - title: LVM extension
+          icon: database
+          href: '#lvm'
+          body: Grow partitions, physical volumes, and logical volumes without disrupting a running system — ideal under Proxmox.
+        - title: ZSH + Powerlevel10k
+          icon: zap
+          href: '#zsh'
+          body: A faster, more expressive terminal — Oh My Zsh, themes, fonts, autosuggestions, and syntax highlighting.
+        - title: Permissions first
+          icon: shield
+          body: Most "works for root, not the app" bugs are ownership problems — fix with chown and chmod, not by running everything as root.
+    related:
+        - title: Proxmox
+          href: /application/proxmox/
+          copy: The virtualization platform where LVM resizing pays off most.
+          icon: server
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Cluster orchestration on top of the Linux foundation.
+          icon: deploy
+        - title: Docker
+          href: /application/docker/
+          copy: Containers, images, and Compose on the Linux kernel.
+          icon: package
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1695820716792-bb317bc02822?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Linux is more than just an operating system, its the quiet force that keeps the modern world running.
 From the servers that power your favorite websites to the Kubernetes clusters orchestrating entire cloud platforms, Linux is everywhere, often invisible but always essential.
@@ -56,9 +129,9 @@ Whether you're deploying containers, managing infrastructure, or just exploring 
 
 This page focuses on two everyday sysadmin skills — extending storage with [LVM](#lvm) and setting up a productive [ZSH](#zsh) shell — plus an [essential command reference](#essential-commands) for navigating any Linux system.
 
-<Adsense />
+</BentoProse>
 
-## Essential Commands
+<BentoProse id="essential-commands" eyebrow="Daily drivers" heading="Essential Commands">
 
 A quick reference for the commands you reach for constantly on any Linux box:
 
@@ -79,7 +152,9 @@ A quick reference for the commands you reach for constantly on any Linux box:
 Permissions are the most common source of "it works for root but not the app" bugs. `ls -l` shows the owner and mode; fix access with `chown user:group file` and `chmod` rather than running everything as root.
 </Aside>
 
-## LVM
+</BentoProse>
+
+<BentoProse id="lvm" eyebrow="Grow without downtime" heading="LVM">
 
 **Logical Volume Management (LVM)** provides a flexible way to manage storage on Linux, allowing you to resize, extend, or move partitions without disrupting your system. 
 It's especially useful when running Linux inside virtualized environments like [Proxmox](/application/proxmox/), where disk space can be expanded dynamically.
@@ -170,9 +245,15 @@ For the purposes of simplicity, I'm going to assume that the main volume you wis
 -   Extend the LV to 100% with `sudo lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv`
 -   Resize the filesystem with `sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv`
 
----
+</BentoProse>
 
-## ZSH
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="zsh" eyebrow="A better terminal" heading="ZSH">
 
 The **Z Shell (ZSH)** is a feature-rich shell that builds on Bash, offering improved autocompletion, better history management, and deep customization through plugins and themes.  
 It is the go to choice for developers who want a faster, more expressive terminal experience.
@@ -271,20 +352,6 @@ If you're using VS Code's integrated terminal or Windows Terminal, make sure you
 -   [Powerlevel10K Repository](https://github.com/romkatv/powerlevel10k)
 -   [One of the Best Tutorials by dev.to (Dec 2020)](https://dev.to/abdfnx/oh-my-zsh-powerlevel10k-cool-terminal-1no0)
 
----
+</BentoProse>
 
-## FAQ
-
-**How do I extend a disk partition on Linux with LVM?**
-Grow the partition with `growpart`, update the physical volume with `pvresize`, extend the logical volume using `lvextend -l +100%FREE`, then resize the filesystem with `resize2fs` (EXT4) or `xfs_growfs` (XFS). Verify with `df -h`.
-
-**What is LVM in Linux?**
-Logical Volume Management is a storage abstraction layer that lets you resize, extend, or move volumes without repartitioning. It is especially useful in virtualized environments like [Proxmox](/application/proxmox/) where disk size can grow dynamically.
-
-**How do I change my default shell to ZSH?**
-Install ZSH with your package manager, then run `chsh -s $(which zsh)` and log out and back in. Many users add Oh My Zsh and a theme like Powerlevel10k for autocompletion, history, and prompt customization.
-
-**What is the difference between ext4 and XFS when resizing?**
-Both are Linux filesystems, but they grow with different tools. Use `resize2fs` to expand an ext4 filesystem and `xfs_growfs` to expand XFS. XFS can only grow, never shrink, so plan capacity accordingly.
-
-<Adsense />
+</BentoDoc>

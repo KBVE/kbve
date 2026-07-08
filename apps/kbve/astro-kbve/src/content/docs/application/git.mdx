@@ -3,6 +3,12 @@ title: Git
 description: |
     Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.
     Git allows multiple developers to collaborate, track changes, and manage project history effectively. Ideal for version tracking and collaboration.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Git
     order: 1000
@@ -10,20 +16,92 @@ unsplash: 1618401479427-c8ef9465fbe1
 img: https://images.unsplash.com/photo-1618401479427-c8ef9465fbe1?fit=crop&w=1400&h=700&q=75
 tags:
     - cloud
+bento:
+    badge: application · cloud · vcs
+    title: 'Every line of history,'
+    accent: Git.
+    lede: >-
+        The distributed version control system behind nearly all modern
+        software — fast, flexible, and built for collaboration. This guide
+        collects the command cheatsheet, conventional commits, hosting
+        platforms from GitHub to Forgejo, and the CI/CD automation patterns
+        the KBVE monorepo runs on.
+    ctas:
+        - label: Command cheatsheet
+          href: '#cheatsheet'
+          primary: true
+        - label: GitHub & CI/CD
+          href: '#github'
+        - label: Submodules
+          href: '#submodules'
+        - label: Monorepo
+          href: '#monorepo'
+    aside:
+        icon: branch
+        title: Distributed by design
+        body: >-
+            Every clone is a full repository with complete history — commit
+            offline, branch freely, and reconcile with remotes when you are
+            ready. Git tracks changes, resolves conflicts, and keeps every
+            contribution accounted for.
+        points:
+            - <strong>Cheatsheet</strong> — the commands you reach for daily.
+            - <strong>Hosting</strong> — GitHub, GitLab, Gitea, and Forgejo.
+            - <strong>Automation</strong> — fanout CI, auto-merge, cleanup.
+    stats:
+        - { label: Model, value: Distributed, icon: network }
+        - { label: First release, value: '2005', icon: clock }
+        - { label: License, value: GPLv2, icon: license }
+        - { label: Created by, value: Linus Torvalds, icon: code }
+    features:
+        - title: Command cheatsheet
+          icon: code
+          href: '#cheatsheet'
+          body: The full quick-reference table — init, branch, rebase, stash, bisect, reflog, and everything between.
+        - title: GitHub Actions & fanout CI
+          icon: deploy
+          href: '#github'
+          body: Pages, Actions, the fanout Docker pipeline, package publishing, queue guards, and failure tracking.
+        - title: Forgejo OAuth with Supabase
+          icon: lock
+          href: '#forgejo'
+          body: Wire the self-hosted forge into Supabase OIDC for automatic login and account creation.
+        - title: Auto-merge & registry cleanup
+          icon: gears
+          href: '#auto-merge-bot-prs'
+          body: Gated bot PR merging for version bumps plus weekly GHCR pruning that never touches releases.
+    related:
+        - title: Docker
+          href: /application/docker/
+          copy: The container images that Git-driven CI builds and publishes.
+          icon: package
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Where the manifest-update PRs from CI land and deploy.
+          icon: deploy
+        - title: Linux
+          href: /application/linux/
+          copy: The command-line foundation every Git workflow lives on.
+          icon: server
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1618401479427-c8ef9465fbe1?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Git, a powerful distributed version control system, excels in managing project history and facilitating collaboration among multiple developers.
 By efficiently tracking changes in source code, Git enables seamless coordination and conflict resolution, ensuring that every contribution is accounted for.
@@ -40,9 +118,15 @@ Renowned for its flexibility and reliability, Git has become an indispensable to
 	separate branch when experimenting with these commands.
 </Aside>
 
-<Adsense />
+</BentoProse>
 
-## Cheatsheet
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="cheatsheet" eyebrow="Command reference" heading="Cheatsheet">
 
 | Command                                                 | Description                                                                     |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------- |
@@ -106,9 +190,9 @@ Renowned for its flexibility and reliability, Git has become an indispensable to
 | `git filter-branch --tree-filter 'command' HEAD`        | Rewrites branches by applying a command on each tree.                           |
 | `git symbolic-ref HEAD <ref>`                           | Changes the current branch by updating the symbolic reference.                  |
 
----
+</BentoProse>
 
-## Conventional Commits Cheatsheet
+<BentoProse id="conventional-commits" eyebrow="Commit style" heading="Conventional Commits Cheatsheet">
 
 | Commit Message                     | Description                                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -128,9 +212,9 @@ Renowned for its flexibility and reliability, Git has become an indispensable to
 | `style`                            | Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)        |
 | `test`                             | Adding missing tests or correcting existing tests                                                             |
 
----
+</BentoProse>
 
-## Github
+<BentoProse id="github" eyebrow="Hosting & CI/CD" heading="Github">
 
 GitHub, a leading platform for version control and collaboration, leverages Git to provide a seamless environment for developers to host, review, and manage code.
 Offering features like pull requests, code reviews, and integrated issue tracking, GitHub streamlines the development workflow and fosters collaboration among team members.
@@ -932,27 +1016,27 @@ Broadening the alter patterns or OR-ing the `*_base` signals into dispatch condi
 
 </Aside>
 
----
+</BentoProse>
 
-## GitLab
+<BentoProse id="gitlab" eyebrow="DevOps platform" heading="GitLab">
 
 GitLab is a comprehensive DevOps platform that provides a wide range of tools for software development, continuous integration, and continuous delivery.
 With features like issue tracking, code review, and built-in CI/CD pipelines, GitLab enables teams to collaborate efficiently and accelerate their development cycles.
 GitLab's robust version control capabilities, combined with its scalable and flexible infrastructure, make it an ideal choice for both small teams and large enterprises.
 By integrating all stages of the DevOps lifecycle into a single application, GitLab simplifies workflow management, enhances productivity, and promotes seamless collaboration across the entire development process.
 
----
+</BentoProse>
 
-## Gitea
+<BentoProse id="gitea" eyebrow="Self-hosted Git" heading="Gitea">
 
 Gitea is a lightweight, self-hosted Git service designed to provide a seamless and efficient way to manage version control for software projects.
 Offering features like issue tracking, code review, and a built-in wiki, Gitea supports collaborative development and project management.
 Its user-friendly interface and minimal resource requirements make it an excellent choice for small to medium-sized teams looking for a straightforward and customizable Git hosting solution.
 With easy installation and maintenance, Gitea empowers developers to host their own repositories and control their workflow, ensuring flexibility and security in their development processes.
 
----
+</BentoProse>
 
-## Forgejo
+<BentoProse id="forgejo" eyebrow="Community fork" heading="Forgejo">
 
 Forgejo is a community-driven fork of Gitea focused on self-hosted Git service with enhanced features and governance.
 Built on the foundation of Gitea, Forgejo maintains the same lightweight and efficient architecture while ensuring long-term community ownership and development.
@@ -1115,9 +1199,9 @@ Test the OAuth flow after setup:
 
 </Aside>
 
----
+</BentoProse>
 
-## Submodules
+<BentoProse id="submodules" eyebrow="Nested repos" heading="Submodules">
 
 Git submodules are a powerful feature that allows you to include and manage external repositories within your own project.
 By embedding one Git repository as a subdirectory of another, submodules enable the use of libraries or dependencies while maintaining their own version control.
@@ -1164,9 +1248,9 @@ ln -s ../../submodules/UnitySubModules/Vuplex
 
 ```
 
----
+</BentoProse>
 
-## Scripts
+<BentoProse id="scripts" eyebrow="Shell helpers" heading="Scripts">
 
 Script commands for Git act as powerful helper scripts that automate and streamline various Git operations.
 These commands can simplify complex workflows by combining multiple Git actions into a single executable script.
@@ -1222,9 +1306,9 @@ This command does the following:
 
 This way, you don't need to manually replace the branch name each time.
 
----
+</BentoProse>
 
-## DevOps
+<BentoProse id="devops" eyebrow="Culture & practice" heading="DevOps">
 
 DevOps is a collaborative and integrated approach to software development and IT operations, aimed at shortening the development lifecycle and delivering high-quality software continuously. By combining practices, tools, and cultural philosophies, DevOps enables organizations to automate and streamline processes, enhancing efficiency and reliability. Key practices include continuous integration and continuous deployment (CI/CD), infrastructure as code (IaC), monitoring, and feedback loops. This approach fosters a culture of collaboration between development and operations teams, ensuring rapid delivery of features, quick resolution of issues, and improved scalability and security.
 Ultimately, DevOps empowers organizations to innovate faster and respond more effectively to market demands.
@@ -1301,9 +1385,9 @@ By integrating development and operations, DevOps aims to deliver software more 
 -   **Online Courses and Certifications**.
 -   **Community Forums and Groups**.
 
----
+</BentoProse>
 
-## FlyIO
+<BentoProse id="flyio" eyebrow="Quick deploys" heading="FlyIO">
 
 <Aside>
 	When preparing to remotely deploy to flyio via github action, we should make
@@ -1313,9 +1397,9 @@ By integrating development and operations, DevOps aims to deliver software more 
 FlyIO is a simple way to deploy your application quickly onto the cloud.
 We believe that flyio is great for launching a quick demo application when utilizing a low level language like zig or rust.
 
----
+</BentoProse>
 
-## Monorepo
+<BentoProse id="monorepo" eyebrow="Unified codebases" heading="Monorepo">
 
 <Aside type="caution" title="Monorepo Considerations">
 	Adopting a monorepo can require a significant upfront time investment to
@@ -1382,9 +1466,9 @@ Use the `--args` flag when running `nx run <project>:<target> --args="--verbose"
 	leak credentials or allow malicious code execution in your CI/CD pipeline.
 </Aside>
 
----
+</BentoProse>
 
-## Auto-Merge Bot PRs
+<BentoProse id="auto-merge-bot-prs" eyebrow="Gated automation" heading="Auto-Merge Bot PRs">
 
 The `ci-auto-merge-bot-prs.yml` workflow provides automated, gated merging for bot-generated PRs that update version files and Kubernetes deployment manifests.
 It is never triggered directly by code pushes — only by explicit `workflow_dispatch` or `workflow_call` from other CI workflows.
@@ -1426,7 +1510,9 @@ The following prefixes are permitted for auto-merge:
 When onboarding a new app to the CI publish pipeline, add its title prefix to the allowlist in `ci-auto-merge-bot-prs.yml` or the version/kube PRs will not auto-merge.
 </Aside>
 
-## Registry Cleanup (GHCR)
+</BentoProse>
+
+<BentoProse id="registry-cleanup-ghcr" eyebrow="Image hygiene" heading="Registry Cleanup (GHCR)">
 
 Every published image accumulates `ci-<sha>` tags on the GitHub Container Registry. The `ci-registry-cleanup.yml` workflow prunes that churn on a weekly schedule while keeping recent builds and never touching releases.
 
@@ -1534,3 +1620,7 @@ jobs:
                         });
                       }
 ```
+
+</BentoProse>
+
+</BentoDoc>

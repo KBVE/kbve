@@ -4,6 +4,12 @@ description: |
     Nomad by HashiCorp is a lightweight, flexible workload orchestrator that deploys and manages containers,
     binaries, and batch jobs across a cluster from a single binary. This guide covers the architecture,
     installation, job specification, and the essential CLI compared to Kubernetes.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Nomad
     order: 103
@@ -36,20 +42,91 @@ jsonld:
           answer: A production HA control plane needs an odd number of server nodes to hold quorum, typically 3 or 5. A full HashiCorp stack with Vault and Consul also at HA means 3 instances of each, for 9 total, though Nomad itself can run standalone.
         - question: What is a Nomad job specification?
           answer: A job spec is an HCL (or JSON) file that declares what to run — the job, its groups, tasks, driver (docker, exec, java), resources, and count. You submit it with nomad job run, and the scheduler places allocations onto healthy clients that meet the constraints.
+bento:
+    badge: application · orchestration · cloud
+    title: 'One binary to run it all,'
+    accent: Nomad.
+    lede: >-
+        HashiCorp's lightweight, flexible workload orchestrator — a single
+        binary that schedules and scales containers, plain executables, Java
+        apps, and batch jobs across a cluster with a fraction of the
+        operational overhead of Kubernetes. This guide covers the
+        architecture, installation, job specs, and the essential CLI.
+    ctas:
+        - label: Architecture
+          href: '#architecture'
+          primary: true
+        - label: Install
+          href: '#install'
+        - label: Job specs
+          href: '#jobs'
+        - label: CLI cheatsheet
+          href: '#cheatsheet'
+    aside:
+        icon: server
+        title: Simplicity over sprawl
+        body: >-
+            Nomad slots into the HashiCorp stack — Consul for service
+            discovery, Vault for secrets — and orchestrates far more than
+            containers while staying a single, small binary.
+        points:
+            - <strong>Servers</strong> — hold state and elect a Raft leader.
+            - <strong>Clients</strong> — run allocations and report health.
+            - <strong>Drivers</strong> — docker, exec, java, and qemu workloads.
+    stats:
+        - { label: Binary size, value: ~100MB, icon: package }
+        - { label: HA quorum, value: 3 or 5, icon: server }
+        - { label: Drivers, value: docker · exec · java, icon: gears }
+        - { label: Dev UI port, value: '4646', icon: activity }
+    features:
+        - title: Architecture
+          icon: server
+          href: '#architecture'
+          body: Server and client roles from one binary — jobs, tasks, groups, and allocations explained.
+        - title: Install
+          icon: package
+          href: '#install'
+          body: Grab the single binary via Homebrew or apt, then start a local dev agent with UI.
+        - title: Jobs
+          icon: code
+          href: '#jobs'
+          body: Declare workloads in an HCL job spec — service, batch, and system types with Docker drivers.
+        - title: Cheatsheet
+          icon: book
+          href: '#cheatsheet'
+          body: The nomad CLI commands you reach for daily — run, status, logs, nodes, and server members.
+    related:
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: The heavyweight alternative — container orchestration at platform scale.
+          icon: deploy
+        - title: Docker
+          href: /application/docker/
+          copy: The container runtime behind Nomad's most common task driver.
+          icon: package
+        - title: Terraform
+          href: /application/terraform/
+          copy: HashiCorp's infrastructure-as-code sibling to Nomad.
+          icon: gears
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1572511443032-a3cfe6823872?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Overview
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
 **Nomad** is HashiCorp's easy, flexible, and powerful workload orchestrator. It ships as a **single binary** that can schedule and scale containers, plain executables, Java applications, and batch jobs across a cluster — often with a fraction of the operational overhead of Kubernetes.
 
@@ -57,9 +134,15 @@ Nomad slots into the HashiCorp stack: **Consul** for service discovery, **Vault*
 
 This guide covers the [architecture](#architecture), [installation](#install), [job specs](#jobs), and the [CLI cheatsheet](#cheatsheet).
 
-<Adsense />
+</BentoProse>
 
-## Architecture
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="architecture" eyebrow="Two roles, one binary" heading="Architecture">
 
 Nomad has two node roles running from the same binary:
 
@@ -75,7 +158,9 @@ Key terms:
 - **Group** — a set of tasks scheduled together on one node.
 - **Allocation (alloc)** — a group's tasks placed on a specific client. The rough equivalent of a **Pod** in Kubernetes.
 
-## Install
+</BentoProse>
+
+<BentoProse id="install" eyebrow="Up in minutes" heading="Install">
 
 Nomad is a single binary — download it or use a package manager.
 
@@ -110,7 +195,9 @@ Nomad is a single binary — download it or use a package manager.
 
 </Steps>
 
-## Jobs
+</BentoProse>
+
+<BentoProse id="jobs" eyebrow="Declare, submit, scale" heading="Jobs">
 
 Nomad workloads are declared in an **HCL job specification**. A minimal Docker service:
 
@@ -154,7 +241,9 @@ nomad job status web
 `type = "service"` keeps a job running and reschedules it on failure. Use `type = "batch"` for run-to-completion tasks and `type = "system"` to run one alloc on every client (like a Kubernetes DaemonSet).
 </Aside>
 
-## Cheatsheet
+</BentoProse>
+
+<BentoProse id="cheatsheet" eyebrow="Daily drivers" heading="Cheatsheet">
 
 | Command | Purpose |
 | ------- | ------- |
@@ -172,21 +261,6 @@ nomad job status web
 The `{$allocation}` ID is a unique reference to a group of tasks on a node; the `{$identifier}` used by `nomad status` is an 8-character alphanumeric prefix — you only need enough characters to be unambiguous.
 </Aside>
 
-## FAQ
+</BentoProse>
 
-**What is HashiCorp Nomad?**
-Nomad is a lightweight, single-binary workload orchestrator that schedules and manages containers, standalone binaries, Java apps, and batch jobs across a cluster. It pairs naturally with Consul for service discovery and Vault for secrets.
-
-**How is Nomad different from Kubernetes?**
-Nomad is a single ~100MB binary that orchestrates more than just containers, with far less operational overhead than Kubernetes. Kubernetes is a larger, container-focused platform with a bigger built-in ecosystem. Nomad favors simplicity and flexible workload types; Kubernetes favors breadth.
-
-**What is an allocation in Nomad?**
-An allocation (alloc) is a set of tasks from a job placed and running on a single client node — the rough equivalent of a Pod in Kubernetes. Each allocation gets a unique ID you use to inspect status and stream logs.
-
-**How many servers does a Nomad cluster need for high availability?**
-A production HA control plane needs an odd number of server nodes to hold quorum, typically 3 or 5. A full HashiCorp stack with Vault and Consul also at HA means 3 instances of each, for 9 total.
-
-**What is a Nomad job specification?**
-A job spec is an HCL (or JSON) file that declares what to run — the job, its groups, tasks, driver, resources, and count. You submit it with `nomad job run`, and the scheduler places allocations onto healthy clients that meet the constraints.
-
-<Adsense />
+</BentoDoc>

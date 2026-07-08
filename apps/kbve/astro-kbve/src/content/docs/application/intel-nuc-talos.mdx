@@ -2,6 +2,12 @@
 title: Intel NUC Talos Worker Nodes
 description: |
     Guide for adding Intel NUC devices as Talos Linux worker nodes to the existing KBVE cluster
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Intel NUC Setup
     order: 150
@@ -34,26 +40,98 @@ jsonld:
           answer: An Intel NUC 11th gen or newer with at least 8GB RAM (16GB recommended), a 256GB+ SSD (NVMe preferred), and gigabit Ethernet. Enable UEFI boot, disable Secure Boot, and turn on Intel VT-x/VT-d in the BIOS before installing Talos.
         - question: How do I troubleshoot a NUC that will not join the cluster?
           answer: Check WireGuard connectivity with wg show and ping the control-plane endpoint, inspect kubelet logs via talosctl logs --nodes, and confirm the cluster secrets and keys match. Most join failures trace back to an incorrect WireGuard key or an unreachable endpoint.
+bento:
+    badge: application · talos · homelab
+    title: 'Bare-metal workers,'
+    accent: Talos.
+    lede: >-
+        Add Intel NUC devices as Talos Linux worker nodes to the existing KBVE
+        cluster on Hetzner. Cluster traffic tunnels over WireGuard, every node
+        is managed declaratively through talosctl, and each NUC joins as a
+        standard Kubernetes worker — from hardware prep to troubleshooting.
+    ctas:
+        - label: Hardware prep
+          href: '#phase-1-hardware-preparation'
+          primary: true
+        - label: Install Talos
+          href: '#phase-2-talos-linux-installation'
+        - label: Join the cluster
+          href: '#phase-4-join-nucs-to-cluster'
+        - label: Troubleshooting
+          href: '#troubleshooting'
+    aside:
+        icon: server
+        title: Homelab meets cloud
+        body: >-
+            Home-based NUCs and Hetzner control-plane nodes communicate over an
+            encrypted WireGuard overlay as if on one private subnet — no shell,
+            no SSH, just declarative machine configs.
+        points:
+            - <strong>Immutable OS</strong> — Talos is API-driven with no shell or SSH.
+            - <strong>WireGuard overlay</strong> — unique key and 10.0.0.x IP per NUC.
+            - <strong>Declarative join</strong> — talosctl apply-config per worker.
+    stats:
+        - { label: NUC generation, value: 11th+, icon: box }
+        - { label: Minimum RAM, value: 8GB, icon: chart }
+        - { label: Storage, value: 256GB NVMe, icon: database }
+        - { label: Overlay, value: WireGuard, icon: network }
+    features:
+        - title: Hardware requirements
+          icon: box
+          href: '#hardware-requirements'
+          body: Compatible NUC models, RAM and SSD sizing, and the full assembly checklist before any software touches the box.
+        - title: Talos installation
+          icon: gears
+          href: '#phase-2-talos-linux-installation'
+          body: Download and verify the ISO, flash bootable USB drives, and boot each NUC into Talos maintenance mode.
+        - title: Join the cluster
+          icon: deploy
+          href: '#phase-4-join-nucs-to-cluster'
+          body: Apply the per-node worker config, verify the node registers, and test pod scheduling over the WireGuard mesh.
+        - title: Troubleshooting
+          icon: alert
+          href: '#troubleshooting'
+          body: WireGuard connection failures, nodes that refuse to join, and hardware compatibility checks with talosctl.
+    related:
+        - title: WireGuard
+          href: /application/wireguard/
+          copy: The encrypted overlay network that links home NUCs to the cloud control plane.
+          icon: lock
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: The cluster these bare-metal workers join and serve.
+          icon: deploy
+        - title: Proxmox
+          href: /application/proxmox/
+          copy: The other homelab pillar — virtualized nodes alongside bare metal.
+          icon: server
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1518834107796-18cc03584b9a?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
-
+import { Aside, Steps } from '@astrojs/starlight/components';
 import { Giscus, Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Overview
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
 This guide covers adding Intel NUC devices as worker nodes to the existing Talos Linux cluster running on Hetzner with WireGuard networking.
 
 Flow: [hardware prep](#phase-1-hardware-preparation) → [Talos install](#phase-2-talos-linux-installation) → [cluster config](#phase-3-cluster-configuration) → [join](#phase-4-join-nucs-to-cluster) → [troubleshooting](#troubleshooting).
 
-## Hardware Requirements
+</BentoProse>
+
+<BentoProse id="hardware-requirements" eyebrow="Shopping list" heading="Hardware Requirements">
 
 ### Intel NUC Specifications
 - **Compatible Models**: Intel NUC 11th gen or newer (tested on NUC11TNHi5, NUC11TNKi5)
@@ -75,7 +153,9 @@ Flow: [hardware prep](#phase-1-hardware-preparation) → [Talos install](#phase-
 	Purchase RAM and SSDs that match Intel's compatibility matrix for your specific NUC model to avoid compatibility issues.
 </Aside>
 
-## Phase 1: Hardware Preparation
+</BentoProse>
+
+<BentoProse id="phase-1-hardware-preparation" eyebrow="Phase one" heading="Phase 1: Hardware Preparation">
 
 <Steps>
 
@@ -114,7 +194,9 @@ Flow: [hardware prep](#phase-1-hardware-preparation) → [Talos install](#phase-
 
 </Steps>
 
-## Phase 2: Talos Linux Installation
+</BentoProse>
+
+<BentoProse id="phase-2-talos-linux-installation" eyebrow="Phase two" heading="Phase 2: Talos Linux Installation">
 
 <Steps>
 
@@ -153,7 +235,9 @@ Flow: [hardware prep](#phase-1-hardware-preparation) → [Talos install](#phase-
 
 </Steps>
 
-## Phase 3: Cluster Configuration
+</BentoProse>
+
+<BentoProse id="phase-3-cluster-configuration" eyebrow="Phase three" heading="Phase 3: Cluster Configuration">
 
 <Steps>
 
@@ -205,7 +289,9 @@ Flow: [hardware prep](#phase-1-hardware-preparation) → [Talos install](#phase-
 
 </Steps>
 
-## Phase 4: Join NUCs to Cluster
+</BentoProse>
+
+<BentoProse id="phase-4-join-nucs-to-cluster" eyebrow="Phase four" heading="Phase 4: Join NUCs to Cluster">
 
 <Steps>
 
@@ -247,7 +333,9 @@ Flow: [hardware prep](#phase-1-hardware-preparation) → [Talos install](#phase-
 
 </Steps>
 
-## Troubleshooting
+</BentoProse>
+
+<BentoProse id="troubleshooting" eyebrow="When it breaks" heading="Troubleshooting">
 
 ### Common Issues
 
@@ -285,7 +373,9 @@ Flow: [hardware prep](#phase-1-hardware-preparation) → [Talos install](#phase-
 	Always verify WireGuard keys are properly generated and configured. Incorrect keys will prevent cluster communication.
 </Aside>
 
-## Scaling
+</BentoProse>
+
+<BentoProse id="scaling" eyebrow="More nodes" heading="Scaling">
 
 To add additional Intel NUC worker nodes:
 
@@ -295,7 +385,15 @@ To add additional Intel NUC worker nodes:
 4. Apply worker configuration
 5. Verify cluster integration
 
-## Security Considerations
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="security-considerations" eyebrow="Lock it down" heading="Security Considerations">
 
 - Store WireGuard private keys securely
 - Use unique keys for each node
@@ -303,29 +401,20 @@ To add additional Intel NUC worker nodes:
 - Regular security updates via Talos upgrades
 - Monitor cluster access logs
 
-<Adsense />
+</BentoProse>
 
-## FAQ
-
-**What is Talos Linux?**
-Talos Linux is a minimal, immutable, API-driven operating system purpose-built for Kubernetes. It has no shell or SSH — every node is managed declaratively through `talosctl` and a machine config — which makes bare-metal nodes like Intel NUCs reproducible and secure.
-
-**Can I add bare-metal Intel NUCs to a cloud Kubernetes cluster?**
-Yes. This guide joins Intel NUC workers to an existing Talos control plane running on Hetzner by tunneling cluster traffic over [WireGuard](/application/wireguard/). Each NUC gets a unique WireGuard key and IP, applies a worker machine config, and registers as a standard worker node.
-
-**Why use WireGuard to join remote worker nodes?**
-WireGuard creates an encrypted overlay network so home-based NUCs and cloud control-plane nodes communicate securely across the public internet as if on one private subnet. It is lightweight, fast, and integrates directly into the Talos machine network config.
-
-**What are the minimum hardware requirements for a Talos NUC worker?**
-An Intel NUC 11th gen or newer with at least 8GB RAM (16GB recommended), a 256GB+ SSD (NVMe preferred), and gigabit Ethernet. Enable UEFI boot, disable Secure Boot, and turn on Intel VT-x/VT-d in the BIOS before installing Talos.
-
-**How do I troubleshoot a NUC that will not join the cluster?**
-Check WireGuard connectivity with `wg show` and ping the control-plane endpoint, inspect kubelet logs via `talosctl logs --nodes`, and confirm the cluster secrets and keys match. Most join failures trace back to an incorrect WireGuard key or an unreachable endpoint.
-
-## References
+<BentoProse id="doc-references" eyebrow="Further reading" heading="References">
 
 - [Talos Linux Documentation](https://www.talos.dev/docs/)
 - [WireGuard Configuration Guide](/application/wireguard)
 - [Intel NUC Compatibility Matrix](https://www.intel.com/content/www/us/en/support/articles/000055471/intel-nuc.html)
 
-<Giscus />
+</BentoProse>
+
+</BentoDoc>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

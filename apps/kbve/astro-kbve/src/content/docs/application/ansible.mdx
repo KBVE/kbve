@@ -3,6 +3,12 @@ title: Ansible
 description: |
     DevOps software that handles the infrastructure of the backend through automation.
     Ansible's main function(s) operate through a "playbook" system that exectues a collection of commands for the system admin, which becomes a pillar within the IaaC environment.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Ansible
     order: 115
@@ -35,27 +41,104 @@ jsonld:
           answer: A module is a self-contained unit of work — like apt, copy, service, or template — that Ansible ships to a host to perform one task idempotently. Tasks in a playbook call modules with parameters, and Ansible reports whether each run changed the system.
         - question: What is AWX?
           answer: AWX is the open-source upstream of Ansible Tower (Red Hat Ansible Automation Platform). It adds a web UI, REST API, role-based access control, job scheduling, and centralized credential management on top of core Ansible for team-scale automation.
+bento:
+    badge: application · iac · devops
+    title: 'Automation without agents,'
+    accent: Ansible.
+    lede: >-
+        Agentless IT automation over SSH and Python — Ansible ships small
+        programs called modules to your hosts, does the work, and cleans up
+        after itself. This guide walks through installing a control node,
+        writing YAML playbooks, the module ecosystem across clouds and systems,
+        AWX for team-scale automation, and a command cheatsheet.
+    ctas:
+        - label: Install
+          href: '#install'
+          primary: true
+        - label: Playbooks
+          href: '#playbook'
+        - label: Modules
+          href: '#modules'
+        - label: AWX
+          href: '#awx'
+    aside:
+        icon: gears
+        title: Infrastructure as code
+        body: >-
+            From provisioning servers to configuring networks and deploying
+            applications, Ansible turns manual, error-prone processes into
+            consistent, repeatable automation — no daemons on managed nodes,
+            just SSH and Python.
+        points:
+            - <strong>Playbooks</strong> — declarative, idempotent YAML plays.
+            - <strong>Modules</strong> — cloud, network, system, and database tasks.
+            - <strong>AWX</strong> — web UI, REST API, and scheduling on top.
+    stats:
+        - { label: Transport, value: SSH, icon: lock }
+        - { label: Playbook format, value: YAML, icon: code }
+        - { label: Runtime, value: Python, icon: gears }
+        - { label: Web UI, value: AWX, icon: server }
+    features:
+        - title: Install
+          icon: package
+          href: '#install'
+          body: Set up a control node and managed nodes, install Ansible per platform, and verify with an ad-hoc ping.
+        - title: Playbook
+          icon: book
+          href: '#playbook'
+          body: The YAML automation blueprint — plays, hosts, tasks, variables, and conditions, with real examples.
+        - title: Modules
+          icon: box
+          href: '#modules'
+          body: The building blocks for AWS, Azure, GCP, OpenStack, networks, systems, databases, and Windows.
+        - title: AWX
+          icon: server
+          href: '#awx'
+          body: The open-source upstream of Ansible Tower — web UI, REST API, and task engine for teams.
+    related:
+        - title: Terraform
+          href: /application/terraform/
+          copy: Declarative provisioning that pairs with Ansible configuration.
+          icon: deploy
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Cluster add-ons and GitOps bootstrap driven by playbooks.
+          icon: gears
+        - title: Python
+          href: /application/python/
+          copy: The language Ansible and its modules are built on.
+          icon: code
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1549605659-32d82da3a059?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
 import {
 	Aside,
 	Steps,
-	Card,
-	CardGrid,
-	Code,
 	FileTree,
 	Tabs,
 	TabItem,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 <Aside type="note">
 > Automation software that enables `IaC` - also known as, infrastructure as code, thus allowing user to provision, configure, deploy and secure a whole array of software, applications and machines.
 
 </Aside>
-
-## Information
 
 With **Ansible**, you can automate complex IT operations with clarity and control.
 It simplifies system management, application deployment, and workflow orchestration through powerful, modular building blocks.
@@ -64,8 +147,6 @@ It sends lightweight programs called **modules** to perform tasks precisely wher
 From provisioning servers to configuring networks and deploying applications, Ansible turns manual, error-prone processes into consistent, repeatable automation.
 
 Jump to [install](#install), [playbooks](#playbook), [modules](#modules), [AWX](#awx), or the [cheatsheet](#cheatsheet).
-
-<Adsense />
 
 <Tabs syncKey="info">
   <TabItem label="Tip">
@@ -96,7 +177,15 @@ Think of Ansible like a friend that helps people with computers.
 
 </Tabs>
 
-## Install
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="install" eyebrow="Get running" heading="Install">
 
 To install **Ansible**, you will need two types of machines:  
 a **control node** (where Ansible runs) and one or more **managed nodes** (where Ansible performs tasks).
@@ -136,9 +225,9 @@ a **control node** (where Ansible runs) and one or more **managed nodes** (where
 
 </Aside>
 
----
+</BentoProse>
 
-## Playbook
+<BentoProse id="playbook" eyebrow="Automation blueprint" heading="Playbook">
 
 An Ansible playbook is your automation blueprint written in YAML/JSON.
 The purpose of the playbook is to tell Ansible what to do, where to do it, and how to do it.
@@ -236,9 +325,9 @@ For example, the task `Download Minecraft server jar` will only run if the jar f
 The playbook uses the `register` keyword to store the output of some tasks in variables, such as `latest_version` and `jar_file`.
 These variables can be used in later tasks or conditions and this playbook could be expanded to include file checks with hashing.
 
----
+</BentoProse>
 
-## Modules
+<BentoProse id="modules" eyebrow="Building blocks" heading="Modules">
 
 <Aside>
 
@@ -522,9 +611,9 @@ Employing these modules, you have full control over your database servers and ob
 Windows modules can be used to manage Windows systems and applications, such as Active Directory, IIS, PowerShell, etc.
 For example, you can use the `win_service` module to manage Windows service
 
----
+</BentoProse>
 
-## AWX
+<BentoProse id="awx" eyebrow="Team-scale automation" heading="AWX">
 
 > tldr; AWX is a web-base RESTFul API and task engine that operates on top of Ansible, thus enabling you to automate certain aspects of the IT/DevOps.
 
@@ -572,7 +661,9 @@ provider "awx" {
 
 > Remember that if you set both (username/password) and (token), then the (token) will have precedence.
 
-## Cheatsheet
+</BentoProse>
+
+<BentoProse id="cheatsheet" eyebrow="Quick reference" heading="Cheatsheet">
 
 > tldr; Commands that will make it easier operate ansible scripts / playbooks. This cheatsheet is still a work-in-progress.
 
@@ -580,29 +671,18 @@ An Ansible cheatsheet is a quick and handy reference guide that provides example
 With an Ansible cheatsheet at your fingertips, you can breeze through a variety of tasks that would otherwise be tedious and time-consuming.
 Whether you need to test the connectivity to your nodes, switch to a different user, use a custom SSH key, use password-based authentication, run ad-hoc commands, create and run playbooks, use modules and roles, or anything else, an Ansible cheatsheet will make your life easier and more fun.
 
-## Videos
+</BentoProse>
+
+<BentoProse id="videos" eyebrow="Watch and learn" heading="Videos">
 
 Video -> https://www.youtube.com/watch?v=EcnqJbxBcM0
 
-## Notes
+</BentoProse>
+
+<BentoProse id="notes" eyebrow="Field notes" heading="Notes">
 
 Notes for Ansible
 
-## FAQ
+</BentoProse>
 
-**What is Ansible?**
-Ansible is an open-source IT automation tool for configuration management, application deployment, and orchestration. It is agentless — it connects to hosts over SSH and pushes small programs called modules to do work, then removes them — so managed machines need no special software beyond Python and SSH.
-
-**What is an Ansible playbook?**
-A playbook is a YAML file that describes a set of plays, each mapping a group of hosts to an ordered list of tasks. Playbooks are declarative and idempotent — running one repeatedly converges hosts to the same desired state without repeating changes that are already applied.
-
-**Why is Ansible agentless?**
-Ansible does not install a daemon on managed nodes. It uses existing SSH access and Python to run modules on demand, which lowers setup overhead, reduces attack surface, and means any reachable host can be managed without provisioning an agent first.
-
-**What is an Ansible module?**
-A module is a self-contained unit of work — like `apt`, `copy`, `service`, or `template` — that Ansible ships to a host to perform one task idempotently. Tasks in a playbook call modules with parameters, and Ansible reports whether each run changed the system.
-
-**What is AWX?**
-AWX is the open-source upstream of Ansible Tower (Red Hat Ansible Automation Platform). It adds a web UI, REST API, role-based access control, job scheduling, and centralized credential management on top of core Ansible for team-scale automation.
-
-<Adsense />
+</BentoDoc>

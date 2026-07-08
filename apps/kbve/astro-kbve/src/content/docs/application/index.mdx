@@ -2,38 +2,195 @@
 title: Application Navigator
 description: |
     The KBVE Tech Navigator is a comprehensive guide that maps out the diverse software technologies used in our projects, from foundational systems like Linux to cutting-edge applications in AI and game development, all designed to enhance collaboration and streamline workflows.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
 unsplash: 1688413399498-e35ed74b554f
 img: https://images.unsplash.com/photo-1688413399498-e35ed74b554f?fit=crop&w=1400&h=700&q=75
 sidebar:
     label: Application Navigator
     order: 1
+tags:
+    - applications
+    - devops
+    - guides
+    - developers
+ogTitle: KBVE Application Navigator — Guides for Every Tool in the Stack
+ogDescription: Field guides for the software that powers KBVE — Linux, Docker, Kubernetes, JavaScript, Rust, Unity, and dozens more, all maintained in one open monorepo.
+ogImage: https://images.unsplash.com/photo-1688413399498-e35ed74b554f?fit=crop&w=1400&h=700&q=75
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Applications
+          path: /application/
+    faq:
+        - question: What is the Application Navigator?
+          answer: A curated set of field guides for the software KBVE runs in production — operating systems, container platforms, languages, databases, and creative tools — each with the commands, configs, and gotchas we actually use.
+        - question: How are these guides different from official docs?
+          answer: They are opinionated and battle-tested. Each page distills what we learned running the tool inside the KBVE monorepo and cluster, so you get working recipes instead of exhaustive references.
+        - question: Can I contribute a guide or a fix?
+          answer: Yes — every page is an MDX file in the open monorepo. Open a pull request against KBVE on GitHub and the change ships with the next deploy.
+        - question: Where do the project-specific docs live?
+          answer: Application guides cover third-party tools. KBVE's own services, games, and libraries are documented under /project/ and the broader project hub at /projects/.
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
-
+import BentoShell from '@/components/hero/BentoShell.astro';
 import { Adsense } from '@/components/astropad';
+import { APPLICATION_NAV } from '@/components/dashboard/applicationNav';
 
-## Introduction
+export const backdrop = 'https://images.unsplash.com/photo-1688413399498-e35ed74b554f?q=80&w=2400&auto=format&fit=crop';
 
-At KBVE, we've stitched together something more than a manual—it's almost like a gathering place for all the tech tidbits and tools that power our projects and systems.
-Imagine a cozy room where every shelf and nook cradles a piece of our digital ecosystem.
-Here, you'll find the stalwarts like Linux, standing firm like the old oak in a vast forest, alongside the agile Kubernetes and Docker, which dart about like squirrels organizing their nuts for the winter. WireGuard acts as the sturdy fence, guarding the perimeter, keeping our data flows safe and streamlined.
+export const guideCount = APPLICATION_NAV.reduce((n, g) => n + g.items.length, 0);
+export const anchorOf = (group) => group.href.split('#')[1];
+export const chipLabel = (group) => group.label.split(' &')[0];
 
-But that’s just the beginning of our tech tale.
-Venture deeper into this room and you'll discover a colorful mosaic of programming languages—JavaScript and Python buzz with the energy of a bustling café, while Rust and Flutter offer the quiet corner where deep thoughts brew.
-Our databases, SQL and Redis, are the ledger keepers, meticulous and orderly.
-And when it comes to setting up the stage for our applications and infrastructure, Ansible and Terraform are our trusty stagehands, ensuring every scene shifts smoothly, without a hitch.
+export const stats = [
+	{ label: 'Field guides', value: String(guideCount), icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
+	{ label: 'Infra & DevOps tools', value: String(APPLICATION_NAV[0].items.length), icon: 'M22 12h-4l-3 9L9 3l-3 9H2' },
+	{ label: 'Languages covered', value: String(APPLICATION_NAV[1].items.length), icon: 'M16 18l6-6-6-6M8 6l-6 6 6 6' },
+	{ label: 'Open source', value: '100%', icon: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22' },
+];
 
-This document isn't just about listing out tools; it's about knitting them into our workflow fabric, making them accessible and useful.
-From the ground-breaking realms of AI and machine learning to the creative corners of game development with Unity and GoDot, this guide is designed to help both the greenhorns and the seasoned navigate through the tech jungle.
-By weaving in clear, structured explanations and best practices, we aim not just to inform, but to empower, making every project run smoother and every collaboration more fruitful.
-This is our map to mastering the technology that transforms our world. So roll up your sleeves, and let’s dive in together.
+export const related = [
+	{
+		href: '/projects/',
+		title: 'KBVE Projects',
+		copy: 'Everything we build — games, services, and libraries in one tagged index.',
+		icon: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z',
+	},
+	{
+		href: '/project/',
+		title: 'Project Docs',
+		copy: 'Deep documentation for each KBVE service, game, and package.',
+		icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z',
+	},
+	{
+		href: '/api/',
+		title: 'API Hub',
+		copy: 'Live OpenAPI specs and JSON data endpoints for the KBVE platform.',
+		icon: 'M16 18l6-6-6-6M8 6l-6 6 6 6',
+	},
+];
 
-<Adsense />
+export const Section = ({ group }) => (
+	<div class="bento-board bento-board--auto">
+		{group.items.map((g) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={g.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={g.icon ?? group.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{g.label}</span>
+				<span class="bento-linkcard__copy">{g.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+);
+
+<div class="app-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE Application Navigator">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /></svg>
+					<span>application navigator</span>
+				</span>
+				<h1 class="bento-title">
+					Every tool,
+					<span class="bento-title__accent">one map.</span>
+				</h1>
+				<p class="bento-lede">
+					Field guides for the software that powers KBVE — from the Linux
+					bedrock and the Kubernetes cluster to the languages, databases, and
+					game engines behind every project. Opinionated, battle-tested, and
+					maintained in the open monorepo.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#infrastructure">
+						Browse the guides
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/projects/">KBVE projects</a>
+					<a class="bento-btn bento-btn--ghost" href="/api/">API hub</a>
+				</div>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			{APPLICATION_NAV.map((g) => (
+				<a class="bento-chip" href={`#${anchorOf(g)}`}>{chipLabel(g)}</a>
+			))}
+			<a class="bento-chip" href="#faq">FAQ</a>
+		</nav>
+	</div>
+</section>
+
+{APPLICATION_NAV.map((group) => (
+	<BentoShell id={anchorOf(group)} eyebrow={group.eyebrow} heading={group.label}>
+		<Section group={group} />
+	</BentoShell>
+))}
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoShell id="faq" eyebrow="Questions" heading="Frequently asked">
+	<div class="bento-board bento-board--auto-wide">
+		{frontmatter.jsonld.faq.map((f) => (
+			<div class="bento-cell bento-faqcard bento-card bento-card--glass bento-card--interactive">
+				<h3 class="bento-faqcard__q">{f.question}</h3>
+				<p class="bento-faqcard__a">{f.answer}</p>
+			</div>
+		))}
+	</div>
+</BentoShell>
+
+<BentoShell id="related" eyebrow="Keep exploring" heading="Where to next">
+	<div class="bento-board bento-board--cols-3">
+		{related.map((r) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={r.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+</div>
+
+<style is:global>{`
+	.app-hub {
+		--bento-accent: #34d399;
+		--bento-accent-2: #22d3ee;
+		--bento-btn-fg: #06251b;
+	}
+`}</style>
