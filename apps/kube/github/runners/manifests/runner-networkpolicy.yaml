@@ -10,13 +10,24 @@
 # Internal cluster services (PostgreSQL 5432, RCON 25575, etc.) are
 # unreachable because the public-internet rule excepts all private CIDRs
 # and no other rule selects them.
+#
+# Scoped to ARC ephemeral runner pods ONLY — actions.github.com/scale-set-name
+# is stamped on every gha-runner-scale-set runner pod. arc-runners is a shared
+# namespace: the MC stack (mc-velocity, mc-lobby, mc-fabric gameservers) lives
+# here too, and an empty podSelector put it under runner default-deny —
+# velocity could not reach its backends and the gameserver's IRC connect
+# blackholed on the Server thread, wedging SERVER_STARTED and the Agones
+# Ready call (4-minute recycle loop).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
     name: arc-runner-egress
     namespace: arc-runners
 spec:
-    podSelector: {}
+    podSelector:
+        matchExpressions:
+            - key: actions.github.com/scale-set-name
+              operator: Exists
     policyTypes:
         - Egress
     egress:

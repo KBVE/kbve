@@ -18,13 +18,22 @@
 # toEntities: kube-apiserver rule — identity-based, survives CP IP changes.
 # Same pattern as kasm/manifest/network-policy.yaml. Additive to the vanilla
 # arc-runner-egress policy; widens egress only to the apiserver on 443/6443.
+#
+# Scoped to ARC ephemeral runner pods only, matching arc-runner-egress. An
+# empty endpointSelector made this CNP select every pod in the shared
+# arc-runners namespace (MC stack included), and any Cilium egress rule on an
+# endpoint flips it to default-deny — silently dropping all non-apiserver MC
+# traffic.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
     name: arc-runner-apiserver-egress
     namespace: arc-runners
 spec:
-    endpointSelector: {}
+    endpointSelector:
+        matchExpressions:
+            - key: actions.github.com/scale-set-name
+              operator: Exists
     egress:
         - toEntities:
               - kube-apiserver
