@@ -1,6 +1,11 @@
-import { memo, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import {
+	ActivityIndicator,
+	Platform,
+	Pressable,
+	StyleSheet,
+} from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import Animated, {
 	useAnimatedStyle,
@@ -32,6 +37,8 @@ export interface ButtonProps {
 	/** Accessible name (maps to aria-label on web). Required for icon-only buttons. */
 	accessibilityLabel?: string;
 	accessibilityHint?: string;
+	/** Native hover tooltip. Web / Tauri only (sets DOM title); no-op on native. */
+	tooltip?: string;
 }
 
 export const Button = memo(function Button({
@@ -44,10 +51,25 @@ export const Button = memo(function Button({
 	style,
 	accessibilityLabel,
 	accessibilityHint,
+	tooltip,
 }: ButtonProps) {
 	const t = useTheme();
 	const inactive = disabled || loading;
 	const [hovered, setHovered] = useState(false);
+
+	// Native browser tooltip on web / Tauri. RNW doesn't forward `title` as a
+	// prop, but its refs resolve to the DOM node — set it imperatively.
+	const tooltipRef = useCallback(
+		(node: unknown) => {
+			if (Platform.OS !== 'web' || !tooltip || !node) return;
+			const el: any =
+				(node as any).nodeType === 1 ? node : (node as any).getNode?.();
+			if (el && typeof el.setAttribute === 'function') {
+				el.setAttribute('title', tooltip);
+			}
+		},
+		[tooltip],
+	);
 	const scale = useSharedValue(1);
 	const animatedStyle = useAnimatedStyle(() => ({
 		transform: [{ scale: scale.value }],
@@ -107,6 +129,7 @@ export const Button = memo(function Button({
 
 	return (
 		<AnimatedPressable
+			ref={tooltipRef}
 			style={[
 				styles.base,
 				fill,

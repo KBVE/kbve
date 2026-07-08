@@ -57,6 +57,7 @@ export function AccountSheet({
 						variant="secondary"
 						onPress={onClose}
 						accessibilityLabel="Close menu"
+						tooltip="Close menu"
 						style={styles.close}>
 						<Text variant="subtitle" weight="bold">
 							✕
