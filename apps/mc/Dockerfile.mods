@@ -145,11 +145,14 @@ declare -A MODS=(
   # Server-required, client-optional. No hard dependencies.
   ["FallingTree-1.21.11-1.21.11.3.jar"]="9daded812605231a5e1e9461a6e04258d0424761 https://cdn.modrinth.com/data/Fb4jn8m6/versions/Hnj3s9Ez/FallingTree-1.21.11-1.21.11.3.jar"
   # Configurable — config library required by Neruina.
-  ["configurable-3.3.2+1.21.11-fabric.jar"]="59e3c7c8457673516a82ab36f5ee352f759f0e3e https://cdn.modrinth.com/data/lGffrQ3O/versions/jIjsSVfP/configurable-3.3.2%2B1.21.11-fabric.jar"
-  # Neruina 3.2.2 — ticking entity crash prevention. Suspends
+  ["configurable-3.5.1+1.21.11-fabric.jar"]="d344b1d4659eea87110d6cb31033ebe91fc92851 https://cdn.modrinth.com/data/lGffrQ3O/versions/FK6nyY14/configurable-3.5.1%2B1.21.11-fabric.jar"
+  # Neruina 3.3.2 — ticking entity crash prevention. Suspends
   # problematic entities/block-entities instead of crashing the server.
   # Client-optional, server-optional (most useful server-side).
-  ["neruina-3.2.2+1.21.11-fabric.jar"]="189f0f41dbbdc0a80ed6471c66e184d3bf9f40f2 https://cdn.modrinth.com/data/1s5x833P/versions/o8Ej08oB/neruina-3.2.2%2B1.21.11-fabric.jar"
+  # 3.3.1 fixed the malformed pack.mcmeta (missing min_format/max_format
+  # for pack format >64) that spammed "Couldn't load neruina pack
+  # metadata" on every client resource reload.
+  ["neruina-3.3.2+1.21.11-fabric.jar"]="de6c68dc674074f2df1031fe6c3d245a0807adc8 https://cdn.modrinth.com/data/1s5x833P/versions/AkJjv6jb/neruina-3.3.2%2B1.21.11-fabric.jar"
   # Blahaj Replushed 4.0.0 — IKEA-inspired plushie items (Blåhaj shark
   # and friends). Craftable, placeable, personalizable. Client + server.
   ["blahaj-replushed-4.0.0+1.21.11.jar"]="e02c9d72077cb84d11f0de9d5127f53fc729ff8f https://cdn.modrinth.com/data/5bb5rG4b/versions/enjEypbi/blahaj-replushed-4.0.0%2B1.21.11.jar"
@@ -193,6 +196,15 @@ declare -A MODS=(
   # Macaw's Paintings 1.1.0 — adds 40+ new painting variants in
   # multiple sizes. Client + server.
   ["mcw-paintings-1.1.0-mc1.21.11fabric.jar"]="580ba60f2811796b7906ebc7edea053849a0d1fd https://cdn.modrinth.com/data/okE6QVAY/versions/VPvufXfe/mcw-paintings-1.1.0-mc1.21.11fabric.jar"
+  # Xaero's Minimap 26.1.4 — client HUD minimap. Server install enables
+  # server-side sync support (bundles XaeroLib via jar-in-jar); without
+  # it clients log "Server side doesn't have XaeroLib installed" and
+  # reset their map sync state on every join.
+  ["xaerominimap-fabric-1.21.11-26.1.4.jar"]="e6e88fa30efbf2c86b54becd7f96f84e01440a42 https://cdn.modrinth.com/data/1bokaNcj/versions/rLF2AwoN/xaerominimap-fabric-1.21.11-26.1.4.jar"
+  # Xaero's World Map 1.42.0 — full-screen world map, pairs with the
+  # minimap. Server install provides the world identity + sync endpoint
+  # so client map data stays keyed to this server across restarts.
+  ["xaeroworldmap-fabric-1.21.11-1.42.0.jar"]="769de7224f438e4f2a68a916a12434df723ee53d https://cdn.modrinth.com/data/NcUtCpym/versions/xpNaeY2J/xaeroworldmap-fabric-1.21.11-1.42.0.jar"
   # ── Land claims + parties ──────────────────────────────────────────
   # Open Parties and Claims 0.26.2 — chunk-based claim system with
   # built-in party (guild) support and an admin claim type used to
