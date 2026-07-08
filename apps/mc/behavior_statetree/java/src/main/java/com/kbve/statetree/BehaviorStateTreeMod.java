@@ -36,6 +36,8 @@ public class BehaviorStateTreeMod implements ModInitializer {
         // No-op when OPAC isn't loaded.
         SpawnAutoClaim.register();
 
+        StarterKit.register();
+
         com.kbve.statetree.wallet.WalletScreens.register();
 
         if (!NativeRuntime.isLoaded()) {
