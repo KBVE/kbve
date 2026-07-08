@@ -282,6 +282,242 @@
           "implicitDependencies": []
         }
       },
+      "deathslayer-launcher": {
+        "name": "deathslayer-launcher",
+        "type": "app",
+        "data": {
+          "root": "apps/deathslayer/deathslayer-launcher",
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {
+              "NPM Scripts": [
+                "preview",
+                "tauri"
+              ]
+            },
+            "js": {
+              "packageName": "@kbve/deathslayer-launcher",
+              "packageVersion": "0.1.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve": {
+              "continuous": true,
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Starts Vite dev server",
+                "help": {
+                  "command": "pnpm exec vite --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                },
+                "deprecated": "Use devTargetName instead. This option will be removed in Nx 22."
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/deathslayer/deathslayer-launcher",
+                "command": "vite"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "lsof -ti:1423 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri dev"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "preview": {
+              "executor": "nx:run-script",
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Locally preview Vite production build",
+                "help": {
+                  "command": "pnpm exec vite preview --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                },
+                "scriptContent": "vite preview",
+                "runCommand": "pnpm run preview"
+              },
+              "options": {
+                "script": "preview"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/deathslayer/deathslayer-launcher",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects deathslayer-launcher --includeDependencies -- pnpm exec nx build-deps deathslayer-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {
+                "lintFilePatterns": [
+                  "apps/deathslayer/deathslayer-launcher/src/**/*.{ts,tsx}"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "tauri": {
+              "executor": "nx:run-script",
+              "metadata": {
+                "scriptContent": "tauri",
+                "runCommand": "pnpm run tauri"
+              },
+              "options": {
+                "script": "tauri"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev:web": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "lsof -ti:1423 | xargs kill 2>/dev/null; pnpm dev"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:rust": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p deathslayer-launcher"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher/src-tauri"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:tauri": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher"
+              },
+              "configurations": {
+                "production": {
+                  "commands": [
+                    "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build --release"
+                  ],
+                  "cwd": "apps/deathslayer/deathslayer-launcher"
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "name": "deathslayer-launcher",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/deathslayer/deathslayer-launcher",
+          "tags": [
+            "npm:private"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "astro-cryptothrone": {
         "name": "astro-cryptothrone",
         "type": "app",
@@ -17416,6 +17652,13 @@
       ],
       "firecracker-python-net": [],
       "firecracker-python-web": [],
+      "deathslayer-launcher": [
+        {
+          "source": "deathslayer-launcher",
+          "target": "kbve-tauri",
+          "type": "static"
+        }
+      ],
       "astro-cryptothrone": [
         {
           "source": "astro-cryptothrone",
