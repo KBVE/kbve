@@ -120,14 +120,6 @@ public final class IntentDecoder {
                 case SPAWN_CREATURE -> decodeSpawnCreature(payload);
                 case SPAWN_CREATURE_PACK -> decodeSpawnCreaturePack(payload);
                 case DESPAWN -> new AiCommand.Despawn(payload.get("target_entity").getAsInt());
-                case MOVE_SHIP -> new AiCommand.MoveShip(
-                        payload.get("ship_id").getAsString(),
-                        payload.get("distance").getAsInt());
-                case DESPAWN_SHIP -> new AiCommand.DespawnShip(
-                        payload.get("ship_id").getAsString());
-                case SPAWN_SHIP -> new AiCommand.SpawnShip(
-                        payload.get("ship_name").getAsString(),
-                        payload.get("near_player").getAsInt());
 
                 // Legacy spawns handled above; these enum variants exist for
                 // backward compat but should never reach here.

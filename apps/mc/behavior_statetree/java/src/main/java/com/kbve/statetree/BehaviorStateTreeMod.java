@@ -1,62 +1,29 @@
 package com.kbve.statetree;
 
 import com.kbve.statetree.chat.McChatEvents;
-import com.kbve.statetree.ship.FlightStatsRegistry;
-import com.kbve.statetree.ship.ShipCommands;
-import com.kbve.statetree.ship.ShipEntityTypes;
-import com.kbve.statetree.ship.ShipItems;
-import com.kbve.statetree.ship.ShipManager;
-import com.kbve.statetree.ship.ShipNetworking;
-import com.kbve.statetree.ship.ShipScreenHandlerTypes;
+import com.kbve.statetree.command.NpcPlanPayload;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Fabric mod entry point for the behavior_statetree NPC AI + ship system.
+ * Fabric mod entry point for the behavior_statetree NPC AI system.
  *
- * <p>Ships are now entity-based (BBModel rendered) — no block placement,
- * no schematics, no Shipyard blueprint pool.
+ * <p>Vehicles come from Immersive Aircraft — the homegrown ship system
+ * (entities, BBModel renderer, helm networking, ship_db persistence) was
+ * retired when upstream shipped a 1.21.11 build.
  */
 public class BehaviorStateTreeMod implements ModInitializer {
 
     public static final String MOD_ID = "behavior_statetree";
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    private final ShipManager shipManager = new ShipManager();
-
     @Override
     public void onInitialize() {
-        // Register ship entity type + spawn items
-        ShipEntityTypes.register();
-        ShipItems.register();
-        ShipScreenHandlerTypes.register();
-
-        // Register network payloads + server-side helm input receiver
-        ShipNetworking.registerPayloads();
-        ShipNetworking.registerServerReceivers(shipManager);
-
-        // Ship commands (no Shipyard needed — model name passed directly)
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            ShipCommands.register(dispatcher, shipManager);
-        });
-
-        // Tick ship entity lifecycle (evict dead entities)
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            var overworld = server.getOverworld();
-            if (overworld != null) {
-                shipManager.tick(overworld);
-            }
-        });
-
-        // Per-model flight tuning is shipped in the mod jar (data/), so
-        // both server and integrated client load identical profiles.
-        FlightStatsRegistry.loadBuiltins();
-
-        LOGGER.info("[{}] Ship system registered (entity-based, BBModel rendered)", MOD_ID);
+        PayloadTypeRegistry.playS2C().register(NpcPlanPayload.ID, NpcPlanPayload.CODEC);
 
         // MC ↔ IRC chat bridge. Safe to call before checking
         // NativeRuntime.isLoaded — ChatBridge degrades to a no-op handle
@@ -72,7 +39,16 @@ public class BehaviorStateTreeMod implements ModInitializer {
         com.kbve.statetree.wallet.WalletScreens.register();
 
         if (!NativeRuntime.isLoaded()) {
-            LOGGER.error("[{}] Native library not loaded — NPC AI disabled (ships still work)", MOD_ID);
+            // A bundled native that fails to load is a real error anywhere —
+            // client-side determinism will ship platform dylibs eventually.
+            // Only "no native for this platform on a client" is expected today.
+            boolean server = net.fabricmc.loader.api.FabricLoader.getInstance()
+                    .getEnvironmentType() == net.fabricmc.api.EnvType.SERVER;
+            if (server || NativeRuntime.isBundled()) {
+                LOGGER.error("[{}] Native library not loaded — NPC AI disabled", MOD_ID);
+            } else {
+                LOGGER.info("[{}] No native bundled for this platform — NPC AI stays server-side", MOD_ID);
+            }
             return;
         }
 
@@ -84,7 +60,6 @@ public class BehaviorStateTreeMod implements ModInitializer {
 
         // NPC AI tick handler
         NpcTickHandler tickHandler = new NpcTickHandler();
-        tickHandler.setShipManager(shipManager);
         ServerTickEvents.END_SERVER_TICK.register(tickHandler);
 
         // Capital Guards: top up the IronGolem garrison inside the spawn
@@ -98,6 +73,6 @@ public class BehaviorStateTreeMod implements ModInitializer {
             NativeRuntime.shutdown();
         });
 
-        LOGGER.info("[{}] Mod initialized — AI Skeleton + Ship system ready", MOD_ID);
+        LOGGER.info("[{}] Mod initialized — AI Skeleton system ready", MOD_ID);
     }
 }

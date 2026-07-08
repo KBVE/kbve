@@ -25,9 +25,6 @@ public enum CommandKind {
     SPAWN_CREATURE("SpawnCreature"),
     SPAWN_CREATURE_PACK("SpawnCreaturePack"),
     DESPAWN("Despawn"),
-    MOVE_SHIP("MoveShip"),
-    DESPAWN_SHIP("DespawnShip"),
-    SPAWN_SHIP("SpawnShip"),
 
     // ── Legacy spawn commands (decoded into SPAWN_CREATURE) ──────────────
     // Kept for backward compatibility with existing Rust emitters.

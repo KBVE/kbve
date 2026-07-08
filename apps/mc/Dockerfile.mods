@@ -205,6 +205,10 @@ declare -A MODS=(
   # minimap. Server install provides the world identity + sync endpoint
   # so client map data stays keyed to this server across restarts.
   ["xaeroworldmap-fabric-1.21.11-1.42.0.jar"]="769de7224f438e4f2a68a916a12434df723ee53d https://cdn.modrinth.com/data/NcUtCpym/versions/xpNaeY2J/xaeroworldmap-fabric-1.21.11-1.42.0.jar"
+  # Immersive Aircraft 1.4.7 — craftable vehicles (biplane, airship,
+  # gyrodyne and friends) with inventories and fuel. Client + server.
+  # Complements the KBVE ship system; only dep is Fabric API.
+  ["immersive_aircraft-1.4.7+1.21.11-fabric.jar"]="a3c652a1cbf6bcb8f2216de83f8fe9cc20f470f7 https://cdn.modrinth.com/data/x3HZvrj6/versions/NshGBorp/immersive_aircraft-1.4.7%2B1.21.11-fabric.jar"
   # ── Land claims + parties ──────────────────────────────────────────
   # Open Parties and Claims 0.26.2 — chunk-based claim system with
   # built-in party (guild) support and an admin claim type used to
