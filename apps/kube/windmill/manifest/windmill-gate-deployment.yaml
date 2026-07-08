@@ -67,6 +67,17 @@ spec:
                             secretKeyRef:
                                 name: windmill-gate-supabase-jwt
                                 key: anon-key
+                      # Windmill session bridge: enabled by token presence. Until
+                      # seal-superadmin-token.sh writes the SealedSecret the ref is
+                      # absent (optional) and the gate proxies without the bridge.
+                      - name: WINDMILL_SUPERADMIN_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: windmill-superadmin-token
+                                key: token
+                                optional: true
+                      - name: GATE_WINDMILL_WORKSPACE
+                        value: kbve
                       - name: RUST_LOG
                         value: info
                   resources:
