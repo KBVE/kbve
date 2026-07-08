@@ -35,7 +35,7 @@ kbve = { path = "../../../packages/rust/kbve" }
 bevy_chat = { path = "../../../packages/rust/bevy/bevy_chat" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.6", optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
 
 [dev-dependencies]
 serial_test = "3"
