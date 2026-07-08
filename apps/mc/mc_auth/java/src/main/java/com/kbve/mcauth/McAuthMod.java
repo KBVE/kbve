@@ -29,7 +29,13 @@ public class McAuthMod implements ModInitializer {
     @Override
     public void onInitialize() {
         if (!NativeRuntime.isLoaded()) {
-            LOGGER.error("[{}] Native library not loaded — auth disabled", MOD_ID);
+            // Client jars only bundle the Linux server native — expected there.
+            if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType()
+                    == net.fabricmc.api.EnvType.SERVER) {
+                LOGGER.error("[{}] Native library not loaded — auth disabled", MOD_ID);
+            } else {
+                LOGGER.info("[{}] Native library not bundled for clients — auth bridge is server-side", MOD_ID);
+            }
             return;
         }
 

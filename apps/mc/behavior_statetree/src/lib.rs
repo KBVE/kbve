@@ -35,12 +35,26 @@ static RUNTIME: OnceLock<AiRuntime> = OnceLock::new();
 /// Global ship database — initialized via JNI `initShipDb()`.
 static SHIP_DB: OnceLock<ship_db::ShipDb> = OnceLock::new();
 
+/// Install a stdout tracing subscriber so AI/pathfinder/IRC (bevy_chat)
+/// logs land in the server log instead of vanishing. Without this every
+/// `tracing` event in the cdylib is dropped. `RUST_LOG` overrides the
+/// default `info` filter. `try_init` keeps repeat calls harmless.
+fn init_tracing() {
+    let filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_target(true)
+        .try_init();
+}
+
 /// Initialize the Tokio AI runtime. Call once from Fabric mod startup.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_init(
     mut _env: JNIEnv,
     _class: JClass,
 ) {
+    init_tracing();
     let _ = RUNTIME.set(AiRuntime::start());
 }
 
@@ -164,6 +178,7 @@ pub extern "system" fn Java_com_kbve_statetree_NativeRuntime_initShipDb(
     _class: JClass,
     db_path: JString,
 ) -> jboolean {
+    init_tracing();
     let path: String = match env.get_string(&db_path) {
         Ok(s) => s.into(),
         Err(_) => return 0,
