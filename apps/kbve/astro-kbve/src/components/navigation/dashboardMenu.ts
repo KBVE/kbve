@@ -52,6 +52,29 @@ export const dashboardNav: NavNode[] = [
 	},
 ];
 
+export const appsNav: NavNode[] = [
+	{ label: 'Applications', link: '/application/' },
+	{ label: 'Projects', link: '/projects/' },
+	{ label: 'Project Docs', link: '/project/' },
+	{ label: 'API', link: '/api/' },
+];
+
+export const gamingNav: NavNode[] = [
+	{ label: 'Gaming', link: '/gaming/' },
+	{ label: 'Arcade', link: '/arcade/' },
+	{ label: 'Minecraft', link: '/mc/' },
+	{ label: 'OSRS', link: '/osrs/' },
+	{
+		label: 'Databases',
+		items: [
+			{ label: 'ItemDB', link: '/itemdb/' },
+			{ label: 'NpcDB', link: '/npcdb/' },
+			{ label: 'QuestDB', link: '/questdb/' },
+			{ label: 'SpellDB', link: '/spelldb/' },
+		],
+	},
+];
+
 export function filterNav(nodes: NavNode[], isStaff: boolean): NavNode[] {
 	return nodes
 		.filter((n) => !n.staff || isStaff)

@@ -55,7 +55,7 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
   "game": "minecraft",
   "versionId": "${PACK_VERSION}",
   "name": "${PACK_NAME}",
-  "summary": "Client-side modpack for KBVE MC server — ship rendering, AI integration, BYG biomes, and Fabric API.",
+  "summary": "Client-side modpack for KBVE MC server — Immersive Aircraft, AI integration, BYG biomes, and Fabric API.",
   "dependencies": {
     "minecraft": "${MC_VERSION}",
     "fabric-loader": "${LOADER_VERSION}"
@@ -194,27 +194,27 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       "env": { "client": "optional", "server": "required" }
     },
     {
-      "path": "mods/configurable-3.3.2+1.21.11-fabric.jar",
+      "path": "mods/configurable-3.5.1+1.21.11-fabric.jar",
       "hashes": {
-        "sha1": "59e3c7c8457673516a82ab36f5ee352f759f0e3e",
-        "sha512": "92a895c5e07a65541b53a3258c1f80ebb13893d079d5985abce69d66eaa8d7af609e67b0f04c410280d33ef137f7d626a63d7ae08c5e2e0e18c53aa64e3e14fc"
+        "sha1": "d344b1d4659eea87110d6cb31033ebe91fc92851",
+        "sha512": "1efe4739d8edb4fe2cbecd99faab640ec76caca80bc448cce5538bc9e1457ed868676fe28ff3089ef21bf5ff73ad9635cde117c1c5bb6834cd1b4bdf42e535eb"
       },
       "downloads": [
-        "https://cdn.modrinth.com/data/lGffrQ3O/versions/jIjsSVfP/configurable-3.3.2%2B1.21.11-fabric.jar"
+        "https://cdn.modrinth.com/data/lGffrQ3O/versions/FK6nyY14/configurable-3.5.1%2B1.21.11-fabric.jar"
       ],
-      "fileSize": 531167,
+      "fileSize": 545295,
       "env": { "client": "optional", "server": "optional" }
     },
     {
-      "path": "mods/neruina-3.2.2+1.21.11-fabric.jar",
+      "path": "mods/neruina-3.3.2+1.21.11-fabric.jar",
       "hashes": {
-        "sha1": "189f0f41dbbdc0a80ed6471c66e184d3bf9f40f2",
-        "sha512": "af1448fb3dd6d814d0acd6cf40097d323dfaf5ca9ca470a7575f76e3efd21ea861690eddeea26483c93a24d456c20430b08f29b13ab936898f1e79fb7591296c"
+        "sha1": "de6c68dc674074f2df1031fe6c3d245a0807adc8",
+        "sha512": "dd9c0a0d8117d0b6968bb6530eb9877b9cf699f6fde43a76ce676ce55417e90dda60a789f5fe249404727d4ccd47a24855f2b3a89f294e80aed907967849c66f"
       },
       "downloads": [
-        "https://cdn.modrinth.com/data/1s5x833P/versions/o8Ej08oB/neruina-3.2.2%2B1.21.11-fabric.jar"
+        "https://cdn.modrinth.com/data/1s5x833P/versions/AkJjv6jb/neruina-3.3.2%2B1.21.11-fabric.jar"
       ],
-      "fileSize": 1801159,
+      "fileSize": 1814135,
       "env": { "client": "optional", "server": "optional" }
     },
     {
@@ -410,28 +410,40 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       "env": { "client": "required", "server": "required" }
     },
     {
-      "path": "mods/xaeroworldmap-fabric-1.21.11-1.40.16.jar",
+      "path": "mods/xaeroworldmap-fabric-1.21.11-1.42.0.jar",
       "hashes": {
-        "sha1": "7e8f4cf756a5ea8d9ab0583aa7ea69723ace8ab6",
-        "sha512": "70bb88a05f8b36dfa39ef971d3e757beeb6845e674d2cfa337fa0a48f003bdc7fe4f6af1f0fa0dfd0ab17593df4f4348528d7952781abeb6a46cff00d693520b"
+        "sha1": "769de7224f438e4f2a68a916a12434df723ee53d",
+        "sha512": "8954bab48226fb16d209adf644151d4bc95c7e5185f6139d08ff9a16196561598b76c197f693de1e1459d0903439092cb1911302754a7f4f85088dedfde207d1"
       },
       "downloads": [
-        "https://cdn.modrinth.com/data/NcUtCpym/versions/vOQ76ooY/xaeroworldmap-fabric-1.21.11-1.40.16.jar"
+        "https://cdn.modrinth.com/data/NcUtCpym/versions/xpNaeY2J/xaeroworldmap-fabric-1.21.11-1.42.0.jar"
       ],
-      "fileSize": 1435689,
-      "env": { "client": "required", "server": "unsupported" }
+      "fileSize": 1451677,
+      "env": { "client": "required", "server": "optional" }
     },
     {
-      "path": "mods/xaerominimap-fabric-1.21.11-25.3.12.jar",
+      "path": "mods/immersive_aircraft-1.4.7+1.21.11-fabric.jar",
       "hashes": {
-        "sha1": "c17e50a44669f04e5e051ed87db4c05f0eb5923f",
-        "sha512": "5072fe7d02471956d227b834ee1fa5b1a752f7546cf880c99e32790f09b3b13143c5c16c99b3ba39e0de8a8e6d46f37f1bb3a88ff0fa41207ccce5deae45681b"
+        "sha1": "a3c652a1cbf6bcb8f2216de83f8fe9cc20f470f7",
+        "sha512": "7fe80a4b63996e84b218f998df06d2cd759736acc10d59b4018bc284e40d0176f5b349a79adc0f197dc7447d11fb8a2bfd3c13bc34318c376ec01c853113e117"
       },
       "downloads": [
-        "https://cdn.modrinth.com/data/1bokaNcj/versions/q5DQinHS/xaerominimap-fabric-1.21.11-25.3.12.jar"
+        "https://cdn.modrinth.com/data/x3HZvrj6/versions/NshGBorp/immersive_aircraft-1.4.7%2B1.21.11-fabric.jar"
       ],
-      "fileSize": 2152212,
-      "env": { "client": "required", "server": "unsupported" }
+      "fileSize": 2459574,
+      "env": { "client": "required", "server": "required" }
+    },
+    {
+      "path": "mods/xaerominimap-fabric-1.21.11-26.1.4.jar",
+      "hashes": {
+        "sha1": "e6e88fa30efbf2c86b54becd7f96f84e01440a42",
+        "sha512": "d782ed65dadcd1e7b99a4779cac303e377cda2f0287e1054c0bcafd6bf2765fc15638736c737448bff913ebb4819e78ea88df05e78fcf529922fc776bcb665f6"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/1bokaNcj/versions/rLF2AwoN/xaerominimap-fabric-1.21.11-26.1.4.jar"
+      ],
+      "fileSize": 2152173,
+      "env": { "client": "required", "server": "optional" }
     }
   ]
 }

@@ -62,6 +62,10 @@ pub struct GateConfig {
     /// from GoTrue's JWKS (the HS256->ES256 transition). When `None` the gate
     /// falls back to HS256-only via `validate_token`.
     pub verifier: Option<jedi::jwks::JwtVerifier>,
+    /// Windmill session bridge: provisions a Windmill user for the authed email
+    /// and injects a per-user impersonation token upstream. Requires the JWT to
+    /// carry an email claim.
+    pub windmill: Option<super::windmill::WindmillBridge>,
 }
 
 pub struct GateState {
@@ -329,7 +333,7 @@ async fn authorize(
     query: Option<&str>,
     ext_url: &str,
     bounced: bool,
-) -> Result<(i64, String), Response> {
+) -> Result<(i64, String, Option<String>), Response> {
     let token = extract_token(
         headers
             .get(header::AUTHORIZATION)
@@ -372,6 +376,7 @@ async fn authorize(
         }
     };
     let exp = claims.exp;
+    let email = claims.email.clone();
     let user = claims
         .kbve_username
         .clone()
@@ -380,7 +385,7 @@ async fn authorize(
     let sub = claims.sub;
 
     match &state.cfg.authz {
-        Authz::JwtOnly => Ok((exp, user)),
+        Authz::JwtOnly => Ok((exp, user, email)),
         Authz::IsStaff => {
             let staff = match &state.cfg.staff {
                 Some(s) => s,
@@ -394,7 +399,7 @@ async fn authorize(
                 }
             };
             match staff.is_staff(&sub).await {
-                Ok(true) => Ok((exp, user)),
+                Ok(true) => Ok((exp, user, email)),
                 Ok(false) => Err(deny(
                     state,
                     headers,
@@ -422,10 +427,11 @@ async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -
     let ext_url = external_url(&headers, req.uri());
     let bounced = query.as_deref().and_then(access_token_in_query).is_some();
 
-    let (exp, user) = match authorize(&state, &headers, query.as_deref(), &ext_url, bounced).await {
-        Ok(ok) => ok,
-        Err(resp) => return resp,
-    };
+    let (exp, user, email) =
+        match authorize(&state, &headers, query.as_deref(), &ext_url, bounced).await {
+            Ok(ok) => ok,
+            Err(resp) => return resp,
+        };
     metrics::counter!("gate_auth_total", "result" => "allow").increment(1);
 
     // Token arrived in the URL (post-login bounce): convert it to a session
@@ -437,11 +443,44 @@ async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -
         }
     }
 
+    // Windmill bridge: swap the gate identity for a per-user upstream token so
+    // Windmill sees the request as that user (its CE build has no custom SSO).
+    let upstream_token = match &state.cfg.windmill {
+        Some(bridge) => {
+            let email = match email {
+                Some(e) => e,
+                None => {
+                    return deny(
+                        &state,
+                        &headers,
+                        StatusCode::FORBIDDEN,
+                        "email claim required for windmill bridge",
+                        &ext_url,
+                        bounced,
+                    );
+                }
+            };
+            match bridge.ensure_token(&state.client, &email).await {
+                Ok(t) => Some(t),
+                Err(e) => {
+                    warn!(%email, "windmill bridge failed: {e}");
+                    metrics::counter!("gate_auth_total", "result" => "error_backend").increment(1);
+                    return (
+                        StatusCode::BAD_GATEWAY,
+                        axum::Json(serde_json::json!({ "error": "windmill bridge failed" })),
+                    )
+                        .into_response();
+                }
+            }
+        }
+        None => None,
+    };
+
     if is_websocket_upgrade(&headers) {
-        return ws_bridge(&state, req, &user).await;
+        return ws_bridge(&state, req, &user, upstream_token).await;
     }
 
-    forward_http(&state, req, &user).await
+    forward_http(&state, req, &user, upstream_token).await
 }
 
 const HOP_BY_HOP: &[&str] = &[
@@ -507,13 +546,23 @@ fn upstream_uri(upstream: &str, prefix: &str, uri: &Uri) -> String {
 /// Inject the gate's upstream credentials: an optional Basic/Bearer
 /// `Authorization` and an optional trusted user header. `insert` overwrites any
 /// client-supplied value, so the user header cannot be spoofed.
-fn inject_upstream_auth(state: &GateState, headers: &mut HeaderMap, user: &str) {
+fn inject_upstream_auth(
+    state: &GateState,
+    headers: &mut HeaderMap,
+    user: &str,
+    bearer_override: Option<&str>,
+) {
     if let Some(basic) = &state.cfg.upstream_basic {
         if let Ok(v) = HeaderValue::from_str(basic) {
             headers.insert(header::AUTHORIZATION, v);
         }
     }
     if let Some(bearer) = &state.cfg.upstream_bearer {
+        if let Ok(v) = HeaderValue::from_str(&format!("Bearer {bearer}")) {
+            headers.insert(header::AUTHORIZATION, v);
+        }
+    }
+    if let Some(bearer) = bearer_override {
         if let Ok(v) = HeaderValue::from_str(&format!("Bearer {bearer}")) {
             headers.insert(header::AUTHORIZATION, v);
         }
@@ -529,7 +578,12 @@ fn inject_upstream_auth(state: &GateState, headers: &mut HeaderMap, user: &str) 
     }
 }
 
-async fn forward_http(state: &GateState, req: Request<Body>, user: &str) -> Response {
+async fn forward_http(
+    state: &GateState,
+    req: Request<Body>,
+    user: &str,
+    upstream_token: Option<String>,
+) -> Response {
     let method = req.method().clone();
     let url = upstream_uri(&state.cfg.upstream, &state.cfg.upstream_prefix, req.uri());
     let mut headers = req.headers().clone();
@@ -542,7 +596,7 @@ async fn forward_http(state: &GateState, req: Request<Body>, user: &str) -> Resp
         headers.remove(*h);
     }
 
-    inject_upstream_auth(state, &mut headers, user);
+    inject_upstream_auth(state, &mut headers, user, upstream_token.as_deref());
 
     let body = reqwest::Body::wrap_stream(req.into_body().into_data_stream());
 
@@ -630,18 +684,27 @@ fn reqwest_headers(headers: &HeaderMap) -> reqwest::header::HeaderMap {
 
 /// Bridge a browser WebSocket to the upstream. reqwest is HTTP-only, so the
 /// upgrade leg uses tokio-tungstenite directly.
-async fn ws_bridge(state: &GateState, req: Request<Body>, user: &str) -> Response {
+async fn ws_bridge(
+    state: &GateState,
+    req: Request<Body>,
+    user: &str,
+    upstream_token: Option<String>,
+) -> Response {
     let mut ws_url = upstream_uri(&state.cfg.upstream, &state.cfg.upstream_prefix, req.uri());
     if let Some(rest) = ws_url.strip_prefix("http://") {
         ws_url = format!("ws://{rest}");
     } else if let Some(rest) = ws_url.strip_prefix("https://") {
         ws_url = format!("wss://{rest}");
     }
-    let auth = state
-        .cfg
-        .upstream_bearer
-        .as_ref()
-        .map(|b| format!("Bearer {b}"))
+    let auth = upstream_token
+        .map(|t| format!("Bearer {t}"))
+        .or_else(|| {
+            state
+                .cfg
+                .upstream_bearer
+                .as_ref()
+                .map(|b| format!("Bearer {b}"))
+        })
         .or_else(|| state.cfg.upstream_basic.clone());
     let user_header = state.cfg.forward_user_header.clone().map(|h| {
         let v = state

@@ -9,10 +9,14 @@
 mod auth;
 #[cfg(feature = "gate")]
 mod proxy;
+#[cfg(feature = "gate")]
+mod windmill;
 
 pub use auth::{AuthError, Authz, Claims, StaffGate, extract_token, validate_token};
 #[cfg(feature = "gate")]
 pub use proxy::{GateConfig, GateState};
+#[cfg(feature = "gate")]
+pub use windmill::WindmillBridge;
 
 #[cfg(feature = "gate")]
 use std::net::SocketAddr;
@@ -40,6 +44,12 @@ use std::net::SocketAddr;
 /// - `SUPABASE_ANON_KEY`    optional PostgREST apikey when authz=is_staff
 ///   (falls back to the minted service_role bearer)
 /// - `SUPABASE_JWT_ISSUER`  optional; pins the accepted token issuer when set
+/// - `WINDMILL_SUPERADMIN_TOKEN` when set, enables the Windmill session
+///   bridge: the gate provisions a Windmill user for the authed email and
+///   injects a per-user impersonation token upstream (Windmill CE has no
+///   custom SSO)
+/// - `GATE_WINDMILL_WORKSPACE` workspace new users are auto-added to
+/// - `GATE_WINDMILL_TOKEN_TTL_SECS` impersonation token TTL (default 43200)
 #[cfg(feature = "gate")]
 pub fn config_from_env() -> Result<GateConfig, String> {
     let upstream =
@@ -119,6 +129,20 @@ pub fn config_from_env() -> Result<GateConfig, String> {
             jedi::jwks::JwtVerifier::new(jwks_uri, Some(jwt_secret.as_bytes()), issuer, None)
         });
 
+    let windmill = std::env::var("WINDMILL_SUPERADMIN_TOKEN")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .map(|admin_token| {
+            let workspace = std::env::var("GATE_WINDMILL_WORKSPACE")
+                .ok()
+                .filter(|s| !s.is_empty());
+            let ttl = std::env::var("GATE_WINDMILL_TOKEN_TTL_SECS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(43200);
+            WindmillBridge::new(&upstream, admin_token, workspace, ttl)
+        });
+
     Ok(GateConfig {
         upstream,
         upstream_prefix,
@@ -133,6 +157,7 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         forward_user_header,
         forward_user_value,
         verifier,
+        windmill,
     })
 }
 

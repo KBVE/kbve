@@ -86,15 +86,6 @@ public sealed interface AiCommand {
         @Override public CommandKind kind() { return CommandKind.DESPAWN; }
     }
 
-    record MoveShip(String shipId, int distance) implements AiCommand {
-        @Override public CommandKind kind() { return CommandKind.MOVE_SHIP; }
-    }
 
-    record DespawnShip(String shipId) implements AiCommand {
-        @Override public CommandKind kind() { return CommandKind.DESPAWN_SHIP; }
-    }
 
-    record SpawnShip(String shipName, int nearPlayer) implements AiCommand {
-        @Override public CommandKind kind() { return CommandKind.SPAWN_SHIP; }
-    }
 }

@@ -1,5 +1,3 @@
 {
-	"item.behavior_statetree.airship": "KBVE Airship",
-	"item.behavior_statetree.biplane": "KBVE Biplane",
-	"item.behavior_statetree.gyrodyne": "KBVE Gyrodyne"
+	"key.behavior_statetree.npcplans": "Toggle NPC Plan Overlay"
 }

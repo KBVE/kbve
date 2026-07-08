@@ -12,7 +12,7 @@ tags:
 key: kbve_gate
 pipeline: docker
 app_name: kbve-gate
-version: "0.1.7"
+version: "0.1.8"
 source_path: apps/kbve/kbve-gate
 version_toml: apps/kbve/kbve-gate/version.toml
 version_target: apps/kbve/kbve-gate/Cargo.toml
@@ -25,6 +25,7 @@ deployment_yamls:
     - apps/kube/storage/manifests/longhorn-gate-deployment.yaml
     - apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml
     - apps/kube/studio/manifests/studio-gate-deployment.yaml
+    - apps/kube/windmill/manifest/windmill-gate-deployment.yaml
 has_test: false
 author: h0lybyte
 license: KBVE

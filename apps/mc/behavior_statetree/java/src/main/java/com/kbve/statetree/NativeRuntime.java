@@ -23,6 +23,9 @@ public final class NativeRuntime {
 
     private static boolean loaded = false;
 
+    /** True when the JAR carries a native for this OS — load failures are then real errors. */
+    private static boolean bundled = false;
+
     static {
         try {
             String os = System.getProperty("os.name").toLowerCase();
@@ -43,6 +46,7 @@ public final class NativeRuntime {
             if (in == null) {
                 throw new UnsatisfiedLinkError("Native library not found in JAR: " + resourcePath);
             }
+            bundled = true;
 
             File tempFile = File.createTempFile("behavior_statetree_", "_" + lib);
             tempFile.deleteOnExit();
@@ -61,7 +65,7 @@ public final class NativeRuntime {
             System.out.println("[behavior_statetree] Native library loaded from " + tempFile.getAbsolutePath());
         } catch (Exception | UnsatisfiedLinkError e) {
             System.err.println("[behavior_statetree] Native library not available: " + e.getMessage());
-            System.err.println("[behavior_statetree] AI features disabled — ship system still works");
+            System.err.println("[behavior_statetree] AI features disabled");
             loaded = false;
         }
     }
@@ -100,23 +104,6 @@ public final class NativeRuntime {
      */
     public static native boolean submitMapData(String snapshotJson);
 
-    // -- Ship persistence (JSON file backed by Rust) -------------------------
-
-    /** Initialize the ship database at the given file path. */
-    public static native boolean initShipDb(String dbPath);
-
-    /** Save or update a ship record (JSON-serialized ShipRecord). */
-    public static native boolean saveShip(String shipJson);
-
-    /** Delete a ship record by its UUID string. */
-    public static native boolean deleteShip(String shipId);
-
-    /** Load all ship records as a JSON array. */
-    public static native String loadAllShips();
-
-    /** Delete all ship records (dev tool). */
-    public static native boolean deleteAllShips();
-
     // -- Intents -------------------------------------------------------------
 
     /**
@@ -133,6 +120,11 @@ public final class NativeRuntime {
     /** Check if the native library loaded successfully. */
     public static boolean isLoaded() {
         return loaded;
+    }
+
+    /** Check if the JAR bundles a native for this platform (regardless of load success). */
+    public static boolean isBundled() {
+        return bundled;
     }
 
     private NativeRuntime() {}

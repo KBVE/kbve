@@ -234,7 +234,27 @@ jobs:
               timeout-minutes: 10
               env:
                   UV_THREADPOOL_SIZE: '16'
-              run: pnpm install --frozen-lockfile --prefer-offline
+              run: |
+                  set -uo pipefail
+                  # Belt-and-suspenders for the pnpm install: registry tarballs and
+                  # postinstall binary fetches (grpc-tools node-pre-gyp pulling from
+                  # node-precompiled-binaries.grpc.io) ride the shared arc-runner
+                  # egress, which browns out under DNS/timeout blips. --prefer-offline
+                  # reuses the warm store; retry rides transient egress before failing.
+                  attempt() {
+                    echo "::group::pnpm install ($1)"
+                    pnpm install --frozen-lockfile --prefer-offline
+                    local rc=$?
+                    echo "::endgroup::"
+                    return $rc
+                  }
+                  attempt "try 1" && exit 0
+                  echo "::warning::pnpm install try 1 failed; retrying"
+                  sleep 10
+                  attempt "try 2" && exit 0
+                  echo "::warning::pnpm install try 2 failed; retrying"
+                  sleep 20
+                  attempt "try 3"
 
             - name: Detect Playwright usage
               id: detect-playwright

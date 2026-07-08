@@ -2,7 +2,6 @@ package com.kbve.statetree.command;
 
 import com.kbve.statetree.CreatureKind;
 import com.kbve.statetree.CreatureKinds;
-// SchematicLoader and ShipData removed — ships are now entity-based (BBModel)
 import net.minecraft.entity.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +42,6 @@ public final class WorldCommandApplier {
         register(CommandKind.SPAWN_CREATURE, this::applySpawnCreature);
         register(CommandKind.SPAWN_CREATURE_PACK, this::applySpawnCreaturePack);
         register(CommandKind.DESPAWN, this::applyDespawn);
-        register(CommandKind.MOVE_SHIP, this::applyMoveShip);
-        register(CommandKind.DESPAWN_SHIP, this::applyDespawnShip);
-        register(CommandKind.SPAWN_SHIP, this::applySpawnShip);
     }
 
     private void registerCreature(CreatureKind kind, boolean defaultTamed) {
@@ -100,39 +96,6 @@ public final class WorldCommandApplier {
         ctx.creatureManager().despawnEntity(ctx.world(), cmd.targetEntityId());
     }
 
-    private void applyMoveShip(CommandContext ctx, AiCommand.MoveShip cmd) {
-        if (ctx.shipManager() == null) {
-            LOGGER.warn("[AI] MoveShip ignored: ship manager not initialized");
-            return;
-        }
-        try {
-            ctx.shipManager().moveShip(java.util.UUID.fromString(cmd.shipId()), cmd.distance());
-        } catch (IllegalArgumentException e) {
-            LOGGER.warn("[AI] Invalid ship UUID in MoveShip: {}", cmd.shipId());
-        }
-    }
 
-    private void applyDespawnShip(CommandContext ctx, AiCommand.DespawnShip cmd) {
-        if (ctx.shipManager() == null) {
-            LOGGER.warn("[AI] DespawnShip ignored: ship manager not initialized");
-            return;
-        }
-        try {
-            ctx.shipManager().removeShip(ctx.world(), java.util.UUID.fromString(cmd.shipId()));
-        } catch (IllegalArgumentException e) {
-            LOGGER.warn("[AI] Invalid ship UUID in DespawnShip: {}", cmd.shipId());
-        }
-    }
 
-    private void applySpawnShip(CommandContext ctx, AiCommand.SpawnShip cmd) {
-        if (ctx.shipManager() == null) {
-            LOGGER.warn("[AI] SpawnShip ignored: ship manager not initialized");
-            return;
-        }
-        Entity player = ctx.world().getEntityById(cmd.nearPlayer());
-        if (player != null) {
-            ctx.shipManager().placeShip(ctx.world(), cmd.shipName(),
-                    player.getUuid(), player.getBlockPos());
-        }
-    }
 }
