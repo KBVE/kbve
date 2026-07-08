@@ -74,6 +74,9 @@ public final class ShipNetworking {
     public static void registerPayloads() {
         PayloadTypeRegistry.playC2S().register(HelmInputPayload.ID, HelmInputPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(WeaponFirePayload.ID, WeaponFirePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(
+                com.kbve.statetree.command.NpcPlanPayload.ID,
+                com.kbve.statetree.command.NpcPlanPayload.CODEC);
         LOGGER.info("[Ship] Network payloads registered");
     }
 

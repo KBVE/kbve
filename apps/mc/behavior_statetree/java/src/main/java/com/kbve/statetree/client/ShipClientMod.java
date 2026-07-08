@@ -85,6 +85,8 @@ public class ShipClientMod implements ClientModInitializer {
                 GLFW.GLFW_KEY_K,
                 KeyBinding.Category.MISC));
 
+        NpcPlanClient.register();
+
         HudRenderCallback.EVENT.register(hud);
         ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
 
