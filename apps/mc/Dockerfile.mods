@@ -30,7 +30,7 @@ set -euo pipefail
 mkdir -p /mods
 
 declare -A MODS=(
-  ["fabric-api-0.141.3+1.21.11.jar"]="50de67eb221f0b38216da8668b09ca311327040e https://cdn.modrinth.com/data/P7dR8mSH/versions/i5tSkVBH/fabric-api-0.141.3%2B1.21.11.jar"
+  ["fabric-api-0.141.4+1.21.11.jar"]="13d3885dfec40313e2b3bf9ee639353272b9b48a https://cdn.modrinth.com/data/P7dR8mSH/versions/5zJNhXV2/fabric-api-0.141.4%2B1.21.11.jar"
   # fabric-language-kotlin: required by Ledger (Kotlin mod) and others.
   ["fabric-language-kotlin-1.13.10+kotlin.2.3.20.jar"]="9873294abf498f509453d37b0a5ba019f4570ffb https://cdn.modrinth.com/data/Ha28R6CL/versions/21TRTKmh/fabric-language-kotlin-1.13.10%2Bkotlin.2.3.20.jar"
   # ViaFabric — Fabric loader shim for ViaVersion + ViaBackwards. The
@@ -205,11 +205,11 @@ declare -A MODS=(
   # Macaw's Paintings 1.1.0 — adds 40+ new painting variants in
   # multiple sizes. Client + server.
   ["mcw-paintings-1.1.0-mc1.21.11fabric.jar"]="580ba60f2811796b7906ebc7edea053849a0d1fd https://cdn.modrinth.com/data/okE6QVAY/versions/VPvufXfe/mcw-paintings-1.1.0-mc1.21.11fabric.jar"
-  # Xaero's Minimap 26.1.4 — client HUD minimap. Server install enables
+  # Xaero's Minimap 26.2.0 — client HUD minimap. Server install enables
   # server-side sync support (bundles XaeroLib via jar-in-jar); without
   # it clients log "Server side doesn't have XaeroLib installed" and
   # reset their map sync state on every join.
-  ["xaerominimap-fabric-1.21.11-26.1.4.jar"]="e6e88fa30efbf2c86b54becd7f96f84e01440a42 https://cdn.modrinth.com/data/1bokaNcj/versions/rLF2AwoN/xaerominimap-fabric-1.21.11-26.1.4.jar"
+  ["xaerominimap-fabric-1.21.11-26.2.0.jar"]="7a3d174fd12c0406db8a8106b3d76c655e86b207 https://cdn.modrinth.com/data/1bokaNcj/versions/z6442Xnl/xaerominimap-fabric-1.21.11-26.2.0.jar"
   # Xaero's World Map 1.42.0 — full-screen world map, pairs with the
   # minimap. Server install provides the world identity + sync endpoint
   # so client map data stays keyed to this server across restarts.
@@ -219,11 +219,11 @@ declare -A MODS=(
   # Complements the KBVE ship system; only dep is Fabric API.
   ["immersive_aircraft-1.4.7+1.21.11-fabric.jar"]="a3c652a1cbf6bcb8f2216de83f8fe9cc20f470f7 https://cdn.modrinth.com/data/x3HZvrj6/versions/NshGBorp/immersive_aircraft-1.4.7%2B1.21.11-fabric.jar"
   # ── Land claims + parties ──────────────────────────────────────────
-  # Open Parties and Claims 0.26.2 — chunk-based claim system with
+  # Open Parties and Claims 0.27.5 — chunk-based claim system with
   # built-in party (guild) support and an admin claim type used to
   # lock the spawn city. Configured in-game via /opac admin-mode +
   # /opac claim on first deploy.
-  ["open-parties-and-claims-fabric-1.21.11-0.26.2.jar"]="af76f66591622b945ef37fbf20bee7ae36d82329 https://cdn.modrinth.com/data/gF3BGWvG/versions/JkiXvTq4/open-parties-and-claims-fabric-1.21.11-0.26.2.jar"
+  ["open-parties-and-claims-fabric-1.21.11-0.27.5.jar"]="52156f795ce0751dfc89553f3e928bd4e635a4a0 https://cdn.modrinth.com/data/gF3BGWvG/versions/DEb4IjSQ/open-parties-and-claims-fabric-1.21.11-0.27.5.jar"
 )
 
 for name in "${!MODS[@]}"; do
