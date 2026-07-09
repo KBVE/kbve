@@ -1,7 +1,7 @@
 ---
 title: DeadCode
 description: |
-   DeadCode is a theory that focuses on learning from archived code.
+    DeadCode is a theory that focuses on learning from archived code.
 template: splash
 tableOfContents: false
 editUrl: false
@@ -14,9 +14,9 @@ sidebar:
 unsplash: 1562577309-4932fdd64cd1
 img: https://images.unsplash.com/photo-1562577309-4932fdd64cd1?fit=crop&w=1400&h=700&q=75
 tags:
-  - social
-  - media
-  - health
+    - social
+    - media
+    - health
 bento:
     badge: theory · archive · learning
     title: 'Learning from the code we leave behind,'
@@ -90,19 +90,19 @@ jsonld:
     faq:
         - question: What is DeadCode?
           answer: >-
-            DeadCode is a theory-craft that disintegrates, analyzes, and abstracts
-            information from archived codebases, libraries, frameworks, and
-            applications, with the objective of helping people understand, learn,
-            and grow from the vast amount of old code.
+              DeadCode is a theory-craft that disintegrates, analyzes, and abstracts
+              information from archived codebases, libraries, frameworks, and
+              applications, with the objective of helping people understand, learn,
+              and grow from the vast amount of old code.
         - question: Why keep an archive of deprecated code?
           answer: >-
-            As more and more codebases fade out or get replaced, keeping records of
-            important functions and modules serves as an educational source for
-            future programmers, hackers, and researchers.
+              As more and more codebases fade out or get replaced, keeping records of
+              important functions and modules serves as an educational source for
+              future programmers, hackers, and researchers.
         - question: Who is DeadCode for?
           answer: >-
-            Programmers, hackers, and researchers who want to learn from old and
-            deprecated software scripts and libraries as reference material.
+              Programmers, hackers, and researchers who want to learn from old and
+              deprecated software scripts and libraries as reference material.
 ---
 
 import { Adsense } from '@/components/astropad';
@@ -115,6 +115,18 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 Deadcode is a theory-craft that disintegrates, analyzes and abstracts information from archived codes, libraries, frameworks and applications.
 There are multiple areas within the `deadcode` but the objective would be to help understand, learn and grow from the vast amount of old code.
+
+The focus is not to revive every abandoned project or treat old code as production-ready by default. Instead, Deadcode treats archived systems as study material: a way to understand why certain patterns worked, where they failed, and which ideas are still useful after the original runtime, hardware, or framework has faded away.
+
+Some areas are worth exploring precisely because they feel out of place in modern stacks. Older 32-bit SIMD optimizations, memory layouts, rendering tricks, network protocols, build systems, and platform-specific hacks can all show how developers solved hard constraints with limited resources. Even when those techniques should not be copied directly, they can reveal useful tradeoffs around performance, portability, simplicity, and maintainability.
+
+Deadcode can be broken into a few practical research paths:
+
+- `Disintegrate`: Separate an archived project into understandable parts, such as modules, data formats, algorithms, dependency chains, and platform assumptions.
+- `Analyze`: Study the choices inside those parts, including performance tricks, security risks, compatibility workarounds, and failure modes.
+- `Abstract`: Turn the useful lessons into notes, examples, reusable patterns, or warnings that can guide future projects without dragging the old technical debt forward.
+
+The goal is to make old code legible. Once a system becomes legible, it can become reference material for programmers, hackers, researchers, and builders who want to understand the lineage behind current tools.
 
 </BentoProse>
 
