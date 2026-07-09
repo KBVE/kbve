@@ -49,6 +49,11 @@ CREATE TABLE store.product (
     -- debit for price 0 (wallet.service_debit rejects non-positive amounts).
     price       BIGINT NOT NULL CHECK (price >= 0),
     currency    wallet.currency_kind NOT NULL DEFAULT 'credits',
+    -- fulfillment: how a purchase is delivered. Phase 0 is digital-only
+    -- (mint inventory.item). physical|both drive the order pipeline in a
+    -- later phase; the column exists now so the catalog is forward-compatible.
+    fulfillment TEXT NOT NULL DEFAULT 'digital'
+                CHECK (fulfillment IN ('digital', 'physical', 'both')),
     -- asset_ref is PUBLIC by contract: proxy_store_catalog_readonly returns
     -- it to anon. Keep it client-safe (e.g. render descriptor); never store
     -- internal asset paths, keys, or anti-cheat metadata here.
@@ -147,7 +152,9 @@ BEGIN
     -- ownership dupe-guard below is race-safe: the loser blocks here, then
     -- sees the existing item and returns it idempotently instead of double
     -- debiting. Taken BEFORE the debit. The unique index is the backstop.
-    PERFORM pg_advisory_xact_lock(hashtextextended(p_account::text || ':' || p_slug, 0));
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended('store.service_buy:' || p_account::text || ':' || p_slug, 0)
+    );
 
     SELECT * INTO v_product
       FROM store.product
@@ -210,6 +217,7 @@ BEGIN
             'slug',       v_product.slug,
             'price',      v_product.price,
             'currency',   v_product.currency,
+            'free',       (v_product.price = 0),
             'ledger_id',  v_ledger_id
         )
     );

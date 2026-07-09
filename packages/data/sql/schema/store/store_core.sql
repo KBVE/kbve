@@ -27,6 +27,8 @@ CREATE TABLE store.product (
     description TEXT,
     price       BIGINT NOT NULL CHECK (price >= 0),
     currency    wallet.currency_kind NOT NULL DEFAULT 'credits',
+    fulfillment TEXT NOT NULL DEFAULT 'digital'
+                CHECK (fulfillment IN ('digital', 'physical', 'both')),
     asset_ref   JSONB NOT NULL DEFAULT '{}'::jsonb
                 CHECK (jsonb_typeof(asset_ref) = 'object'),
     status      TEXT NOT NULL DEFAULT 'active'
