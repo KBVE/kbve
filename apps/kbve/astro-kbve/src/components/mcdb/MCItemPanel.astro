@@ -2,12 +2,14 @@
 import { MCItemSchema } from '@/data/schema';
 import MCTextureImage from './MCTextureImage';
 import MCTooltipMount from './MCTooltipMount.astro';
+import MCItemJsonLd from './MCItemJsonLd.astro';
 import MCItemMarketSidecar from '@/components/market/MCItemMarketSidecar';
 
 const { data } = Astro.props;
 const item = MCItemSchema.parse(data);
 ---
 
+<MCItemJsonLd data={item} />
 <MCTooltipMount />
 
 <section class="mcdb-panel not-content kbve-dashboard-page">
