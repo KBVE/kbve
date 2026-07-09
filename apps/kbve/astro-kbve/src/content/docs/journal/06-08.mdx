@@ -9,14 +9,54 @@ description: |
    June 8th. GHA Time.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 8,'
+    accent: every year.
+    lede: 'The June 8th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 7'
+          href: /journal/06-07/
+        - label: 'Jun 9 →'
+          href: /journal/06-09/
+    related:
+        - title: 'Previous · Jun 7'
+          copy: 'Step back a day to the June 7th log.'
+          href: /journal/06-07/
+          icon: calendar
+        - title: 'Next · Jun 9'
+          copy: 'Jump ahead to the June 9th log.'
+          href: /journal/06-09/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1685334467005-ccd47b955315?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import {
   Adsense
 } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Github Actions Codex
 
@@ -45,9 +85,15 @@ import {
     That means somewhere in the code, I forgot to throw the labels up?
     This is another side quest of debugging that I will have to do to resolve that.
 
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **Github Actions**
 
@@ -128,7 +174,9 @@ This was the older prompt:
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:00am - No morning work out today, I feel a bit tired and burnt out from the vast amount of smoke coming from the wild fire. I made the terrible mistake of leaving my windows open with a cross breeze and slowly my room has the faint smell of BBQ! The whole situation with their wildfire seems to be intense, these type of situations remind me to be grateful for what we have and have to understand that we could loose it all within a blink of an eye.
 - 11:00am - Coffee and mocha whey are the best combination. The combination of the protein and the caffeine make holy a proud boy. WAIT! That might have came out wrong....  
@@ -141,14 +189,19 @@ This was the older prompt:
 - 6:30pm - Updated Appwrite to the latest version 1.3.7 and did a basic migration to make sure that everything is okay.
 - 8:00pm - Time to fork over this music bot written in Go and quickly spin up a YT ready bot for Discord. 
 - 11:59pm - EoD - Will push some tasks out for tomorrow, learning the different Go aspects was cool but will just end up using Python.
-## Quote
+
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Imagination is more important than knowledge. For while knowledge defines all we currently know and understand, imagination points to all we might yet discover and create.
 > — <cite>Albert Einstein</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Assemble Mock IoT.
 - [x] Clean up the electrical components.
@@ -156,3 +209,7 @@ This was the older prompt:
 - [x] Unity Async Loader. Pushed for tomorrow.
 - [x] React Form Update. Pushed for tomorrow.
 - [x] Unity Login Migration. Pushed for tomorrow.
+
+</BentoProse>
+
+</BentoDoc>

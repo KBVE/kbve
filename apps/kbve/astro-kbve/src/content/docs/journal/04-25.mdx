@@ -9,13 +9,52 @@ description: |
     Daily Log for April 25th of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 25,'
+    accent: every year.
+    lede: 'The April 25th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 24'
+          href: /journal/04-24/
+        - label: 'Apr 26 →'
+          href: /journal/04-26/
+    related:
+        - title: 'Previous · Apr 24'
+          copy: 'Step back a day to the April 24th log.'
+          href: /journal/04-24/
+          icon: calendar
+        - title: 'Next · Apr 26'
+          copy: 'Jump ahead to the April 26th log.'
+          href: /journal/04-26/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1713782894016-01154435f4f4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
-
+<BentoProse id="2026" heading="2026">
 
 ### MC
 
@@ -47,9 +86,15 @@ import { Adsense } from '@/components/astropad';
     The launcher window would be running as the game is booting up and preparing, something that I have done in the past games as well.
     After the game launches, it will switch from a launcher window to the settings window, that way we do not have to destroy but rather keep some of the data there and swap it out.
 
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Andor Season 2
 
@@ -77,7 +122,9 @@ import { Adsense } from '@/components/astropad';
     The plan is to expand the `window.kbve` with a state called `uiux` which will hold a nested nanostores map.
     
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **API**
 
@@ -97,13 +144,20 @@ There are more migrations that need to be done to the official website but we ar
 A couple proof of concepts were added and tested, but now its really the large amounts of data that needs to be shifted over.
 The documentation needs to be reviewed, changed and updated across a couple hundred different asset classes, furthermore, a couple hundred stocks still need to be added.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - Astro -> React -> GraphQL/REST -> Appwrite -> Strapi
 - The chain of command might seem a bit too much but I think it should help wrap up most of our front-end journies. Afterwards, I will clean up and prepare for May dev logs.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Winners never quit and quitters never win.
 > — <cite>Vince Lombardi</cite>
+
+</BentoProse>
+
+</BentoDoc>

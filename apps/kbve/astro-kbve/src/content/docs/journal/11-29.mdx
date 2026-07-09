@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1732823170284-0d3da1fce106?crop=entropy&c
 description: November 29th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 29,'
+    accent: every year.
+    lede: 'The November 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Nov 28'
+          href: /journal/11-28/
+        - label: 'Nov 30 →'
+          href: /journal/11-30/
+    related:
+        - title: 'Previous · Nov 28'
+          copy: 'Step back a day to the November 28th log.'
+          href: /journal/11-28/
+          icon: calendar
+        - title: 'Next · Nov 30'
+          copy: 'Jump ahead to the November 30th log.'
+          href: /journal/11-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1732823170284-0d3da1fce106?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   09:30AM
 
@@ -42,3 +83,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     Both ways could work but for now, since we do not have a vault system fully functional, we will just stick with a basic sealed secret.
 
 <Adsense />
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

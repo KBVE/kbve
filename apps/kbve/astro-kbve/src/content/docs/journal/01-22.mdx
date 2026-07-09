@@ -8,13 +8,52 @@ img: https://images.unsplash.com/photo-1737047119483-1ddb4cb13540?crop=entropy&c
 description: Daily Log for January 22nd of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 22,'
+    accent: every year.
+    lede: 'The January 22nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jan 21'
+          href: /journal/01-21/
+        - label: 'Jan 23 →'
+          href: /journal/01-23/
+    related:
+        - title: 'Previous · Jan 21'
+          copy: 'Step back a day to the January 21st log.'
+          href: /journal/01-21/
+          icon: calendar
+        - title: 'Next · Jan 23'
+          copy: 'Jump ahead to the January 23rd log.'
+          href: /journal/01-23/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1737047119483-1ddb4cb13540?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Material Functions in Unreal
 
@@ -32,8 +71,15 @@ import { Adsense } from '@/components/astropad';
     The fragment side of the cplusplus is also interesting, I been researching and getitng a better understanding of it.
     
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   **GoDot**
 
@@ -123,3 +169,6 @@ import { Adsense } from '@/components/astropad';
             So lets expand the pipeline to include the SRI hash of the files that get generated.
             We are getting the sha integrity from the produced files and the unique hash wasm variables.
 
+</BentoProse>
+
+</BentoDoc>

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 29th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 29,'
+    accent: every year.
+    lede: 'The December 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Dec 28'
+          href: /journal/12-28/
+        - label: 'Dec 30 →'
+          href: /journal/12-30/
+    related:
+        - title: 'Previous · Dec 28'
+          copy: 'Step back a day to the December 28th log.'
+          href: /journal/12-28/
+          icon: calendar
+        - title: 'Next · Dec 30'
+          copy: 'Jump ahead to the December 30th log.'
+          href: /journal/12-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025 
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### MINDUSTRY
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     I am basically binge playing a bunch of this game, I call it advance research xD.
     There are a ton of notes that I have, I might implement some of the concepts within one of my games.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   01:27PM
 
@@ -42,3 +91,7 @@ import { Adsense, Tasks } from '@/components/astropad';
     **Unity**
 
     After yesterday, I been spending some time to become better at Unity
+
+</BentoProse>
+
+</BentoDoc>

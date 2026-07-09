@@ -8,15 +8,52 @@ img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&c
 description: Daily Log for February 1sty of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 1,'
+    accent: every year.
+    lede: 'The February 1st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jan 31'
+          href: /journal/01-31/
+        - label: 'Feb 2 →'
+          href: /journal/02-02/
+    related:
+        - title: 'Previous · Jan 31'
+          copy: 'Step back a day to the January 31st log.'
+          href: /journal/01-31/
+          icon: calendar
+        - title: 'Next · Feb 2'
+          copy: 'Jump ahead to the February 2nd log.'
+          href: /journal/02-02/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1569396116180-210c182bedb8?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 -   **Feb**
 
@@ -49,3 +86,13 @@ import { Adsense } from '@/components/astropad';
             Time to integrate the jedi crate into the KBVE package!
             My written notes are a bit out of sync with my mdx notes, so I need to go back and fix that as well.
             
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

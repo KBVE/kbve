@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1690148887466-f371e1c80896?crop=entropy&c
 description: August 15th. Quote & Task.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 15,'
+    accent: every year.
+    lede: 'The August 15th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 14'
+          href: /journal/08-14/
+        - label: 'Aug 16 →'
+          href: /journal/08-16/
+    related:
+        - title: 'Previous · Aug 14'
+          copy: 'Step back a day to the August 14th log.'
+          href: /journal/08-14/
+          icon: calendar
+        - title: 'Next · Aug 16'
+          copy: 'Jump ahead to the August 16th log.'
+          href: /journal/08-16/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1690148887466-f371e1c80896?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Nginx Kong
 
@@ -30,8 +72,15 @@ import { Adsense } from '@/components/astropad';
     The best gamemode that can ever come out for league, its just so much fun to burn through it.
     My plan was to play some BF this weekend but I just do not have the time to deal with shooters.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Quotes**
 The quotes plugin for the journal entries should be similar to how we are doing `itemdb.astro`, where it grabs the front matter quote data and then displays.
@@ -50,19 +99,30 @@ I will try to formulate a way to call those cache endpoints without having it af
 As for the flyio deployments, it should still be all done via the github actions?
 We could also make it so that it gets deployed as dev branches, this way we can test case our dev APIs.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 6:00am - Still need to clean a bit of my room up, the only mess that is getting me annoyed is around by work bench. 
 - 7:27am - Time to clear up the Layout issue with the MDX files. Oh man, the joys :/
 - 8:24am - I should make another patch with the `layout:` killer.
 - 7:23pm - I been at this for almost 12 hours and I am still running into random errors, ugh! This day is extremely lame.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Nothing diminishes anxiety faster than action.
 > — <cite>Walter Inglis Anderson</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

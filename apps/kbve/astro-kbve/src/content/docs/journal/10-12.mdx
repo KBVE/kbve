@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&c
 description: October 12th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 12,'
+    accent: every year.
+    lede: 'The October 12th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 11'
+          href: /journal/10-11/
+        - label: 'Oct 13 →'
+          href: /journal/10-13/
+    related:
+        - title: 'Previous · Oct 11'
+          copy: 'Step back a day to the October 11th log.'
+          href: /journal/10-11/
+          icon: calendar
+        - title: 'Next · Oct 13'
+          copy: 'Jump ahead to the October 13th log.'
+          href: /journal/10-13/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693298661836-1206649639ef?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Ghostless Session
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     We want to aim for a demo before the end of November and maybe hit that Steamfest in Feb 2026!
     This upcoming week will be all ECS focused, getting the UI out of the way too.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Login**
 
@@ -85,3 +134,7 @@ The a future update will be around better state machine management and the loadi
 Hmm, we could have the worker load the asset into the dexie storage and then pull it whenever we want to create the animation, as well as, save its internal state machine.
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

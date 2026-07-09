@@ -16,6 +16,17 @@ base.archivesName = 'behavior_statetree'
 
 repositories {
     mavenCentral()
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter {
+            includeGroup 'maven.modrinth'
+        }
+    }
 }
 
 dependencies {
@@ -27,6 +38,12 @@ dependencies {
     // mXparser — math expression evaluator for BBModel animation variables
     // (Blockbench keyframes use string expressions like "variable.speed * 0.5")
     include implementation("org.mariuszgromada.math:MathParser.org-mXparser:6.1.0")
+
+    // Immersive Aircraft — compile-only for the pet/vehicle collision
+    // mixin. Runtime presence stays optional: the mixin lies dormant when
+    // the mod is absent because its target class never loads. Version
+    // must track the pin in apps/mc/Dockerfile.mods.
+    modCompileOnly "maven.modrinth:immersive-aircraft:1.4.7+1.21.11"
 }
 
 // Inject version into fabric.mod.json + copy Rust native libraries

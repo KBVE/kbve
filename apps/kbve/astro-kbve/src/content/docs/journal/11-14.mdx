@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1731530357802-08d982917720?crop=entropy&c
 description: November 14th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 14,'
+    accent: every year.
+    lede: 'The November 14th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Nov 13'
+          href: /journal/11-13/
+        - label: 'Nov 15 →'
+          href: /journal/11-15/
+    related:
+        - title: 'Previous · Nov 13'
+          copy: 'Step back a day to the November 13th log.'
+          href: /journal/11-13/
+          icon: calendar
+        - title: 'Next · Nov 15'
+          copy: 'Jump ahead to the November 15th log.'
+          href: /journal/11-15/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1731530357802-08d982917720?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   09:00AM
 
@@ -29,3 +70,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     I am also thinking that after we get the useMemory hook to work, we can add another hook that would help us create a pool of the objects that we could render offscreen and then transition them in.
     In theory we would be creating one of those infinite scrolling situations but having it render as they scroll through the application.
     The goal would also be to make sure that it does not pull any additional data, by having it cache the results and then use the cache to help build the profiles.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

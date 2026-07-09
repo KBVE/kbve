@@ -9,14 +9,54 @@ description: |
    June 7th. Groqin Lockin.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 7,'
+    accent: every year.
+    lede: 'The June 7th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 6'
+          href: /journal/06-06/
+        - label: 'Jun 8 →'
+          href: /journal/06-08/
+    related:
+        - title: 'Previous · Jun 6'
+          copy: 'Step back a day to the June 6th log.'
+          href: /journal/06-06/
+          icon: calendar
+        - title: 'Next · Jun 8'
+          copy: 'Jump ahead to the June 8th log.'
+          href: /journal/06-08/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1717297808345-b740e9846158?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import {
   Adsense
 } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Codex
 
@@ -46,8 +86,15 @@ make sure to match the color schemes.
     After we finish the HUD, I am thinking we could do the a panel for the character or maybe start doing the crafting?
     We still need to finish the bonus applying and also making suring that items get deployed.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Music**
 
@@ -85,7 +132,9 @@ Lets take a step back and maybe the issue is not the json that is being returned
 
 ```
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:00am - The blueberries are slowly coming out! I currently have a couple plants but I am excited to see them survive through the winter and can not wait to have even more in the future. My plan might be to turn all the edges into blueberry and blackberry bushes but getting the right plant genetics is still a bit out of my scope. Maybe I could ask GPT?
 - 11:00am - Before getting back into the deep end of programming, I need to do my monthly budgeting and balance sheet. By staying with India for almost two months, I was able to save over a couple thousand dollars! Furthermore, the general market value for all my portfolios have increased across the board, it seems some have made intense gains after recovering. I am looking at those $NVDA shares and I think it might be a good time to exit my position for a while.
@@ -95,14 +144,22 @@ Lets take a step back and maybe the issue is not the json that is being returned
 - 11:45pm - I should sync all the notes on my macbook as the battery is slowly dying off, its been on for over 30 hours!
 - 11:55pm - Future information regarding the extension of the VISA in India, you will need the proof of visa, passport-size photo, scan documents of passport, proof of residence and the reason for extending the stay. In this situation, I am extending my grandpa's visa because he recently got some medical work done and is not really suited for travel yet. In my request for the extension, I included the most recent medical report and a couple professional-style letters requesting for an extension, including one from a doctor here in the US and a doctor that is from a popular local hospital in India. I figured if I could reference enough people and have a surplus of documents, they would have a bit harder time declining his extension. The goal would be to do this while getting his OCI resolved, so that we will never have to do this visa meme stuff again.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > In all chaos there is a cosmos, in all disorder a secret order.
 > — <cite>Carl Jung</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Finish Balance Sheet for June and July 2023.
 - [x] Finish Grandpa's VISA extension.
+
+</BentoProse>
+
+</BentoDoc>

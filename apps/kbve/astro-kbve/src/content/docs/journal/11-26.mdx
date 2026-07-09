@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1732279446331-c88852566f83?crop=entropy&c
 description: November 26th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 26,'
+    accent: every year.
+    lede: 'The November 26th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Nov 25'
+          href: /journal/11-25/
+        - label: 'Nov 27 →'
+          href: /journal/11-27/
+    related:
+        - title: 'Previous · Nov 25'
+          copy: 'Step back a day to the November 25th log.'
+          href: /journal/11-25/
+          icon: calendar
+        - title: 'Next · Nov 27'
+          copy: 'Jump ahead to the November 27th log.'
+          href: /journal/11-27/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1732279446331-c88852566f83?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   01:00PM
 
@@ -38,3 +79,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     The new ARAM map also slaps, I love what they did with it and it finally makes zeri, bard and talon both a bit more fun to play.
 
 <Adsense />
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

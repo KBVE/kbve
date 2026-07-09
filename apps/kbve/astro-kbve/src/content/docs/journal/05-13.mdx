@@ -9,13 +9,52 @@ description: |
    May 13th - The Daily Journal
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 13,'
+    accent: every year.
+    lede: 'The May 13th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 12'
+          href: /journal/05-12/
+        - label: 'May 14 →'
+          href: /journal/05-14/
+    related:
+        - title: 'Previous · May 12'
+          copy: 'Step back a day to the May 12th log.'
+          href: /journal/05-12/
+          icon: calendar
+        - title: 'Next · May 14'
+          copy: 'Jump ahead to the May 14th log.'
+          href: /journal/05-14/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1715514918422-3bde21134880?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
-
+<BentoProse id="2026" heading="2026">
 
 ### Firecracker Endpoints
 
@@ -42,7 +81,15 @@ import { Adsense } from '@/components/astropad';
     Before I go to grab some cofffe, I am going to focus on getting the replicas connected and utilized to avoid hitting our main database with older queries.
     We should maybe look at a valkey cache integration as well, but maybe the application itself could hold a cache, this would be an interesting way to handle it.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Bento Grid Astro
 
@@ -61,8 +108,9 @@ import { Adsense } from '@/components/astropad';
     That also means we would lose the Discord / web build, damn that will be a major blow to my original plans but hey it might be just worth it in the long term.
     Focusing on a Steam release should just be the goal, the rest can be for another day in the future.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **Cypress**
 
@@ -90,3 +138,7 @@ In addition to keeping track of the songs that have been played, I believe a ski
 I will keep these ideas here for now, then whatever ones that need to be added, well I will first place them into the music mdx directly and then build them out within that week.
 
 We could also make it so that the first video on pageload could be a default KBVE Jukebox video, that will be like 3 to 5 seconds long and it will act as a buffer, to prevent the first song to automatically get added.
+
+</BentoProse>
+
+</BentoDoc>

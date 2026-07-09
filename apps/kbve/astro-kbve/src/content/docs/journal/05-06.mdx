@@ -9,12 +9,52 @@ description: |
    May 6th, the day the game changed, I made my move and rearranged dat frame.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 6,'
+    accent: every year.
+    lede: 'The May 6th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 5'
+          href: /journal/05-05/
+        - label: 'May 7 →'
+          href: /journal/05-07/
+    related:
+        - title: 'Previous · May 5'
+          copy: 'Step back a day to the May 5th log.'
+          href: /journal/05-05/
+          icon: calendar
+        - title: 'Next · May 7'
+          copy: 'Jump ahead to the May 7th log.'
+          href: /journal/05-07/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Firecracker Updates
 
@@ -33,7 +73,15 @@ import { Adsense } from '@/components/astropad';
     Good news is that we got the shaders operational on the android phone, but the bad news is that the performance is really bad.
     I am not too sure if the terrible performance is because of the virtual device itself or if the APK boots way too much information.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Andor
 
@@ -95,10 +143,9 @@ define_multi_flag_checks!(
     This feels like another gaza situation, where India might just use the terror attack as an excuse to launch another massive war.
     The bigger issue is that it will end up creating more terrorists in the long term, its a classic situation of a butterfly effect.
 
+</BentoProse>
 
-
-
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **JukeBox**
 
@@ -126,7 +173,9 @@ pub struct RecoverUserSchema {
 
 ---
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 **India**
 
@@ -144,17 +193,25 @@ pub struct RecoverUserSchema {
 
 ---
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Kindness in words creates confidence. Kindness in thinking creates profoundness. Kindness in giving creates love.
 > — <cite>Laozi</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [X] Double check AirIndia tickets.
 - [X] Dentist checkup.
 - [X] Tiles for the new bathroom.
 - [X] Adding Jio sim card for UPI.
 - [X] Bulk ordering glasses.
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,16 +8,52 @@ img: https://images.unsplash.com/photo-1448375240586-882707db888b?crop=entropy&c
 description: Daily Log for January 18th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 18,'
+    accent: every year.
+    lede: 'The January 18th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jan 17'
+          href: /journal/01-17/
+        - label: 'Jan 19 →'
+          href: /journal/01-19/
+    related:
+        - title: 'Previous · Jan 17'
+          copy: 'Step back a day to the January 17th log.'
+          href: /journal/01-17/
+          icon: calendar
+        - title: 'Next · Jan 19'
+          copy: 'Jump ahead to the January 19th log.'
+          href: /journal/01-19/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Unreal
 
@@ -28,8 +64,15 @@ import { Adsense } from '@/components/astropad';
     At this point, I have been using unreal, unity, phaser and godot, but still have not yet launched a game.
     These engines are fine, but my search for a proper ECS system that I would like to work with seems to be an unending one.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   **WebGL**
 
@@ -55,7 +98,9 @@ pnpm nx g @monodon/rust:binary rust_p16_gameserver --directory=apps/rust_p16_gam
 
 ```
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 -   **Movement**
 
@@ -83,3 +128,7 @@ pnpm nx g @monodon/rust:binary rust_p16_gameserver --directory=apps/rust_p16_gam
         I am close to hitting level 24, then just need to do a bit more to hit the level cap of 25.
         Super excited to venture into the battle grounds as a druid, hopefully I do not get ran through like earlier.
         The WSG is still in my blood, capture the flag for life, kill all the horde! Muahahaha.
+
+</BentoProse>
+
+</BentoDoc>

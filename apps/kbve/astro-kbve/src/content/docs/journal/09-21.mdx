@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1694682845794-5054f706b885?crop=entropy&c
 description: September 21st. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 21,'
+    accent: every year.
+    lede: 'The September 21st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 20'
+          href: /journal/09-20/
+        - label: 'Sep 22 →'
+          href: /journal/09-22/
+    related:
+        - title: 'Previous · Sep 20'
+          copy: 'Step back a day to the September 20th log.'
+          href: /journal/09-20/
+          icon: calendar
+        - title: 'Next · Sep 22'
+          copy: 'Jump ahead to the September 22nd log.'
+          href: /journal/09-22/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1694682845794-5054f706b885?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Zombie ECS - Overlay
 
@@ -28,7 +69,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Ending the night with a quick recap of the culling that we tried to add.
     I want to get it out of the way before I add R3 and mouse over on the entities that get spawned.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Fleet**
 
@@ -77,19 +126,29 @@ My jimmy would never wake up if I saw her lmao, the flight mode would be activat
 Keeping up with the french movie dive, the next movie that we would watch is about this mythical creature commiting crimes.
 So far the movie is interesting and has a decent lineup of unique characters, but the racial undertones are also pretty crazy.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:00am - Looks like the feds took the whole market down a bit! Exciting to see how it will play out for the remaining week and even the rest of the year.
 - 11:15am - Meeting before lunch, I think I am going to also take tomorrow off because I am tired and want to focus on Appwrite! I also have to create a whole new document for October, which I will bang out tomorrow mid-day as well.
 - 3:16pm - Okay the general settings page looks good! I am going to push that out and see where I can go from there. Damn this is such a first world problem, I can not screen share at higher 4K, without it looking super buggy.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Friendship improves happiness and abates misery, by the doubling of our joy and the dividing of our grief.
 > — <cite>Cicero</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

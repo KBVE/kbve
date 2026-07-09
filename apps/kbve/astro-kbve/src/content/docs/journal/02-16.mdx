@@ -8,15 +8,52 @@ img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=s
 description: Daily Log for February 16th for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 16,'
+    accent: every year.
+    lede: 'The February 16th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 15'
+          href: /journal/02-15/
+        - label: 'Feb 17 →'
+          href: /journal/02-17/
+    related:
+        - title: 'Previous · Feb 15'
+          copy: 'Step back a day to the February 15th log.'
+          href: /journal/02-15/
+          icon: calendar
+        - title: 'Next · Feb 17'
+          copy: 'Jump ahead to the February 17th log.'
+          href: /journal/02-17/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### GameJam
 
@@ -39,7 +76,15 @@ import { Adsense } from '@/components/astropad';
     Seeing the words window and handle over and over is going to cause my brain to explode.
     Turns out the issue was that webview requires additional linking in a gnu dll target, ugh.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Journal
 
@@ -73,3 +118,7 @@ There are some older journal notes for security, we have to migrate them over to
 The two subjects as of right now are just `xss` and `firewall`, but we could include some additional subjects?
 
 I think an entry for auth should be included as a future aspect, including how to handle jwt, password reset and 2fa.
+
+</BentoProse>
+
+</BentoDoc>

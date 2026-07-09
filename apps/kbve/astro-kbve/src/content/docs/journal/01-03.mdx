@@ -8,14 +8,52 @@ img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&c
 description: Daily Log for January 3rd of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 3,'
+    accent: every year.
+    lede: 'The January 3rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jan 2'
+          href: /journal/01-02/
+        - label: 'Jan 4 →'
+          href: /journal/01-04/
+    related:
+        - title: 'Previous · Jan 2'
+          copy: 'Step back a day to the January 2nd log.'
+          href: /journal/01-02/
+          icon: calendar
+        - title: 'Next · Jan 4'
+          copy: 'Jump ahead to the January 4th log.'
+          href: /journal/01-04/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1703511606233-9c7537658701?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### OSRS Item Page
 
@@ -27,7 +65,15 @@ import { Adsense } from '@/components/astropad';
     I believe we might have to lock down the API but for now we can keep it open.
     
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   12:30PM
 
@@ -51,7 +97,9 @@ import { Adsense } from '@/components/astropad';
     Updating the python package for nx, to `20.3.1` via `pnpm add @nxlv/python@20.3.1`.
     This upgrade could break somethings, but just want to make sure it all works.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 - 6:05am - Getting ready for work and double checking my accounts for 2024!
     I need to adjust my morning gym routine, I might have to get up earlier.
@@ -91,13 +139,21 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 >  “Null” 
 >  — <cite>Null</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [X] - Remove
+
+</BentoProse>
+
+</BentoDoc>

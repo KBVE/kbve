@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1663496951572-030f35b9e13f?crop=entropy&c
 description: September 19th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 19,'
+    accent: every year.
+    lede: 'The September 19th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Sep 18'
+          href: /journal/09-18/
+        - label: 'Sep 20 →'
+          href: /journal/09-20/
+    related:
+        - title: 'Previous · Sep 18'
+          copy: 'Step back a day to the September 18th log.'
+          href: /journal/09-18/
+          icon: calendar
+        - title: 'Next · Sep 20'
+          copy: 'Jump ahead to the September 20th log.'
+          href: /journal/09-20/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1663496951572-030f35b9e13f?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 **beau is afraid**
 
@@ -52,18 +93,34 @@ The adventure of getting the container running, I might just switch to tomorrows
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:45am - The weather is amazing right now, its wild to see actual stable fall weather. I miss hoodie season. 
 - 1:31pm - An interesting meeting over the secret storage and how we could improve upon it. I am just sitting there thinking, damn
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > For everything that lives is holy, life delights in life.
 > — <cite>William Blake</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

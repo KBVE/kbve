@@ -9,10 +9,52 @@ description: |
   June 15th. NPM.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 15,'
+    accent: every year.
+    lede: 'The June 15th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 14'
+          href: /journal/06-14/
+        - label: 'Jun 16 →'
+          href: /journal/06-16/
+    related:
+        - title: 'Previous · Jun 14'
+          copy: 'Step back a day to the June 14th log.'
+          href: /journal/06-14/
+          icon: calendar
+        - title: 'Next · Jun 16'
+          copy: 'Jump ahead to the June 16th log.'
+          href: /journal/06-16/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1510442650500-93217e634e4c?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Worker Vite Issue
 
@@ -40,9 +82,15 @@ import { Adsense } from '@/components/astropad';
     Preparing for the unity session, just looking over the note sand making sure that I am ready for the next part of the session.
     There are a couple of things that we need to resolve within the gameplay loop but I think that it should be easy.
 
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **NPM**
 
@@ -109,24 +157,34 @@ This is the package json that we created for this library.
 It seems that the bundler being `vite` is throwing some errors that I do not think we need to debug.
 Since this is the case, we could setup back and remove this library.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 9:00am - Will SPY keep going up? Damn I am printing money from these covered cash puts. I was hoping to grab an assignment yesterday when I was selling the $434/435 but it closed at $437.
 - 10:0am - Going to take a quick break from the Internet and spend some time in the real world.
 - 7:25pm - Stream Darts , the Always Sunny in Discord Edition. The concept is a high thought that we are test casing right now. The first duelist were @ziggy and @mrock, they did a rock paper scissors to determine who would go first.
 - 7:57pm - The match is getting hot and heavy! As we cross intermission, @Ziggy is at 318 and @Mrock is at 225. Its been a close match but @Ziggy has been slowly gaining a massive lead over @Mrock. The crowd has been going `wild!`, almost as if they were infused with Alex Jones' special water.
 - 7:58pm - Going to start the Webmaster react form from scratch again, hopefully I can get it out and ready by tonight. @Ziggy is now at 415 and @Mrock is 303! So close, and damn @Ziggy hits a 2, now at 417! @Mrock is closing in at 345!. OH NO! @Ziggy scores a double one, sitting at 419! @Ziggy wins with a 424! @mrock finishes with a 348! Great game boys!
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > A man cannot be said to succeed in this life who does not satisfy one friend.
 > — <cite>Henry David Thoreau</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Building out WebMaster Tools [Issue](https://github.com/KBVE/kbve.com/issues/601)
 - [ ] Updating BizOps Document [Issue](https://github.com/KBVE/kbve.com/issues/600)
 - [ ] Cloud Functions Printful Scope. [Issue](https://github.com/KBVE/kbve.com/issues/602)
 - [ ] Created Mermaid React JSX [Issue](https://github.com/KBVE/kbve.com/issues/599)
+
+</BentoProse>
+
+</BentoDoc>

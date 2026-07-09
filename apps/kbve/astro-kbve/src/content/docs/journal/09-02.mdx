@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692806511236-a142a098ec9e?crop=entropy&c
 description: September 2nd. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 2,'
+    accent: every year.
+    lede: 'The September 2nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 1'
+          href: /journal/09-01/
+        - label: 'Sep 3 →'
+          href: /journal/09-03/
+    related:
+        - title: 'Previous · Sep 1'
+          copy: 'Step back a day to the September 1st log.'
+          href: /journal/09-01/
+          icon: calendar
+        - title: 'Next · Sep 3'
+          copy: 'Jump ahead to the September 3rd log.'
+          href: /journal/09-03/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692806511236-a142a098ec9e?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### KBVE Forked Supabase Realtime
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     There is a ton of information that we need to outline but its been a crazy ride!
     I will update the Supabase MDX with all that information when I get a chance.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **BIOS**
 
@@ -45,8 +94,10 @@ Eventually the goal will be to manage the whole devops eco-system through github
 Preparing the profile and ledger accounts within the kbve postgres database!
 For realtime, we can go back around and reference this [discussion](https://github.com/orgs/supabase/discussions/22484)
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 5:30am - Spinned up an instance of Weaviate sandbox! Lets goo! We will use this instance to test case any of the issues that we might have with batching on weaviate and then migrate over to any additional concepts that we could use. 
 - 6:38am - I need to send out a couple text messages and plan out my morning the best way possible. I sure want to grab some breakfast but I also want to make sure that I get all the parts for Charles and have it operational by the end of the day. We could split up the hard drives for the project ahead of time, maybe place the operating system on a completely different mount / drive and then use another SSD for machine learning operations?
 - 7:11am - Let me sync the repo and this patch with the main website! This way I am all caught up on my different laptops and phones.
@@ -55,14 +106,22 @@ For realtime, we can go back around and reference this [discussion](https://gith
 - 5:45pm - Taking a bit of break from setting up the PC and chilling out.
 - 10:15pm - Going to get some sleep and prepare for tomorrow morning, tonight was interesting, definitely the multiple trips to the electronic store, definitely was not what I was expecting. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Sometimes your joy is the source of your smile, but sometimes your smile can be the source of your joy.
 > — <cite>Thích Nhất Hạnh</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] - Gather parts for Charles.
 - [x] - Research the assembly of Charles.
+
+</BentoProse>
+
+</BentoDoc>

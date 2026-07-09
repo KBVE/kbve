@@ -9,15 +9,52 @@ description: |
     Dat April 12th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 12,'
+    accent: every year.
+    lede: 'The April 12th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Apr 11'
+          href: /journal/04-11/
+        - label: 'Apr 13 →'
+          href: /journal/04-13/
+    related:
+        - title: 'Previous · Apr 11'
+          copy: 'Step back a day to the April 11th log.'
+          href: /journal/04-11/
+          icon: calendar
+        - title: 'Next · Apr 13'
+          copy: 'Jump ahead to the April 13th log.'
+          href: /journal/04-13/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1712313221432-16ee2d6aba88?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Sealed Secrets
 
@@ -60,3 +97,13 @@ Given the nature of OpenCV and plan to utilize the `window` a bit more, it does 
 Hmmm, I am going to try and think through the best ways that we can reach our goal within our given time limit.
 
 Splitting up the Python library into two different ones does make sense as well.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

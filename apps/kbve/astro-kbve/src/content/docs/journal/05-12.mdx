@@ -9,13 +9,52 @@ description: |
    May 12th - The Daily Journal
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 12,'
+    accent: every year.
+    lede: 'The May 12th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 11'
+          href: /journal/05-11/
+        - label: 'May 13 →'
+          href: /journal/05-13/
+    related:
+        - title: 'Previous · May 11'
+          copy: 'Step back a day to the May 11th log.'
+          href: /journal/05-11/
+          icon: calendar
+        - title: 'Next · May 13'
+          copy: 'Jump ahead to the May 13th log.'
+          href: /journal/05-13/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1715446273822-f9b3243a5569?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Blackjack updates
 
@@ -25,8 +64,15 @@ import { Adsense } from '@/components/astropad';
     Granted we might not really need ECS for this type of game, however it be interesting to see what we can utilize within its eco-system.
     Afterwards we can apply this to the solitaire game.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### KBVE Rewrite
 
@@ -61,7 +107,9 @@ import { Adsense } from '@/components/astropad';
     One way to handle this would be to run our own internal event engine that then would make things even more modular and easier to work with?
     Let me think this through before I go any further, I might loop back to the KBVE rewrite.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Happy Mothers Day**
 
@@ -80,3 +128,7 @@ Now let us see if it performs well with this next couple git code pushes.
 **Updates**
 
 I made a quick list of all the updates that the monorepo needs, but I will hold some of those updates back to avoid breaking anything.
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1626375555783-f5fc7149e03f?crop=entropy&c
 description: August 13th. M3.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 13,'
+    accent: every year.
+    lede: 'The August 13th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 12'
+          href: /journal/08-12/
+        - label: 'Aug 14 →'
+          href: /journal/08-14/
+    related:
+        - title: 'Previous · Aug 12'
+          copy: 'Step back a day to the August 12th log.'
+          href: /journal/08-12/
+          icon: calendar
+        - title: 'Next · Aug 14'
+          copy: 'Jump ahead to the August 14th log.'
+          href: /journal/08-14/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1626375555783-f5fc7149e03f?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Thunder Thunder , Where Art Thou?
 
@@ -21,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     Without any power, internet and purpose, I wrote most of these entries in the candle light.
     There will no be leaks about it yet, all of the content will go directly into the RareIcon.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **M3**
 Going to pick up a quicky M3 laptop today and then later on going to order a larger one for when I get back from Italy.
@@ -42,7 +92,10 @@ I will think through the best options tonight or tomorrow.
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 10:30am - I am trying to sign up with the Oracle's cloud plan but been running into various issues. It was a bit messy but I am thinking that I might just reach out to their support and get it resolved from their end. 
 - 3:27pm - Changing the main background color of the KBVE's homepage to a nice black color. I did not change the template's bg-default to the black because I still want to use that blue but keep it a bit higher in the layer, so that it would utilized for certain actions in the future, like the dropdowns. 
 - 3:58pm - I am currently looking at this Ai Hackathon and thinking that I might either form a team or look for team mates that might be interested in forming an alliance where we could work on the said projects together! I will reach out to those that might be interested and see if I can find enough people that might be down.
@@ -50,16 +103,24 @@ I will think through the best options tonight or tomorrow.
 - 4:27pm - It seems that SendGrid is rewriting the URL's with the brandable URL? I am not too sure what this feature is exactly but it is causing some pain points in terms of the usability. I also know that I have only 100 emails per day to send, it would be a shame if I burn through all of those just trying to figure out this mess. 
 - 5:49pm - I started to work on the md and mdx structure for different applications and their issues. I will isolate the notes, journals and errors into three basic folders. This will help in the future as we expand the library of information.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > If one does not know to which port is sailing, no wind is favorable.
 > — <cite>Seneca the Younger</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] LabLab Teams
 - [ ] Pocketbase Notes
 - [ ] KBVE Recovery
 - [ ] KBVE Template Updates
+
+</BentoProse>
+
+</BentoDoc>

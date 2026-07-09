@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?crop=entropy&c
 description: July 29th. Lore Lore Lore.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 29,'
+    accent: every year.
+    lede: 'The July 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 28'
+          href: /journal/07-28/
+        - label: 'Jul 30 →'
+          href: /journal/07-30/
+    related:
+        - title: 'Previous · Jul 28'
+          copy: 'Step back a day to the July 28th log.'
+          href: /journal/07-28/
+          icon: calendar
+        - title: 'Next · Jul 30'
+          copy: 'Jump ahead to the July 30th log.'
+          href: /journal/07-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Airship
 
@@ -21,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     I am aware of the issues that come with having a bunch of half donkey work floating around, but sometimes getting stuck in one area is really rough.
     Taking a break from the unity aka c# and switching back to gdscript is a great way to reset the flow.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Options**
 I need to figure out the best way to handle the different options within the dialogue system.
@@ -42,7 +92,10 @@ We do want to quickly get to level 85 before I put this into a full test but the
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 7:34am - I spent a decent amount of time going through my LinkedIn profile and updated a decent chunk of what I had on there. Part of my plan will be to automate some of the LinkedIn functions, maybe have it send custom GPT-based messages to people that I would like to reach out to. The general idea would be to at least have the introduction message be a bit personal? I also made sure to claim the company page for KBVE! As for why I decided to improve my social presence? Hmm, I was a very anti-social media, in the sense that it felt like it was very manipulative and corrupt, however that does not mean I should not at least engage in some form of gray-hat! I found that there were some clients that wanted automation tools within Instagram, Twitter, etc... and having a better background in understanding how they functioned would make it a bit easier to build those tools out? There are a decent chunk of tools already out there, I will just focus on making one that is very simple to run inside of a docker container. I was thinking of extending out some of my unity knowledge and then build it out from there but the idea of running the application in a lightweight but scalable approach seems to be the best move for now. 
 - 11:30am - Idea! I am thinking that I should look into building out that license system. This would allow people to sell license key through our KBVE portal, where we would then provide unique features that would help verify and protect their licensed software. Part of this feature would also be to include various ways to license and protect your software when it comes to distribution. The license system would need a decent name that would be cute but not too over the top, just a bit of `OwO` but not too much of `AwA`. Definitely will need a hint of `nani!?`.
 - 1:50pm - Going to do a couple quick league matches before doing some general workflow management. I will take a couple hours to update the general website, maybe finalize the blog theme template too.
@@ -55,13 +108,21 @@ We do want to quickly get to level 85 before I put this into a full test but the
 - 9:20pm - Finished making some fresh veggie pizza via the naan method, it was so filling and powerful, honestly it could be a healthy fast food in the future. Okay so I think we got a general gist of the blog format, with a simple MDXJS widget as well, which would help stylize, if that is a word, the general notes and information. I think the worst part of GPT is that it is moving my brain closer towards the matrix, it was bad already to have to google things, but all this is doing is moving the goal post closer towards the matrix. 
 - 10:13pm - Time to update AstroJS and maybe play a couple quick rounds of League. There should be a way
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The entrepreneur always searches for change, responds to it, and exploits it as an opportunity.
 > — <cite>Peter Drucker</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Blog Post Design
+
+</BentoProse>
+
+</BentoDoc>

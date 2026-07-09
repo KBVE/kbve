@@ -9,13 +9,52 @@ description: |
    May 27th. Tony Reincarnation.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 27,'
+    accent: every year.
+    lede: 'The May 27th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← May 26'
+          href: /journal/05-26/
+        - label: 'May 28 →'
+          href: /journal/05-28/
+    related:
+        - title: 'Previous · May 26'
+          copy: 'Step back a day to the May 26th log.'
+          href: /journal/05-26/
+          icon: calendar
+        - title: 'Next · May 28'
+          copy: 'Jump ahead to the May 28th log.'
+          href: /journal/05-28/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1684336177286-f215831afc17?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### 10th ItemDB
 
@@ -62,7 +101,15 @@ import { Adsense } from '@/components/astropad';
     I am thinking that it be interesting if we could wire up a placeholder for the Steam / Multiplayer while we deploy the orchestrator.
     These are just notes for myself, I will loop back around to them incase I forgot the flow.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Python**
 
@@ -83,20 +130,30 @@ I am going to have to either upgrade that dedicated server or wait until the con
 Actually given that we moved the majority of our main database to PlanetScale, we might not even need this dedicated server.
 Hmm, the contract ends in December, so we have some time to renew and maybe ask for upgrades.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:00am This was a rough Saturday morning as well, I might have to start sleeping a bit earlier because it is definitely getting a bit too late.
 - 10:30am - Finally bought my cooking skill cape on `TwitchKBVE` on OSRS and started to look into certain profit makers for the account that I can do while I am afking it. ;)
 - 3:00pm - The major focus for the day will be getting the CityVote scrapper to be functional under a new docker container that uses the Node-Python as a base.
 - 11:00pm - I am thinking of trying a new main support because of Shaco bans, I tried Senna but she really was not my play style, so I am going to pickup Sej again! She plays a bit different from the rework, I do miss the stack of ages build on her. Back then you could have like 3-4 Rod of Ages stacked and have a ton of AP / HP / Mana over the course of the game.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Make it a rule of life never to regret and never to look back. Regret is an appalling waste of energy; you can't build on it; it's only for wallowing in.
 > — <cite>Katherine Mansfield</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Migrate to a NodeJS/Python development environment.
+
+</BentoProse>
+
+</BentoDoc>

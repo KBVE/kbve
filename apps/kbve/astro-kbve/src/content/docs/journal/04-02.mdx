@@ -12,12 +12,52 @@ description: |
     In this quiet aftermath, I find a renewed sense of purpose and a deeper appreciation for the unexpected moments of laughter and the comforting rhythm of the everyday.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 2,'
+    accent: every year.
+    lede: 'The April 2nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 1'
+          href: /journal/04-01/
+        - label: 'Apr 3 →'
+          href: /journal/04-03/
+    related:
+        - title: 'Previous · Apr 1'
+          copy: 'Step back a day to the April 1st log.'
+          href: /journal/04-01/
+          icon: calendar
+        - title: 'Next · Apr 3'
+          copy: 'Jump ahead to the April 3rd log.'
+          href: /journal/04-03/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1603855873822-0931a843ee3a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Rust Docker Improvements
 
@@ -33,9 +73,15 @@ We added the mold earlier but I might loop back around and see if there might be
 
 We should take some of the time that we spent looking through the logs and maybe find some improvements?
 
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### CryptoThrone
 
@@ -51,8 +97,9 @@ We should take some of the time that we spent looking through the logs and maybe
     It has everything that we need and would shift the maintenance of the redis over to something more reliable.
     I already made issue tickets regarding this update, so it will be only a matter of time before I start the switch.
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### Videos
 
@@ -138,3 +185,7 @@ networks:
 Mapping out the routes for the deployment has to be done right this round, including making sure that the applications that we build can easily be deployed and maintained.
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

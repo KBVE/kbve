@@ -9,10 +9,52 @@ description: |
   July 12th. NPC Engine Demo
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 12,'
+    accent: every year.
+    lede: 'The July 12th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 11'
+          href: /journal/07-11/
+        - label: 'Jul 13 →'
+          href: /journal/07-13/
+    related:
+        - title: 'Previous · Jul 11'
+          copy: 'Step back a day to the July 11th log.'
+          href: /journal/07-11/
+          icon: calendar
+        - title: 'Next · Jul 13'
+          copy: 'Jump ahead to the July 13th log.'
+          href: /journal/07-13/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1686672605288-f83df6f815f7?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### BitCraft The Drama Wall
 
@@ -20,7 +62,15 @@ import { Adsense } from '@/components/astropad';
 
     
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Dice**
 
@@ -173,22 +223,31 @@ I am enjoying episode 3 and 4, its getting solid and the dragon fights were top 
 Thanks to the recent purchase of finalbossblue's complete asset collection, we have a decent chunk of characters, animations and tilesets to work with.
 This means that the only thing left is to slowly focus on the different core mechanics of the game engine, we can tackle the map builder and the dialogue system next.
 
+</BentoProse>
 
+<BentoProse id="2023" heading="2023">
 
-## 2023
 - 6:00pm - H to V to the A-C. HVAC was not yet done, I am still a bit afraid of getting electrocuted to death.
 - 6:35pm - I am thinking of converting the whole `TypeWriter` concept into a `MangaTextHandler` which will act as the component for all the unique text styles and logos.
 - 8:30pm - Adding a couple more mock examples to the stream tools. Got to top-up the Namecheap.com account as well. Furthermore, I have to prepare another couple thousand for my insurance bill that is coming up too. 
 - 11:30pm - As for the 100 assets, I should at least prepare the list and get from the 5 current assets that we are tracking to around 25 before the end of this week. If I can add around 5 assets daily, we should get to the 100 we need to close out the asset expansion issue ticket. After we hit the 100 mark, we can start to organize the data sets for them a bit better, as well as improve the flow of information for each one. Adding a couple of ETFs would make this faster, hmm.
 - EOD - Time to get some sleep. I need to get back to being a bit more active on my journal entries, they have been lackluster these few months.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > A monarchy conducted with infinite wisdom and infinite benevolence is the most perfect of all possible governments.
 > — <cite>Ezra Stiles</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

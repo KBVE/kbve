@@ -9,14 +9,52 @@ description: |
     30th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 30,'
+    accent: every year.
+    lede: 'The March 30th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 29'
+          href: /journal/03-29/
+        - label: 'Mar 31 →'
+          href: /journal/03-31/
+    related:
+        - title: 'Previous · Mar 29'
+          copy: 'Step back a day to the March 29th log.'
+          href: /journal/03-29/
+          icon: calendar
+        - title: 'Next · Mar 31'
+          copy: 'Jump ahead to the March 31st log.'
+          href: /journal/03-31/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### OWS to ROWS
 
@@ -60,8 +98,15 @@ import { Adsense } from '@/components/astropad';
   My goal would be not only to make it easy for people to sell different assets, tools and services but have it agent ready too.
   Imagine being able to rent a user's agent or help provide tooling ontop of an exisiting service.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Logo
 
@@ -96,8 +141,9 @@ import { Adsense } from '@/components/astropad';
     Moving forward, we will use this key as a trigger for the unity build.
     Okay, went ahead and added the file changes and trigger, we can push this up to main.
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### Blog
 
@@ -122,3 +168,7 @@ After fixing up the blog page, we would want to resolve the `project` page with 
 I am going to just take the old source code and move it over to here, then make small changes here and there until it works out.
 
 As we extend out the codebase, we want to make sure that we keep checking and syncing the code changes, via `./kbve.sh -nx kbve.com:sync` and `./kbve.sh -nx kbve.com:check`.
+
+</BentoProse>
+
+</BentoDoc>

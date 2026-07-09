@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 20th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 20,'
+    accent: every year.
+    lede: 'The December 20th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Dec 19'
+          href: /journal/12-19/
+        - label: 'Dec 21 →'
+          href: /journal/12-21/
+    related:
+        - title: 'Previous · Dec 19'
+          copy: 'Step back a day to the December 19th log.'
+          href: /journal/12-19/
+          icon: calendar
+        - title: 'Next · Dec 21'
+          copy: 'Jump ahead to the December 21st log.'
+          href: /journal/12-21/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   04:22AM
 
@@ -45,3 +86,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     Ended up being way too lazy today and should cut that behavaior out!
     I got a whole wife and kids to take care of, xD just kidding, okay next is making sure the new kanban database schema works.
     I know that it will give us the ability to save but there are a couple safety concerns that I need to figure out with the sql.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

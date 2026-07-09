@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693550345119-ec1c806d74c2?crop=entropy&c
 description: September 28th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 28,'
+    accent: every year.
+    lede: 'The September 28th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 27'
+          href: /journal/09-27/
+        - label: 'Sep 29 →'
+          href: /journal/09-29/
+    related:
+        - title: 'Previous · Sep 27'
+          copy: 'Step back a day to the September 27th log.'
+          href: /journal/09-27/
+          icon: calendar
+        - title: 'Next · Sep 29'
+          copy: 'Jump ahead to the September 29th log.'
+          href: /journal/09-29/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693550345119-ec1c806d74c2?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Astro Cleanup
 
@@ -27,7 +68,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     We got the build up and running locally, now just getting ready to release v1.2.2 and there is even more great news.
     Our most current build can idle out at around 10MB of ram usage, this marks great progress towards and extremely hyper web server.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **File**
 
@@ -204,20 +253,30 @@ kubectl describe clusters.postgresql.cnpg.io supabase-release-supabase-db -n sup
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 6:40am - So the plan for the mornings should be a sunrise photoshoot? This would be a great excuse to get outside early and improve upon my photography skills! I already have a decent collection of equipment and a ton of abstract software background, I think its just finding that niche that I want to explore within. 
 - 8:30am - All I am craving is a mocha whey protein shake with an extremely spice Taylor ham and egg bagel! The combination of the heat that it generates and sweetness from the coffee, make it an amazing blend! It hits around 1000 calories but that is definitely more than enough to breeze through until mid-day. 
 - 4:35pm - Almost have my Appwrite / Square hackathon project outlined, now I just need to execute it as fast as possible before the event ends. There are a couple things that I wanted to make sure that would work before I commit a ton of time into them.
 - 11:15pm - Pushing through some of the work projects, I also just got another job offer and damn I am already backed up for this weekend!
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Tragedy is a tool for the living to gain wisdom, not a guide by which to live.
 > — <cite>Robert F. Kennedy</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

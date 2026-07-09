@@ -8,15 +8,52 @@ img: https://images.unsplash.com/photo-1739382445475-1cc4fcedff2c?crop=entropy&c
 description: Daily Log for February 13th for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 13,'
+    accent: every year.
+    lede: 'The February 13th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 12'
+          href: /journal/02-12/
+        - label: 'Feb 14 →'
+          href: /journal/02-14/
+    related:
+        - title: 'Previous · Feb 12'
+          copy: 'Step back a day to the February 12th log.'
+          href: /journal/02-12/
+          icon: calendar
+        - title: 'Next · Feb 14'
+          copy: 'Jump ahead to the February 14th log.'
+          href: /journal/02-14/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1739382445475-1cc4fcedff2c?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### n8n
 
@@ -73,7 +110,15 @@ import { Adsense } from '@/components/astropad';
 
 ```
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 #### Windows
 
@@ -96,3 +141,6 @@ The inital toon shader was under the `toon-rp` package but I think it would make
 
 Now the best way to handle this would be to look through the docs and notes, and seeing if we can reference another shader, or... worse comes to worse, we would have to build our own custom shader.
 
+</BentoProse>
+
+</BentoDoc>

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692317785860-2ec5796434f2?crop=entropy&c
 description: August 25th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 25,'
+    accent: every year.
+    lede: 'The August 25th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 24'
+          href: /journal/08-24/
+        - label: 'Aug 26 →'
+          href: /journal/08-26/
+    related:
+        - title: 'Previous · Aug 24'
+          copy: 'Step back a day to the August 24th log.'
+          href: /journal/08-24/
+          icon: calendar
+        - title: 'Next · Aug 26'
+          copy: 'Jump ahead to the August 26th log.'
+          href: /journal/08-26/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692317785860-2ec5796434f2?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### TurtleWoW
 
@@ -23,7 +64,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     This could be considered as a form of research, one day I will launch that private server and see what we can learn from this.
     The tent system that they have is a bit whack, I get the idea of boosting up the rested exp gain but its just not worth it, feels a bit OP.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Roma**
 Taking the two hour train from florence to rome but it means that I also know that this is an option in the future.
@@ -49,20 +98,30 @@ Okay the final part of the three key would be a hash? but I feel like that might
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:00am - Getting ready for general roll call. We got another hackathon later tonight and this whole weekend, I am excited about it!
 - 1:30pm - Started the backup test casing, defining the terraform for the recovery test case. For the backup plan, I believe I should aim for about once a quarter? Maybe we should do it a bit earlier. Hmmm... this Friday feels a bit slow for me, maybe because its about to be the memorial weekend? 
 - 2:20pm - Finished the Claifai stream and now I am going to start working on the PAT / Personal Access Token for their service. 
 - 4:45pm - One of the bigger issues with the 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The industrial landscape is already littered with remains of once successful companies that could not adapt their strategic vision to altered conditions of competition.
 > — <cite>Ralph Abernathy</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1691427954002-688e16d6cfc3?crop=entropy&c
 description: September 13th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 13,'
+    accent: every year.
+    lede: 'The September 13th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 12'
+          href: /journal/09-12/
+        - label: 'Sep 14 →'
+          href: /journal/09-14/
+    related:
+        - title: 'Previous · Sep 12'
+          copy: 'Step back a day to the September 12th log.'
+          href: /journal/09-12/
+          icon: calendar
+        - title: 'Next · Sep 14'
+          copy: 'Jump ahead to the September 14th log.'
+          href: /journal/09-14/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1691427954002-688e16d6cfc3?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### CSProj Unity
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     This makes our lives so much easier and streamlines the whole package management and production!
     I am glad that we have three open source extensions within our eco-system, it opens up so much more in the future, maybe I might start to advertise them later on.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **DevOps**
 
@@ -131,19 +180,30 @@ The next branch that I want to introduce would be either `major` style or maybe 
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 8:34am - The mornings need to be a bit better, I might have to start sleeping early again or maybe finding a way to still program without having to be in-front of a screen. It could be the blue light or just the brain drain that comes with the amount of thinking that would be involved. There is something to be said about how fast things are moving in the machine learning eco-system, its moving too fast and my brain is unable to keep up with all the movement. 
 - 9:45am - Good to see the markets performing well, I am going to have to push my calls further up for the week and hopefully my TSLA puts expire in the money! While I am not in debt, the current cash reserves are dropping really low, I am currently sitting with only $29,500, which has been the lowest cash balance in years and I am not too sure how I feel about it. I have made extreme budget cuts but there might be not be other options other than moving forward with increasing income. I will have to pivot a certain part of my calendar with more blocks towards generating an increased amount of profits.
 - 2:05pm - Within the scope of the Appwrite's storage, I am thinking that JuicyFS would be the best move to stress test this weekend! I will have to see how it performs with I/O and net speeds between the datacenter and my local Charles. 
 - 7:53pm - The whole unity engine drama seems to be getting worse! I am extremely sadden with how they are handling all of this and honestly their engine is not even worth this type of drama! The idea that they will get better revenue in the short term is not worth their long term growth because unreal is already leaps ahead in terms of rendering, ugh, even typing this out makes me sad. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Give whatever you are doing and whoever you are with the gift of your attention.
 > — <cite>Jim Rohn</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

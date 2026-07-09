@@ -9,13 +9,52 @@ description: |
     Daily Log for April 28th of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 28,'
+    accent: every year.
+    lede: 'The April 28th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 27'
+          href: /journal/04-27/
+        - label: 'Apr 29 →'
+          href: /journal/04-29/
+    related:
+        - title: 'Previous · Apr 27'
+          copy: 'Step back a day to the April 27th log.'
+          href: /journal/04-27/
+          icon: calendar
+        - title: 'Next · Apr 29'
+          copy: 'Jump ahead to the April 29th log.'
+          href: /journal/04-29/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1640552435388-a54879e72b28?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Nx Migrations v22.7
 
@@ -24,8 +63,15 @@ import { Adsense } from '@/components/astropad';
     Updating the Nx to v22.7.0 using the `pnpm nx migrate latest` command.
     I am not too sure why its hanging but it should update soon, getting that out of the way before I move back to the rareicon upgrade.
 
-## 2025
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Mystery GameJam
 
@@ -62,9 +108,9 @@ import { Adsense } from '@/components/astropad';
     Should be good enough for what we want to build!
     Okay actually we can just end up using the bytes crate, so we can just skip the CowArc for now!
 
-## 2024
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - Currently integrating Svelte into AstroJS, but running into some development problems with Astro v2.3.1? or v2.3.2?. Vite is throwing some errors here and there within the rollUp, so I am currently in the process of debugging that. Afterwards, I aim to integrate AppWrite into Svelte, so that it can execute a bit faster than the current React setup. While React is able to get the basics done, there is a bit of a delay between each action, around ~600ms because it has to communicate with the API (from AppWrites end), I am trying to see if I can resolve that , or at least make it less noticeable via the UX/UI end. One of the aspects I was thinking of was to store the user information locally after login, to have an almost instant load WHILE only having `update` and `delete` require a connection/load.
 - `Something went wrong installing the "sharp" module` - Sometimes I hate the sharp module with a passion, I am going to wipe the local installation clean and start fresh from the dev branch. 
@@ -74,7 +120,6 @@ import { Adsense } from '@/components/astropad';
 - 8:37pm - It seems that my idea of having a general namespace and then running a custom templating system out of that is just a bit too much. I will go with a more simple widget style and just import the widgets directly, instead of having them all over the place. I just get confused and there just so many options and ways to do things... that it just too much. Sometimes I over-engineer everything and it might not be the best, BUT it was dope to have emoji-style templating, even if it was a complete waste of time, rip 50+ hours I spent lmfao. I did learn and gain so much knowledge from the experience, so it might not have been a total waste.
 - 8:40pm - Just saw a dude on a bike get nailed by a tuktuk / rickshaw, he was okay but was driving in the wrong direction and going a bit too fast. Duck the traffic here in India is insane.
 
+</BentoProse>
 
-## Quote
-
-## Task
+</BentoDoc>

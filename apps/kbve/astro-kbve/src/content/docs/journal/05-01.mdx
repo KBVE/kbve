@@ -9,12 +9,52 @@ description: |
     Daily Log for May 1st of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 1,'
+    accent: every year.
+    lede: 'The May 1st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 30'
+          href: /journal/04-30/
+        - label: 'May 2 →'
+          href: /journal/05-02/
+    related:
+        - title: 'Previous · Apr 30'
+          copy: 'Step back a day to the April 30th log.'
+          href: /journal/04-30/
+          icon: calendar
+        - title: 'Next · May 2'
+          copy: 'Jump ahead to the May 2nd log.'
+          href: /journal/05-02/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1680118534066-849f48822ece?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Copy Fail
 
@@ -31,8 +71,15 @@ import { Adsense } from '@/components/astropad';
 	Preparing the next build, maybe this time the windows version will be with working shaders.
 	However I am thinking of 
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Binary Websockets
 
@@ -95,7 +142,9 @@ pub struct ZeroCopyWsRequestContext<'a> {
 	Once we can confirm that nested streams are working aka x-data through websockets, then we can loop back around and add the batch and trim commands.
 	XGroup is a bit tricky because we will have to link the connection_id to the group, so that there is no weird crosstalk among the groups and the conncetion_ids.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Rust**
 
@@ -233,8 +282,9 @@ I suppose we could just send the data back with the error code because the statu
 The great part of n8n is that we can also no-code some temporary routes to help us with test casing and those edge cases.
 I am currently writing an automation that would generate an invoice through n8n without using the Rust API, this gives us the flexibility to move fast without having to break the Rust API.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 8:00am - My new alarm for the morning is this [Electric Speed](https://www.youtube.com/watch?v=1PV55o9AsTg) song and it has to be the best song to get you up out of bed. Do not use it for anything but as your alarm, so you can Pavlov yourself out of bed.
 - 10:00am - Got ready, did a couple set of squats and pushups, now about to venture into the main city and do some site seeing.
@@ -243,13 +293,21 @@ I am currently writing an automation that would generate an invoice through n8n 
 - 3:00pm - Took a quick break and toured around an university art show but they would not allow photographs, which makes sense because the artwork could is copyrighted. 
 - 4:00pm - Came back to the cafe and now looking through the flutter docs and need to sync the `kbve.com` repo with my online IDE. I am looking over flutter again and I might need to take a break from Astro and update the Flutter application to the latest before launching. Let me begin the quest of fluttering my brain cells into a cyclone of psychological fallacies. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > To follow, without halt, one aim: There is the secret of success.
 > — <cite>Anna Pavlova</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

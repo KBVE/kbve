@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?crop=entropy&c
 description: August 3rd. MapDB.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 3,'
+    accent: every year.
+    lede: 'The August 3rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 2'
+          href: /journal/08-02/
+        - label: 'Aug 4 →'
+          href: /journal/08-04/
+    related:
+        - title: 'Previous · Aug 2'
+          copy: 'Step back a day to the August 2nd log.'
+          href: /journal/08-02/
+          icon: calendar
+        - title: 'Next · Aug 4'
+          copy: 'Jump ahead to the August 4th log.'
+          href: /journal/08-04/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Kilobase + NIX
 
@@ -22,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     A part of me does not like nix because I am very much used to just writing docker files the classic way, but honestly, it is growing on me.
     I am understanding why it exists and the purpose that it serves, because going back to an older project makes it a breeze.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **MapDB**
 Todays plan will be create the final `MapData` interface and the `MapDB` class within `Phaser`.
@@ -104,9 +154,10 @@ I am not yet 100% sure how we would want to handle it.
 
 <Adsense />
 
+</BentoProse>
 
+<BentoProse id="2023" heading="2023">
 
-## 2023
 - 1:00pm - I am a bit excited to see how AAPL does during their earnings call. I am hoping that it at least breaks past the $195 mark, so I can offload the shares, but if it does not, then I will keep covering 200 shares until they get sold. My small goal would be to just get in and out for around $200 a week, which I will dump into my $O pool. 
 - 2:26pm - Going to install the r3f into the KBVE.com repo, however I feel like it might make the repo a bit too heavy. I shall see what we can do moving forward, there could be a bit better way to handle it. 
 - 2:32pm - I will go ahead and install all the libraries that I would want to use for the Three.js integration onto the website and extend out the Canvas via a couple different elements, including a portal and some unique examples. I would like to see how they look under the Unity video game as well.
@@ -115,13 +166,21 @@ I am not yet 100% sure how we would want to handle it.
 - 6:49pm - Installed the basic libraries for r3f and looking at how they will perform on various browsers. It seems that general mainstream browsers that are are chromium based have a decent ability to render and run the r3f examples. However, it seems that OperaGX was not able to render the portal example at a functional level. I am not too sure if its because I have something disabled OR if OperaGX does not support this type of library. I will have to do a couple more browser test casing, including Safari!
 - 10:33pm - Test casing some of the general r3f libraries. Going to push through a general save state as patch `patch-r3f-install` and then going to continue to work from this branch until tomorrow.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The conditions of conquest are always easy. We have but to toil awhile, endure awhile, believe always, and never turn back.
 > — <cite>Seneca the Younger</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Install r3f libraries.
+
+</BentoProse>
+
+</BentoDoc>

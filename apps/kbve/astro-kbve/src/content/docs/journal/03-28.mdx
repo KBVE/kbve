@@ -9,15 +9,52 @@ description: |
     28th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 28,'
+    accent: every year.
+    lede: 'The March 28th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 27'
+          href: /journal/03-27/
+        - label: 'Mar 29 →'
+          href: /journal/03-29/
+    related:
+        - title: 'Previous · Mar 27'
+          copy: 'Step back a day to the March 27th log.'
+          href: /journal/03-27/
+          icon: calendar
+        - title: 'Next · Mar 29'
+          copy: 'Jump ahead to the March 29th log.'
+          href: /journal/03-29/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Isometric
 
@@ -27,8 +64,15 @@ import { Adsense } from '@/components/astropad';
   I did need to talk a short break from the unreal side of the codebase, going back to my love and trusted bevy.
   While it is a bit slow to program in rust, I am really enjoying the flow and I hope to get so much better at the dev style.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Test Cases
 
@@ -37,7 +81,9 @@ import { Adsense } from '@/components/astropad';
     More twitch test casing, it seems that I was incorrect in my first batch of the twitch-irc-rs tests, as I thought there might have been room for improvements.
     I believe that the crate is already good enough for what we want to do and will continue to build around it.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### Arcade
 
@@ -112,3 +158,7 @@ The `ipfs` is a string that we will use in the future for storing the the variou
 
 Now we have to create three modules! The first module would be the game cover, where we would use html to display the game information, controls and any additional information.
 The cover would then have a play button and upon clicking on that button, we would use an action to load one of the other two modules.
+
+</BentoProse>
+
+</BentoDoc>

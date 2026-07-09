@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?crop=entropy&c
 description: September 26th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 26,'
+    accent: every year.
+    lede: 'The September 26th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 25'
+          href: /journal/09-25/
+        - label: 'Sep 27 →'
+          href: /journal/09-27/
+    related:
+        - title: 'Previous · Sep 25'
+          copy: 'Step back a day to the September 25th log.'
+          href: /journal/09-25/
+          icon: calendar
+        - title: 'Next · Sep 27'
+          copy: 'Jump ahead to the September 27th log.'
+          href: /journal/09-27/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Elin on Windows
 
@@ -20,7 +61,15 @@ import { Adsense, Tasks } from '@/components/astropad';
 
     Doing a run as a warmage right now, maybe it could make things easier to understand. 
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **RimWorld**
 Today was a rough day, ended up playing a bit too much of rim world again.
@@ -63,19 +112,29 @@ Finally the other goal that I had before the end of the month,
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 6:23pm  - Over the night I was able to finish up the Helmet integration with the YoRHa UI widget and now I am going to add the footer buttons for the template. I am thinking that the footer should have about just two buttons, one that would be for the version / game data and another for the external services? I do not want to spend too much time trying to figure that out per say and just move forward with the next issue.
 - 9:00pm - The current size of the widget is at around 280kb and I am thinking that I might be able to reduce the size by wrapping the modal into its own internal function and then calling it with children props. This way the size is standard across the board or I could have an action display the modal, which would be also interesting as an approach. 
 - 10:51pm - The bundle size has increased to around 290kb, this might become a problem because there are some issues that I am seeing already. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Things do not happen. Things are made to happen.
 > — <cite>John F. Kennedy</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

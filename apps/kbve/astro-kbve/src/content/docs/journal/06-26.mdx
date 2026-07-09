@@ -9,11 +9,52 @@ description: |
   June 26th. Jedi Release.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 26,'
+    accent: every year.
+    lede: 'The June 26th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 25'
+          href: /journal/06-25/
+        - label: 'Jun 27 →'
+          href: /journal/06-27/
+    related:
+        - title: 'Previous · Jun 25'
+          copy: 'Step back a day to the June 25th log.'
+          href: /journal/06-25/
+          icon: calendar
+        - title: 'Next · Jun 27'
+          copy: 'Jump ahead to the June 27th log.'
+          href: /journal/06-27/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1718871395011-32cafdd68d4b?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### React 19 Render
 
@@ -23,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     Had to change the vite configuration for react and even then, I am not too sure if I had solved the issue.
     I am hoping that its done with, so I can actually get back to programming and building the core.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Jedi**
 
@@ -88,7 +137,9 @@ The Suna + n8n + discord integration will make generating and finding samples ea
 Launching a discord bot that can make ai artwork is something that we been planning to do for a while!
 The idea here is not to compete with midjourney or any of the other popular services out there, but rather just have our own open source version to mess around with.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 6:00am - Early grind for the day! Going to focus most of the day on resolving the Steam issues for Unity and looking to optimize the load scenes. I am hoping to make the shift between different scenes a bit faster and add a bit of an aesthetic to it as well. I will not be doing this all from scratch but rather looking through existing references, so that I do not get too lost in the sauce.
 - 11:00am - Currently sitting through a quick RJ meeting and going through a lot of the older issue tickets. After spending some time on the Unity project, it would make sense for me to review through the issues that are currently open on KBVE.com and see what progress I can make with each one. 
@@ -97,15 +148,23 @@ The idea here is not to compete with midjourney or any of the other popular serv
 - 5:00pm - Need to plan a quick trip for Coffee, Red Bulls and Seltzer. These are my three core powerups and probably what keeps me going, aside for any additional matter-based intake. 
 - 7:00pm - I am looking over the notes for our meeting and realized that I would need to look further into the currency concept for RJ and KBVE as a whole. This has been something that we ran in the past and an issue that would have to be resolved before anything major, such as offering a SaaS style system in the future? The current notes that I have would be more towards a 3 tier style system, where I talked about using `KHASH`, `CREDD` and `COUPON` as the terms to define them. When I was talking to a local investor, she was extremely fond of the coupon style concept but was on the fence about the khash and credd, yet from asking a couple developers, they found the khash and credd style to be a bit more forward and the coupon style to be a bit lack luster. I suppose I will have to think it through before I move forward, given that a decent amount of my side wealth may be attached to the internal cogs of this system. I am usually not a fan of placing my own capital at a large risk, as it could hurt the existing projects, thus looping back, maybe it makes sense to stock pile a larger capital reserve. This would mean that we start cutting down in expenses as soon as possible. I guess the homework for this week would be to review all my current costs and see where I can cut expenses as fast as I can, then at the same time, look at places and areas where I can generate more capital? It does sound simple when I write it down, but it can become an extremely painful and dull process within the larger scope. Yet it is always better to do it now, when we have a health budget. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > They can conquer who believe they can.
 > — <cite>Virgil</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] - Clean Washing Machine
 - [x] - Allocate 3 hours of R&D on the Unity Project
 - [ ] - Resolve Branch Merging - I will skip this task for the day.
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1689308271349-e685f6ec405a?crop=entropy&c
 description: August 5th. MunsDay.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 5,'
+    accent: every year.
+    lede: 'The August 5th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 4'
+          href: /journal/08-04/
+        - label: 'Aug 6 →'
+          href: /journal/08-06/
+    related:
+        - title: 'Previous · Aug 4'
+          copy: 'Step back a day to the August 4th log.'
+          href: /journal/08-04/
+          icon: calendar
+        - title: 'Next · Aug 6'
+          copy: 'Jump ahead to the August 6th log.'
+          href: /journal/08-06/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1689308271349-e685f6ec405a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Kong API Gateway
 
@@ -26,8 +68,15 @@ import { Adsense } from '@/components/astropad';
     I did start the process of hooking up the logflare but there are still some issues around it that we have not yet fully resolved.
     The logs are not being handled to our best of ability, it will be something that I have to sit down and walk through each step.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Market**
 The market was brutal this morning, but I see it as a quick sale!
@@ -101,7 +150,10 @@ We want the future user to agree to all our legal terms, including the EULA and 
 I will come back around and look over it again tomorrow morning, I suppose a quick check box that links to all those documents for approval?
 Hmm will we need to check if the checkbox is pressed on the backend as well?
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 4:40pm - The first couple of Ubuntu GitLab actions had worked fine but a couple of the latter
 - 6:45pm - All my chores are done and I believe it might be time for a couple quick league matches. I did some off the record journal entries because I wanted to take a bit of a break from the screen, so I will have to migrate them back to this md document. I feel like this is one of the only major drawbacks with doing a daily journal, it is trying to remember to take your physical notes and then convert them over to a digital format. I suppose the other side of it is realizing some of the notes are a bit stupid, but then again, even if they are a bit out of the norm, it might still make sense to document them. 
 - 6:49pm - Should I go AP shaco or another round of tank shaco? Hmm, I also think the two new skins are okay, they could have done a bit more with the effects, I feel like the animation game was a bit weak but that might be just on my end. About to hit that 2 million mastery, which is a bit scary to think about. 
@@ -110,13 +162,21 @@ Hmm will we need to check if the checkbox is pressed on the backend as well?
 - 10:36pm  - Going to sync the patch and preparing the next patch for tomorrow..
 - 11:30pm - I should look into libraries that help the movement of the mouse, the two that I was looking at where pyHM and WindMouse, both could be combined into just one unique package? I suppose this would be something that we would operate under NodePy later down the line, in terms of automation as well.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Even if you're on the right track, you'll get run over if you just sit there.
 > — <cite>Will Rogers</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

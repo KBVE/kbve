@@ -9,13 +9,52 @@ description: |
     Daily Log for April 24th of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 24,'
+    accent: every year.
+    lede: 'The April 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 23'
+          href: /journal/04-23/
+        - label: 'Apr 25 →'
+          href: /journal/04-25/
+    related:
+        - title: 'Previous · Apr 23'
+          copy: 'Step back a day to the April 23rd log.'
+          href: /journal/04-23/
+          icon: calendar
+        - title: 'Next · Apr 25'
+          copy: 'Jump ahead to the April 25th log.'
+          href: /journal/04-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1585758874546-c593da5f29e7?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Advertisement Network
 
@@ -28,8 +67,15 @@ import { Adsense } from '@/components/astropad';
     The small banner ads could appear in our minecraft servers, website and even in-game, like in Rareicon.
     These notes are just around this concept, I am keeping them here to remind myself in the future about it.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Astro Web Workers
 
@@ -52,7 +98,9 @@ import { Adsense } from '@/components/astropad';
     I am a bit upset that I can not quad-code without having that full connection but it is fine for now.
     Well the next best thing for me to do is just deskflow amoung all the systems until it comes back up.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Edit**
 
@@ -80,7 +128,9 @@ Lets us begin the theory migration!
 
 Updated the Discord Page to fit into the new style!
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 **India**
 
@@ -92,18 +142,28 @@ Updated the Discord Page to fit into the new style!
 
 -   It seems that we will have to use a mixture of GraphQL and REST, as there seems to be some areas where REST is faster.
 
-## Notes
+</BentoProse>
+
+<BentoProse id="notes" heading="Notes">
 
 More Updates!
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Just be patient. Let the game come to you. Don't rush. Be quick, but don't hurry.
 > — <cite>Earl Monroe</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [x] Register, Login and Profile via GraphQL.
 -   [x] Register WISE account.
+
+</BentoProse>
+
+</BentoDoc>

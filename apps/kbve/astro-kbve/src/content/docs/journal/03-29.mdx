@@ -9,15 +9,52 @@ description: |
     29th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 29,'
+    accent: every year.
+    lede: 'The March 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 28'
+          href: /journal/03-28/
+        - label: 'Mar 30 →'
+          href: /journal/03-30/
+    related:
+        - title: 'Previous · Mar 28'
+          copy: 'Step back a day to the March 28th log.'
+          href: /journal/03-28/
+          icon: calendar
+        - title: 'Next · Mar 30'
+          copy: 'Jump ahead to the March 30th log.'
+          href: /journal/03-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Astro KBVE
 
@@ -34,7 +71,15 @@ There has to be a cleaner way to make sure that our ts , tsx and astro chain is 
   Updating the pipeline to address the bevy crate publishing, which we should do soon so that there are no issues down the line.
   Making sure the crates do get published without any issues.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Warcraft Hardcore
 
@@ -68,7 +113,9 @@ There has to be a cleaner way to make sure that our ts , tsx and astro chain is 
     The error logs are all over the place, maybe I have some old cache data?
     Best bet would be to clean it all up and try again, I was making room earlier and maybe I might have removed something important.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### Ruffle
 
@@ -95,3 +142,7 @@ Going to migrate a decent amount of the blog posts, :O that I have saved through
 I honestly hope that I do not have to do this again, any time in the future.
 
 Currently the only one that I will migrate for tonight will be `theorycraft`.
+
+</BentoProse>
+
+</BentoDoc>

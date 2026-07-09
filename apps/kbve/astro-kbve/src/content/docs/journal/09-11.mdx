@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692653055277-acb45c75f1f?crop=entropy&cs
 description: September 11th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 11,'
+    accent: every year.
+    lede: 'The September 11th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 10'
+          href: /journal/09-10/
+        - label: 'Sep 12 →'
+          href: /journal/09-12/
+    related:
+        - title: 'Previous · Sep 10'
+          copy: 'Step back a day to the September 10th log.'
+          href: /journal/09-10/
+          icon: calendar
+        - title: 'Next · Sep 12'
+          copy: 'Jump ahead to the September 12th log.'
+          href: /journal/09-12/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692653055277-acb45c75f1f?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025 
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Post GH Pages Fixes
 
@@ -31,8 +72,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     What we could do is that instead of a shared Astro library, we go ahead and do a shared tsx library, with the core logic that is within the package.
     Then have the custom astro files within their own respective projects, thus keeping the style within the project's eco-system.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **PGRX**
 
@@ -112,19 +160,30 @@ Granted it might be located in a different location, this was the location for m
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 6:30am - Preparing the morning minutes and general stand-in protocols, honestly I forget that I am muted way too long during them anyhow, should just ask if I am needed before I stay in the call. 
 - 11:00am - Excited to see a quick surge in TSLA stock value, I am waiting to sell about 500 shares for $270/$275 each, so I can turn around and sell puts against TSLA.
 - 1:00pm - Meetings went great so far, but there are ways 
 - 10:37pm - Fixing up the parcel packager and it looks like the Yorha UI Widget is nearing production level, I just need to test case a couple integrations from a couple older widgets.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The winner ain't the one with the fastest car it's the one who refuses to lose.
 > — <cite>Dale Earnhardt</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

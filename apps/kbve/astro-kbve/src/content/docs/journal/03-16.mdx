@@ -9,16 +9,52 @@ description: |
     16th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 16,'
+    accent: every year.
+    lede: 'The March 16th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 15'
+          href: /journal/03-15/
+        - label: 'Mar 17 →'
+          href: /journal/03-17/
+    related:
+        - title: 'Previous · Mar 15'
+          copy: 'Step back a day to the March 15th log.'
+          href: /journal/03-15/
+          icon: calendar
+        - title: 'Next · Mar 17'
+          copy: 'Jump ahead to the March 17th log.'
+          href: /journal/03-17/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Journal Backup!
 
@@ -64,7 +100,15 @@ import { Adsense } from '@/components/astropad';
     There could be some prompts that I could write up to help with the information, maybe using the security
     In addition, I am thinking we expand the github dashboard, so that we have
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### M4 Pro
 
@@ -81,8 +125,9 @@ import { Adsense } from '@/components/astropad';
     The actions should be ready by tonight, there are only a couple more things to resolve before we are back to a full scale pipeline.
     Biggest issue right now is the token management and the 2nd biggest issue is the file alter triggers, both of which are just time based.
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### Phaser
 
@@ -101,3 +146,7 @@ The JSON Map is what holds all the information for the tileset and editing the g
 
 There is still an issue with the vite bundler and the pathing, which I still need to resolve for the `https://kbve.com/tools/travelbox` deployment!
 The best move might be to deploy the assets using an absolute location from a s3 bucket.
+
+</BentoProse>
+
+</BentoDoc>

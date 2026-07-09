@@ -9,11 +9,52 @@ description: |
   June 29th. Weekend Bash
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 29,'
+    accent: every year.
+    lede: 'The June 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 28'
+          href: /journal/06-28/
+        - label: 'Jun 30 →'
+          href: /journal/06-30/
+    related:
+        - title: 'Previous · Jun 28'
+          copy: 'Step back a day to the June 28th log.'
+          href: /journal/06-28/
+          icon: calendar
+        - title: 'Next · Jun 30'
+          copy: 'Jump ahead to the June 30th log.'
+          href: /journal/06-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1675426513141-f0020092d72e?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity SSDB
 
@@ -30,8 +71,15 @@ import { Adsense } from '@/components/astropad';
     My goal will be to isolate all of react into mini applications aka components.
     I said this before but I just never went into a deep dive.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Cricket World Cup**
 
@@ -68,18 +116,29 @@ Honestly, the way that titanfall handles the grunt system is great and this real
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 -  10:30am - Preparing for todays trip into the city! I will be taking a train with @bell into the capital of the capitalistic shadow realm, hopefully I do not encounter any trolls, goblins or dark entities.
 - 4:30pm - Interesting set of events, we went through the train and part of the train tilts into the train station, which was extremely weird but I assume it was because they were doing construction / fortification. I am going to further assume that this is part of that infrastructure plan. 
 - 4:00am - What a fucking trip, it was a bit more expensive then what I expected but I enjoyed all of it. The Halal Chicken Chopped Cheese Sandwich. That was the most legendary sandwich ever made in the past decade. It was the perfect balance of spice, protein, and flavor, I am going to forever remember it as the sandwich night. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > If one is estranged from oneself, then one is estranged from others too. If one is out of touch with oneself, then one cannot touch others.
 > — <cite>Anne Lindbergh</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

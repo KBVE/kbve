@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?crop=entropy&c
 description: July 31st. Action System.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 31,'
+    accent: every year.
+    lede: 'The July 31st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 30'
+          href: /journal/07-30/
+        - label: 'Aug 1 →'
+          href: /journal/08-01/
+    related:
+        - title: 'Previous · Jul 30'
+          copy: 'Step back a day to the July 30th log.'
+          href: /journal/07-30/
+          icon: calendar
+        - title: 'Next · Aug 1'
+          copy: 'Jump ahead to the August 1st log.'
+          href: /journal/08-01/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### July Bills End of The Month. 
 
@@ -29,7 +71,15 @@ import { Adsense } from '@/components/astropad';
     It might be time to start selling some of the crypto off, at least to build a bit of a slushy fund.
     The war chest needs to keep growing but the capital that we have access to is starting to get a bit rough.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Action**
 Action system for the dialgoue system.
@@ -198,9 +248,10 @@ deserializeObject(serializedObject, deserializationOptions).then(deserialized =>
 
 ```
 
+</BentoProse>
 
+<BentoProse id="2023" heading="2023">
 
-## 2023
 - 9:30am - Prepare legal documents for my uncle? Ugh this was a task that I hate doing because talking to lawyers has always been a pain. 
 - 10:33am - I need to redo my gym schedule, I might have to do something a bit more hardcore and maybe do the duel trips? Aim for both a day and night trip, just to get out of the house and get some more data on FSD. 
 - 2:30pm - The lag on league of legends is starting to get to me! It just seems to be way too much recently, the spikes are a bit draining. 
@@ -208,13 +259,21 @@ deserializeObject(serializedObject, deserializationOptions).then(deserialized =>
 - 3:06pm - I noticed that I was running out of space on my computer, so I think it might be time to do a bit of quick cleaning. I was at 72gb free and now I am at 134gb free, however I could remove some of the games on my computer but we all know that will not be happening. Cleaned up my downloads folder and now I am at around 170gb free. This should be enough for now, once I tackle my github folder, that will sum up a decent chunk.
 - 9:05pm - The most recent `patch-july-30-2023` patch was a bit too much code, I am going to scale it back to smaller patches, so that there will not be massive changes inside of just one patch.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > For it was not into my ear you whispered, but into my heart. It was not my lips you kissed, but my soul.
 > — <cite>Judy Garland</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

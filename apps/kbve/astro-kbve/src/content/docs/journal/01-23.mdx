@@ -8,16 +8,52 @@ img: https://images.unsplash.com/photo-1735022734031-ae0565a2554b?crop=entropy&c
 description: Daily Log for January 23rd of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 23,'
+    accent: every year.
+    lede: 'The January 23rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jan 22'
+          href: /journal/01-22/
+        - label: 'Jan 24 →'
+          href: /journal/01-24/
+    related:
+        - title: 'Previous · Jan 22'
+          copy: 'Step back a day to the January 22nd log.'
+          href: /journal/01-22/
+          icon: calendar
+        - title: 'Next · Jan 24'
+          copy: 'Jump ahead to the January 24th log.'
+          href: /journal/01-24/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1735022734031-ae0565a2554b?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### OSRS Items
 
@@ -26,7 +62,15 @@ import { Adsense } from '@/components/astropad';
     Looking through the whole OSRS item database and made some overrides.
     However there are still some issues with the data integrity, so I will be looking to resolving that next.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   **DLL**
 
@@ -60,7 +104,9 @@ import { Adsense } from '@/components/astropad';
 
 ```
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
     -   7:30am  - `PreWork`
 
@@ -82,3 +128,7 @@ import { Adsense } from '@/components/astropad';
 
             There was an issue with Astro v2 and the MDX parsing, thus we will migrate the script to build using basic markdown for now.
             Finally the bigger issue was getting the WASM to render within Astro and its tailwind, somehow I hacked my way into making it work for just a general use.
+
+</BentoProse>
+
+</BentoDoc>
