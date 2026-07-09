@@ -259,6 +259,7 @@ export default defineConfig({
 								{ label: 'Profile', link: '/dashboard/profile/', attrs: { 'data-auth-visibility': 'auth' } },
 								{ label: 'Account', link: '/dashboard/account/', attrs: { 'data-auth-visibility': 'auth' } },
 								{ label: 'Marketplace', link: '/dashboard/market/', attrs: { 'data-auth-visibility': 'auth' } },
+								{ label: 'Store', link: '/dashboard/store/', attrs: { 'data-auth-visibility': 'staff' } },
 							],
 						},
 						{

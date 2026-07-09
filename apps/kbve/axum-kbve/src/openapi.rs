@@ -135,8 +135,13 @@ impl Modify for SecurityAddon {
         crate::transport::market::cancel_listing,
         // store
         crate::transport::store::list_products,
+        crate::transport::store::product_detail,
         crate::transport::store::my_entitlements,
         crate::transport::store::buy,
+        crate::transport::store::staff_upsert_product,
+        crate::transport::store::staff_set_product_status,
+        crate::transport::store::staff_upsert_variant,
+        crate::transport::store::staff_set_variant_status,
         // mc-lot — user surface
         crate::transport::mc_lot::list_schematics,
         crate::transport::mc_lot::list_vacant,
@@ -218,6 +223,12 @@ impl Modify for SecurityAddon {
             crate::transport::store::StoreEntitlementDto,
             crate::transport::store::StoreBuyBody,
             crate::transport::store::StoreItemDto,
+            crate::transport::store::StoreVariantDto,
+            crate::transport::store::StoreProductDetailDto,
+            crate::transport::store::StoreIdDto,
+            crate::transport::store::StaffUpsertProductBody,
+            crate::transport::store::StaffStatusBody,
+            crate::transport::store::StaffUpsertVariantBody,
             // mc-lot — DTOs
             crate::transport::mc_lot::SchematicDto,
             crate::transport::mc_lot::VacantLotDto,

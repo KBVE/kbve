@@ -564,12 +564,32 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/market/me/bids", get(super::market::me_bids))
         .route("/api/v1/store/products", get(super::store::list_products))
         .route(
+            "/api/v1/store/products/{slug}",
+            get(super::store::product_detail),
+        )
+        .route(
             "/api/v1/store/me/entitlements",
             get(super::store::my_entitlements),
         )
         .route(
             "/api/v1/store/products/{slug}/buy",
             post(super::store::buy),
+        )
+        .route(
+            "/api/v1/store/staff/products",
+            post(super::store::staff_upsert_product),
+        )
+        .route(
+            "/api/v1/store/staff/products/{product_id}/status",
+            post(super::store::staff_set_product_status),
+        )
+        .route(
+            "/api/v1/store/staff/products/{product_id}/variants",
+            post(super::store::staff_upsert_variant),
+        )
+        .route(
+            "/api/v1/store/staff/variants/{variant_id}/status",
+            post(super::store::staff_set_variant_status),
         )
         .route("/forum/c/", get(forum_c_root_redirect))
         .route("/forum/c/{slug}", get(forum_c_redirect))

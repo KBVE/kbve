@@ -70,3 +70,31 @@ CREATE UNIQUE INDEX inventory_item_store_product_owned_uq
 -- public.proxy_store_buy(p_slug TEXT, p_idempotency_key UUID) RETURNS UUID
 --   authenticated|service_role. Resolves caller account, calls
 --   store.service_buy.
+
+-- ============================================================================
+-- Phase 1: variants + staff admin
+--   (dbmate 20260709120000_store_variants, 20260709130000_store_admin_rpcs)
+-- ============================================================================
+
+CREATE TABLE store.product_variant (
+    variant_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id  UUID NOT NULL REFERENCES store.product(product_id) ON DELETE CASCADE,
+    sku         TEXT NOT NULL UNIQUE CHECK (sku ~ '^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$'),
+    attributes  JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(attributes) = 'object'),
+    price       BIGINT NOT NULL CHECK (price >= 0),
+    stock       BIGINT CHECK (stock IS NULL OR stock >= 0),   -- NULL = unlimited
+    status      TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','hidden','retired')),
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- public.proxy_store_catalog_readonly() — extended to also return fulfillment
+--   + variant_count. anon|authenticated|service_role.
+-- public.proxy_store_product_detail_readonly(p_slug TEXT) — product + active
+--   variants (JSONB array). anon|authenticated|service_role.
+
+-- Staff internals (service_role-only; transport enforces forum.is_staff):
+-- store.service_upsert_product(slug,title,description,price,fulfillment,asset_ref,status) -> UUID
+-- store.service_set_product_status(product_id, status)
+-- store.service_upsert_variant(product_id,sku,attributes,price,stock,status) -> UUID
+-- store.service_set_variant_status(variant_id, status)

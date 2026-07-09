@@ -330,8 +330,51 @@ pub struct StoreProductRow {
     pub description: Option<String>,
     pub price: i64,
     pub currency: CurrencyKind,
+    pub fulfillment: String,
     pub asset_ref: serde_json::Value,
+    pub variant_count: i64,
     pub created_at: DateTime<Utc>,
+}
+
+/// A concrete purchasable SKU. Matches a `variants[]` element from
+/// `public.proxy_store_product_detail_readonly`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreVariantRow {
+    pub variant_id: Uuid,
+    pub sku: String,
+    pub attributes: serde_json::Value,
+    pub price: i64,
+    pub stock: Option<i64>,
+}
+
+/// Product detail: the product plus its active variants.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreProductDetail {
+    pub product: StoreProductRow,
+    pub variants: Vec<StoreVariantRow>,
+}
+
+/// Staff write payload — upsert a product by slug.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreUpsertProduct {
+    pub slug: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub price: i64,
+    pub fulfillment: String,
+    pub asset_ref: serde_json::Value,
+    pub status: String,
+}
+
+/// Staff write payload — upsert a variant by sku.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreUpsertVariant {
+    pub product_id: Uuid,
+    pub sku: String,
+    pub attributes: serde_json::Value,
+    pub price: i64,
+    pub stock: Option<i64>,
+    pub status: String,
 }
 
 /// Caller-owned product. Matches `public.proxy_store_my_entitlements_readonly`.
