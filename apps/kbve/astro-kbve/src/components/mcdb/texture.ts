@@ -184,6 +184,10 @@ export function resolveBaseRef(ref: string): string | null {
 
 	if (r === 'heavy_weighted_pressure_plate') return 'iron_block';
 	if (r === 'light_weighted_pressure_plate') return 'gold_block';
+	if (r === 'respawn_anchor') return 'respawn_anchor_top';
+	if (r === 'sculk_sensor') return 'sculk_sensor_top';
+	if (r === 'reinforced_deepslate') return 'reinforced_deepslate_top';
+	if (r === 'lodestone') return 'lodestone_top';
 	if (r === 'petrified_oak_slab') return 'oak_planks';
 	if (r === 'purpur_slab' || r === 'purpur_stairs') return 'purpur_block';
 	if (
