@@ -168,3 +168,13 @@ CREATE TABLE store.topup (
 --   Idempotent on stripe_event_id; resolves account from user_id; credits via
 --   wallet.service_credit(source_kind='topup'). The Axum webhook (signature-
 --   verified) is the only caller.
+
+-- ============================================================================
+-- Phase 4: print-on-demand (dbmate 20260709180000_store_pod)
+-- ============================================================================
+
+-- store.order gains: pod_ref JSONB DEFAULT '{}' (provider external id/status).
+-- store.service_attach_pod_ref(order_id, pod_ref) — records external ref + event.
+-- store.service_order_for_pod(order_id) -> JSONB — address + sku + qty payload
+--   the Axum POD adapter needs to place a fulfillment order. POD shipment
+--   webhooks call store.service_advance_order(..., 'shipped', tracking).

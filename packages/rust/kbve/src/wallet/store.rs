@@ -96,6 +96,12 @@ struct ScalarBigInt {
 }
 
 #[derive(QueryableByName)]
+struct ScalarJson {
+    #[diesel(sql_type = Nullable<Jsonb>)]
+    value: Option<serde_json::Value>,
+}
+
+#[derive(QueryableByName)]
 struct OrderRowDb {
     #[diesel(sql_type = diesel::sql_types::BigInt)]
     order_id: i64,
@@ -471,6 +477,35 @@ impl WalletClient {
         .await
         .map_err(WalletError::from_diesel)?;
         Ok(row.value)
+    }
+
+    // -------------------------------------------------------------------
+    // Print-on-demand (Phase 4)
+    // -------------------------------------------------------------------
+
+    pub async fn store_order_for_pod(&self, order_id: i64) -> Result<Option<serde_json::Value>> {
+        let mut conn = self.write().await?;
+        let row: ScalarJson = sql_query("SELECT store.service_order_for_pod($1) AS value")
+            .bind::<diesel::sql_types::BigInt, _>(order_id)
+            .get_result(&mut *conn)
+            .await
+            .map_err(WalletError::from_diesel)?;
+        Ok(row.value)
+    }
+
+    pub async fn store_attach_pod_ref(
+        &self,
+        order_id: i64,
+        pod_ref: serde_json::Value,
+    ) -> Result<()> {
+        let mut conn = self.write().await?;
+        sql_query("SELECT store.service_attach_pod_ref($1, $2)")
+            .bind::<diesel::sql_types::BigInt, _>(order_id)
+            .bind::<Jsonb, _>(pod_ref)
+            .execute(&mut *conn)
+            .await
+            .map_err(WalletError::from_diesel)?;
+        Ok(())
     }
 
     // -------------------------------------------------------------------

@@ -267,3 +267,16 @@ export function topupCheckout(packId: string): Promise<{ checkout_url: string }>
 		throw asStoreError(e);
 	});
 }
+
+// ---- print-on-demand (Phase 4) ----
+
+export function staffSubmitPod(
+	orderId: number,
+): Promise<{ order_id: number; external_id: string }> {
+	return authedApiFetch<{ order_id: number; external_id: string }>(
+		`/api/v1/store/staff/orders/${orderId}/submit-pod`,
+		{ method: 'POST' },
+	).catch((e) => {
+		throw asStoreError(e);
+	});
+}

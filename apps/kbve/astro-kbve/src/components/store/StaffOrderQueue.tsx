@@ -3,6 +3,7 @@ import {
 	staffListOrders,
 	staffAdvanceOrder,
 	staffRefundOrder,
+	staffSubmitPod,
 	type StoreOrderStaff,
 	type OrderStatus,
 } from './api';
@@ -81,6 +82,24 @@ export function StaffOrderQueue() {
 							<strong>{o.status}</strong>
 						</span>
 						<span>
+							{o.status === 'paid' && (
+								<button
+									type="button"
+									disabled={busy === o.order_id}
+									onClick={() =>
+										void staffSubmitPod(o.order_id)
+											.then(() => load())
+											.catch((e) =>
+												setError(
+													e instanceof Error
+														? e.message
+														: 'pod failed',
+												),
+											)
+									}>
+									Submit POD
+								</button>
+							)}
 							{NEXT[o.status] && (
 								<button
 									type="button"

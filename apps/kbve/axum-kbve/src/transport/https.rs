@@ -616,6 +616,11 @@ fn router(state: AppState) -> Router {
             "/api/v1/wallet/topup/webhook",
             post(super::topup::webhook),
         )
+        .route(
+            "/api/v1/store/staff/orders/{order_id}/submit-pod",
+            post(super::pod::submit_pod),
+        )
+        .route("/api/v1/store/pod/webhook", post(super::pod::webhook))
         .route("/forum/c/", get(forum_c_root_redirect))
         .route("/forum/c/{slug}", get(forum_c_redirect))
         .route("/forum/c/{slug}/", get(forum_c_redirect));
