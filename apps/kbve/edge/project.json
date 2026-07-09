@@ -25,7 +25,7 @@
 				},
 				"ci": {
 					"commands": [
-						"./kbve.sh -nx edge:containerx --configuration=ci"
+						"bash scripts/ci/retry-transient.sh './kbve.sh -nx edge:containerx --configuration=ci'"
 					]
 				}
 			}
