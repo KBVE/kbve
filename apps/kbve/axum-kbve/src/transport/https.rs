@@ -591,6 +591,23 @@ fn router(state: AppState) -> Router {
             "/api/v1/store/staff/variants/{variant_id}/status",
             post(super::store::staff_set_variant_status),
         )
+        .route(
+            "/api/v1/store/variants/{variant_id}/buy",
+            post(super::store::buy_physical),
+        )
+        .route("/api/v1/store/me/orders", get(super::store::my_orders))
+        .route(
+            "/api/v1/store/staff/orders",
+            get(super::store::staff_list_orders),
+        )
+        .route(
+            "/api/v1/store/staff/orders/{order_id}/advance",
+            post(super::store::staff_advance_order),
+        )
+        .route(
+            "/api/v1/store/staff/orders/{order_id}/refund",
+            post(super::store::staff_refund_order),
+        )
         .route("/forum/c/", get(forum_c_root_redirect))
         .route("/forum/c/{slug}", get(forum_c_redirect))
         .route("/forum/c/{slug}/", get(forum_c_redirect));

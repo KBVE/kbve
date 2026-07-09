@@ -183,3 +183,110 @@
 	gap: 0.75rem;
 	font-size: 0.9rem;
 }
+
+.kbve-store-tile {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	border: 1px solid var(--sl-color-gray-5, #333);
+	border-radius: 12px;
+	padding: 0.9rem 1rem;
+}
+
+.kbve-store-tile__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.kbve-store-tile__tag {
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	padding: 0.15rem 0.5rem;
+	border-radius: 999px;
+	background: rgba(124, 58, 237, 0.2);
+	color: #e9d5ff;
+}
+
+.kbve-store-tile__desc {
+	margin: 0;
+	font-size: 0.85rem;
+	opacity: 0.75;
+	min-height: 2.2em;
+}
+
+.kbve-store-tile__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.kbve-store-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	display: grid;
+	place-items: center;
+	background: rgba(4, 4, 8, 0.6);
+	padding: 1rem;
+}
+
+.kbve-store-modal__card {
+	position: relative;
+	width: min(460px, 100%);
+	max-height: 90vh;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 0.55rem;
+	padding: 1.2rem 1.3rem;
+	border-radius: 14px;
+	background: var(--sl-color-black, #101012);
+	border: 1px solid var(--sl-color-gray-5, #333);
+}
+
+.kbve-store-modal__card label {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	font-size: 0.8rem;
+	opacity: 0.9;
+}
+
+.kbve-store-modal__card input,
+.kbve-store-modal__card select {
+	padding: 0.4rem 0.55rem;
+	border-radius: 8px;
+	border: 1px solid var(--sl-color-gray-5, #444);
+	background: var(--sl-color-black, #0d0d0f);
+	color: inherit;
+}
+
+.kbve-store-modal__card button {
+	margin-top: 0.4rem;
+	padding: 0.55rem 1rem;
+	border: 0;
+	border-radius: 9px;
+	font-weight: 600;
+	cursor: pointer;
+	background: linear-gradient(180deg, #fde68a, #f59e0b);
+	color: #1a1120;
+}
+
+.kbve-store-modal__close {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.7rem;
+	background: none !important;
+	border: 0;
+	font-size: 1.4rem;
+	line-height: 1;
+	color: inherit !important;
+	cursor: pointer;
+	padding: 0 !important;
+	margin: 0 !important;
+	width: auto;
+}

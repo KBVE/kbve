@@ -377,6 +377,54 @@ pub struct StoreUpsertVariant {
     pub status: String,
 }
 
+/// Caller-scoped order row. Matches `proxy_store_my_orders_readonly`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreOrderRow {
+    pub order_id: i64,
+    pub product_id: Uuid,
+    pub variant_id: Option<Uuid>,
+    pub qty: i64,
+    pub credits_amount: i64,
+    pub status: String,
+    pub tracking: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// Staff order row — adds account + shipping address.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreOrderStaffRow {
+    pub order_id: i64,
+    pub account_id: Uuid,
+    pub product_id: Uuid,
+    pub variant_id: Option<Uuid>,
+    pub qty: i64,
+    pub credits_amount: i64,
+    pub status: String,
+    pub shipping_address: serde_json::Value,
+    pub tracking: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// Physical/both purchase payload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreBuyPhysical {
+    pub variant_id: Uuid,
+    pub qty: i64,
+    pub shipping_address: serde_json::Value,
+    pub idempotency_key: Uuid,
+}
+
+/// Staff order-advance payload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreAdvanceOrder {
+    pub order_id: i64,
+    pub to_status: String,
+    pub tracking: serde_json::Value,
+    pub note: Option<String>,
+}
+
 /// Caller-owned product. Matches `public.proxy_store_my_entitlements_readonly`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoreEntitlementRow {

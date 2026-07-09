@@ -98,3 +98,48 @@ CREATE TABLE store.product_variant (
 -- store.service_set_product_status(product_id, status)
 -- store.service_upsert_variant(product_id,sku,attributes,price,stock,status) -> UUID
 -- store.service_set_variant_status(variant_id, status)
+
+-- ============================================================================
+-- Phase 2: orders + fulfillment
+--   (dbmate 20260709140000_store_orders, _150000_store_buy_physical,
+--    _160000_store_fulfillment)
+-- ============================================================================
+
+CREATE TYPE store.order_status AS ENUM
+    ('paid','processing','shipped','delivered','cancelled','refunded');
+
+CREATE TABLE store.order (
+    order_id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account_id       UUID NOT NULL REFERENCES wallet.account(id),
+    product_id       UUID NOT NULL REFERENCES store.product(product_id),
+    variant_id       UUID REFERENCES store.product_variant(variant_id),
+    qty              BIGINT NOT NULL DEFAULT 1 CHECK (qty > 0),
+    credits_amount   BIGINT NOT NULL CHECK (credits_amount >= 0),
+    ledger_id        BIGINT,
+    twin_item_id     UUID,
+    status           store.order_status NOT NULL DEFAULT 'paid',
+    shipping_address JSONB NOT NULL DEFAULT '{}'::jsonb,
+    tracking         JSONB NOT NULL DEFAULT '{}'::jsonb,
+    idempotency_key  UUID NOT NULL UNIQUE,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- store.order_event: append-only (BEFORE UPDATE/DELETE trigger blocks mutation).
+
+-- store.service_buy_physical(account, variant_id, qty, shipping_address, key)
+--   RETURNS BIGINT (order_id). Advisory lock on (account:variant); idempotent
+--   on store.order.idempotency_key; validates active variant/product +
+--   fulfillment in (physical,both); atomic finite-stock decrement (P1020 out
+--   of stock); wallet.service_debit (53100 insufficient); 'both' mints a
+--   one-per-account digital twin; inserts paid order + event.
+-- public.proxy_store_buy_physical(variant_id, qty, address, key) -> BIGINT
+--   authenticated wrapper (resolves caller account).
+-- public.proxy_store_my_orders_readonly() -> caller orders.
+
+-- Fulfillment (service_role; transport gates staff):
+-- store.service_advance_order(order_id, to_status, tracking, note) — validates
+--   paid→processing→shipped→delivered, *→cancelled.
+-- store.service_refund_order(order_id, reason) — wallet.service_credit('refund'),
+--   restore finite stock, consume twin; idempotent when already refunded.
+-- store.service_list_orders(status, limit, before_id) — staff order queue.

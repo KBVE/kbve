@@ -156,3 +156,95 @@ export function staffSetVariantStatus(
 		throw asStoreError(e);
 	});
 }
+
+// ---- orders (Phase 2) ----
+
+export type OrderStatus =
+	| 'paid'
+	| 'processing'
+	| 'shipped'
+	| 'delivered'
+	| 'cancelled'
+	| 'refunded';
+
+export type StoreOrder = {
+	order_id: number;
+	product_id: string;
+	variant_id: string | null;
+	qty: number;
+	credits_amount: number;
+	status: OrderStatus;
+	tracking: Record<string, unknown>;
+	created_at: string;
+	updated_at: string;
+};
+
+export type StoreOrderStaff = StoreOrder & {
+	account_id: string;
+	shipping_address: Record<string, unknown>;
+};
+
+export type ShippingAddress = {
+	name: string;
+	line1: string;
+	line2?: string;
+	city: string;
+	region: string;
+	postal: string;
+	country: string;
+};
+
+export function buyPhysical(
+	variantId: string,
+	body: {
+		qty: number;
+		shipping_address: ShippingAddress;
+		idempotency_key: string;
+	},
+): Promise<{ order_id: number }> {
+	return authedApiFetch<{ order_id: number }>(
+		`/api/v1/store/variants/${variantId}/buy`,
+		{ method: 'POST', body: JSON.stringify(body) },
+	).catch((e) => {
+		throw asStoreError(e);
+	});
+}
+
+export function myOrders(): Promise<StoreOrder[]> {
+	return authedApiFetch<StoreOrder[]>('/api/v1/store/me/orders').catch((e) => {
+		throw asStoreError(e);
+	});
+}
+
+export function staffListOrders(status?: OrderStatus): Promise<StoreOrderStaff[]> {
+	const q = status ? `?status=${status}` : '';
+	return authedApiFetch<StoreOrderStaff[]>(
+		`/api/v1/store/staff/orders${q}`,
+	).catch((e) => {
+		throw asStoreError(e);
+	});
+}
+
+export function staffAdvanceOrder(
+	orderId: number,
+	body: { to_status: OrderStatus; tracking?: Record<string, unknown>; note?: string },
+): Promise<void> {
+	return authedApiFetch<void>(
+		`/api/v1/store/staff/orders/${orderId}/advance`,
+		{ method: 'POST', body: JSON.stringify(body) },
+	).catch((e) => {
+		throw asStoreError(e);
+	});
+}
+
+export function staffRefundOrder(
+	orderId: number,
+	reason?: string,
+): Promise<void> {
+	return authedApiFetch<void>(
+		`/api/v1/store/staff/orders/${orderId}/refund`,
+		{ method: 'POST', body: JSON.stringify({ reason }) },
+	).catch((e) => {
+		throw asStoreError(e);
+	});
+}

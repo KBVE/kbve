@@ -89,6 +89,86 @@ struct ScalarUuid {
     value: Uuid,
 }
 
+#[derive(QueryableByName)]
+struct ScalarBigInt {
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    value: i64,
+}
+
+#[derive(QueryableByName)]
+struct OrderRowDb {
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    order_id: i64,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    product_id: Uuid,
+    #[diesel(sql_type = Nullable<diesel::sql_types::Uuid>)]
+    variant_id: Option<Uuid>,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    qty: i64,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    credits_amount: i64,
+    #[diesel(sql_type = Text)]
+    status: String,
+    #[diesel(sql_type = Jsonb)]
+    tracking: serde_json::Value,
+    #[diesel(sql_type = Timestamptz)]
+    created_at: DateTime<Utc>,
+    #[diesel(sql_type = Timestamptz)]
+    updated_at: DateTime<Utc>,
+}
+
+#[derive(QueryableByName)]
+struct OrderStaffRowDb {
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    order_id: i64,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    account_id: Uuid,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    product_id: Uuid,
+    #[diesel(sql_type = Nullable<diesel::sql_types::Uuid>)]
+    variant_id: Option<Uuid>,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    qty: i64,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    credits_amount: i64,
+    #[diesel(sql_type = Text)]
+    status: String,
+    #[diesel(sql_type = Jsonb)]
+    shipping_address: serde_json::Value,
+    #[diesel(sql_type = Jsonb)]
+    tracking: serde_json::Value,
+    #[diesel(sql_type = Timestamptz)]
+    created_at: DateTime<Utc>,
+    #[diesel(sql_type = Timestamptz)]
+    updated_at: DateTime<Utc>,
+}
+
+fn map_order(r: OrderRowDb) -> StoreOrderRow {
+    StoreOrderRow {
+        order_id: r.order_id,
+        product_id: r.product_id,
+        variant_id: r.variant_id,
+        qty: r.qty,
+        credits_amount: r.credits_amount,
+        status: r.status,
+        tracking: r.tracking,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+    }
+}
+
+async fn my_orders_async(conn: &mut AsyncPgConnection) -> Result<Vec<StoreOrderRow>> {
+    let rows: Vec<OrderRowDb> = sql_query(
+        "SELECT order_id, product_id, variant_id, qty, credits_amount, \
+                status::text AS status, tracking, created_at, updated_at \
+         FROM public.proxy_store_my_orders_readonly()",
+    )
+    .get_results(conn)
+    .await
+    .map_err(WalletError::from_diesel)?;
+    Ok(rows.into_iter().map(map_order).collect())
+}
+
 fn map_product(r: ProductRowDb) -> Result<StoreProductRow> {
     let currency = CurrencyKind::from_pg(&r.currency)
         .ok_or_else(|| WalletError::InvalidArgument(format!("unknown currency: {}", r.currency)))?;
@@ -239,6 +319,123 @@ impl WalletClient {
         sql_query("SELECT store.service_set_variant_status($1, $2)")
             .bind::<diesel::sql_types::Uuid, _>(variant_id)
             .bind::<Text, _>(status)
+            .execute(&mut *conn)
+            .await
+            .map_err(WalletError::from_diesel)?;
+        Ok(())
+    }
+
+    // -------------------------------------------------------------------
+    // Orders (Phase 2)
+    // -------------------------------------------------------------------
+
+    pub async fn store_buy_physical(&self, user_id: Uuid, req: StoreBuyPhysical) -> Result<i64> {
+        let mut conn = self.write().await?;
+        let inner: &mut AsyncPgConnection = &mut conn;
+        inner
+            .transaction::<i64, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                let row: ScalarBigInt = sql_query(
+                    "SELECT public.proxy_store_buy_physical($1, $2, $3, $4) AS value",
+                )
+                .bind::<diesel::sql_types::Uuid, _>(req.variant_id)
+                .bind::<diesel::sql_types::BigInt, _>(req.qty)
+                .bind::<Jsonb, _>(req.shipping_address)
+                .bind::<diesel::sql_types::Uuid, _>(req.idempotency_key)
+                .get_result(conn)
+                .await
+                .map_err(WalletError::from_diesel)?;
+                Ok(row.value)
+            })
+            .await
+    }
+
+    pub async fn store_my_orders(&self, user_id: Uuid) -> Result<Vec<StoreOrderRow>> {
+        match self.read_my_orders(user_id).await {
+            Ok(rows) => Ok(rows),
+            Err(WalletError::AccountMissing) => self.write_my_orders(user_id).await,
+            Err(e) => Err(e),
+        }
+    }
+
+    async fn read_my_orders(&self, user_id: Uuid) -> Result<Vec<StoreOrderRow>> {
+        let mut conn = self.read().await?;
+        let inner: &mut AsyncPgConnection = &mut conn;
+        inner
+            .transaction::<Vec<StoreOrderRow>, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                my_orders_async(conn).await
+            })
+            .await
+    }
+
+    async fn write_my_orders(&self, user_id: Uuid) -> Result<Vec<StoreOrderRow>> {
+        let mut conn = self.write().await?;
+        let inner: &mut AsyncPgConnection = &mut conn;
+        inner
+            .transaction::<Vec<StoreOrderRow>, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                my_orders_async(conn).await
+            })
+            .await
+    }
+
+    pub async fn store_list_orders(
+        &self,
+        status: Option<String>,
+        limit: i32,
+        before_id: Option<i64>,
+    ) -> Result<Vec<StoreOrderStaffRow>> {
+        let mut conn = self.write().await?;
+        let rows: Vec<OrderStaffRowDb> = sql_query(
+            "SELECT order_id, account_id, product_id, variant_id, qty, credits_amount, \
+                    status::text AS status, shipping_address, tracking, created_at, updated_at \
+             FROM store.service_list_orders($1::store.order_status, $2, $3)",
+        )
+        .bind::<Nullable<Text>, _>(status)
+        .bind::<diesel::sql_types::Integer, _>(limit)
+        .bind::<Nullable<diesel::sql_types::BigInt>, _>(before_id)
+        .get_results(&mut *conn)
+        .await
+        .map_err(WalletError::from_diesel)?;
+        Ok(rows
+            .into_iter()
+            .map(|r| StoreOrderStaffRow {
+                order_id: r.order_id,
+                account_id: r.account_id,
+                product_id: r.product_id,
+                variant_id: r.variant_id,
+                qty: r.qty,
+                credits_amount: r.credits_amount,
+                status: r.status,
+                shipping_address: r.shipping_address,
+                tracking: r.tracking,
+                created_at: r.created_at,
+                updated_at: r.updated_at,
+            })
+            .collect())
+    }
+
+    pub async fn store_advance_order(&self, req: StoreAdvanceOrder) -> Result<()> {
+        let mut conn = self.write().await?;
+        sql_query(
+            "SELECT store.service_advance_order($1, $2::store.order_status, $3, $4)",
+        )
+        .bind::<diesel::sql_types::BigInt, _>(req.order_id)
+        .bind::<Text, _>(req.to_status)
+        .bind::<Jsonb, _>(req.tracking)
+        .bind::<Nullable<Text>, _>(req.note)
+        .execute(&mut *conn)
+        .await
+        .map_err(WalletError::from_diesel)?;
+        Ok(())
+    }
+
+    pub async fn store_refund_order(&self, order_id: i64, reason: Option<String>) -> Result<()> {
+        let mut conn = self.write().await?;
+        sql_query("SELECT store.service_refund_order($1, $2)")
+            .bind::<diesel::sql_types::BigInt, _>(order_id)
+            .bind::<Nullable<Text>, _>(reason)
             .execute(&mut *conn)
             .await
             .map_err(WalletError::from_diesel)?;

@@ -1,5 +1,7 @@
 ---
 import ReactStoreCard from './ReactStoreCard';
+import StoreCatalog from './StoreCatalog';
+import OrderHistory from './OrderHistory';
 import './store.css';
 ---
 
@@ -7,12 +9,17 @@ import './store.css';
 	<header class="kbve-store__header">
 		<h1>Store</h1>
 		<p>
-			Spend credits to unlock collectibles. Purchases mint an inventory
-			item you own — and can later list on the marketplace.
+			Spend credits to unlock collectibles and merch. Purchases mint an
+			inventory item you own — and can later list on the marketplace.
 		</p>
 	</header>
 
 	<div class="kbve-store__grid">
 		<ReactStoreCard client:only="react" />
 	</div>
+
+	<h2>All products</h2>
+	<StoreCatalog client:only="react" />
+
+	<OrderHistory client:only="react" />
 </section>

@@ -8,11 +8,13 @@
 
 use axum::{
     Json,
-    extract::Path,
+    extract::{Path, Query},
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
-use kbve::wallet::{StoreBuyRequest, StoreUpsertProduct, StoreUpsertVariant};
+use kbve::wallet::{
+    StoreAdvanceOrder, StoreBuyPhysical, StoreBuyRequest, StoreUpsertProduct, StoreUpsertVariant,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa::ToSchema;
@@ -459,6 +461,290 @@ pub(crate) async fn staff_set_variant_status(
         None => return service_unavailable(),
     };
     match client.store_set_variant_status(variant_id, body.status).await {
+        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+// ---- Orders (Phase 2) ----
+
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct BuyPhysicalBody {
+    #[serde(default = "default_qty")]
+    pub qty: i64,
+    #[serde(default)]
+    pub shipping_address: serde_json::Value,
+    pub idempotency_key: Uuid,
+}
+
+fn default_qty() -> i64 {
+    1
+}
+
+#[derive(Serialize, ToSchema)]
+pub(crate) struct StoreOrderDto {
+    pub order_id: i64,
+    pub product_id: Uuid,
+    pub variant_id: Option<Uuid>,
+    pub qty: i64,
+    pub credits_amount: i64,
+    pub status: String,
+    pub tracking: serde_json::Value,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Serialize, ToSchema)]
+pub(crate) struct StoreOrderStaffDto {
+    pub order_id: i64,
+    pub account_id: Uuid,
+    pub product_id: Uuid,
+    pub variant_id: Option<Uuid>,
+    pub qty: i64,
+    pub credits_amount: i64,
+    pub status: String,
+    pub shipping_address: serde_json::Value,
+    pub tracking: serde_json::Value,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Serialize, ToSchema)]
+pub(crate) struct OrderIdDto {
+    pub order_id: i64,
+}
+
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct AdvanceOrderBody {
+    pub to_status: String,
+    #[serde(default)]
+    pub tracking: serde_json::Value,
+    pub note: Option<String>,
+}
+
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct RefundOrderBody {
+    pub reason: Option<String>,
+}
+
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct StaffOrdersQuery {
+    pub status: Option<String>,
+    pub limit: Option<i32>,
+    pub before_id: Option<i64>,
+}
+
+fn json_obj(v: serde_json::Value) -> serde_json::Value {
+    if v.is_null() {
+        serde_json::json!({})
+    } else {
+        v
+    }
+}
+
+/// `POST /api/v1/store/variants/:variant_id/buy` — physical/both purchase.
+#[utoipa::path(
+    post,
+    path = "/api/v1/store/variants/{variant_id}/buy",
+    tag = "store",
+    params(("variant_id" = String, Path, description = "Variant id")),
+    request_body = BuyPhysicalBody,
+    responses(
+        (status = 200, description = "Order created / already existed", body = OrderIdDto),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 402, description = "Insufficient credits"),
+        (status = 404, description = "Variant / product / wallet account not found"),
+        (status = 409, description = "Idempotency key reused with a different payload"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn buy_physical(
+    headers: HeaderMap,
+    Path(variant_id): Path<Uuid>,
+    Json(body): Json<BuyPhysicalBody>,
+) -> Response {
+    let user_id = match resolve_user(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+    let req = StoreBuyPhysical {
+        variant_id,
+        qty: body.qty,
+        shipping_address: json_obj(body.shipping_address),
+        idempotency_key: body.idempotency_key,
+    };
+    match client.store_buy_physical(user_id, req).await {
+        Ok(order_id) => Json(OrderIdDto { order_id }).into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// `GET /api/v1/store/me/orders` — caller's order history.
+#[utoipa::path(
+    get,
+    path = "/api/v1/store/me/orders",
+    tag = "store",
+    responses(
+        (status = 200, description = "Caller's orders", body = [StoreOrderDto]),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn my_orders(headers: HeaderMap) -> Response {
+    let user_id = match resolve_user(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+    match client.store_my_orders(user_id).await {
+        Ok(rows) => Json(
+            rows.into_iter()
+                .map(|r| StoreOrderDto {
+                    order_id: r.order_id,
+                    product_id: r.product_id,
+                    variant_id: r.variant_id,
+                    qty: r.qty,
+                    credits_amount: r.credits_amount,
+                    status: r.status,
+                    tracking: r.tracking,
+                    created_at: r.created_at.to_rfc3339(),
+                    updated_at: r.updated_at.to_rfc3339(),
+                })
+                .collect::<Vec<_>>(),
+        )
+        .into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// `GET /api/v1/store/staff/orders` — staff order queue.
+#[utoipa::path(
+    get,
+    path = "/api/v1/store/staff/orders",
+    tag = "store",
+    params(
+        ("status" = Option<String>, Query, description = "Filter by status"),
+        ("limit" = Option<i32>, Query, description = "Page size (1-200, default 50)"),
+        ("before_id" = Option<i64>, Query, description = "Keyset cursor: last order_id"),
+    ),
+    responses(
+        (status = 200, description = "Orders", body = [StoreOrderStaffDto]),
+        (status = 403, description = "Staff permissions required"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn staff_list_orders(headers: HeaderMap, Query(q): Query<StaffOrdersQuery>) -> Response {
+    if let Err(resp) = require_staff(&headers).await {
+        return resp;
+    }
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+    match client
+        .store_list_orders(q.status, q.limit.unwrap_or(50).clamp(1, 200), q.before_id)
+        .await
+    {
+        Ok(rows) => Json(
+            rows.into_iter()
+                .map(|r| StoreOrderStaffDto {
+                    order_id: r.order_id,
+                    account_id: r.account_id,
+                    product_id: r.product_id,
+                    variant_id: r.variant_id,
+                    qty: r.qty,
+                    credits_amount: r.credits_amount,
+                    status: r.status,
+                    shipping_address: r.shipping_address,
+                    tracking: r.tracking,
+                    created_at: r.created_at.to_rfc3339(),
+                    updated_at: r.updated_at.to_rfc3339(),
+                })
+                .collect::<Vec<_>>(),
+        )
+        .into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// `POST /api/v1/store/staff/orders/:order_id/advance` — advance status.
+#[utoipa::path(
+    post,
+    path = "/api/v1/store/staff/orders/{order_id}/advance",
+    tag = "store",
+    params(("order_id" = i64, Path, description = "Order id")),
+    request_body = AdvanceOrderBody,
+    responses(
+        (status = 204, description = "Advanced"),
+        (status = 403, description = "Staff permissions required"),
+        (status = 404, description = "Order not found"),
+        (status = 400, description = "Illegal transition"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn staff_advance_order(
+    headers: HeaderMap,
+    Path(order_id): Path<i64>,
+    Json(body): Json<AdvanceOrderBody>,
+) -> Response {
+    if let Err(resp) = require_staff(&headers).await {
+        return resp;
+    }
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+    let req = StoreAdvanceOrder {
+        order_id,
+        to_status: body.to_status,
+        tracking: json_obj(body.tracking),
+        note: body.note,
+    };
+    match client.store_advance_order(req).await {
+        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// `POST /api/v1/store/staff/orders/:order_id/refund` — refund an order.
+#[utoipa::path(
+    post,
+    path = "/api/v1/store/staff/orders/{order_id}/refund",
+    tag = "store",
+    params(("order_id" = i64, Path, description = "Order id")),
+    request_body = RefundOrderBody,
+    responses(
+        (status = 204, description = "Refunded"),
+        (status = 403, description = "Staff permissions required"),
+        (status = 404, description = "Order not found"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn staff_refund_order(
+    headers: HeaderMap,
+    Path(order_id): Path<i64>,
+    Json(body): Json<RefundOrderBody>,
+) -> Response {
+    if let Err(resp) = require_staff(&headers).await {
+        return resp;
+    }
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+    match client.store_refund_order(order_id, body.reason).await {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(e) => wallet_error_response(e),
     }
