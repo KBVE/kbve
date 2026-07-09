@@ -47,27 +47,32 @@ function categoryFor(item: OSRSExtended): string {
 
 const product = {
 	'@context': 'https://schema.org',
-	'@type': 'Product',
-	'@id': `${ITEM_URL}#product`,
+	'@type': 'DefinedTerm',
+	'@id': `${ITEM_URL}#item`,
 	name: item.name,
 	description: descFor(item),
 	image: ICON_URL,
 	url: ITEM_URL,
-	sku: `osrs-${item.id}`,
-	productID: String(item.id),
 	identifier: String(item.id),
-	category: categoryFor(item),
-	brand: {
-		'@type': 'Brand',
-		name: 'Jagex',
-	},
-	audience: {
-		'@type': 'Audience',
-		audienceType: item.members
-			? 'Old School RuneScape members'
-			: 'Old School RuneScape free-to-play players',
+	termCode: String(item.id),
+	inDefinedTermSet: {
+		'@type': 'DefinedTermSet',
+		name: 'OSRS Item Database',
+		url: `${SITE}/osrs/`,
 	},
 	additionalProperty: [
+		{
+			'@type': 'PropertyValue',
+			name: 'Category',
+			value: categoryFor(item),
+		},
+		{
+			'@type': 'PropertyValue',
+			name: 'Audience',
+			value: item.members
+				? 'Old School RuneScape members'
+				: 'Old School RuneScape free-to-play players',
+		},
 		{
 			'@type': 'PropertyValue',
 			name: 'Item ID',
