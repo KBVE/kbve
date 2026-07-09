@@ -148,5 +148,6 @@ export const MCIdentitySchema = z.object({
 			/^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/,
 			'slug must be kebab-case (slashes allowed)',
 		),
+	content_rev: z.number().int().nonnegative().default(0),
 });
 export type MCIdentity = z.infer<typeof MCIdentitySchema>;

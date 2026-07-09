@@ -4,6 +4,7 @@ import {
 	McBlockMaterialSchema,
 	McBlockToolSchema,
 } from './enums';
+import { MCAboutSchema } from './items';
 
 export const McBlockDropSchema = z.object({
 	ref: z.string().min(1),
@@ -13,6 +14,25 @@ export const McBlockDropSchema = z.object({
 	affected_by_fortune: z.boolean().default(false),
 });
 export type McBlockDrop = z.infer<typeof McBlockDropSchema>;
+
+export const McBlockUseSchema = z.object({
+	title: z.string().min(1),
+	detail: z.string().default(''),
+	ref: z.string().default(''),
+});
+export type McBlockUse = z.infer<typeof McBlockUseSchema>;
+
+export const McBlockFoundSchema = z.object({
+	location: z.string().min(1),
+	detail: z.string().default(''),
+});
+export type McBlockFound = z.infer<typeof McBlockFoundSchema>;
+
+export const McBlockFaqSchema = z.object({
+	question: z.string().min(1),
+	answer: z.string().min(1),
+});
+export type McBlockFaq = z.infer<typeof McBlockFaqSchema>;
 
 export const McBlockSchema = MCIdentitySchema.extend({
 	display_name: z.string().min(1),
@@ -35,6 +55,11 @@ export const McBlockSchema = MCIdentitySchema.extend({
 
 	drops: z.array(McBlockDropSchema).default([]),
 	tags: z.array(z.string().min(1)).default([]),
+
+	about: MCAboutSchema.default({ description: '', lore: '' }),
+	uses: z.array(McBlockUseSchema).default([]),
+	found_in: z.array(McBlockFoundSchema).default([]),
+	faq: z.array(McBlockFaqSchema).default([]),
 
 	data_version: z.string().default(''),
 });

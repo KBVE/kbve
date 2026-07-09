@@ -4,6 +4,7 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 @import './bento.css';
+@import './mcdb.css';
 @import './os.css';
 
 /* ── Auth-gated sidebar: hide links until auth state resolves ── */

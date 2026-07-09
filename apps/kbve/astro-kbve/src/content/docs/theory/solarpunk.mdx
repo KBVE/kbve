@@ -2,6 +2,12 @@
 title: SolarPunk
 description: |
     SolarPunk is a hybrid movement within the technological and environmental eco-systems, with emphasis on utilizing nature.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: SolarPunk
     order: 9000
@@ -10,11 +16,122 @@ img: https://images.unsplash.com/photo-1620023593001-3394d6297aeb?fit=fill&fill=
 tags:
     - design
     - green
+bento:
+    badge: theory · design · green
+    title: 'A hopeful, sustainable future,'
+    accent: SolarPunk.
+    lede: >-
+        A hybrid movement across the technological and environmental
+        eco-systems that imagines a world powered by renewable energy and
+        built in harmony with nature. From decentralized solar and wind to
+        biophilic design, regenerative agriculture, and the restoration of
+        damaged ecosystems — solarpunk is an optimistic blueprint for a
+        sustainable and just world.
+    ctas:
+        - label: Renewable energy
+          href: '#renewable-energy'
+          primary: true
+        - label: Connection to nature
+          href: '#nature'
+        - label: Biophilic design
+          href: '#biophilic'
+        - label: Sustainable agriculture
+          href: '#agriculture'
+    aside:
+        icon: map
+        title: Harmony over extraction
+        body: >-
+            Solarpunk rejects the dystopian default. It pictures technology
+            working with the environment instead of against it — clean energy,
+            green cities, and communities that cooperate to build systems that
+            last.
+        points:
+            - <strong>Energy</strong> — decentralized solar and wind, not fossil fuels.
+            - <strong>Design</strong> — biophilic spaces that bring nature indoors.
+            - <strong>Food</strong> — regenerative, agroforestry, and permaculture.
+    stats:
+        - { label: Coined, value: 21st century, icon: clock }
+        - { label: Energy, value: Renewable, icon: bolt }
+        - { label: Design, value: Biophilic, icon: render }
+        - { label: Focus, value: Sustainability, icon: map }
+    features:
+        - title: Focus on renewable energy
+          icon: bolt
+          href: '#renewable-energy'
+          body: Solar, wind, and distributed generation as the foundation — decentralized, democratic, and resilient by design.
+        - title: Connection to nature
+          icon: map
+          href: '#nature'
+          body: Greenery and water woven into urban design, outdoor recreation, and climate change mitigation.
+        - title: Society & values
+          icon: network
+          href: '#society'
+          body: Community, cooperation, social justice, and a rejection of consumerism in favor of experiences over possessions.
+        - title: Biophilic design
+          icon: render
+          href: '#biophilic'
+          body: Natural materials, daylight, and hydroponics that create a restorative relationship between people and nature.
+        - title: Sustainable agriculture
+          icon: sensor
+          href: '#agriculture'
+          body: Regenerative farming, agroforestry, permaculture, and biodiversity that work with the ecosystem.
+        - title: Restoration & resources
+          icon: route
+          href: '#restoration'
+          body: Reforestation, wetland restoration, wildlife corridors, and the careful conservation of finite natural resources.
+    related:
+        - title: Automation
+          href: /theory/automation/
+          copy: The systems thinking that powers sustainable, efficient infrastructure.
+          icon: gears
+        - title: Emulation
+          href: /theory/emulation/
+          copy: Preserving and reimagining systems — a kindred restorative mindset.
+          icon: render
+        - title: Theory index
+          href: /theory/
+          copy: Explore the rest of the KBVE theory notes and manifestos.
+          icon: book
+    features_eyebrow: On this page
+    features_heading: What this theory covers
+    related_eyebrow: Keep exploring
+    related_heading: Related theory
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - { name: Home, path: / }
+        - { name: Theory, path: /theory/ }
+        - { name: SolarPunk, path: /theory/solarpunk/ }
+    faq:
+        - question: What is solarpunk?
+          answer: >-
+            Solarpunk is a subgenre of science and speculative fiction — and a
+            real-world movement — that imagines a future society powered by
+            renewable energy and sustainable practices, working in harmony with
+            nature rather than against it.
+        - question: How is solarpunk different from other science fiction?
+          answer: >-
+            Where much science fiction leans dystopian, solarpunk is optimistic
+            and hopeful. It features lush greenery, vibrant community, and clean
+            technology, challenging us to imagine and build a more sustainable
+            and equitable future.
+        - question: What is biophilic design?
+          answer: >-
+            Biophilic design incorporates natural elements and patterns —
+            greenery, natural light, water, and materials like wood and stone —
+            into built environments to create a more harmonious and restorative
+            relationship between people and nature.
 ---
 
-## DRAFT / OUTLINE
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## SolarPunk
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Start here" heading="SolarPunk">
+
+## DRAFT / OUTLINE
 
 `Solarpunk` is a relatively new subgenre of science fiction and speculative fiction that imagines a future society based on renewable energy and sustainable practices; the term `solarpunk` was coined in 21st century by a group of science fiction writers and fans who were looking for a more optimistic and hopeful vision of the future, as opposed to the often dystopian themes found in other forms of science fiction.
 
@@ -24,9 +141,15 @@ Some of the key themes of solarpunk include environmentalism, social justice, an
 
 The solarpunk movement aims to inspire and promote real-world solutions for creating a sustainable and just future. In short, the theory of solarpunk is a hopeful and optimistic vision of the future that challenges us to imagine and create a more sustainable and just world. It encourages us to think creatively and collaboratively, and to take action to create the future we want to see.
 
----
+</BentoProse>
 
-## Focus on Renewable Energy
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="renewable-energy" eyebrow="Foundations" heading="Focus on Renewable Energy">
 
 With energy being an important pillar and foundation of the theory, Solarpunk imagines a future world where society is powered by renewable energy sources like solar and wind power, rather than fossil fuels. This means that buildings, vehicles, and other technologies are designed to be energy-efficient, sustainable and prosperous.
 
@@ -38,7 +161,9 @@ Furthermore, the theory represents a fundamental shift away from the destructive
 Solarpunk also aims to create a more decentralized and democratic energy system.
 By promoting the use of rooftop solar panels, community-owned wind turbines, and other forms of distributed energy generation, solarpunk seeks to reduce our dependence on centralized fossil fuel power plants and create a more resilient and flexible energy system.
 
-## Connection to Nature
+</BentoProse>
+
+<BentoProse id="nature" eyebrow="Living systems" heading="Connection to Nature">
 
 Solarpunk emphasizes the importance of living in harmony with nature.
 This means incorporating natural elements like greenery and water into urban design, and designing technology to work with, rather than against, the environment.
@@ -50,7 +175,9 @@ This can include initiatives like creating urban green spaces, promoting outdoor
 One of the primary goals of solarpunk is to mitigate the effects of climate change.
 By promoting the use of renewable energy sources like solar and wind power, solarpunk seeks to reduce greenhouse gas emissions and slow the pace of climate change.
 
-## Community and Cooperation
+</BentoProse>
+
+<BentoProse id="society" eyebrow="People & values" heading="Community, Justice & Creativity">
 
 In a solarpunk world, people work together to create sustainable systems and infrastructure. This means that there is a strong emphasis on community and cooperation, rather than individualism and competition.
 
@@ -71,9 +198,9 @@ Solarpunk challenges the idea that material possessions and consumption are the 
 
 Solarpunk encourages innovation and creativity in the development of renewable energy technologies. By imagining new and creative ways to harness renewable energy, solarpunk seeks to accelerate the transition to a sustainable energy system.
 
----
+</BentoProse>
 
-## Biophilic Design
+<BentoProse id="biophilic" eyebrow="Built environment" heading="Biophilic Design">
 
 Solarpunk promotes the use of biophilic design, which incorporates natural elements like greenery, natural light, and water into urban design.
 Biophilic design has been shown to improve human health and well-being, and also provides habitat for wildlife.
@@ -95,10 +222,9 @@ Furthermore, incorporating views of nature into built environments has been show
 
 Landscape design often incorporates water features like fountains and ponds, which can have a calming effect and improve air quality. This is taken a step further by recylcing the grey waste water into a hydroponic instance, thus creating an indoor
 
+</BentoProse>
 
----
-
-## Sustainable Agriculture
+<BentoProse id="agriculture" eyebrow="Food systems" heading="Sustainable Agriculture">
 
 > Solarpunk recognizes that our food system is intimately connected to the health of the environment. Therefore, solarpunk promotes sustainable agriculture practices like regenerative farming, agroforestry, and permaculture, which work with the natural ecosystem rather than against it.
 > Sustainable agriculture is an approach to food production that seeks to balance economic, social, and environmental factors in a way that promotes long-term sustainability. Sustainable agriculture practices prioritize the health and well-being of the natural ecosystem, while also providing for the needs of people.
@@ -139,12 +265,16 @@ The idea of local food systems, which can reduce the environmental impacts of fo
 
 > Biodiversity is often intertwined with cultural practices and traditional knowledge. Many communities rely on specific plant or animal species for food, medicine, or cultural practices, and the loss of these species can have severe social and cultural impacts.
 
-* * *
+</BentoProse>
 
-## Restoration of Ecosystems
+<BentoProse id="restoration" eyebrow="Stewardship" heading="Restoration & Natural Resources">
 
 The theory of solarpunk seeks to restore damaged ecosystems and promote biodiversity. This can include initiatives like reforestation, wetland restoration, and the creation of wildlife corridors.
 
 ## Respect of Natural Resources
 
 Solarpunk recognizes that natural resources like water, air, and soil are finite and must be managed carefully. Therefore, solarpunk promotes the responsible use and conservation of natural resources.
+
+</BentoProse>
+
+</BentoDoc>
