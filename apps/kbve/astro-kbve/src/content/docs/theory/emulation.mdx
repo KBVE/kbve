@@ -2,37 +2,135 @@
 title: Emulation
 description: |
     This emulation document provides a quick reference to the different types of emulators within our eco-system.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Emulation
     order: 6
 unsplash: 1620023593001-3394d6297aeb
 img: https://images.unsplash.com/photo-1620023593001-3394d6297aeb?fit=fill&fill=solid&fill-color=360036&w=1400&h=700&q=75
 tags:
-  - emulation
-  - software
+    - emulation
+    - software
+bento:
+    badge: theory · software · emulation
+    title: 'Run every console,'
+    accent: emulated.
+    lede: >-
+        A quick reference to the different types of emulators within our
+        eco-system — from Nintendo Switch emulation with Ryujinx to the Docker
+        containers that keep everything reproducible. Install, configure, and
+        play across platforms.
+    ctas:
+        - label: Ryujinx guide
+          href: '#ryujinx'
+          primary: true
+        - label: Install
+          href: '#install'
+        - label: Setup
+          href: '#setup'
+    aside:
+        icon: box
+        title: Emulate anywhere
+        body: >-
+            Emulators recreate the hardware of one platform on another, letting
+            you run console software on a desktop. This guide collects the
+            install paths, package-manager shortcuts, and post-install tooling
+            we lean on.
+        points:
+            - <strong>Ryujinx</strong> — open-source Nintendo Switch emulation.
+            - <strong>Choco</strong> — painless install and auto-updates.
+            - <strong>RyuSAK</strong> — post-install setup companion.
+    stats:
+        - { label: Focus, value: Switch, icon: box }
+        - { label: Emulator, value: Ryujinx, icon: sensor }
+        - { label: Install, value: Choco, icon: package }
+        - { label: Platform, value: Windows, icon: settings }
+    features:
+        - title: Ryujinx overview
+          icon: sensor
+          href: '#ryujinx'
+          body: What Ryujinx is and how it lets you run Nintendo Switch games on Windows.
+        - title: Install via Choco
+          icon: package
+          href: '#install'
+          body: The one-line Chocolatey command plus manual Windows and Mac install notes.
+        - title: Post-install setup
+          icon: gears
+          href: '#setup'
+          body: Configure Ryujinx with RyuSAK once the emulator is installed.
+        - title: Docker containers
+          icon: box
+          href: '#docker'
+          body: The reproducible container layer that underpins the wider eco-system.
+    related:
+        - title: Programming
+          href: /theory/programming/
+          copy: The foundations behind the tools and emulators we run.
+          icon: code
+        - title: Automation
+          href: /theory/automation/
+          copy: Scripting installs and keeping software up to date.
+          icon: gears
+        - title: Theory index
+          href: /theory/
+          copy: Browse every concept and reference in the theory collection.
+          icon: book
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related theory
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - { name: Home, path: / }
+        - { name: Theory, path: /theory/ }
+        - { name: Emulation, path: /theory/emulation/ }
+    faq:
+        - question: What is Ryujinx?
+          answer: Ryujinx is an open-source Nintendo Switch emulator that lets you play Switch games on Windows after downloading and extracting the emulator.
+        - question: What is the easiest way to install Ryujinx?
+          answer: Installing through Chocolatey is the best option — run choco install ryujinx --params "/DesktopShortcut" and it keeps the software up to date with a painless install and removal.
+        - question: How do I set up Ryujinx after installing?
+          answer: We recommend using RyuSAK, available from the RyuSAK repository, to handle the post-install configuration of Ryujinx.
 ---
 
-## Information
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
----
+</BentoProse>
 
-## Docker
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="docker" eyebrow="Containers" heading="Docker">
 
 The Docker section would be located [here](/application/docker/)
 
----
+</BentoProse>
 
-## Ryujinx
+<BentoProse id="ryujinx" eyebrow="Switch emulation" heading="Ryujinx">
 
 Ryujinx is an open-source Nintendo Switch emulation software that can be used to play Switch games on Windows.
 To set up `Ryujinx`, you will need to download the emulator from the Ryujinx website.
 Once you have downloaded the emulator, you will need to extract the files to a location of your choice.
 After extracting the files, you can open Ryujinx and start playing your Switch games.
 
-## Install
+</BentoProse>
 
+<BentoProse id="install" eyebrow="Get started" heading="Install">
 
 ### Choco
 
@@ -72,8 +170,12 @@ After you get the software installed, double check it by running it and seeing i
 
 We do not have any notes yet on the Mac install for this time. I will have to spend some time setting that up on my `m1`, however I been told that it is a pain and is not really worth the amount of time to invest.
 
---- 
+</BentoProse>
 
-## Setup
+<BentoProse id="setup" eyebrow="Configure" heading="Setup">
 
 After installing the software, you will have to look into setting up the `RyuJinx` and for that we recommend using `RyuSAK`, which can be found [here at the RyuSAK repo](https://github.com/Ecks1337/RyuSAK/release).
+
+</BentoProse>
+
+</BentoDoc>

@@ -12,12 +12,16 @@ import {
 	JOURNAL_ROOT,
 	buildJournalBreadcrumb,
 } from './journalNav';
+import { THEORY_NAV, THEORY_ROOT, buildTheoryBreadcrumb } from './theoryNav';
+import { MC_NAV, MC_ROOT, buildMcBreadcrumb } from '../mcdb/mcNav';
 
 const pathname = Astro.url.pathname;
 const isDashboard = pathname.startsWith('/dashboard');
 const isApplication =
 	pathname.startsWith('/application/') && pathname !== '/application/';
 const isJournal = pathname.startsWith('/journal/') && pathname !== '/journal/';
+const isTheory = pathname.startsWith('/theory/');
+const isMc = pathname.startsWith('/mc/');
 
 const shell = isDashboard
 	? {
@@ -49,7 +53,27 @@ const shell = isDashboard
 					collapsible: true,
 					withToc: true,
 				}
-			: undefined;
+			: isTheory
+				? {
+						entries: THEORY_NAV,
+						root: THEORY_ROOT,
+						menuLabel: 'Theory topics',
+						navLabel: 'Theory',
+						crumbs: buildTheoryBreadcrumb(pathname),
+						collapsible: true,
+						withToc: true,
+					}
+				: isMc
+					? {
+							entries: MC_NAV,
+							root: MC_ROOT,
+							menuLabel: 'Minecraft database',
+							navLabel: 'Minecraft',
+							crumbs: buildMcBreadcrumb(pathname),
+							collapsible: true,
+							withToc: true,
+						}
+					: undefined;
 
 const crumbs = shell?.crumbs ?? [];
 ---

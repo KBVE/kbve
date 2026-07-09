@@ -2,33 +2,132 @@
 title: Social Media Toxicity
 description: |
    Theory on the toxicity of social media and steps on improving its depths within our mental state.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Social Media Toxicity
     order: 50000
 unsplash: 1562577309-4932fdd64cd1
 img: https://images.unsplash.com/photo-1562577309-4932fdd64cd1?fit=crop&w=1400&h=700&q=75
 tags:
-  - social
-  - media
-  - health
+    - social
+    - media
+    - health
+bento:
+    badge: theory · social · health
+    title: 'The algorithm shapes the mind,'
+    accent: reclaim it.
+    lede: >-
+        A living theory on how the algorithmic flow of major social platforms
+        favors advertisers over the individual — and the anecdotal experiments,
+        notes, and journal entries tracing a path back toward a healthier feed
+        and a clearer mental state.
+    ctas:
+        - label: Read the theory
+          href: '#information'
+          primary: true
+        - label: Notes
+          href: '#notes'
+        - label: Journal
+          href: '#journal'
+    aside:
+        icon: eye
+        title: Curate your own feed
+        body: >-
+            The default algorithm optimizes for attention, not wellbeing. With
+            deliberate effort you can retrain what it surfaces — a small experiment
+            in reclaiming the boundary between the platform and your mind.
+        points:
+            - <strong>Information</strong> — the core premise and premise-in-progress.
+            - <strong>Notes</strong> — loose data points and observations.
+            - <strong>Journal</strong> — dated conversations and anecdotes.
+    stats:
+        - { label: Status, value: Evolving, icon: activity }
+        - { label: Focus, value: Mental health, icon: shield }
+        - { label: Source, value: Anecdotal, icon: message }
+        - { label: Domain, value: Social media, icon: forum }
+    features:
+        - title: Information
+          icon: info
+          href: '#information'
+          body: The premise — algorithmic feeds scaled toward advertisers, and where machine learning pushes the mental boundaries of society.
+        - title: Notes
+          icon: eye
+          href: '#notes'
+          body: A running collection of observations and data points awaiting consolidation into a coherent theory.
+        - title: Journal
+          icon: message
+          href: '#journal'
+          body: Dated entries and conversations that seed the theory, including anecdotal feed-curation experiments.
+    related:
+        - title: Dead Code
+          href: /theory/deadcode/
+          copy: Another running theory on the decay and drift of digital systems.
+          icon: activity
+        - title: Solarpunk
+          href: /theory/solarpunk/
+          copy: A hopeful counter-vision for technology, community, and wellbeing.
+          icon: shield
+        - title: Theory Index
+          href: /theory/
+          copy: Browse the full collection of KBVE theory documents.
+          icon: book
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - { name: Home, path: / }
+        - { name: Theory, path: /theory/ }
+        - { name: Social Media Toxicity, path: /theory/socialmedia/ }
+    faq:
+        - question: Is this a finished theory?
+          answer: >-
+                No — this document is an evolving collection of anecdotal
+                conversations and data points that will be consolidated into a
+                theory over time.
+        - question: Can you influence what a social media algorithm shows you?
+          answer: >-
+                Yes, with deliberate effort. A common anecdotal experiment is to use
+                a fresh account in a virtual machine and only engage with useful
+                content, letting the algorithm reinforce those topics.
+        - question: Why is the algorithm considered toxic?
+          answer: >-
+                It tends to be scaled toward favoring advertisers and keeping users
+                engaged for hours, creating pressure, competition for likes, and
+                distorted realities rather than serving the individual's wellbeing.
 ---
 
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Information
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Currently this document is a collection of anecdotal conversations and data points that will then be consolidated into a theory.
 It would be far more interesting to have this theory evolve as machine learning is slowly echoing into the mental boundaries of society.
 Spawn an army of social media bots and push false or misinformation?
 Creation of politically-infused deepfake content that pushes the civil limits of the modern era.
 
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="notes" eyebrow="Observations" heading="Notes">
+
 ---
 
+</BentoProse>
 
-## Notes
-
----
-
-## Journal
+<BentoProse id="journal" eyebrow="Log" heading="Journal">
 
 - 2023-05-07 
     - Conversation between h0lybyte and Stamp
@@ -55,3 +154,7 @@ Creation of politically-infused deepfake content that pushes the civil limits of
     The algorithm also keeps users glued to the social media platforms for hours per day watching endless contents that sometimes are really wasteful.
     It also creates a sense of pressure and competition to gain the most likes or more followers.
     That creates distorted realities and fakeness as people want to gain as many followers as possible.
+
+</BentoProse>
+
+</BentoDoc>
