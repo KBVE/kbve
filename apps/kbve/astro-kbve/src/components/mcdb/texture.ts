@@ -188,6 +188,16 @@ export function resolveBaseRef(ref: string): string | null {
 	if (r === 'sculk_sensor') return 'sculk_sensor_top';
 	if (r === 'reinforced_deepslate') return 'reinforced_deepslate_top';
 	if (r === 'lodestone') return 'lodestone_top';
+	if (r === 'crafting_table') return 'crafting_table_front';
+	if (r === 'furnace') return 'furnace_front';
+	if (r === 'enchanting_table') return 'enchanting_table_top';
+	if (r === 'hopper') return 'hopper_top';
+	if (r === 'dispenser') return 'dispenser_front';
+	if (r === 'piston') return 'piston_side';
+	if (r === 'observer') return 'observer_front';
+	if (r === 'tnt') return 'tnt_side';
+	if (r === 'chest') return 'oak_planks';
+	if (r === 'ender_chest') return 'obsidian';
 	if (r === 'petrified_oak_slab') return 'oak_planks';
 	if (r === 'purpur_slab' || r === 'purpur_stairs') return 'purpur_block';
 	if (
