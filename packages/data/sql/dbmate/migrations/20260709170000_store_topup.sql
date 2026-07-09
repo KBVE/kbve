@@ -53,9 +53,10 @@ CREATE OR REPLACE FUNCTION store.service_apply_topup(
 RETURNS BIGINT
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_account   UUID;
-    v_existing  BIGINT;
-    v_ledger_id BIGINT;
+    v_account    UUID;
+    v_existing   BIGINT;
+    v_ledger_id  BIGINT;
+    v_session_id TEXT := NULLIF(btrim(p_stripe_session_id), '');
 BEGIN
     IF p_user_id IS NULL OR coalesce(length(p_stripe_event_id), 0) = 0
        OR p_credits IS NULL OR p_credits <= 0 THEN
@@ -67,11 +68,11 @@ BEGIN
     -- the same Checkout Session (the thing that must not be credited twice).
     -- Lock + check on the session so the duplicate returns the existing ledger
     -- id instead of doing work and failing on store_topup_stripe_session_uq.
-    IF p_stripe_session_id IS NOT NULL THEN
+    IF v_session_id IS NOT NULL THEN
         PERFORM pg_advisory_xact_lock(
-            hashtextextended('store.topup.session:' || p_stripe_session_id, 0));
+            hashtextextended('store.topup.session:' || v_session_id, 0));
         SELECT ledger_id INTO v_existing
-          FROM store.topup WHERE stripe_session_id = p_stripe_session_id;
+          FROM store.topup WHERE stripe_session_id = v_session_id;
         IF FOUND THEN
             RETURN v_existing;
         END IF;
@@ -113,7 +114,7 @@ BEGIN
         account_id, stripe_event_id, stripe_session_id,
         credits_granted, amount_cents, currency_fiat, ledger_id
     ) VALUES (
-        v_account, p_stripe_event_id, p_stripe_session_id,
+        v_account, p_stripe_event_id, v_session_id,
         p_credits, COALESCE(p_amount_cents, 0),
         COALESCE(p_currency_fiat, 'usd'), v_ledger_id
     );

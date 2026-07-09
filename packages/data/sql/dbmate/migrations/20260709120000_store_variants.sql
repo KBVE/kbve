@@ -62,7 +62,15 @@ RETURNS TABLE (
     variant_count BIGINT,
     created_at    TIMESTAMPTZ
 )
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+    -- Keyset cursor is a (created_at, product_id) pair: reject a half-supplied
+    -- cursor so a bad client can't produce inconsistent / repeated pages.
+    IF (p_before_created_at IS NULL) <> (p_before_product_id IS NULL) THEN
+        RAISE EXCEPTION 'cursor requires both before_created_at and before_product_id'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN QUERY
     SELECT p.product_id, p.slug, p.title, p.description,
            p.price, p.currency, p.fulfillment, p.asset_ref,
            COALESCE(vc.n, 0) AS variant_count,
@@ -79,6 +87,7 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
             OR (p.created_at = p_before_created_at AND p.product_id < p_before_product_id))
      ORDER BY p.created_at DESC, p.product_id DESC
      LIMIT LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
+END;
 $$;
 ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) OWNER TO service_role;
 ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) ROWS 50;

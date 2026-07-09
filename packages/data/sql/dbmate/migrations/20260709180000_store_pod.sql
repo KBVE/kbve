@@ -28,6 +28,9 @@ DECLARE
     v_new    JSONB := COALESCE(p_pod_ref, '{}'::jsonb);
     v_status store.order_status;
 BEGIN
+    IF jsonb_typeof(v_new) <> 'object' THEN
+        RAISE EXCEPTION 'pod_ref must be a JSON object' USING ERRCODE = '22023';
+    END IF;
     IF NOT EXISTS (SELECT 1 FROM store.order WHERE order_id = p_order_id) THEN
         RAISE EXCEPTION 'order % not found', p_order_id USING ERRCODE = 'P1001';
     END IF;
