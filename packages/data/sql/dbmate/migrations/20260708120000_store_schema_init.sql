@@ -80,6 +80,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS inventory_item_store_product_owned_uq
     ON inventory.item (owner_account, ref)
     WHERE kind = 'store_product' AND state IN ('held', 'listing_escrow');
 
+-- Read path for proxy_store_my_entitlements_readonly (owner + created_at DESC).
+-- Separate from the uniqueness guard above so the ORDER BY is index-served.
+CREATE INDEX IF NOT EXISTS inventory_item_store_entitlements_read_idx
+    ON inventory.item (owner_account, created_at DESC, id DESC)
+    WHERE kind = 'store_product' AND state IN ('held', 'listing_escrow');
+
 -- Seed the proof-of-concept product.
 INSERT INTO store.product (slug, title, description, price, currency, asset_ref)
 VALUES (
@@ -290,6 +296,7 @@ BEGIN
 END;
 $$;
 ALTER FUNCTION public.proxy_store_my_entitlements_readonly() OWNER TO service_role;
+ALTER FUNCTION public.proxy_store_my_entitlements_readonly() ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_store_my_entitlements_readonly() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_store_my_entitlements_readonly() TO authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_store_my_entitlements_readonly() IS

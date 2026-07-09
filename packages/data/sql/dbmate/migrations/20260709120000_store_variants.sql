@@ -27,8 +27,10 @@ CREATE TABLE store.product_variant (
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX store_product_variant_active_idx
-    ON store.product_variant (product_id)
+-- Serves the detail RPC's (product_id, status='active' ORDER BY created_at)
+-- and the catalog variant-count lateral.
+CREATE INDEX store_product_variant_active_product_created_idx
+    ON store.product_variant (product_id, created_at, variant_id)
     WHERE status = 'active';
 
 COMMENT ON TABLE store.product_variant IS
@@ -41,7 +43,13 @@ COMMENT ON TABLE store.product_variant IS
 
 DROP FUNCTION IF EXISTS public.proxy_store_catalog_readonly();
 
-CREATE FUNCTION public.proxy_store_catalog_readonly()
+-- Keyset-paginated public catalog (anon). Avoids repeated unbounded sorted
+-- reads. Matches store_product_active_idx (created_at DESC, product_id DESC).
+CREATE FUNCTION public.proxy_store_catalog_readonly(
+    p_limit             INTEGER     DEFAULT 50,
+    p_before_created_at TIMESTAMPTZ DEFAULT NULL,
+    p_before_product_id UUID        DEFAULT NULL
+)
 RETURNS TABLE (
     product_id    UUID,
     slug          TEXT,
@@ -66,11 +74,16 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
            WHERE v.product_id = p.product_id AND v.status = 'active'
       ) vc ON TRUE
      WHERE p.status = 'active'
-     ORDER BY p.created_at DESC, p.product_id DESC;
+       AND (p_before_created_at IS NULL
+            OR p.created_at < p_before_created_at
+            OR (p.created_at = p_before_created_at AND p.product_id < p_before_product_id))
+     ORDER BY p.created_at DESC, p.product_id DESC
+     LIMIT LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
 $$;
-ALTER FUNCTION public.proxy_store_catalog_readonly() OWNER TO service_role;
-REVOKE ALL ON FUNCTION public.proxy_store_catalog_readonly() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.proxy_store_catalog_readonly() TO anon, authenticated, service_role;
+ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) OWNER TO service_role;
+ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) ROWS 50;
+REVOKE ALL ON FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) TO anon, authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.proxy_store_product_detail_readonly(p_slug TEXT)
 RETURNS TABLE (
@@ -129,6 +142,8 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_id UUID;
 BEGIN
+    -- The DO UPDATE WHERE skips no-op writes (avoids WAL / realtime churn).
+    -- A skipped update returns no row, so fall back to the existing id.
     INSERT INTO store.product (slug, title, description, price, fulfillment, asset_ref, status)
     VALUES (p_slug, p_title, p_description, p_price,
             COALESCE(p_fulfillment, 'digital'),
@@ -142,7 +157,16 @@ BEGIN
             asset_ref   = excluded.asset_ref,
             status      = excluded.status,
             updated_at  = now()
+        WHERE store.product.title       IS DISTINCT FROM excluded.title
+           OR store.product.description IS DISTINCT FROM excluded.description
+           OR store.product.price       IS DISTINCT FROM excluded.price
+           OR store.product.fulfillment IS DISTINCT FROM excluded.fulfillment
+           OR store.product.asset_ref   IS DISTINCT FROM excluded.asset_ref
+           OR store.product.status      IS DISTINCT FROM excluded.status
     RETURNING product_id INTO v_id;
+    IF v_id IS NULL THEN
+        SELECT product_id INTO v_id FROM store.product WHERE slug = p_slug;
+    END IF;
     RETURN v_id;
 END;
 $$;
@@ -203,7 +227,14 @@ BEGIN
             stock      = excluded.stock,
             status     = excluded.status,
             updated_at = now()
+        WHERE store.product_variant.attributes IS DISTINCT FROM excluded.attributes
+           OR store.product_variant.price      IS DISTINCT FROM excluded.price
+           OR store.product_variant.stock      IS DISTINCT FROM excluded.stock
+           OR store.product_variant.status     IS DISTINCT FROM excluded.status
     RETURNING variant_id INTO v_id;
+    IF v_id IS NULL THEN
+        SELECT variant_id INTO v_id FROM store.product_variant WHERE sku = p_sku;
+    END IF;
     RETURN v_id;
 END;
 $$;
@@ -238,7 +269,7 @@ DROP FUNCTION IF EXISTS store.service_upsert_variant(UUID, TEXT, JSONB, BIGINT, 
 DROP FUNCTION IF EXISTS store.service_set_product_status(UUID, TEXT);
 DROP FUNCTION IF EXISTS store.service_upsert_product(TEXT, TEXT, TEXT, BIGINT, TEXT, JSONB, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_store_product_detail_readonly(TEXT);
-DROP FUNCTION IF EXISTS public.proxy_store_catalog_readonly();
+DROP FUNCTION IF EXISTS public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID);
 
 CREATE FUNCTION public.proxy_store_catalog_readonly()
 RETURNS TABLE (

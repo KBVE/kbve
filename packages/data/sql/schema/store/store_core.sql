@@ -45,6 +45,10 @@ CREATE INDEX store_product_active_idx
 CREATE UNIQUE INDEX inventory_item_store_product_owned_uq
     ON inventory.item (owner_account, ref)
     WHERE kind = 'store_product' AND state IN ('held', 'listing_escrow');
+-- Read path for proxy_store_my_entitlements_readonly (owner + created_at DESC).
+CREATE INDEX inventory_item_store_entitlements_read_idx
+    ON inventory.item (owner_account, created_at DESC, id DESC)
+    WHERE kind = 'store_product' AND state IN ('held', 'listing_escrow');
 
 -- private.proxy_store_caller_account(): auth.uid() -> wallet.account.id.
 --   28000 on anon, WLT01 on missing account.
@@ -88,12 +92,20 @@ CREATE TABLE store.product_variant (
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- public.proxy_store_catalog_readonly() — extended to also return fulfillment
---   + variant_count. anon|authenticated|service_role.
+-- Variant read index: (product_id, created_at, variant_id) WHERE active —
+--   serves detail RPC ordering + catalog variant-count lateral.
+
+-- public.proxy_store_catalog_readonly(p_limit, p_before_created_at,
+--   p_before_product_id) — keyset-paginated (defaults: 50, no cursor), returns
+--   fulfillment + variant_count. anon|authenticated|service_role. Callable
+--   no-arg (all params default) so the Rust client is unchanged; ROWS 50.
 -- public.proxy_store_product_detail_readonly(p_slug TEXT) — product + active
 --   variants (JSONB array). anon|authenticated|service_role.
 
 -- Staff internals (service_role-only; transport enforces forum.is_staff):
+-- Upserts skip no-op writes (ON CONFLICT DO UPDATE WHERE ... IS DISTINCT FROM,
+-- with an existing-id fallback when the update is skipped) to cut WAL/realtime
+-- churn.
 -- store.service_upsert_product(slug,title,description,price,fulfillment,asset_ref,status) -> UUID
 -- store.service_set_product_status(product_id, status)
 -- store.service_upsert_variant(product_id,sku,attributes,price,stock,status) -> UUID

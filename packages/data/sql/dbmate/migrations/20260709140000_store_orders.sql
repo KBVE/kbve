@@ -47,6 +47,9 @@ CREATE INDEX store_order_account_created_idx
 CREATE INDEX store_order_open_idx
     ON store.order (status, updated_at)
     WHERE status IN ('paid', 'processing');
+-- Serves the staff queue: filter by status, ORDER BY order_id DESC.
+CREATE INDEX store_order_status_order_id_idx
+    ON store.order (status, order_id DESC);
 
 COMMENT ON TABLE store.order IS
     'Physical/both store orders. Born paid (debit precedes insert in one txn). advance_order moves forward; refund credits back + restores stock + revokes twin.';
@@ -289,6 +292,7 @@ BEGIN
 END;
 $$;
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
 
@@ -428,6 +432,7 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
      LIMIT LEAST(GREATEST(COALESCE(p_limit, 50), 1), 200);
 $$;
 ALTER FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) OWNER TO service_role;
+ALTER FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) ROWS 100;
 REVOKE ALL ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) TO service_role;
 
