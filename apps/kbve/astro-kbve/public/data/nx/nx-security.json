@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-08T10:25:13Z",
+  "generated_at": "2026-07-09T11:11:02Z",
   "summary": {
     "critical": 5,
     "high": 24,
@@ -264,13 +264,6 @@
           "url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
         },
         {
-          "id": "1120730",
-          "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
-          "severity": "high",
-          "package": "ws",
-          "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p"
-        },
-        {
           "id": "1120743",
           "title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
           "severity": "high",
@@ -444,6 +437,13 @@
           "severity": "medium",
           "package": "js-yaml",
           "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
+        },
+        {
+          "id": "1122788",
+          "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+          "severity": "high",
+          "package": "ws",
+          "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p"
         }
       ]
     },
