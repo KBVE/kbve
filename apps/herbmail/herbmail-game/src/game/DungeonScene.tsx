@@ -1,63 +1,141 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { useTexture } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import './PsxMaterial';
-import { buildCeiling, buildFloor, buildWalls } from './geometry';
+import {
+	buildArches,
+	buildBays,
+	buildCeiling,
+	buildCornerCoves,
+	buildCoves,
+	buildFloor,
+	buildWalls,
+} from './geometry';
+import { useDungeonTextures } from './textures';
+import { TINT } from './config';
 
-function psxify(tex: THREE.Texture, tiling: boolean): THREE.Texture {
-	tex.magFilter = THREE.NearestFilter;
-	tex.minFilter = THREE.NearestMipmapNearestFilter;
-	tex.generateMipmaps = true;
-	tex.anisotropy = 8;
-	const wrap = tiling ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
-	tex.wrapS = wrap;
-	tex.wrapT = wrap;
-	tex.colorSpace = THREE.SRGBColorSpace;
-	tex.needsUpdate = true;
-	return tex;
+interface Props {
+	snap: number;
+	affine: number;
 }
 
-export function DungeonScene() {
-	const [wall, brick, stone, floor, ceil] = useTexture([
-		'/textures/Horror_Wall_01-256x256.png',
-		'/textures/Horror_Brick_01-256x256.png',
-		'/textures/Horror_Stone_01-256x256.png',
-		'/textures/Horror_Floor_01-256x256.png',
-		'/textures/Horror_Metal_01-256x256.png',
-	]);
-
-	const wallTex = useMemo(
-		() => [psxify(wall, false), psxify(brick, false), psxify(stone, false)],
-		[wall, brick, stone],
+export function DungeonScene({ snap, affine }: Props) {
+	const size = useThree((s) => s.size);
+	const res = useMemo(
+		() => new THREE.Vector2(size.width, size.height),
+		[size],
 	);
-	const floorTex = useMemo(() => psxify(floor, true), [floor]);
-	const ceilTex = useMemo(() => psxify(ceil, true), [ceil]);
+
+	const tex = useDungeonTextures();
 
 	const wallGeo = useMemo(() => buildWalls(), []);
 	const floorGeo = useMemo(() => buildFloor(), []);
 	const ceilGeo = useMemo(() => buildCeiling(), []);
+	const archGeo = useMemo(() => buildArches(), []);
+	const coveGeo = useMemo(() => buildCoves(), []);
+	const cornerGeo = useMemo(() => buildCornerCoves(), []);
+	const bays = useMemo(() => buildBays(), []);
+
+	const floorTint = useMemo(() => new THREE.Color(...TINT.floor), []);
+	const ceilTint = useMemo(() => new THREE.Color(...TINT.ceiling), []);
+	const archTint = useMemo(() => new THREE.Color(...TINT.arch), []);
+	const coveTint = useMemo(() => new THREE.Color(...TINT.cove), []);
+	const bayTint = useMemo(() => new THREE.Color(...TINT.bay), []);
+	const bayBackTint = useMemo(() => new THREE.Color(...TINT.bayBack), []);
 
 	return (
 		<group>
 			{wallGeo.map((geo, i) => (
-				<mesh key={i} geometry={geo}>
-					<psxMaterial uMap={wallTex[i]} uSnap={140} />
+				<mesh key={i} geometry={geo} userData={{ kind: 'wall' }}>
+					<psxMaterial
+						uMap={tex.walls[i]}
+						uSnap={snap}
+						uAffine={affine}
+						uRes={res}
+					/>
 				</mesh>
 			))}
 
-			<mesh geometry={floorGeo}>
+			<mesh geometry={archGeo} userData={{ kind: 'archway' }}>
 				<psxMaterial
-					uMap={floorTex}
-					uSnap={140}
-					uTint={new THREE.Color(0.7, 0.7, 0.75)}
+					uMap={tex.arch}
+					uSnap={snap}
+					uAffine={0}
+					uRes={res}
+					uTint={archTint}
 				/>
 			</mesh>
 
-			<mesh geometry={ceilGeo}>
+			<mesh geometry={floorGeo} userData={{ kind: 'floor' }}>
 				<psxMaterial
-					uMap={ceilTex}
-					uSnap={140}
-					uTint={new THREE.Color(0.45, 0.45, 0.5)}
+					uMap={tex.floor}
+					uSnap={snap}
+					uAffine={affine}
+					uRes={res}
+					uTint={floorTint}
+				/>
+			</mesh>
+
+			<mesh geometry={ceilGeo} userData={{ kind: 'ceiling' }}>
+				<psxMaterial
+					uMap={tex.ceiling}
+					uSnap={snap}
+					uAffine={affine}
+					uRes={res}
+					uTint={ceilTint}
+				/>
+			</mesh>
+
+			<mesh geometry={coveGeo} userData={{ kind: 'vaulted cove' }}>
+				<psxMaterial
+					uMap={tex.walls[2]}
+					uSnap={snap}
+					uAffine={affine}
+					uRes={res}
+					uTint={coveTint}
+					side={THREE.DoubleSide}
+					polygonOffset
+					polygonOffsetFactor={-2}
+					polygonOffsetUnits={-2}
+				/>
+			</mesh>
+
+			<mesh geometry={cornerGeo} userData={{ kind: 'corner vault' }}>
+				<psxMaterial
+					uMap={tex.walls[2]}
+					uSnap={snap}
+					uAffine={affine}
+					uRes={res}
+					uTint={coveTint}
+					side={THREE.DoubleSide}
+					polygonOffset
+					polygonOffsetFactor={-4}
+					polygonOffsetUnits={-4}
+				/>
+			</mesh>
+
+			<mesh geometry={bays.frames} userData={{ kind: 'wall niche' }}>
+				<psxMaterial
+					uMap={tex.arch}
+					uSnap={snap}
+					uAffine={0}
+					uRes={res}
+					uTint={bayTint}
+					side={THREE.DoubleSide}
+					polygonOffset
+					polygonOffsetFactor={-3}
+					polygonOffsetUnits={-3}
+				/>
+			</mesh>
+
+			<mesh geometry={bays.backs} userData={{ kind: 'niche recess' }}>
+				<psxMaterial
+					uMap={tex.arch}
+					uSnap={snap}
+					uAffine={0}
+					uRes={res}
+					uTint={bayBackTint}
+					side={THREE.DoubleSide}
 				/>
 			</mesh>
 		</group>

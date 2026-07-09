@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { shaderMaterial } from '@react-three/drei';
 import { extend, type ThreeElement } from '@react-three/fiber';
+import { FOG } from './config';
 
 const vertex = /* glsl */ `
 	uniform float uSnap;
+	uniform vec2 uRes;
 	varying vec2 vUvCorrect;
 	varying vec2 vUvAffine;
 	varying float vW;
@@ -11,10 +13,11 @@ const vertex = /* glsl */ `
 	void main() {
 		vec4 pos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
-		// PSX vertex snapping: quantize in normalized device space
+		// PSX vertex snapping: aspect-correct grid, round for steadiness
 		vec3 ndc = pos.xyz / pos.w;
-		vec2 grid = vec2(uSnap);
-		ndc.xy = floor(ndc.xy * grid) / grid;
+		float aspect = uRes.x / max(uRes.y, 1.0);
+		vec2 grid = vec2(uSnap * aspect, uSnap);
+		ndc.xy = floor(ndc.xy * grid + 0.5) / grid;
 		pos.xyz = ndc * pos.w;
 
 		// perspective-correct (standard varying) vs affine (pre-multiplied by w)
@@ -50,11 +53,12 @@ const PsxMaterialImpl = shaderMaterial(
 	{
 		uMap: null as THREE.Texture | null,
 		uSnap: 80,
+		uRes: new THREE.Vector2(1, 1),
 		uAffine: 0.3,
 		uTint: new THREE.Color(1, 1, 1),
-		uFogColor: new THREE.Color('#0a0a0e'),
-		uFogNear: 3,
-		uFogFar: 15,
+		uFogColor: new THREE.Color(FOG.color),
+		uFogNear: FOG.near,
+		uFogFar: FOG.far,
 	},
 	vertex,
 	fragment,

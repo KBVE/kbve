@@ -1,22 +1,30 @@
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { DungeonScene } from '../game/DungeonScene';
 import { FpsControls } from '../game/FpsControls';
+import { AimReticle } from '../game/AimReticle';
+import { Hud } from '../game/Hud';
+import { PSX_DEFAULTS } from '../game/config';
 
 export function App() {
+	const [psx] = useState({ ...PSX_DEFAULTS });
+	const [aim, setAim] = useState<string | null>(null);
+
 	return (
 		<>
 			<Canvas
-				dpr={0.25}
+				dpr={psx.dpr}
 				gl={{ antialias: true, powerPreference: 'high-performance' }}
-				camera={{ fov: 70, near: 0.05, far: 100 }}
+				camera={{ fov: psx.fov, near: 0.05, far: 100 }}
 				style={{ imageRendering: 'pixelated' }}>
 				<color attach="background" args={['#0a0a0e']} />
 				<Suspense fallback={null}>
-					<DungeonScene />
+					<DungeonScene snap={psx.snap} affine={psx.affine} />
 				</Suspense>
-				<FpsControls />
+				<FpsControls eye={psx.eye} fov={psx.fov} />
+				<AimReticle onAim={setAim} />
 			</Canvas>
+			<Hud kind={aim} />
 			<div
 				style={{
 					position: 'fixed',

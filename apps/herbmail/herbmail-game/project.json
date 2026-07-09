@@ -20,8 +20,33 @@
 		"build": {
 			"executor": "@nx/vite:build",
 			"outputs": ["{options.outputPath}"],
+			"dependsOn": ["lfs-pull"],
 			"options": {
 				"outputPath": "dist/apps/herbmail/herbmail-game"
+			}
+		},
+		"lfs-pull": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail pull --include='apps/herbmail/herbmail-game/public/**') || echo 'herbmail LFS pull skipped (no creds / offline) — assets may be pointer stubs'"
+				]
+			}
+		},
+		"lfs-push": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail push origin HEAD)"
+				]
+			}
+		},
+		"lfs-register": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail register origin)"
+				]
 			}
 		},
 		"preview": {

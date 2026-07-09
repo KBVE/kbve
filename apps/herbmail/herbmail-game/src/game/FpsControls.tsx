@@ -2,10 +2,16 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
-import { COLS, isWall, ROWS, spawnPoint, TILE } from './level';
+import { COLS, isWall, ROWS, spawnPoint } from './level';
+import { TILE } from './config';
 
 const SPEED = 3.2;
 const RADIUS = 0.35;
+
+interface Props {
+	eye: number;
+	fov: number;
+}
 
 function blocked(x: number, z: number): boolean {
 	const col = Math.floor(x / TILE);
@@ -18,17 +24,29 @@ function tryMove(pos: THREE.Vector3, dx: number, dz: number) {
 	if (!blocked(pos.x, pos.z + dz + Math.sign(dz) * RADIUS)) pos.z += dz;
 }
 
-export function FpsControls() {
+export function FpsControls({ eye, fov }: Props) {
 	const { camera } = useThree();
 	const keys = useRef<Record<string, boolean>>({});
 	const fwd = useRef(new THREE.Vector3());
 	const right = useRef(new THREE.Vector3());
+	const spawned = useRef(false);
 
 	useEffect(() => {
-		const [x, y, z] = spawnPoint();
-		camera.position.set(x, y, z);
-		camera.lookAt((COLS * TILE) / 2, y, (ROWS * TILE) / 2);
-	}, [camera]);
+		if (spawned.current) {
+			camera.position.y = eye;
+			return;
+		}
+		const [x, , z] = spawnPoint();
+		camera.position.set(x, eye, z);
+		camera.lookAt((COLS * TILE) / 2, eye, (ROWS * TILE) / 2);
+		spawned.current = true;
+	}, [camera, eye]);
+
+	useEffect(() => {
+		const cam = camera as THREE.PerspectiveCamera;
+		cam.fov = fov;
+		cam.updateProjectionMatrix();
+	}, [camera, fov]);
 
 	useEffect(() => {
 		const down = (e: KeyboardEvent) => (keys.current[e.code] = true);
