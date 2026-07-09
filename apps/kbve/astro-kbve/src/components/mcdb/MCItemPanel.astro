@@ -309,6 +309,22 @@ if (item.mining) {
 				)
 			}
 
+			{
+				item.faq.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">FAQ</h3>
+						<div class="mcdb-faq">
+							{item.faq.map((f) => (
+								<div>
+									<p class="mcdb-faq__q">{f.question}</p>
+									<p class="mcdb-faq__a">{f.answer}</p>
+								</div>
+							))}
+						</div>
+					</div>
+				)
+			}
+
 			<div class="bento-card bento-cell--wide mcdb-block">
 				<h3 class="mcdb-block__title">Marketplace</h3>
 				<MCItemMarketSidecar client:visible ref={item.ref} />
