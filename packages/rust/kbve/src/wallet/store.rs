@@ -443,6 +443,37 @@ impl WalletClient {
     }
 
     // -------------------------------------------------------------------
+    // Stripe on-ramp (Phase 3)
+    // -------------------------------------------------------------------
+
+    /// Idempotently credit a wallet from a completed Stripe checkout. Called
+    /// by the webhook handler as service_role. Returns the ledger id.
+    pub async fn store_apply_topup(
+        &self,
+        user_id: Uuid,
+        stripe_event_id: String,
+        stripe_session_id: Option<String>,
+        credits: i64,
+        amount_cents: i64,
+        currency_fiat: String,
+    ) -> Result<i64> {
+        let mut conn = self.write().await?;
+        let row: ScalarBigInt = sql_query(
+            "SELECT store.service_apply_topup($1, $2, $3, $4, $5, $6) AS value",
+        )
+        .bind::<diesel::sql_types::Uuid, _>(user_id)
+        .bind::<Text, _>(stripe_event_id)
+        .bind::<Nullable<Text>, _>(stripe_session_id)
+        .bind::<diesel::sql_types::BigInt, _>(credits)
+        .bind::<diesel::sql_types::BigInt, _>(amount_cents)
+        .bind::<Text, _>(currency_fiat)
+        .get_result(&mut *conn)
+        .await
+        .map_err(WalletError::from_diesel)?;
+        Ok(row.value)
+    }
+
+    // -------------------------------------------------------------------
     // Authenticated read (rw on WLT01 fallback)
     // -------------------------------------------------------------------
 

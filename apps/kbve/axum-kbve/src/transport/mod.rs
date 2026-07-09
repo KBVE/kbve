@@ -8,6 +8,7 @@ pub mod osrs_family_redirects;
 pub mod proxy;
 pub mod referral;
 pub mod store;
+pub mod topup;
 pub mod vnc_hub;
 pub mod wallet;
 pub mod webhooks;

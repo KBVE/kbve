@@ -143,3 +143,28 @@ CREATE TABLE store.order (
 -- store.service_refund_order(order_id, reason) — wallet.service_credit('refund'),
 --   restore finite stock, consume twin; idempotent when already refunded.
 -- store.service_list_orders(status, limit, before_id) — staff order queue.
+
+-- ============================================================================
+-- Phase 3: Stripe credit on-ramp
+--   (dbmate 20260709165000_wallet_source_kind_topup [adds 'topup'],
+--    20260709170000_store_topup)
+-- ============================================================================
+
+CREATE TABLE store.topup (
+    topup_id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account_id        UUID NOT NULL REFERENCES wallet.account(id),
+    stripe_event_id   TEXT NOT NULL UNIQUE,   -- idempotency on the webhook
+    stripe_session_id TEXT,
+    credits_granted   BIGINT NOT NULL CHECK (credits_granted > 0),
+    amount_cents      BIGINT NOT NULL CHECK (amount_cents >= 0),
+    currency_fiat     TEXT NOT NULL DEFAULT 'usd',
+    ledger_id         BIGINT,
+    status            TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('completed','refunded')),
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- store.service_apply_topup(user_id, stripe_event_id, stripe_session_id,
+--   credits, amount_cents, currency_fiat) -> BIGINT (ledger_id). service_role.
+--   Idempotent on stripe_event_id; resolves account from user_id; credits via
+--   wallet.service_credit(source_kind='topup'). The Axum webhook (signature-
+--   verified) is the only caller.

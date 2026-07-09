@@ -2,6 +2,7 @@
 import ReactStoreCard from './ReactStoreCard';
 import StoreCatalog from './StoreCatalog';
 import OrderHistory from './OrderHistory';
+import BuyCredits from './BuyCredits';
 import './store.css';
 ---
 
@@ -13,6 +14,8 @@ import './store.css';
 			inventory item you own — and can later list on the marketplace.
 		</p>
 	</header>
+
+	<BuyCredits client:only="react" />
 
 	<div class="kbve-store__grid">
 		<ReactStoreCard client:only="react" />

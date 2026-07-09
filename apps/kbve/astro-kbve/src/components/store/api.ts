@@ -248,3 +248,22 @@ export function staffRefundOrder(
 		throw asStoreError(e);
 	});
 }
+
+// ---- Stripe credit on-ramp (Phase 3) ----
+
+export type CreditPack = { pack_id: string; credits: number; label: string };
+
+export const CREDIT_PACKS: CreditPack[] = [
+	{ pack_id: 'small', credits: 100, label: '100 credits · $1' },
+	{ pack_id: 'medium', credits: 550, label: '550 credits · $5' },
+	{ pack_id: 'large', credits: 1200, label: '1200 credits · $10' },
+];
+
+export function topupCheckout(packId: string): Promise<{ checkout_url: string }> {
+	return authedApiFetch<{ checkout_url: string }>(
+		'/api/v1/wallet/topup/checkout',
+		{ method: 'POST', body: JSON.stringify({ pack_id: packId }) },
+	).catch((e) => {
+		throw asStoreError(e);
+	});
+}

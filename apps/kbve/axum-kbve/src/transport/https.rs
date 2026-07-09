@@ -608,6 +608,14 @@ fn router(state: AppState) -> Router {
             "/api/v1/store/staff/orders/{order_id}/refund",
             post(super::store::staff_refund_order),
         )
+        .route(
+            "/api/v1/wallet/topup/checkout",
+            post(super::topup::checkout),
+        )
+        .route(
+            "/api/v1/wallet/topup/webhook",
+            post(super::topup::webhook),
+        )
         .route("/forum/c/", get(forum_c_root_redirect))
         .route("/forum/c/{slug}", get(forum_c_redirect))
         .route("/forum/c/{slug}/", get(forum_c_redirect));

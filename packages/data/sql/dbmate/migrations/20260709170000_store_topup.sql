@@ -1,0 +1,108 @@
+-- migrate:up
+
+-- Phase 3: Stripe credit on-ramp. A completed Stripe Checkout Session credits
+-- the caller's wallet. Idempotent on the Stripe event id so webhook replays
+-- never double-credit. This is the ONLY path that touches Stripe; the store
+-- itself only ever spends credits.
+
+DO $$
+BEGIN
+    IF to_regprocedure(
+        'wallet.service_credit(uuid, wallet.currency_kind, bigint, wallet.source_kind, text, text, bigint, uuid)'
+    ) IS NULL THEN
+        RAISE EXCEPTION 'missing wallet.service_credit';
+    END IF;
+END
+$$;
+
+CREATE TABLE store.topup (
+    topup_id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account_id        UUID NOT NULL REFERENCES wallet.account(id),
+    stripe_event_id   TEXT NOT NULL UNIQUE,
+    stripe_session_id TEXT,
+    credits_granted   BIGINT NOT NULL CHECK (credits_granted > 0),
+    amount_cents      BIGINT NOT NULL CHECK (amount_cents >= 0),
+    currency_fiat     TEXT NOT NULL DEFAULT 'usd',
+    ledger_id         BIGINT,
+    status            TEXT NOT NULL DEFAULT 'completed'
+                      CHECK (status IN ('completed', 'refunded')),
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX store_topup_account_idx ON store.topup (account_id, created_at DESC);
+
+COMMENT ON TABLE store.topup IS
+    'Stripe credit purchases. Idempotent on stripe_event_id. Credits the wallet via wallet.service_credit(source_kind=topup).';
+
+-- service_apply_topup: resolve the wallet account from the auth user id
+-- (carried in Stripe session metadata), idempotently record the topup, and
+-- credit the wallet. Returns the ledger id (existing one on replay).
+CREATE OR REPLACE FUNCTION store.service_apply_topup(
+    p_user_id           UUID,
+    p_stripe_event_id   TEXT,
+    p_stripe_session_id TEXT,
+    p_credits           BIGINT,
+    p_amount_cents      BIGINT,
+    p_currency_fiat     TEXT
+)
+RETURNS BIGINT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_account   UUID;
+    v_existing  BIGINT;
+    v_ledger_id BIGINT;
+BEGIN
+    IF p_user_id IS NULL OR coalesce(length(p_stripe_event_id), 0) = 0
+       OR p_credits IS NULL OR p_credits <= 0 THEN
+        RAISE EXCEPTION 'user_id, stripe_event_id and positive credits are required'
+            USING ERRCODE = '22004';
+    END IF;
+
+    -- Idempotent replay: this Stripe event already applied.
+    SELECT ledger_id INTO v_existing
+      FROM store.topup WHERE stripe_event_id = p_stripe_event_id;
+    IF FOUND THEN
+        RETURN v_existing;
+    END IF;
+
+    SELECT id INTO v_account
+      FROM wallet.account WHERE kind = 'user' AND user_id = p_user_id;
+    IF v_account IS NULL THEN
+        RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+    END IF;
+
+    v_ledger_id := wallet.service_credit(
+        v_account,
+        'credits'::wallet.currency_kind,
+        p_credits,
+        'topup'::wallet.source_kind,
+        'stripe credit topup',
+        'stripe_session',
+        NULL,
+        gen_random_uuid()
+    );
+
+    INSERT INTO store.topup (
+        account_id, stripe_event_id, stripe_session_id,
+        credits_granted, amount_cents, currency_fiat, ledger_id
+    ) VALUES (
+        v_account, p_stripe_event_id, p_stripe_session_id,
+        p_credits, COALESCE(p_amount_cents, 0),
+        COALESCE(p_currency_fiat, 'usd'), v_ledger_id
+    );
+
+    RETURN v_ledger_id;
+END;
+$$;
+ALTER FUNCTION store.service_apply_topup(UUID, TEXT, TEXT, BIGINT, BIGINT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_apply_topup(UUID, TEXT, TEXT, BIGINT, BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_apply_topup(UUID, TEXT, TEXT, BIGINT, BIGINT, TEXT) TO service_role;
+
+NOTIFY pgrst, 'reload schema';
+
+-- migrate:down
+
+DROP FUNCTION IF EXISTS store.service_apply_topup(UUID, TEXT, TEXT, BIGINT, BIGINT, TEXT);
+DROP TABLE IF EXISTS store.topup;
+
+NOTIFY pgrst, 'reload schema';

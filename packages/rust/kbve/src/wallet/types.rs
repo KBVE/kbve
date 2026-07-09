@@ -97,6 +97,7 @@ pg_text_enum! {
         MarketFee          => "market_fee",
         Transfer           => "transfer",
         FirecrackerSession => "firecracker_session",
+        Topup              => "topup",
     }
 }
 

@@ -147,6 +147,7 @@ impl Modify for SecurityAddon {
         crate::transport::store::staff_list_orders,
         crate::transport::store::staff_advance_order,
         crate::transport::store::staff_refund_order,
+        crate::transport::topup::checkout,
         // mc-lot — user surface
         crate::transport::mc_lot::list_schematics,
         crate::transport::mc_lot::list_vacant,
@@ -240,6 +241,8 @@ impl Modify for SecurityAddon {
             crate::transport::store::OrderIdDto,
             crate::transport::store::AdvanceOrderBody,
             crate::transport::store::RefundOrderBody,
+            crate::transport::topup::CheckoutBody,
+            crate::transport::topup::CheckoutDto,
             // mc-lot — DTOs
             crate::transport::mc_lot::SchematicDto,
             crate::transport::mc_lot::VacantLotDto,
