@@ -500,10 +500,10 @@ const STEP_MS = 650;
 // (filter on the img), and the floating damage/heal number. All retrigger by remounting
 // on a per-event nonce key, so each event replays its animation from the top.
 const BATTLE_FX_CSS = `
-@keyframes arpgHitShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-@keyframes arpgHitShakeBig{0%,100%{transform:translate(0,0)}20%{transform:translate(-9px,3px)}50%{transform:translate(9px,-3px)}80%{transform:translate(-6px,2px)}}
-@keyframes arpgLungeP{0%,100%{transform:translate(0,0)}40%{transform:translate(12px,-10px)}}
-@keyframes arpgLungeE{0%,100%{transform:translate(0,0)}40%{transform:translate(-12px,10px)}}
+@keyframes arpgHitShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+@keyframes arpgHitShakeBig{0%,100%{transform:translate(0,0)}20%{transform:translate(-13px,4px)}50%{transform:translate(13px,-4px)}80%{transform:translate(-9px,3px)}}
+@keyframes arpgLungeP{0%,100%{transform:translate(0,0)}40%{transform:translate(22px,-16px)}}
+@keyframes arpgLungeE{0%,100%{transform:translate(0,0)}40%{transform:translate(-22px,16px)}}
 @keyframes arpgImgFlash{0%{filter:brightness(1)}30%{filter:brightness(2.6) saturate(0)}100%{filter:brightness(1)}}
 @keyframes arpgFloatUp{0%{opacity:0;transform:translate(-50%,0) scale(.7)}20%{opacity:1;transform:translate(-50%,-10px) scale(1.1)}100%{opacity:0;transform:translate(-50%,-46px) scale(1)}}
 @keyframes arpgLowBlink{0%,100%{opacity:1}50%{opacity:.4}}
@@ -790,9 +790,9 @@ export function PetBattleScene({
 				pointerEvents: 'auto',
 				zIndex: 40,
 				display: 'flex',
-				flexDirection: 'column',
-				justifyContent: 'space-between',
-				padding: 24,
+				alignItems: 'center',
+				justifyContent: 'center',
+				padding: 16,
 				fontFamily: 'monospace',
 				color: '#e6ebf5',
 				background:
@@ -800,20 +800,28 @@ export function PetBattleScene({
 				animation: 'arpgSceneFade 160ms ease-out',
 			}}>
 			<style>{BATTLE_FX_CSS}</style>
-			{/* Element VFX layer — bolts + bursts, above the sprites, click-through. */}
-			<canvas
-				ref={canvasRef}
+			{/* Constrained stage: keeps both battlers close together on any viewport
+			    instead of pinning them to opposite screen corners. */}
+			<div
 				style={{
-					position: 'absolute',
-					inset: 0,
-					width: '100%',
-					height: '100%',
-					pointerEvents: 'none',
-					zIndex: 5,
-				}}
-			/>
-			{/* Enemy: top-right */}
-			<div style={{ alignSelf: 'flex-end' }}>
+					position: 'relative',
+					width: 'min(94vw, 860px)',
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 6,
+				}}>
+				{/* Element VFX layer — bolts + bursts, above the sprites, click-through. */}
+				<canvas
+					ref={canvasRef}
+					style={{
+						position: 'absolute',
+						inset: 0,
+						width: '100%',
+						height: '100%',
+						pointerEvents: 'none',
+						zIndex: 5,
+					}}
+				/>
 				{state.opponent && (
 					<div
 						style={{
@@ -821,11 +829,11 @@ export function PetBattleScene({
 							fontSize: 13,
 							color: MUTED,
 							textShadow: TEXT_SHADOW,
-							marginBottom: 4,
 						}}>
 						{state.opponent}
 					</div>
 				)}
+				{/* Enemy row: info box left, sprite right (classic JRPG cross layout). */}
 				<Battler
 					battler={eTeam}
 					hp={view.eHp}
@@ -835,73 +843,77 @@ export function PetBattleScene({
 					spriteRef={eSpriteRef}
 					foe
 				/>
-			</div>
+				{/* Player row: sprite left, info box right; pulled up into the enemy
+				    row's empty diagonal so the two monsters face each other. */}
+				<div style={{ marginTop: 'clamp(-56px, -7vmin, -20px)' }}>
+					<Battler
+						battler={pTeam}
+						hp={view.pHp}
+						alive={aliveCount(state.player)}
+						total={state.player.length}
+						fx={fxForSide(view, 0)}
+						spriteRef={pSpriteRef}
+					/>
+				</div>
 
-			{/* Player: bottom-left */}
-			<div style={{ alignSelf: 'flex-start' }}>
-				<Battler
-					battler={pTeam}
-					hp={view.pHp}
-					alive={aliveCount(state.player)}
-					total={state.player.length}
-					fx={fxForSide(view, 0)}
-					spriteRef={pSpriteRef}
-				/>
-			</div>
-
-			{/* Text box + action menu */}
-			<div
-				style={{
-					position: 'relative',
-					zIndex: 6,
-					pointerEvents: 'auto',
-					border: '2px solid #6ea8ff',
-					borderRadius: 10,
-					background: 'rgba(8,10,16,0.92)',
-					padding: '12px 16px',
-					minHeight: 56,
-					display: 'flex',
-					flexDirection: 'column',
-					gap: 10,
-				}}>
-				{!over && state.deadline_ms > 0 && (
-					<div
-						style={{
-							height: 4,
-							borderRadius: 2,
-							background: 'rgba(110,168,255,0.15)',
-							overflow: 'hidden',
-						}}>
+				{/* Text box + action menu */}
+				<div
+					style={{
+						position: 'relative',
+						zIndex: 6,
+						pointerEvents: 'auto',
+						border: '2px solid #6ea8ff',
+						borderRadius: 12,
+						boxShadow:
+							'0 0 0 2px rgba(8,10,16,0.9), 0 4px 0 rgba(110,168,255,0.25)',
+						background: 'rgba(8,10,16,0.94)',
+						padding: '12px 16px',
+						minHeight: 56,
+						display: 'flex',
+						flexDirection: 'column',
+						gap: 10,
+						marginTop: 8,
+					}}>
+					{!over && state.deadline_ms > 0 && (
 						<div
 							style={{
-								height: '100%',
-								width: `${turnPct}%`,
-								background:
-									turnPct > 25 ? '#6ea8ff' : '#ef4444',
-								transition: 'width 200ms linear',
-							}}
-						/>
-					</div>
-				)}
-				<span style={{ fontSize: 14, minHeight: 20 }}>
-					{over
-						? `Battle over — ${outcomeLabel(state.outcome)}`
-						: view.text}
-				</span>
-				{over ? (
-					<div
-						style={{ display: 'flex', justifyContent: 'flex-end' }}>
-						<BattleButton label="Close ✕" onClick={onClose} />
-					</div>
-				) : showMenu ? (
-					<div
-						style={{
-							display: 'flex',
-							flexWrap: 'wrap',
-							gap: 8,
-						}}>
-						{swapOpen || forceSwap ? (
-							<>
+								height: 4,
+								borderRadius: 2,
+								background: 'rgba(110,168,255,0.15)',
+								overflow: 'hidden',
+							}}>
+							<div
+								style={{
+									height: '100%',
+									width: `${turnPct}%`,
+									background:
+										turnPct > 25 ? '#6ea8ff' : '#ef4444',
+									transition: 'width 200ms linear',
+								}}
+							/>
+						</div>
+					)}
+					<span style={{ fontSize: 15, minHeight: 20 }}>
+						{over
+							? `Battle over — ${outcomeLabel(state.outcome)}`
+							: view.text}
+					</span>
+					{over ? (
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-end',
+							}}>
+							<BattleButton label="Close ✕" onClick={onClose} />
+						</div>
+					) : showMenu ? (
+						swapOpen || forceSwap ? (
+							<div
+								style={{
+									display: 'flex',
+									flexWrap: 'wrap',
+									gap: 8,
+								}}>
 								{reserves.length === 0 && (
 									<span
 										style={{ color: MUTED, fontSize: 12 }}>
@@ -923,40 +935,67 @@ export function PetBattleScene({
 										onClick={() => setSwapOpen(false)}
 									/>
 								)}
-							</>
+							</div>
 						) : (
-							<>
-								{state.moves.map((m) => (
-									<MoveButton
-										key={m.slot}
-										move={m}
-										onClick={() =>
-											commit(PET_ACT_MOVE, m.slot)
-										}
-									/>
-								))}
-								<BattleButton
-									label="⇄ Swap"
-									onClick={() => setSwapOpen(true)}
-								/>
-								<BattleButton
-									label="🧪 Potion"
-									onClick={() => commit(PET_ACT_ITEM, 0)}
-								/>
-								{state.can_run && (
+							<div
+								style={{
+									display: 'flex',
+									flexWrap: 'wrap',
+									gap: 12,
+									alignItems: 'stretch',
+								}}>
+								{/* Moves fill a 2×2 grid; utility actions stack in a column
+								    beside it, like the classic FIGHT/BAG/RUN split. */}
+								<div
+									style={{
+										display: 'grid',
+										gridTemplateColumns: '1fr 1fr',
+										gap: 8,
+										flex: '1 1 320px',
+									}}>
+									{state.moves.map((m) => (
+										<MoveButton
+											key={m.slot}
+											move={m}
+											onClick={() =>
+												commit(PET_ACT_MOVE, m.slot)
+											}
+										/>
+									))}
+								</div>
+								<div
+									style={{
+										display: 'flex',
+										flexDirection: 'column',
+										gap: 8,
+										flex: '0 0 auto',
+										justifyContent: 'flex-start',
+									}}>
 									<BattleButton
-										label="🏃 Run"
-										onClick={() => commit(PET_ACT_RUN, 0)}
+										label="⇄ Swap"
+										onClick={() => setSwapOpen(true)}
 									/>
-								)}
-							</>
-						)}
-					</div>
-				) : (
-					<span style={{ color: MUTED, fontSize: 12 }}>
-						{waiting ? `Waiting for ${state.opponent}…` : '…'}
-					</span>
-				)}
+									<BattleButton
+										label="🧪 Potion"
+										onClick={() => commit(PET_ACT_ITEM, 0)}
+									/>
+									{state.can_run && (
+										<BattleButton
+											label="🏃 Run"
+											onClick={() =>
+												commit(PET_ACT_RUN, 0)
+											}
+										/>
+									)}
+								</div>
+							</div>
+						)
+					) : (
+						<span style={{ color: MUTED, fontSize: 12 }}>
+							{waiting ? `Waiting for ${state.opponent}…` : '…'}
+						</span>
+					)}
+				</div>
 			</div>
 		</div>
 	);
@@ -972,6 +1011,7 @@ function MoveButton({
 	onClick: () => void;
 }) {
 	const dead = move.pp <= 0;
+	const tint = elementStyle(move.element.toLowerCase());
 	return (
 		<button
 			type="button"
@@ -979,18 +1019,24 @@ function MoveButton({
 			onClick={onClick}
 			title={`${move.element} · power ${move.power} · acc ${move.accuracy > 100 ? '∞' : `${move.accuracy}%`}`}
 			style={{
-				padding: '6px 12px',
+				padding: '8px 12px',
 				fontFamily: 'monospace',
-				fontSize: 12,
+				fontSize: 13,
+				textAlign: 'left',
 				color: '#e6ebf5',
 				background: 'rgba(40,20,60,0.85)',
-				border: '1px solid #6ea8ff',
+				border: `1px solid ${tint.ramp[1]}`,
+				borderLeft: `4px solid ${tint.ramp[1]}`,
 				borderRadius: 6,
 				opacity: dead ? 0.4 : 1,
 				cursor: dead ? 'not-allowed' : 'pointer',
+				display: 'flex',
+				justifyContent: 'space-between',
+				alignItems: 'baseline',
+				gap: 10,
 			}}>
-			<span>{move.name}</span>
-			<span style={{ color: MUTED, marginLeft: 8 }}>
+			<span style={{ fontWeight: 700 }}>{move.name}</span>
+			<span style={{ color: MUTED, fontSize: 11 }}>
 				PP {move.pp}/{move.max_pp}
 			</span>
 		</button>
@@ -1042,30 +1088,126 @@ function Battler({
 	// idle keeps a stable key so the <img> (and its broken-state) doesn't churn.
 	const animKey = fx.flash || fx.attack ? `a${fx.nonce}` : 'idle';
 	const baseFilter = fainted ? 'grayscale(1) brightness(0.5)' : 'none';
+	// Your own monster reads bigger (nearer the "camera"), the foe slightly smaller.
+	const size = foe
+		? 'clamp(112px, 22vmin, 176px)'
+		: 'clamp(128px, 26vmin, 208px)';
 	return (
 		<div
 			style={{
 				display: 'flex',
 				flexDirection: foe ? 'row' : 'row-reverse',
-				alignItems: 'center',
-				gap: 14,
+				justifyContent: 'space-between',
+				alignItems: foe ? 'flex-start' : 'flex-end',
+				width: '100%',
+				gap: 16,
 			}}>
+			<div
+				style={{
+					flex: '0 1 300px',
+					minWidth: 220,
+					background: 'rgba(8,10,16,0.92)',
+					border: '2px solid #6ea8ff',
+					borderRadius: 10,
+					boxShadow: '0 3px 0 rgba(110,168,255,0.3)',
+					padding: '8px 12px',
+					marginTop: foe ? 10 : 0,
+					marginBottom: foe ? 0 : 10,
+				}}>
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						fontSize: 13,
+						fontWeight: 700,
+					}}>
+					<span>{battler.nickname}</span>
+					<span style={{ color: MUTED, fontWeight: 400 }}>
+						Lv {battler.level}
+					</span>
+				</div>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 6,
+						margin: '5px 0',
+					}}>
+					<span
+						style={{
+							fontSize: 9,
+							fontWeight: 700,
+							letterSpacing: 1,
+							color: '#6ea8ff',
+						}}>
+						HP
+					</span>
+					<div
+						style={{
+							flex: 1,
+							height: 8,
+							borderRadius: 4,
+							background: 'rgba(255,255,255,0.12)',
+							overflow: 'hidden',
+						}}>
+						<div
+							style={{
+								height: '100%',
+								width: `${pct}%`,
+								background: barColor,
+								transition:
+									'width 0.35s ease, background 0.35s ease',
+								animation:
+									pct > 0 && pct <= 20
+										? 'arpgLowBlink 0.7s ease infinite'
+										: 'none',
+							}}
+						/>
+					</div>
+				</div>
+				<div style={{ display: 'flex', gap: 4, fontSize: 11 }}>
+					<span style={{ color: MUTED }}>
+						{Math.max(0, hp)}/{battler.max_hp}
+					</span>
+					<span style={{ marginLeft: 'auto', letterSpacing: 2 }}>
+						{'●'.repeat(Math.max(0, alive))}
+						<span style={{ color: '#3a4a66' }}>
+							{'●'.repeat(Math.max(0, total - alive))}
+						</span>
+					</span>
+				</div>
+			</div>
 			<div
 				ref={spriteRef}
 				style={{
 					position: 'relative',
-					width: 96,
-					height: 96,
+					width: size,
+					height: size,
 					transform: fainted ? 'translateY(10px)' : 'none',
 					opacity: fainted ? 0.7 : 1,
 					transition: 'transform 0.4s ease, opacity 0.4s ease',
 				}}>
+				{/* Ground platform under the monster, like the battle podiums. */}
+				<div
+					style={{
+						position: 'absolute',
+						left: '50%',
+						bottom: '-4%',
+						width: '130%',
+						height: '26%',
+						transform: 'translateX(-50%)',
+						borderRadius: '50%',
+						background:
+							'radial-gradient(ellipse at center, rgba(110,168,255,0.3), rgba(110,168,255,0) 70%)',
+						pointerEvents: 'none',
+					}}
+				/>
 				<span
 					key={animKey}
 					style={{
 						display: 'block',
-						width: 96,
-						height: 96,
+						width: '100%',
+						height: '100%',
 						animation: lunge,
 					}}>
 					{imgBroken ? (
@@ -1075,9 +1217,9 @@ function Battler({
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
-								width: 96,
-								height: 96,
-								fontSize: 40,
+								width: '100%',
+								height: '100%',
+								fontSize: 56,
 								borderRadius: 12,
 								background: 'rgba(110,168,255,0.12)',
 								border: '1px dashed #6ea8ff',
@@ -1089,10 +1231,10 @@ function Battler({
 						<img
 							src={SPRITE_OF(battler.species_ref)}
 							alt={battler.nickname}
-							width={96}
-							height={96}
 							onError={() => setImgBroken(true)}
 							style={{
+								width: '100%',
+								height: '100%',
 								imageRendering: 'pixelated',
 								transform: foe ? 'none' : 'scaleX(-1)',
 								filter: baseFilter,
@@ -1111,7 +1253,7 @@ function Battler({
 							top: 0,
 							left: '50%',
 							fontWeight: 700,
-							fontSize: fx.pop.crit ? 22 : 16,
+							fontSize: fx.pop.crit ? 26 : 19,
 							color: popColor(fx.pop),
 							textShadow: '0 1px 2px #000',
 							animation: 'arpgFloatUp 0.9s ease forwards',
@@ -1123,50 +1265,6 @@ function Battler({
 						{fx.pop.crit ? '!' : ''}
 					</span>
 				)}
-			</div>
-			<div style={{ minWidth: 180 }}>
-				<div
-					style={{
-						display: 'flex',
-						justifyContent: 'space-between',
-						fontSize: 12,
-					}}>
-					<span>{battler.nickname}</span>
-					<span style={{ color: MUTED }}>Lv {battler.level}</span>
-				</div>
-				<div
-					style={{
-						height: 8,
-						borderRadius: 4,
-						background: 'rgba(255,255,255,0.12)',
-						overflow: 'hidden',
-						margin: '4px 0',
-					}}>
-					<div
-						style={{
-							height: '100%',
-							width: `${pct}%`,
-							background: barColor,
-							transition:
-								'width 0.35s ease, background 0.35s ease',
-							animation:
-								pct > 0 && pct <= 20
-									? 'arpgLowBlink 0.7s ease infinite'
-									: 'none',
-						}}
-					/>
-				</div>
-				<div style={{ display: 'flex', gap: 4, fontSize: 11 }}>
-					<span style={{ color: MUTED }}>
-						{Math.max(0, hp)}/{battler.max_hp}
-					</span>
-					<span style={{ marginLeft: 'auto', letterSpacing: 2 }}>
-						{'●'.repeat(Math.max(0, alive))}
-						<span style={{ color: '#3a4a66' }}>
-							{'●'.repeat(Math.max(0, total - alive))}
-						</span>
-					</span>
-				</div>
 			</div>
 		</div>
 	);
@@ -1184,9 +1282,9 @@ function BattleButton({
 			type="button"
 			onClick={onClick}
 			style={{
-				padding: '6px 12px',
+				padding: '8px 14px',
 				fontFamily: 'monospace',
-				fontSize: 12,
+				fontSize: 13,
 				color: '#e6ebf5',
 				background: 'rgba(40,20,60,0.85)',
 				border: '1px solid #6ea8ff',
