@@ -311,6 +311,11 @@ export default defineConfig({
 					items: [{ autogenerate: { directory: 'market' } }],
 				},
 				{
+					label: 'Store',
+					collapsed: true,
+					items: [{ autogenerate: { directory: 'store' } }],
+				},
+				{
 					label: 'Gaming',
 					collapsed: true,
 					items: [

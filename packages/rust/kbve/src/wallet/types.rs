@@ -318,6 +318,40 @@ pub struct MarketCancelListingRequest {
 }
 
 // ---------------------------------------------------------------------------
+// Store
+// ---------------------------------------------------------------------------
+
+/// Public catalog row. Matches `public.proxy_store_catalog_readonly`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreProductRow {
+    pub product_id: Uuid,
+    pub slug: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub price: i64,
+    pub currency: CurrencyKind,
+    pub asset_ref: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Caller-owned product. Matches `public.proxy_store_my_entitlements_readonly`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreEntitlementRow {
+    pub item_id: Uuid,
+    pub slug: String,
+    pub product_id: Uuid,
+    pub title: Option<String>,
+    pub granted_at: DateTime<Utc>,
+}
+
+/// Write-side payload for `public.proxy_store_buy`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreBuyRequest {
+    pub slug: String,
+    pub idempotency_key: Uuid,
+}
+
+// ---------------------------------------------------------------------------
 // Firecracker session billing
 // ---------------------------------------------------------------------------
 

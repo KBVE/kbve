@@ -133,6 +133,10 @@ impl Modify for SecurityAddon {
         crate::transport::market::place_bid,
         crate::transport::market::buy_now,
         crate::transport::market::cancel_listing,
+        // store
+        crate::transport::store::list_products,
+        crate::transport::store::my_entitlements,
+        crate::transport::store::buy,
         // mc-lot — user surface
         crate::transport::mc_lot::list_schematics,
         crate::transport::mc_lot::list_vacant,
@@ -209,6 +213,11 @@ impl Modify for SecurityAddon {
             crate::transport::market::BuyNowBody,
             crate::transport::market::CancelListingBody,
             crate::transport::market::MarketIdDto,
+            // store
+            crate::transport::store::StoreProductDto,
+            crate::transport::store::StoreEntitlementDto,
+            crate::transport::store::StoreBuyBody,
+            crate::transport::store::StoreItemDto,
             // mc-lot — DTOs
             crate::transport::mc_lot::SchematicDto,
             crate::transport::mc_lot::VacantLotDto,

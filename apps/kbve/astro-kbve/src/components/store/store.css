@@ -1,0 +1,125 @@
+.kbve-store {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+.kbve-store__header h1 {
+	margin: 0 0 0.25rem;
+}
+
+.kbve-store__header p {
+	margin: 0;
+	opacity: 0.8;
+	max-width: 46ch;
+}
+
+.kbve-store__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
+	gap: 1.25rem;
+}
+
+.kbve-store-card {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--sl-color-gray-5, #333);
+	border-radius: 14px;
+	overflow: hidden;
+	background: var(--sl-color-black, #101012);
+}
+
+.kbve-store-card--skeleton {
+	min-height: 420px;
+	animation: kbve-store-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes kbve-store-pulse {
+	0%, 100% { opacity: 0.55; }
+	50% { opacity: 0.9; }
+}
+
+.kbve-store-card__stage {
+	position: relative;
+	aspect-ratio: 1 / 1;
+	width: 100%;
+	background: radial-gradient(
+		circle at 50% 35%,
+		rgba(124, 58, 237, 0.28),
+		transparent 70%
+	);
+}
+
+.kbve-store-card__stage canvas {
+	display: block;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.kbve-store-card__stage[data-revealed='false'] canvas {
+	filter: blur(14px) saturate(0.6) brightness(0.7);
+}
+
+.kbve-store-card__lock {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	color: #e9d5ff;
+	background: rgba(10, 10, 12, 0.35);
+}
+
+.kbve-store-card__body {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	padding: 1rem 1.1rem 1.2rem;
+}
+
+.kbve-store-card__title {
+	margin: 0;
+	font-size: 1.15rem;
+}
+
+.kbve-store-card__desc {
+	margin: 0;
+	font-size: 0.9rem;
+	opacity: 0.8;
+	min-height: 2.4em;
+}
+
+.kbve-store-card__error {
+	margin: 0;
+	font-size: 0.85rem;
+	color: #fca5a5;
+}
+
+.kbve-store-card__buy {
+	appearance: none;
+	border: 0;
+	border-radius: 9px;
+	padding: 0.6rem 1rem;
+	font-weight: 600;
+	font-size: 0.95rem;
+	cursor: pointer;
+	color: #1a1120;
+	background: linear-gradient(180deg, #fde68a, #f59e0b);
+	text-align: center;
+	text-decoration: none;
+}
+
+.kbve-store-card__buy:disabled {
+	opacity: 0.6;
+	cursor: progress;
+}
+
+.kbve-store-card__owned-badge {
+	align-self: flex-start;
+	padding: 0.35rem 0.7rem;
+	border-radius: 999px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: #bbf7d0;
+	background: rgba(34, 197, 94, 0.18);
+	border: 1px solid rgba(34, 197, 94, 0.4);
+}
