@@ -119,22 +119,17 @@ const product = {
 					},
 				]
 			: []),
+		...(item.value !== null && item.value !== undefined
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Value (gp)',
+						value: item.value,
+						unitText: 'gp',
+					},
+				]
+			: []),
 	],
-	offers: {
-		'@type': 'Offer',
-		url: GE_URL,
-		priceCurrency: 'GP',
-		price: item.value,
-		availability:
-			item.properties?.tradeable_ge === false
-				? 'https://schema.org/InStoreOnly'
-				: 'https://schema.org/InStock',
-		itemCondition: 'https://schema.org/NewCondition',
-		seller: {
-			'@type': 'Organization',
-			name: 'Grand Exchange',
-		},
-	},
 	sameAs: [WIKI_URL, GE_URL],
 };
 
