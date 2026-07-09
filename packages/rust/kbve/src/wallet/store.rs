@@ -163,12 +163,20 @@ fn map_order(r: OrderRowDb) -> StoreOrderRow {
     }
 }
 
-async fn my_orders_async(conn: &mut AsyncPgConnection) -> Result<Vec<StoreOrderRow>> {
+async fn my_orders_async(
+    conn: &mut AsyncPgConnection,
+    limit: i32,
+    before_created_at: Option<DateTime<Utc>>,
+    before_id: Option<i64>,
+) -> Result<Vec<StoreOrderRow>> {
     let rows: Vec<OrderRowDb> = sql_query(
         "SELECT order_id, product_id, variant_id, qty, credits_amount, \
                 status::text AS status, tracking, created_at, updated_at \
-         FROM public.proxy_store_my_orders_readonly()",
+         FROM public.proxy_store_my_orders_readonly($1, $2, $3)",
     )
+    .bind::<diesel::sql_types::Integer, _>(limit)
+    .bind::<Nullable<Timestamptz>, _>(before_created_at)
+    .bind::<Nullable<diesel::sql_types::BigInt>, _>(before_id)
     .get_results(conn)
     .await
     .map_err(WalletError::from_diesel)?;
@@ -356,32 +364,56 @@ impl WalletClient {
             .await
     }
 
-    pub async fn store_my_orders(&self, user_id: Uuid) -> Result<Vec<StoreOrderRow>> {
-        match self.read_my_orders(user_id).await {
+    pub async fn store_my_orders(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+        before_created_at: Option<DateTime<Utc>>,
+        before_id: Option<i64>,
+    ) -> Result<Vec<StoreOrderRow>> {
+        match self
+            .read_my_orders(user_id, limit, before_created_at, before_id)
+            .await
+        {
             Ok(rows) => Ok(rows),
-            Err(WalletError::AccountMissing) => self.write_my_orders(user_id).await,
+            Err(WalletError::AccountMissing) => {
+                self.write_my_orders(user_id, limit, before_created_at, before_id)
+                    .await
+            }
             Err(e) => Err(e),
         }
     }
 
-    async fn read_my_orders(&self, user_id: Uuid) -> Result<Vec<StoreOrderRow>> {
+    async fn read_my_orders(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+        before_created_at: Option<DateTime<Utc>>,
+        before_id: Option<i64>,
+    ) -> Result<Vec<StoreOrderRow>> {
         let mut conn = self.read().await?;
         let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<StoreOrderRow>, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
-                my_orders_async(conn).await
+                my_orders_async(conn, limit, before_created_at, before_id).await
             })
             .await
     }
 
-    async fn write_my_orders(&self, user_id: Uuid) -> Result<Vec<StoreOrderRow>> {
+    async fn write_my_orders(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+        before_created_at: Option<DateTime<Utc>>,
+        before_id: Option<i64>,
+    ) -> Result<Vec<StoreOrderRow>> {
         let mut conn = self.write().await?;
         let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<StoreOrderRow>, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
-                my_orders_async(conn).await
+                my_orders_async(conn, limit, before_created_at, before_id).await
             })
             .await
     }

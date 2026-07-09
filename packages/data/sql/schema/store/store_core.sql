@@ -129,19 +129,24 @@ CREATE TABLE store.order (
 
 -- store.service_buy_physical(account, variant_id, qty, shipping_address, key)
 --   RETURNS BIGINT (order_id). Advisory lock on (account:variant); idempotent
---   on store.order.idempotency_key; validates active variant/product +
---   fulfillment in (physical,both); atomic finite-stock decrement (P1020 out
---   of stock); wallet.service_debit (53100 insufficient); 'both' mints a
---   one-per-account digital twin; inserts paid order + event.
--- public.proxy_store_buy_physical(variant_id, qty, address, key) -> BIGINT
---   authenticated wrapper (resolves caller account).
--- public.proxy_store_my_orders_readonly() -> caller orders.
+--   on store.order.idempotency_key AND validates the replay payload matches
+--   (account/variant/qty) — mismatched reuse raises 40001. qty capped at 1000
+--   + overflow-guarded. Locks the variant row FOR UPDATE (price/stock stable
+--   vs admin edits). fulfillment must be physical|both; atomic finite-stock
+--   decrement (P1020); wallet.service_debit (53100); 'both' mints a
+--   one-per-account twin; inserts paid order + event.
+-- public.proxy_store_buy_physical(variant_id, qty, address, key) -> BIGINT.
+-- public.proxy_store_my_orders_readonly(limit, before_created_at, before_id)
+--   -> caller orders, keyset-paginated.
 
 -- Fulfillment (service_role; transport gates staff):
--- store.service_advance_order(order_id, to_status, tracking, note) — validates
---   paid→processing→shipped→delivered, *→cancelled.
--- store.service_refund_order(order_id, reason) — wallet.service_credit('refund'),
---   restore finite stock, consume twin; idempotent when already refunded.
+-- store.service_advance_order(order_id, to_status, tracking, note) — FORWARD
+--   only: paid→processing→shipped→delivered. Cancellation = refund (below),
+--   so advance never strands a paid order in 'cancelled'.
+-- store.service_refund_order(order_id, reason) — allowed from paid/processing/
+--   shipped/delivered; idempotent when already refunded/cancelled. Credits
+--   back via wallet.service_credit('refund') with a DETERMINISTIC key
+--   (md5('store_refund:'||order_id)), restores finite stock, consumes twin.
 -- store.service_list_orders(status, limit, before_id) — staff order queue.
 
 -- ============================================================================
@@ -163,11 +168,15 @@ CREATE TABLE store.topup (
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- store.topup also has a partial UNIQUE(stripe_session_id) so a Checkout
+-- Session never credits twice even across distinct event ids.
 -- store.service_apply_topup(user_id, stripe_event_id, stripe_session_id,
 --   credits, amount_cents, currency_fiat) -> BIGINT (ledger_id). service_role.
---   Idempotent on stripe_event_id; resolves account from user_id; credits via
---   wallet.service_credit(source_kind='topup'). The Axum webhook (signature-
---   verified) is the only caller.
+--   Advisory-locked on the event id + re-check; idempotent on stripe_event_id;
+--   resolves account from user_id; credits via wallet.service_credit('topup')
+--   with a DETERMINISTIC key (md5('store_topup:'||event_id)). The Axum webhook
+--   (signature-verified) is the only caller, and re-derives credits from the
+--   server-side pack table — never from round-tripped metadata.
 
 -- ============================================================================
 -- Phase 4: print-on-demand (dbmate 20260709180000_store_pod)
@@ -176,5 +185,6 @@ CREATE TABLE store.topup (
 -- store.order gains: pod_ref JSONB DEFAULT '{}' (provider external id/status).
 -- store.service_attach_pod_ref(order_id, pod_ref) — records external ref + event.
 -- store.service_order_for_pod(order_id) -> JSONB — address + sku + qty payload
---   the Axum POD adapter needs to place a fulfillment order. POD shipment
---   webhooks call store.service_advance_order(..., 'shipped', tracking).
+--   the Axum POD adapter needs. Only a paid|processing physical|both order is
+--   eligible; anything else raises P1001. POD shipment webhooks call
+--   store.service_advance_order(..., 'shipped', tracking).

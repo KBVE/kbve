@@ -42,7 +42,7 @@ GRANT USAGE ON SCHEMA store TO service_role;
 -- pgcrypto aliases it, so qualifying would be the more fragile choice.
 CREATE TABLE store.product (
     product_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    slug        TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9][a-z0-9-]{1,62}$'),
+    slug        TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9][a-z0-9-]{0,62}$'),
     title       TEXT NOT NULL CHECK (length(title) BETWEEN 1 AND 128),
     description TEXT,
     -- price >= 0: 0 is a valid free product; store.service_buy skips the
@@ -61,7 +61,8 @@ CREATE TABLE store.product (
                 CHECK (jsonb_typeof(asset_ref) = 'object'),
     status      TEXT NOT NULL DEFAULT 'active'
                 CHECK (status IN ('active', 'hidden', 'retired')),
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX store_product_active_idx

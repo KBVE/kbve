@@ -1,9 +1,9 @@
 -- migrate:up
 
--- Phase 1: product variants + variant-aware catalog/detail. A variant is a
--- concrete SKU of a product (e.g. shirt size L / black) priced in credits with
--- optional finite stock. Digital products need no variant; physical/both
--- products sell variants.
+-- Phase 1: product variants + variant-aware catalog/detail + staff admin RPCs.
+-- A variant is a concrete SKU of a product (e.g. shirt size L / black) priced
+-- in credits (denominated in the parent product's currency) with optional
+-- finite stock. Digital products need no variant; physical/both sell variants.
 
 DO $$
 BEGIN
@@ -16,13 +16,11 @@ $$;
 CREATE TABLE store.product_variant (
     variant_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     product_id  UUID NOT NULL REFERENCES store.product(product_id) ON DELETE CASCADE,
-    sku         TEXT NOT NULL UNIQUE CHECK (sku ~ '^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$'),
+    sku         TEXT NOT NULL UNIQUE CHECK (sku ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$'),
     attributes  JSONB NOT NULL DEFAULT '{}'::jsonb
                 CHECK (jsonb_typeof(attributes) = 'object'),
-    price       BIGINT NOT NULL CHECK (price >= 0),
-    -- NULL stock = unlimited (digital / print-on-demand). Finite stock is
-    -- decremented atomically at purchase and can never go negative.
-    stock       BIGINT CHECK (stock IS NULL OR stock >= 0),
+    price       BIGINT NOT NULL CHECK (price >= 0),   -- credits (parent currency)
+    stock       BIGINT CHECK (stock IS NULL OR stock >= 0),   -- NULL = unlimited
     status      TEXT NOT NULL DEFAULT 'active'
                 CHECK (status IN ('active', 'hidden', 'retired')),
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -34,13 +32,16 @@ CREATE INDEX store_product_variant_active_idx
     WHERE status = 'active';
 
 COMMENT ON TABLE store.product_variant IS
-    'Concrete purchasable SKUs of a store.product. Priced in credits. NULL stock = unlimited.';
+    'Concrete purchasable SKUs of a store.product. Priced in credits (parent product currency). NULL stock = unlimited.';
 
 -- ============================================================================
--- public.proxy_store_catalog_readonly — replace to add fulfillment + count.
+-- Catalog / detail read proxies. DROP first: the Phase 0 catalog function has
+-- a narrower RETURNS TABLE, and CREATE OR REPLACE cannot change return columns.
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION public.proxy_store_catalog_readonly()
+DROP FUNCTION IF EXISTS public.proxy_store_catalog_readonly();
+
+CREATE FUNCTION public.proxy_store_catalog_readonly()
 RETURNS TABLE (
     product_id    UUID,
     slug          TEXT,
@@ -70,10 +71,6 @@ $$;
 ALTER FUNCTION public.proxy_store_catalog_readonly() OWNER TO service_role;
 REVOKE ALL ON FUNCTION public.proxy_store_catalog_readonly() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.proxy_store_catalog_readonly() TO anon, authenticated, service_role;
-
--- ============================================================================
--- public.proxy_store_product_detail_readonly — product + active variants.
--- ============================================================================
 
 CREATE OR REPLACE FUNCTION public.proxy_store_product_detail_readonly(p_slug TEXT)
 RETURNS TABLE (
@@ -113,13 +110,137 @@ ALTER FUNCTION public.proxy_store_product_detail_readonly(TEXT) OWNER TO service
 REVOKE ALL ON FUNCTION public.proxy_store_product_detail_readonly(TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.proxy_store_product_detail_readonly(TEXT) TO anon, authenticated, service_role;
 
+-- ============================================================================
+-- Staff admin RPCs. service_role-only; the Axum transport enforces
+-- forum.is_staff before calling. No public/PostgREST wrappers.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION store.service_upsert_product(
+    p_slug        TEXT,
+    p_title       TEXT,
+    p_description TEXT,
+    p_price       BIGINT,
+    p_fulfillment TEXT,
+    p_asset_ref   JSONB,
+    p_status      TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_id UUID;
+BEGIN
+    INSERT INTO store.product (slug, title, description, price, fulfillment, asset_ref, status)
+    VALUES (p_slug, p_title, p_description, p_price,
+            COALESCE(p_fulfillment, 'digital'),
+            COALESCE(p_asset_ref, '{}'::jsonb),
+            COALESCE(p_status, 'active'))
+    ON CONFLICT (slug) DO UPDATE
+        SET title       = excluded.title,
+            description = excluded.description,
+            price       = excluded.price,
+            fulfillment = excluded.fulfillment,
+            asset_ref   = excluded.asset_ref,
+            status      = excluded.status,
+            updated_at  = now()
+    RETURNING product_id INTO v_id;
+    RETURN v_id;
+END;
+$$;
+ALTER FUNCTION store.service_upsert_product(TEXT, TEXT, TEXT, BIGINT, TEXT, JSONB, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_upsert_product(TEXT, TEXT, TEXT, BIGINT, TEXT, JSONB, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_upsert_product(TEXT, TEXT, TEXT, BIGINT, TEXT, JSONB, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION store.service_set_product_status(
+    p_product_id UUID,
+    p_status     TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+    UPDATE store.product SET status = p_status, updated_at = now()
+     WHERE product_id = p_product_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'store product % not found', p_product_id USING ERRCODE = 'P1001';
+    END IF;
+END;
+$$;
+ALTER FUNCTION store.service_set_product_status(UUID, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_set_product_status(UUID, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_set_product_status(UUID, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION store.service_upsert_variant(
+    p_product_id UUID,
+    p_sku        TEXT,
+    p_attributes JSONB,
+    p_price      BIGINT,
+    p_stock      BIGINT,
+    p_status     TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_id UUID;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM store.product WHERE product_id = p_product_id) THEN
+        RAISE EXCEPTION 'store product % not found', p_product_id USING ERRCODE = 'P1001';
+    END IF;
+    -- sku is globally unique; reject reusing one that belongs to another
+    -- product (ON CONFLICT (sku) would otherwise silently keep the old
+    -- product_id and mask the mistake).
+    IF EXISTS (SELECT 1 FROM store.product_variant
+                WHERE sku = p_sku AND product_id <> p_product_id) THEN
+        RAISE EXCEPTION 'sku % already belongs to another product', p_sku
+            USING ERRCODE = '23505';
+    END IF;
+    INSERT INTO store.product_variant (product_id, sku, attributes, price, stock, status)
+    VALUES (p_product_id, p_sku,
+            COALESCE(p_attributes, '{}'::jsonb),
+            p_price, p_stock,
+            COALESCE(p_status, 'active'))
+    ON CONFLICT (sku) DO UPDATE
+        SET attributes = excluded.attributes,
+            price      = excluded.price,
+            stock      = excluded.stock,
+            status     = excluded.status,
+            updated_at = now()
+    RETURNING variant_id INTO v_id;
+    RETURN v_id;
+END;
+$$;
+ALTER FUNCTION store.service_upsert_variant(UUID, TEXT, JSONB, BIGINT, BIGINT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_upsert_variant(UUID, TEXT, JSONB, BIGINT, BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_upsert_variant(UUID, TEXT, JSONB, BIGINT, BIGINT, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION store.service_set_variant_status(
+    p_variant_id UUID,
+    p_status     TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+    UPDATE store.product_variant SET status = p_status, updated_at = now()
+     WHERE variant_id = p_variant_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'store variant % not found', p_variant_id USING ERRCODE = 'P1001';
+    END IF;
+END;
+$$;
+ALTER FUNCTION store.service_set_variant_status(UUID, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_set_variant_status(UUID, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_set_variant_status(UUID, TEXT) TO service_role;
+
 NOTIFY pgrst, 'reload schema';
 
 -- migrate:down
 
+DROP FUNCTION IF EXISTS store.service_set_variant_status(UUID, TEXT);
+DROP FUNCTION IF EXISTS store.service_upsert_variant(UUID, TEXT, JSONB, BIGINT, BIGINT, TEXT);
+DROP FUNCTION IF EXISTS store.service_set_product_status(UUID, TEXT);
+DROP FUNCTION IF EXISTS store.service_upsert_product(TEXT, TEXT, TEXT, BIGINT, TEXT, JSONB, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_store_product_detail_readonly(TEXT);
+DROP FUNCTION IF EXISTS public.proxy_store_catalog_readonly();
 
-CREATE OR REPLACE FUNCTION public.proxy_store_catalog_readonly()
+CREATE FUNCTION public.proxy_store_catalog_readonly()
 RETURNS TABLE (
     product_id  UUID,
     slug        TEXT,

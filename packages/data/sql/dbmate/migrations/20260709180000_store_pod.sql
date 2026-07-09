@@ -41,10 +41,15 @@ ALTER FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) OWNER TO service_role
 REVOKE ALL ON FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) TO service_role;
 
--- Order payload the POD adapter needs to place a fulfillment order.
+-- Order payload the POD adapter needs to place a fulfillment order. Only a
+-- fulfillable physical/both order in paid|processing is eligible; anything
+-- else raises so a bad adapter call can't submit an invalid order.
 CREATE OR REPLACE FUNCTION store.service_order_for_pod(p_order_id BIGINT)
 RETURNS JSONB
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_payload JSONB;
+BEGIN
     SELECT jsonb_build_object(
         'order_id',         o.order_id,
         'qty',              o.qty,
@@ -56,10 +61,19 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
         'product_slug',     p.slug,
         'product_title',    p.title
     )
+      INTO v_payload
       FROM store.order o
       JOIN store.product p ON p.product_id = o.product_id
       LEFT JOIN store.product_variant v ON v.variant_id = o.variant_id
-     WHERE o.order_id = p_order_id;
+     WHERE o.order_id = p_order_id
+       AND o.status IN ('paid', 'processing')
+       AND p.fulfillment IN ('physical', 'both');
+    IF v_payload IS NULL THEN
+        RAISE EXCEPTION 'order % not eligible for POD fulfillment', p_order_id
+            USING ERRCODE = 'P1001';
+    END IF;
+    RETURN v_payload;
+END;
 $$;
 ALTER FUNCTION store.service_order_for_pod(BIGINT) OWNER TO service_role;
 REVOKE ALL ON FUNCTION store.service_order_for_pod(BIGINT) FROM PUBLIC, anon, authenticated;

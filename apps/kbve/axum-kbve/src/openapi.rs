@@ -242,6 +242,7 @@ impl Modify for SecurityAddon {
             crate::transport::store::OrderIdDto,
             crate::transport::store::AdvanceOrderBody,
             crate::transport::store::RefundOrderBody,
+            crate::transport::store::MyOrdersQuery,
             crate::transport::topup::CheckoutBody,
             crate::transport::topup::CheckoutDto,
             crate::transport::pod::PodSubmitDto,

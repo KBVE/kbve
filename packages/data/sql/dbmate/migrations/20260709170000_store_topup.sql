@@ -31,6 +31,11 @@ CREATE TABLE store.topup (
 
 CREATE INDEX store_topup_account_idx ON store.topup (account_id, created_at DESC);
 
+-- A Checkout Session must never credit twice, even across distinct event ids.
+CREATE UNIQUE INDEX store_topup_stripe_session_uq
+    ON store.topup (stripe_session_id)
+    WHERE stripe_session_id IS NOT NULL;
+
 COMMENT ON TABLE store.topup IS
     'Stripe credit purchases. Idempotent on stripe_event_id. Credits the wallet via wallet.service_credit(source_kind=topup).';
 
@@ -58,7 +63,12 @@ BEGIN
             USING ERRCODE = '22004';
     END IF;
 
-    -- Idempotent replay: this Stripe event already applied.
+    -- Serialize concurrent webhook deliveries for this event so the losing
+    -- delivery returns the existing ledger id idempotently instead of hitting
+    -- the unique constraint and rolling back.
+    PERFORM pg_advisory_xact_lock(hashtextextended('store.topup:' || p_stripe_event_id, 0));
+
+    -- Idempotent replay: this Stripe event already applied (re-checked under lock).
     SELECT ledger_id INTO v_existing
       FROM store.topup WHERE stripe_event_id = p_stripe_event_id;
     IF FOUND THEN
@@ -71,6 +81,9 @@ BEGIN
         RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
     END IF;
 
+    -- Deterministic wallet idempotency key derived from the Stripe event, so
+    -- the wallet ledger itself dedupes a topup even if this proc is retried
+    -- outside the advisory-lock window.
     v_ledger_id := wallet.service_credit(
         v_account,
         'credits'::wallet.currency_kind,
@@ -79,7 +92,7 @@ BEGIN
         'stripe credit topup',
         'stripe_session',
         NULL,
-        gen_random_uuid()
+        md5('store_topup:' || p_stripe_event_id)::uuid
     );
 
     INSERT INTO store.topup (

@@ -25,7 +25,7 @@ use super::wallet::{resolve_user, service_unavailable, wallet_error_response};
 use crate::db::{get_forum_service, get_wallet_client};
 
 /// Gate a staff-only route. Mirrors transport/mc_lot.rs::require_staff.
-async fn require_staff(headers: &HeaderMap) -> Result<String, Response> {
+pub(crate) async fn require_staff(headers: &HeaderMap) -> Result<String, Response> {
     let user_id = auth_user_id(headers).await?;
     let svc = get_forum_service().ok_or_else(|| {
         (
@@ -534,6 +534,13 @@ pub(crate) struct StaffOrdersQuery {
     pub before_id: Option<i64>,
 }
 
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct MyOrdersQuery {
+    pub limit: Option<i32>,
+    pub before_created_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub before_id: Option<i64>,
+}
+
 fn json_obj(v: serde_json::Value) -> serde_json::Value {
     if v.is_null() {
         serde_json::json!({})
@@ -589,6 +596,11 @@ pub(crate) async fn buy_physical(
     get,
     path = "/api/v1/store/me/orders",
     tag = "store",
+    params(
+        ("limit" = Option<i32>, Query, description = "Page size (1-100, default 50)"),
+        ("before_created_at" = Option<String>, Query, description = "Keyset cursor: last created_at (RFC3339)"),
+        ("before_id" = Option<i64>, Query, description = "Keyset cursor: last order_id"),
+    ),
     responses(
         (status = 200, description = "Caller's orders", body = [StoreOrderDto]),
         (status = 401, description = "Missing / invalid bearer token"),
@@ -596,7 +608,7 @@ pub(crate) async fn buy_physical(
     ),
     security(("bearerAuth" = [])),
 )]
-pub(crate) async fn my_orders(headers: HeaderMap) -> Response {
+pub(crate) async fn my_orders(headers: HeaderMap, Query(q): Query<MyOrdersQuery>) -> Response {
     let user_id = match resolve_user(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -605,7 +617,15 @@ pub(crate) async fn my_orders(headers: HeaderMap) -> Response {
         Some(c) => c,
         None => return service_unavailable(),
     };
-    match client.store_my_orders(user_id).await {
+    match client
+        .store_my_orders(
+            user_id,
+            q.limit.unwrap_or(50).clamp(1, 100),
+            q.before_created_at,
+            q.before_id,
+        )
+        .await
+    {
         Ok(rows) => Json(
             rows.into_iter()
                 .map(|r| StoreOrderDto {

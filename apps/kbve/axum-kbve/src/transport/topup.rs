@@ -105,6 +105,7 @@ pub(crate) async fn checkout(headers: HeaderMap, Json(body): Json<CheckoutBody>)
         ("line_items[0][price_data][unit_amount]", cents_str),
         ("line_items[0][price_data][product_data][name]", name),
         ("metadata[user_id]", user_str),
+        ("metadata[pack_id]", body.pack_id.clone()),
         ("metadata[credits]", credits_str),
     ];
 
@@ -234,10 +235,14 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
     let session_id = session.get("id").and_then(|s| s.as_str());
     let metadata = session.get("metadata").cloned().unwrap_or(json!({}));
     let user_id_str = metadata.get("user_id").and_then(|u| u.as_str());
+    // Credits are re-derived from the server-side pack table keyed by the
+    // pack_id we set at checkout — never trusted from the (round-tripped)
+    // metadata amount, so a webhook-layer bug can't grant arbitrary credits.
     let credits: i64 = metadata
-        .get("credits")
-        .and_then(|c| c.as_str())
-        .and_then(|c| c.parse().ok())
+        .get("pack_id")
+        .and_then(|p| p.as_str())
+        .and_then(pack)
+        .map(|(credits, _)| credits)
         .unwrap_or(0);
     let amount_cents = session
         .get("amount_total")
