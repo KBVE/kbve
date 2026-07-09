@@ -24,17 +24,23 @@ CREATE OR REPLACE FUNCTION store.service_attach_pod_ref(
 )
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_new    JSONB := COALESCE(p_pod_ref, '{}'::jsonb);
+    v_status store.order_status;
 BEGIN
-    UPDATE store.order
-       SET pod_ref = COALESCE(p_pod_ref, '{}'::jsonb), updated_at = now()
-     WHERE order_id = p_order_id;
-    IF NOT FOUND THEN
+    IF NOT EXISTS (SELECT 1 FROM store.order WHERE order_id = p_order_id) THEN
         RAISE EXCEPTION 'order % not found', p_order_id USING ERRCODE = 'P1001';
     END IF;
-
-    INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
-    SELECT p_order_id, o.status, o.status, 'pod', 'pod_ref attached', COALESCE(p_pod_ref, '{}'::jsonb)
-      FROM store.order o WHERE o.order_id = p_order_id;
+    -- Idempotent: POD adapters/webhooks retry the same payload. Only write +
+    -- log an event when pod_ref actually changes.
+    UPDATE store.order
+       SET pod_ref = v_new, updated_at = now()
+     WHERE order_id = p_order_id AND pod_ref IS DISTINCT FROM v_new
+     RETURNING status INTO v_status;
+    IF FOUND THEN
+        INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+        VALUES (p_order_id, v_status, v_status, 'pod', 'pod_ref attached', v_new);
+    END IF;
 END;
 $$;
 ALTER FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) OWNER TO service_role;

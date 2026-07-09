@@ -403,6 +403,9 @@ ALTER FUNCTION store.service_refund_order(BIGINT, TEXT) OWNER TO service_role;
 REVOKE ALL ON FUNCTION store.service_refund_order(BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION store.service_refund_order(BIGINT, TEXT) TO service_role;
 
+-- Two explicit branches instead of `p_status IS NULL OR o.status = p_status`
+-- so the planner gets a clean plan for each: PK scan (all) or the
+-- (status, order_id DESC) index (by status).
 CREATE OR REPLACE FUNCTION store.service_list_orders(
     p_status    store.order_status,
     p_limit     INTEGER,
@@ -421,15 +424,31 @@ RETURNS TABLE (
     created_at       TIMESTAMPTZ,
     updated_at       TIMESTAMPTZ
 )
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
-    SELECT o.order_id, o.account_id, o.product_id, o.variant_id, o.qty,
-           o.credits_amount, o.status, o.shipping_address, o.tracking,
-           o.created_at, o.updated_at
-      FROM store.order o
-     WHERE (p_status IS NULL OR o.status = p_status)
-       AND (p_before_id IS NULL OR o.order_id < p_before_id)
-     ORDER BY o.order_id DESC
-     LIMIT LEAST(GREATEST(COALESCE(p_limit, 50), 1), 200);
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_limit INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 200);
+BEGIN
+    IF p_status IS NULL THEN
+        RETURN QUERY
+        SELECT o.order_id, o.account_id, o.product_id, o.variant_id, o.qty,
+               o.credits_amount, o.status, o.shipping_address, o.tracking,
+               o.created_at, o.updated_at
+          FROM store.order o
+         WHERE p_before_id IS NULL OR o.order_id < p_before_id
+         ORDER BY o.order_id DESC
+         LIMIT v_limit;
+    ELSE
+        RETURN QUERY
+        SELECT o.order_id, o.account_id, o.product_id, o.variant_id, o.qty,
+               o.credits_amount, o.status, o.shipping_address, o.tracking,
+               o.created_at, o.updated_at
+          FROM store.order o
+         WHERE o.status = p_status
+           AND (p_before_id IS NULL OR o.order_id < p_before_id)
+         ORDER BY o.order_id DESC
+         LIMIT v_limit;
+    END IF;
+END;
 $$;
 ALTER FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) OWNER TO service_role;
 ALTER FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) ROWS 100;

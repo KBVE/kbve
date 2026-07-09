@@ -63,6 +63,20 @@ BEGIN
             USING ERRCODE = '22004';
     END IF;
 
+    -- Session-level idempotency first: two distinct Stripe events can reference
+    -- the same Checkout Session (the thing that must not be credited twice).
+    -- Lock + check on the session so the duplicate returns the existing ledger
+    -- id instead of doing work and failing on store_topup_stripe_session_uq.
+    IF p_stripe_session_id IS NOT NULL THEN
+        PERFORM pg_advisory_xact_lock(
+            hashtextextended('store.topup.session:' || p_stripe_session_id, 0));
+        SELECT ledger_id INTO v_existing
+          FROM store.topup WHERE stripe_session_id = p_stripe_session_id;
+        IF FOUND THEN
+            RETURN v_existing;
+        END IF;
+    END IF;
+
     -- Serialize concurrent webhook deliveries for this event so the losing
     -- delivery returns the existing ledger id idempotently instead of hitting
     -- the unique constraint and rolling back.

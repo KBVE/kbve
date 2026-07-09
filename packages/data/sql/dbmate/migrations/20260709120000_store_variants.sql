@@ -181,11 +181,12 @@ CREATE OR REPLACE FUNCTION store.service_set_product_status(
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 BEGIN
-    UPDATE store.product SET status = p_status, updated_at = now()
-     WHERE product_id = p_product_id;
-    IF NOT FOUND THEN
+    IF NOT EXISTS (SELECT 1 FROM store.product WHERE product_id = p_product_id) THEN
         RAISE EXCEPTION 'store product % not found', p_product_id USING ERRCODE = 'P1001';
     END IF;
+    -- No-op guard: skip the write (and WAL / realtime churn) when unchanged.
+    UPDATE store.product SET status = p_status, updated_at = now()
+     WHERE product_id = p_product_id AND status IS DISTINCT FROM p_status;
 END;
 $$;
 ALTER FUNCTION store.service_set_product_status(UUID, TEXT) OWNER TO service_role;
@@ -249,11 +250,11 @@ CREATE OR REPLACE FUNCTION store.service_set_variant_status(
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 BEGIN
-    UPDATE store.product_variant SET status = p_status, updated_at = now()
-     WHERE variant_id = p_variant_id;
-    IF NOT FOUND THEN
+    IF NOT EXISTS (SELECT 1 FROM store.product_variant WHERE variant_id = p_variant_id) THEN
         RAISE EXCEPTION 'store variant % not found', p_variant_id USING ERRCODE = 'P1001';
     END IF;
+    UPDATE store.product_variant SET status = p_status, updated_at = now()
+     WHERE variant_id = p_variant_id AND status IS DISTINCT FROM p_status;
 END;
 $$;
 ALTER FUNCTION store.service_set_variant_status(UUID, TEXT) OWNER TO service_role;
