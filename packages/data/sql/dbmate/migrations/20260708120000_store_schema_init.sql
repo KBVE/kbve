@@ -22,6 +22,12 @@ $$;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
+-- private holds internal proxy helpers PostgREST never exposes. Normally
+-- created by the marketplace migration that runs before this one; guarded
+-- so this migration fails only on real dependency errors.
+CREATE SCHEMA IF NOT EXISTS private;
+GRANT USAGE ON SCHEMA private TO service_role;
+
 CREATE SCHEMA IF NOT EXISTS store;
 GRANT USAGE ON SCHEMA store TO service_role;
 
@@ -30,13 +36,22 @@ GRANT USAGE ON SCHEMA store TO service_role;
 --   A purchase mints inventory.item(kind='store_product', ref=slug).
 -- ============================================================================
 
+-- gen_random_uuid() is intentionally unqualified: it is a pg_catalog core
+-- function (PG13+) that resolves regardless of search_path, matching the
+-- inventory.item default. extensions.gen_random_uuid only exists when
+-- pgcrypto aliases it, so qualifying would be the more fragile choice.
 CREATE TABLE store.product (
     product_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     slug        TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9][a-z0-9-]{1,62}$'),
     title       TEXT NOT NULL CHECK (length(title) BETWEEN 1 AND 128),
     description TEXT,
+    -- price >= 0: 0 is a valid free product; store.service_buy skips the
+    -- debit for price 0 (wallet.service_debit rejects non-positive amounts).
     price       BIGINT NOT NULL CHECK (price >= 0),
     currency    wallet.currency_kind NOT NULL DEFAULT 'credits',
+    -- asset_ref is PUBLIC by contract: proxy_store_catalog_readonly returns
+    -- it to anon. Keep it client-safe (e.g. render descriptor); never store
+    -- internal asset paths, keys, or anti-cheat metadata here.
     asset_ref   JSONB NOT NULL DEFAULT '{}'::jsonb
                 CHECK (jsonb_typeof(asset_ref) = 'object'),
     status      TEXT NOT NULL DEFAULT 'active'
@@ -49,7 +64,15 @@ CREATE INDEX store_product_active_idx
     WHERE status = 'active';
 
 COMMENT ON TABLE store.product IS
-    'Store catalog. Fixed-price products. A purchase mints inventory.item(kind=store_product, ref=slug); ownership lives in inventory, not here.';
+    'Store catalog. Fixed-price products. A purchase mints inventory.item(kind=store_product, ref=slug); ownership lives in inventory, not here. asset_ref is public (anon-readable).';
+
+-- Hard invariant: at most one owned copy of a given store product per account.
+-- Backstops the ownership dupe-guard in store.service_buy against a
+-- concurrent double-mint race (both callers pass the SELECT check, both mint).
+-- The whole buy runs in one txn, so a losing INSERT here rolls back its debit.
+CREATE UNIQUE INDEX IF NOT EXISTS inventory_item_store_product_owned_uq
+    ON inventory.item (owner_account, ref)
+    WHERE kind = 'store_product' AND state IN ('held', 'listing_escrow');
 
 -- Seed the proof-of-concept product.
 INSERT INTO store.product (slug, title, description, price, currency, asset_ref)
@@ -120,6 +143,12 @@ BEGIN
             USING ERRCODE = '22004';
     END IF;
 
+    -- Serialize concurrent buys of the same (account, product) so the
+    -- ownership dupe-guard below is race-safe: the loser blocks here, then
+    -- sees the existing item and returns it idempotently instead of double
+    -- debiting. Taken BEFORE the debit. The unique index is the backstop.
+    PERFORM pg_advisory_xact_lock(hashtextextended(p_account::text || ':' || p_slug, 0));
+
     SELECT * INTO v_product
       FROM store.product
      WHERE slug = p_slug AND status = 'active';
@@ -140,16 +169,20 @@ BEGIN
         RETURN v_existing;
     END IF;
 
-    v_ledger_id := wallet.service_debit(
-        p_account,
-        v_product.currency,
-        v_product.price,
-        'purchase'::wallet.source_kind,
-        'store purchase: ' || v_product.slug,
-        'store_product:' || v_product.slug,
-        NULL,
-        p_idempotency_key
-    );
+    -- Free products (price 0) skip the debit: wallet.service_debit rejects
+    -- non-positive amounts. Paid products debit authoritatively.
+    IF v_product.price > 0 THEN
+        v_ledger_id := wallet.service_debit(
+            p_account,
+            v_product.currency,
+            v_product.price,
+            'purchase'::wallet.source_kind,
+            'store purchase: ' || v_product.slug,
+            'store_product:' || v_product.slug,
+            NULL,
+            p_idempotency_key
+        );
+    END IF;
 
     INSERT INTO inventory.item (
         owner_account, kind, ref, qty, nbt, state, source, source_ref
@@ -287,6 +320,7 @@ DROP FUNCTION IF EXISTS public.proxy_store_my_entitlements_readonly();
 DROP FUNCTION IF EXISTS public.proxy_store_catalog_readonly();
 DROP FUNCTION IF EXISTS store.service_buy(UUID, TEXT, UUID);
 DROP FUNCTION IF EXISTS private.proxy_store_caller_account();
+DROP INDEX IF EXISTS inventory.inventory_item_store_product_owned_uq;
 DROP TABLE IF EXISTS store.product;
 DROP SCHEMA IF EXISTS store;
 
