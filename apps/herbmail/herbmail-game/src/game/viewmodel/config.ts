@@ -59,6 +59,6 @@ export const ARM_IK = {
 	wristAlign: true,
 	fingerLocal: [0, 1, 0] as [number, number, number],
 	palmLocal: [-1, 0, 0] as [number, number, number],
-	debugAxes: true,
+	debugAxes: false,
 	debugLog: false,
 } as const;

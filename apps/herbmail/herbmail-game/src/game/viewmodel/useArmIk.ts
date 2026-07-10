@@ -381,20 +381,16 @@ export function useArmIk(
 		swingBone(forearm, w);
 
 		if (ARM_IK.wristAlign) {
+			// minimal-rotation swing: bring the palm onto the wall without
+			// forcing a finger-up basis (that was cranking the wrist).
 			s.nIn.copy(s.normal).multiplyScalar(-1);
-			s.up.set(0, 1, 0).addScaledVector(s.nIn, -s.nIn.y);
-			if (s.up.lengthSq() < 1e-6) s.up.copy(s.wantF);
-			s.up.normalize();
-			s.thirdW.crossVectors(s.up, s.nIn).normalize();
-			s.thirdL.crossVectors(s.fingerL, s.palmL).normalize();
-			s.mW.makeBasis(s.nIn, s.up, s.thirdW);
-			s.mL.makeBasis(s.palmL, s.fingerL, s.thirdL);
-			s.mR.multiplyMatrices(s.mW, s.mL.transpose());
-			s.rQuat.setFromRotationMatrix(s.mR);
 			wrist.getWorldQuaternion(s.curWorld);
+			s.up.copy(s.palmL).applyQuaternion(s.curWorld).normalize();
+			s.swing.setFromUnitVectors(s.up, s.nIn);
+			s.desired.copy(s.swing).multiply(s.curWorld);
 			if (wrist.parent) wrist.parent.getWorldQuaternion(s.parentWorld);
 			else s.parentWorld.identity();
-			s.local.copy(s.parentWorld).invert().multiply(s.rQuat);
+			s.local.copy(s.parentWorld).invert().multiply(s.desired);
 			wrist.quaternion.slerp(s.local, w);
 			wrist.updateMatrixWorld(true);
 		}
