@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: ows-fleet-restart-token
+    namespace: rows
+spec:
+    encryptedData:
+        token: AgC5TexMj2vVZk9JTM2OajtQ6sQBJs3n9mvRW1+SmNwf8CppntF4xmqw6PvgNkxmDNvKT2FoCq+P5wtfQLNFm9JCKPwmjUtsS9l3ay0J67uqhZtvIQaMOgk69qIN2zyc4blGTgYnv9/DU2MeGNKmLz7Zx44atNg3t8BhaWkghGLnTZyo6LGsKtr8jX6V5xWg+x7bytsOGyJoxKGQEcwtn6E4n/urKb8EkwtKU63FwmAWmvtIyoUBexmHaqrkSYsryBBEgSXvq211/SGSqSiRfYQhmCKb6pewmbie41vFs+X4CerTA1thCOW9woQYf9L7ONCkXdpGRU7X/dMrlMUuZLzlRMEobSu0Mkqo0unxugxMVDyeaQn30KihLOSWrlHSR4I2nzx8n7irhMB6nFCP26W2THSSH9DkECunPlrppbrnDbRsgwm6c8MAIvg0jRIP6xFYkLNsh99oeUgaqh73Gq5yLNXy6fc9njj4LdGVHdMAkpAC8tFl3w3TL/xPpoF92FTv6GJEe9RIWOJHfyyd7Eind8VaNxNcxQBWYNw3koElvVT9RPuu1tWgByQB9PsCcQvGS+/tTrgrCrOY4EVE8X1Vn8VVGv+bs6wj6uiN5Jt/g0vuWLHQ9ywcrvHv/uL9vhmJLk9aHwJXsVUb7fUDwI2FYEdrFB4lEH8HattIXq2yJ6Pf3sdbHhna9CzDAM5dXEZMPcKTq3N9sgNhAU0W+0Qg9CMkyw5JtRWWjE7rCptwb7W5WVOpu50Dy6rQnmTKygklPs/wUxByy7x7D8UVjJuT
+    template:
+        metadata:
+            name: ows-fleet-restart-token
+            namespace: rows

@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: rows-fleet-restart-token
+    namespace: rows-chuckrpg-beta
+spec:
+    encryptedData:
+        token: AgCp+lj9e5bCx9rGZZmZpmw55EZGD8fBv9n60EYSyybDb6O2fw7vLRJbeltcDIzCzBOIHC6QEPXDT4xm6YONUwRBibq9uQxpxWGRqGWwWQLELprGwF/PFoAtTMmasI1iN/ZDjlciWrUtt/V9n/HXunZwLBSRItsqbgtEFlO+sCJ5IbfvrYEyVCY0HpGFOr1GupbQ8zzGyLMeYLsPJuX6CZRCaam469K8pSPkkLgoSTq3HslQ9biwRrunV/7kuPF9sICw87gg0Vmk/6uDbHzQyaBiXmU4C8dL4S2D5qG3hMaGY9JeuO72Dmyel5l0P4oDseuSG1gl2TwAC0Ti0XeO7aqyBJYv/x3Z9m4VvX1LBtSVLcNETfD6ti7cN/HC2/ncHZZFVxuNxKY/yjtCxali1Sn5EdIDZ9Rsdlg00hRwdk7XzuEp4rOz5MsSKKD65w1FYM7bIeeLYHf8thT8R2O3yPwecmOSbPCepWvuQ5sS8LFN66F3EkeM/8Es5lIEwBxyal2nTTIhNqCKBcwdf2aScBJq1lidy+v1y8Z8B5dqMbFxCqsV3wj0G9Ifwjm95fgBOBVZBsqzqy3XYZf10VGHgVS1oMhEfa1ZS0DX4FRgdqJDqjihut5rIfwfZx9xRjrkhhGe3ZnPS6e62+1Yby4tETebV5is0XM+Fi0eRGwU/5nPcy3hNd/vTkGRz1v+p+ro7boHSvszYB0P0SDNfT54Sj0B8LkwUltKAeo176Z+HWxxwT9cK0XQxz9o/S7Fv7jSaUI9VzS+U58zu+dOodY/2MID
+    template:
+        metadata:
+            name: rows-fleet-restart-token
+            namespace: rows-chuckrpg-beta

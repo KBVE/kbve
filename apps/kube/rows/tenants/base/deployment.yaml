@@ -72,6 +72,15 @@ spec:
                                 name: rows-supabase-service-key
                                 key: hash
                                 optional: true
+                      # Gateway-held bearer token gating POST /fleet-restart/trigger (and, once
+                      # set, the legacy RestartFleet). GameServers must NOT receive this value.
+                      # optional so a missing secret can't block rollout — the trigger just 401s.
+                      - name: ROWS_FLEET_RESTART_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-fleet-restart-token
+                                key: token
+                                optional: true
                       - name: SUPABASE_URL
                         value: 'https://supabase.kbve.com'
                       - name: AGONES_NAMESPACE
