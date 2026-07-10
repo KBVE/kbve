@@ -1,7 +1,7 @@
 ---
-title: Unity RareIcon
-description: |
-    RareIcon Unity client — DOTS hex world, Burst-driven sim, ships to itch.io as Win/Linux/macOS standalone and to Steam (AppID 2238370) as a demo.
+title: Unity RareIcon — DOTS Hex-World Game Client
+description: RareIcon is a Unity DOTS hex-world game client with a Burst-driven simulation, shipping to itch.io as Win/Linux/macOS standalone and to Steam as a demo.
+sem: 1
 sidebar:
     label: Unity RareIcon
     order: 96
@@ -20,6 +20,20 @@ author: h0lybyte
 license: KBVE
 status: beta
 homepage_url: https://kbve.itch.io/rareicon
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is Unity RareIcon?
+          answer: RareIcon is a KBVE game client built in Unity using the DOTS ECS. It runs a Burst-driven hex-world simulation covering hex tiles, items, logistics, buildings, units, combat, professions, and quests.
+        - question: Where does RareIcon ship?
+          answer: RareIcon ships to itch.io as a Windows, Linux, and macOS standalone build, and to Steam, where it has a demo app (AppID 3791950) and a main app (AppID 2238370).
+        - question: How is RareIcon built in CI?
+          answer: It uses the unity pipeline; ci-main.yml dispatches to ci-unity.yml whenever the MDX version outpaces version.toml. The engine build targets are StandaloneLinux64, StandaloneWindows64, StandaloneOSX, Android, and iOS.
 engine:
     version: "6000.3.10f1"
     project_path: apps/rareicon/unity-rareicon
@@ -41,11 +55,74 @@ external_publish:
         - app_id: "2238370"
           label: main
           branch: beta
+bento:
+    badge: unity · game · rareicon
+    title: DOTS hex-world game client
+    accent: RareIcon
+    lede: >-
+        A Unity DOTS hex-world game client with a Burst-driven simulation —
+        shipping to itch.io as Win/Linux/macOS standalone and to Steam as a demo.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/rareicon/unity-rareicon
+          primary: true
+          external: true
+        - label: Build
+          href: "#build"
+        - label: itch.io
+          href: https://kbve.itch.io/rareicon
+          external: true
+    aside:
+        icon: package
+        title: Two destinations, one build
+        body: >-
+            The same ci-unity.yml run reads external_publish to pick which
+            post-build deploy fires — itch.io standalone or Steam.
+        points:
+            - <strong>itch.io</strong> — Win/Linux/macOS standalone builds.
+            - <strong>Steam</strong> — demo (AppID 3791950) + main (AppID 2238370).
+    stats:
+        - { label: Engine, value: Unity DOTS, icon: box }
+        - { label: Pipeline, value: unity, icon: gears }
+        - { label: Ships to, value: 'itch.io + Steam', icon: package }
+        - { label: Status, value: beta, icon: activity }
+    features:
+        - title: ECS DOTS world
+          icon: box
+          body: A Burst-driven hex-world simulation covering hex tiles, items, logistics, buildings, units, combat, professions, and quests.
+        - title: Standalone-only Steam
+          icon: shield
+          body: Steam integration is locked to standalone via RareIcon.Platform.asmdef plus a SteamPluginPlatformGate editor hook, so mobile builds compile without seeing Steamworks types.
+        - title: Two publish destinations
+          icon: package
+          body: One build ships to itch.io as Win/Linux/macOS standalone and to Steam with a demo and main app.
+        - title: Manifest-driven CI
+          icon: gears
+          body: The unity pipeline dispatches ci-main.yml to ci-unity.yml whenever the MDX version outpaces version.toml.
+    related:
+        - title: CryptoThrone.com
+          href: /project/cryptothrone/
+          copy: Another KBVE game client.
+          icon: crown
+        - title: Metrics
+          href: /project/metrics/
+          copy: Observability pipeline that ingests telemetry from Unity clients.
+          icon: chart
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="The client" heading="Overview">
 
 RareIcon Unity client. Source: `apps/rareicon/unity-rareicon`. ECS DOTS world (Hex / Items / Logistics / Buildings / Units / Combat / Professions / Quests).
+
+</BentoProse>
+
+<BentoProse id="build" eyebrow="Pipeline & CI" heading="Build, publish & release">
 
 ## Pipeline
 
@@ -95,3 +172,7 @@ The same `ci-unity.yml` run can target either route — the workflow reads `exte
 ## Trigger
 
 Tag-driven via the standard manifest dispatch. Bump `version` here, run `npx nx run astro-kbve:sync:ci-manifest`, commit, the next push fans `ci-main.yml` → `ci-unity.yml` for this entry.
+
+</BentoProse>
+
+</BentoDoc>

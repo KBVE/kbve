@@ -1,5 +1,6 @@
 ---
 title: Blue Stained Glass
+template: splash
 description: |
     Minecraft Blue Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 512
     ref: blue_stained_glass
     slug: blue-stained-glass
+    content_rev: 1
     display_name: Blue Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Blue Stained Glass is a transparent decorative block made by surrounding blue dye with eight glass blocks, producing eight tinted panes of glass per craft. It lets light pass through while adding color, making it popular for windows, skylights, and beacon effects. Stacking it above a beacon tints the beam blue, and mixing colors blends the beam's hue.
+        lore: |
+            Sand and flame fused into a pane of sky, stained the color of deep water.
+    faq:
+        - question: |
+            How do you craft Blue Stained Glass?
+          answer: |
+            Place eight glass blocks around a single blue dye in the crafting grid to produce eight blue stained glass blocks.
+        - question: |
+            Does Blue Stained Glass let light through?
+          answer: |
+            Yes. Like regular glass it is transparent and allows light to pass through, though it tints the view with its blue color.
+        - question: |
+            How do you recover Blue Stained Glass after breaking it?
+          answer: |
+            You must mine it with a Silk Touch enchanted tool; broken without Silk Touch it drops nothing.
+        - question: |
+            Can Blue Stained Glass color a beacon beam?
+          answer: |
+            Yes. Placing it above a beacon tints the beam blue, and layering multiple glass colors blends the resulting beam color.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

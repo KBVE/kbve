@@ -1,5 +1,6 @@
 ---
 title: Respawn Anchor
+template: splash
 description: |
     Minecraft Respawn Anchor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 877
     ref: respawn_anchor
     slug: respawn-anchor
+    content_rev: 1
     display_name: Respawn Anchor
     material: stone
     hardness: 50
     blast_resistance: 1200
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 4
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,68 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: respawn_anchor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_diamond_tool
+        - nether
+        - utility
+        - crafting
+    about:
+        description: |
+            The Respawn Anchor is a Nether-exclusive block that lets players
+            set their spawn point in the Nether, much like a bed does in the
+            Overworld. It is charged with glowstone and consumes one charge
+            per respawn; using it in the Overworld or End causes it to
+            explode.
+        lore: |
+            The concept dates to a 2011 idea by Jeb to use crying obsidian
+            as a respawn mechanic before beds existed; the anchor was finally
+            added in Java Edition 1.16.
+    uses:
+        - title: Set Nether Spawn
+          detail: |
+              A charged anchor lets players set and respawn at a point in the
+              Nether; each respawn consumes one charge.
+        - title: Glowstone Charging
+          ref: glowstone
+          detail: |
+              Right-click with glowstone to add up to 4 charges, each raising
+              its light level to 3, 7, 11, or 15.
+        - title: Redstone Signal
+          detail: |
+              A comparator reads its charge level, outputting signal strength
+              3, 7, 11, or 15.
+    found_in:
+        - location: Crafting Only
+          detail: |
+              Does not generate naturally; crafted from 6 crying obsidian and
+              3 glowstone blocks.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A diamond or netherite pickaxe. Weaker tools drop nothing, and
+              breaking it resets its glowstone charges to zero.
+        - question: What happens if I use it outside the Nether?
+          answer: |
+              It explodes, similar to sleeping in a bed in the Nether or End.
+        - question: Can multiple players share one anchor?
+          answer: |
+              Yes. Several players can use the same anchor, drawing from its
+              shared pool of charges.
+        - question: What happens when the charges run out?
+          answer: |
+              You respawn at world spawn with a message that you have no home
+              bed or charged respawn anchor.
+        - question: Can pistons move a respawn anchor?
+          answer: |
+              No. Pistons cannot push or pull it, so it is immovable by
+              redstone.
     data_version: "1.21.5"
 ---
 

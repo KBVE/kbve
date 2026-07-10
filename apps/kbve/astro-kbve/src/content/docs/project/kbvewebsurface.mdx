@@ -1,7 +1,7 @@
 ---
-title: KBVEWebSurface
-description: |
-    Game-agnostic Unreal Engine plugin for rendering interactive web content onto 3D surfaces — billboards, terminals, kiosks, holograms, in-world dashboards.
+title: KBVEWebSurface — Web Content on 3D Surfaces for Unreal
+description: KBVEWebSurface is a game-agnostic Unreal Engine plugin that renders interactive web content onto 3D surfaces — billboards, terminals, kiosks, and holograms.
+sem: 1
 sidebar:
     label: KBVEWebSurface
     order: 95
@@ -24,33 +24,94 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVEWebSurface plugin?
+          answer: KBVEWebSurface is a game-agnostic Unreal Engine plugin that renders interactive web content onto world surfaces — flat panels, curved or holographic meshes, and drop-in terminal or kiosk actors — for reuse across chuckrpg, future KBVE titles, and external Fab distribution.
+        - question: How does input work on a web surface?
+          answer: UKBVEWebInputRouter maps player line traces to widget-pixel coordinates. Hit UVs come from FindCollisionUV, so the project must have Support UV From Hit Results enabled.
+        - question: When should you not use KBVEWebSurface?
+          answer: Avoid it for combat HUDs, health bars, and minimaps — use Slate or UMG instead — and for per-NPC labels, shop signs, or hundreds of world objects, where a CEF surface per object is too expensive.
+bento:
+    badge: unreal · web · ui
+    title: Web content on 3D surfaces
+    accent: KBVEWebSurface
+    lede: >-
+        A game-agnostic Unreal Engine plugin that renders interactive web content
+        onto world surfaces — flat panels, curved or holographic meshes, and
+        drop-in terminal or kiosk actors — built for reuse across chuckrpg, future
+        KBVE titles, and external Fab distribution.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEWebSurface
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: When to use
+          href: "#usecases"
+    aside:
+        icon: alert
+        title: CEF is expensive
+        body: >-
+            The plugin ships a per-surface frame-rate cap, offscreen pause,
+            snapshot fallback at distance, and a
+            <code>UKBVEWebSurfacePool</code> LRU cap on concurrent live surfaces.
+        points:
+            - <strong>Good for</strong> — marketplaces, social screens, admin terminals, billboards.
+            - <strong>Not for</strong> — combat HUDs, per-NPC labels, hundreds of objects.
+    stats:
+        - { label: Plugin, value: KBVEWebSurface, icon: render }
+        - { label: Engine, value: "UE 5.6+", icon: settings }
+        - { label: Platforms, value: "Win64 · Linux · Mac", icon: box }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Flat panel
+          icon: render
+          body: UKBVEWebSurfaceComponent wraps a UWidgetComponent with an embedded UMG WebBrowser.
+        - title: Curved / holographic
+          icon: expand
+          body: UKBVEWebRenderSurfaceComponent pipes the browser through a render target onto an arbitrary mesh + material.
+        - title: Actor
+          icon: box
+          body: AKBVEWebSurfaceActor ships as a drop-in for terminals and kiosks.
+        - title: Input
+          icon: sensor
+          body: UKBVEWebInputRouter maps player line traces to widget-pixel coordinates. Hit UVs come from FindCollisionUV, so Support UV From Hit Results must be enabled on the project.
+        - title: Bridge
+          icon: network
+          body: UKBVEWebBridge exposes a typed message bus between embedded JS and Blueprint/C++. Pages call window.kbveBridge.send(channel, payload); the bridge re-broadcasts via OnMessage.
+        - title: Performance
+          icon: zap
+          body: Per-surface frame-rate cap, offscreen pause, snapshot fallback at distance, and a UKBVEWebSurfacePool LRU cap on concurrent live surfaces.
+        - title: Backend
+          icon: settings
+          body: The default backend wraps Unreal's stock UWebBrowser (CEF). Alternate backends (Ultralight, WebUI) plug in via IKBVEWebBackend as separate plugins.
+    features_heading: Features
+    related:
+        - title: KBVEUI
+          href: /project/kbveui/
+          copy: The Slate/UMG component library for HUD and in-game UI.
+          icon: box
+        - title: Marketplace
+          href: /project/marketplace/
+          copy: An auction-house surface KBVEWebSurface can render.
+          icon: bag
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-`KBVEWebSurface` renders interactive web content onto Unreal world surfaces. The plugin is game-agnostic and targets reuse across `chuckrpg`, future KBVE titles, and external Fab distribution.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-### Surface kinds
-
-- **Flat panel** — `UKBVEWebSurfaceComponent` wraps a `UWidgetComponent` with an embedded UMG `WebBrowser`.
-- **Curved / holographic** — `UKBVEWebRenderSurfaceComponent` pipes the browser through a render target onto an arbitrary mesh + material.
-- **Actor** — `AKBVEWebSurfaceActor` ships as a drop-in for terminals and kiosks.
-
-### Input
-
-`UKBVEWebInputRouter` maps player line traces to widget-pixel coordinates. Hit UVs come from `FindCollisionUV`, so `Support UV From Hit Results` must be enabled on the project.
-
-### Bridge
-
-`UKBVEWebBridge` exposes a typed message bus between embedded JS and Blueprint/C++. Pages call `window.kbveBridge.send(channel, payload)`; the bridge re-broadcasts via `OnMessage`.
-
-### Performance
-
-CEF is expensive. The plugin ships a per-surface frame-rate cap, offscreen pause, snapshot fallback at distance, and a `UKBVEWebSurfacePool` LRU cap on concurrent live surfaces.
-
-### Backend
-
-The default backend wraps Unreal's stock `UWebBrowser` (CEF). Alternate backends (Ultralight, WebUI) plug in via `IKBVEWebBackend` and ship as separate plugins.
+<BentoProse id="usecases" eyebrow="Fit & anti-fit" heading="When to use it">
 
 ### Use cases
 
@@ -64,3 +125,7 @@ The default backend wraps Unreal's stock `UWebBrowser` (CEF). Alternate backends
 
 - Combat HUD, health bars, minimap — use Slate/UMG.
 - Per-NPC labels, shop signs, hundreds of world objects — too expensive per surface.
+
+</BentoProse>
+
+</BentoDoc>

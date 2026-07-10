@@ -1,5 +1,6 @@
 ---
 title: Pitcher Plant
+template: splash
 description: |
     Minecraft Pitcher Plant — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,65 @@ mc_block:
     id: 632
     ref: pitcher_plant
     slug: pitcher-plant
+    content_rev: 1
     display_name: Pitcher Plant
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pitcher_plant
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pitcher Plant is the decorative, fully grown double-tall form
+            obtained by harvesting a mature Pitcher Crop. Unlike other tall
+            flowers, it cannot be duplicated with bone meal once placed.
+        lore: |
+            Introduced in the 1.20 Trails & Tales Update, it is a fictional
+            plant loosely inspired by real carnivorous pitcher plants,
+            described in-game as tasting "peppery, acidic, and like spoiled
+            cotton candy."
+    uses:
+        - title: Cyan Dye
+          ref: cyan_dye
+          detail: |
+              Crafting a Pitcher Plant yields 2 Cyan Dye, one of the few
+              flowers that produces two dye at once.
+    found_in:
+        - location: Harvested Pitcher Crop
+          detail: Obtained by breaking a Pitcher Crop once it reaches full growth.
+        - location: Player-placed decoration
+          detail: Can be placed directly on soil blocks as an ornamental flower.
+    faq:
+        - question: What tool do I need to mine Pitcher Plant?
+          answer: |
+              None. Any tool, or your bare hand, breaks it instantly.
+        - question: Can I duplicate Pitcher Plant with bone meal?
+          answer: |
+              No. Unlike most tall flowers, bone meal does not spread or
+              duplicate placed Pitcher Plants.
+        - question: What dye does Pitcher Plant make?
+          answer: |
+              Crafting it yields 2 Cyan Dye, more than most single-flower
+              dye recipes.
+        - question: Do bees interact with Pitcher Plant?
+          answer: |
+              Yes. Player-placed Pitcher Plants attract bees for pollination
+              and slightly increase nearby beehive spawn chances.
     data_version: "1.21.5"
 ---
 

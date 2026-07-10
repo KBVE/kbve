@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { ClientMessage } from './protocol';
 import {
 	decodeCombat,
+	decodeDuelPrompt,
 	decodeEquipped,
 	decodeFloorChange,
 	decodeInventory,
@@ -48,6 +49,26 @@ describe('postcard ClientMessage encoder', () => {
 		);
 	});
 
+	it('encodes DuelChallenge with the locked variant 34', () => {
+		const msg: ClientMessage = {
+			Frame: {
+				client_tick: 1,
+				inputs: [{ DuelChallenge: { target: 5 } }],
+			},
+		};
+		expect(hex(encodeClientMessage(msg))).toBe('06010101220500');
+	});
+
+	it('encodes DuelRespond with the locked variant 35', () => {
+		const msg: ClientMessage = {
+			Frame: {
+				client_tick: 1,
+				inputs: [{ DuelRespond: { accept: true } }],
+			},
+		};
+		expect(hex(encodeClientMessage(msg))).toBe('06010101230100');
+	});
+
 	it('encodes JoinMatch (interior zero byte exercises COBS restuffing)', () => {
 		const msg: ClientMessage = {
 			JoinMatch: { protocol: 15, jwt: 'tok', kbve_username: 'h0ly' },
@@ -80,7 +101,7 @@ describe('postcard ServerEvent decoder', () => {
 	it('decodes the Rust Snapshot fixture field-for-field', () => {
 		const ev = decodeServerEvent(
 			fromHex(
-				'040109640109010207ffff030a050881c002bf01180d033c500501010305020100',
+				'040109640109010207ffff030a050881c002bf01180d033c5005010103050428c801010101020100',
 			),
 		);
 		expect('Snapshot' in ev).toBe(true);
@@ -109,6 +130,12 @@ describe('postcard ServerEvent decoder', () => {
 				z: -1,
 				effects: [{ kind: 'Burn', remaining: 5 }],
 				piloting: 0,
+				mp: 20,
+				max_mp: 100,
+				energy: 0,
+				max_energy: 0,
+				stamina: 0,
+				max_stamina: 0,
 			});
 		}
 	});
@@ -177,7 +204,7 @@ describe('postcard Ephemeral payload decoder', () => {
 		const payload =
 			'01016d03526578053c5001016d03466f6505505000000100' +
 			'05737061726b094c696768746e696e670150640f0f0101' +
-			'01143c0003686974074f6e676f696e670101';
+			'01143c0003686974074f6e676f696e67010106416374697665a09c0103616e6e';
 		expect(decodePetBattleState(Array.from(fromHex(payload)))).toEqual({
 			player: [
 				{
@@ -217,6 +244,21 @@ describe('postcard Ephemeral payload decoder', () => {
 			outcome: 'Ongoing',
 			awaiting: true,
 			can_run: true,
+			phase: 'Active',
+			deadline_ms: 20000,
+			opponent: 'ann',
+		});
+	});
+
+	// DuelPrompt: status u8, other_slot u16(varint), other_name string, deadline_ms u32(varint)
+	it('decodes a DuelPrompt payload', () => {
+		expect(
+			decodeDuelPrompt(Array.from(fromHex('000203626f629875'))),
+		).toEqual({
+			status: 0,
+			other_slot: 2,
+			other_name: 'bob',
+			deadline_ms: 15000,
 		});
 	});
 

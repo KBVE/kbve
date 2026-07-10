@@ -156,7 +156,7 @@ pub unsafe extern "C" fn kbve_chat_connect(
 
     // Build + connect the client on the runtime.
     let mut client = ChatClient::new(config);
-    if let Err(_) = rt.block_on(client.connect()) {
+    if rt.block_on(client.connect()).is_err() {
         return ERR_TRANSPORT;
     }
 
@@ -365,6 +365,11 @@ pub unsafe extern "C" fn kbve_chat_poll(
 /// - `1` if connected
 /// - `0` if disconnected
 /// - [`ERR_INVALID`] if handle is null
+///
+/// # Safety
+///
+/// `handle` must be null or a valid pointer returned by `kbve_chat_create`
+/// that has not been destroyed.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kbve_chat_is_connected(handle: *mut ChatHandle) -> i32 {
     if handle.is_null() {

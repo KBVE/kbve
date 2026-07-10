@@ -3,15 +3,16 @@ kind: Gateway
 metadata:
     name: kbve-gateway
     namespace: kbve
-    annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-dns
 spec:
     gatewayClassName: cilium
     infrastructure:
         labels:
             node.kbve.com/type: dedicated-server
+            kbve.com/lb-pool: public
         annotations:
             io.cilium/lb-ipam-ips: '142.132.206.71'
+            lbipam.cilium.io/sharing-key: public-71
+            lbipam.cilium.io/sharing-cross-namespace: arpg
     listeners:
         - name: http
           protocol: HTTP
@@ -218,6 +219,34 @@ spec:
                     group: ''
                     name: discordsh-tls
                     namespace: discordsh
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-rentearth
+          protocol: HTTPS
+          port: 443
+          hostname: rentearth.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rentearth-tls
+                    namespace: rentearth
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-rentearth-www
+          protocol: HTTPS
+          port: 443
+          hostname: www.rentearth.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rentearth-tls
+                    namespace: rentearth
           allowedRoutes:
               namespaces:
                   from: All

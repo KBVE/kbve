@@ -1,5 +1,6 @@
 ---
 title: Beetroots
+template: splash
 description: |
     Minecraft Beetroots — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,76 @@ mc_block:
     id: 633
     ref: beetroots
     slug: beetroots
+    content_rev: 1
     display_name: Beetroots
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: beetroot
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: beetroot_seeds
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - overworld
+    about:
+        description: |
+            Beetroots are the crop grown from Beetroot Seeds, maturing
+            through four visible growth stages before they can be harvested
+            for food and dye.
+        lore: |
+            Beetroots and their seeds were added in Java Edition 1.9 after
+            first appearing in Pocket Edition, reportedly just because Jeb
+            wanted them in the game.
+    uses:
+        - title: Beetroot Soup
+          ref: beetroot_soup
+          detail: |
+              Combine 6 Beetroots with a Bowl to craft Beetroot Soup, which
+              restores significantly more hunger and saturation than a raw
+              beetroot.
+        - title: Red Dye
+          ref: red_dye
+          detail: |
+              Each Beetroot can be crafted directly into one Red Dye.
+    found_in:
+        - location: Village farmland
+          detail: Generates already planted in farmland plots within villages.
+        - location: Player farms
+          detail: |
+              Grown by planting Beetroot Seeds on farmland; seeds are
+              obtained from breaking tall grass or trading.
+    faq:
+        - question: What tool do I need to harvest Beetroots?
+          answer: |
+              None — beetroots are a crop and break instantly by hand;
+              harvesting before full growth only yields seeds.
+        - question: Does Fortune affect Beetroot drops?
+          answer: |
+              Fortune increases the average number of Beetroot Seeds
+              dropped, but does not increase the Beetroot count itself.
+        - question: What can Beetroots be used for besides eating?
+          answer: |
+              They craft into Beetroot Soup, Red Dye, and can be used to
+              breed pigs or fill villager farmer trades.
+        - question: Are Beetroots renewable?
+          answer: |
+              Yes. Harvested beetroots always leave behind seeds that can be
+              replanted, making the crop fully renewable.
     data_version: "1.21.5"
 ---
 

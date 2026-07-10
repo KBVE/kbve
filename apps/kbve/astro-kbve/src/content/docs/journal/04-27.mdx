@@ -9,12 +9,52 @@ description: |
     Daily Log for April 27th of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 27,'
+    accent: every year.
+    lede: 'The April 27th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 26'
+          href: /journal/04-26/
+        - label: 'Apr 28 →'
+          href: /journal/04-28/
+    related:
+        - title: 'Previous · Apr 26'
+          copy: 'Step back a day to the April 26th log.'
+          href: /journal/04-26/
+          icon: calendar
+        - title: 'Next · Apr 28'
+          copy: 'Jump ahead to the April 28th log.'
+          href: /journal/04-28/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1640552435388-a54879e72b28?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### NVidia Five Trillion
 
@@ -59,8 +99,15 @@ import { Adsense } from '@/components/astropad';
     As I am resolving some of the crate issues with Uniti, I am also looking at the forum situation, since we still need the dbmate migrations resolved.
     The proto was updated earlier this week, now we need to get the core migrations to pass our internal e2e.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Redis XADD XREAD
 
@@ -93,7 +140,9 @@ import { Adsense } from '@/components/astropad';
     Damn, multiplayer can become a pain to do the first round, I am thinking that it might be too much data that is moving back and fourth, ugh.
     I am getting a headache just thinking about it, gahhh.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Shrek**
 
@@ -118,14 +167,21 @@ Like a tool that could go through the website and offer possible changes or impr
 The legal documents are still on the older template, I am going to swap them over to the new template.
 Afterwards, I will still have to dive deep and replace some of the static content from the template system, which I been doing slowly.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - Spent most of the day cleaning up and preparing my luggage for the trip back to India.
 - Parker sent me this open source lawn mower, [Open Mower](https://github.com/ClemensElflein/OpenMower) and it really seems like a great idea down the line to look into. Imagine launching a landscaping business where you use robots to manage all the lawn care for your clients!
 - AppWrite integration test casing is probably where I will spend most of my time today on. I ran into some issues with the GraphQL and sending out verification emails. It seems that Ezoic keeps removing our SendGrid CNAME / information, thus putting our emails back into the spam folder.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The world makes way for the man who knows where he is going.
 > — <cite>Ralph Waldo Emerson</cite>
+
+</BentoProse>
+
+</BentoDoc>

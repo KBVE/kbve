@@ -1,5 +1,6 @@
 ---
 title: Redstone Torch
+template: splash
 description: |
     Minecraft Redstone Torch — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 260
     ref: redstone_torch
     slug: redstone-torch
+    content_rev: 1
     display_name: Redstone Torch
     material: redstone
     hardness: 0
@@ -24,10 +26,59 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: redstone_torch
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            The Redstone Torch is a light source and power source that
+            strongly powers the block above it and weakly powers adjacent
+            blocks, making it the basic inverter (NOT gate) of redstone
+            circuitry.
+        lore: |
+            Added in Java Edition Alpha alongside redstone wire, the
+            redstone torch's burnout mechanic later shaped how reliable
+            clock circuits could be built.
+    uses:
+        - title: Signal Inversion (NOT Gate)
+          ref: redstone_wire
+          detail: |
+              Powering the block a torch is attached to turns the torch off,
+              inverting the incoming signal — the basis of NOT gates,
+              clocks, and countless redstone contraptions.
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: |
+              Made by combining redstone dust and a stick at a crafting
+              table; occasionally found in generated structures such as
+              woodland mansions and ancient cities.
+    faq:
+        - question: What tool do I need to mine a Redstone Torch?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: What is redstone torch burnout?
+          answer: |
+              If a torch is forced to toggle state more than eight times
+              within 60 game ticks, it temporarily locks off and ignores
+              further changes, protecting against overly fast clock loops.
+        - question: How much light does it give off?
+          answer: |
+              A lit redstone torch emits light level 7, enough for basic
+              illumination as well as circuit function.
+        - question: How do I craft a Redstone Torch?
+          answer: |
+              Place one redstone dust above one stick in a crafting grid to
+              produce a redstone torch.
     data_version: "1.21.5"
 ---
 

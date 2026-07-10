@@ -25,6 +25,16 @@ export {
 	closeModal,
 } from './ui';
 
+export {
+	$bentoShipment,
+	$bentoLedger,
+	shipBentoWord,
+	advanceBentoShipment,
+	resetBentoFlow,
+	type BentoStage,
+	type BentoShipment,
+} from './bento';
+
 export { $toasts, addToast, removeToast } from './toasts';
 
 export { showWelcomeToast } from './welcome-toast';

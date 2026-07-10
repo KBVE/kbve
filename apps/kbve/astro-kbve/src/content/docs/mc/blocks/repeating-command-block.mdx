@@ -1,5 +1,6 @@
 ---
 title: Repeating Command Block
+template: splash
 description: |
     Minecraft Repeating Command Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 636
     ref: repeating_command_block
     slug: repeating-command-block
+    content_rev: 1
     display_name: Repeating Command Block
     material: stone
     hardness: -1
     blast_resistance: 3600000
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 15
@@ -27,7 +28,54 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - unbreakable_in_survival
+        - blast_resistant
+        - dragon_immune
+        - wither_immune
+        - creative_only
+    about:
+        description: |
+            The Repeating Command Block runs its stored command every game
+            tick while continuously powered or always-active, making it the
+            variant used for ongoing effects rather than one-shot triggers.
+        lore: |
+            Introduced in Java Edition snapshot 15w34a (2015) alongside
+            chain command blocks, expanding the original command block
+            into a three-block family for map-making.
+    uses:
+        - title: Continuous Command Execution
+          ref: chain_command_block
+          detail: |
+              Commonly chained with impulse and chain command blocks to
+              build always-on scoreboard trackers, custom game rules, or
+              looping effects in adventure and minigame maps.
+    found_in:
+        - location: Creative mode and commands only
+          detail: |
+              Not obtainable in Survival; given via
+              `/give @s minecraft:repeating_command_block` or placed with
+              `/setblock` when cheats are enabled.
+    faq:
+        - question: Can I mine a Repeating Command Block in Survival?
+          answer: |
+              No. It has -1 hardness and cannot be broken in Survival mode
+              regardless of tool; it must be removed in Creative or by
+              overwriting it with another block via commands.
+        - question: How is it different from a regular Command Block?
+          answer: |
+              A regular (impulse) command block fires once when powered; a
+              repeating command block re-executes its command every tick
+              while active, making it suited for continuous checks.
+        - question: How do I get one?
+          answer: |
+              Use `/give @s minecraft:repeating_command_block` or select
+              it from the Creative inventory's command block group.
+        - question: Does it survive explosions?
+          answer: |
+              Yes. Its blast resistance of 3,600,000 makes it effectively
+              immune to all in-game explosions, including the Wither and
+              Ender Dragon.
     data_version: "1.21.5"
 ---
 

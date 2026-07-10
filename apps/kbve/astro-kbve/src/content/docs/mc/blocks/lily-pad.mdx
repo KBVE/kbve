@@ -1,5 +1,6 @@
 ---
 title: Lily Pad
+template: splash
 description: |
     Minecraft Lily Pad — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 343
     ref: lily_pad
     slug: lily-pad
+    content_rev: 1
     display_name: Lily Pad
     material: plant
     hardness: 0
@@ -24,10 +26,63 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lily_pad
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - not_flammable
+    about:
+        description: |
+            A lily pad is a thin plant block that floats on the surface of
+            water, letting players and some mobs walk across without
+            building a bridge. It breaks instantly with any tool and pops
+            off when a boat collides with it.
+        lore: |
+            Added in Beta 1.9 Prerelease, lily pads have decorated
+            Minecraft's swamps since the game's earliest plant blocks.
+    uses:
+        - title: Composter
+          ref: composter
+          detail: |
+              Placing a lily pad in a composter has a 65% chance of raising
+              the compost level by one, making it a cheap filler item for
+              bone meal production.
+        - title: Water Bridge
+          ref: lily_pad
+          detail: |
+              Lily pads are the only solid block that does not block
+              fishing bobbers or treasure drops from landing in the water
+              beneath them, so anglers often leave them in place.
+    found_in:
+        - location: Swamps and Mangrove Swamps
+          detail: Generates naturally scattered across the surface of swamp water.
+        - location: Woodland Mansions
+          detail: Found decorating the wheat farm rooms of woodland mansions.
+        - location: Wandering Traders
+          detail: Purchasable in bulk (five pads for one emerald).
+    faq:
+        - question: What tool do I need to mine a lily pad?
+          answer: |
+              None. Any tool, or bare hands, breaks it instantly since its
+              hardness is zero.
+        - question: Can I walk on a lily pad?
+          answer: |
+              Yes, players and most mobs can stand on it, though frogs and
+              some other mobs can hop across water lilies without sinking.
+        - question: Does a boat break a lily pad?
+          answer: |
+              Yes. A boat colliding with a lily pad destroys it and drops
+              the item.
+        - question: Is a lily pad renewable?
+          answer: |
+              Yes, it can be obtained renewably by fishing (a small chance
+              as a junk item) or purchased from wandering traders.
     data_version: "1.21.5"
 ---
 

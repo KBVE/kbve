@@ -1,5 +1,6 @@
 ---
 title: Cherry Button
+template: splash
 description: |
     Minecraft Cherry Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 416
     ref: cherry_button
     slug: cherry-button
+    content_rev: 1
     display_name: Cherry Button
     material: redstone
     hardness: 0.5
@@ -24,10 +26,61 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Cherry Button is a wooden button crafted from cherry planks
+            that acts as a momentary redstone power source. Pressing it
+            powers adjacent components at full strength for 1.5 seconds
+            before switching itself back off.
+        lore: |
+            Cherry wood, and its matching button, was added in Java
+            Edition 1.20 alongside the cherry grove biome.
+    uses:
+        - title: Redstone Trigger
+          ref: redstone
+          detail: |
+              Placed on blocks, walls, or ceilings to power adjacent
+              redstone dust, doors, or pistons for a short pulse when
+              pressed by a player, arrow, or trident.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Can be burned as furnace fuel, smelting 0.5 items per button
+              like other wooden buttons.
+    found_in:
+        - location: Crafted from Cherry Planks
+          detail: One cherry plank crafts one cherry button in any crafting grid slot.
+        - location: Trial Chambers
+          detail: Generates naturally as part of some trial chamber vault and corridor mechanisms.
+    faq:
+        - question: What tool mines a Cherry Button fastest?
+          answer: |
+              An axe, though any tool or bare hands will still break it
+              since its hardness is only 0.5.
+        - question: Does Cherry Button drop itself when broken?
+          answer: |
+              Yes, breaking it always drops one Cherry Button item with no
+              tool requirement.
+        - question: How long does pressing it stay powered?
+          answer: |
+              A Cherry Button stays active and powers adjacent blocks at
+              signal strength 15 for about 1.5 seconds before switching off.
+        - question: Is Cherry Button flammable?
+          answer: |
+              No. Despite being made of wood, buttons are not flammable
+              and won't catch fire from nearby lava or fire.
     data_version: "1.21.5"
 ---
 

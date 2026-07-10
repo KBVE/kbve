@@ -1,5 +1,6 @@
 ---
 title: Golden Axe
+template: splash
 description: |
     Minecraft Golden Axe — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 871
     ref: golden_axe
     slug: golden-axe
+    content_rev: 1
     display_name: Golden Axe
     category: tool
     rarity: common
@@ -38,6 +40,36 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The golden axe is a tool and weapon crafted from 3 gold ingots and 2 sticks,
+            used for chopping wood, stripping logs, and scraping oxidation and wax off
+            copper blocks. It has the highest mining efficiency of any axe (12) and the
+            highest enchantability (22), but trades that off against the lowest durability
+            of any tier alongside a modest 7 attack damage in Java Edition.
+        lore: |
+            Piglins are drawn to golden axes and will pause to inspect one lying on the
+            ground for 6-8 seconds before picking it up, making it a handy Nether
+            distraction tool.
+    faq:
+        - question: Why is the golden axe considered a paradox?
+          answer: |
+              It is the sixth-highest tier of axe with the lowest durability and the
+              lowest attack damage alongside wooden axes, despite having the highest
+              mining efficiency and the highest attack speed of any axe.
+        - question: Where can a golden axe be obtained besides crafting?
+          answer: |
+              Enchanted golden axes appear in Bastion Remnant and Ruined Portal chests,
+              Piglin Brutes have an 8.5% base chance to drop one, and Weaponsmiths may
+              gift one to a player with Hero of the Village status.
+        - question: Can a damaged golden axe be repaired?
+          answer: |
+              Yes, each gold ingot used at an anvil restores 25% durability, and combining
+              two damaged golden axes in a crafting grid adds a 5% durability bonus.
+        - question: What enchantments work on a golden axe?
+          answer: |
+              It accepts both tool enchantments like Efficiency, Fortune, and Silk Touch,
+              and weapon enchantments like Sharpness, Smite, and Bane of Arthropods.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

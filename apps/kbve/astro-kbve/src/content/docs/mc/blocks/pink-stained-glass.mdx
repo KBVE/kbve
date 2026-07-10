@@ -1,5 +1,6 @@
 ---
 title: Pink Stained Glass
+template: splash
 description: |
     Minecraft Pink Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 291
     ref: pink_stained_glass
     slug: pink-stained-glass
+    content_rev: 1
     display_name: Pink Stained Glass
     material: glass
     hardness: 0.3
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Pink Stained Glass is a colored, transparent building block
+            made by dyeing regular glass. It blocks mob spawning like most
+            solid blocks and can tint a beacon's light beam pink when
+            stacked in its path.
+        lore: |
+            Stained glass was introduced as a dyed variant of plain glass,
+            and naturally generates pink in loot structures like Trail
+            Ruins.
+    uses:
+        - title: Colored Windows
+          ref: pink_stained_glass
+          detail: |
+              Used decoratively for windows, greenhouses, and stained-glass
+              art; can be crafted down into Pink Stained Glass Panes for
+              more efficient window coverage.
+        - title: Beacon Beam Coloring
+          ref: beacon
+          detail: |
+              Placing pink stained glass in a beacon's beam tints the light
+              column pink; stacking different colors blends them.
+    found_in:
+        - location: Crafting table
+          detail: Craft from 4 Glass blocks and 1 Pink Dye to make 8 blocks.
+        - location: Trail Ruins & Trial Chambers
+          detail: Several stained glass colors, pink included, generate as part of these structures' loot and decoration.
+    faq:
+        - question: What tool do I need to mine Pink Stained Glass?
+          answer: |
+              Any tool works equally; no pickaxe is required.
+        - question: Does it drop when broken normally?
+          answer: |
+              No. It only drops itself when mined with a Silk Touch
+              enchanted tool — otherwise it breaks with no drop.
+        - question: Can mobs spawn on it?
+          answer: |
+              No, mobs cannot normally spawn on stained glass, except for
+              zombie reinforcements during a zombie siege.
     data_version: "1.21.5"
 ---
 

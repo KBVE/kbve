@@ -1,7 +1,9 @@
 ---
 title: Ancient Debris
+template: splash
 description: |
-    Minecraft Ancient Debris — vanilla 1.21.5 block record (auto-generated).
+    Minecraft Ancient Debris — the rare Nether ore and sole source of
+    Netherite. Mining requirements, spawn heights, drops, and uses.
 sidebar:
     label: Ancient Debris
     hidden: true
@@ -13,12 +15,13 @@ mc_block:
     id: 875
     ref: ancient_debris
     slug: ancient-debris
+    content_rev: 1
     display_name: Ancient Debris
     material: nether
     hardness: 30
     blast_resistance: 1200
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 4
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +29,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: ancient_debris
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_diamond_tool
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Ancient Debris is a rare ore found only in the Nether and the
+            sole source of Netherite. It resists explosions and does not
+            burn in lava, so it survives the bed and respawn-anchor blasts
+            players use to uncover it.
+        lore: |
+            Introduced in the Nether Update (1.16), Ancient Debris replaced
+            diamond as the endgame material tier.
+    uses:
+        - title: Netherite Scrap
+          ref: netherite_scrap
+          detail: |
+              Smelt in a furnace or blast furnace to produce Netherite
+              Scrap. Four scrap plus four gold ingots craft a Netherite
+              Ingot, used to upgrade diamond gear to netherite.
+    found_in:
+        - location: The Nether
+          detail: Generates in every Nether biome, embedded in netherrack and blackstone.
+        - location: Y = 15 (most common)
+          detail: Peaks around Y=15; also spawns Y=8–22, and rarely up to Y=119.
+    faq:
+        - question: What tool do I need to mine Ancient Debris?
+          answer: |
+              A diamond or netherite pickaxe. Mining with any lower tier
+              breaks the block with no drop.
+        - question: Does Ancient Debris burn in lava?
+          answer: |
+              No. It is immune to fire and lava and floats on top of lava,
+              unlike most blocks — safe to mine near lava lakes.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Ancient Debris regardless of
+              enchantments.
+        - question: How do I find it efficiently?
+          answer: |
+              Its blast resistance (1200) means it survives explosions, so
+              many players detonate beds or respawn anchors in the Nether to
+              clear netherrack while leaving the debris intact, or strip-mine
+              tunnels around Y=15.
     data_version: "1.21.5"
 ---
 

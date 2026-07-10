@@ -9,12 +9,52 @@ description: |
     Daily Log for April 29th of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 29,'
+    accent: every year.
+    lede: 'The April 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 28'
+          href: /journal/04-28/
+        - label: 'Apr 30 →'
+          href: /journal/04-30/
+    related:
+        - title: 'Previous · Apr 28'
+          copy: 'Step back a day to the April 28th log.'
+          href: /journal/04-28/
+          icon: calendar
+        - title: 'Next · Apr 30'
+          copy: 'Jump ahead to the April 30th log.'
+          href: /journal/04-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1640552435388-a54879e72b28?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Forum
 
@@ -68,8 +108,15 @@ import { Adsense } from '@/components/astropad';
 
     Added the character selection and now I am going to flush out the UI!
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### CC Bills 2025
 
@@ -95,8 +142,9 @@ import { Adsense } from '@/components/astropad';
     The issue that I am seeing right now is that we are trying to have both the JSON and Binary within the same websocket.
     That connection could either return valid JSON or Binary.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 The main focus will be getting the launch ready for KBVE website and application.
 Ugh the account page is still super buggy, but I think we can still move foward with the way it looks, at least in our initial launch phase.
@@ -117,13 +165,21 @@ Some of the acts were really bad but overall, it was a solid episode, damn tony 
 I am preparing the invoice management and generator, making it easier to keep track of all the records and services.
 This is going to be a bit tough to mix in the old code with the new code, but I think we can get somewhere decent with it by the end of May. 
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 Pre Launch has been pushed back over and over!
 While it sucks to have to delay the MVP, it is great to see the backend and frontend stack evolve and become more mature.
 I think Astro still has a long way to go but so far I have been impressed and amazed with how fast it has grown.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Sometimes being a friend means mastering the art of timing. There is a time for silence. A time to let go and allow people to hurl themselves into their own destiny. And a time to prepare to pick up the pieces when it's all over.
 > — <cite>Octavia E. Butler</cite>
+
+</BentoProse>
+
+</BentoDoc>

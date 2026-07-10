@@ -1,5 +1,6 @@
 ---
 title: Stone Button
+template: splash
 description: |
     Minecraft Stone Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 262
     ref: stone_button
     slug: stone-button
+    content_rev: 1
     display_name: Stone Button
     material: redstone
     hardness: 0.5
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            The Stone Button is a small redstone component crafted from a
+            single stone block. When pressed by a player or hit by a
+            projectile, it emits a short redstone pulse before switching
+            back off, making it a simple momentary switch for doors,
+            dispensers, and other mechanisms.
+        lore: |
+            Stone buttons have been part of Minecraft since the Alpha era,
+            long before the redstone component family expanded to wood and
+            polished variants.
+    uses:
+        - title: Redstone Trigger
+          ref: redstone_dust
+          detail: |
+              Powers adjacent redstone dust and mechanism components for
+              about one second when activated, ideal for doors, trapdoors,
+              and dispensers that only need a brief pulse.
+    found_in:
+        - location: Strongholds
+          detail: Generates next to iron doors inside stronghold corridors.
+        - location: Trial chambers and desert villages
+          detail: Found in trial chamber vaults and desert village armorer houses.
+    faq:
+        - question: What tool do I need to mine a Stone Button?
+          answer: |
+              Any tool works, including bare hands, though a pickaxe breaks
+              it fastest. It always drops itself.
+        - question: How long does the redstone pulse last?
+          answer: |
+              About one second (10 redstone ticks) after being pressed or
+              triggered by a projectile, then it switches back off.
+        - question: Can mobs activate a Stone Button?
+          answer: |
+              No. Mobs cannot directly press buttons; only players and
+              projectiles like arrows or wind charges can trigger them.
+        - question: How is a Stone Button crafted?
+          answer: |
+              One stone block on a crafting grid yields one stone button.
     data_version: "1.21.5"
 ---
 

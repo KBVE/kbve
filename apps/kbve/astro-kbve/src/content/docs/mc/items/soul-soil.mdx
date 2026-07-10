@@ -1,5 +1,6 @@
 ---
 title: Soul Soil
+template: splash
 description: |
     Minecraft Soul Soil — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 349
     ref: soul_soil
     slug: soul-soil
+    content_rev: 1
     display_name: Soul Soil
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Soul Soil is a full, solid Nether block common in soul sand valleys that, unlike Soul
+            Sand, does not slow movement or create bubble columns underwater. It is used to craft
+            soul torches, soul lanterns, and soul campfires, and lava resting on it next to blue
+            ice converts to basalt.
+        lore: |
+            The dark, ashen soil is said to carry the same restless spiritual energy as soul sand,
+            without the ghostly pull on the feet of those who walk across it.
+    faq:
+        - question: |
+              Does Soul Soil slow me down like Soul Sand?
+          answer: |
+              No. Soul Soil is a solid full block with none of Soul Sand's drag or sinking effect.
+        - question: |
+              Can Soul Soil be renewed without mining the Nether?
+          answer: |
+              Yes, breaking a soul campfire without Silk Touch drops Soul Soil, making it a
+              renewable resource.
+        - question: |
+              What happens when lava sits on Soul Soil near blue ice?
+          answer: |
+              The lava converts into basalt, a mechanic commonly used in automated basalt farms.
+        - question: |
+              What can I craft with Soul Soil?
+          answer: |
+              It is used for soul campfires, and together with a soul torch or fire on top it
+              produces soul fire, plus it is a valid ingredient for soul torches.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

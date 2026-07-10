@@ -1,5 +1,6 @@
 ---
 title: Waxed Exposed Copper Door
+template: splash
 description: |
     Minecraft Waxed Exposed Copper Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1013
     ref: waxed_exposed_copper_door
     slug: waxed-exposed-copper-door
+    content_rev: 1
     display_name: Waxed Exposed Copper Door
     material: metal
     hardness: 3
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_exposed_copper_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - mob_interactable_doors
+    about:
+        description: |
+            Waxed Exposed Copper Door is a decorative door locked at the
+            exposed oxidation stage by honeycomb wax. Like other copper
+            doors it can be opened by players, villagers, and piglins, and
+            toggled with redstone.
+        lore: |
+            Copper doors were announced at Minecraft Live 2023 and added in
+            Java Edition 1.21, giving copper its first functional door
+            variant.
+    uses:
+        - title: Automated or Mob-Interactive Doorway
+          ref: waxed_exposed_copper_door
+          detail: |
+              Place in doorways where villagers, piglins, or redstone
+              circuits need to open and close a door without oxidation ever
+              changing its color over time.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally as part of vault and corridor decoration.
+        - location: Crafted
+          detail: Six copper ingots in a 2x3 pattern craft three copper doors, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine this door?
+          answer: |
+              Any tool works, including bare hands; it always drops itself
+              regardless of tool tier.
+        - question: Can mobs open this door on their own?
+          answer: |
+              Yes. Villagers and piglins can open copper doors just like
+              wooden doors, and it can also be toggled by redstone signals.
+        - question: Will it change color over time?
+          answer: |
+              No. The honeycomb wax coating permanently locks it at the
+              exposed stage, preventing further oxidation.
+        - question: Can I remove the wax to let it oxidize again?
+          answer: |
+              No block can un-wax directly with an axe in reverse; an axe
+              on a waxed copper door only scrapes wax off unwaxed copper of
+              matching stage, it does not exist as a separate "unwax" action
+              here since it is already waxed at this stage.
     data_version: "1.21.5"
 ---
 

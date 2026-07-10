@@ -10,7 +10,7 @@ metadata:
         kbve.com/managed-by: argocd
     annotations:
         configmap.reloader.stakater.com/reload: kube-root-ca.crt
-        secret.reloader.stakater.com/reload: supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord,clickhouse-credentials
+        secret.reloader.stakater.com/reload: supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord,clickhouse-credentials,vibeshine-config
 spec:
     replicas: 1
     strategy:
@@ -41,7 +41,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.218
+                  image: ghcr.io/kbve/kbve:1.0.230
                   imagePullPolicy: Always
                   ports:
                       - name: http
@@ -218,6 +218,20 @@ spec:
                             secretKeyRef:
                                 name: referral-config
                                 key: hash-secret
+                                optional: true
+                      - name: VIBESHINE_UPSTREAM_URL
+                        value: https://10.10.0.3:47990
+                      - name: VIBESHINE_API_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: vibeshine-config
+                                key: api-token
+                                optional: true
+                      - name: VIBESHINE_WEBRTC_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: vibeshine-config
+                                key: webrtc-token
                                 optional: true
                       - name: DISCORD_CLIENT_ID
                         valueFrom:

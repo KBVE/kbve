@@ -1,5 +1,6 @@
 ---
 title: Deepslate Redstone Ore
+template: splash
 description: |
     Minecraft Deepslate Redstone Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 259
     ref: deepslate_redstone_ore
     slug: deepslate-redstone-ore
+    content_rev: 1
     display_name: Deepslate Redstone Ore
     material: stone
     hardness: 4.5
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,70 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: redstone
+          qty_min: 4
+          qty_max: 5
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: deepslate_redstone_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - ore
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Redstone Ore is the deepslate variant of Redstone Ore,
+            dropping redstone dust used in circuitry. Like its stone
+            counterpart it lights up and emits particles briefly when
+            touched or walked on before mining.
+        lore: |
+            Redstone powers Minecraft's mechanisms and contraptions, and its
+            deepslate ore keeps that supply flowing for players who dig deep
+            near bedrock.
+    uses:
+        - title: Redstone Dust
+          ref: redstone
+          detail: |
+              Mining drops 4-5 redstone dust, the core component of redstone
+              circuits, repeaters, comparators, and pistons.
+        - title: Fortune Yield
+          detail: |
+              Fortune I, II, and III raise the drop range up to 4-6, 4-7, or
+              4-8 dust respectively.
+        - title: Silk Touch Collection
+          detail: |
+              With Silk Touch, the deepslate ore block itself drops instead
+              of redstone dust.
+    found_in:
+        - location: Deepslate Layers
+          detail: Generates from Y = -64 to Y = 15, with increased frequency below Y = -32.
+        - location: All Overworld Biomes
+          detail: Not biome-restricted; found wherever deepslate or tuff generates.
+    faq:
+        - question: What tool do I need to mine Deepslate Redstone Ore?
+          answer: |
+              An iron pickaxe or better. Lower tiers break the block without
+              dropping anything.
+        - question: Why does the block glow briefly sometimes?
+          answer: |
+              Touching or walking on unmined redstone ore triggers its "lit"
+              state, emitting light level 9 and red particles until the next
+              random tick.
+        - question: Does Fortune increase the yield?
+          answer: |
+              Yes. Fortune raises the redstone dust range, up to 4-8 dust at
+              Fortune III.
+        - question: Where is the best place to mine it?
+          answer: |
+              Below Y = -32, where redstone ore generation frequency
+              increases significantly.
     data_version: "1.21.5"
 ---
 

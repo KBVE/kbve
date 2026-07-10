@@ -1,5 +1,6 @@
 ---
 title: Command Block
+template: splash
 description: |
     Minecraft Command Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 376
     ref: command_block
     slug: command-block
+    content_rev: 1
     display_name: Command Block
     material: stone
     hardness: -1
     blast_resistance: 3600000
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 15
@@ -27,7 +28,56 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - overworld
+        - nether
+        - the_end
+        - blast_resistant
+    about:
+        description: |
+            Command Block is an indestructible redstone mechanism that
+            executes a single command when powered. It comes in Impulse,
+            Chain, and Repeat variants and is only obtainable through
+            creative mode or commands, making it the backbone of custom
+            maps and server automation.
+        lore: |
+            Jeb previewed the block in July 2012 as part of expanding
+            Adventure mode, and it shipped in Java Edition 1.4.2.
+    uses:
+        - title: Command chains
+          ref: command_block
+          detail: |
+              Chain Command Blocks link to a preceding block to fire
+              sequences of commands, while Repeat blocks re-fire every game
+              tick while powered.
+        - title: Custom maps and minigames
+          ref: command_block
+          detail: |
+              Map makers use command blocks to script scoreboards, teleports,
+              structure loading, and other logic without external mods.
+    found_in:
+        - location: Creative inventory
+          detail: Available only in the Operator Utilities tab when cheats are enabled.
+        - location: Give command
+          detail: Obtainable via `/give` with operator permissions; cannot be crafted or mined in Survival.
+    faq:
+        - question: Can I mine a Command Block in Survival?
+          answer: |
+              No. It has a hardness of -1, making it unbreakable without
+              creative mode or the pick block feature.
+        - question: What tool do I need to obtain one?
+          answer: |
+              None. Command Blocks can only be obtained via the creative
+              inventory or the `/give` command by an operator.
+        - question: What's the difference between Impulse, Chain, and Repeat?
+          answer: |
+              Impulse fires once per activation, Chain fires when the
+              preceding command block in a chain succeeds, and Repeat
+              re-fires continuously every tick while powered.
+        - question: How tough is a Command Block against explosions?
+          answer: |
+              Extremely. Its blast resistance of 3,600,000 matches bedrock,
+              so it survives any in-game explosion.
     data_version: "1.21.5"
 ---
 

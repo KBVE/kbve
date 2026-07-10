@@ -1,5 +1,6 @@
 ---
 title: Potted Wither Rose
+template: splash
 description: |
     Minecraft Potted Wither Rose — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 404
     ref: potted_wither_rose
     slug: potted-wither-rose
+    content_rev: 1
     display_name: Potted Wither Rose
     material: stone
     hardness: 0
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: wither_rose
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Wither Rose is a decorative flower pot holding a Wither
+            Rose. When placed loose (not potted), the rose inflicts the
+            Wither status effect on any nearby mob or player that touches it.
+        lore: |
+            Wither Rose is a dark flower born from death — it only appears
+            where the Wither boss has slain a mob, marking the spot with its
+            corrupting bloom.
+    uses:
+        - title: Black Dye
+          ref: black_dye
+          detail: Crafts into Black Dye, one of the few flowers that yields this color.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              An ingredient in Suspicious Stew, applying the Wither effect
+              to whoever eats it.
+    found_in:
+        - location: Wither kill sites
+          detail: Any mob or player killed by the Wither drops or spawns a Wither Rose at the location of death.
+        - location: Flower pot
+          detail: |
+              Right-clicking a flower pot with a Wither Rose plants this
+              potted variant, which is safe to touch unlike the placed
+              block.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool or bare hands break it instantly — hardness is 0.
+        - question: What does breaking it drop?
+          answer: |
+              It drops both a Flower Pot and a Wither Rose as separate items.
+        - question: Is the potted Wither Rose dangerous to stand near?
+          answer: |
+              No — potted Wither Rose deals no Wither damage, unlike the
+              freestanding block form.
+        - question: How do I obtain a Wither Rose?
+          answer: |
+              Kill a mob or player with the Wither boss; a rose spawns at
+              the death location, or drops as an item if no block is
+              available.
     data_version: "1.21.5"
 ---
 

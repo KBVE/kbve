@@ -1,5 +1,6 @@
 ---
 title: Decorated Pot
+template: splash
 description: |
     Minecraft Decorated Pot — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1091
     ref: decorated_pot
     slug: decorated-pot
+    content_rev: 1
     display_name: Decorated Pot
     material: stone
     hardness: 0
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brick
+          qty_min: 4
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: decorated_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Decorated Pot is a crafted storage-and-decoration block made
+            from four bricks or pottery sherds. It holds a single inventory
+            slot of items, accessible only by breaking the pot (or via
+            hoppers), and shatters into the four sherds or bricks used to
+            craft it unless mined with Silk Touch.
+        lore: |
+            Added with the Trails & Tales Update (1.20), the Decorated Pot
+            ties into archaeology, letting players craft displayable pottery
+            from sherds dug up at brush-able suspicious sand and gravel.
+    uses:
+        - title: Item storage
+          ref: decorated_pot
+          detail: |
+              Holds one stack's worth of a single item type, placed or
+              retrieved by right-clicking or via a hopper facing the pot.
+    found_in:
+        - location: Trial Chambers
+          detail: Naturally generates already filled with loot as part of trial chamber vaults and rooms.
+        - location: Crafted by the player
+          detail: Made at a crafting table from four bricks and/or pottery sherds in any combination.
+    faq:
+        - question: What does breaking a Decorated Pot drop?
+          answer: |
+              Without Silk Touch it drops the four pottery sherds or bricks
+              used to craft it (or nothing if it generated naturally with
+              generic sides). With Silk Touch it drops itself intact,
+              including any stored items.
+        - question: Can I get specific pottery sherds back from it?
+          answer: |
+              Yes, if crafted from sherds, breaking it without Silk Touch
+              returns those exact sherds; a pot made purely from bricks
+              drops plain bricks instead.
+        - question: How do I store and retrieve items from a Decorated Pot?
+          answer: |
+              Right-click with an item to insert one, and right-click again
+              to remove one; a hopper below or beside the pot can also
+              automate insertion and extraction.
+        - question: Is the Decorated Pot flammable or blast resistant?
+          answer: |
+              No to both — it has 0 hardness and 0 blast resistance, so it
+              mines instantly and is destroyed by nearby explosions.
     data_version: "1.21.5"
 ---
 

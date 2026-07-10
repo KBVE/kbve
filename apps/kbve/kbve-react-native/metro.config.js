@@ -17,6 +17,7 @@ config.resolver.extraNodeModules = {
 	'@kbve/rn': path.resolve(workspaceRoot, 'packages/npm/rn'),
 	'@kbve/core': path.resolve(workspaceRoot, 'packages/npm/core'),
 	'@kbve/fx': path.resolve(workspaceRoot, 'packages/npm/fx'),
+	'@kbve/observ': path.resolve(workspaceRoot, 'packages/npm/observ'),
 };
 
 config.resolver.disableHierarchicalLookup = false;

@@ -1,5 +1,6 @@
 ---
 title: Lingering Potion
+template: splash
 description: |
     Minecraft Lingering Potion — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,45 @@ mc_item:
     id: 1224
     ref: lingering_potion
     slug: lingering-potion
+    content_rev: 1
     display_name: Lingering Potion
     category: brewing
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Lingering Potion is a throwable variant of a splash potion that
+            shatters on impact and, after about one second, forms an area
+            effect cloud lingering for up to 30 seconds. Any entity that
+            enters the cloud receives the potion's effect at reduced
+            duration and potency compared to drinking or splashing it.
+        lore: |
+            Crafted by combining dragon's breath with splash potions,
+            lingering potions turn an instantaneous effect into a sustained
+            environmental hazard or boon.
+        faq:
+            - question: How long do Lingering Potion effects last once applied?
+              answer: |
+                  For effects with a duration, the cloud applies 1/4 the
+                  duration of the corresponding potion, though standing in
+                  the cloud can reapply the effect repeatedly.
+            - question: How is a Lingering Potion brewed?
+              answer: |
+                  Brew dragon's breath with a matching splash potion in a
+                  brewing stand to convert it into its lingering form.
+            - question: What is the difference between lingering and splash potions?
+              answer: |
+                  Splash potions apply their effect immediately on impact,
+                  while lingering potions take about a second to form a
+                  cloud that then applies the effect gradually to anyone
+                  who walks through it.
+            - question: Can Lingering Potions be used to make tipped arrows?
+              answer: |
+                  Yes, a lingering potion can be combined with arrows at a
+                  fletching table or crafting grid to produce tipped arrows
+                  carrying the same effect.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

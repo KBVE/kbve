@@ -1,5 +1,6 @@
 ---
 title: Bamboo Sign
+template: splash
 description: |
     Minecraft Bamboo Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 220
     ref: bamboo_wall_sign
     slug: bamboo-wall-sign
+    content_rev: 1
     display_name: Bamboo Sign
     material: wood
     hardness: 1
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Bamboo Sign is a wall-mounted sign crafted from bamboo planks
+            and a stick, letting players write and display custom text on
+            the side of another block. It can be waxed with honeycomb to
+            lock its text against further edits.
+        lore: |
+            Bamboo wood variants, including the bamboo sign, were added in
+            Java Edition 1.20 as part of the bamboo wood set.
+    uses:
+        - title: Bamboo Sign (item)
+          ref: bamboo_sign
+          detail: |
+              Crafted from six bamboo planks and one stick, yielding three
+              signs; placed against a block's side to attach as a wall sign.
+    found_in:
+        - location: Crafted by players
+          detail: Made from bamboo planks and a stick at a crafting table.
+        - location: Any structure with mounted signage
+          detail: Placed by players for labeling storage, paths, and builds.
+    faq:
+        - question: What tool do I need to break a Bamboo Sign?
+          answer: |
+              None. It can be broken by hand or any tool instantly; an axe
+              is merely the fastest option.
+        - question: Does a Bamboo Sign burn?
+          answer: |
+              Yes. Being a bamboo wood product, it is flammable and will
+              catch fire from nearby lava or flames.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, unless the sign has been waxed with honeycomb, which
+              permanently locks the text from further changes.
+        - question: What item does it drop when broken?
+          answer: |
+              It drops a single Bamboo Sign item, the same item used to
+              place either a standing or wall sign.
     data_version: "1.21.5"
 ---
 

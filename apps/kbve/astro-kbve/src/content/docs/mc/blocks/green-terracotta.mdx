@@ -1,5 +1,6 @@
 ---
 title: Green Terracotta
+template: splash
 description: |
     Minecraft Green Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 465
     ref: green_terracotta
     slug: green-terracotta
+    content_rev: 1
     display_name: Green Terracotta
     material: stone
     hardness: 1.25
@@ -24,10 +26,54 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Green Terracotta is a dyed variant of terracotta, a hardened
+            clay block that resists fire and blast damage better than most
+            building blocks. It is crafted by dyeing plain terracotta
+            green.
+        lore: |
+            Terracotta's blocky, earthy look was inspired by Native
+            American Pueblo architecture.
+    uses:
+        - title: Green Glazed Terracotta
+          ref: green_glazed_terracotta
+          detail: |
+              Smelting Green Terracotta in a furnace, blast furnace, or
+              smoker produces Green Glazed Terracotta, its glossy
+              directional-pattern counterpart.
+    found_in:
+        - location: Crafting
+          detail: Craft 8 Terracotta with 1 Green Dye to produce 8 Green Terracotta blocks.
+    faq:
+        - question: What tool do I need to mine Green Terracotta?
+          answer: |
+              Any pickaxe, including wood, works and drops the block; no
+              minimum tier is required.
+        - question: Does Green Terracotta burn?
+          answer: |
+              No. Like all terracotta, it is non-flammable and does not
+              catch fire from lava.
+        - question: How do I make Green Glazed Terracotta from it?
+          answer: |
+              Smelt Green Terracotta in a furnace, blast furnace, or smoker
+              to turn it into Green Glazed Terracotta.
+        - question: How is Green Terracotta crafted?
+          answer: |
+              Combine 8 Terracotta blocks with 1 Green Dye in a crafting
+              grid to get 8 Green Terracotta blocks.
     data_version: "1.21.5"
 ---
 

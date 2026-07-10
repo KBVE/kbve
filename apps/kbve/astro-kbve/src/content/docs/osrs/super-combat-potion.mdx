@@ -1,0 +1,140 @@
+---
+title: Super combat potion | OSRS Price Data
+description: "Super combat potion(4) is a 4-dose members potion that boosts attack, strength, and defence by 5 + 15% of level. High alch: 150 GP, GE limit: 2,000."
+osrs:
+  id: 12695
+  name: Super combat potion
+  slug: super-combat-potion
+  examine: 4 doses of super combat potion.
+  members: true
+  icon: Super combat potion(4).png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 2000
+  potion:
+    doses: 4
+    herblore_level: 90
+    herblore_xp: 150
+    effect: "Boosts Attack, Strength, and Defence by 5 + 15% of base level for 5 minutes"
+    effects:
+      - stat: attack
+        boost_type: formula
+        boost_formula: "5 + floor(level * 0.15)"
+        duration: 500
+      - stat: strength
+        boost_type: formula
+        boost_formula: "5 + floor(level * 0.15)"
+        duration: 500
+      - stat: defence
+        boost_type: formula
+        boost_formula: "5 + floor(level * 0.15)"
+        duration: 500
+  recipes:
+    - skill: herblore
+      level: 90
+      xp: 150
+      members_only: true
+      materials:
+        - item_name: Torstol potion (unf)
+          item_id: 111
+          quantity: 1
+        - item_name: Super attack(4)
+          item_id: 2436
+          quantity: 1
+        - item_name: Super strength(4)
+          item_id: 2440
+          quantity: 1
+        - item_name: Super defence(4)
+          item_id: 2442
+          quantity: 1
+  related_items:
+    - item_id: 2436
+      item_name: Super attack(4)
+      slug: super-attack-4
+      relationship: component
+    - item_id: 2440
+      item_name: Super strength(4)
+      slug: super-strength-4
+      relationship: component
+    - item_id: 2442
+      item_name: Super defence(4)
+      slug: super-defence-4
+      relationship: component
+    - item_id: 269
+      item_name: Torstol
+      slug: torstol
+      relationship: component
+    - item_id: 111
+      item_name: Torstol potion (unf)
+      slug: torstol-potion-unf
+      relationship: component
+    - item_name: Super combat potion(3)
+      slug: super-combat-potion-3
+      relationship: variant
+    - item_name: Super combat potion(2)
+      slug: super-combat-potion-2
+      relationship: variant
+    - item_name: Super combat potion(1)
+      slug: super-combat-potion-1
+      relationship: variant
+    - item_name: Divine super combat potion(4)
+      slug: divine-super-combat-potion-4
+      relationship: upgrade
+  about: |-
+    Super combat potion(4) is a members combat potion that combines the effects of super attack, super strength, and super defence into a single four-dose flask, boosting each stat by 5 + 15% of the player's base level for five minutes per dose. Brewing one requires level 90 Herblore and yields 150 experience, made by combining a torstol (or torstol potion (unf)) with a 4-dose super attack, super strength, and super defence. Since its release it has been the staple combat potion for melee training and PvM, freeing up inventory space that would otherwise be consumed by three separate potions.
+  family_ref:
+    family_slug: super-combat-potion
+    role: base
+  family:
+    slug: super-combat-potion
+    name: Super combat potion
+    type: dose
+    canonical_id: 12695
+    members:
+    - id: 12695
+      slug: super-combat-potion
+      name: Super combat potion
+      icon: Super combat potion(4).png
+      role: base
+      dose: null
+      value: 250
+      lowalch: 100
+      highalch: 150
+    - id: 12701
+      slug: super-combat-potion-1
+      name: Super combat potion(1)
+      icon: Super combat potion(1).png
+      role: dose
+      dose: 1
+      value: 40
+      lowalch: 16
+      highalch: 24
+    - id: 12699
+      slug: super-combat-potion-2
+      name: Super combat potion(2)
+      icon: Super combat potion(2).png
+      role: dose
+      dose: 2
+      value: 90
+      lowalch: 36
+      highalch: 54
+    - id: 12697
+      slug: super-combat-potion-3
+      name: Super combat potion(3)
+      icon: Super combat potion(3).png
+      role: dose
+      dose: 3
+      value: 170
+      lowalch: 68
+      highalch: 102
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

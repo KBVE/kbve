@@ -788,10 +788,10 @@ pub fn parse_incoming_ws_data(
 }
 
 pub fn parse_redis_envelope_from_json(text: &str) -> Result<RedisEnvelope, JediError> {
-    if let Ok(msg) = serde_json::from_str::<RedisWsMessage>(text) {
-        if let Some(envelope) = build_redis_envelope_from_ws(&msg) {
-            return Ok(envelope);
-        }
+    if let Ok(msg) = serde_json::from_str::<RedisWsMessage>(text)
+        && let Some(envelope) = build_redis_envelope_from_ws(&msg)
+    {
+        return Ok(envelope);
     }
 
     if let Ok(thin) = serde_json::from_str::<ThinRedisCommand>(text) {

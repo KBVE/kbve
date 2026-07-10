@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Stack, Text, tokens } from '../ui';
+import { Stack, Text, tokens } from './_ui';
 import type { StatModel } from './types';
 
 const TONE_COLOR: Record<string, string> = {

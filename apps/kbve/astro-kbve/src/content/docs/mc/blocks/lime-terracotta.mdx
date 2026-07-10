@@ -1,5 +1,6 @@
 ---
 title: Lime Terracotta
+template: splash
 description: |
     Minecraft Lime Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 457
     ref: lime_terracotta
     slug: lime-terracotta
+    content_rev: 1
     display_name: Lime Terracotta
     material: stone
     hardness: 1.25
@@ -24,10 +26,55 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Lime Terracotta is a dyed variant of terracotta made by crafting
+            plain terracotta with lime dye. Once dyed, the color is permanent
+            and cannot be changed or removed, unlike stained glass or wool.
+        lore: |
+            It generates naturally in desert village mason houses alongside
+            other terracotta colors used for decorative patterns.
+    uses:
+        - title: Glazed Terracotta
+          ref: lime_glazed_terracotta
+          detail: |
+              Smelting Lime Terracotta in a furnace with any fuel produces
+              Lime Glazed Terracotta, a glossy variant with a fixed directional
+              pattern useful for banner-style builds.
+    found_in:
+        - location: Desert Villages
+          detail: Generates as part of mason house structures alongside other terracotta colors.
+        - location: Crafting Table
+          detail: Crafted from 8 Terracotta plus 1 Lime Dye, yielding 8 Lime Terracotta.
+    faq:
+        - question: What tool do I need to mine Lime Terracotta?
+          answer: |
+              Any pickaxe works; a wooden pickaxe or better is enough to get
+              the drop, though better pickaxes mine it faster.
+        - question: Can I change the color after dyeing?
+          answer: |
+              No. Dyeing terracotta is a one-way crafting recipe — the color
+              cannot be removed or changed afterward.
+        - question: Is Lime Terracotta renewable?
+          answer: |
+              Yes. It can be crafted repeatedly from plain terracotta and dye,
+              and mason villagers sell it for emeralds.
+        - question: What is Lime Terracotta used for?
+          answer: |
+              Mostly building and decoration, and it can be smelted into
+              Lime Glazed Terracotta for patterned designs.
     data_version: "1.21.5"
 ---
 

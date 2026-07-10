@@ -5,6 +5,7 @@ use axum::{
 };
 #[cfg(feature = "postgres")]
 use bb8::ErrorSink;
+#[cfg(feature = "valkey")]
 use fred::error::Error as RedisError;
 use serde::Serialize;
 use std::borrow::Cow;
@@ -98,6 +99,7 @@ impl From<tokio_postgres::Error> for JediError {
     }
 }
 
+#[cfg(feature = "grpc")]
 impl From<JediError> for tonic::Status {
     fn from(err: JediError) -> tonic::Status {
         match err {
@@ -117,6 +119,7 @@ impl From<JediError> for tonic::Status {
     }
 }
 
+#[cfg(feature = "grpc")]
 impl From<tonic::Status> for JediError {
     fn from(status: tonic::Status) -> Self {
         JediError::Grpc(status.to_string())
@@ -168,6 +171,7 @@ impl From<flexbuffers::ReaderError> for JediError {
     }
 }
 
+#[cfg(feature = "valkey")]
 impl From<RedisError> for JediError {
     fn from(err: RedisError) -> Self {
         JediError::Database(Cow::Owned(format!("Redis error: {}", err)))

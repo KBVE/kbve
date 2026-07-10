@@ -1,5 +1,6 @@
 ---
 title: Dripstone Block
+template: splash
 description: |
     Minecraft Dripstone Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 1042
     ref: dripstone_block
     slug: dripstone-block
+    content_rev: 1
     display_name: Dripstone Block
     material: stone
     hardness: 1.5
     blast_resistance: 1
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dripstone_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Dripstone Block is a rock block that forms the ceilings,
+            floors, and columns of dripstone caves. Water dripping through
+            a Dripstone Block causes Pointed Dripstone growing beneath it
+            to slowly lengthen over time.
+        lore: |
+            Added in Java Edition 20w48a as part of the Caves & Cliffs
+            update, introducing dripstone caves as a new cave biome.
+    uses:
+        - title: Pointed Dripstone
+          ref: pointed_dripstone
+          detail: |
+              Crafting one Dripstone Block back into four Pointed Dripstone
+              lets players relocate stalactites and stalagmites elsewhere.
+    found_in:
+        - location: Dripstone Caves
+          detail: Generates abundantly as floors, ceilings, and pillars throughout the dripstone caves biome.
+        - location: Crafting Table
+          detail: Crafted from four Pointed Dripstone.
+        - location: Mason Villager Trading
+          detail: Mason villagers sell 4 Dripstone Blocks for 1 Emerald.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              At least a wooden pickaxe. Mining without a pickaxe drops
+              nothing.
+        - question: Does it grow stalactites on its own?
+          answer: |
+              No, but it lets Pointed Dripstone grow beneath it if water is
+              dripping through it from above.
+        - question: Is it renewable?
+          answer: |
+              Yes — it can be crafted from Pointed Dripstone, which itself
+              grows naturally over time.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Dripstone Block regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

@@ -1,7 +1,7 @@
 ---
-title: DiscordSH
-description: |
-    DiscordSH Docs - Official notes and documentation for DiscordSH, a topsite for Discord servers featuring a voting and bump system.
+title: DiscordSH — Discord Server Topsite with Voting and Bump
+description: DiscordSH is a topsite for Discord servers featuring a voting and bump system, built on Rust/Axum, Supabase, Redis, and an Astro frontend.
+sem: 1
 sidebar:
     label: DiscordSH
     order: 420
@@ -31,9 +31,81 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is DiscordSH?
+          answer: DiscordSH is a topsite for Discord servers that promotes them through two mechanics — a voting system and a bump system — helping server owners increase visibility and attract new members.
+        - question: How does DiscordSH voting differ from bumping?
+          answer: Voting is cumulative — users vote once every 12 hours, servers rank by total votes, and votes reset monthly for long-term visibility. Bumping is a real-time stream of recently promoted servers with no reset, aimed at short-term exposure.
+        - question: What is the DiscordSH tech stack?
+          answer: These unofficial notes describe an Astro frontend with Alpine.js and React, a Rust and Axum backend as a thin layer over Supabase and Postgres with Redis for ephemeral data, and Kubernetes for deployment, with real-time features over WebSockets.
+bento:
+    badge: ai · discord
+    title: Discord server topsite
+    accent: DiscordSH
+    lede: >-
+        A topsite for Discord servers built to promote them through two
+        mechanics — a cumulative voting system and a real-time bump stream.
+        A Rust/Axum thin layer over Supabase, Postgres, and Redis, with an Astro
+        frontend and real-time updates over WebSockets.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/discordsh
+          primary: true
+          external: true
+        - label: How it works
+          href: "#product"
+        - label: Development
+          href: "#development"
+    aside:
+        icon: chart
+        title: Vote vs. bump
+        body: >-
+            <strong>Voting</strong> is cumulative — once every 12 hours, ranked
+            by total, reset monthly for long-term visibility.
+            <strong>Bumping</strong> is a real-time stream of recently promoted
+            servers with no reset, aimed at short-term exposure.
+        points:
+            - <strong>Frontend</strong> — Astro + Alpine.js + React.
+            - <strong>Backend</strong> — Rust/Axum over Supabase + Redis.
+    stats:
+        - { label: App, value: discordsh, icon: discord }
+        - { label: Stack, value: Rust + Axum, icon: rust }
+        - { label: Data, value: Supabase + Redis, icon: database }
+        - { label: Status, value: active, icon: check }
+    features:
+        - title: Voting system
+          icon: chart
+          body: Users vote once every 12 hours; servers rank by total votes and reset monthly, rewarding consistent engagement with long-term visibility.
+        - title: Bump system
+          icon: zap
+          body: A continuous, reset-free stream of recently promoted servers for immediate, short-term visibility boosts.
+        - title: Real-time WebSockets
+          icon: activity
+          body: Live vote updates and bump-stream refreshes exchanged over WebSockets, backed by key-value SET / GET / WATCH commands.
+        - title: Thin Axum layer
+          icon: server
+          body: A Rust/Axum REST + WebSocket layer mediates Supabase and Redis, adding business logic like 12-hour rate limits and bump processing.
+    related:
+        - title: DiscordSH Bot
+          href: /project/discordsh-bot/
+          copy: The companion Discord bot for the topsite.
+          icon: discord
+    related_heading: Related
 ---
 
-## DiscordSH
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="product" eyebrow="Unofficial notes" heading="Voting, bumping & tips">
 
 This is unofficial notes and docs for discordsh.
 
@@ -78,7 +150,10 @@ These unofficial notes aim to clarify how DiscordSH operates based on its core f
 
 * * *
 
-## Development
+</BentoProse>
+
+<BentoProse id="development" eyebrow="Architecture" heading="Development & tech stack">
+
 This section outlines the technical foundation of DiscordSH, based on inferred architecture and common practices for a topsite with voting and bumping features.
 
 ### Tech Stack
@@ -148,9 +223,9 @@ The thin layer (Axum) also supports WebSocket commands with a simpler JSON struc
   - `WATCH` enables clients to receive live updates for a key, such as vote increments or bump stream changes, leveraging WebSocket’s real-time capabilities.
   - Likely used for lightweight, frontend-driven interactions with the thin layer’s WebSocket endpoint.
 
+</BentoProse>
 
-
-## DevLog
+<BentoProse id="devlog" eyebrow="Scratchpad" heading="DevLog">
 
 This is for unprocessed notes and logs from the DiscordSH development process. It includes various JSON payloads and other data structures used in the application.
 
@@ -228,3 +303,7 @@ Thin Watch
 
 
 ```
+
+</BentoProse>
+
+</BentoDoc>

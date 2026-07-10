@@ -1,5 +1,6 @@
 ---
 title: Calibrated Sculk Sensor
+template: splash
 description: |
     Minecraft Calibrated Sculk Sensor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 961
     ref: calibrated_sculk_sensor
     slug: calibrated-sculk-sensor
+    content_rev: 1
     display_name: Calibrated Sculk Sensor
     material: plant
     hardness: 1.5
@@ -24,10 +26,61 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: calibrated_sculk_sensor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Calibrated Sculk Sensor is a craftable redstone component built
+            from a regular sculk sensor and amethyst shards, letting players
+            filter which of the 16 vibration frequencies it responds to.
+        lore: |
+            Introduced in Java Edition 1.20 (Trails & Tales), it refines the
+            sculk sensor into a precision tool for compact redstone
+            contraptions.
+    uses:
+        - title: Vibration Frequency Filtering
+          ref: sculk_sensor
+          detail: |
+              Its amethyst-covered face accepts a redstone signal strength
+              that filters which vibration frequency it listens for, letting
+              redstone builds react to specific actions like a door opening
+              or an item being dropped.
+        - title: Sculk Shrieker Triggers
+          ref: sculk_shrieker
+          detail: |
+              Can be chained through adjacent amethyst blocks to relay
+              detected vibrations and trigger sculk shriekers or other
+              redstone mechanisms at range.
+    found_in:
+        - location: Crafted only
+          detail: Made from 3 amethyst shards and 1 sculk sensor in a crafting grid; not found naturally.
+    faq:
+        - question: What tool mines a Calibrated Sculk Sensor fastest?
+          answer: |
+              A hoe, with a golden hoe breaking it in about 0.2 seconds.
+        - question: Do I need Silk Touch to keep the block?
+          answer: |
+              Yes. Without Silk Touch it drops 5 experience points instead
+              of the block itself.
+        - question: How is it different from a regular Sculk Sensor?
+          answer: |
+              It only activates for 10 game ticks instead of 30, letting it
+              detect vibrations roughly every 1.05 seconds — much faster
+              than a normal sensor.
+        - question: How do I craft one?
+          answer: |
+              Combine 3 amethyst shards with 1 sculk sensor in any crafting
+              grid.
     data_version: "1.21.5"
 ---
 

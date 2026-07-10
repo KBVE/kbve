@@ -1,5 +1,6 @@
 ---
 title: Smithing Table
+template: splash
 description: |
     Minecraft Smithing Table — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 813
     ref: smithing_table
     slug: smithing-table
+    content_rev: 1
     display_name: Smithing Table
     material: wood
     hardness: 2.5
@@ -24,10 +26,63 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smithing_table
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Smithing Table is a crafting station used to upgrade diamond
+            gear to netherite and to apply armor trim patterns using
+            smithing templates. It also serves as the toolsmith villager's
+            job site block.
+        lore: |
+            Added in the Village & Pillage update, its role expanded
+            significantly in the Nether Update and Trails & Tales update
+            to cover netherite upgrades and armor trims.
+    uses:
+        - title: Netherite Upgrade
+          ref: netherite_ingot
+          detail: |
+              Combine a diamond tool or armor piece with a Netherite Ingot
+              on a smithing table (using the Netherite Upgrade template) to
+              convert it to its netherite equivalent, preserving
+              enchantments and durability.
+        - title: Armor Trims
+          ref: smithing_template
+          detail: |
+              Place a smithing template, an armor piece, and a trim
+              material (ingot or crystal) to apply a decorative, dyeable
+              pattern to the armor at no experience cost.
+    found_in:
+        - location: Village toolsmith house
+          detail: Generates as furniture inside toolsmith houses.
+        - location: Trail ruins
+          detail: Occasionally found among the buried structure's blocks.
+    faq:
+        - question: What tool do I need to mine a Smithing Table?
+          answer: |
+              None strictly required — it can be broken by hand — but an
+              axe is fastest and always yields the block.
+        - question: Does Silk Touch or Fortune affect its drop?
+          answer: |
+              No. A Smithing Table always drops itself regardless of
+              enchantments.
+        - question: Can I get a Smithing Table without crafting one?
+          answer: |
+              Yes. They generate naturally in village toolsmith houses and
+              occasionally in trail ruins.
+        - question: What is a Smithing Table used for besides netherite?
+          answer: |
+              It also applies armor trim smithing templates and acts as the
+              job site block that turns a villager into a toolsmith.
     data_version: "1.21.5"
 ---
 

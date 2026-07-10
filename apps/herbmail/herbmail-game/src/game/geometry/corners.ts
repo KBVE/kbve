@@ -1,0 +1,96 @@
+import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { COLS, ROWS } from '../level';
+import { COVE_R, TILE, WALL_H, WALL_SEG } from '../config';
+import { DIRS, isBay, isSolid } from './faces';
+
+const ARC_SEG = 6;
+const H_SEG = 4;
+const CAP_H = WALL_H - COVE_R;
+const INSET = 0.09;
+
+interface Corner {
+	x0: number;
+	z0: number;
+	sx: number;
+	sz: number;
+}
+
+function bayFace(col: number, row: number, di: number): boolean {
+	return isBay({ col, row, di, dir: DIRS[di] });
+}
+
+function cornersAt(col: number, row: number): Corner[] {
+	const out: Corner[] = [];
+	const n = isSolid(col, row - 1);
+	const s = isSolid(col, row + 1);
+	const w = isSolid(col - 1, row);
+	const e = isSolid(col + 1, row);
+	const x = col * TILE;
+	const z = row * TILE;
+	if (n && w && !bayFace(col, row, 0) && !bayFace(col, row, 2))
+		out.push({ x0: x, z0: z, sx: 1, sz: 1 });
+	if (n && e && !bayFace(col, row, 0) && !bayFace(col, row, 3))
+		out.push({ x0: x + TILE, z0: z, sx: -1, sz: 1 });
+	if (s && w && !bayFace(col, row, 1) && !bayFace(col, row, 2))
+		out.push({ x0: x, z0: z + TILE, sx: 1, sz: -1 });
+	if (s && e && !bayFace(col, row, 1) && !bayFace(col, row, 3))
+		out.push({ x0: x + TILE, z0: z + TILE, sx: -1, sz: -1 });
+	return out;
+}
+
+function keep(col: number, row: number, i: number): boolean {
+	return (col * 7 + row * 13 + i * 5) % 3 === 0;
+}
+
+function fillet(c: Corner): THREE.BufferGeometry {
+	const R = COVE_R;
+	const cx = c.x0 + c.sx * R;
+	const cz = c.z0 + c.sz * R;
+	const pos: number[] = [];
+	const uv: number[] = [];
+	const idx: number[] = [];
+
+	for (let h = 0; h <= H_SEG; h++) {
+		const y = (h / H_SEG) * CAP_H;
+		for (let a = 0; a <= ARC_SEG; a++) {
+			const th = (a / ARC_SEG) * (Math.PI / 2);
+			const x = cx - c.sx * R * Math.cos(th) + c.sx * INSET;
+			const z = cz - c.sz * R * Math.sin(th) + c.sz * INSET;
+			pos.push(x, y, z);
+			uv.push(a / ARC_SEG, y / CAP_H);
+		}
+	}
+
+	const stride = ARC_SEG + 1;
+	for (let h = 0; h < H_SEG; h++) {
+		for (let a = 0; a < ARC_SEG; a++) {
+			const i0 = h * stride + a;
+			const i1 = i0 + 1;
+			const i2 = i0 + stride;
+			const i3 = i2 + 1;
+			idx.push(i0, i2, i1, i1, i2, i3);
+		}
+	}
+
+	const g = new THREE.BufferGeometry();
+	g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+	g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+	g.setIndex(idx);
+	g.computeVertexNormals();
+	return g;
+}
+
+export function buildCornerCoves(): THREE.BufferGeometry {
+	const parts: THREE.BufferGeometry[] = [];
+	for (let row = 0; row < ROWS; row++) {
+		for (let col = 0; col < COLS; col++) {
+			if (isSolid(col, row)) continue;
+			cornersAt(col, row).forEach((c, i) => {
+				if (keep(col, row, i)) parts.push(fillet(c));
+			});
+		}
+	}
+	if (!parts.length) return new THREE.BufferGeometry();
+	return mergeGeometries(parts, false);
+}

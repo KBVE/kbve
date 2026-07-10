@@ -9,15 +9,52 @@ description: |
     13th of Unlucky April.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 13,'
+    accent: every year.
+    lede: 'The April 13th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Apr 12'
+          href: /journal/04-12/
+        - label: 'Apr 14 →'
+          href: /journal/04-14/
+    related:
+        - title: 'Previous · Apr 12'
+          copy: 'Step back a day to the April 12th log.'
+          href: /journal/04-12/
+          icon: calendar
+        - title: 'Next · Apr 14'
+          copy: 'Jump ahead to the April 14th log.'
+          href: /journal/04-14/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1712313221432-16ee2d6aba88?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### RimWorldRun
 
@@ -35,9 +72,15 @@ import { Adsense } from '@/components/astropad';
     The worst feeling about April is uncle sam's visit!
     He is always looking at my pockets and waiting for his cut, ugh.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
+<BentoProse id="2024" heading="2024">
 
 ### Castle
 
@@ -138,3 +181,7 @@ We are also going to add `dbus-x11` package inside of the Dockerfile.
 
 Yay! We got the Docker application to run with display and the terminal window!
 Making progress! Now we want to update the FastAPI that is running within this contianer to proxy our noVNC.
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: October 24th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 24,'
+    accent: every year.
+    lede: 'The October 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 23'
+          href: /journal/10-23/
+        - label: 'Oct 25 →'
+          href: /journal/10-25/
+    related:
+        - title: 'Previous · Oct 23'
+          copy: 'Step back a day to the October 23rd log.'
+          href: /journal/10-23/
+          icon: calendar
+        - title: 'Next · Oct 25'
+          copy: 'Jump ahead to the October 25th log.'
+          href: /journal/10-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Rust Combat States - AFK
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Part of the flaw in our logic is that under the web builds, we will have a tough time managing a fake thread and furthermore moving logic.
     I realized that I should have kept the logic to a rust signal system instead, oh well, next time I will know better.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **RSPS**
 
@@ -74,3 +123,7 @@ There are a couple more things that I want to focus on but we can get there thro
 
 Maybe the reason we are having that minified bug and react 301 error from the way we are handling the state of the captcha.
 The plan is to track back and see if there are any issues with how we are handling the state management within this component.
+
+</BentoProse>
+
+</BentoDoc>

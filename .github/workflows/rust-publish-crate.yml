@@ -78,7 +78,7 @@ jobs:
             - name: Rust ToolChain (stable)
               uses: dtolnay/rust-toolchain@stable
               with:
-                  toolchain: '1.94'
+                  toolchain: '1.96'
 
             - name: Check version against crates.io
               id: version_check

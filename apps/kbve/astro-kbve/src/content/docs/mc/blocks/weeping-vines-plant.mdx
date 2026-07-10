@@ -1,5 +1,6 @@
 ---
 title: Weeping Vines Plant
+template: splash
 description: |
     Minecraft Weeping Vines Plant — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,12 @@ mc_block:
     id: 838
     ref: weeping_vines_plant
     slug: weeping-vines-plant
+    content_rev: 1
     display_name: Weeping Vines Plant
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weeping_vines
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - nether
+        - climbable
+        - non_flammable
+    about:
+        description: |
+            Weeping Vines Plant is the body segment of a weeping vine,
+            distinct from the growing tip. It is climbable like a ladder
+            and hangs downward from huge crimson fungi in crimson forests.
+        lore: |
+            Weeping vines were added in Java Edition 1.16 (the Nether
+            Update) as the crimson-forest counterpart to the overworld's
+            twisting vines.
+    uses:
+        - title: Vertical traversal
+          ref: weeping_vines_plant
+          detail: |
+              Hold the jump key while touching the vines to climb upward,
+              or descend by holding the vines with a solid block behind
+              the player for controlled movement.
+        - title: Composting
+          ref: weeping_vines
+          detail: Dropped weeping vines can be used in a composter, with a 50% chance to raise the compost level by one.
+    found_in:
+        - location: Crimson Forest
+          detail: |
+              Grows downward from huge crimson fungi; bone meal on a
+              fungus extends existing vines and can start new growth.
+        - location: Basalt Deltas and other Nether biomes
+          detail: Rarer where crimson fungi are transplanted or grown by players outside crimson forests.
+    faq:
+        - question: What is the drop chance when mining Weeping Vines Plant?
+          answer: |
+              Without enchantments there is a 33% chance to drop one
+              Weeping Vines item; Silk Touch always drops one, and Fortune
+              increases the odds up to a guaranteed drop at Fortune III.
+        - question: Do I need a special tool to break it?
+          answer: |
+              No, it breaks instantly with any tool or by hand; shears are
+              simply the fastest and guarantee a drop like Silk Touch.
+        - question: Can I climb Weeping Vines like a ladder?
+          answer: |
+              Yes, holding the jump key while touching the vines lets a
+              player climb, and a solid block behind the player allows
+              controlled descent.
+        - question: Does it burn in the Nether's fire and lava?
+          answer: |
+              No, weeping vines are non-flammable and immune to fire,
+              unlike overworld vegetation.
     data_version: "1.21.5"
 ---
 

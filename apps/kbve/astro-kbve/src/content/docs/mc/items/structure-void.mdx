@@ -1,5 +1,6 @@
 ---
 title: Structure Void
+template: splash
 description: |
     Minecraft Structure Void — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 551
     ref: structure_void
     slug: structure-void
+    content_rev: 1
     display_name: Structure Void
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Structure Void is an invisible placeholder block used inside structure files
+            to mark positions that should be ignored when a structure loads, preserving
+            whatever block already exists at that location. It is only available through
+            commands or Creative mode with cheats enabled.
+        lore: |
+            An empty space that politely refuses to overwrite whatever was already there.
+    faq:
+        - question: How do you get a Structure Void?
+          answer: |
+              It cannot be obtained in Survival; use commands like /give, /setblock, or
+              /fill, or the Creative inventory with cheats enabled.
+        - question: What does a Structure Void actually do?
+          answer: |
+              When placed inside a saved structure, it tells the game to skip that
+              position on load, leaving the existing world block untouched.
+        - question: Is Structure Void visible in normal gameplay?
+          answer: |
+              No, it is invisible by default but appears as a pink cube when "show
+              invisible blocks" is toggled on a Structure Block.
+        - question: How is Structure Void different from a Structure Block?
+          answer: |
+              A Structure Block is the tool used to save and load structures, while
+              Structure Void is a placeholder block placed within those structures.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

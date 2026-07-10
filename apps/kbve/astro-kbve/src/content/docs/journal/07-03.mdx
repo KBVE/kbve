@@ -9,12 +9,52 @@ description: |
   July 3rd. Americas Unofficial Bday?
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 3,'
+    accent: every year.
+    lede: 'The July 3rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 2'
+          href: /journal/07-02/
+        - label: 'Jul 4 →'
+          href: /journal/07-04/
+    related:
+        - title: 'Previous · Jul 2'
+          copy: 'Step back a day to the July 2nd log.'
+          href: /journal/07-02/
+          icon: calendar
+        - title: 'Next · Jul 4'
+          copy: 'Jump ahead to the July 4th log.'
+          href: /journal/07-04/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1687057217908-54f8e6d30e3c?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Supabase Edge
 
@@ -30,7 +70,15 @@ import { Adsense } from '@/components/astropad';
     Wrapping the day off with some more minor changes to the Godot card game.
     I should start moving this into the public repo so that we can push around.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 - 12:34am
 
@@ -66,7 +114,9 @@ This could be an engine that holds all our phaser code and also any additional u
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 10:00am 
 
@@ -79,14 +129,21 @@ I have to split up the login form into two or three different classes or maybe h
 I am a bit confused on the path that I want to take for setting up the login system.
 This has been an issue for a bit way too long, I am thinking that I might just stick with very basic moves and then later on, go back to write it up.
 
+</BentoProse>
 
-## Quote
+<BentoProse id="quote" heading="Quote">
 
 > Your attitude, not your aptitude, will determine your altitude.
 > — <cite>Zig Ziglar</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Start VuPlex
+
+</BentoProse>
+
+</BentoDoc>

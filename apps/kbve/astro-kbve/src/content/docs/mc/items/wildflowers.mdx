@@ -1,5 +1,6 @@
 ---
 title: Wildflowers
+template: splash
 description: |
     Minecraft Wildflowers — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 259
     ref: wildflowers
     slug: wildflowers
+    content_rev: 1
     display_name: Wildflowers
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Wildflowers are thin decorative flowers, introduced in Java Edition 1.21.5, that place four at a time
+            within a single block space, similar to pink petals and leaf litter. They generate naturally in birch
+            forests, old growth birch forests, and meadows.
+        lore: |
+            Their stem coloration shifts with the surrounding biome, giving each patch of wildflowers a subtly
+            different look depending on where it grows.
+    faq:
+        - question: Where do wildflowers generate naturally?
+          answer: |
+              They generate in birch forests, old growth birch forests, and meadows, and can also be grown by
+              applying bone meal to grass blocks in those biomes.
+        - question: What can wildflowers be crafted into?
+          answer: |
+              A wildflower can be crafted into one yellow dye.
+        - question: Do wildflowers interact with bees?
+          answer: |
+              Yes, bees can pollinate wildflowers and be bred using them, and trees grown near wildflowers have a
+              small chance of generating with a bee nest.
+        - question: When were wildflowers added to Minecraft?
+          answer: |
+              They were introduced in Java Edition 1.21.5 and can also be obtained by trading with wandering
+              traders or by composting for a chance to raise the compost level.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

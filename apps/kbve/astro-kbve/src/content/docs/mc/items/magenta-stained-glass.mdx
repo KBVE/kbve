@@ -1,5 +1,6 @@
 ---
 title: Magenta Stained Glass
+template: splash
 description: |
     Minecraft Magenta Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 503
     ref: magenta_stained_glass
     slug: magenta-stained-glass
+    content_rev: 1
     display_name: Magenta Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Magenta Stained Glass is a transparent colored variant of regular glass, crafted by combining glass blocks with magenta dye. It lets light and vision through with a magenta tint while blocking mobs from seeing or spawning through it, making it useful for both decorative windows and mob-proof viewing walls.
+        lore: |
+            Sand and dye fused by fire into a pane that colors the light without hiding the view.
+    faq:
+        - question: How do you craft Magenta Stained Glass?
+          answer: |
+              Arrange eight glass blocks around one magenta dye in a crafting grid to produce eight magenta stained glass blocks.
+        - question: Can mobs see through Magenta Stained Glass?
+          answer: |
+              No, mobs treat stained glass as fully opaque and cannot spawn on it or see through it, unlike regular glass.
+        - question: Does Magenta Stained Glass drop itself when broken?
+          answer: |
+              It only drops itself when broken with a Silk Touch enchanted tool; otherwise it breaks without dropping anything.
+        - question: Can Magenta Stained Glass be used with beacons?
+          answer: |
+              Yes, placing it in a beacon beam tints the beam magenta, and stacking multiple colors averages their red, green, and blue components for blended colors.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

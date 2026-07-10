@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1731562956909-83b33307a156?crop=entropy&c
 description: November 15th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 15,'
+    accent: every year.
+    lede: 'The November 15th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Nov 14'
+          href: /journal/11-14/
+        - label: 'Nov 16 →'
+          href: /journal/11-16/
+    related:
+        - title: 'Previous · Nov 14'
+          copy: 'Step back a day to the November 14th log.'
+          href: /journal/11-14/
+          icon: calendar
+        - title: 'Next · Nov 16'
+          copy: 'Jump ahead to the November 16th log.'
+          href: /journal/11-16/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1731562956909-83b33307a156?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   07:00AM
 
@@ -67,3 +108,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     Just got back home from a wild adventure!
     I love doing a quick exit from parties, but the person hosting the party knows about my Irish exit and gave me a tray to dip with.
     I got to take my classic one pic & dip, now I can focus on the start screen for the game.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

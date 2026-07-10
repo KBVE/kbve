@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper
+template: splash
 description: |
     Minecraft Exposed Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 95
     ref: exposed_copper
     slug: exposed-copper
+    content_rev: 1
     display_name: Exposed Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Exposed Copper is the first oxidation stage of a copper block, showing a duller,
+            slightly discolored surface compared to fresh copper. It forms naturally over time
+            when an unwaxed copper block is exposed to the elements, or it can be crafted directly
+            from exposed copper ingots. Applying honeycomb waxes the block to halt further weathering.
+        lore: |
+            Like real-world copper, this block develops a protective patina over time, marking the
+            first step on its journey from bright metal to weathered verdigris.
+    faq:
+        - question: How does a copper block become Exposed Copper?
+          answer: |
+              It oxidizes naturally over time from a fresh copper block, or it can be crafted
+              directly from nine exposed copper ingots.
+        - question: Can I stop it from oxidizing further?
+          answer: |
+              Yes. Applying honeycomb to the block creates a waxed variant that looks identical
+              but no longer progresses to the next oxidation stage.
+        - question: Can I reverse the oxidation?
+          answer: |
+              Yes. Scraping it with an axe removes one stage of oxidation, turning it back into
+              a plain copper block.
+        - question: What can I craft from Exposed Copper?
+          answer: |
+              It can be stonecut into exposed cut copper, slabs, and stairs, and used to build
+              copper golems alongside a carved pumpkin.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

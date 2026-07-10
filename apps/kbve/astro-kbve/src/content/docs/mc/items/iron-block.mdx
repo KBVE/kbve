@@ -1,5 +1,6 @@
 ---
 title: Block of Iron
+template: splash
 description: |
     Minecraft Block of Iron — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 90
     ref: iron_block
     slug: iron-block
+    content_rev: 1
     display_name: Block of Iron
     category: misc
     rarity: common
@@ -20,6 +22,28 @@ mc_item:
     tier: iron
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The block of iron is a compact storage block worth nine iron ingots, commonly
+            used for beacon pyramids, anvil crafting, and building iron golems when arranged
+            with a carved pumpkin. It can be broken back down into nine iron ingots at any time.
+        lore: |
+            Notch expressed interest in adding a metal storage block as early as May 2009,
+            long before it was formally introduced to the game.
+    faq:
+        - question: How do I craft a block of iron?
+          answer: |
+              Fill a 3x3 crafting grid with 9 iron ingots to produce one block of iron.
+        - question: What is a block of iron used for?
+          answer: |
+              It powers beacon pyramids, crafts anvils (3 blocks plus 4 iron ingots), and,
+              when three are arranged with a carved pumpkin on top, spawns an iron golem.
+        - question: Can I get my iron ingots back from the block?
+          answer: |
+              Yes, breaking down a block of iron in a crafting grid returns 9 iron ingots.
+        - question: Where can I find blocks of iron without crafting them?
+          answer: |
+              They appear as loot in Bastion Remnant chests and Trial Chamber vaults.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

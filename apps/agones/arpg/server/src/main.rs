@@ -2,6 +2,7 @@ mod agones;
 mod auth;
 mod creatures;
 mod db;
+mod duel;
 mod game;
 mod pilot;
 mod ship_footprint_gen;
@@ -15,14 +16,17 @@ use simgrid::{build_app, run_sim_loop};
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info,arpg_server=debug,simgrid=debug".into()),
-        )
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| "info,arpg_server=debug,simgrid=debug".into());
+    let observ = jedi::observ::init(jedi::observ::ObservConfig::from_env());
+    tracing_subscriber::registry()
+        .with(filter)
+        .with(tracing_subscriber::fmt::layer())
+        .with(observ)
         .init();
 
     if db::init_pg_cluster().await {
@@ -78,6 +82,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(v) = verifier {
         state = state.with_verifier(v);
     }
+    if let Ok(raw) = std::env::var("ARPG_UDP_ADDR") {
+        let udp_addr: SocketAddr = raw.parse()?;
+        let lane = simgrid::UdpLane::bind(udp_addr).await?;
+        lane.spawn_recv_loop(state.input_tx.as_ref().expect("input_tx set").clone());
+        tracing::info!(port = lane.port(), "udp fast lane enabled");
+        state = state.with_udp(lane);
+    }
     let roster = state.roster.clone();
     state.spawn_event_router(out_rx);
 
@@ -128,11 +139,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         // Interactive pet battles: `apply_pet_battles` starts a battle (debug button) and
         // `apply_pet_turns` advances the live one by the player's committed action. Both run
-        // after inputs are routed; chained so a start + first turn in one frame order right.
-        app.insert_resource(game::ActivePetBattles::default());
+        // after inputs are routed; `tick_duels` force-resolves any duel past its turn
+        // deadline; `cleanup_stale_duels` forfeits any duel whose human side disconnected;
+        // chained so a start + first turn + timeout + disconnect land in frame order.
+        app.insert_resource(duel::ActiveDuels::default());
+        app.insert_resource(duel::PendingDuels::default());
         app.add_systems(
             bevy::prelude::Update,
-            (game::apply_pet_battles, game::apply_pet_turns)
+            (
+                duel::apply_npc_challenges,
+                duel::apply_duel_challenges,
+                duel::apply_duel_responses,
+                game::apply_pet_battles,
+                game::apply_pet_turns,
+                duel::tick_duels,
+                duel::cleanup_stale_duels,
+                duel::expire_duel_challenges,
+            )
                 .chain()
                 .after(simgrid::SimSet::Input),
         );

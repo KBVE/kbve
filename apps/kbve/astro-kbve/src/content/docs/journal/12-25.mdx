@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 25th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 25,'
+    accent: every year.
+    lede: 'The December 25th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Dec 24'
+          href: /journal/12-24/
+        - label: 'Dec 26 →'
+          href: /journal/12-26/
+    related:
+        - title: 'Previous · Dec 24'
+          copy: 'Step back a day to the December 24th log.'
+          href: /journal/12-24/
+          icon: calendar
+        - title: 'Next · Dec 26'
+          copy: 'Jump ahead to the December 26th log.'
+          href: /journal/12-26/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity RentEarth Build Pipeline
 
@@ -30,8 +71,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     It would be really interesting if I could make a scoreboard and even turn it into a weird game?
     I am not too sure but I will keep cookin until I get something cool to play with.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   04:14AM
 
@@ -57,3 +105,7 @@ import { Adsense, Tasks } from '@/components/astropad';
     Happy holidays!
     Forgot to include that in my notes, xD
     I am thinking of redoing the whole kanban system to help keep track of the notes a bit better, maybe even expanding the item collection that would be involved.
+
+</BentoProse>
+
+</BentoDoc>

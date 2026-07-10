@@ -1,5 +1,6 @@
 ---
 title: Cherry Leaves
+template: splash
 description: |
     Minecraft Cherry Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 93
     ref: cherry_leaves
     slug: cherry-leaves
+    content_rev: 1
     display_name: Cherry Leaves
     material: leaves
     hardness: 0.2
@@ -26,8 +28,71 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_sapling
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: stick
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: cherry_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - flammable
+        - leaves
+        - overworld
+    about:
+        description: |
+            Cherry Leaves are the pale pink foliage of cherry trees,
+            found throughout the cherry grove biome. Unlike most leaves,
+            their color does not shift with biome tinting.
+        lore: |
+            Cherry Leaves debuted with the cherry grove biome in the
+            Trails & Tales update (1.20), giving Minecraft its first
+            fixed-color, non-biome-tinted leaf block.
+    uses:
+        - title: Cherry Sapling
+          ref: cherry_sapling
+          detail: |
+              Has a small chance to drop a cherry sapling when broken
+              without Silk Touch, which can be replanted to grow a new
+              cherry tree.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Can be placed in a composter for a 30% chance to produce
+              one layer of compost, eventually yielding bone meal.
+    found_in:
+        - location: Cherry grove biome
+          detail: Generates naturally as the canopy of cherry trees throughout the biome.
+        - location: Grown from saplings
+          detail: Cherry saplings can be planted and grown into full trees with matching leaves.
+    faq:
+        - question: What tool should I use to break Cherry Leaves?
+          answer: |
+              A hoe is the default fastest tool, though shears break
+              them instantly and are the most efficient choice.
+        - question: What do Cherry Leaves drop when broken?
+          answer: |
+              Without Silk Touch, they have a small chance to drop a
+              cherry sapling or a stick, and no guaranteed drop
+              otherwise; Fortune increases these chances.
+        - question: Do Cherry Leaves drop apples?
+          answer: |
+              No. Unlike oak and dark oak leaves, cherry leaves cannot
+              drop apples.
+        - question: Are Cherry Leaves flammable?
+          answer: |
+              Yes. Like other leaves, they catch fire easily and burn
+              quickly when exposed to flames.
     data_version: "1.21.5"
 ---
 

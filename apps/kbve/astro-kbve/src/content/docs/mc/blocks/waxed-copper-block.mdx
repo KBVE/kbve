@@ -1,5 +1,6 @@
 ---
 title: Waxed Block of Copper
+template: splash
 description: |
     Minecraft Waxed Block of Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 992
     ref: waxed_copper_block
     slug: waxed-copper-block
+    content_rev: 1
     display_name: Waxed Block of Copper
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,63 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_copper_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Block of Copper is a Block of Copper treated with
+            honeycomb so it never oxidizes past its current stage, keeping
+            its shiny, unweathered look permanently.
+        lore: |
+            Copper blocks were added in the Caves & Cliffs update, giving
+            copper its first bulk storage and building block alongside a
+            real-world-inspired weathering system.
+    uses:
+        - title: Copper Ingot Storage
+          ref: copper_ingot
+          detail: |
+              A compact way to store nine copper ingots in a single block;
+              waxed unoxidized blocks can be crafted back into 9 copper
+              ingots.
+        - title: Copper Golem Construction
+          ref: copper_golem
+          detail: |
+              Combined with a carved pumpkin or jack o'lantern to build a
+              copper golem, similar to how iron blocks build iron golems.
+        - title: Cut Copper and Stonecutting
+          ref: cut_copper
+          detail: |
+              Stonecutting a Block of Copper yields cut copper, slabs,
+              stairs, and grates at a higher output than crafting.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed copper blocks generate naturally as part of trial chamber structures.
+        - location: Crafted from Copper Ingots
+          detail: Nine copper ingots in a 3x3 grid craft one Block of Copper, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Anything weaker drops nothing.
+        - question: Can I turn it back into ingots?
+          answer: |
+              Only if it is unoxidized and waxed; oxidized copper blocks
+              cannot be crafted back into ingots.
+        - question: Why wax it?
+          answer: |
+              Waxing with honeycomb permanently stops oxidation, keeping the
+              copper's current color instead of it turning green over time.
+        - question: Does lightning affect a waxed block?
+          answer: |
+              No. Lightning strikes normally deoxidize nearby copper, but
+              waxed blocks are immune to that effect.
     data_version: "1.21.5"
 ---
 

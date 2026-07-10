@@ -9,11 +9,52 @@ description: |
   June 24th. Conch Time.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 24,'
+    accent: every year.
+    lede: 'The June 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 23'
+          href: /journal/06-23/
+        - label: 'Jun 25 →'
+          href: /journal/06-25/
+    related:
+        - title: 'Previous · Jun 23'
+          copy: 'Step back a day to the June 23rd log.'
+          href: /journal/06-23/
+          icon: calendar
+        - title: 'Next · Jun 25'
+          copy: 'Jump ahead to the June 25th log.'
+          href: /journal/06-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1684906010835-78fd41118654?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Meme Deployed
 
@@ -23,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     I still need to adjust the older settings and let people create accounts without having to sign in via Discord/Github but that can wait.
     The goal will be to quickly build a meme website, with the goal of advertising and testing some theories.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Conch Shell**
 
@@ -87,4 +136,6 @@ Maybe a LLM style verification that can be added into the pipeline for adding mu
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+</BentoDoc>

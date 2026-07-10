@@ -1,5 +1,6 @@
 ---
 title: Fire
+template: splash
 description: |
     Minecraft Fire — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 183
     ref: fire
     slug: fire
+    content_rev: 1
     display_name: Fire
     material: stone
     hardness: 0
@@ -23,11 +25,56 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - overworld
+        - nether
+        - non_solid
+    about:
+        description: |
+            Fire is a non-solid, damaging block created with flint and
+            steel, fire charges, lava, or lightning. It spreads across
+            adjacent flammable blocks and burns them away, and it deals
+            continuous damage to any entity standing inside it.
+        lore: |
+            Fire has been part of Minecraft since its earliest versions,
+            serving as both a light source, hazard, and building-clearing
+            tool.
+    uses:
+        - title: Cooking and Traps
+          ref: furnace
+          detail: |
+              Fire itself has no crafting use; it is instead used to burn
+              down flammable structures, light Nether portals, and create
+              damage traps in redstone contraptions.
+    found_in:
+        - location: Placed by players
+          detail: Created with flint and steel or a fire charge on any solid, non-transparent block.
+        - location: Natural fires
+          detail: Occurs from lava spreading into flammable blocks, lightning strikes, and dragon fireballs; eternal fire persists atop netherrack, magma blocks, and soul soil/sand.
+    faq:
+        - question: Can I mine or pick up fire?
+          answer: |
+              No, fire cannot be obtained as an item in Java Edition and has
+              no block drop; it simply disappears when extinguished or
+              burned out.
+        - question: Does rain put out fire?
+          answer: |
+              Yes, rain has a chance each tick to extinguish exposed fire,
+              and fire cannot be placed on blocks exposed to rain.
+        - question: Why does fire spread so fast in my wooden house?
+          answer: |
+              Fire spreads to any adjacent flammable block such as wood,
+              planks, wool, or leaves, so wooden structures burn down
+              quickly unless the fire spread game rule is disabled.
+        - question: How much damage does fire deal?
+          answer: |
+              Standing inside a fire block deals 1 heart per half-second,
+              while being on fire outside of it deals 1 heart per second
+              until extinguished.
     data_version: "1.21.5"
 ---
 

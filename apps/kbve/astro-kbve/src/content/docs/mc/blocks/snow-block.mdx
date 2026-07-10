@@ -1,5 +1,6 @@
 ---
 title: Snow Block
+template: splash
 description: |
     Minecraft Snow Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 265
     ref: snow_block
     slug: snow-block
+    content_rev: 1
     display_name: Snow Block
     material: snow
     hardness: 0.2
@@ -24,10 +26,69 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: snowball
+          qty_min: 4
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: snow_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Snow Block is a fully solid cube of packed snow, distinct from
+            the thin snow layers that form on the ground. Without Silk
+            Touch it breaks into four snowballs; with Silk Touch it drops
+            itself intact.
+        lore: |
+            Originally just called "Snow," this block was renamed to Snow
+            Block in Java Edition 1.13 to distinguish it from the newly
+            separated thin snow layer block.
+    uses:
+        - title: Snow Golem
+          ref: snow_golem
+          detail: |
+              Stacking two snow blocks and topping them with a carved
+              pumpkin spawns a snow golem that throws snowballs at
+              hostile mobs.
+        - title: Snow Layer
+          ref: snow
+          detail: |
+              Three snow blocks craft into six snow layers, useful for
+              decorative ground cover.
+    found_in:
+        - location: Snowy biomes
+          detail: Generates on the ground in ice spikes, grove, snowy slopes, frozen peaks, and jagged peaks biomes.
+        - location: Igloos and snowy villages
+          detail: Used as a natural building material in cold-biome structures.
+        - location: Crafting
+          detail: Four snowballs craft one snow block.
+    faq:
+        - question: What tool do I need to mine Snow Block?
+          answer: |
+              A wooden shovel or better. Mining without a shovel yields no
+              drop.
+        - question: What does Snow Block drop when mined?
+          answer: |
+              Four snowballs without Silk Touch, or the snow block itself
+              with a Silk Touch shovel.
+        - question: Does Snow Block melt near light sources?
+          answer: |
+              No, as of Java Edition 1.14 snow blocks no longer melt
+              spontaneously; they only disappear if destroyed.
+        - question: What is Snow Block used for?
+          answer: |
+              Building snow golems (two blocks plus a carved pumpkin) and
+              crafting snow layers, besides general decoration.
     data_version: "1.21.5"
 ---
 

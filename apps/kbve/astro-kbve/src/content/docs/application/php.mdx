@@ -1,28 +1,144 @@
 ---
 title: PHP
 description: |
-    Dat PHP
+    PHP (Hypertext Preprocessor) is a widely-used, dynamic, server-side scripting language for web development
+    that embeds directly into HTML and powers the classic LAMP stack. This guide covers install, syntax basics,
+    and reusable functions.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: PHP
     order: 409
 unsplash: 1599507593499-a3f7d7d97667
 img: https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?fit=crop&w=1400&h=700&q=75
-
+tags:
+    - programming
+    - php
+    - backend
+sem: 1
+ogTitle: PHP Guide — Server-Side Scripting, LAMP Stack & Syntax Basics
+ogDescription: Learn PHP, the server-side scripting language behind the LAMP stack — install with a package manager, understand variables and functions, embed PHP in HTML, and reuse practical string helpers.
+jsonld:
+    type: Article
+    keywords:
+        - php
+        - hypertext preprocessor
+        - server-side scripting
+        - lamp stack
+        - web development
+        - php functions
+    faq:
+        - question: What is PHP used for?
+          answer: PHP is a server-side scripting language used mainly for web development. It runs on the server, generates HTML sent to the browser, and powers dynamic, data-driven applications and content management systems like WordPress, Drupal, and Laravel apps. It is the P in the classic LAMP stack.
+        - question: What does PHP stand for?
+          answer: PHP is a recursive acronym for PHP Hypertext Preprocessor. It originally stood for Personal Home Page, reflecting its origins, but was renamed as it grew into a general-purpose web scripting language.
+        - question: Is PHP still relevant in modern web development?
+          answer: Yes. PHP powers a large share of the web, including WordPress. Modern PHP 8.x brings the JIT compiler, strong typing, attributes, enums, and major performance gains, and frameworks like Laravel and Symfony keep it a productive, well-supported choice for backends.
+        - question: How do I embed PHP in HTML?
+          answer: Wrap PHP code in <?php ... ?> tags anywhere inside an .php file. The server executes the code between the tags and replaces it with its output, while everything outside the tags is sent to the browser as plain HTML.
+        - question: What is the LAMP stack?
+          answer: LAMP is a classic web hosting stack of Linux (OS), Apache (web server), MySQL (database), and PHP (scripting language). It is a fully open-source foundation that has powered countless websites and web applications for decades.
+bento:
+    badge: application · programming · backend
+    title: 'The web''s workhorse,'
+    accent: PHP.
+    lede: >-
+        Hypertext Preprocessor — the dynamic, server-side scripting language
+        that embeds directly into HTML and powers the classic LAMP stack.
+        From WordPress to Laravel and Symfony, PHP still drives a huge share
+        of the web. This guide covers install, syntax basics, and reusable
+        functions.
+    ctas:
+        - label: Install PHP
+          href: '#install'
+          primary: true
+        - label: Syntax basics
+          href: '#syntax'
+        - label: Functions
+          href: '#functions'
+    aside:
+        icon: code
+        title: The P in LAMP
+        body: >-
+            PHP runs on the server, generates HTML for the browser, and pairs
+            with Linux, Apache, and MySQL in the stack that has powered
+            countless servers across the globe for decades.
+        points:
+            - <strong>Embedded</strong> — code lives inside HTML between PHP tags.
+            - <strong>Modern</strong> — PHP 8.x adds JIT, enums, and strict typing.
+            - <strong>Reusable</strong> — practical string helpers like ss_between.
+    stats:
+        - { label: Acronym, value: Hypertext Preprocessor, icon: info }
+        - { label: Modern line, value: PHP 8.x, icon: bolt }
+        - { label: Stack, value: LAMP, icon: server }
+        - { label: Dev server, value: 'php -S', icon: zap }
+    features:
+        - title: Background
+          icon: book
+          href: '#information'
+          body: Where PHP came from, why it embeds into HTML, and its place in the LAMP stack.
+        - title: Install
+          icon: package
+          href: '#install'
+          body: Grab the CLI with apt or Homebrew, verify the version, and spin up the built-in dev server.
+        - title: Syntax
+          icon: code
+          href: '#syntax'
+          body: Variables, functions, loops, and the PHP tags that separate server code from plain HTML.
+        - title: Functions
+          icon: gears
+          href: '#functions'
+          body: Reusable helpers — the ss_between string extractor with a proof of concept.
+    related:
+        - title: Linux
+          href: /application/linux/
+          copy: The L in LAMP — the OS foundation under every PHP server.
+          icon: server
+        - title: SQL
+          href: /application/sql/
+          copy: MySQL and friends — the database layer PHP apps lean on.
+          icon: database
+        - title: JavaScript
+          href: /application/javascript/
+          copy: The client-side counterpart to PHP's server-side rendering.
+          icon: code
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
-## Information
+**PHP** (Hypertext Preprocessor) is a dynamic, server-side scripting language famed for embedding directly into HTML and powering the classic **LAMP** stack. It runs on the server, generates HTML for the browser, and drives a huge share of the web — including WordPress, Laravel, and Symfony applications.
+
+This guide covers the [background](#information), [install](#install), [syntax basics](#syntax), and reusable [functions](#functions).
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="information" eyebrow="Background" heading="Information">
 
 PHP is a [programming](/theory/programming/) language known as Hypertext Preprocessor, originally standing for Personal Home Page. 
 It is widely used for web development, famed for its ease of use and ability to be embedded directly into HTML. 
@@ -32,13 +148,63 @@ PHP supports a wide range of databases, has rich built-in functions, and can int
 It's also part of the classic LAMP ([Linux](/application/linux/), Apache, [MySQL](/application/sql/), PHP) stack which powers countless servers across the globe.
 PHP continues to evolve with regular updates that improve its performance, security features, and modern language capabilities.
 
-<Adsense />
+</BentoProse>
 
-## Functions
+<BentoProse id="install" eyebrow="Get the CLI" heading="Install">
+
+PHP is packaged for every major OS. Install the CLI and verify the version:
+
+```bash
+# Debian / Ubuntu
+sudo apt install php-cli -y
+
+# macOS (Homebrew)
+brew install php
+
+# Check the version
+php -v
+```
+
+Run a script or start the built-in dev server (never for production):
+
+```bash
+php script.php
+php -S localhost:8000
+```
+
+</BentoProse>
+
+<BentoProse id="syntax" eyebrow="Language basics" heading="Syntax">
+
+PHP code lives between `<?php ... ?>` tags; everything outside is sent to the browser as plain HTML:
+
+```php
+<?php
+$name = "KBVE";
+$count = 3;
+
+function greet(string $who): string {
+    return "Hello, {$who}!";
+}
+
+echo greet($name);
+
+for ($i = 0; $i < $count; $i++) {
+    echo "Row {$i}\n";
+}
+```
+
+<Aside type="tip">
+Variables start with `$` and are loosely typed, but modern PHP (8.x) supports type declarations, enums, and the JIT compiler. Declare `declare(strict_types=1);` at the top of a file to enforce strict typing.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="functions" eyebrow="Reusable helpers" heading="Functions">
 
 ### SS_BETWEEN
 
-    - This is an exmaple of the `ss_between` function written in `php`.
+    - This is an example of the `ss_between` function written in `php`.
 
         ```php
 
@@ -66,3 +232,7 @@ PHP continues to evolve with regular updates that improve its performance, secur
             echo $u;
             // return username
         ```
+
+</BentoProse>
+
+</BentoDoc>

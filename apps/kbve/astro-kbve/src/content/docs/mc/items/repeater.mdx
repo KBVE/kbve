@@ -1,5 +1,6 @@
 ---
 title: Redstone Repeater
+template: splash
 description: |
     Minecraft Redstone Repeater — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 690
     ref: repeater
     slug: repeater
+    content_rev: 1
     display_name: Redstone Repeater
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Redstone Repeater is crafted from two redstone torches, one redstone dust, and three stone, and it restores a redstone signal to full strength after it has weakened while traveling through dust. Right-clicking cycles through four delay settings of 2, 4, 6, or 8 game ticks, and the block only transmits power in one direction, acting as a diode.
+            When powered from the side by another repeater or comparator, a repeater locks and holds its current output, a behavior widely used to build memory cells. Repeaters generate naturally in jungle temples and ancient cities.
+        lore: |
+            Before repeaters existed, builders chained redstone torches just to push a signal a few blocks further.
+    faq:
+        - question: |
+              What is a Redstone Repeater used for?
+          answer: |
+              It repowers a weakened redstone signal, adds a configurable delay, and only allows current to travel in one direction like a diode.
+        - question: |
+              How do I change the delay on a repeater?
+          answer: |
+              Right-click the repeater to cycle through four delay settings of 2, 4, 6, or 8 game ticks; the spacing between the two torches on top shows the current setting.
+        - question: |
+              What does it mean for a repeater to be "locked"?
+          answer: |
+              When powered from the side by another repeater or comparator, a repeater locks and freezes its current output state until the side signal is removed.
+        - question: |
+              What is a Redstone Repeater crafted from?
+          answer: |
+              Two redstone torches, one redstone dust, and three stone arranged in the crafting grid produce one repeater.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

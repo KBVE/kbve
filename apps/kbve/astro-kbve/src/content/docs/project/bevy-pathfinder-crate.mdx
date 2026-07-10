@@ -1,7 +1,7 @@
 ---
-title: bevy_pathfinder
-description: |
-    bevy_pathfinder — Grid-based flow field pathfinding and chokepoint detection. Pure Rust core with optional Bevy integration.
+title: Bevy Pathfinder — Flow Field Crate
+description: Bevy flow-field pathfinding crate with grid walkability, shared-goal BFS direction fields, and chokepoint detection. Pure Rust core, optional Bevy feature.
+sem: 1
 sidebar:
     label: bevy_pathfinder
 tags:
@@ -21,14 +21,76 @@ version_toml: packages/rust/bevy/bevy_pathfinder/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the bevy_pathfinder crate do?
+          answer: It provides grid-based flow-field pathfinding for tile worlds — a walkability grid, BFS-computed direction fields toward shared goals, and a narrow-passage (chokepoint) detector.
+        - question: Why flow fields instead of per-agent A*?
+          answer: When many agents share the same goal, a single BFS builds a direction field once and every agent looks up its next move in O(1), avoiding a separate A* search per agent.
+        - question: Is Bevy required to use it?
+          answer: No. The crate is pure Rust by default; enabling the optional bevy feature adds Resource derives for ECS integration.
+bento:
+    badge: crates · rust · bevy
+    title: Flow-field navigation for
+    accent: bevy_pathfinder
+    lede: >-
+        A grid-based flow-field pathfinding crate for Bevy tile worlds — a
+        walkability grid, BFS-computed direction fields toward shared goals, and
+        a narrow-passage detector, on a pure-Rust core.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_pathfinder
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: arrow
+        title: "Flow fields, not per-agent A*"
+        body: >-
+            When many agents share the same goal, a single BFS builds a
+            direction field once and every agent looks up its next move in
+            O(1), avoiding a separate A* search per agent.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Version, value: "0.1.1", icon: package }
+        - { label: Bevy feature, value: Optional, icon: settings }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: BlockGrid
+          icon: box
+          body: 2D walkability grid with per-cell height and terrain cost.
+        - title: FlowField
+          icon: arrow
+          body: >-
+            BFS-computed direction vectors pointing every walkable cell at one
+            or more goals. Agents share a goal and look up their next move in
+            O(1) instead of running per-agent A*.
+        - title: FlowGate
+          icon: lock
+          body: Narrow-passage detector, useful for ambush AI, territory control, and patrol route generation.
+        - title: Pure-Rust core
+          icon: rust
+          body: No engine dependency by default; enable the bevy feature for Resource derives and ECS integration.
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Isometric camera crate for the same Bevy engine.
+          icon: video
+        - title: Bevy Player Crate
+          href: /project/bevy-player-crate
+          copy: Player controller that consumes movement targets.
+          icon: gears
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-Three layers stacked on a tile-based world:
-
-1. **`BlockGrid`** — 2D walkability grid with per-cell height + terrain cost.
-2. **`FlowField`** — BFS-computed direction vectors pointing every walkable cell at one or more goals. Agents share a goal and look up their next move in O(1) instead of running per-agent A*.
-3. **`FlowGate`** — narrow-passage detector. Useful for ambush AI, territory control, and patrol route generation.
-
-The crate is pure Rust by default. Enable the `bevy` feature to get `Resource` derives for ECS integration.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

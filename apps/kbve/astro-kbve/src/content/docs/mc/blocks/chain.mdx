@@ -1,5 +1,6 @@
 ---
 title: Chain
+template: splash
 description: |
     Minecraft Chain — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 327
     ref: chain
     slug: chain
+    content_rev: 1
     display_name: Chain
     material: metal
     hardness: 5
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chain
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - metal
+        - overworld
+    about:
+        description: |
+            Chain is a metallic decoration block crafted from ingots and
+            nuggets, free-standing and able to hang in mid-air along any
+            of the three axes without a supporting block. It is most often
+            used to suspend bells, lanterns, and hanging signs.
+        lore: |
+            Iron chains were added in Java Edition 1.16 as connective
+            decoration for the new bell and lantern hanging mechanics;
+            copper chain variants followed years later in 1.21.9.
+    uses:
+        - title: Hanging Sign
+          ref: oak_hanging_sign
+          detail: |
+              A chain plus two matching stripped logs or stems crafts a
+              hanging sign, which suspends from the underside of a block
+              or another chain.
+        - title: Decoration
+          ref: lantern
+          detail: |
+              Frequently placed above lanterns and bells to visually
+              suspend them from ceilings in builds.
+    found_in:
+        - location: Crafted from ingots
+          detail: Crafted with 1 ingot and 2 matching nuggets (iron or copper) arranged vertically in a crafting grid.
+        - location: Bastion Remnants
+          detail: Naturally generated as decoration hanging from structures in bastion remnants.
+    faq:
+        - question: Does Chain drop itself when mined?
+          answer: |
+              Yes, mining a chain with a pickaxe always drops the chain
+              block itself, regardless of tool tier.
+        - question: Can Chain be placed floating in mid-air?
+          answer: |
+              Yes. Chains do not require a supporting block and can be
+              placed completely free-standing, oriented vertically or
+              along either horizontal axis.
+        - question: Can pistons move Chain blocks?
+          answer: |
+              Yes, pistons can push chains without breaking them, unlike
+              many other decoration blocks.
+        - question: What tool do I need to mine Chain?
+          answer: |
+              Any pickaxe works — there is no minimum tool tier required
+              for it to drop.
     data_version: "1.21.5"
 ---
 

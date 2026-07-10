@@ -1,5 +1,6 @@
 ---
 title: Lime Concrete Powder
+template: splash
 description: |
     Minecraft Lime Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 699
     ref: lime_concrete_powder
     slug: lime-concrete-powder
+    content_rev: 1
     display_name: Lime Concrete Powder
     material: dirt
     hardness: 0.5
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - falling_block
+        - overworld
+    about:
+        description: |
+            Lime Concrete Powder is a gravity-affected block crafted from
+            dye, sand, and gravel. It instantly hardens into solid Lime
+            Concrete the moment it touches water, making it a fast way to
+            place colored concrete without waiting on a mob to walk over it.
+        lore: |
+            Concrete powder was teased by Jeb in early 2017 as a mysterious
+            gravity block that solidified in water, arriving with the 1.12
+            update in all sixteen dye colors.
+    uses:
+        - title: Lime Concrete
+          ref: lime_concrete
+          detail: |
+              Contact with any water source, flowing water, or a
+              waterlogged block instantly converts the powder into solid
+              Lime Concrete, letting builders pour colored floors and walls
+              in bulk.
+    found_in:
+        - location: Crafting only
+          detail: Not naturally generated; made from a shapeless recipe of lime dye, 4 sand, and 4 gravel.
+    faq:
+        - question: What tool mines Lime Concrete Powder fastest?
+          answer: |
+              A shovel, though any tool or bare hands will break it since no
+              minimum tool tier is required for the drop.
+        - question: How do I turn it into solid concrete?
+          answer: |
+              Let it touch any water source, flowing water, or a
+              waterlogged block. It converts instantly, so place it above
+              or beside water rather than in it.
+        - question: Does it fall like sand or gravel?
+          answer: |
+              Yes. Lime Concrete Powder is a gravity-affected block and
+              falls if unsupported, just like sand and gravel.
+        - question: Does Fortune increase the drop?
+          answer: |
+              No. Fortune has no effect on concrete powder; mining always
+              yields exactly one block per block mined.
     data_version: "1.21.5"
 ---
 

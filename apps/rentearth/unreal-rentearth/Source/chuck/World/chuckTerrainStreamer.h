@@ -21,7 +21,7 @@ public:
 	virtual TStatId GetStatId() const override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	void SetSeed(uint32 InSeed) { Seed = InSeed; }
+	void SetSeed(uint32 InSeed);
 	uint32 GetSeed() const { return Seed; }
 
 	void EnsureBuiltAround(const FVector2D& WorldXY);
@@ -48,9 +48,10 @@ protected:
 	uint32 Seed         = 0xC1A55E5Au;
 	int32  CellsPerEdge = 32;
 	float  CellSize     = 200.f;
-	int32  ChunkRadius  = 6;
-	int32  PoolSize     = 280;
-	int32  MaxBuildsPerTick   = 1;
+	int32  ChunkRadius  = 3;
+	int32  PrewarmRadius = 1;
+	int32  PoolSize     = 120;
+	int32  MaxBuildsPerTick   = 2;
 	int32  MaxReleasesPerTick = 3;
 	float  WaterZ       = -120.f;
 	float  StreamInterval = 0.03f;

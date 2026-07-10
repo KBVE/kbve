@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: November 2nd.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 2,'
+    accent: every year.
+    lede: 'The November 2nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Nov 1'
+          href: /journal/11-01/
+        - label: 'Nov 3 →'
+          href: /journal/11-03/
+    related:
+        - title: 'Previous · Nov 1'
+          copy: 'Step back a day to the November 1st log.'
+          href: /journal/11-01/
+          icon: calendar
+        - title: 'Next · Nov 3'
+          copy: 'Jump ahead to the November 3rd log.'
+          href: /journal/11-03/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Session - ECS
 
@@ -26,7 +67,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Clearing up a bunch of unity entitiy jobs that are blocking the main thread, which is a bit of a pain to track down but we are getting there!
     Each one will help improve the fps by around 2-5, but they will add up quickly because as we clear them up, we can focus on tracking more and more.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   03:14AM
 
@@ -58,3 +107,6 @@ import { Adsense, Tasks } from '@/components/astropad';
     It has been such a long time since I have seen any of the classic or new updated series or movies.
     I did not know that octo took place in India, that is kinda low key cool.
 
+</BentoProse>
+
+</BentoDoc>

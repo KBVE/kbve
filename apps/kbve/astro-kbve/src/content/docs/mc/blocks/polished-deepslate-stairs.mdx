@@ -1,5 +1,6 @@
 ---
 title: Polished Deepslate Stairs
+template: splash
 description: |
     Minecraft Polished Deepslate Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1065
     ref: polished_deepslate_stairs
     slug: polished-deepslate-stairs
+    content_rev: 1
     display_name: Polished Deepslate Stairs
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_deepslate_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Polished Deepslate Stairs are the staircase form of polished
+            deepslate, giving builders sloped and stepped surfaces that match
+            the smooth deepslate finish used in ancient city architecture.
+        lore: |
+            Debuted as "Polished Grimstone Stairs" in Java Edition 21w07a and
+            renamed the following snapshot, later appearing in ancient city
+            generation with the Deep Dark in 1.19.
+    uses:
+        - title: Ancient City Architecture
+          ref: polished_deepslate
+          detail: |
+              Forms staircases and stepped details in ancient city structures,
+              and is a common decorative stair choice for deepslate-themed
+              builds.
+    found_in:
+        - location: Ancient Cities
+          detail: Naturally generates as part of ancient city structures in the Deep Dark biome.
+        - location: Crafting or Stonecutting
+          detail: Craft six polished deepslate into four stairs, or stonecut from deepslate, cobbled deepslate, or polished deepslate.
+    faq:
+        - question: What tool do I need to mine Polished Deepslate Stairs?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              yields no drop.
+        - question: Does it drop itself with Silk Touch?
+          answer: |
+              Yes, it always drops itself whether or not Silk Touch is used.
+        - question: What's the fastest way to get a lot of these stairs?
+          answer: |
+              Stonecut deepslate, cobbled deepslate, or polished deepslate at
+              a stonecutter for a 1:1 conversion, avoiding the crafting table
+              recipe's leftover materials.
+        - question: Do stairs placed facing different directions connect?
+          answer: |
+              Yes, adjacent stairs form inner and outer corners automatically
+              based on their facing and half placement.
     data_version: "1.21.5"
 ---
 

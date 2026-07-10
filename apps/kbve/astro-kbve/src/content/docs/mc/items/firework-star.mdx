@@ -1,5 +1,6 @@
 ---
 title: Firework Star
+template: splash
 description: |
     Minecraft Firework Star — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1175
     ref: firework_star
     slug: firework-star
+    content_rev: 1
     display_name: Firework Star
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Firework Star is a crafting component made from gunpowder and dye that
+            determines the color, shape, and effects of a firework rocket's
+            explosion. Up to eight dyes can be mixed for multi-colored bursts, and
+            optional ingredients like fire charges, gold nuggets, feathers,
+            glowstone dust, or diamonds add shapes, twinkle, or trail effects.
+        lore: |
+            A handcrafted spark of pyrotechnic wonder meant to light up the night sky.
+    faq:
+        - question: How do I craft a firework star?
+          answer: |
+              Combine gunpowder with a dye in a crafting grid; up to seven more dyes
+              can be added for mixed colors, plus optional shape or effect
+              ingredients.
+        - question: What shapes can a firework star produce?
+          answer: |
+              Small ball by default, large ball with a fire charge, star with a gold
+              nugget, creeper face with a head, and burst with a feather.
+        - question: Can one star have both twinkle and trail effects?
+          answer: |
+              Yes, glowstone dust adds a twinkle effect and diamond adds a trail
+              effect, and both can be combined on the same star.
+        - question: What is a firework star used for?
+          answer: |
+              Its only purpose is being combined with paper and gunpowder to craft a
+              customized firework rocket.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

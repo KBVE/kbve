@@ -4,6 +4,7 @@ import {
 	type NotificationEventData,
 	type CorpseContents,
 	type PetBattleState,
+	type DuelPrompt,
 } from '@kbve/laser';
 import type { SpellMeta } from '../entities/spellMeta';
 
@@ -224,6 +225,38 @@ export function onPetBattleAction(
 ): () => void {
 	return laserEvents.on(
 		PET_BATTLE_ACTION_EVENT,
+		handler as (data: unknown) => void,
+	);
+}
+
+// PvP duel challenge bridge. The scene forwards each `duelPrompt` from the client
+// here for the React overlay; the player's Accept/Decline choice is forwarded back
+// scene→client as a DuelRespond. `duelChallenge` requests are sent straight from
+// sceneInput to the client (mirroring `challengeNpc`), so only the response path
+// needs a hud round trip.
+export const DUEL_PROMPT_EVENT = 'arpg:duel:prompt';
+export const DUEL_RESPOND_EVENT = 'arpg:duel:respond';
+
+export function emitDuelPrompt(prompt: DuelPrompt): void {
+	laserEvents.emit(DUEL_PROMPT_EVENT, prompt);
+}
+
+export function onDuelPrompt(
+	handler: (prompt: DuelPrompt) => void,
+): () => void {
+	return laserEvents.on(
+		DUEL_PROMPT_EVENT,
+		handler as (data: unknown) => void,
+	);
+}
+
+export function emitDuelRespond(accept: boolean): void {
+	laserEvents.emit(DUEL_RESPOND_EVENT, accept);
+}
+
+export function onDuelRespond(handler: (accept: boolean) => void): () => void {
+	return laserEvents.on(
+		DUEL_RESPOND_EVENT,
 		handler as (data: unknown) => void,
 	);
 }

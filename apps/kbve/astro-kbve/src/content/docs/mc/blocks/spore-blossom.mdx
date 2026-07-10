@@ -1,5 +1,6 @@
 ---
 title: Spore Blossom
+template: splash
 description: |
     Minecraft Spore Blossom — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1045
     ref: spore_blossom
     slug: spore-blossom
+    content_rev: 1
     display_name: Spore Blossom
     material: plant
     hardness: 0
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spore_blossom
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+        - non_renewable
+    about:
+        description: |
+            Spore Blossom is a decorative ceiling plant found exclusively in
+            lush caves. It constantly emits falling and floating green spore
+            particles, giving lush caves their distinctive ambience.
+        lore: |
+            Spore Blossom was revealed at Minecraft Live 2020 as part of the
+            lush caves biome added in the Caves & Cliffs update.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placed in a composter, a Spore Blossom has a 65% chance to
+              raise the compost level by one, making it a modest source of
+              bone meal.
+        - title: Bee Pollination
+          ref: honey_bottle
+          detail: |
+              Bees can pollinate a Spore Blossom just like a flower,
+              increasing the honey level of a nearby hive or nest by one.
+    found_in:
+        - location: Lush Caves
+          detail: |
+              Generates attached to the underside of stone, dirt, and other
+              non-leaf blocks throughout the lush caves biome.
+    faq:
+        - question: Do I need Silk Touch to collect a Spore Blossom?
+          answer: |
+              No. It breaks instantly with any tool, including bare hands,
+              and always drops itself.
+        - question: Can Spore Blossom be farmed or renewed?
+          answer: |
+              No. It only generates naturally in lush caves and cannot be
+              grown or duplicated by the player.
+        - question: What are the green particles coming from it?
+          answer: |
+              Purely decorative ambient spore particles, both falling and
+              floating, that have no gameplay effect.
+        - question: Is Spore Blossom flammable?
+          answer: |
+              Yes, it can catch fire from adjacent flames, though it does
+              not ignite from lava contact on its own.
     data_version: "1.21.5"
 ---
 

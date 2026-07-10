@@ -1,5 +1,6 @@
 ---
 title: Glow Ink Sac
+template: splash
 description: |
     Minecraft Glow Ink Sac — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1002
     ref: glow_ink_sac
     slug: glow-ink-sac
+    content_rev: 1
     display_name: Glow Ink Sac
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Glow Ink Sac is dropped by glow squids and is used to make sign
+            text glow so it stays legible in the dark. It is also the key
+            crafting ingredient that turns a regular item frame into a glowing
+            item frame.
+        lore: |
+            A luminous ink drawn from the depths, prized by sign-makers who want
+            their words to be read even without a torch nearby.
+    faq:
+        - question: How do I get a Glow Ink Sac?
+          answer: |
+              Kill a glow squid; it drops 1-3 glow ink sacs per kill, with more
+              possible when using a weapon enchanted with Looting.
+        - question: What does a Glow Ink Sac do to signs?
+          answer: |
+              Applying it to any sign or hanging sign makes the text glow with a
+              colored outline that stays readable in low light, though it does
+              not actually emit light. Using a regular ink sac on a glowing sign
+              reverts it to normal text.
+        - question: What else can Glow Ink Sacs be used for?
+          answer: |
+              Combining a glow ink sac with a regular item frame in a crafting
+              grid produces a glow item frame, which makes the frame and its
+              displayed item appear illuminated.
+        - question: Is there an advancement for Glow Ink Sacs?
+          answer: |
+              Yes, applying a glow ink sac to any sign unlocks the "Glow and
+              Behold!" advancement.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

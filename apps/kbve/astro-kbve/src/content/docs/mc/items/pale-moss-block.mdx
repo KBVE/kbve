@@ -1,5 +1,6 @@
 ---
 title: Pale Moss Block
+template: splash
 description: |
     Minecraft Pale Moss Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 265
     ref: pale_moss_block
     slug: pale-moss-block
+    content_rev: 1
     display_name: Pale Moss Block
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The pale moss block is a flammable plant block found on pale moss patches
+            inside the pale garden biome. Applying bone meal spreads pale moss across a
+            7x11x7 area, converting nearby dirt, stone, and deepslate into more pale moss
+            and occasionally growing grass or pale moss carpet.
+        lore: |
+            Its ashen, muted look drew inspiration from Spanish moss and white moss,
+            fitting the pale garden's washed-out aesthetic.
+    faq:
+        - question: |
+              How do you get a pale moss block?
+          answer: |
+              Mine it with any tool (a hoe is fastest) from pale moss patches in the pale
+              garden biome, or buy 2 for 1 emerald from a wandering trader.
+        - question: |
+              What does bone meal do to a pale moss block?
+          answer: |
+              It spreads pale moss across a 7x11x7 area, converting compatible blocks and
+              sometimes generating short grass, tall grass, or pale moss carpet.
+        - question: |
+              Can pale moss blocks speed up sniffer egg hatching?
+          answer: |
+              No, unlike regular moss blocks, pale moss blocks cannot accelerate sniffer
+              egg hatching.
+        - question: |
+              Is pale moss block flammable?
+          answer: |
+              Yes, it can catch fire from lava, unlike ordinary moss blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,34 @@ mc_item:
     id: 1238
     ref: music_disc_mall
     slug: music-disc-mall
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc (mall) plays "mall", a 3:17 track composed by C418. It can drop when a
+            creeper is killed by a skeleton, wither skeleton, stray, bogged, or parched mob, or be
+            found in monster room, woodland mansion, and ancient city chests.
+        lore: |
+            An upbeat, shopping-arcade tune that somehow survived a creeper's explosive demise.
+    faq:
+        - question: How do I get Music Disc (mall)?
+          answer: |
+              Have a skeleton, wither skeleton, stray, bogged, or parched mob kill a creeper for a
+              chance at the drop, or search monster room, woodland mansion, and ancient city chests.
+        - question: Who composed "mall"?
+          answer: |
+              C418 composed the track, which runs 3 minutes and 17 seconds.
+        - question: What comparator signal does "mall" give in a jukebox?
+          answer: |
+              Placing a comparator beside a jukebox playing "mall" outputs a signal intensity of 6.
+        - question: What rarity is Music Disc (mall)?
+          answer: |
+              It is Uncommon rarity and does not stack.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

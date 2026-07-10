@@ -220,7 +220,7 @@ on:
                 value: ${{ jobs.plugin_check.outputs.should_release }}
 
 concurrency:
-    group: ci-unreal-${{ inputs.mode }}-${{ inputs.shell_path }}${{ inputs.app_name }}${{ inputs.plugin_name }}${{ github.ref }}
+    group: ci-unreal-${{ inputs.mode }}-${{ inputs.shell_path }}${{ inputs.app_name }}${{ inputs.plugin_name }}-${{ inputs.target_platforms }}-${{ github.ref }}
     cancel-in-progress: false
 
 permissions: {}
@@ -1048,12 +1048,15 @@ jobs:
                   }
                   request_start() {
                     echo "Requesting start..."
-                    curl -sS --max-time 15 --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                    if ! curl -sS --max-time 15 --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
                       -X PUT -H "Content-Type: application/json" -d '{}' \
-                      "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start" || true
+                      "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start"; then
+                      echo "::warning::start request failed (already running, RBAC, or API error) — will retry on next poll"
+                    fi
                   }
                   S=$(status); echo "::notice::$VM status: $S"
                   [ "$S" != "Running" ] && request_start
+                  unknown_streak=0
                   for i in $(seq 1 48); do
                     S=$(status)
                     if [ "$S" = "Running" ]; then
@@ -1064,6 +1067,16 @@ jobs:
                     if [ "$S" = "Stopped" ]; then
                       echo "$VM is Stopped (idle-shutdown race or lost start) — re-requesting start"
                       request_start
+                      unknown_streak=0
+                    elif [ "$S" = "Unknown" ]; then
+                      unknown_streak=$((unknown_streak + 1))
+                      if [ "$unknown_streak" -ge 4 ]; then
+                        echo "::warning::$VM status Unknown for $unknown_streak checks — re-requesting start defensively"
+                        request_start
+                        unknown_streak=0
+                      fi
+                    else
+                      unknown_streak=0
                     fi
                     echo "waiting for $VM to reach Running ($i/48): $S"
                     sleep 15
@@ -1762,11 +1775,15 @@ jobs:
                   mkdir -p "${{ github.workspace }}/output"
                   DOCKER_VOLS="-v ${{ github.workspace }}/${{ inputs.plugin_path }}:/plugin"
                   DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/output:/output"
+                  DEP_ORDER=""
                   if [ -d "${{ github.workspace }}/_deps" ] && [ "$(ls -A "${{ github.workspace }}/_deps")" ]; then
                     DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/_deps:/deps:ro"
+                    for dep_path in ${{ inputs.dependency_plugin_paths }}; do
+                      DEP_ORDER="${DEP_ORDER}$(basename "$dep_path") "
+                    done
                   fi
 
-                  docker run --rm ${DOCKER_VOLS} \
+                  docker run --rm ${DOCKER_VOLS} -e DEP_ORDER="${DEP_ORDER}" \
                     "ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}" \
                     /bin/bash -c '
                       set -euo pipefail
@@ -1784,9 +1801,8 @@ jobs:
                         DEP_SRC=/tmp/dep_src
                         DEP_OUT=/tmp/dep_out
                         mkdir -p "$DEP_SRC" "$DEP_OUT"
-                        for dep in /deps/*/; do
-                          dep_name=$(basename "$dep")
-                          cp -r "$dep" "$DEP_SRC/$dep_name"
+                        for dep_name in ${DEP_ORDER}; do
+                          cp -r "/deps/$dep_name" "$DEP_SRC/$dep_name"
                           dep_uplugin=$(find "$DEP_SRC/$dep_name" -maxdepth 1 -name "*.uplugin" | head -1)
                           if [ -z "$dep_uplugin" ]; then echo "::error::No .uplugin in dependency $dep_name"; exit 1; fi
                           echo "::group::Build dependency plugin $dep_name"

@@ -1,5 +1,6 @@
 ---
 title: Oxidized Copper Grate
+template: splash
 description: |
     Minecraft Oxidized Copper Grate — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1378
     ref: oxidized_copper_grate
     slug: oxidized-copper-grate
+    content_rev: 1
     display_name: Oxidized Copper Grate
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Oxidized Copper Grate is the fully weathered stage of the copper grate, a transparent,
+            non-solid decorative block whose perforations let players see through it while blocking mob
+            spawns. Its design was inspired by chain link fences, and at this final oxidation stage its
+            color has shifted from orange-brown all the way to a teal patina.
+        lore: |
+            A perforated copper lattice, its bars weathered teal like an old chain-link fence left to the rain.
+    faq:
+        - question: Can mobs spawn on an Oxidized Copper Grate?
+          answer: |
+              No, copper grates are non-solid transparent blocks that prevent mob spawning on their surface.
+        - question: Does the Oxidized Copper Grate conduct redstone signals?
+          answer: |
+              No, copper grates cannot conduct redstone signals, so they function purely as a
+              see-through architectural block.
+        - question: How do I craft an Oxidized Copper Grate?
+          answer: |
+              Combine matching copper blocks in a 2x2 crafting pattern to yield 4 grates, or process
+              copper blocks via a stonecutter for the grate conversion.
+        - question: Can an Oxidized Copper Grate be placed underwater?
+          answer: |
+              Yes, copper grates are waterloggable, so they can be placed and remain functional underwater.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

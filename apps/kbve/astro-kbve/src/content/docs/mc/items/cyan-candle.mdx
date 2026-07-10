@@ -1,5 +1,6 @@
 ---
 title: Cyan Candle
+template: splash
 description: |
     Minecraft Cyan Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1315
     ref: cyan_candle
     slug: cyan-candle
+    content_rev: 1
     display_name: Cyan Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Cyan Candle is a dyeable, light-emitting decoration block made by combining a plain candle
+            with cyan dye. Up to four candles can be placed in a single block space, and when lit they
+            provide a light level that scales with the number of candles present, from 3 up to 12.
+        lore: |
+            A slender cyan-tinted candle whose flame flickers with a soft, colored glow.
+    faq:
+        - question: How do I make a Cyan Candle?
+          answer: |
+              Craft a plain candle from string and honeycomb, then combine it with cyan dye in a crafting
+              grid to color it cyan.
+        - question: How much light does a Cyan Candle give off?
+          answer: |
+              A single lit candle emits a light level of 3, and light increases with more candles grouped
+              in the same block, up to a maximum of 12 with four candles.
+        - question: Can I light a Cyan Candle underwater?
+          answer: |
+              No, candles cannot be lit while waterlogged, and a waterlogged candle stays unlit even if
+              ignited through other means.
+        - question: Can a Cyan Candle be placed on a cake?
+          answer: |
+              Yes, a single candle can be placed on an uneaten cake to create a candle cake, which drops
+              the candle when the cake is eaten or the block is broken.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

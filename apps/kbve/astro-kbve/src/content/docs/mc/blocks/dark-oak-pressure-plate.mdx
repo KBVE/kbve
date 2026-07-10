@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Pressure Plate
+template: splash
 description: |
     Minecraft Dark Oak Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 254
     ref: dark_oak_pressure_plate
     slug: dark-oak-pressure-plate
+    content_rev: 1
     display_name: Dark Oak Pressure Plate
     material: redstone
     hardness: 0.5
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - redstone
+    about:
+        description: |
+            A Dark Oak Pressure Plate is a redstone component that emits
+            a signal when an entity stands on it. It is crafted from two
+            Dark Oak Planks and behaves like other wooden pressure
+            plates, activating for players, mobs, items, and arrows.
+        lore: |
+            Wooden pressure plates originally required three planks to
+            craft, reduced to two in Beta 1.3 to make room for wooden
+            slabs.
+    uses:
+        - title: Redstone circuits
+          ref: redstone_dust
+          detail: |
+              Placed atop redstone wire or components to trigger doors,
+              dispensers, and traps whenever something walks over it.
+    found_in:
+        - location: Crafted from Dark Oak Planks
+          detail: Two dark oak planks placed vertically in a crafting grid craft one pressure plate.
+        - location: Village structures and trial chambers
+          detail: Generates naturally as part of some village and trial chamber builds.
+    faq:
+        - question: What tool do I need to mine a Dark Oak Pressure Plate?
+          answer: |
+              None. It breaks instantly with any tool or bare hands; an
+              axe is simply the fastest option.
+        - question: What is the redstone signal strength of a wooden pressure plate?
+          answer: |
+              Always 15, the maximum signal strength, regardless of what
+              triggers it.
+        - question: Can it be used as furnace fuel?
+          answer: |
+              Yes, Overworld wood pressure plates smelt 1.5 items each;
+              Nether wood variants cannot be used as fuel.
+        - question: What triggers a Dark Oak Pressure Plate?
+          answer: |
+              Players, mobs, items, and arrows can all trigger it, but
+              spectator-mode players and armor stand markers cannot.
     data_version: "1.21.5"
 ---
 

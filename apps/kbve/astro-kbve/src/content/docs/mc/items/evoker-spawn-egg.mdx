@@ -1,5 +1,6 @@
 ---
 title: Evoker Spawn Egg
+template: splash
 description: |
     Minecraft Evoker Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1090
     ref: evoker_spawn_egg
     slug: evoker-spawn-egg
+    content_rev: 1
     display_name: Evoker Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Evoker Spawn Egg summons an Evoker, a spellcasting Illager with 24 health that attacks with summoned fangs, spawns Vexes to swarm players, and can convert nearby sheep's wool with its "wololo" spell. Evokers normally appear in woodland mansions and as part of raids, and are the only source of Totems of Undying.
+        lore: |
+            The Evoker's wool-changing "wololo" spell is a direct wink to the priest units of Age of Empires, right down to the sound it makes.
+    faq:
+        - question: Where do Evokers normally appear?
+          answer: |
+              They spawn on the second and third floors of woodland mansions, and also appear starting at wave five of village raids on Normal and Hard difficulty.
+        - question: What attacks does an Evoker use?
+          answer: |
+              It can summon damaging fang formations from the ground, conjure up to three Vexes at a time, and cast a spell that turns nearby blue sheep's wool red.
+        - question: What does an Evoker drop when killed?
+          answer: |
+              Every Evoker guarantees a Totem of Undying on death, making it the only mob that drops this item, plus a chance of emeralds.
+        - question: Can I get a Totem of Undying without fighting a raid?
+          answer: |
+              Yes, defeating any Evoker works, whether encountered in a woodland mansion or during a village raid, since every Evoker always drops one totem.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

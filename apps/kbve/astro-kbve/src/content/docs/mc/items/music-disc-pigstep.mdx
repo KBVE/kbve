@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1248
     ref: music_disc_pigstep
     slug: music-disc-pigstep
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc "pigstep" is a rare track composed by Lena Raine, found exclusively
+            in Bastion Remnant chests in the Nether. It was the first music disc that could
+            not be obtained from mob drops, marking a shift toward loot-based disc discovery.
+        lore: |
+            Its driving beat became an instant fan favorite and a defining sound of the
+            Nether Update.
+    faq:
+        - question: How do I get the pigstep music disc?
+          answer: |
+              Pigstep is found by looting general chests inside Bastion Remnants in the
+              Nether, with roughly a 5.6% chance per chest.
+        - question: Who composed the pigstep track?
+          answer: |
+              Pigstep was composed by Lena Raine, one of the composers who joined
+              Minecraft's soundtrack for the Nether Update.
+        - question: Can I get pigstep from a creeper drop?
+          answer: |
+              No, pigstep is not part of the creeper mob-drop loot pool; it can only be
+              found in Bastion Remnant chests.
+        - question: What Nether structure has the pigstep disc?
+          answer: |
+              Bastion Remnants are the only structure that generate the pigstep music disc
+              in their chest loot.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,7 +1,8 @@
 ---
 title: Account
 description: |
-  Your KBVE account — wallet balance, credits, KHash, and coupon claims.
+  Your KBVE account — wallet, profile, connected services, and settings in one place.
+template: splash
 tableOfContents: false
 graph:
    visible: false
@@ -14,6 +15,9 @@ tags:
     - wallet
 ---
 
-import AccountPage from '@/components/wallet/AccountPage.astro';
+import AstroAccountRN from '@/components/rnweb/AstroAccountRN.astro';
+import AstroAuthGate from '@/components/auth/AstroAuthGate.astro';
 
-<AccountPage />
+<AstroAuthGate />
+
+<AstroAccountRN />

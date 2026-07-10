@@ -1,5 +1,6 @@
 ---
 title: Mace
+template: splash
 description: |
     Minecraft Mace — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1155
     ref: mace
     slug: mace
+    content_rev: 1
     display_name: Mace
     category: weapon
     rarity: common
@@ -30,6 +32,39 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Mace is an Epic-tier melee weapon with a base damage of 6
+            and a very slow attack speed of 0.6, compensated by devastating
+            "smash attacks" that scale damage with fall distance. Landing a
+            smash attack also negates all accumulated fall damage, making
+            the mace a high-risk, high-reward tool for aerial ambushes.
+        lore: |
+            The mace's design pitch came from developer Ulraf, becoming the
+            chosen trial chambers reward after developers rejected an
+            earlier long-ranged weapon concept.
+        faq:
+            - question: How do Mace smash attacks work?
+              answer: |
+                  A smash attack triggers when the mace is used after
+                  falling 1.5 blocks or more, adding 4 damage per block for
+                  the first 3 blocks, 2 damage per block for blocks 4-8,
+                  and 1 damage per block beyond that.
+            - question: What enchantments are exclusive to the Mace?
+              answer: |
+                  Density, Breach, and Wind Burst are unique to maces.
+                  Density boosts smash damage, Breach ignores armor, and
+                  Wind Burst launches the wielder upward to chain further
+                  smash attacks.
+            - question: How is a Mace crafted or obtained?
+              answer: |
+                  Combine a Heavy Core, which drops from ominous vaults at
+                  a 7.5% chance, with a Breeze Rod dropped by Breezes.
+            - question: Does the Mace work well against armored enemies?
+              answer: |
+                  Yes, with Breach IV a mace deals the highest damage per
+                  hit of any weapon against entities wearing diamond or
+                  netherite armor.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

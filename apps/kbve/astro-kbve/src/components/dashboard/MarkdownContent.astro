@@ -1,0 +1,298 @@
+---
+import Default from '@astrojs/starlight/components/MarkdownContent.astro';
+import DashboardGutterNav from './DashboardGutterNav.astro';
+import { DASHBOARD_NAV, DASHBOARD_ROOT, buildBreadcrumb } from './dashboardNav';
+import {
+	APPLICATION_NAV,
+	APPLICATION_ROOT,
+	buildApplicationBreadcrumb,
+} from './applicationNav';
+import {
+	JOURNAL_NAV,
+	JOURNAL_ROOT,
+	buildJournalBreadcrumb,
+} from './journalNav';
+import { THEORY_NAV, THEORY_ROOT, buildTheoryBreadcrumb } from './theoryNav';
+import { MC_NAV, MC_ROOT, buildMcBreadcrumb } from '../mcdb/mcNav';
+
+const pathname = Astro.url.pathname;
+const isDashboard = pathname.startsWith('/dashboard');
+const isApplication =
+	pathname.startsWith('/application/') && pathname !== '/application/';
+const isJournal = pathname.startsWith('/journal/') && pathname !== '/journal/';
+const isTheory = pathname.startsWith('/theory/');
+const isMc = pathname.startsWith('/mc/');
+
+const shell = isDashboard
+	? {
+			entries: DASHBOARD_NAV,
+			root: DASHBOARD_ROOT,
+			menuLabel: 'Dashboard menu',
+			navLabel: 'Dashboard',
+			crumbs: buildBreadcrumb(pathname),
+			collapsible: false,
+			withToc: false,
+		}
+	: isApplication
+		? {
+				entries: APPLICATION_NAV,
+				root: APPLICATION_ROOT,
+				menuLabel: 'Application guides',
+				navLabel: 'Applications',
+				crumbs: buildApplicationBreadcrumb(pathname),
+				collapsible: true,
+				withToc: true,
+			}
+		: isJournal
+			? {
+					entries: JOURNAL_NAV,
+					root: JOURNAL_ROOT,
+					menuLabel: 'Journal days',
+					navLabel: 'Journal',
+					crumbs: buildJournalBreadcrumb(pathname),
+					collapsible: true,
+					withToc: true,
+				}
+			: isTheory
+				? {
+						entries: THEORY_NAV,
+						root: THEORY_ROOT,
+						menuLabel: 'Theory topics',
+						navLabel: 'Theory',
+						crumbs: buildTheoryBreadcrumb(pathname),
+						collapsible: true,
+						withToc: true,
+					}
+				: isMc
+					? {
+							entries: MC_NAV,
+							root: MC_ROOT,
+							menuLabel: 'Minecraft database',
+							navLabel: 'Minecraft',
+							crumbs: buildMcBreadcrumb(pathname),
+							collapsible: true,
+							withToc: true,
+						}
+					: undefined;
+
+const crumbs = shell?.crumbs ?? [];
+---
+
+{
+	shell ? (
+		<div class="dash-shell bento-section not-content">
+			<div class="dash-frame bento-frame bento-frame--fluid">
+				<div class="dash-grid">
+					<nav
+						class="dash-breadcrumb dash-breadcrumb--top"
+						aria-label="Breadcrumb">
+						<ol>
+							{crumbs.map((crumb, i) => (
+								<li>
+									{i < crumbs.length - 1 ? (
+										<a href={crumb.href}>{crumb.label}</a>
+									) : (
+										<span aria-current="page">
+											{crumb.label}
+										</span>
+									)}
+								</li>
+							))}
+						</ol>
+					</nav>
+					<div class="dash-grid__rail">
+						<DashboardGutterNav
+							pathname={pathname}
+							entries={shell.entries}
+							rootHref={shell.root.href}
+							menuLabel={shell.menuLabel}
+							navLabel={shell.navLabel}
+							collapsible={shell.collapsible}
+							withToc={shell.withToc}
+						/>
+					</div>
+					<div class="dash-main">
+						<Default>
+							<slot />
+						</Default>
+					</div>
+					<nav
+						class="dash-breadcrumb dash-breadcrumb--bottom"
+						aria-label="Breadcrumb">
+						<ol>
+							{crumbs.map((crumb, i) => (
+								<li>
+									{i < crumbs.length - 1 ? (
+										<a href={crumb.href}>{crumb.label}</a>
+									) : (
+										<span aria-current="page">
+											{crumb.label}
+										</span>
+									)}
+								</li>
+							))}
+						</ol>
+					</nav>
+				</div>
+			</div>
+		</div>
+	) : (
+		<Default>
+			<slot />
+		</Default>
+	)
+}
+
+<style>
+	/* One grid: full-width section band + fluid bento frame (sizing lives
+	   in bento.css). Floor is 95rem — 15rem rail + the homepage 80rem
+	   content width. Rail + main are internal cells; breadcrumbs are flush
+	   top/bottom bands. No nested shells, no floating cards. */
+	.dash-shell .dash-frame {
+		--bento-frame-base: 95rem;
+	}
+
+	.dash-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.dash-grid__rail {
+		min-width: 0;
+		border-bottom: 1px solid var(--bento-hairline);
+	}
+
+	.dash-main {
+		min-width: 0;
+		padding: 1.25rem;
+	}
+
+	/* Neutralize any bento-frame a page renders inside the slot so it does
+	   not double the side rails / cap width — the outer frame is the grid. */
+	.dash-main :global(.bento-frame) {
+		max-width: none;
+		margin-inline: 0;
+		border-inline: 0;
+		width: 100%;
+	}
+
+	@media (min-width: 1024px) {
+		.dash-grid {
+			grid-template-columns: 15rem minmax(0, 1fr);
+			grid-template-areas:
+				'crumbTop crumbTop'
+				'rail     main'
+				'crumbBot crumbBot';
+		}
+
+		.dash-breadcrumb--top {
+			grid-area: crumbTop;
+		}
+
+		.dash-grid__rail {
+			grid-area: rail;
+			border-bottom: 0;
+			border-right: 1px solid var(--bento-hairline);
+		}
+
+		.dash-main {
+			grid-area: main;
+			padding: 1.5rem;
+		}
+
+		.dash-breadcrumb--bottom {
+			grid-area: crumbBot;
+		}
+	}
+
+	/* Breadcrumb = flush band inside the frame; hairline seam separates it
+	   from the grid body, matching the section seams. */
+	.dash-breadcrumb {
+		display: flex;
+		width: 100%;
+	}
+
+	.dash-breadcrumb--top {
+		border-bottom: 1px solid var(--bento-hairline);
+	}
+
+	.dash-breadcrumb--bottom {
+		border-top: 1px solid var(--bento-hairline);
+	}
+
+	.dash-breadcrumb ol {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.375rem;
+		width: 100%;
+		margin: 0;
+		padding: 0.625rem 1.25rem;
+		list-style: none;
+		font-size: 0.8125rem;
+		line-height: 1.4;
+	}
+
+	@media (min-width: 1024px) {
+		.dash-breadcrumb ol {
+			padding-inline: 1.5rem;
+		}
+	}
+
+	.dash-breadcrumb li {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-width: 0;
+	}
+
+	.dash-breadcrumb li:not(:first-child)::before {
+		content: '';
+		flex: none;
+		width: 0.375rem;
+		height: 0.375rem;
+		border-top: 1.5px solid var(--sl-color-gray-4);
+		border-right: 1.5px solid var(--sl-color-gray-4);
+		transform: rotate(45deg);
+		opacity: 0.55;
+	}
+
+	.dash-breadcrumb a,
+	.dash-breadcrumb span[aria-current='page'] {
+		display: inline-flex;
+		align-items: center;
+		max-width: 14rem;
+		padding: 0.3rem 0.6rem;
+		border-radius: 6px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.dash-breadcrumb a {
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+		transition:
+			color 160ms ease,
+			background-color 160ms ease;
+	}
+
+	.dash-breadcrumb a:hover {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+	}
+
+	.dash-breadcrumb span[aria-current='page'] {
+		color: var(--sl-color-white);
+		font-weight: 600;
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 18%,
+			transparent
+		);
+	}
+</style>

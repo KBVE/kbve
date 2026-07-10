@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&c
 description: October 9th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 9,'
+    accent: every year.
+    lede: 'The October 9th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 8'
+          href: /journal/10-08/
+        - label: 'Oct 10 →'
+          href: /journal/10-10/
+    related:
+        - title: 'Previous · Oct 8'
+          copy: 'Step back a day to the October 8th log.'
+          href: /journal/10-08/
+          icon: calendar
+        - title: 'Next · Oct 10'
+          copy: 'Jump ahead to the October 10th log.'
+          href: /journal/10-10/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693298661836-1206649639ef?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Conch Shell
 
@@ -24,7 +65,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     I am thinking that we would store the APIs as a vault secret, then pull that into the edge calls which we will do before making the final calls to gemeni or groq.
     As for the context, this is going to be a bit of a rough part on our end, I am not too sure how much context we will be able to keep, definitely as the conversations grow.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Vuplex**
 
@@ -60,3 +109,7 @@ This is still a bit of work in progress, but I believe it will help a ton with t
 I have to remind myself that this is all part of the learning experience, got to overengineer and learn from the hardest point of view.
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

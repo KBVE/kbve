@@ -1,5 +1,6 @@
 ---
 title: Gray Candle
+template: splash
 description: |
     Minecraft Gray Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1313
     ref: gray_candle
     slug: gray-candle
+    content_rev: 1
     display_name: Gray Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A gray candle is a decorative light-emitting block made by combining an undyed candle with gray dye. It can be lit with flint and steel or a fire charge, and up to four identically colored candles can occupy the same block space, with each lit candle adding 3 light levels for a maximum of 12.
+        lore: |
+            Candles offer a warm, decorative alternative to torches, ideal for ambient lighting in homes, dungeons, and other builds.
+    faq:
+        - question: How do I make a gray candle?
+          answer: |
+              Combine one string and one honeycomb in a crafting grid to make an undyed candle, then combine that candle with gray dye to produce the gray variant.
+        - question: Can I place multiple gray candles in one block space?
+          answer: |
+              Yes. Up to four identically colored candles may be placed in one block, with each additional candle increasing the emitted light level by 3.
+        - question: What happens if I put a gray candle on a cake?
+          answer: |
+              A single candle of any color, including gray, can be placed on an uneaten cake to create a candle cake, which can still be eaten or broken to retrieve the candle.
+        - question: How do I put out a lit gray candle?
+          answer: |
+              Extinguish it with water, a water bottle, a wind charge, or by right-clicking the lit candle directly.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

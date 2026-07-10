@@ -1,5 +1,6 @@
 ---
 title: Oak Leaves
+template: splash
 description: |
     Minecraft Oak Leaves — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 182
     ref: oak_leaves
     slug: oak-leaves
+    content_rev: 1
     display_name: Oak Leaves
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Oak leaves are the transparent foliage blocks that crown oak trees across
+            the Overworld. They naturally decay when no longer connected to a log
+            within range, but persist indefinitely when placed directly by a player.
+        lore: |
+            Oak leaves have served as one of Minecraft's foundational blocks since
+            the game's earliest versions, marking the classic silhouette of the oak tree.
+    faq:
+        - question: How do oak leaves decay?
+          answer: |
+              Leaves dissipate over time when they are not connected to a log, but
+              they persist when placed by a player. Decay checks occur within 6
+              blocks of a log in Java Edition (4 blocks in Bedrock Edition).
+        - question: What can you get from breaking oak leaves?
+          answer: |
+              Breaking oak leaves has a 5% chance to drop a sapling, a small chance
+              to drop a stick, and a rare 0.5% chance to drop an apple. Using shears
+              or Silk Touch drops the leaves block itself instead.
+        - question: Do oak leaves change color?
+          answer: |
+              Yes, oak leaves are tinted according to the biome they generate in,
+              ranging from muted tones in badlands to bright green in plains and forests.
+        - question: What else are oak leaves used for?
+          answer: |
+              Beyond dropping saplings and sticks, oak leaves can be composted for
+              bone meal and smelted into leaf litter, and trees grown near flowering
+              azaleas can spawn bee nests in their canopy.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -11,6 +11,7 @@ export * from './lib/mod/mod-urls';
 export * from './lib/gateway';
 export * from './lib/state';
 export * from './lib/agents';
+export * from './lib/api';
 
 export type { VirtualNode } from './lib/types/modules';
 

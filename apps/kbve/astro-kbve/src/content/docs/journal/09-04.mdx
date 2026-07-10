@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1691122581579-1dda33266c1c?crop=entropy&c
 description: September 4th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 4,'
+    accent: every year.
+    lede: 'The September 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 3'
+          href: /journal/09-03/
+        - label: 'Sep 5 →'
+          href: /journal/09-05/
+    related:
+        - title: 'Previous · Sep 3'
+          copy: 'Step back a day to the September 3rd log.'
+          href: /journal/09-03/
+          icon: calendar
+        - title: 'Next · Sep 5'
+          copy: 'Jump ahead to the September 5th log.'
+          href: /journal/09-05/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1691122581579-1dda33266c1c?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Nvidia $180
 
@@ -35,7 +76,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     This will make scaling very easy for us moving forward.
   
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **rke2**
 
@@ -79,15 +128,23 @@ We tried to update the graphics driver, keyboard driver and a bunch of other thi
 I am thinking that it might just be my CPU and its inability to handle all of this computation!
 The CPU spikes are getting bad and I might also need to clean out the PC.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 5:26am - Monday Meme Day!
 - 7:07am - Cleaning up the KBVE.com repo a bit, took out the astro-compress library as Astro v3 now default compresses the data that is being outputted. I believe we could remove a couple of the react libraries and lottie, then migrate it over to a custom widget package.
 - 8:02am - Weaviate + Unstructured Data integration time! We were able to establish the weaviate connection using the appwrite database, so the next step will be to see if we can add data into the database cluster. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Happiness is not in the mere possession of money; it lies in the joy of achievement, in the thrill of creative effort.
 > — <cite>Franklin D. Roosevelt</cite>
 
 ---
+
+</BentoProse>
+
+</BentoDoc>

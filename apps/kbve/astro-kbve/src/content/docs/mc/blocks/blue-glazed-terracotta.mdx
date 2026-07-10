@@ -1,5 +1,6 @@
 ---
 title: Blue Glazed Terracotta
+template: splash
 description: |
     Minecraft Blue Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 673
     ref: blue_glazed_terracotta
     slug: blue-glazed-terracotta
+    content_rev: 1
     display_name: Blue Glazed Terracotta
     material: stone
     hardness: 1.4
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Blue Glazed Terracotta is a decorative block made by smelting Blue
+            Terracotta. Its glossy, patterned texture rotates to match the
+            direction it was placed, letting builders form repeating arrow
+            or diamond motifs across a wall or floor.
+        lore: |
+            Its design was inspired by a Moroccan-styled bathroom floor the
+            developers saw at a California hotel.
+    uses:
+        - title: Decorative Flooring and Walls
+          ref: blue_glazed_terracotta
+          detail: |
+              Arranging four blocks in a 2x2 grid with matching rotations
+              produces continuous diamond or arrow patterns, popular for
+              floors, roofs, and banner-style wall art.
+    found_in:
+        - location: Smelting Blue Terracotta
+          detail: Made by smelting Blue Terracotta in a furnace, blast furnace, or campfire.
+        - location: Ocean Ruins and Village/Trial Chamber Structures
+          detail: Various colors of glazed terracotta generate naturally in ocean ruins, desert and savanna villages, trail ruins, and trial chambers, though blue is not a common natural color.
+        - location: Mason Villager Trades
+          detail: Expert-level mason villagers sell glazed terracotta of any color for emeralds.
+    faq:
+        - question: What tool do I need to mine Blue Glazed Terracotta?
+          answer: |
+              A pickaxe of any tier. It drops nothing if mined without one.
+        - question: Does it burn in lava or fire?
+          answer: |
+              No, glazed terracotta is fireproof and will not ignite from
+              lava or nearby fire.
+        - question: Can I craft Blue Glazed Terracotta directly?
+          answer: |
+              No. It can only be obtained by smelting Blue Terracotta with a
+              fuel source; there is no crafting table recipe.
+        - question: Can pistons move it?
+          answer: |
+              Regular pistons can push it, but sticky pistons cannot pull it,
+              and it will not stick to slime or honey blocks.
     data_version: "1.21.5"
 ---
 

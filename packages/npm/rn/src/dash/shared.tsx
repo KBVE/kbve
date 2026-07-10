@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { Stack, Text, tokens } from '../ui';
-import type { BadgeTone } from '../ui';
+import { Stack, Text, tokens } from './_ui';
+import type { BadgeTone } from './_ui';
 
 // ---------------------------------------------------------------------------
 // Shared Components

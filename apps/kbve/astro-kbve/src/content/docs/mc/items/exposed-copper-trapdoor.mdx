@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper Trapdoor
+template: splash
 description: |
     Minecraft Exposed Copper Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 777
     ref: exposed_copper_trapdoor
     slug: exposed-copper-trapdoor
+    content_rev: 1
     display_name: Exposed Copper Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Exposed Copper Trapdoor is the second oxidation stage of the copper trapdoor, a
+            functional trapdoor that opens and closes manually or via redstone signal, wind
+            charge bursts, and immediately snaps shut when deactivated. It shows discoloration
+            and green spots typical of early copper weathering.
+        lore: |
+            Copper trapdoors pair with copper doors and generate naturally in trial chambers,
+            giving copper-themed builds matching functional fixtures.
+    faq:
+        - question: How do you get an Exposed Copper Trapdoor?
+          answer: |
+              It cannot be crafted directly; obtain it by letting an unwaxed copper trapdoor
+              oxidize naturally, or by scraping a more weathered one back with an axe.
+        - question: How does the Exposed Copper Trapdoor respond to redstone?
+          answer: |
+              It opens immediately when activated and closes immediately when deactivated, and
+              can also be toggled manually or by wind charge bursts.
+        - question: Can you stop an Exposed Copper Trapdoor from oxidizing further?
+          answer: |
+              Yes, applying honeycomb waxes it at its current stage; crouch and right-click with
+              an axe to remove wax or reverse oxidation by one stage.
+        - question: Is the Exposed Copper Trapdoor waterloggable?
+          answer: |
+              Yes, it is a transparent, non-flammable block that can be waterlogged and requires
+              a stone pickaxe or better to mine.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

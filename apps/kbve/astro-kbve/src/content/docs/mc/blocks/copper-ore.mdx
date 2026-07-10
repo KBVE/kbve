@@ -1,5 +1,6 @@
 ---
 title: Copper Ore
+template: splash
 description: |
     Minecraft Copper Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 970
     ref: copper_ore
     slug: copper-ore
+    content_rev: 1
     display_name: Copper Ore
     material: stone
     hardness: 3
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: raw_copper
+          qty_min: 2
+          qty_max: 5
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: copper_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - ore
+    about:
+        description: |
+            Copper Ore is an overworld ore that drops raw copper, the sole
+            source of copper ingots. It generates in large veins throughout
+            the Overworld and is especially common in dripstone caves.
+        lore: |
+            Copper Ore was announced at Minecraft Live 2020 and added in
+            Java Edition 1.17, introducing copper as a new metal tier.
+    uses:
+        - title: Copper Ingot
+          ref: copper_ingot
+          detail: |
+              Smelt raw copper in a furnace or blast furnace to produce
+              copper ingots, used for blocks, lightning rods, and spyglasses.
+    found_in:
+        - location: Overworld stone layers
+          detail: Generates from Y=-16 to Y=112, peaking around Y=48, replacing stone and deepslate.
+        - location: Dripstone caves
+          detail: Larger, denser copper veins generate specifically in dripstone cave biomes.
+    faq:
+        - question: What tool do I need to mine Copper Ore?
+          answer: |
+              A stone pickaxe or better. A wooden or gold pickaxe (or bare
+              hands) breaks the block but drops nothing.
+        - question: Does Fortune affect Copper Ore drops?
+          answer: |
+              Yes. Fortune III can yield up to 20 raw copper per block,
+              averaging around 7.7.
+        - question: What happens with Silk Touch?
+          answer: |
+              Silk Touch causes the block to drop itself as Copper Ore
+              instead of raw copper.
+        - question: Where is the best place to find Copper Ore?
+          answer: |
+              Dripstone cave biomes have the largest and most frequent
+              copper veins, though it also generates commonly around Y=48
+              throughout the Overworld.
     data_version: "1.21.5"
 ---
 

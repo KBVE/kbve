@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Sign
+template: splash
 description: |
     Minecraft Dark Oak Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 217
     ref: dark_oak_wall_sign
     slug: dark-oak-wall-sign
+    content_rev: 1
     display_name: Dark Oak Sign
     material: wood
     hardness: 1
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Dark Oak Sign is a non-solid block mounted flush against
+            a wall that displays customizable text. Text can be dyed,
+            made to glow with a glow ink sac, and locked with honeycomb
+            wax to prevent further edits.
+        lore: |
+            Signs have existed since Minecraft Beta 1.6 as one of the
+            earliest ways for players to leave written messages in the
+            world.
+    uses:
+        - title: Labels & Navigation
+          ref: dark_oak_sign
+          detail: |
+              Placed on chests, doors, and paths to label storage
+              systems, mark claims, or give directions; text supports
+              basic formatting and, in Java Edition, limited command
+              output when used with command blocks.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 6 dark oak planks and 1 stick, yielding 3 signs per craft.
+        - location: Woodland Mansions & Villages
+          detail: Occasionally found as decoration in generated structures using dark oak wood.
+    faq:
+        - question: What tool do I need to mine a Dark Oak Sign?
+          answer: |
+              None required — it breaks with any tool or bare hands and
+              always drops itself as an item.
+        - question: Can a Dark Oak Sign catch fire?
+          answer: |
+              Standing and wall signs are non-flammable and will not
+              ignite even if placed above lava.
+        - question: How do I stop someone editing my sign's text?
+          answer: |
+              Right-click the sign with a honeycomb to wax it, which
+              locks the text permanently against further edits.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No, it always drops exactly one sign regardless of any
+              enchantments used to mine it.
     data_version: "1.21.5"
 ---
 

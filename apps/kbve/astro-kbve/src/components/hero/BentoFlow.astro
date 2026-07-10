@@ -1,0 +1,177 @@
+---
+import BentoShell from './BentoShell.astro';
+import BentoFlowIsland from './flow/BentoFlowIsland';
+
+interface Props {
+	eyebrow?: string;
+	heading?: string;
+}
+
+const {
+	eyebrow = 'How it ships',
+	heading = 'From commit to production, automatically.',
+} = Astro.props;
+---
+
+<BentoShell {eyebrow} {heading} id="how-it-works">
+	<div class="bento-flow">
+		<BentoFlowIsland client:idle />
+	</div>
+</BentoShell>
+
+<style>
+	.bento-flow {
+		height: clamp(280px, 38vw, 420px);
+		border-top: 1px solid var(--bento-hairline);
+		background-color: var(--bento-cell-bg);
+	}
+
+	.bento-flow :global(.react-flow__node) {
+		cursor: grab;
+	}
+
+	.bento-flow :global(.react-flow__node:active) {
+		cursor: grabbing;
+	}
+
+	.bento-flow :global(.react-flow__handle) {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.bento-flow :global(.bento-flow-node) {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.625rem 0.875rem;
+	}
+
+	.bento-flow :global(.bento-flow-node__text) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.0625rem;
+	}
+
+	.bento-flow :global(.bento-flow-node__label) {
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		line-height: 1.2;
+		color: var(--sl-color-white);
+	}
+
+	.bento-flow :global(.bento-flow-node__meta) {
+		font-size: 0.625rem;
+		line-height: 1.2;
+		color: var(--sl-color-gray-4);
+	}
+
+	.bento-flow :global(.bento-flow-node[data-accent]) {
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 45%,
+			transparent
+		);
+	}
+
+	.bento-flow :global(.bento-flow-node[data-accent] .bento-flow-node__icon) {
+		color: var(--sl-color-accent-high);
+	}
+
+	.bento-flow :global(.bento-flow-node--active .bento-flow-node) {
+		border-color: var(--sl-color-accent-high);
+		box-shadow: var(--bento-shadow), var(--bento-glow);
+	}
+
+	.bento-flow :global(.bento-flow-node--active .bento-flow-node__icon) {
+		color: var(--sl-color-accent-high);
+	}
+
+	.bento-flow {
+		position: relative;
+	}
+
+	.bento-flow :global(.bento-flow__tabs) {
+		position: absolute;
+		top: 0.75rem;
+		left: 1rem;
+		right: 1rem;
+		z-index: 10;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+		pointer-events: none;
+	}
+
+	.bento-flow :global(.bento-flow__tab) {
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-black) 72%,
+			transparent
+		);
+		backdrop-filter: blur(8px);
+	}
+
+	.bento-flow :global(.bento-flow__tab strong) {
+		color: var(--sl-color-white);
+		font-weight: 600;
+		text-transform: capitalize;
+	}
+
+	.bento-flow :global(.bento-flow__tab-dot) {
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: 9999px;
+		background-color: var(--sl-color-gray-4);
+	}
+
+	.bento-flow :global(.bento-flow__tab.is-running) {
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 55%,
+			transparent
+		);
+		color: var(--sl-color-accent-high);
+	}
+
+	.bento-flow :global(.bento-flow__tab.is-running strong) {
+		color: var(--sl-color-accent-high);
+	}
+
+	.bento-flow :global(.bento-flow__tab.is-running .bento-flow__tab-dot) {
+		background-color: var(--sl-color-accent-high);
+		animation: bento-tab-pulse 1.4s ease-in-out infinite;
+	}
+
+	@keyframes bento-tab-pulse {
+		50% {
+			opacity: 0.35;
+		}
+	}
+
+	.bento-flow :global(.bento-flow-node__cargo) {
+		position: absolute;
+		top: -0.5rem;
+		right: -0.5rem;
+		padding: 0.125rem 0.375rem;
+		border-radius: 9999px;
+		font-size: 0.5625rem;
+		font-weight: 600;
+		line-height: 1.2;
+		color: var(--sl-color-black);
+		background-color: var(--sl-color-accent-high);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+		animation: bento-cargo-in 260ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	@keyframes bento-cargo-in {
+		from {
+			transform: scale(0.6);
+			opacity: 0;
+		}
+		to {
+			transform: scale(1);
+			opacity: 1;
+		}
+	}
+</style>

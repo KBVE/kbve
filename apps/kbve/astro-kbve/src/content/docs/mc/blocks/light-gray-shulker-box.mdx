@@ -1,5 +1,6 @@
 ---
 title: Light Gray Shulker Box
+template: splash
 description: |
     Minecraft Light Gray Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 654
     ref: light_gray_shulker_box
     slug: light-gray-shulker-box
+    content_rev: 1
     display_name: Light Gray Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Light Gray Shulker Box is a portable storage block with 27
+            inventory slots that keeps its contents intact when mined,
+            picked up, or moved. Dyeing an undyed Shulker Box with Light
+            Gray Dye produces this variant.
+        lore: |
+            Shulker Boxes were added in Java Edition 1.11, letting players
+            carry an entire extra chest's worth of items in their inventory.
+    uses:
+        - title: Portable storage
+          ref: light_gray_shulker_box
+          detail: |
+              Place it to access 27 storage slots like a chest, then mine
+              it and pick it up — its contents stay saved inside the item,
+              letting players transport large amounts of cargo safely.
+    found_in:
+        - location: Crafting
+          detail: Craft with a Shulker Shell (dropped by Shulkers in End Cities) and a Chest, then dye with Light Gray Dye.
+        - location: End Cities
+          detail: Shulkers that drop shells for crafting spawn primarily in End City structures.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool works, though a pickaxe is fastest. There is no
+              minimum tool tier requirement.
+        - question: Do I lose the items inside when I mine it?
+          answer: |
+              No. Unlike other containers, a Shulker Box always drops as
+              an item with its contents preserved, whether or not it is
+              empty.
+        - question: Does Silk Touch matter for Shulker Boxes?
+          answer: |
+              No. Shulker Boxes always drop themselves with contents
+              intact regardless of the tool or enchantments used.
+        - question: Can I change its color after crafting?
+          answer: |
+              Yes. Combine the Shulker Box with a different dye in a
+              crafting grid to recolor it without losing its contents.
     data_version: "1.21.5"
 ---
 

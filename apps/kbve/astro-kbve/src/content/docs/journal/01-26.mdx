@@ -8,12 +8,52 @@ img: https://images.unsplash.com/photo-1737555070365-cb948afc334c?crop=entropy&c
 description: Daily Log for January 26th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 26,'
+    accent: every year.
+    lede: 'The January 26th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Jan 25'
+          href: /journal/01-25/
+        - label: 'Jan 27 →'
+          href: /journal/01-27/
+    related:
+        - title: 'Previous · Jan 25'
+          copy: 'Step back a day to the January 25th log.'
+          href: /journal/01-25/
+          icon: calendar
+        - title: 'Next · Jan 27'
+          copy: 'Jump ahead to the January 27th log.'
+          href: /journal/01-27/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1737555070365-cb948afc334c?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="notes" heading="Notes">
 
     #### keys
 
@@ -28,7 +68,15 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   **Pasta**
 
@@ -51,7 +99,9 @@ import { Adsense } from '@/components/astropad';
         The UI/UX Godot extension will need a couple updates, one is a better menu system and the other will be a couple message canvas.
         One of the first ones that I want to add is a visual novel style canvas that will load a background image, an avatar and some kind of animation for the text to be displayed.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
     -   7:00am  -   `Bear`
 
@@ -98,3 +148,7 @@ import { Adsense } from '@/components/astropad';
             Okay after deploying the new tables, I forgot to double check the global keys that we would need, so I might have to create a tool to keep track of those.
 
         
+
+</BentoProse>
+
+</BentoDoc>

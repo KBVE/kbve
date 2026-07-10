@@ -1,5 +1,6 @@
 ---
 title: Acacia Fence Gate
+template: splash
 description: |
     Minecraft Acacia Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 599
     ref: acacia_fence_gate
     slug: acacia-fence-gate
+    content_rev: 1
     display_name: Acacia Fence Gate
     material: wood
     hardness: 2
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Acacia Fence Gate is a switchable opening built into a fence
+            line, letting players and villagers pass through while keeping
+            most mobs penned in. It connects visually to adjacent fences.
+        lore: |
+            Fence gates were first teased on Get Satisfaction in November
+            2010 and confirmed by developer Jeb on Twitter before debuting
+            publicly at PAX Prime 2010.
+    uses:
+        - title: Fenced Enclosures
+          ref: acacia_fence
+          detail: |
+              Placed in a fence line to create a controllable entrance for
+              animal pens and farms without leaving a permanent gap.
+        - title: Redstone-Operated Gates
+          ref: acacia_fence_gate
+          detail: |
+              Can be wired to redstone, levers, or pressure plates for
+              automatic opening at bases and farms.
+    found_in:
+        - location: Crafting
+          detail: Two acacia planks plus four sticks craft one acacia fence gate.
+        - location: Villages
+          detail: Generates as entrances to fenced animal pens in savanna and other villages.
+    faq:
+        - question: What tool should I use to mine an acacia fence gate?
+          answer: |
+              An axe mines it fastest, but any tool works since no minimum
+              tier is required.
+        - question: Is an acacia fence gate flammable?
+          answer: |
+              Yes, being an Overworld wood block it can catch fire and burns
+              for around five minutes, unlike Nether wood gate variants.
+        - question: Does it block mobs when open?
+          answer: |
+              No, an open fence gate is fully non-solid, letting any entity
+              pass through freely.
+        - question: Can it connect to walls or glass panes?
+          answer: |
+              It visually connects to adjacent fences of any type, but not
+              to walls or glass panes.
     data_version: "1.21.5"
 ---
 

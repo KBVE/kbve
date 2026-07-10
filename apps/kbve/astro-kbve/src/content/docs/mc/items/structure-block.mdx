@@ -1,5 +1,6 @@
 ---
 title: Structure Block
+template: splash
 description: |
     Minecraft Structure Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 830
     ref: structure_block
     slug: structure-block
+    content_rev: 1
     display_name: Structure Block
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Structure Block is a technical block used to save, load, and manage
+            structures within a world. It supports Save, Load, Corner, and Data modes and
+            is only obtainable via the Creative inventory or commands, making it a tool
+            for world builders and datapack creators rather than a survival item.
+        lore: |
+            A mysterious device that quietly remembers and rebuilds entire structures on command.
+    faq:
+        - question: How do you get a Structure Block?
+          answer: |
+              It cannot be obtained in Survival; use the Creative inventory (with cheats
+              enabled) or commands like /give and /setblock.
+        - question: What do the different modes do?
+          answer: |
+              Save mode captures a region into a structure file, Load mode places a saved
+              structure, Corner mode auto-calculates size from a paired block, and Data
+              mode is used internally for vanilla world generation.
+        - question: What is the maximum structure size?
+          answer: |
+              In Java Edition a single structure can be up to 48x48x48 blocks, while
+              Bedrock Edition allows larger dimensions.
+        - question: Can Structure Blocks be broken in Survival mode?
+          answer: |
+              No, they cannot be broken in Survival mode and require Creative mode or
+              operator permissions to remove.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

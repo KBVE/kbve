@@ -1,5 +1,6 @@
 ---
 title: Jukebox
+template: splash
 description: |
     Minecraft Jukebox — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 270
     ref: jukebox
     slug: jukebox
+    content_rev: 1
     display_name: Jukebox
     material: wood
     hardness: 2
@@ -24,10 +26,64 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jukebox
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Jukebox plays Music Discs, projecting sound up to 64 blocks
+            and emitting a comparator-readable redstone signal while active.
+            Crafted from wood planks and a diamond, it also lets nearby
+            allays dance and split when duplicated.
+        lore: |
+            Present since Java Alpha, the jukebox brought Minecraft's iconic
+            disc soundtrack into the game world.
+    uses:
+        - title: Music Disc Playback
+          ref: music_disc_13
+          detail: |
+              Right-click with a Music Disc to play it; right-click again
+              (or apply redstone) to eject it and stop the music.
+        - title: Redstone Signal Source
+          ref: comparator
+          detail: |
+              A comparator reads the jukebox's output strength (0-15),
+              letting circuits identify which disc is currently playing.
+        - title: Allay Duplication
+          ref: allay
+          detail: |
+              Use an amethyst shard on a dancing allay near an active
+              jukebox to split it into two allays.
+    found_in:
+        - location: Crafted
+          detail: Eight wood planks (any type) surrounding one diamond.
+        - location: Ancient Cities / Woodland Mansions
+          detail: Occasionally found holding music discs in loot generation.
+    faq:
+        - question: What tool mines a Jukebox fastest?
+          answer: |
+              An axe. A netherite axe breaks it in about 0.35 seconds, but
+              any tool or bare hands can eventually break it.
+        - question: Does a Jukebox need Silk Touch to keep its disc?
+          answer: |
+              No. Breaking a jukebox always drops the block itself and
+              ejects any inserted music disc as a separate item.
+        - question: Can a Jukebox be used as furnace fuel?
+          answer: |
+              Yes, it smelts 1.5 items per jukebox when used as fuel.
+        - question: Do mobs react to a playing Jukebox?
+          answer: |
+              Yes. Parrots and allays dance within a few blocks of an
+              active jukebox, and adjacent hoppers are disabled while it
+              plays.
     data_version: "1.21.5"
 ---
 

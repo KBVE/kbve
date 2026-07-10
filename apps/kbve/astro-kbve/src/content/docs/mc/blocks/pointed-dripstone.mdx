@@ -1,5 +1,6 @@
 ---
 title: Pointed Dripstone
+template: splash
 description: |
     Minecraft Pointed Dripstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1041
     ref: pointed_dripstone
     slug: pointed-dripstone
+    content_rev: 1
     display_name: Pointed Dripstone
     material: stone
     hardness: 1.5
@@ -24,10 +26,71 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pointed_dripstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - not_flammable
+        - waterloggable
+    about:
+        description: |
+            Pointed Dripstone forms the stalactites and stalagmites found
+            in dripstone caves. Stalactites hanging from the ceiling drip
+            water or lava into cauldrons below and deal fall damage, while
+            stalagmites rising from the floor multiply fall damage on
+            anything that lands on them.
+        lore: |
+            Added in the Caves & Cliffs Update, it lets players convert mud
+            to clay by dripping water and even farm it renewably as
+            stalactites slowly regrow.
+    uses:
+        - title: Dripstone Block
+          ref: dripstone_block
+          detail: |
+              Four Pointed Dripstone craft into one solid Dripstone Block,
+              a purely decorative building block.
+        - title: Cauldron Filling
+          ref: cauldron
+          detail: |
+              A dripping stalactite above a cauldron slowly fills it with
+              water or lava depending on the block above the dripstone.
+        - title: Fall Damage Trap
+          ref: pointed_dripstone
+          detail: |
+              Stalagmites double fall damage dealt to entities that land on
+              them, and impale entities that fall from above.
+    found_in:
+        - location: Dripstone caves
+          detail: Generates in large clusters as natural stalactite/stalagmite columns.
+        - location: Trial chambers
+          detail: Appears as trapped variants in certain chamber rooms.
+        - location: Wandering Traders
+          detail: Purchasable, typically 2 Pointed Dripstone for 1 emerald.
+    faq:
+        - question: What tool should I use to mine Pointed Dripstone?
+          answer: |
+              A pickaxe mines it fastest, but any tool or hand works since
+              no tool tier is required to get a drop.
+        - question: How does it deal fall damage?
+          answer: |
+              Landing on an upward-pointing stalagmite doubles the fall
+              damage taken; being hit by a falling stalactite also deals
+              damage, with a special death message.
+        - question: Is Pointed Dripstone renewable?
+          answer: |
+              Yes. Stalactites slowly grow longer over time when water
+              drips onto them from a dripstone block or water source above.
+        - question: What happens if I hit it with a trident?
+          answer: |
+              A thrown trident instantly breaks Pointed Dripstone, dropping
+              it immediately regardless of its normal mining time.
     data_version: "1.21.5"
 ---
 

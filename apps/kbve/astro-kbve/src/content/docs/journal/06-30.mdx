@@ -9,11 +9,52 @@ description: |
   June 30th. Sunday Funday!
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 30,'
+    accent: every year.
+    lede: 'The June 30th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 29'
+          href: /journal/06-29/
+        - label: 'Jul 1 →'
+          href: /journal/07-01/
+    related:
+        - title: 'Previous · Jun 29'
+          copy: 'Step back a day to the June 29th log.'
+          href: /journal/06-29/
+          icon: calendar
+        - title: 'Next · Jul 1'
+          copy: 'Jump ahead to the July 1st log.'
+          href: /journal/07-01/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1719658414203-83fdaf1bdb33?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### KBVE Dashboard
 
@@ -33,7 +74,15 @@ import { Adsense } from '@/components/astropad';
     Overall, it feels like an idle game and honestly would be more fun if it was a mobile first game.
     Furthermore, the combat is definitely janky and could use some improvements, but I heard there is a pet system that helps.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **DevCode**
 
@@ -84,20 +133,31 @@ I miss the characters, the music and the sounds.
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 12:00pm - My legs are sore as fuck!
 - 1:30pm - An interesting [docker image](https://github.com/Steam-Headless/docker-steam-headless/tree/master) for a small future side project, `Twitch Plays DF`. This docker image would run Steam within a Docker instance and let the GPU pass through, so ideally it would make it easier to manage the game instance. I am wondering if I could also automate the connection to the container, maybe using a combination of the Duck DNS and a reverse proxy.
 - 3:30pm - Okay it looks like I am going to close out some of my positions and see if I can extend out my call options on TSLA, SPY and AAPL. 
 - 5:30pm - Going to start migrating some of the ansible components into custom shell commands that can operate outside of Ansible, including the usage of Github Actions. This would extend out the CI/CD and it would help prevent vendor lock-in because it seems that Red Hat / IBM are doing some weird things with their open source software. 
 - 7:00pm - I started to read up on the VuPlex concepts, so that I can integrate them at a basic Javascript level and then see if we can utilize them.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Some of the best lessons we ever learn are learned from past mistakes. The error of the past is the wisdom and success of the future.
 > — <cite>Dale Turner</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

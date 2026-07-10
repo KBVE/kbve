@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-06-22T21:31:58.936Z
+ * Generated: 2026-07-05T16:10:35.108Z
  */
 
 import { z } from 'zod';
@@ -143,6 +143,107 @@ export const KubeMetadataSchema = z.object({
 
 export type KubeMetadata = z.infer<typeof KubeMetadataSchema>;
 
+// BentoCta
+export const BentoCtaSchema = z.object({
+	label: z.string(),
+	href: z.string(),
+	primary: z.boolean().optional(),
+	external: z.boolean().optional(),
+});
+
+export type BentoCta = z.infer<typeof BentoCtaSchema>;
+
+// BentoAside
+export const BentoAsideSchema = z.object({
+	icon: z.string().optional(),
+	title: z.string().optional(),
+	body: z.string().optional(),
+	points: z.array(z.string()).optional(),
+});
+
+export type BentoAside = z.infer<typeof BentoAsideSchema>;
+
+// BentoStat
+export const BentoStatSchema = z.object({
+	label: z.string(),
+	value: z.string(),
+	icon: z.string(),
+});
+
+export type BentoStat = z.infer<typeof BentoStatSchema>;
+
+// BentoFeature
+export const BentoFeatureSchema = z.object({
+	title: z.string(),
+	body: z.string(),
+	icon: z.string(),
+});
+
+export type BentoFeature = z.infer<typeof BentoFeatureSchema>;
+
+// BentoRelated
+export const BentoRelatedSchema = z.object({
+	href: z.string(),
+	title: z.string(),
+	copy: z.string(),
+	icon: z.string(),
+	external: z.boolean().optional(),
+});
+
+export type BentoRelated = z.infer<typeof BentoRelatedSchema>;
+
+// BentoUsage
+export const BentoUsageSchema = z.object({
+	label: z.string().optional(),
+	lang: z.string(),
+	code: z.string(),
+});
+
+export type BentoUsage = z.infer<typeof BentoUsageSchema>;
+
+// BentoFaq
+export const BentoFaqSchema = z.object({
+	question: z.string(),
+	answer: z.string(),
+});
+
+export type BentoFaq = z.infer<typeof BentoFaqSchema>;
+
+// BentoTheme
+export const BentoThemeSchema = z.object({
+	accent: z.string().optional(),
+	accent2: z.string().optional(),
+	btn_fg: z.string().optional(),
+	live: z.string().optional(),
+	hero_bg: z.string().optional(),
+});
+
+export type BentoTheme = z.infer<typeof BentoThemeSchema>;
+
+// BentoDoc
+export const BentoDocSchema = z.object({
+	badge: z.string().optional(),
+	title: z.string(),
+	accent: z.string(),
+	lede: z.string().optional(),
+	ctas: z.array(BentoCtaSchema).optional(),
+	aside: BentoAsideSchema.optional(),
+	stats: z.array(BentoStatSchema).optional(),
+	features: z.array(BentoFeatureSchema).optional(),
+	related: z.array(BentoRelatedSchema).optional(),
+	usage: BentoUsageSchema.optional(),
+	faqs: z.array(BentoFaqSchema).optional(),
+	theme: BentoThemeSchema.optional(),
+	features_eyebrow: z.string().optional(),
+	features_heading: z.string().optional(),
+	related_eyebrow: z.string().optional(),
+	related_heading: z.string().optional(),
+	usage_eyebrow: z.string().optional(),
+	usage_heading: z.string().optional(),
+});
+
+export type BentoDoc = z.infer<typeof BentoDocSchema>;
+
 // CiProject
 export const CiProjectSchema = z.object({
 	key: z
@@ -201,6 +302,7 @@ export const CiProjectSchema = z.object({
 	external_publish: ExternalPublishSchema.optional(),
 	engine: GameEngineConfigSchema.optional(),
 	kube: KubeMetadataSchema.optional(),
+	bento: BentoDocSchema.optional(),
 });
 
 export type CiProject = z.infer<typeof CiProjectSchema>;

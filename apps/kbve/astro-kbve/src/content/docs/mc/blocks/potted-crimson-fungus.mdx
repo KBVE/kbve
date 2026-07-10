@@ -1,5 +1,6 @@
 ---
 title: Potted Crimson Fungus
+template: splash
 description: |
     Minecraft Potted Crimson Fungus — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 878
     ref: potted_crimson_fungus
     slug: potted-crimson-fungus
+    content_rev: 1
     display_name: Potted Crimson Fungus
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: crimson_fungus
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - nether
+        - decoration
+        - non_flammable
+    about:
+        description: |
+            Potted Crimson Fungus is a small mushroom-like fungus native to
+            the crimson forest, displayed in a flower pot as Nether-themed
+            decoration.
+        lore: |
+            Crimson Fungus was added with the Nether biomes overhaul in the
+            Nether Update (Java Edition 1.16), alongside its warped
+            counterpart.
+    uses:
+        - title: Hoglin Breeding
+          ref: crimson_fungus
+          detail: |
+              The unpotted item is used to breed and lure hoglins. Bone
+              meal on crimson nylium has a 40% chance to grow it into a
+              huge crimson fungus (a Nether "tree").
+    found_in:
+        - location: Crimson forest (Nether)
+          detail: |
+              Generates abundantly on crimson nylium in the crimson forest
+              biome, and occasionally in warped forests; also found in
+              bastion remnant hoglin stable chests.
+    faq:
+        - question: What tool do I need to break it?
+          answer: |
+              None. It can be mined instantly by hand or with any tool.
+        - question: What does breaking it drop?
+          answer: |
+              Both the flower pot and the crimson fungus item.
+        - question: Can the potted fungus grow into a huge fungus?
+          answer: |
+              No. It must be removed from the pot and planted on crimson
+              nylium, then bone-mealed, to potentially grow into a huge
+              crimson fungus.
+        - question: Does it burn in the Nether?
+          answer: |
+              No, it is non-flammable and unaffected by nearby lava.
     data_version: "1.21.5"
 ---
 

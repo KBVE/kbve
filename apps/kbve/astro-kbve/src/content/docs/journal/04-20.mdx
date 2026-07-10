@@ -9,13 +9,52 @@ description: |
     Daily Log for April 20th of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 20,'
+    accent: every year.
+    lede: 'The April 20th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Apr 19'
+          href: /journal/04-19/
+        - label: 'Apr 21 →'
+          href: /journal/04-21/
+    related:
+        - title: 'Previous · Apr 19'
+          copy: 'Step back a day to the April 19th log.'
+          href: /journal/04-19/
+          icon: calendar
+        - title: 'Next · Apr 21'
+          copy: 'Jump ahead to the April 21st log.'
+          href: /journal/04-21/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1681111957389-ea67d854d70f?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Unity RareIcon
 
@@ -31,8 +70,15 @@ Barracks → Keep → Castle (with mushroom farming and brewery) → fits the sa
 the fact is they are not, which means something is wrong, should have a check in place for when doing these said tasks , how do we know its complete, why didnt it get completed?
 Resource entity not be gathered? Was attacked? ect...
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### WebWorkers
 
@@ -43,7 +89,9 @@ Resource entity not be gathered? Was attacked? ect...
     Building an out-sourcing company would make sense for the long term because we could give those developers internal work but I do not want to handle it all.
     Thus a semi-ownership / partnership would be the best way to go about it?
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Blaze**
 
@@ -76,35 +124,46 @@ I am actually super excited to see the whole thing, I heard it was great.
 I am thinking that the best way for us to use `fooocus` would be to start with their docker image as a base, then add our atlas into that base image?
 There is still some planning that we need to do before adding that in, hmm, I am going to draw it out and then see what steps that I need to make to get it done.
 
+</BentoProse>
 
-
-## 2023
-
+<BentoProse id="2023" heading="2023">
 
 **India**
 
 - I spent most of the day running around the main city, looking for new clothes, belts and shawls!
 - Starship ... well update. it went rip.
 
-## 2018
+</BentoProse>
+
+<BentoProse id="2018" heading="2018">
 
 An entry from 2018 was found but I need to make sure that I can read through it all before I write it up into a new journal.
 I am keeping this here to remind myself to arrange a future myself to be a bit more responsible.
 I will gohead and update the names that are on the list or older journal because they do not need to be linked unless they are a reader ofthis joural , community meme=bmer or just straight staklking lol
 
-## Notes
+</BentoProse>
+
+<BentoProse id="notes" heading="Notes">
 
 B L A Z E.
 
 ---
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > To be what we are, and to become what we are capable of becoming, is the only end of life.
 > — <cite>Robert Louis Stevenson</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [x] Rocketship Watch Party
+
+</BentoProse>
+
+</BentoDoc>

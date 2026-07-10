@@ -1,5 +1,6 @@
 ---
 title: Flowering Azalea
+template: splash
 description: |
     Minecraft Flowering Azalea — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1047
     ref: flowering_azalea
     slug: flowering-azalea
+    content_rev: 1
     display_name: Flowering Azalea
     material: stone
     hardness: 0
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flowering_azalea
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Flowering Azalea is a variant of azalea that counts as a flower
+            for bee pollination while also functioning as a plantable,
+            harvestable block. It grows naturally atop moss blocks in the
+            lush caves biome and can be planted like any other block.
+        lore: |
+            Added in the Caves & Cliffs update alongside lush caves, it
+            gives bees a flower source deep underground, far from sunlight.
+    uses:
+        - title: Bee Pollination
+          ref: bee
+          detail: |
+              Bees treat flowering azalea as a flower, pollinating it and
+              increasing the honey level of nearby beehives.
+        - title: Azalea Tree Growing
+          ref: azalea
+          detail: |
+              Applying bone meal to flowering azalea is the only way to
+              grow a flowering azalea tree, complete with leaves and hanging
+              roots.
+        - title: Composting
+          ref: bone_meal
+          detail: Has an 85% chance to raise a composter's level by one when placed inside.
+    found_in:
+        - location: Lush Caves
+          detail: Generates naturally on top of moss blocks throughout the lush caves biome.
+    faq:
+        - question: What tool do I need to mine Flowering Azalea?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Does Flowering Azalea attract bees?
+          answer: |
+              Yes. It counts as a flower for all purposes, including bee
+              pollination, even though it grows underground.
+        - question: How do I grow an azalea tree from it?
+          answer: |
+              Use bone meal on the flowering azalea block; it has a chance
+              to sprout into a full azalea tree with leaves and hanging roots.
+        - question: Can flowering azalea leaves regrow the block?
+          answer: |
+              Yes. Flowering azalea leaves have a small chance to drop a
+              flowering azalea block when broken without shears, boosted by
+              the Fortune enchantment.
     data_version: "1.21.5"
 ---
 

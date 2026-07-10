@@ -1,5 +1,6 @@
 ---
 title: Blue Wool
+template: splash
 description: |
     Minecraft Blue Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 151
     ref: blue_wool
     slug: blue-wool
+    content_rev: 1
     display_name: Blue Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,67 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shears_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Blue Wool is a dyed variant of wool obtained by shearing or
+            killing blue sheep, or by dyeing white wool blue. It drops
+            itself with any tool and can be re-dyed into any other color.
+        lore: |
+            Wool and sheep shearing have been part of Minecraft since the
+            early Indev/Alpha days, with the full sixteen-color dye palette
+            arriving as dyeing mechanics matured.
+    uses:
+        - title: Blue Bed
+          ref: blue_bed
+          detail: |
+              Combined with wooden planks to craft a Blue Bed, setting the
+              player's spawn point.
+        - title: Blue Carpet
+          ref: blue_carpet
+          detail: |
+              Two Blue Wool craft into three Blue Carpet, a thin decorative
+              floor covering.
+        - title: Blue Banner
+          ref: blue_wall_banner
+          detail: |
+              Six Blue Wool and a stick craft a Blue Banner for heraldic
+              decoration.
+    found_in:
+        - location: Sheep
+          detail: Shearing or killing a blue sheep yields blue wool directly.
+        - location: Dyeing
+          detail: Any wool color can be re-dyed to blue using blue dye (from lapis lazuli or cornflower).
+        - location: Shepherd villagers
+          detail: Shepherds trade colored wool for emeralds.
+    faq:
+        - question: What tool do I need to mine wool?
+          answer: |
+              Any tool works and it always drops itself; shears are simply
+              the fastest at 0.25 seconds.
+        - question: Is Blue Wool flammable?
+          answer: |
+              Yes, wool has a high flammability rating and readily catches
+              fire from lava or nearby flames.
+        - question: Can I change Blue Wool to another color?
+          answer: |
+              Yes, unlike terracotta, wool can be re-dyed repeatedly into
+              any other color.
+        - question: Does wool block sound and vibrations?
+          answer: |
+              Wool blocks note block sounds from reaching allays, but sculk
+              sensors cannot detect wool being placed or broken.
     data_version: "1.21.5"
 ---
 

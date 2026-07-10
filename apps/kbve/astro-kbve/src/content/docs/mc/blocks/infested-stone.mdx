@@ -1,5 +1,6 @@
 ---
 title: Infested Stone
+template: splash
 description: |
     Minecraft Infested Stone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 317
     ref: infested_stone
     slug: infested-stone
+    content_rev: 1
     display_name: Infested Stone
     material: stone
     hardness: 0.75
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - infested
+        - overworld
+    about:
+        description: |
+            Infested Stone looks like a plain Stone block but harbors a
+            silverfish that erupts when the block is disturbed. It breaks
+            noticeably faster than normal Stone, the main clue that gives
+            it away before it is mined.
+        lore: |
+            Known as "monster egg" blocks since Beta 1.8, they were renamed
+            to Infested blocks in the 1.13 update.
+    uses:
+        - title: Stone
+          ref: stone
+          detail: |
+              Mining with Silk Touch yields plain Stone with no silverfish
+              encounter, letting builders clear it safely.
+    found_in:
+        - location: Windswept and mountain biomes
+          detail: Generates as ore-like blobs mixed into stone at Overworld heights from Y=-64 to 63.
+        - location: Strongholds
+          detail: Occasionally scattered among stone in stronghold generation.
+    faq:
+        - question: What drops when I mine Infested Stone normally?
+          answer: |
+              Nothing. The block breaks, releases an aggressive silverfish,
+              and leaves no item unless mined with Silk Touch.
+        - question: How can I tell it apart from normal Stone?
+          answer: |
+              It breaks roughly twice as fast as regular Stone, and it
+              produces a different note-block sound.
+        - question: Does Fortune help here?
+          answer: |
+              No. Fortune has no effect since the block never drops an item
+              without Silk Touch.
+        - question: Where do these blobs generate?
+          answer: |
+              They form small vein-like clusters within stone in windswept
+              hills, meadows, and grove biomes, similar to how ore veins
+              generate.
     data_version: "1.21.5"
 ---
 

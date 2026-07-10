@@ -1,5 +1,6 @@
 ---
 title: End Stone Brick Wall
+template: splash
 description: |
     Minecraft End Stone Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 802
     ref: end_stone_brick_wall
     slug: end-stone-brick-wall
+    content_rev: 1
     display_name: End Stone Brick Wall
     material: end
     hardness: 3
     blast_resistance: 9
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: end_stone_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - the_end
+    about:
+        description: |
+            End Stone Brick Wall is a decorative wall variant of End Stone
+            Bricks. It does not generate naturally and is crafted purely
+            for fencing off and framing End-themed builds, connecting to
+            neighboring blocks like a fence.
+        lore: |
+            Added in Java Edition 1.14 (18w43a) alongside the rest of the
+            End Stone Brick family.
+    found_in:
+        - location: Crafted only
+          detail: Does not generate naturally; craft from six End Stone Bricks or cut one at a time with a stonecutter.
+        - location: End Cities and End Ships
+          detail: Source material (End Stone Bricks) is found here, though finished walls must still be crafted.
+    faq:
+        - question: What tool do I need to mine End Stone Brick Wall?
+          answer: |
+              Any pickaxe. Mining without a pickaxe drops nothing.
+        - question: Does End Stone Brick Wall generate naturally?
+          answer: |
+              No. It must be crafted from six End Stone Bricks or cut
+              individually with a stonecutter; it never spawns during
+              world generation.
+        - question: Can Silk Touch or Fortune change the drop?
+          answer: |
+              No. The block always drops itself with any pickaxe, and
+              Fortune has no effect on the single-item drop.
+        - question: Does it connect like a fence?
+          answer: |
+              Yes. Placed walls raise a center post and connect to
+              adjacent walls, fences, and solid blocks, and can be
+              waterlogged.
     data_version: "1.21.5"
 ---
 

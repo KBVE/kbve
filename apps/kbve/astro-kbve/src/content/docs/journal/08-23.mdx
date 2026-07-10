@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692317785860-2ec5796434f2?crop=entropy&c
 description: August 23rd. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 23,'
+    accent: every year.
+    lede: 'The August 23rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 22'
+          href: /journal/08-22/
+        - label: 'Aug 24 →'
+          href: /journal/08-24/
+    related:
+        - title: 'Previous · Aug 22'
+          copy: 'Step back a day to the August 22nd log.'
+          href: /journal/08-22/
+          icon: calendar
+        - title: 'Next · Aug 24'
+          copy: 'Jump ahead to the August 24th log.'
+          href: /journal/08-24/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692317785860-2ec5796434f2?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Branch Rework
 
@@ -31,7 +72,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     We no longer have a dev branch, just like dropping our alpha and beta branch!
     Now its just main + off-branches, a bit of a stepback but it is what it is.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Wedding**
 
@@ -70,13 +119,16 @@ We are getting a step closer to self learning and self building code!
 While going through the latest journal entry, I forgot that certain original markdown might cause issues.
 In this case, it was looking for a `notBetween` function , uh basically I have to becareful with mdx, because I could inject random javascript code without thinking it through.
 
+</BentoProse>
 
-
-
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 8:10am - I believe I got the general flow of the docker container! Yay!
 
 - 6:51pm - Going to sync the notes in between the sessions. Okay, now I need to add github actions to the `NodePy`. so that it can build the images without having any major issues. As for the key storage, I am thinking that it would be an AES style encryption, so that there would not be any major issues. 
 
 - 7:40pm - I added the docker image creation test casing, under the workflow. Going to add the Clarifai Python and then maybe cargo too.
+
+</BentoProse>
+
+</BentoDoc>

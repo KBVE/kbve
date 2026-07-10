@@ -1,5 +1,6 @@
 ---
 title: Test Instance Block
+template: splash
 description: |
     Minecraft Test Instance Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,53 @@ mc_block:
     id: 867
     ref: test_instance_block
     slug: test-instance-block
+    content_rev: 1
     display_name: Test Instance Block
     material: stone
     hardness: -1
     blast_resistance: 3600000
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
-    transparent: true
+    transparent: false
     placeable: true
     solid: true
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - unbreakable
+        - technical
+    about:
+        description: |
+            The Test Instance Block is a technical block exclusive to Java
+            Edition, used by Minecraft's game test framework to define and
+            run automated structure tests. It is unbreakable in Survival
+            and cannot be obtained through normal mining.
+        lore: |
+            Added in snapshot 25w03a (Java Edition 1.21.5) as part of the
+            developer-facing game test system.
+    found_in:
+        - location: Creative inventory
+          detail: Available under the "Operator Utilities" tab, or placed with /setblock, /fill, /give, and /test commands.
+    faq:
+        - question: Can I mine a Test Instance Block in Survival?
+          answer: |
+              No. Its hardness is -1, making it completely unbreakable
+              outside of Creative mode with operator permissions.
+        - question: What is it used for?
+          answer: |
+              It anchors and configures automated game tests for Minecraft
+              developers, showing colored beacon-like beams for test
+              status: gray while running, green when passing, red or
+              orange when failing.
+        - question: Does it drop anything when broken?
+          answer: |
+              No, it has no drops and is not intended for normal gameplay use.
+        - question: How do I interact with it?
+          answer: |
+              Clicking it in Creative mode with permission level 2 or
+              higher opens a GUI for configuring the associated test.
     data_version: "1.21.5"
 ---
 

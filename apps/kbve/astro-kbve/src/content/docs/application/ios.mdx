@@ -7,6 +7,12 @@ description: |
     iOS development utilizes Swift or Objective-C with the iOS SDK, Xcode IDE, and Apple's frameworks including UIKit, SwiftUI, and Foundation.
     The platform's closed ecosystem ensures consistent hardware-software integration, enabling features like seamless iCloud sync, handoff between devices, and strict privacy controls.
     iOS applications must be distributed through the App Store or via enterprise provisioning, requiring Apple Developer membership and adherence to App Store Review Guidelines.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: iOS
     order: 106
@@ -15,6 +21,106 @@ img: https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?fit=crop&w=140
 tags:
     - os
     - mobile
+    - ios
+sem: 1
+ogTitle: iOS Development Guide — Code Signing, Provisioning & CI/CD
+ogDescription: Build and ship iOS apps at KBVE — Apple code signing, certificates and provisioning profiles, GitHub Actions CI/CD with macOS runners, exportOptions.plist, and UE5 iOS builds.
+jsonld:
+    type: Article
+    keywords:
+        - ios development
+        - code signing
+        - provisioning profile
+        - apple developer
+        - ios ci cd
+        - react native ios
+    faq:
+        - question: What do I need to develop and distribute iOS apps?
+          answer: A macOS machine with Xcode, and enrollment in the Apple Developer Program at $99/year. Membership is required to test on physical devices and distribute through the App Store. You also need a signing certificate, a provisioning profile, and a unique bundle identifier such as com.kbve.app.
+        - question: What is the difference between a certificate and a provisioning profile?
+          answer: A signing certificate proves your identity to Apple and signs the app binary. A provisioning profile links that certificate, the app ID, and (for development/ad-hoc) allowed device UDIDs, authorizing where the app can run. App Store profiles do not need device registration.
+        - question: How do I sign an iOS build in CI/CD?
+          answer: Store the .p12 certificate and .mobileprovision profile as base64 GitHub secrets, then in the workflow create a temporary keychain, import the decoded certificate, install the profile, and build with xcodebuild archive plus exportArchive using an exportOptions.plist. Never commit certificates to the repo.
+        - question: Can I build an unsigned iOS app for testing?
+          answer: Yes. A simulator build for the iphonesimulator SDK does not require signing, so CI can produce an unsigned x86_64 build for testing. Signing is only required for device installs, TestFlight, and App Store submission using the iphoneos SDK.
+        - question: Do Unreal Engine 5 iOS builds use the same Apple setup?
+          answer: Yes. UE5 iOS builds reuse the same Apple Developer certificates, provisioning profiles, and Team ID as React Native builds. The difference is the build system — UE5 uses UnrealBuildTool and RunUAT instead of xcodebuild directly, and produces larger binaries with precompiled Metal shaders.
+bento:
+    badge: application · mobile · ios
+    title: 'Signed, sealed, shipped,'
+    accent: iOS.
+    lede: >-
+        Apple's tightly integrated mobile platform demands strict code signing
+        and provisioning before anything reaches a device. This guide walks the
+        full KBVE pipeline — certificates and profiles, GitHub secrets, CI/CD
+        on macOS runners, local build testing, and the shared Apple setup that
+        UE5 iOS builds reuse.
+    ctas:
+        - label: Code signing
+          href: '#code-signing-setup'
+          primary: true
+        - label: CI/CD workflow
+          href: '#cicd-workflow'
+        - label: Troubleshooting
+          href: '#troubleshooting'
+        - label: UE5 iOS builds
+          href: '#unreal-engine-5-ios-builds'
+    aside:
+        icon: lock
+        title: One Apple setup, every project
+        body: >-
+            Certificates, provisioning profiles, and the Team ID are shared
+            infrastructure — complete the Apple Developer setup once and reuse
+            the same credentials across React Native, UE5, and future
+            frameworks.
+        points:
+            - <strong>Certificates</strong> — .p12 exports stored as base64 secrets.
+            - <strong>Profiles</strong> — link cert, app ID, and device UDIDs.
+            - <strong>CI/CD</strong> — temporary keychains on macOS runners.
+    stats:
+        - { label: Developer Program, value: '$99/year', icon: key }
+        - { label: Bundle ID, value: com.kbve.app, icon: package }
+        - { label: Build tool, value: xcodebuild, icon: gears }
+        - { label: CI runners, value: macOS, icon: server }
+    features:
+        - title: Code signing setup
+          icon: lock
+          href: '#code-signing-setup'
+          body: Apple Developer prerequisites, development and distribution certificates, and the three flavors of provisioning profile.
+        - title: CI/CD workflow
+          icon: deploy
+          href: '#cicd-workflow'
+          body: GitHub Actions on macOS runners — unsigned simulator builds, signed IPAs, keychain import, and exportOptions.plist.
+        - title: Troubleshooting
+          icon: alert
+          href: '#troubleshooting'
+          body: Certificate not found, profile mismatches, signing errors, and CocoaPods cache fixes.
+        - title: UE5 iOS builds
+          icon: render
+          href: '#unreal-engine-5-ios-builds'
+          body: UnrealBuildTool and RunUAT reuse the same Apple credentials — with bigger binaries and precompiled Metal shaders.
+    related:
+        - title: Android
+          href: /application/android/
+          copy: The other half of KBVE mobile — Gradle, keystores, and Play releases.
+          icon: package
+        - title: React Native
+          href: /application/rn/
+          copy: The Expo-based app these iOS builds package and ship.
+          icon: code
+        - title: Unreal Engine
+          href: /application/unreal/
+          copy: KBVE UE5 development — shares the Apple signing infrastructure.
+          icon: render
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
 import {
@@ -22,24 +128,34 @@ import {
 	Steps,
 	Card,
 	CardGrid,
-	Code,
 	FileTree,
 	Tabs,
 	TabItem,
 } from '@astrojs/starlight/components';
-
 import { Giscus, Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Information
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 iOS development requires a macOS environment and enrollment in the Apple Developer Program ($99/year) to deploy applications to physical devices and distribute through the App Store.
 This guide covers code signing, provisioning profiles, CI/CD setup, and best practices for building iOS applications at KBVE.
 
+Jump to [code signing](#code-signing-setup), [GitHub secrets](#github-secrets-configuration), the [CI/CD workflow](#cicd-workflow), [troubleshooting](#troubleshooting), or [UE5 iOS builds](#unreal-engine-5-ios-builds).
+
 Our React Native iOS applications use Expo for streamlined development and deployment workflows, with custom native modules when needed for advanced features.
 
-<Adsense />
+</BentoProse>
 
-## Code Signing Setup
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="code-signing-setup" eyebrow="Certificates & profiles" heading="Code Signing Setup">
 
 Apple's code signing system ensures app integrity and prevents unauthorized modifications. All iOS apps must be signed before deployment to devices or the App Store.
 
@@ -113,7 +229,9 @@ Provisioning profiles link certificates, app IDs, and device UDIDs together.
 base64 -i profile.mobileprovision | pbcopy
 ```
 
-## GitHub Secrets Configuration
+</BentoProse>
+
+<BentoProse id="github-secrets-configuration" eyebrow="Secure credentials" heading="GitHub Secrets Configuration">
 
 Add these secrets to your repository for CI/CD workflows.
 
@@ -129,7 +247,9 @@ Add these secrets to your repository for CI/CD workflows.
 Never commit certificates or provisioning profiles directly to the repository. Always use GitHub secrets or secure credential management systems.
 </Aside>
 
-## CI/CD Workflow
+</BentoProse>
+
+<BentoProse id="cicd-workflow" eyebrow="Automated builds" heading="CI/CD Workflow">
 
 Our React Native iOS builds use GitHub Actions with macOS runners.
 
@@ -179,7 +299,9 @@ Validates Xcode, Node.js, CocoaPods installation.
 </TabItem>
 </Tabs>
 
-## Xcode Build Configuration
+</BentoProse>
+
+<BentoProse id="xcode-build-configuration" eyebrow="Packaging the IPA" heading="Xcode Build Configuration">
 
 ### Export Options
 
@@ -225,7 +347,9 @@ The `exportOptions.plist` file controls how the IPA is packaged.
 Replace `YOUR_TEAM_ID` with your Apple Developer Team ID found in [App Store Connect](https://appstoreconnect.apple.com) → Membership.
 </Aside>
 
-## Workflow Implementation
+</BentoProse>
+
+<BentoProse id="workflow-implementation" eyebrow="Actions internals" heading="Workflow Implementation">
 
 ### Import Signing Certificate
 
@@ -286,7 +410,15 @@ Replace `YOUR_TEAM_ID` with your Apple Developer Team ID found in [App Store Con
       -exportOptionsPlist exportOptions.plist
 ```
 
-## Local Build Testing
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="local-build-testing" eyebrow="Verify locally" heading="Local Build Testing">
 
 Verify builds work locally before pushing to CI/CD.
 
@@ -319,7 +451,9 @@ xcodebuild \
   archive
 ```
 
-## Troubleshooting
+</BentoProse>
+
+<BentoProse id="troubleshooting" eyebrow="When builds break" heading="Troubleshooting">
 
 ### Certificate Not Found
 
@@ -365,7 +499,9 @@ rm -rf Pods Podfile.lock
 pod install --repo-update
 ```
 
-## Unreal Engine 5 iOS Builds
+</BentoProse>
+
+<BentoProse id="unreal-engine-5-ios-builds" eyebrow="Same Apple, bigger binary" heading="Unreal Engine 5 iOS Builds">
 
 KBVE also builds iOS applications using Unreal Engine 5. The UE5 iOS pipeline shares the same Apple Developer infrastructure (certificates, provisioning profiles, Team ID) as React Native builds.
 
@@ -431,7 +567,9 @@ Complete the Apple Developer setup once, reuse credentials across all KBVE iOS p
 UE5 iOS builds require significant disk space (30GB+ for engine + project) and build time (30-60 minutes). Optimize CI/CD runners accordingly.
 </Aside>
 
-## Related Documentation
+</BentoProse>
+
+<BentoProse id="related-documentation" eyebrow="Further reading" heading="Related Documentation">
 
 <CardGrid>
 <Card title="React Native iOS Pipeline" icon="github">
@@ -459,7 +597,9 @@ UE5 iOS builds require significant disk space (30GB+ for engine + project) and b
 </Card>
 </CardGrid>
 
-## Next Steps
+</BentoProse>
+
+<BentoProse id="next-steps" eyebrow="Get shipping" heading="Next Steps">
 
 <Steps>
 
@@ -490,8 +630,12 @@ UE5 iOS builds require significant disk space (30GB+ for engine + project) and b
 
 </Steps>
 
-<Adsense />
+</BentoProse>
 
----
+</BentoDoc>
 
-<Giscus />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

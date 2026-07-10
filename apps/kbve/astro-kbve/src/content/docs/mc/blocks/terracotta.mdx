@@ -1,5 +1,6 @@
 ---
 title: Terracotta
+template: splash
 description: |
     Minecraft Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,79 @@ mc_block:
     id: 522
     ref: terracotta
     slug: terracotta
+    content_rev: 1
     display_name: Terracotta
     material: stone
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - non_flammable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Terracotta is a hard, decorative building block with a warm
+            orange-brown color, found abundantly across badlands biomes.
+            It can also be crafted by smelting clay, and dyed or glazed
+            into dozens of colorful variants.
+        lore: |
+            Originally called "hardened clay" when added in Java Edition
+            1.6.1 (13w17a), it was renamed to terracotta in 1.12.
+    uses:
+        - title: Stained Terracotta
+          ref: dye
+          detail: |
+              Combine with any of the 16 dyes to produce a matching color
+              of stained terracotta.
+        - title: Glazed Terracotta
+          ref: glazed_terracotta
+          detail: |
+              Smelting stained terracotta in a furnace produces glazed
+              terracotta with a glossy, patterned texture.
+        - title: Armor Trims
+          ref: smithing_template
+          detail: |
+              Used as a material for several smithing template armor
+              trims applied at a smithing table.
+    found_in:
+        - location: Badlands biomes
+          detail: Generates in thick, colorful strata across all badlands variants and desert villages.
+        - location: Smelted from clay
+          detail: Smelting a clay block in a furnace yields terracotta, making it fully renewable.
+    faq:
+        - question: What tool do I need to mine Terracotta?
+          answer: |
+              Any pickaxe, wood or better; without one it drops nothing.
+        - question: Does Terracotta burn?
+          answer: |
+              No, it is non-flammable and cannot be ignited, unlike wood
+              based building blocks.
+        - question: How do I get colored Terracotta?
+          answer: |
+              Craft plain terracotta with a dye to get stained terracotta,
+              then smelt that in a furnace for glazed terracotta.
+        - question: Is Terracotta renewable?
+          answer: |
+              Yes, smelting clay blocks produces terracotta, and mason
+              villagers under the Hero of the Village effect throw clay
+              as gifts.
     data_version: "1.21.5"
 ---
 

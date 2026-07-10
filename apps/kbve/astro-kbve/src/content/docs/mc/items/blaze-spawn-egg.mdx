@@ -1,5 +1,6 @@
 ---
 title: Blaze Spawn Egg
+template: splash
 description: |
     Minecraft Blaze Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1073
     ref: blaze_spawn_egg
     slug: blaze-spawn-egg
+    content_rev: 1
     display_name: Blaze Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Blaze Spawn Egg is a utility item that spawns a blaze, a hostile fire-shooting Nether mob, when used on a surface. Like all spawn eggs, it is only obtainable in Creative mode or through commands and cannot be found in Survival. It can also be applied to a spawner to change which mob it produces.
+        lore: |
+            A shell flickering with ember-orange flame, holding the caged spark of a Nether guardian waiting to ignite.
+    faq:
+        - question: How do I get the Blaze Spawn Egg?
+          answer: |
+            It is available only from the Creative inventory or via commands such as /give; it cannot be obtained in Survival mode.
+        - question: What does the Blaze Spawn Egg spawn?
+          answer: |
+            It spawns a blaze, a hostile Nether mob that flies and shoots fireballs and is immune to fire and lava.
+        - question: Can it spawn baby blazes?
+          answer: |
+            No. Blazes cannot spawn as babies, so the egg always produces an adult blaze.
+        - question: Can I use it to change a monster spawner?
+          answer: |
+            Yes. Using the spawn egg on a spawner sets that spawner to produce blazes.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

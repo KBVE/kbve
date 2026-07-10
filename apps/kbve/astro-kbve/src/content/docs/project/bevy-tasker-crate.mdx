@@ -1,7 +1,7 @@
 ---
-title: uevy tasker
-description: |
-    uevy tasker — Bevy game crate for the KBVE isometric engine.
+title: bevy_tasker — Cross-Platform Async Task Crate
+description: Cross-platform async task spawning for Bevy — web workers via microtask queue on WASM, thread pool on desktop, one API across targets.
+sem: 1
 sidebar:
     label: uevy tasker
 tags:
@@ -19,8 +19,88 @@ version_toml: packages/rust/bevy/bevy_tasker/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the bevy_tasker crate do?
+          answer: It provides cross-platform async task spawning for Bevy games. On desktop it runs tasks on a thread pool sized to available parallelism; on WASM it dispatches work to the browser microtask queue or web workers, all behind one API.
+        - question: How does bevy_tasker behave on WASM versus desktop?
+          answer: On WASM without atomics tasks run via queueMicrotask; with atomics, spawn dispatches Send futures to web workers via a shared work queue and spawn_local pins non-Send futures to the spawning thread. On desktop tasks run on a crossbeam-channel-backed thread pool.
+        - question: Is the bevy_tasker API the same across platforms?
+          answer: Yes. Every path returns an async_task::Task, so calling code is identical across targets — await it, drop it to detach, or cancel it.
+bento:
+    badge: crates · rust · bevy
+    title: Cross-platform async tasks for
+    accent: bevy_tasker
+    lede: >-
+        Cross-platform async task spawning for Bevy — a desktop thread pool or
+        WASM web workers / microtask queue behind one API, so game code stays
+        identical on every target.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_tasker
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: expand
+        title: One API, every target
+        body: >-
+            It presents one API — <code>spawn</code> and <code>spawn_local</code>
+            — that maps to a desktop thread pool or to WASM web workers /
+            microtask queue depending on the target, so <strong>game code stays
+            identical everywhere</strong>.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Desktop, value: threads, icon: gears }
+        - { label: WASM, value: workers, icon: package }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Desktop thread pool
+          icon: gears
+          body: Tasks run on a pool sized to <code>std::thread::available_parallelism</code>, wired through crossbeam channels.
+        - title: WASM microtask queue
+          icon: clock
+          body: Without atomics, tasks run via the browser's <code>queueMicrotask</code>.
+        - title: WASM web workers
+          icon: package
+          body: With atomics, <code>spawn</code> dispatches <code>Send</code> futures to web workers via a shared work queue.
+        - title: Pinned local tasks
+          icon: lock
+          body: <code>spawn_local</code> pins <code>!Send</code> futures to the spawning thread via <code>Atomics.waitAsync</code>.
+        - title: Uniform API
+          icon: expand
+          body: Every path returns an <code>async_task::Task</code>; <code>await</code>, drop to detach, or <code>.cancel()</code>.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy_tasker::spawn;
+
+            let task = spawn(async {
+                42
+            });
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Isometric camera crate in the same Bevy game stack.
+          icon: video
+        - title: Bevy KBVE Net Crate
+          href: /project/bevy-kbve-net-crate
+          copy: Networking layer that uses async tasks.
+          icon: server
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-uevy tasker Bevy crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

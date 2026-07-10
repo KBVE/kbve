@@ -1,0 +1,116 @@
+---
+import KbveSidebarSublist from './KbveSidebarSublist.astro';
+import { sidebarIconForLabel } from './sidebarIcons';
+
+interface Props {
+	entries: any[];
+	groupPath?: string;
+}
+
+const { entries, groupPath = '' } = Astro.props;
+const isTop = groupPath === '';
+
+const slugify = (label: string) =>
+	label
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+
+const firstHref = (entry: any): string | null => {
+	if (entry?.type === 'link') return entry.href ?? null;
+	for (const child of entry?.entries ?? []) {
+		const href = firstHref(child);
+		if (href) return href;
+	}
+	return null;
+};
+---
+
+<ul data-kbve-sublist>
+	{
+		entries.map((entry) => {
+			if (entry.type === 'link') {
+				return (
+					<li data-kbve-item>
+						<a
+							href={entry.href}
+							data-kbve-link
+							aria-current={entry.isCurrent ? 'page' : undefined}
+							{...entry.attrs}>
+							<span data-kbve-label>{entry.label}</span>
+							{entry.badge && (
+								<span
+									data-kbve-badge
+									data-variant={entry.badge.variant}>
+									{entry.badge.text}
+								</span>
+							)}
+						</a>
+					</li>
+				);
+			}
+
+			const id = groupPath
+				? `${groupPath}/${slugify(entry.label)}`
+				: slugify(entry.label);
+			const iconHref = isTop ? firstHref(entry) : null;
+			return (
+				<li data-kbve-item>
+					<details
+						data-kbve-group
+						data-kbve-group-id={id}
+						data-kbve-top={isTop ? 'true' : undefined}
+						data-kbve-default-open={
+							!entry.collapsed ? 'true' : 'false'
+						}
+						open={!entry.collapsed}
+						{...(entry.attrs ?? {})}>
+						<summary data-kbve-summary>
+							{isTop &&
+								(iconHref ? (
+									<a
+										data-kbve-group-icon
+										href={iconHref}
+										aria-label={`${entry.label} home`}
+										set:html={sidebarIconForLabel(
+											entry.label,
+										)}
+									/>
+								) : (
+									<span
+										data-kbve-group-icon
+										set:html={sidebarIconForLabel(
+											entry.label,
+										)}
+									/>
+								))}
+							<span data-kbve-label>{entry.label}</span>
+							{entry.badge && (
+								<span
+									data-kbve-badge
+									data-variant={entry.badge.variant}>
+									{entry.badge.text}
+								</span>
+							)}
+							<svg
+								data-kbve-caret
+								aria-hidden="true"
+								viewBox="0 0 16 16"
+								width="14"
+								height="14">
+								<path
+									fill="currentColor"
+									d="M5.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 1 1-1.06-1.06L8.94 8 5.22 4.28a.75.75 0 0 1 0-1.06Z"
+								/>
+							</svg>
+						</summary>
+						<KbveSidebarSublist
+							entries={entry.entries}
+							groupPath={id}
+						/>
+					</details>
+				</li>
+			);
+		})
+	}
+</ul>

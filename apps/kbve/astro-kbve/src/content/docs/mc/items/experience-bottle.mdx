@@ -1,5 +1,6 @@
 ---
 title: Bottle o' Enchanting
+template: splash
 description: |
     Minecraft Bottle o' Enchanting — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1149
     ref: experience_bottle
     slug: experience-bottle
+    content_rev: 1
     display_name: Bottle o' Enchanting
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Bottle o' Enchanting is a throwable item that shatters on impact to release 3-11 experience orbs, averaging about 7 XP per bottle. It is obtained by trading three emeralds with a master-level cleric villager, or found in loot chests at ancient cities, pillager outposts, and shipwrecks.
+        lore: |
+            Its permanent enchantment glint hints at the bottled magic inside, a convenient way to bank experience for enchanting, repairing gear on an anvil, or feeding Mending.
+    faq:
+        - question: How do I get Bottles o' Enchanting?
+          answer: |
+              Trade three emeralds with a master-level cleric villager, or find them in loot chests at ancient cities, pillager outposts, and shipwrecks.
+        - question: How much experience does one bottle give?
+          answer: |
+              Throwing a bottle releases experience orbs worth 3 to 11 XP, averaging around 7 XP per bottle.
+        - question: What is the best use for experience bottles?
+          answer: |
+              They're handy for topping off levels needed at an enchanting table or for repairing gear on an anvil without needing to grind mobs for XP.
+        - question: How do I throw a Bottle o' Enchanting?
+          answer: |
+              Hold it in hand and press the use/attack key to throw it; it follows projectile physics and breaks on any surface it hits.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Cyan Wool
+template: splash
 description: |
     Minecraft Cyan Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 149
     ref: cyan_wool
     slug: cyan-wool
+    content_rev: 1
     display_name: Cyan Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,62 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Cyan Wool is one of 16 dyeable colors of wool, a soft building
+            block obtained by shearing sheep or by dyeing white wool. It
+            breaks fastest and silently with shears.
+        lore: |
+            Colored wool has been craftable since the earliest versions of
+            Minecraft, tied closely to sheep and dye mechanics.
+    uses:
+        - title: Bed
+          ref: bed
+          detail: |
+              Combine 3 wool of one color with 3 matching planks to craft
+              a bed for sleeping and setting a respawn point.
+        - title: Carpet
+          ref: cyan_carpet
+          detail: |
+              Two wool blocks of the same color craft into 3 matching
+              carpet, a thin decorative floor covering.
+    found_in:
+        - location: Shearing a cyan sheep
+          detail: |
+              A sheep dyed cyan drops cyan wool when sheared with shears,
+              and the wool regrows over time.
+        - location: Crafting
+          detail: |
+              Dye white wool with cyan dye, or craft 4 string into white
+              wool and dye it afterward.
+    faq:
+        - question: Is wool flammable?
+          answer: |
+              Yes. Wool burns and lets fire spread quickly across builds
+              made from it.
+        - question: What is the fastest way to mine it?
+          answer: |
+              Shears break wool almost instantly and without a sound;
+              other tools work but are slower.
+        - question: Can wool block sculk sensors?
+          answer: |
+              Yes. Wool blocks are one of the few blocks that muffle
+              vibrations, preventing them from reaching sculk sensors.
+        - question: How do I get cyan wool?
+          answer: |
+              Shear a cyan-dyed sheep, or dye white wool with cyan dye at
+              a crafting table.
     data_version: "1.21.5"
 ---
 

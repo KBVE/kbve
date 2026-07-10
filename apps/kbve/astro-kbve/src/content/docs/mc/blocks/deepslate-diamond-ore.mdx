@@ -1,5 +1,6 @@
 ---
 title: Deepslate Diamond Ore
+template: splash
 description: |
     Minecraft Deepslate Diamond Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 191
     ref: deepslate_diamond_ore
     slug: deepslate-diamond-ore
+    content_rev: 1
     display_name: Deepslate Diamond Ore
     material: stone
     hardness: 4.5
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,72 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: diamond
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: deepslate_diamond_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - ore
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Diamond Ore is the deepslate variant of Diamond Ore,
+            found in the deepest layers of the Overworld near bedrock. It is
+            tougher to mine than the stone version but generates more
+            frequently in its narrow height range, making it the most
+            reliable source of diamonds.
+        lore: |
+            Deepslate ore variants were added in the Caves & Cliffs update to
+            reward players who dig deep, giving the bottom of the world a
+            distinct, harder-edged identity from the stone layers above.
+    uses:
+        - title: Diamond
+          ref: diamond
+          detail: |
+              Mining drops one diamond plus experience; diamonds craft
+              diamond tools, armor, enchanting tables, and other key blocks.
+        - title: Fortune Yield
+          detail: |
+              A Fortune III pickaxe averages roughly 2.2 diamonds per ore
+              block mined.
+        - title: Silk Touch Collection
+          detail: |
+              With Silk Touch, the deepslate ore block itself drops for
+              later smelting or display.
+    found_in:
+        - location: Deepslate Layers
+          detail: |
+              Generates from Y = 0 down to Y = -63, most common around
+              Y = -58 to -59.
+        - location: Bottom of the World
+          detail: Replaces regular Diamond Ore wherever deepslate or tuff generates.
+    faq:
+        - question: What tool do I need to mine Deepslate Diamond Ore?
+          answer: |
+              An iron pickaxe or better. A wooden, golden, or stone pickaxe
+              breaks the block but drops nothing.
+        - question: Is Deepslate Diamond Ore harder to mine than the stone version?
+          answer: |
+              Yes. It has 4.5 hardness versus 3 for regular Diamond Ore, so
+              it takes longer to break with the same tool.
+        - question: Does Fortune work on Deepslate Diamond Ore?
+          answer: |
+              Yes. Fortune increases the diamond yield the same way it does
+              on regular Diamond Ore, up to several diamonds at Fortune III.
+        - question: Where is the best place to mine it?
+          answer: |
+              Around Y = -58 to -59, where deepslate diamond ore reaches its
+              peak generation frequency.
     data_version: "1.21.5"
 ---
 

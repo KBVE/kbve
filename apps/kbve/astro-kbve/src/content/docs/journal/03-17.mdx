@@ -9,16 +9,52 @@ description: |
     17th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 17,'
+    accent: every year.
+    lede: 'The March 17th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 16'
+          href: /journal/03-16/
+        - label: 'Mar 18 →'
+          href: /journal/03-18/
+    related:
+        - title: 'Previous · Mar 16'
+          copy: 'Step back a day to the March 16th log.'
+          href: /journal/03-16/
+          icon: calendar
+        - title: 'Next · Mar 18'
+          copy: 'Jump ahead to the March 18th log.'
+          href: /journal/03-18/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### CI Main FanOut Pipelines
 
@@ -29,7 +65,15 @@ import { Adsense } from '@/components/astropad';
     The end goal will be to have full loops with each code change then triggering an issue ticket, follow up response, ect... 
     Afterwards, I am thinking of integrating an additional layer of automation within the pipeline.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### File Alters
 
@@ -55,7 +99,9 @@ import { Adsense } from '@/components/astropad';
 
     The removed branches will be `alpha`, `beta` and `patch` workflows.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### Jam
 
@@ -71,3 +117,6 @@ Okay! I understand the pain of having strict typesafety during a Game Jam but if
 My only other take away would be to push changes during the jam faster, keeping the cylce of CI/CD as continuous as possible.
 There might be some areas of tooling that I would want to look into, including automatic merging.
 
+</BentoProse>
+
+</BentoDoc>

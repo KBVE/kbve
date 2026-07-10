@@ -1,5 +1,6 @@
 ---
 title: Purple Stained Glass Pane
+template: splash
 description: |
     Minecraft Purple Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 478
     ref: purple_stained_glass_pane
     slug: purple-stained-glass-pane
+    content_rev: 1
     display_name: Purple Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - needs_silk_touch
+    about:
+        description: |
+            Purple Stained Glass Pane is a thin, space-efficient window block
+            dyed purple. It connects visually to adjacent panes and glass
+            blocks, forming flat, curved, T-shaped, or cross-shaped panels.
+        lore: |
+            Stained glass panes were added to give builders a slimmer,
+            more material-efficient alternative to full stained glass blocks.
+    uses:
+        - title: Decorative Windows
+          ref: purple_stained_glass_pane
+          detail: |
+              Used for colored windows, greenhouses, and light fixtures;
+              six stained glass blocks craft into sixteen panes, more
+              efficient than placing full glass blocks.
+    found_in:
+        - location: Crafting
+          detail: Craft from 6 Purple Stained Glass (yields 16 panes) or 6 Glass Pane plus 1 Purple Dye (yields 8 panes).
+        - location: Village Structures
+          detail: Naturally generates in some village temples and trail ruins.
+    faq:
+        - question: Do I need Silk Touch to pick it up?
+          answer: |
+              Yes. Breaking it with any tool lacking Silk Touch drops
+              nothing at all.
+        - question: What tool should I use to mine it?
+          answer: |
+              Any tool works the same, since no tool type is required — it
+              simply breaks quickly (about 0.45 seconds by hand).
+        - question: Can mobs pass through a gap between two panes?
+          answer: |
+              Yes. A single one-block gap between two panes creates a 2x1
+              hole that spiders can climb through.
+        - question: Is it flammable?
+          answer: |
+              No, stained glass panes are non-flammable and safe to use near
+              lava or fire.
     data_version: "1.21.5"
 ---
 

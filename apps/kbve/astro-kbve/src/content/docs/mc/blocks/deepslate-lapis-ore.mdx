@@ -1,5 +1,6 @@
 ---
 title: Deepslate Lapis Lazuli Ore
+template: splash
 description: |
     Minecraft Deepslate Lapis Lazuli Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 103
     ref: deepslate_lapis_ore
     slug: deepslate-lapis-ore
+    content_rev: 1
     display_name: Deepslate Lapis Lazuli Ore
     material: stone
     hardness: 4.5
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,69 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lapis_lazuli
+          qty_min: 4
+          qty_max: 9
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: deepslate_lapis_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - ore
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Lapis Lazuli Ore is the deepslate variant of Lapis
+            Lazuli Ore, dropping several lapis lazuli per block. It generates
+            across the entire Overworld wherever the deepslate layer forms,
+            evenly alongside the stone version.
+        lore: |
+            Lapis lazuli has decorated builds and enchanting tables since
+            early Minecraft, and the deepslate ore ensures a steady supply
+            for players mining near bedrock.
+    uses:
+        - title: Lapis Lazuli
+          ref: lapis_lazuli
+          detail: |
+              Mining drops 4-9 lapis lazuli, used at the enchanting table
+              alongside experience levels and as a dye.
+        - title: Fortune Yield
+          detail: |
+              A Fortune III pickaxe can push the average yield to around 14
+              lapis lazuli per block.
+        - title: Silk Touch Collection
+          detail: |
+              With Silk Touch, the deepslate ore block itself drops instead
+              of lapis lazuli.
+    found_in:
+        - location: Deepslate Layers
+          detail: Generates evenly from Y = -64 to Y = 64, with a denser batch centered near Y = 0.
+        - location: All Overworld Biomes
+          detail: Not biome-restricted; found wherever deepslate or tuff generates.
+    faq:
+        - question: What tool do I need to mine Deepslate Lapis Lazuli Ore?
+          answer: |
+              A stone pickaxe or better. Wood and gold pickaxes break it
+              without dropping anything.
+        - question: How much lapis lazuli does one block drop?
+          answer: |
+              Between 4 and 9 without enchantments, and noticeably more with
+              a Fortune-enchanted pickaxe.
+        - question: Is Deepslate Lapis Lazuli Ore rarer than the stone version?
+          answer: |
+              No. It generates just as commonly, simply replacing the stone
+              variant wherever deepslate forms.
+        - question: What is lapis lazuli used for besides dye?
+          answer: |
+              Its main use is at the enchanting table, spent alongside
+              experience levels to enchant items.
     data_version: "1.21.5"
 ---
 

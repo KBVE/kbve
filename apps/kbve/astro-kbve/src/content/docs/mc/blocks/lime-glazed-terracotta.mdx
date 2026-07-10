@@ -1,5 +1,6 @@
 ---
 title: Lime Glazed Terracotta
+template: splash
 description: |
     Minecraft Lime Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 667
     ref: lime_glazed_terracotta
     slug: lime-glazed-terracotta
+    content_rev: 1
     display_name: Lime Glazed Terracotta
     material: stone
     hardness: 1.4
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Lime Glazed Terracotta is a hard-baked decorative block whose
+            texture tiles into repeating patterns across a 2x2 area,
+            popular for pixel-art builds and directional signage-style
+            floors.
+        lore: |
+            Its glossy, tiled pattern was inspired by a Moroccan-styled
+            bathroom floor a Mojang developer saw in a California hotel.
+    found_in:
+        - location: Desert villages
+          detail: White and lime glazed terracotta appear on desert village houses.
+        - location: Trail ruins
+          detail: Multiple glazed terracotta colors appear scattered through trail ruins.
+        - location: Mason villager trades
+          detail: A journeyman-level mason trades 12 glazed terracotta of a color for 1 emerald.
+    faq:
+        - question: What tool do I need to mine Lime Glazed Terracotta?
+          answer: |
+              Any pickaxe, starting from wood. Mining without one breaks
+              the block with no drop.
+        - question: How is Lime Glazed Terracotta made?
+          answer: |
+              Smelt Lime Terracotta in a furnace, blast furnace, or any
+              heat source with fuel.
+        - question: Does the texture line up when placed?
+          answer: |
+              Yes. Glazed terracotta textures form larger connected
+              patterns when placed in a 2x2 grid, which is why builders
+              use it for banners, arrows, and pixel art.
+        - question: Is it flammable?
+          answer: |
+              No. Like plain terracotta, the glazed version does not burn.
     data_version: "1.21.5"
 ---
 

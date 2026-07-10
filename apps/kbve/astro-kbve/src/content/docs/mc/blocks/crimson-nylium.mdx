@@ -1,5 +1,6 @@
 ---
 title: Crimson Nylium
+template: splash
 description: |
     Minecraft Crimson Nylium — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 834
     ref: crimson_nylium
     slug: crimson-nylium
+    content_rev: 1
     display_name: Crimson Nylium
     material: nether
     hardness: 0.4
     blast_resistance: 0.4
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: netherrack
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: crimson_nylium
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - nether
+    about:
+        description: |
+            Crimson Nylium is the Nether's equivalent of a grass block —
+            a thin fungal skin covering netherrack that forms the ground
+            of crimson forests. It supports fungus and root growth and can
+            be spread with bone meal.
+        lore: |
+            Nylium takes its name from a portmanteau of "Nether" and
+            "mycelium," reflecting its role as fungal-infected netherrack.
+    uses:
+        - title: Crimson Forest Spread
+          ref: bone_meal
+          detail: |
+              Applying bone meal to nylium spreads it across nearby
+              netherrack and grows crimson fungi, roots, and vines in a
+              5x5 area.
+    found_in:
+        - location: Crimson Forest biome
+          detail: Generates as the primary ground block throughout crimson forests in the Nether.
+        - location: Bastion Remnant chests
+          detail: Found in hoglin stable chests in stacks of 2-7 at roughly a 23% chance.
+    faq:
+        - question: What tool do I need to mine Crimson Nylium?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: Does mining it always give Nylium back?
+          answer: |
+              No. Without Silk Touch it drops netherrack; only Silk Touch
+              recovers the nylium block itself.
+        - question: Why does my Nylium turn back into netherrack?
+          answer: |
+              Nylium decays to netherrack if an opaque block is placed
+              directly on top of it, unless the covering block is snow.
     data_version: "1.21.5"
 ---
 

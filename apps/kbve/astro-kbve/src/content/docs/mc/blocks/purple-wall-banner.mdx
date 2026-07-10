@@ -1,5 +1,6 @@
 ---
 title: Purple Banner
+template: splash
 description: |
     Minecraft Purple Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 557
     ref: purple_wall_banner
     slug: purple-wall-banner
+    content_rev: 1
     display_name: Purple Banner
     material: wood
     hardness: 1
     blast_resistance: 1
-    best_tool: axe
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
+    solid: false
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Purple Banner (wall variant) is the mounted form of a banner
+            placed against a wall or other block face, displaying a purple
+            field and up to six additional pattern layers applied at a loom.
+        lore: |
+            Banners were added in Java Edition 1.8 as a tall, customizable
+            decoration, later gaining shield application and map marker
+            support.
+    uses:
+        - title: Shield Decoration
+          ref: purple_banner
+          detail: |
+              Place a banner in a crafting grid with a shield to copy its
+              pattern onto the shield for a matching decorated look.
+        - title: Map Markers
+          ref: purple_banner
+          detail: |
+              In Java Edition, right-clicking a banner while holding a map
+              adds a persistent marker on the map at its location.
+    found_in:
+        - location: Crafting
+          detail: Craft from 6 Wool and 1 Stick, then dye the field and add loom patterns.
+        - location: Placed on a Wall
+          detail: The wall-banner block form is created automatically when a banner item is placed against a vertical surface.
+    faq:
+        - question: What tool do I need to break it?
+          answer: |
+              Any tool works; an axe is fastest, but there is no minimum
+              tier required to get the drop.
+        - question: Can a wall banner catch fire?
+          answer: |
+              Yes, banners are flammable and can be destroyed by nearby fire
+              or lava.
+        - question: Does breaking it drop the wall or standing form?
+          answer: |
+              It always drops the regular Purple Banner item, which can be
+              placed either on the floor or against a wall.
+        - question: How many pattern layers can I add?
+          answer: |
+              Up to six layers total, combining dyes and optional banner
+              pattern items at a loom.
     data_version: "1.21.5"
 ---
 

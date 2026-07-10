@@ -1,5 +1,6 @@
 ---
 title: Light Gray Wool
+template: splash
 description: |
     Minecraft Light Gray Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 148
     ref: light_gray_wool
     slug: light-gray-wool
+    content_rev: 1
     display_name: Light Gray Wool
     material: wool
     hardness: 0.8
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Light Gray Wool is a dyed variant of wool obtained by shearing
+            sheep or crafting white wool with light gray dye. It breaks
+            fastest with shears but can be mined with any tool or by hand.
+        lore: |
+            Wool has existed since Minecraft's earliest versions, with the
+            full 16-color dye palette, including light gray, added in the
+            Adventure Update (1.0/Beta 1.2).
+    uses:
+        - title: Beds, Banners & Carpets
+          ref: light_gray_bed
+          detail: |
+              Combine with wood planks to craft a matching bed, or with
+              string/sticks for banners and carpets. Light gray wool also
+              blocks sound vibrations from sculk sensors and wardens,
+              making it useful for deep dark exploration.
+    found_in:
+        - location: Sheep (dyed)
+          detail: Shear a sheep or dye its wool light gray with a dye, or craft light gray dye onto white wool.
+        - location: Ancient Cities & Villages
+          detail: Naturally generates in ancient city loot rooms and some village structures.
+    faq:
+        - question: What tool do I need to mine Light Gray Wool?
+          answer: |
+              None. It breaks instantly with any tool or bare hands; shears
+              are simply the fastest option.
+        - question: Does Light Gray Wool burn?
+          answer: |
+              Yes, wool is flammable and will catch fire from lava, fire,
+              or lightning strikes.
+        - question: How do I get Light Gray Wool?
+          answer: |
+              Shear or kill a sheep whose wool has been dyed light gray, or
+              craft white wool with light gray dye.
+        - question: Why is gray wool used in ancient cities?
+          answer: |
+              Wool blocks sound vibrations, so builders use it to muffle
+              footsteps and prevent triggering sculk sensors and the warden.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Zombie Spawn Egg
+template: splash
 description: |
     Minecraft Zombie Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 1145
     ref: zombie_spawn_egg
     slug: zombie-spawn-egg
+    content_rev: 1
     display_name: Zombie Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Zombie Spawn Egg is a Creative-mode-only item that instantly spawns a
+            Zombie when used on a block or entity. Like all spawn eggs it cannot be
+            crafted or found in Survival, and is obtained via the Creative inventory,
+            pick block, or commands.
+        lore: |
+            Zombies are the game's original undead menace, groaning hostile mobs that
+            burn in daylight and hunt villagers to convert them.
+    faq:
+        - question: How do you get a Zombie Spawn Egg?
+          answer: |
+              It can only be obtained in Creative mode (from the inventory or by using
+              pick block on an existing zombie) or through commands such as
+              /give @s zombie_spawn_egg — it does not drop or generate in Survival.
+        - question: What happens when you use it?
+          answer: |
+              Right-clicking a block or mob with the egg instantly spawns an adult
+              Zombie at that location, fully equipped with its default AI and any
+              equipment normal zombies can naturally spawn with.
+        - question: Does naming it do anything special?
+          answer: |
+              Yes — anvil-naming certain spawn eggs triggers easter eggs (for example
+              "Dinnerbone" or "Grumm" flips the spawned mob upside down), though these
+              tricks are shared across most mob types rather than unique to zombies.
+        - question: Can it spawn a baby zombie?
+          answer: |
+              Using the egg on an existing zombie of the same type spawns a baby
+              variant instead of an adult, mirroring the "use on same mob" behavior
+              shared by all spawn eggs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

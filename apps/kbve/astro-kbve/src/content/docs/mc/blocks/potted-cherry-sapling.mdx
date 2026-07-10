@@ -1,5 +1,6 @@
 ---
 title: Potted Cherry Sapling
+template: splash
 description: |
     Minecraft Potted Cherry Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 387
     ref: potted_cherry_sapling
     slug: potted-cherry-sapling
+    content_rev: 1
     display_name: Potted Cherry Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: cherry_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - decoration
+        - non_flammable
+    about:
+        description: |
+            Potted Cherry Sapling is a small cherry tree seedling displayed
+            in a flower pot for decoration. It cannot grow into a tree while
+            potted; it must be removed and planted on dirt first.
+        lore: |
+            Cherry Saplings were introduced with the pink-blossomed cherry
+            trees added in the Trails & Tales update (Java Edition 1.20).
+    uses:
+        - title: Decoration
+          ref: flower_pot
+          detail: |
+              Used to decorate tables and shelves. Removing it and planting
+              on dirt or moss lets it grow into a full cherry tree given
+              enough vertical space.
+    found_in:
+        - location: Crafted by the player
+          detail: |
+              Made by placing a cherry sapling item, obtained from breaking
+              cherry leaves or trading with wandering traders, into an empty
+              flower pot.
+    faq:
+        - question: Will a potted cherry sapling grow into a tree?
+          answer: |
+              No. It stays a sapling forever while potted; take it out and
+              place it on dirt, grass, or moss to let it grow.
+        - question: What tool do I need to break it?
+          answer: |
+              None. It can be mined instantly by hand or with any tool.
+        - question: What does breaking it drop?
+          answer: |
+              Both the flower pot and the cherry sapling item.
+        - question: Where do cherry saplings come from?
+          answer: |
+              Breaking cherry leaves (5% chance) or buying them from
+              wandering traders for emeralds.
     data_version: "1.21.5"
 ---
 

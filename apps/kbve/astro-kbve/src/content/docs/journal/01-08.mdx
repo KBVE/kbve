@@ -8,15 +8,52 @@ img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&c
 description: Daily Log for January 8th of each year!
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 8,'
+    accent: every year.
+    lede: 'The January 8th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jan 7'
+          href: /journal/01-07/
+        - label: 'Jan 9 →'
+          href: /journal/01-09/
+    related:
+        - title: 'Previous · Jan 7'
+          copy: 'Step back a day to the January 7th log.'
+          href: /journal/01-07/
+          icon: calendar
+        - title: 'Next · Jan 9'
+          copy: 'Jump ahead to the January 9th log.'
+          href: /journal/01-09/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1703511606233-9c7537658701?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from "@/components/astropad";
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Handy TTS and LLM
 
@@ -62,7 +99,15 @@ import { Adsense } from "@/components/astropad";
         3. Adding League support. We can connect to the LCU and get information from a league match that is being played.
         4. Adding supabase login via OAuth, we can re-use the KBVE API that RentEarth is also utilizing.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -       **Rancher**
 
@@ -98,7 +143,9 @@ import { Adsense } from "@/components/astropad";
         After it gets added, we can move forward with building out the helm chart and we should be good to go!
         That was a quick fix to the docker build, next we want to prepare the discord shell build.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 - 2:31pm - erust
 
@@ -137,13 +184,21 @@ import { Adsense } from "@/components/astropad";
   - I believe I would also have to setup the `Trunk` for the build and also need to add the rustup targets.
     These will be added into the `Rust` docs tomorrow.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > “.”
 > — <cite></cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] - Setup `egui`
+
+</BentoProse>
+
+</BentoDoc>

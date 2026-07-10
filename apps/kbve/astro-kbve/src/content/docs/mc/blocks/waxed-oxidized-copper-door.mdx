@@ -1,5 +1,6 @@
 ---
 title: Waxed Oxidized Copper Door
+template: splash
 description: |
     Minecraft Waxed Oxidized Copper Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1014
     ref: waxed_oxidized_copper_door
     slug: waxed-oxidized-copper-door
+    content_rev: 1
     display_name: Waxed Oxidized Copper Door
     material: metal
     hardness: 3
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_oxidized_copper_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - door
+    about:
+        description: |
+            Waxed Oxidized Copper Door is a redstone-toggled door locked at
+            the fully weathered, teal stage by a honeycomb coating. Unlike
+            wooden doors it opens and closes instantly on a redstone pulse
+            and cannot be opened by hand-clicking villagers or zombies the
+            way wooden doors can be forced.
+        lore: |
+            Copper doors were revealed at Minecraft Live 2023, added
+            experimentally in 1.20.3, and fully released in Java Edition
+            1.21 as part of the trial chambers copper set.
+    uses:
+        - title: Redstone-Activated Entryways
+          ref: waxed_oxidized_copper_door
+          detail: |
+              Wired to a redstone pulse to snap open or shut instantly,
+              useful for vault-style doors and automated entrances that
+              don't rely on villager or player interaction.
+    found_in:
+        - location: Crafted from Copper Ingots
+          detail: Craft from 6 copper ingots of a matching oxidation stage, then wax with honeycomb.
+        - location: Trial Chambers
+          detail: Waxed oxidized copper doors generate naturally as part of trial chamber vault structures.
+    faq:
+        - question: Can players open it by right-clicking?
+          answer: |
+              Yes, players and certain mobs can still manually toggle it,
+              but it also responds instantly to redstone pulses.
+        - question: What tool do I need to mine it?
+          answer: |
+              None required — it drops itself when mined with any tool,
+              though a pickaxe breaks it fastest.
+        - question: Can a piston push it?
+          answer: |
+              No, the door is destroyed if a piston tries to push it.
+        - question: Will it oxidize further after waxing?
+          answer: |
+              No, waxing locks it permanently at the oxidized stage.
     data_version: "1.21.5"
 ---
 

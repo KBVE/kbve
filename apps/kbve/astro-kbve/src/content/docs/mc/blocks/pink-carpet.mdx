@@ -1,5 +1,6 @@
 ---
 title: Pink Carpet
+template: splash
 description: |
     Minecraft Pink Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 512
     ref: pink_carpet
     slug: pink-carpet
+    content_rev: 1
     display_name: Pink Carpet
     material: wool
     hardness: 0.1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pink Carpet is a thin, dyeable wool variant that covers the
+            bottom sixteenth of a block. It blocks mob spawning on its
+            surface and dampens sculk sensor vibrations.
+        lore: |
+            Carpet was added in Java Edition 1.6.1 (snapshot 13w16a), with
+            its crafting yield bumped from two to three carpets per two
+            wool a snapshot later.
+    uses:
+        - title: Mob-Spawning Deterrent
+          ref: pink_carpet
+          detail: |
+              Placing carpet on floors prevents most hostile mobs from
+              spawning there while still allowing normal foot traffic.
+        - title: Furnace Fuel
+          ref: pink_carpet
+          detail: |
+              Carpet can be burned as furnace fuel, smelting a small
+              fraction of an item per carpet.
+    found_in:
+        - location: Crafting
+          detail: Craft 2 pink wool into 3 pink carpet, or dye white carpet pink.
+        - location: Villages, igloos, and mansions
+          detail: Colored carpets generate in village houses, igloos, woodland mansions, and ancient cities.
+    faq:
+        - question: What tool do I need to mine Pink Carpet?
+          answer: |
+              None. Any tool or bare hands break it instantly and it
+              always drops itself.
+        - question: Does Pink Carpet stop mobs from spawning?
+          answer: |
+              Yes. Its thin hitbox prevents most mobs from spawning on top
+              of it, making it a useful farm-floor cover.
+        - question: Is Pink Carpet flammable?
+          answer: |
+              Yes. It can catch fire from adjacent flames and burns
+              relatively quickly, so avoid it near lava or fire sources.
+        - question: Can I dye llamas with Pink Carpet?
+          answer: |
+              Yes. Equipping a llama with carpet gives it a matching
+              decorative rug pattern.
     data_version: "1.21.5"
 ---
 

@@ -1,7 +1,10 @@
 #include "HexTerrainActor.h"
 #include "ProceduralMeshComponent.h"
+#include "Engine/GameInstance.h"
+#include "Engine/World.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#if WITH_EDITOR
 #include "Materials/MaterialExpressionWorldPosition.h"
 #include "Materials/MaterialExpressionComponentMask.h"
 #include "Materials/MaterialExpressionLinearInterpolate.h"
@@ -9,6 +12,7 @@
 #include "Materials/MaterialExpressionScalarParameter.h"
 #include "Materials/MaterialExpressionDivide.h"
 #include "Materials/MaterialExpressionClamp.h"
+#endif
 
 AHexTerrainActor::AHexTerrainActor()
 {
@@ -153,6 +157,7 @@ void AHexTerrainActor::GenerateTerrain(
 
 void AHexTerrainActor::BuildTerrainMaterial()
 {
+#if WITH_EDITOR
 	// Create a transient material with height-based blending entirely in the shader.
 	// WorldPosition.Z drives lerps between Grass -> Rock -> Snow based on height thresholds.
 
@@ -254,4 +259,13 @@ void AHexTerrainActor::BuildTerrainMaterial()
 	TerrainMID->SetVectorParameterValue(TEXT("GrassColor"), GrassColor);
 	TerrainMID->SetVectorParameterValue(TEXT("RockColor"), RockColor);
 	TerrainMID->SetVectorParameterValue(TEXT("SnowColor"), SnowColor);
+#else
+	UMaterialInterface* BaseMat = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+	if (!BaseMat)
+	{
+		return;
+	}
+	TerrainMID = UMaterialInstanceDynamic::Create(BaseMat, this);
+	TerrainMID->SetVectorParameterValue(TEXT("Color"), GrassColor);
+#endif
 }

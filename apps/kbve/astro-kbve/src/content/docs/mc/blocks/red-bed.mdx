@@ -1,5 +1,6 @@
 ---
 title: Red Bed
+template: splash
 description: |
     Minecraft Red Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 124
     ref: red_bed
     slug: red-bed
+    content_rev: 1
     display_name: Red Bed
     material: stone
     hardness: 0.2
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Red Bed is a two-block furniture item that lets a player sleep
+            through the night and set their Overworld spawn point. It
+            breaks instantly and drops itself as an item.
+        lore: |
+            Beds have let players skip the night since Java Edition 1.3,
+            and colored variants arrived with dyed wool in 1.12.
+    uses:
+        - title: Sleeping and Spawn Point
+          ref: red_bed
+          detail: |
+              Right-click to sleep at night or during thunderstorms,
+              skipping to day and setting the player's respawn point
+              nearby.
+        - title: Nether/End Detonator
+          ref: red_bed
+          detail: |
+              Attempting to sleep in the Nether or the End instead
+              explodes the bed with power 5, making beds a cheap source
+              of controlled explosions.
+    found_in:
+        - location: Crafting
+          detail: Craft from three wool of one color and three planks of any type to produce a bed of that color.
+        - location: Igloos
+          detail: Red beds generate naturally inside igloo structures found in snowy biomes.
+    faq:
+        - question: What tool do I need to break a bed?
+          answer: |
+              None. Beds have very low hardness and break almost
+              instantly with any tool or bare hands.
+        - question: Why does my bed explode in the Nether?
+          answer: |
+              Beds only work as a sleeping/spawn point in the Overworld.
+              Using one in the Nether or the End detonates it instead.
+        - question: Do beds require matching wood and wool colors?
+          answer: |
+              No. Any plank type can be combined with any single wool
+              color; the wool color determines the bed's color.
+        - question: Are beds affected by Fortune or Silk Touch?
+          answer: |
+              No. A bed always drops itself as a single item regardless
+              of enchantments.
     data_version: "1.21.5"
 ---
 

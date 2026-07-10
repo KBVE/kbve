@@ -1,9 +1,12 @@
 ---
 title: Features
 description: What the KBVE platform ships — game development, managed game servers, CI/CD automation, observability, identity, and open-source libraries.
+template: splash
 editUrl: false
 lastUpdated: false
 next: false
+prev: false
+tableOfContents: false
 sidebar:
     label: Features
     order: 4
@@ -19,138 +22,118 @@ jsonld:
           path: /
         - name: Features
           path: /feature/
+    faq:
+        - question: What does the KBVE platform actually ship?
+          answer: Game development (in-house engines and worlds), managed game-server hosting on Kubernetes, CI/CD automation across an Nx monorepo, end-to-end observability, Supabase-backed identity, and a public library of open-source tools and game code.
+        - question: Is KBVE open source?
+          answer: Yes. Every library, pipeline, and game system lives in one public monorepo — you can read it, fork it, contribute back, or sponsor a maintainer.
+        - question: How does KBVE run in production?
+          answer: Talos and Cilium Kubernetes clusters with ArgoCD GitOps, sealed secrets, network policies, auto-scaling workloads, observability, and restore drills.
+bento:
+    badge: kbve platform · what we ship
+    title: Build, ship, and host
+    accent: games and software.
+    lede: >-
+        KBVE is a platform for building, shipping, and hosting games and
+        software — six capabilities, one open-source monorepo. Pick a thread to
+        pull.
+    theme:
+        accent: "#a855f7"
+        accent2: "#c084fc"
+        hero_bg: https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=2400&auto=format&fit=crop
+    ctas:
+        - label: Explore Rareicon
+          href: /rareicon/
+          primary: true
+        - label: Host a server
+          href: /service/
+        - label: Read the source
+          href: https://github.com/kbve
+          external: true
+    aside:
+        icon: shield
+        title: Why it holds up
+        body: >-
+            The boring parts, done right — so the fun parts stay fast under real
+            load.
+        points:
+            - <strong>Built in the open</strong> — one public monorepo you can audit and fork.
+            - <strong>Scales on Kubernetes</strong> — Talos + Cilium, ArgoCD GitOps, auto-scaling.
+            - <strong>Production hardened</strong> — sealed secrets, network policies, restore drills.
+    stats:
+        - { label: Capabilities, value: Six, icon: route }
+        - { label: Monorepo, value: One, icon: box }
+        - { label: Platform, value: Kubernetes, icon: network }
+        - { label: License, value: Open, icon: license }
+    features_eyebrow: Six capabilities, one monorepo
+    features_heading: What we ship
+    features:
+        - title: Game Development
+          icon: combat
+          href: /rareicon/
+          body: In-house engines and worlds — Rareicon (DOTS/ECS), isometric Bevy worlds, and Unreal/AngelScript pipelines.
+        - title: Managed Game Servers
+          icon: server
+          href: /service/
+          body: Auto-scaling Minecraft, Unreal, and Bevy world hosting on Kubernetes with built-in observability.
+        - title: CI/CD Automation
+          icon: gears
+          href: /github/
+          body: Nx monorepo builds, manifest-driven dispatch, and event-driven pipelines that ship versioned artifacts.
+        - title: Observability
+          icon: activity
+          href: /service/
+          body: End-to-end metrics and logs — Vector to ClickHouse, Prometheus alerts, and tracing across every service.
+        - title: Identity & Auth
+          icon: key
+          href: /profile/
+          body: Supabase-backed accounts with canonical kbve.com/@username profiles and JWT claims wired into Rust services.
+        - title: Open Source
+          icon: github
+          href: https://github.com/kbve
+          external: true
+          body: A public monorepo of libraries, tools, and game code. Read it, fork it, sponsor a maintainer, ship with us.
+    related_eyebrow: Start here
+    related_heading: Where to next
+    related:
+        - title: Play Rareicon
+          href: /rareicon/
+          copy: Explore the worlds we're building and the DOTS/ECS engine behind them.
+          icon: combat
+        - title: Host a game server
+          href: /service/
+          copy: Spin up managed Minecraft, Unreal, or Bevy hosting on Kubernetes.
+          icon: server
+        - title: Read the source
+          href: https://github.com/kbve
+          external: true
+          copy: The full public monorepo — libraries, pipelines, and game code.
+          icon: github
+        - title: Join the Discord
+          href: /discord/
+          copy: Ask questions, share builds, and ship alongside the crew.
+          icon: discord
 ---
 
-import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
-import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
 import JsonLd from '@kbve/astro/seo/JsonLd.astro';
 import { seo } from '@/lib/seo';
-import RingShipGrid from '@kbve/astro/components/hero/ring/RingShipGrid.astro';
-import RingShipCard from '@kbve/astro/components/hero/ring/RingShipCard.astro';
-import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
-
-export const features = [
-	{
-		title: 'Game Development',
-		description:
-			'In-house engines and worlds — Rareicon (DOTS/ECS), isometric Bevy worlds, and Unreal/AngelScript pipelines.',
-		href: '/rareicon/',
-		icon: 'controller',
-		accent: '#a855f7',
-	},
-	{
-		title: 'Managed Game Servers',
-		description:
-			'Auto-scaling Minecraft, Unreal, and Bevy world hosting on Kubernetes with built-in observability.',
-		href: '/service/',
-		icon: 'server',
-		accent: '#22c55e',
-	},
-	{
-		title: 'CI/CD Automation',
-		description:
-			'Nx monorepo builds, manifest-driven dispatch, and event-driven pipelines that ship versioned artifacts.',
-		href: '/github/',
-		icon: 'cog',
-		accent: '#f59e0b',
-	},
-	{
-		title: 'Observability',
-		description:
-			'End-to-end metrics and logs — Vector to ClickHouse, Prometheus alerts, and tracing across every service.',
-		href: '/service/',
-		icon: 'zap',
-		accent: '#06b6d4',
-	},
-	{
-		title: 'Identity & Auth',
-		description:
-			'Supabase-backed accounts with canonical kbve.com/@username profiles and JWT claims wired into Rust services.',
-		href: '/profile/',
-		icon: 'compass',
-		accent: '#3b82f6',
-	},
-	{
-		title: 'Open Source',
-		description:
-			'A public monorepo of libraries, tools, and game code. Read it, fork it, sponsor a maintainer, ship with us.',
-		href: 'https://github.com/kbve',
-		icon: 'github',
-		accent: '#ef4444',
-	},
-];
-
-export const highlights = [
-	{
-		title: 'Built in the Open',
-		description:
-			'Every library, pipeline, and game system lives in one public monorepo — audit it, fork it, contribute back.',
-		icon: 'star',
-	},
-	{
-		title: 'Scales on Kubernetes',
-		description:
-			'Talos + Cilium clusters, ArgoCD GitOps, and auto-scaling workloads keep services fast under real load.',
-		icon: 'bolt',
-	},
-	{
-		title: 'Production Hardened',
-		description:
-			'Sealed secrets, network policies, observability, and restore drills — the boring parts done right.',
-		icon: 'shield',
-	},
-];
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
 <JsonLd
 	graph={[
 		seo.itemList(
-			features.map((f) => ({
+			frontmatter.bento.features.map((f) => ({
 				name: f.title,
-				description: f.description,
+				description: f.body,
 				url: f.href,
 			})),
 			{
 				id: `${seo.url('/feature/')}#features`,
 				name: 'KBVE Features',
-				description:
-					'What the KBVE platform ships — game development, managed game servers, CI/CD automation, observability, identity, and open-source libraries.',
+				description: frontmatter.description,
 			},
 		),
 	]}
 />
 
-<div class="ring-page kbve-dashboard-page relative min-h-screen w-full bg-transparent">
-
-# Features
-
-KBVE is a platform for building, shipping, and hosting games and software. Here is what we actually ship:
-
-<RingShipGrid tagline="Six capabilities, one open-source monorepo — pick a thread to pull.">
-	{
-		features.map((f) => (
-			<RingShipCard
-				title={f.title}
-				description={f.description}
-				href={f.href}
-				icon={f.icon}
-				accent={f.accent}
-			/>
-		))
-	}
-</RingShipGrid>
-
-## Why it holds up
-
-<DeferredFeature features={highlights} imageUrl="/assets/images/gameplay/rentearth.webp" imageAlt="KBVE game world rendered in-engine" />
-
-<DeferredAdsense label="Sponsored" />
-
-## Start here
-
-- **Play** — explore [Rareicon](/rareicon/) and the worlds we are building.
-- **Host** — spin up a [managed game server](/service/).
-- **Build** — read the [source on GitHub](https://github.com/kbve) or join us in [Discord](/discord/).
-
-</div>
-
-<ScrollRing prev="/service/" next="/github/" prevLabel="Services" nextLabel="GitHub" />
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

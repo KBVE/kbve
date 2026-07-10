@@ -1,7 +1,7 @@
 ---
-title: KBVEQuestDB
-description: |
-    Game-agnostic quest database loader — loads the shared questdb artifact into runtime quest defs (objectives, rewards, prerequisites, chain) with ref lookup.
+title: KBVEQuestDB — Quest Database Loader for Unreal
+description: Game-agnostic Unreal quest database loader reading the shared questdb artifact into runtime quest defs — objectives, rewards, prerequisites, and chains.
+sem: 1
 sidebar:
     label: KBVEQuestDB
     order: 77
@@ -24,11 +24,96 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does KBVEQuestDB do?
+          answer: It is a game-agnostic quest catalog loader that reads the shared questdb-data.json artifact into FKBVEQuestDef records — objectives, rewards, category, and chain — with ref lookup.
+        - question: Does KBVEQuestDB track quest progress?
+          answer: No. It loads static quest definitions only; quest progress and state stay game-side. It mirrors the itemdb and npcdb loader pattern.
+        - question: What are its dependencies and requirements?
+          answer: It depends on KBVEYYJson for JSON parsing and targets Unreal Engine 5.4+ on Win64, Linux, and Mac.
+bento:
+    badge: unreal · quest
+    title: Quest database loader
+    accent: KBVEQuestDB
+    lede: >-
+        A game-agnostic quest catalog. UKBVEQuestDatabase loads the shared
+        questdb-data.json artifact into runtime quest defs — objectives, rewards,
+        category, and chain — with ref lookup. Quest progress stays game-side.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEQuestDB
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Usage
+          href: "#usage"
+    aside:
+        icon: book
+        title: Catalog, not tracker
+        body: >-
+            KBVEQuestDB loads <strong>static</strong> quest definitions only —
+            progress and state stay game-side. It mirrors the itemdb and npcdb
+            loader pattern.
+        points:
+            - <strong>Depends on</strong> — KBVEYYJson for JSON parsing.
+            - <strong>Scope</strong> — GameInstance subsystem.
+    stats:
+        - { label: Plugin, value: KBVEQuestDB, icon: book }
+        - { label: Engine, value: "UE 5.4+", icon: settings }
+        - { label: Platforms, value: "Win64 · Linux · Mac", icon: box }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: GameInstance subsystem
+          icon: server
+          body: UKBVEQuestDatabase loads at game-instance scope.
+        - title: Data-driven defs
+          icon: database
+          body: Parses questdb-data.json into FKBVEQuestDef records.
+        - title: Rich quest shape
+          icon: book
+          body: Objectives, rewards, category, and chain per quest.
+        - title: Ref lookup
+          icon: route
+          body: Resolve quest definitions by reference.
+        - title: Consistent pattern
+          icon: expand
+          body: Mirrors the itemdb and npcdb loaders.
+    features_heading: Features
+    related:
+        - title: KBVEYYJson
+          href: /project/kbveyyjson/
+          copy: JSON parsing dependency.
+          icon: code
+        - title: KBVENPCDB
+          href: /project/kbvenpcdb/
+          copy: Sibling NPC database loader.
+          icon: database
+        - title: KBVEItemDB
+          href: /project/kbveitemdb/
+          copy: Sibling item database loader.
+          icon: inventory
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-Game-agnostic quest catalog. `UKBVEQuestDatabase` (GameInstance subsystem) loads
-`Content/Data/questdb-data.json` into `FKBVEQuestDef` records (objectives, rewards,
-category, chain), ref lookup. Quest progress/state is game-side. Mirrors the
-itemdb/npcdb loader pattern.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="usage" eyebrow="Wiring it up" heading="Usage">
+
+Enable `KBVEQuestDB` (and its KBVEYYJson dependency) in your `.uproject`, ship the
+questdb artifact to `Content/Data/questdb-data.json`, then query the
+`UKBVEQuestDatabase` subsystem for quest defs by ref. Progress is tracked by the game.
+
+</BentoProse>
+
+</BentoDoc>

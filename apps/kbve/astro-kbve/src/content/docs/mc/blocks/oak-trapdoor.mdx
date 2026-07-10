@@ -1,5 +1,6 @@
 ---
 title: Oak Trapdoor
+template: splash
 description: |
     Minecraft Oak Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 301
     ref: oak_trapdoor
     slug: oak-trapdoor
+    content_rev: 1
     display_name: Oak Trapdoor
     material: wood
     hardness: 3
@@ -24,10 +26,67 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Oak Trapdoors are hinged wooden doors that open horizontally,
+            letting players open and close block-sized gaps in walls or
+            floors. They can be toggled by hand or with a redstone
+            signal.
+        lore: |
+            Oak was the only trapdoor variant in the game for years
+            before other wood types were added, making it the original
+            trapdoor design.
+    uses:
+        - title: Redstone Doors & Traps
+          ref: redstone
+          detail: |
+              Wired to redstone circuits to create hidden entrances,
+              secret rooms, and iron-golem or mob farms with trapdoor
+              floors.
+        - title: Fence Gate Alternative
+          ref: oak_fence
+          detail: |
+              Placed on the side of a fence or wall to form a
+              vertically-opening gate at head height.
+        - title: Furnace Fuel
+          ref: oak_planks
+          detail: |
+              Smelts as 1.5 items worth of fuel in a furnace, same as
+              planks.
+    found_in:
+        - location: Crafted from Oak Planks
+          detail: Six oak planks craft two oak trapdoors.
+        - location: Villages, Igloos & Shipwrecks
+          detail: Naturally generates as part of village houses, igloo basements, and shipwrecks.
+    faq:
+        - question: What tool do I need to mine an Oak Trapdoor?
+          answer: |
+              None required — any tool works and an axe is fastest, but
+              even bare hands will break it.
+        - question: Does an Oak Trapdoor burn?
+          answer: |
+              No. Unlike most wood blocks, wooden trapdoors are
+              non-flammable and will not catch fire from lava or flames.
+        - question: Can I climb a ladder through an open trapdoor?
+          answer: |
+              Yes. An open trapdoor placed above a ladder lets players
+              climb straight through it, useful for hidden vertical
+              shafts.
+        - question: Can Oak Trapdoors be opened with redstone?
+          answer: |
+              Yes. A redstone signal toggles them open or closed, the
+              same as doors.
     data_version: "1.21.5"
 ---
 

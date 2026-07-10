@@ -1,5 +1,6 @@
 ---
 title: Jungle Stairs
+template: splash
 description: |
     Minecraft Jungle Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 375
     ref: jungle_stairs
     slug: jungle-stairs
+    content_rev: 1
     display_name: Jungle Stairs
     material: wood
     hardness: 2
@@ -24,10 +26,53 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Jungle Stairs are a shaped building block cut from jungle
+            planks, letting mobs and players walk up in half-block
+            increments. They can be placed upside-down or in various
+            rotations for corners and overhangs.
+        lore: |
+            Wooden stairs date back to Java Edition Infdev, with jungle
+            wood stairs following the addition of the jungle biome.
+    uses:
+        - title: Building and Pathing
+          ref: jungle_planks
+          detail: |
+              Used decoratively and functionally as ramps, roof lines,
+              and detailing in jungle-themed builds.
+    found_in:
+        - location: Crafted from Jungle Planks
+          detail: Six jungle planks arranged in a staircase pattern craft four jungle stairs.
+        - location: Jungle Villages and Shipwrecks
+          detail: Generates naturally in various wood-type structures depending on biome.
+    faq:
+        - question: Do jungle stairs need a specific tool to drop?
+          answer: |
+              No. Any tool, or bare hands, causes them to drop; an axe
+              simply breaks them fastest.
+        - question: Can jungle stairs be waterlogged?
+          answer: |
+              Yes, water can occupy the same space as a stair block.
+        - question: Are jungle stairs flammable?
+          answer: |
+              Yes, unlike crimson and warped stairs which are fire-resistant.
+        - question: Can I place jungle stairs upside down?
+          answer: |
+              Yes. Placing while aiming at the upper half of a block face
+              flips the stair to its upside-down orientation.
     data_version: "1.21.5"
 ---
 

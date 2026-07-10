@@ -1,5 +1,6 @@
 ---
 title: Frogspawn
+template: splash
 description: |
     Minecraft Frogspawn — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1089
     ref: frogspawn
     slug: frogspawn
+    content_rev: 1
     display_name: Frogspawn
     material: stone
     hardness: 0
@@ -24,10 +26,44 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - overworld
+    about:
+        description: |
+            Frogspawn is a non-solid block deposited by a frog after it
+            breeds with another frog using a slimeball. Placed on top of a
+            water source block, it hatches into tadpoles after several
+            minutes.
+        lore: |
+            Introduced in Java Edition 1.19 as part of The Wild Update, it
+            was briefly called "Frog Egg" during Bedrock's beta testing
+            before being renamed to match Java.
+    found_in:
+        - location: Frog Breeding
+          detail: |
+              Produced when two frogs are bred with slimeballs; the
+              breeding frog carries it to the nearest water source with air
+              above and deposits it there.
+    faq:
+        - question: Can I mine and collect Frogspawn?
+          answer: |
+              No. It breaks instantly with any tool but drops nothing, even
+              with Silk Touch.
+        - question: How long does Frogspawn take to hatch?
+          answer: |
+              Between 3 and 10 minutes after being placed on a water source
+              block, at which point it spawns 2 to 5 tadpoles.
+        - question: Where does Frogspawn come from?
+          answer: |
+              A frog produces it after breeding with another frog using
+              slimeballs, then carries it to nearby water to place it.
+        - question: Can Frogspawn be placed anywhere?
+          answer: |
+              No. It can only be placed on top of a water source block that
+              has air above it.
     data_version: "1.21.5"
 ---
 

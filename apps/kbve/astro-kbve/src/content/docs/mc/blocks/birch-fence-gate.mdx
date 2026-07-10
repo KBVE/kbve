@@ -1,5 +1,6 @@
 ---
 title: Birch Fence Gate
+template: splash
 description: |
     Minecraft Birch Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 597
     ref: birch_fence_gate
     slug: birch-fence-gate
+    content_rev: 1
     display_name: Birch Fence Gate
     material: wood
     hardness: 2
@@ -26,9 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: birch_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The Birch Fence Gate is a switchable one-and-a-half-block-high
+            barrier that combines a fence's mob-blocking height with a
+            door's openable behavior, letting players pass through a fence
+            line without breaking it.
+        lore: |
+            Fence gates let builders make farm and paddock enclosures that
+            open on demand instead of requiring a permanent gap in the fence.
+    uses:
+        - title: Enclosure Access Point
+          ref: birch_fence
+          detail: |
+              Placed in a run of Birch Fence, a gate lets players and
+              villagers walk through while still blocking most mobs when
+              closed.
+        - title: Furnace Fuel
+          ref: birch_fence_gate
+          detail: |
+              Overworld wooden fence gates can be burned as furnace fuel.
+    found_in:
+        - location: Crafted from Birch Planks and Sticks
+          detail: Two sticks and four matching planks craft one fence gate at a crafting table.
+        - location: Villages
+          detail: Village houses and farms generate with wood-matched fence gates already placed.
+    faq:
+        - question: Does a closed Birch Fence Gate block mobs?
+          answer: |
+              Yes. Closed, it acts as a 1.5-block-high solid barrier that
+              most mobs cannot jump over; opened, it is fully passable.
+        - question: What breaks a Birch Fence Gate fastest?
+          answer: |
+              An axe, though any tool or bare hands will eventually break it
+              and it always drops itself.
+        - question: Can a Birch Fence Gate catch fire?
+          answer: |
+              Yes. Like other overworld wood fence gates it is flammable and
+              can be destroyed by nearby fire or lava.
+        - question: Can I connect a Birch Fence Gate to fences of other wood types?
+          answer: |
+              Visually and functionally it connects to any fence type for
+              blocking purposes, though the gate itself only matches its own
+              birch texture.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

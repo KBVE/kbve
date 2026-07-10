@@ -811,15 +811,14 @@ impl GitHubClient {
             .get("x-ratelimit-remaining")
             .and_then(|v| v.to_str().ok())
             .and_then(|v| v.parse::<u32>().ok())
+            && remaining < 10
         {
-            if remaining < 10 {
-                let reset = resp
-                    .headers()
-                    .get("x-ratelimit-reset")
-                    .and_then(|v| v.to_str().ok())
-                    .unwrap_or("unknown");
-                warn!(remaining, reset, "GitHub API rate limit low");
-            }
+            let reset = resp
+                .headers()
+                .get("x-ratelimit-reset")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("unknown");
+            warn!(remaining, reset, "GitHub API rate limit low");
         }
         resp
     }

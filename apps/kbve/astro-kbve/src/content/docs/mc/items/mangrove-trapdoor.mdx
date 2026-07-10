@@ -1,5 +1,6 @@
 ---
 title: Mangrove Trapdoor
+template: splash
 description: |
     Minecraft Mangrove Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 772
     ref: mangrove_trapdoor
     slug: mangrove-trapdoor
+    content_rev: 1
     display_name: Mangrove Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A mangrove trapdoor is a thin, openable 1x1 block barrier crafted from mangrove planks, used to seal or reveal openings in floors, ceilings, and walls. Being a wooden trapdoor, it can be toggled directly by hand or opened and closed with a redstone signal.
+            It can be waterlogged without losing function, and an open trapdoor placed above a ladder becomes climbable, making it useful for hidden passages and secret bases.
+        lore: |
+            Mangrove trapdoors were introduced with the mangrove swamp biome, extending the range of wood-type trapdoors available for building.
+    faq:
+        - question: How do you craft a mangrove trapdoor?
+          answer: |
+              Arrange six mangrove planks in the bottom two rows of a crafting grid to produce two mangrove trapdoors.
+        - question: Does a mangrove trapdoor respond to redstone?
+          answer: |
+              Yes, like all wooden trapdoors it can be opened or closed either by hand or with a redstone signal.
+        - question: Can a mangrove trapdoor be waterlogged?
+          answer: |
+              Yes, placing it in water lets it hold the water source while still opening and closing normally.
+        - question: Why do players use trapdoors above ladders?
+          answer: |
+              An open trapdoor positioned directly above a ladder becomes climbable in Java Edition, letting players continue climbing through the gap while keeping the entrance hidden when closed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

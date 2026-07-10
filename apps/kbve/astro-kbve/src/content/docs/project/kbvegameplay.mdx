@@ -1,7 +1,7 @@
 ---
-title: KBVEGameplay
-description: |
-    Game-agnostic consumable + effect framework for KBVE Unreal games — data-driven effect specs (instant restores, over-time regen/DoT, temporary stat buffs, status conditions) applied via IKBVEStatTarget, with cooldown tracking and an animation hook.
+title: KBVEGameplay — Consumable & Effect Framework
+description: KBVEGameplay is a game-agnostic Unreal consumable and effect framework — restores, over-time regen/DoT, stat buffs, statuses, cooldowns, and melee combat.
+sem: 1
 sidebar:
     label: KBVEGameplay
     order: 80
@@ -23,13 +23,90 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does KBVEGameplay provide?
+          answer: A game-agnostic consumable and effect framework for Unreal — data-driven restores, over-time regen/DoT, stat buffs, status conditions, and cooldowns applied through the IKBVEStatTarget interface.
+        - question: How does a game integrate KBVEGameplay?
+          answer: A game implements IKBVEStatTarget to map its stats to FName ids and attaches UKBVEEffectComponent; the plugin then owns the effect lifecycle from a data-driven FKBVEEffectSpec.
+        - question: Does KBVEGameplay include combat?
+          answer: Yes. It ships an agnostic stat block, a Mass parallel regen processor, combat damageable/attacker interfaces, and a generic UKBVEMeleeComponent sweep with knockback and per-swing dedupe.
+bento:
+    badge: unreal · gameplay
+    title: Consumable & effect framework
+    accent: KBVEGameplay
+    lede: >-
+        A game-agnostic consumable + effect framework. A game implements
+        IKBVEStatTarget (mapping its stats to FName ids) and attaches
+        UKBVEEffectComponent; the plugin owns the effect lifecycle from a
+        data-driven FKBVEEffectSpec — restores, over-time regen/DoT, buffs,
+        statuses, cooldowns — plus an agnostic stat layer and melee combat.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEGameplay
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Stats + combat
+          href: "#stats-combat"
+    aside:
+        icon: gears
+        title: Data-driven effects
+        body: >-
+            The game builds an <code>FKBVEEffectSpec</code> from its item
+            definition; effect data lives in the shared itemdb. Tick
+            auto-disables when no effects or cooldowns are active.
+        points:
+            - <strong>Applied through</strong> — IKBVEStatTarget maps stats to FName ids.
+            - <strong>Also ships</strong> — a Mass parallel regen processor + a melee sweep component.
+    stats:
+        - { label: Version, value: '0.1.0 (beta)', icon: info }
+        - { label: Engine, value: UE 5.4+, icon: settings }
+        - { label: Platforms, value: Win64 · Linux · Mac, icon: server }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Data-driven effects
+          icon: package
+          body: Restores, regens/DoT, buffs, and statuses from FKBVEEffectSpec.
+        - title: Cooldown gating
+          icon: clock
+          body: Per-SourceKey gate rejects re-application while hot.
+        - title: Auto-disabling tick
+          icon: zap
+          body: The component stops ticking when no effects or cooldowns are live.
+    related:
+        - title: KBVECombat
+          href: /project/kbvecombat/
+          copy: Combat systems that pair with these stats.
+          icon: combat
+        - title: KBVEItemDB
+          href: /project/kbveitemdb/
+          copy: Item database that supplies effect data.
+          icon: inventory
+        - title: KBVEMover
+          href: /project/kbvemover/
+          copy: Movement layer that reads movement state.
+          icon: route
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-Game-agnostic consumable + effect framework. A game implements `IKBVEStatTarget`
-(map its stats to FName ids) and attaches `UKBVEEffectComponent`; the plugin owns
-the effect lifecycle from a data-driven `FKBVEEffectSpec`:
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="effects" eyebrow="Effect lifecycle" heading="Overview">
+
+A game implements `IKBVEStatTarget` (map its stats to FName ids) and attaches `UKBVEEffectComponent`; the plugin owns the effect lifecycle from a data-driven `FKBVEEffectSpec`:
 
 - **Restores** — instant stat deltas (heal HP, restore mana/energy).
 - **Regens** — over-time HoT / DoT (`RatePerSecond` × `Duration`).
@@ -41,7 +118,9 @@ the effect lifecycle from a data-driven `FKBVEEffectSpec`:
 Tick auto-disables when no effects or cooldowns are active. Effect DATA lives in
 the shared itemdb; the game builds an `FKBVEEffectSpec` from its item definition.
 
-## Stats + combat
+</BentoProse>
+
+<BentoProse id="stats-combat" eyebrow="Stat layer" heading="Stats + combat">
 
 Also holds the agnostic gameplay-stat layer (the effect target it feeds):
 
@@ -61,7 +140,9 @@ Also holds the agnostic gameplay-stat layer (the effect target it feeds):
 `UKBVEEffectComponent` applies effects through `IKBVEStatTarget`; a game's stat
 owner maps those onto its `FKBVEStatBlock` / `FKBVEStatFragment`.
 
-## Event payloads (`KBVEGameplayEvents.h`)
+</BentoProse>
+
+<BentoProse id="payloads" eyebrow="Event vocabulary" heading="Event payloads (KBVEGameplayEvents.h)">
 
 Shared cross-game vocabulary for stat/combat signals — plain POD structs a game
 and reusable UI agree on: `FKBVEHealthChangedPayload` / `FKBVEManaChangedPayload`
@@ -71,3 +152,7 @@ and reusable UI agree on: `FKBVEHealthChangedPayload` / `FKBVEManaChangedPayload
 stays the game's — these are only the contract; chuck pipes them through its own
 `TKBVEChannel` hubs. Game-specific payloads (inventory-dirty, tooltip,
 item-consumed, pickup, auth, chat, ui-flags) stay in the game.
+
+</BentoProse>
+
+</BentoDoc>

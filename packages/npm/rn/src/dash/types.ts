@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { BadgeTone } from '../ui';
+import type { BadgeTone } from './_ui';
 
 /**
  * The generic dashboard contract: `<T> of <t> of <n>`.
@@ -33,10 +33,20 @@ export interface StreamSourceConfig<TRaw, TItem> {
 	pollMs?: number;
 	/** Cache TTL in ms. Omit to skip persistence. */
 	cacheTtlMs?: number;
+	/**
+	 * Optional side-channel summary fetched alongside items each poll (cluster
+	 * health, aggregate counts, per-namespace rollups…). Cached + hydrated like
+	 * items, so the last-known value paints instantly — no layout shift — then
+	 * refreshes. Surfaced to the lens's `stats` as the second argument. Should
+	 * resolve (not throw) on failure so it never blocks the item fetch.
+	 */
+	fetchMeta?: (ctx: FetchContext) => Promise<unknown>;
 }
 
 export interface StreamState<TItem> {
 	items: TItem[];
+	/** Cached side-channel summary from `fetchMeta` (null until first paint). */
+	meta: unknown;
 	loading: boolean;
 	error: string | null;
 	lastUpdated: number | null;
@@ -56,6 +66,8 @@ export interface StreamStore<TItem> {
 	subscribe: (listener: () => void) => () => void;
 	/** Current immutable snapshot. */
 	get: () => StreamState<TItem>;
+	/** Cache key prefix this store was created with. */
+	key: string;
 	/** Stable identity for an item — the view keys rows off this. */
 	id: (item: TItem) => string;
 	/** Force a fetch now (bypasses poll cadence; keeps cache write). */
@@ -116,8 +128,17 @@ export interface StreamLens<TItem> {
 	card?: (item: TItem, expanded: boolean) => ReactNode;
 	/** Inline detail rendered under an expanded item. */
 	detail?: (item: TItem) => ReactNode;
-	/** Summary stat cards derived from the full item set. */
-	stats?: (items: TItem[]) => StatModel[];
+	/**
+	 * Summary stat cards derived from the item set and the optional cached
+	 * `meta` side-channel (see {@link StreamSourceConfig.fetchMeta}).
+	 */
+	stats?: (items: TItem[], meta?: unknown) => StatModel[];
+	/**
+	 * Optional rich panel rendered under the stat grid, fed the cached `meta`
+	 * side-channel (e.g. an expandable per-namespace table). Distinct from
+	 * `stats` (flat tiles) — this owns its own layout/collapse.
+	 */
+	metaPanel?: (meta: unknown) => ReactNode;
 	/** Free-text search haystack for an item. */
 	searchText?: (item: TItem) => string;
 	/** Grouping bucket label for an item (used when groupKey is active). */

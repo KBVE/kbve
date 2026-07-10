@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Leaves
+template: splash
 description: |
     Minecraft Dark Oak Leaves — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 188
     ref: dark_oak_leaves
     slug: dark-oak-leaves
+    content_rev: 1
     display_name: Dark Oak Leaves
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Dark Oak Leaves are the transparent foliage blocks that make up the canopy of dark oak trees, generating naturally throughout roofed forest biomes. They can only be collected intact with shears or a Silk Touch tool; breaking them otherwise has a small chance to drop a dark oak sapling, sticks, or occasionally an apple.
+            Like other leaf blocks, they decay and vanish when left disconnected from a log beyond the game's decay distance unless placed directly by a player.
+        lore: |
+            Dense, dark-hued leaves crown the towering dark oak canopy, shading the roofed forest floor in perpetual gloom.
+    faq:
+        - question: What tool do you need to collect Dark Oak Leaves?
+          answer: |
+              Dark Oak Leaves must be broken with shears or a tool enchanted with Silk Touch to collect the block itself; otherwise they simply break without dropping the leaf block.
+        - question: What drops from Dark Oak Leaves when broken by hand?
+          answer: |
+              Breaking Dark Oak Leaves without shears or Silk Touch has a 5% chance to drop a dark oak sapling, a small chance to drop a stick, and a rare 0.5% chance to drop an apple.
+        - question: Do Dark Oak Leaves decay if the tree's logs are removed?
+          answer: |
+              Yes, naturally generated Dark Oak Leaves decay and disappear if they end up more than the game's maximum distance from any connected log, unless a player has placed them manually.
+        - question: Can Dark Oak Leaves be composted?
+          answer: |
+              Yes, Dark Oak Leaves can be placed in a composter to contribute toward producing bone meal.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 16th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 16,'
+    accent: every year.
+    lede: 'The December 16th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Dec 15'
+          href: /journal/12-15/
+        - label: 'Dec 17 →'
+          href: /journal/12-17/
+    related:
+        - title: 'Previous · Dec 15'
+          copy: 'Step back a day to the December 15th log.'
+          href: /journal/12-15/
+          icon: calendar
+        - title: 'Next · Dec 17'
+          copy: 'Jump ahead to the December 17th log.'
+          href: /journal/12-17/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   03:52AM
 
@@ -48,3 +89,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     We just spent a bunch of time trying to get the kubes upgraded from version `v1.30.7` to `v1.31.3`!
     This included some issues with the backups, in which, the VM Worker 4 was just way too heavy or large to backup. 
     Past noticing that specific issue, I already know that we need a new machine to migrate our backups to but that requires me to go to microcity to get that arranged.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

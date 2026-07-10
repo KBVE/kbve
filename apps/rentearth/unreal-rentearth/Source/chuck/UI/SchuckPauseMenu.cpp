@@ -1,9 +1,10 @@
 #include "SchuckPauseMenu.h"
 
 #include "ChuckUIStyle.h"
+#include "SKBVEButton.h"
+#include "KBVEUITheme.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
-#include "Widgets/Input/SButton.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SScaleBox.h"
@@ -33,7 +34,7 @@ void SchuckPauseMenu::Construct(const FArguments& InArgs)
 		[
 			SNew(SImage)
 			.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
-			.ColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.6f))
+			.ColorAndOpacity(KBVEUI::Theme::Color::Black.CopyWithNewOpacity(0.6f))
 		]
 
 		+ SOverlay::Slot()
@@ -122,16 +123,11 @@ TSharedRef<SWidget> SchuckPauseMenu::BuildMenuButton(
 {
 	const ISlateStyle& Style = FChuckUIStyle::Get();
 
-	return SNew(SButton)
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
+	return SNew(SKBVEButton)
+		.Text(Label)
+		.Font(Font)
 		.ContentPadding(Style.GetMargin(FChuckUIStyle::FKeys::Button_ContentPadding))
-		.OnClicked(ClickHandler)
-		[
-			SNew(STextBlock)
-			.Text(Label)
-			.Font(Font)
-		];
+		.OnClicked(ClickHandler);
 }
 
 FReply SchuckPauseMenu::HandleResume()

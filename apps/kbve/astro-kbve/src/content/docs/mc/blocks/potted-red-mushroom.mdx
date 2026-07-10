@@ -1,5 +1,6 @@
 ---
 title: Potted Red Mushroom
+template: splash
 description: |
     Minecraft Potted Red Mushroom — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 405
     ref: potted_red_mushroom
     slug: potted-red-mushroom
+    content_rev: 1
     display_name: Potted Red Mushroom
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
     best_tool: hand
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: red_mushroom
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Red Mushroom is a decorative variant created by placing
+            a Red Mushroom into a Flower Pot. It breaks instantly with any
+            tool or by hand, and returns both the pot and the mushroom as
+            separate items.
+        lore: |
+            Red Mushrooms have grown in Minecraft's dark, damp corners
+            since the earliest versions, doubling as a witch hut
+            decoration and a stew ingredient.
+    found_in:
+        - location: Witch huts
+          detail: Potted red mushrooms are a fixture of generated witch hut interiors.
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with a Red Mushroom places it inside.
+    faq:
+        - question: What does breaking Potted Red Mushroom drop?
+          answer: |
+              Both the Flower Pot and the Red Mushroom item, recoverable
+              instantly with any tool or bare hands.
+        - question: Where do Red Mushrooms normally spawn?
+          answer: |
+              In low light on grass or dirt, inside witch huts, dark
+              forests, and other dim overworld areas, plus underground
+              caves.
+        - question: Does it require a specific tool to mine?
+          answer: |
+              No. It has 0 hardness and breaks instantly with anything,
+              including bare hands.
+        - question: What is Red Mushroom used for besides decoration?
+          answer: |
+              It is a Mushroom Stew and Suspicious Stew ingredient, and
+              combines with Brown Mushroom to craft a Mushroom Stew
+              directly, or breeds Mooshrooms.
     data_version: "1.21.5"
 ---
 

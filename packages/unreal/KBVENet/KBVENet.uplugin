@@ -17,6 +17,34 @@
 			"Name": "KBVENet",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "KBVESimgrid",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "KBVESimgridRender",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "KBVESupabase",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEWorld",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVENPCDB",
+			"Enabled": true
 		}
 	]
 }

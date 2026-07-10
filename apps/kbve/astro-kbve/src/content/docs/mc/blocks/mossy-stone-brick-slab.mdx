@@ -1,5 +1,6 @@
 ---
 title: Mossy Stone Brick Slab
+template: splash
 description: |
     Minecraft Mossy Stone Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 780
     ref: mossy_stone_brick_slab
     slug: mossy-stone-brick-slab
+    content_rev: 1
     display_name: Mossy Stone Brick Slab
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mossy_stone_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Mossy Stone Brick Slab is the half-height slab form of Mossy
+            Stone Bricks, giving builders a moss-flecked, half-block surface
+            for steps and detailing that matches the ruined-portal aesthetic.
+        lore: |
+            It shares its release with the rest of the stone brick slab
+            family in 1.14, though Mossy Stone Bricks themselves date back to
+            Beta 1.8's stronghold and jungle temple generation.
+    uses:
+        - title: Decorative flooring and steps
+          ref: mossy_stone_brick_slab
+          detail: |
+              Two slabs stacked form a full block visually identical to
+              Mossy Stone Bricks, useful for half-height detailing in ruined
+              or overgrown builds.
+    found_in:
+        - location: Ruined portals
+          detail: Generates naturally as part of ruined portal structures in the Overworld.
+        - location: Crafted from Mossy Stone Bricks
+          detail: Three Mossy Stone Bricks in a row yield six slabs, or one block on a stonecutter yields two.
+    faq:
+        - question: What tool do I need to mine Mossy Stone Brick Slab?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without one drops
+              nothing.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes, always one Mossy Stone Brick Slab per layer, unaffected by
+              Silk Touch or Fortune.
+        - question: Where can I find this without crafting it?
+          answer: |
+              It generates naturally as part of ruined portals scattered
+              across the Overworld.
+        - question: Is Mossy Stone Brick Slab renewable?
+          answer: |
+              No. Mossy Stone Bricks themselves are not renewable, so the
+              slab crafted from them is not renewable either.
     data_version: "1.21.5"
 ---
 

@@ -1,11 +1,18 @@
 ---
+interface Section {
+	heading: string;
+	body: string;
+	anchor?: string;
+}
+
 interface Props {
 	text: string;
 	name: string;
 	examine?: string;
+	sections?: Section[];
 }
 
-const { text, name, examine } = Astro.props;
+const { text, name, examine, sections } = Astro.props;
 const paragraphs = text.split('\n\n').filter((p) => p.trim().length > 0);
 ---
 
@@ -27,6 +34,20 @@ const paragraphs = text.split('\n\n').filter((p) => p.trim().length > 0);
 			)
 		}
 		{paragraphs.map((p) => <p class="osrs-about__text">{p}</p>)}
+		{
+			sections &&
+				sections.map((s) => (
+					<div class="osrs-about__section" id={s.anchor}>
+						<h5 class="osrs-about__section-heading">{s.heading}</h5>
+						{s.body
+							.split('\n\n')
+							.filter((p) => p.trim().length > 0)
+							.map((p) => (
+								<p class="osrs-about__text">{p}</p>
+							))}
+					</div>
+				))
+		}
 	</div>
 </div>
 
@@ -83,5 +104,18 @@ const paragraphs = text.split('\n\n').filter((p) => p.trim().length > 0);
 
 	.osrs-about__text:last-child {
 		margin-bottom: 0;
+	}
+
+	.osrs-about__section {
+		margin-top: 0.75rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid var(--sl-color-gray-6);
+	}
+
+	.osrs-about__section-heading {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0 0 0.25rem;
 	}
 </style>

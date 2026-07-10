@@ -1,5 +1,6 @@
 ---
 title: Waxed Weathered Copper Door
+template: splash
 description: |
     Minecraft Waxed Weathered Copper Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1015
     ref: waxed_weathered_copper_door
     slug: waxed-weathered-copper-door
+    content_rev: 1
     display_name: Waxed Weathered Copper Door
     material: metal
     hardness: 3
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_weathered_copper_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            The Waxed Weathered Copper Door is a functional door frozen at
+            the weathered oxidation stage by a honeycomb coating. It opens
+            and closes for players, villagers, piglins, and redstone
+            signals just like any other door, but keeps its green-tinted
+            finish permanently.
+        lore: |
+            Copper doors let builders match a base's oxidized copper
+            roofing and trim without waiting years of in-game weathering
+            or risking a lightning strike reversing the patina.
+    uses:
+        - title: Redstone-operated entrance
+          ref: redstone
+          detail: |
+              Wire to a lever, pressure plate, or pulse circuit so the
+              door opens automatically; it also responds to direct
+              player interaction like a wooden door.
+    found_in:
+        - location: Trial Chambers
+          detail: |
+              Generates naturally as waxed doors at various oxidation
+              stages, including weathered, in vault and corridor rooms.
+        - location: Crafted from Weathered Copper
+          detail: |
+              Craft 3 unwaxed Weathered Copper Doors from 6 Weathered
+              Copper ingots in a 3x2 grid, then apply honeycomb to wax.
+    faq:
+        - question: Does the waxed weathered copper door still oxidize further?
+          answer: |
+              No. Once waxed with honeycomb it is permanently locked at
+              the weathered stage and will never progress to oxidized.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Lower-tier tools or bare hands
+              break the door without dropping it.
+        - question: Can mobs open this door?
+          answer: |
+              Villagers and piglins can open copper doors like wooden
+              ones, but zombies cannot break them down.
+        - question: Can I remove the wax to let it oxidize normally?
+          answer: |
+              No, waxed copper cannot be un-waxed. Craft an unwaxed
+              version instead if you want ongoing oxidation.
     data_version: "1.21.5"
 ---
 

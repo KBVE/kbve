@@ -1,6 +1,6 @@
 ---
 title: Chaos tiara | OSRS Price Data
-description: "Chaos tiara: A tiara infused with the properties of chaos.. High alch: 60 GP, GE limit: 40."
+description: "Chaos tiara: head-slot Runecraft item made from a tiara and chaos talisman for 42.5 XP; worn to enter the Chaos Altar without a talisman. High alch: 60 GP."
 osrs:
   id: 5543
   name: Chaos tiara
@@ -12,9 +12,74 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 40
-  mdx_version: 3
-  mdx_updated: "2026-06-04"
-  about: "Chaos tiara is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 40 per 4 hours."
+  about: "The chaos tiara is a head-slot Runecraft item created by using a tiara and a chaos talisman on the Chaos Altar, granting 42.5 Runecraft experience per craft at any Runecraft level. When worn it lets players enter the Chaos Altar with a left-click 'Enter' option, removing the need to carry a chaos talisman and freeing one inventory slot for runecrafting trips. It carries no combat bonuses, so its entire value is convenience for repeat chaos-rune runs."
+  equipment:
+    slot: head
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 42.5
+      facility: Chaos Altar
+      ticks: 1
+      product: Chaos tiara
+      materials:
+        - item_name: Tiara
+          quantity: 1
+        - item_name: Chaos talisman
+          quantity: 1
+  related_items:
+    - item_name: Tiara
+      slug: tiara
+      relationship: component
+      description: Base tiara enchanted at the Chaos Altar
+    - item_name: Chaos talisman
+      slug: chaos-talisman
+      relationship: component
+      description: Consumed when making the tiara; replaced by wearing it
+  market_strategy:
+    notes:
+      - "Value is convenience, not combat — demand from chaos-rune runecrafters"
+      - "Tight 40 buy limit keeps volume low; most players craft their own"
+      - "Tiara + chaos talisman input cost sets the price floor"
+  trading_tips:
+    - "Compare GE price to tiara + chaos talisman cost before buying pre-made"
+    - "Each craft gives 42.5 Runecraft XP — minor early-level training bonus"
+  trivia:
+    - "Wearing the chaos tiara frees the inventory slot a chaos talisman would otherwise occupy."
+    - "Accessing the Chaos Altar through Guardians of the Rift cannot be used to make the tiara."
+  faq:
+    - question: How do you make a chaos tiara?
+      answer: "Use a tiara and a chaos talisman on the Chaos Altar. This consumes both items and grants 42.5 Runecraft experience, with no Runecraft level requirement."
+    - question: What does the chaos tiara do when worn?
+      answer: "Worn in the head slot, it lets you enter the Chaos Altar with a left-click 'Enter' option, removing the need to carry a chaos talisman and freeing one inventory slot."
+    - question: Does the chaos tiara have any combat stats?
+      answer: "No. All of its bonuses are +0 — its only value is convenience for chaos-rune runecrafting."
+    - question: Is the chaos tiara members-only?
+      answer: "Yes. The chaos tiara is a members-only item."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Chaos_tiara"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  url: https://kbve.com/osrs/chaos-tiara/
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

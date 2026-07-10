@@ -1,0 +1,10 @@
+---
+import type { ComponentProps } from 'react';
+import { Timeline } from '@kbve/rn-astro';
+type Props = ComponentProps<typeof Timeline>;
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<Timeline client:only="react" {...props} />
+</div>

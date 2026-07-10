@@ -1,5 +1,6 @@
 ---
 title: Spruce Boat with Chest
+template: splash
 description: |
     Minecraft Spruce Boat with Chest — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 813
     ref: spruce_chest_boat
     slug: spruce-chest-boat
+    content_rev: 1
     display_name: Spruce Boat with Chest
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Spruce Boat with Chest combines a spruce boat with an attached chest, providing 27 slots of portable storage while ferrying a single passenger across water. It is crafted by combining any chest with a matching spruce boat at a crafting table.
+            It can be connected to hoppers for automated unloading and is compatible with leads, but it carries only one entity at a time since the chest takes up the second passenger slot.
+        lore: |
+            A trader's favorite, this reinforced spruce hull hauls both cargo and captain across the waterways.
+    faq:
+        - question: How do you craft a Spruce Boat with Chest?
+          answer: |
+              Combine any chest with a spruce boat at a crafting table; the two ingredients merge into a single Spruce Boat with Chest item.
+        - question: How much storage does a Spruce Boat with Chest have?
+          answer: |
+              It holds the equivalent of a single chest, giving 27 inventory slots for items while it floats or drifts across water.
+        - question: How many passengers can ride in it?
+          answer: |
+              Only one entity can ride in a Spruce Boat with Chest, compared to two in a regular boat, since the built-in chest occupies the extra space.
+        - question: Can hoppers interact with a Spruce Boat with Chest?
+          answer: |
+              Yes, hoppers placed adjacent to or beneath the boat can automatically insert or extract items from its chest inventory.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

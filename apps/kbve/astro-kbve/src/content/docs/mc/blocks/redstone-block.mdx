@@ -1,5 +1,6 @@
 ---
 title: Block of Redstone
+template: splash
 description: |
     Minecraft Block of Redstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 443
     ref: redstone_block
     slug: redstone-block
+    content_rev: 1
     display_name: Block of Redstone
     material: redstone
     hardness: 5
@@ -24,10 +26,60 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: redstone_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Block of Redstone is a compact storage block equivalent to
+            nine Redstone Dust. It also acts as an always-on redstone
+            power source with signal strength 15 to directly adjacent
+            blocks, without needing a separate power source.
+        lore: |
+            Added in Java Edition 1.5, the Block of Redstone gave players
+            a way to store large amounts of redstone dust compactly.
+    uses:
+        - title: Redstone Dust
+          ref: redstone
+          detail: |
+              Craft a Block of Redstone alone in a crafting grid to
+              recover 9 Redstone Dust.
+        - title: Constant Power Source
+          ref: redstone_torch
+          detail: |
+              Placed adjacent to redstone components, it supplies a
+              constant signal strength of 15 without needing a torch or
+              other power source.
+    found_in:
+        - location: Crafting
+          detail: Craft from 9 Redstone Dust arranged in a full 3x3 grid.
+        - location: Ancient Cities
+          detail: A small number generate as part of redstone circuitry within ancient city structures.
+    faq:
+        - question: What tool do I need to mine a Block of Redstone?
+          answer: |
+              Any pickaxe. Mining without a pickaxe drops nothing.
+        - question: Does a Block of Redstone emit a redstone signal?
+          answer: |
+              Yes, it acts as a permanent power source with signal
+              strength 15 to blocks it directly touches.
+        - question: Can I craft it back into Redstone Dust?
+          answer: |
+              Yes, crafting one Block of Redstone alone in a grid yields
+              9 Redstone Dust.
+        - question: Is Block of Redstone renewable?
+          answer: |
+              Yes, since Redstone Dust itself is renewable through
+              trading and farming.
     data_version: "1.21.5"
 ---
 

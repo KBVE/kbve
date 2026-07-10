@@ -1,5 +1,6 @@
 ---
 title: Acacia Fence
+template: splash
 description: |
     Minecraft Acacia Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 608
     ref: acacia_fence
     slug: acacia-fence
+    content_rev: 1
     display_name: Acacia Fence
     material: wood
     hardness: 2
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Acacia Fence is a barrier block that stands 1.5 blocks tall,
+            taller than a solid block jump, and visually connects to
+            adjacent fences of the same type to form a continuous line.
+        lore: |
+            The four-plank-and-two-stick fence recipe replaced the original
+            six-stick recipe in Java Edition 1.8 (14w32b), tying each
+            fence's look to its wood type.
+    uses:
+        - title: Animal Pens
+          ref: acacia_fence
+          detail: |
+              Encloses livestock and farms; mobs cannot jump over it, unlike
+              most solid blocks.
+        - title: Decorative Posts
+          ref: acacia_fence
+          detail: |
+              Supports attached torches, leads tied to hitched animals, and
+              connects seamlessly with matching fence gates.
+    found_in:
+        - location: Crafting
+          detail: Four acacia planks plus two sticks craft three acacia fences.
+        - location: Villages and Mineshafts
+          detail: Generates naturally around village pens, mineshaft rails, and woodland mansions.
+    faq:
+        - question: What tool mines an acacia fence fastest?
+          answer: |
+              An axe, though it can be broken by hand or any tool since no
+              minimum tier is required.
+        - question: Is acacia fence flammable?
+          answer: |
+              Yes, like most Overworld wood fences it can catch fire and burn,
+              unlike the crimson, warped, or nether-wood variants.
+        - question: Can mobs jump over an acacia fence?
+          answer: |
+              No, fences are 1.5 blocks tall, which is enough to stop most
+              mobs and players from jumping over.
+        - question: Does it connect to glass panes or iron bars?
+          answer: |
+              No, fences only visually connect to other fences and fence
+              gates, not to panes or bars.
     data_version: "1.21.5"
 ---
 

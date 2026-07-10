@@ -1,5 +1,6 @@
 ---
 title: Green Bundle
+template: splash
 description: |
     Minecraft Green Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 988
     ref: green_bundle
     slug: green-bundle
+    content_rev: 1
     display_name: Green Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Green Bundle is a portable storage item that lets a single inventory slot hold a
+            mix of different item types, made by dyeing a plain Bundle green. Items take up
+            space proportional to their normal stack size, so it can carry far more variety
+            than a regular slot.
+        lore: |
+            Bundles are said to be inspired by the coin purses carried in ancient Rome.
+    faq:
+        - question: How do I craft a Green Bundle?
+          answer: |
+              Combine a Bundle (1 String + 1 Leather) with Green Dye in a crafting grid.
+        - question: Does a bundle increase my total inventory capacity?
+          answer: |
+              No. It only lets you organize multiple item types into one slot; the total
+              storage limit stays the same as a normal stack.
+        - question: Can I put a Shulker Box inside a Green Bundle?
+          answer: |
+              No. Shulker boxes cannot be placed inside bundles, though a bundle can be stored
+              inside a shulker box.
+        - question: How do I retrieve items from a Green Bundle?
+          answer: |
+              Right-click the bundle to take out the most recently added item, or use the
+              appropriate control to select a specific item first.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

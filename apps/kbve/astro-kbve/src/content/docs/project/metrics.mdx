@@ -1,11 +1,7 @@
 ---
-title: Metrics
-description: |
-    Metrics — in-house observability platform (self-hosted Sentry / Datadog / PostHog).
-    A scoped Rust/Axum ingest service that captures client telemetry into a dedicated
-    ClickHouse `telemetry` database. One pipeline, three lenses (errors / perf / product)
-    over a wide table correlated by session_id; the `platform` field keeps it
-    client-agnostic so web, Unreal, Unity and other games all feed one pipe.
+title: Metrics — In-House Observability & Telemetry Platform
+description: Metrics is KBVE's in-house observability platform, a Rust/axum service ingesting client telemetry into a self-hosted ClickHouse database.
+sem: 1
 sidebar:
     label: Metrics
     order: 51
@@ -24,7 +20,7 @@ tags:
 key: metrics
 pipeline: docker
 app_name: metrics
-version: "0.1.4"
+version: "0.1.5"
 source_path: apps/metrics
 version_toml: apps/metrics/version.toml
 version_target: apps/metrics/Cargo.toml
@@ -43,16 +39,94 @@ kube:
     tier: database
     owner: h0lybyte
     criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the Metrics service?
+          answer: Metrics (apps/metrics) is KBVE's in-house observability platform, a scoped Rust/axum service that ingests client telemetry into a self-hosted ClickHouse telemetry database. It replaces SaaS tooling like Sentry, Datadog, and PostHog with one pipeline exposing errors, performance, and product lenses over a single wide table correlated by session_id.
+        - question: How does the Metrics ingest pipeline work?
+          answer: The browser SDK @kbve/observ POSTs to metrics.kbve.com/api/v1/ingest, the axum service on port 5500 reuses the shared jedi ClickHouse client to batch JSONEachRow inserts via a tokio mpsc flusher, and rows land in telemetry.errors_distributed. Requests are CORS-allowlisted, rate-limited, body-capped, and PII-sanitized.
+        - question: How is Metrics client-agnostic across web and game clients?
+          answer: A platform field (web, unreal, unity, and more) lets every client feed the same pipe, so the errors lens built for the frontend extends to Unreal and Unity game clients with no schema changes.
+bento:
+    badge: rust · axum · observability · clickhouse · telemetry · docker
+    title: In-house telemetry pipeline
+    accent: Metrics
+    lede: >-
+        KBVE's in-house observability platform — a scoped Rust/axum service that
+        ingests client telemetry into a self-hosted ClickHouse database,
+        replacing Sentry, Datadog, and PostHog with one pipeline over a single
+        wide table.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/metrics
+          primary: true
+          external: true
+        - label: Ingest pipeline
+          href: "#pipeline"
+        - label: Deployment
+          href: "#deployment"
+    aside:
+        icon: chart
+        title: Three lenses, one table
+        body: >-
+            One pipeline exposes <strong>errors</strong>,
+            <strong>performance</strong>, and <strong>product</strong> lenses
+            over a single wide table correlated by <code>session_id</code> — no
+            SaaS error/metrics tooling.
+        points:
+            - <strong>Sink</strong> — telemetry.errors_distributed on ClickHouse.
+            - <strong>Grouping</strong> — sha256(project + type + top-5 frames).
+    stats:
+        - { label: App, value: metrics, icon: server }
+        - { label: Stack, value: 'Rust + axum', icon: rust }
+        - { label: Sink, value: ClickHouse, icon: database }
+        - { label: Listen, value: 'port 5500', icon: activity }
+    features:
+        - title: Three lenses over one table
+          icon: chart
+          body: Errors, performance, and product views over a single wide table correlated by session_id, replacing Sentry / Datadog / PostHog.
+        - title: Off-thread batched inserts
+          icon: zap
+          body: A background tokio mpsc flusher batches rows by size and interval through the shared jedi ClickHouse client — no new database plumbing.
+        - title: Hardened ingest
+          icon: shield
+          body: Requests are CORS-allowlisted, per-IP rate-limited, body-capped, and run through a noise/PII sanitizer before insert.
+        - title: Client-agnostic
+          icon: expand
+          body: A platform field (web / unreal / unity / …) lets every client feed the same pipe, so the errors lens extends to game clients with no schema changes.
+    related:
+        - title: Jedi
+          href: /project/jedi-crate/
+          copy: The shared crate whose ClickHouse client Metrics reuses for inserts.
+          icon: package
+        - title: Unity RareIcon
+          href: /project/unity-rareicon/
+          copy: A game client that feeds telemetry into Metrics.
+          icon: box
+    related_heading: Related
 ---
 
-## Metrics — in-house observability
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="What it is" heading="In-house observability">
 
 `apps/metrics` is a scoped Rust/Axum service that ingests client telemetry into a
 self-hosted ClickHouse `telemetry` database. It replaces SaaS error/metrics tooling
 (Sentry / Datadog / PostHog) with one pipeline that exposes three lenses — errors,
 performance, and product — over a single wide table correlated by `session_id`.
 
-### Pipeline
+</BentoProse>
+
+<BentoProse id="pipeline" eyebrow="Ingest path" heading="Pipeline">
 
 ```
 @kbve/observ (browser SDK)
@@ -75,9 +149,15 @@ The `platform` field (`web` / `unreal` / `unity` / …) lets every client feed t
 same pipe, so the errors lens shipped for the frontend extends to game clients
 without schema changes.
 
-### Deployment
+</BentoProse>
+
+<BentoProse id="deployment" eyebrow="Runtime" heading="Deployment">
 
 Runs in the `kbve` namespace behind the Cilium Gateway at `metrics.kbve.com`,
 reusing the existing `clickhouse-credentials` ExternalSecret. Schema setup is a
 job in the `vector` namespace that creates the `telemetry` database, the
 `errors_raw` / `errors_distributed` tables, and the `error_groups` view.
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Jungle Hanging Sign
+template: splash
 description: |
     Minecraft Jungle Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 226
     ref: jungle_hanging_sign
     slug: jungle-hanging-sign
+    content_rev: 1
     display_name: Jungle Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Jungle Hanging Sign is a writable sign that suspends from the
+            underside of a block or chain rather than standing on the
+            ground. It can be attached to ceilings, other hanging signs, or
+            wall-mounted like a normal sign, and supports the same text and
+            glow-ink customization as other signs.
+        lore: |
+            Hanging signs were conceptualized by developer Agnes Larsson
+            with input from her daughter and introduced in Java Edition
+            1.20.
+    uses:
+        - title: Shop & Direction Signage
+          ref: jungle_hanging_sign
+          detail: |
+              Used to label stalls, room entries, and paths, since the
+              hanging orientation reads well beneath archways and
+              storefronts.
+        - title: Chain-Mounted Decor
+          ref: chain
+          detail: |
+              Pairs naturally with Chains for suspended, lantern-style
+              signage above doorways.
+    found_in:
+        - location: Crafted from Stripped Jungle Log
+          detail: 2 Chains + 6 Stripped Jungle Logs (or stems/bamboo blocks) craft 6 hanging signs.
+        - location: Trial Chambers & Trail Ruins
+          detail: Generates as decoration/loot in these structures.
+    faq:
+        - question: Does breaking the support block destroy the sign?
+          answer: |
+              Yes, unless it is wall-mounted — removing, moving, or
+              destroying the block a hanging sign is attached to breaks it
+              and drops it as an item.
+        - question: Is Jungle Hanging Sign flammable?
+          answer: |
+              No. Despite being made of wood, hanging signs do not burn.
+        - question: What materials does crafting one require?
+          answer: |
+              2 Iron Chains plus 6 matching Stripped Jungle Logs, yielding 6
+              hanging signs per craft.
+        - question: Does Fortune or Silk Touch affect its drop?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

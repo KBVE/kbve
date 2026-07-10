@@ -1,5 +1,6 @@
 ---
 title: Stripped Oak Log
+template: splash
 description: |
     Minecraft Stripped Oak Log — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 148
     ref: stripped_oak_log
     slug: stripped-oak-log
+    content_rev: 1
     display_name: Stripped Oak Log
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Stripped Oak Log is the bark-removed variant of the Oak Log, made by using an
+            axe on a placed log while sneaking. It exposes the pale wood grain underneath
+            and is used identically to a regular log for crafting planks, fuel, and
+            decorative building.
+        lore: |
+            A stripping motion with an axe peels away the bark, revealing the smooth wood beneath.
+    faq:
+        - question: How do you make a Stripped Oak Log?
+          answer: |
+              Use any axe on a placed Oak Log while sneaking (holding shift) so you strip
+              the bark instead of stripping and then breaking it.
+        - question: Is the stripping process reversible?
+          answer: |
+              No, once an Oak Log has been stripped it cannot be turned back into a
+              regular Oak Log with bark.
+        - question: What can Stripped Oak Log be used for?
+          answer: |
+              It crafts into Stripped Oak Wood and Oak Planks, works as furnace or smoker
+              fuel, and is a common decorative building block.
+        - question: Does stripping change the block's hardness or flammability?
+          answer: |
+              No, a Stripped Oak Log keeps the same hardness of 2 and remains flammable
+              just like a regular Oak Log.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

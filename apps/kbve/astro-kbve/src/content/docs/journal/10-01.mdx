@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&c
 description: October 1st. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 1,'
+    accent: every year.
+    lede: 'The October 1st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 30'
+          href: /journal/09-30/
+        - label: 'Oct 2 →'
+          href: /journal/10-02/
+    related:
+        - title: 'Previous · Sep 30'
+          copy: 'Step back a day to the September 30th log.'
+          href: /journal/09-30/
+          icon: calendar
+        - title: 'Next · Oct 2'
+          copy: 'Jump ahead to the October 2nd log.'
+          href: /journal/10-02/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693298661836-1206649639ef?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### OCT CC Payments
 
@@ -25,8 +66,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     However this is still an issue for me to automate, so I will look further into that either next month or try a bit of a different approach.
     I should look more into the linuxserver image deployments, with how they are handling the VNC through the kubernetes.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Redis**
 
@@ -168,17 +216,27 @@ Overall, if everything goes as planned, then we should be close to having our se
 While I am doing the postgres schemas, I had to double check all our accounts because we need to make sure that everything has been cleaned up.
 I want to make sure that there are no open credits.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 NULL
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Habit, if not resisted, soon becomes necessity.
 > — <cite>Augustine of Hippo</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

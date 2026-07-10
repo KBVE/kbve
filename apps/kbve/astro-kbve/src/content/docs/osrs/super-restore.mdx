@@ -1,0 +1,128 @@
+---
+title: Super restore | OSRS Price Data
+description: "Super restore(4) is a 4-dose members potion that restores 8-32 prayer points and all reduced stats except hitpoints. High alch: 180 GP, GE limit: 2,000."
+osrs:
+  id: 3024
+  name: Super restore
+  slug: super-restore
+  examine: 4 doses of super restore potion.
+  members: true
+  icon: Super restore(4).png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 2000
+  potion:
+    doses: 4
+    herblore_level: 63
+    herblore_xp: 142.5
+    effect: Restores 8-32 Prayer points per dose and also restores all other lowered stats except Hitpoints
+    effects:
+      - stat: prayer
+        boost_formula: 8 + floor(level / 4)
+  recipes:
+    - skill: herblore
+      level: 63
+      xp: 142.5
+      materials:
+        - item_name: Snapdragon potion (unf)
+          item_id: 3002
+          quantity: 1
+        - item_name: Red spiders' eggs
+          item_id: 223
+          quantity: 1
+      product: Super restore(4)
+      product_id: 3024
+      product_quantity: 1
+      ticks: 2
+      members_only: true
+  related_items:
+    - item_id: 3000
+      item_name: Snapdragon
+      slug: snapdragon
+      relationship: component
+      description: Primary herb ingredient
+    - item_id: 223
+      item_name: Red spiders' eggs
+      slug: red-spiders-eggs
+      relationship: component
+      description: Secondary ingredient
+    - item_id: 2434
+      item_name: Prayer potion(4)
+      slug: prayer-potion-4
+      relationship: alternative
+      description: Cheaper alternative (prayer only)
+    - item_id: 10925
+      item_name: Sanfew serum(4)
+      slug: sanfew-serum-4
+      relationship: upgrade
+      description: Also cures poison/venom
+    - item_id: 3026
+      item_name: Super restore(3)
+      slug: super-restore-3
+      relationship: variant
+      description: 3-dose version
+  about: Super restore(4) is a four-dose members potion that restores Prayer points along with any other lowered stats except Hitpoints, making it the go-to recovery potion for raids and high-level PvM where stat drain is common. It is preferred over prayer potions because a single drink refills both Prayer and drained combat or skill levels, saving inventory space during long encounters. Crafting one requires level 63 Herblore by combining a snapdragon potion (unf) with red spiders' eggs for 142.5 experience.
+  market_strategy:
+    profit_formulas:
+      - "Super restore(4) - Snapdragon - Red spiders' eggs - Vial of water = profit margin"
+    notes:
+      - Super restore(4) typically holds a higher margin than prayer potions due to consistent raid and PvM demand.
+      - The premium over prayer potions reflects the added utility of restoring drained combat and skill stats in a single dose.
+      - Compare 4-dose and 3-dose prices regularly, as decanting between them can produce profit in either direction.
+      - Watch relative margins against prayer potion(4) to spot arbitrage opportunities when PvM activity spikes.
+  family_ref:
+    family_slug: super-restore
+    role: base
+  family:
+    slug: super-restore
+    name: Super restore
+    type: dose
+    canonical_id: 3024
+    members:
+    - id: 3024
+      slug: super-restore
+      name: Super restore
+      icon: Super restore(4).png
+      role: base
+      dose: null
+      value: 300
+      lowalch: 120
+      highalch: 180
+    - id: 3030
+      slug: super-restore-1
+      name: Super restore(1)
+      icon: Super restore(1).png
+      role: dose
+      dose: 1
+      value: 120
+      lowalch: 48
+      highalch: 72
+    - id: 3028
+      slug: super-restore-2
+      name: Super restore(2)
+      icon: Super restore(2).png
+      role: dose
+      dose: 2
+      value: 180
+      lowalch: 72
+      highalch: 108
+    - id: 3026
+      slug: super-restore-3
+      name: Super restore(3)
+      icon: Super restore(3).png
+      role: dose
+      dose: 3
+      value: 240
+      lowalch: 96
+      highalch: 144
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

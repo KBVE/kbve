@@ -1,5 +1,6 @@
 ---
 title: Raw Salmon
+template: splash
 description: |
     Minecraft Raw Salmon — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 996
     ref: salmon
     slug: salmon
+    content_rev: 1
     display_name: Raw Salmon
     category: food
     rarity: common
@@ -22,6 +24,30 @@ mc_item:
         saturation: 1.6
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Raw Salmon is an edible fish item that restores 2 hunger points and a small amount
+            of saturation when eaten. It is obtained by fishing, killing salmon mobs, looting
+            village or bonus chests, or trading with fisherman villagers, and it can be smelted
+            or campfire-cooked into the more nutritious Cooked Salmon.
+        lore: |
+            A silvery river fish prized as much for feeding hungry wolves and cats as for feeding hungry players.
+    faq:
+        - question: How much hunger does Raw Salmon restore?
+          answer: |
+              It restores 2 hunger points and 0.4 saturation, making it less filling than the
+              cooked version.
+        - question: What is Raw Salmon useful for besides eating?
+          answer: |
+              It can tame and breed cats and ocelots, heal tamed wolves, and feed dolphins to
+              have them lead you to shipwrecks or ruins.
+        - question: Is Raw Salmon renewable?
+          answer: |
+              Yes, it is renewable through fishing and through trading with fisherman villagers.
+        - question: Should I cook Raw Salmon before eating it?
+          answer: |
+              Cooking it into Cooked Salmon is recommended since the cooked form restores more
+              hunger and saturation for the same single item.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

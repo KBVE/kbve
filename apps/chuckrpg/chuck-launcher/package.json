@@ -10,6 +10,7 @@
 		"tauri": "tauri"
 	},
 	"dependencies": {
+		"@kbve/observ": "workspace:*",
 		"@kbve/tauri": "workspace:*",
 		"@tauri-apps/api": "^2.0.0",
 		"@tauri-apps/plugin-deep-link": "^2.0.0",

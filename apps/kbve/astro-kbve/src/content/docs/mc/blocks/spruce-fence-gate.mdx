@@ -1,5 +1,6 @@
 ---
 title: Spruce Fence Gate
+template: splash
 description: |
     Minecraft Spruce Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 596
     ref: spruce_fence_gate
     slug: spruce-fence-gate
+    content_rev: 1
     display_name: Spruce Fence Gate
     material: wood
     hardness: 2
@@ -21,13 +23,67 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - redstone_component
+    about:
+        description: |
+            Spruce Fence Gate is a switchable barrier that combines the
+            function of a door and a fence, letting players pass through
+            fence lines without climbing over them.
+        lore: |
+            Fence gates were shown publicly at PAX Prime in 2010 before
+            their official release, with wood-specific textures added later.
+    uses:
+        - title: Fence Line Passage
+          ref: spruce_fence
+          detail: |
+              Placed within a run of Spruce Fence, it opens and closes to
+              let players and mobs through while blocking them when shut.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              As an Overworld wood type, it can be smelted as furnace fuel
+              like other spruce wood items.
+    found_in:
+        - location: Crafting
+          detail: |
+              Crafted from 2 Spruce Planks and 2 Sticks in a specific
+              crossed pattern on a crafting table.
+        - location: Taiga Villages
+          detail: |
+              Generates as part of fenced yards and paddocks in spruce
+              taiga village structures.
+    faq:
+        - question: Do open fence gates block entities?
+          answer: |
+              No. An open fence gate has no collision, so mobs and players
+              pass through freely; only a closed gate blocks movement.
+        - question: Can I open a Spruce Fence Gate with redstone?
+          answer: |
+              Yes, a redstone signal toggles it open or closed just like
+              manual right-clicking.
+        - question: Does Spruce Fence Gate connect to fences?
+          answer: |
+              It visually joins with adjacent Spruce Fence and wall blocks,
+              forming a continuous barrier line.
+        - question: Is Spruce Fence Gate affected by Fortune?
+          answer: |
+              No. It always drops exactly one fence gate regardless of tool
+              enchantments.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Redstone Lamp
+template: splash
 description: |
     Minecraft Redstone Lamp — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 710
     ref: redstone_lamp
     slug: redstone-lamp
+    content_rev: 1
     display_name: Redstone Lamp
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Redstone Lamp is a switchable light source crafted from redstone dust and glowstone
+            that only shines when it receives a redstone signal. It turns on instantly but has a
+            short delay before turning off, and it generates naturally as part of ancient city
+            structures.
+        lore: |
+            A glowstone globe wired for redstone, dark until a signal calls it to life.
+    faq:
+        - question: How do you craft a Redstone Lamp?
+          answer: |
+              Combine one glowstone block with four redstone dust in a crafting grid to produce one
+              redstone lamp.
+        - question: How bright is a Redstone Lamp when active?
+          answer: |
+              An active redstone lamp emits light level 15, the maximum block light level, while an
+              inactive lamp produces no light at all.
+        - question: Is there a delay when a Redstone Lamp turns off?
+          answer: |
+              Yes. It lights up instantly when powered but takes about 4 game ticks (0.2 seconds) in
+              Java Edition, or 6 ticks in Bedrock Edition, to go dark after power is removed.
+        - question: Where can Redstone Lamps be found without crafting?
+          answer: |
+              Redstone lamps generate naturally as part of the redstone contraptions found inside
+              ancient city structures.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

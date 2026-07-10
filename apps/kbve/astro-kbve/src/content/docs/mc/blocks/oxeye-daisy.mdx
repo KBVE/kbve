@@ -1,5 +1,6 @@
 ---
 title: Oxeye Daisy
+template: splash
 description: |
     Minecraft Oxeye Daisy — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 167
     ref: oxeye_daisy
     slug: oxeye-daisy
+    content_rev: 1
     display_name: Oxeye Daisy
     material: plant
     hardness: 0
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oxeye_daisy
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - plant
+        - overworld
+    about:
+        description: |
+            Oxeye Daisy is a white-and-yellow flower that generates in
+            plains, sunflower plains, flower forest, and meadow biomes. It
+            breaks instantly with any tool and is used for light gray dye.
+        lore: |
+            Its real-world namesake, the ox-eye daisy, is also known as the
+            "moon daisy" in parts of Canada and the UK.
+    uses:
+        - title: Light Gray Dye
+          ref: light_gray_dye
+          detail: |
+              Craft an Oxeye Daisy alone in a crafting grid to produce 1
+              Light Gray Dye.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Brewed into Suspicious Stew, it grants Regeneration, restoring
+              2 health points over a short duration.
+    found_in:
+        - location: Plains and Sunflower Plains
+          detail: Generates scattered across grass in these biomes.
+        - location: Flower Forest and Meadow
+          detail: Common as part of the dense mixed-flower generation.
+    faq:
+        - question: What tool do I need to pick an Oxeye Daisy?
+          answer: |
+              None. Any tool or bare hands breaks it instantly and drops
+              the flower.
+        - question: What dye does Oxeye Daisy make?
+          answer: |
+              Light Gray Dye, despite the flower's mostly white petals.
+        - question: Can I use it in Suspicious Stew?
+          answer: |
+              Yes, it grants a brief Regeneration effect when brewed.
+        - question: Where do Oxeye Daisies grow?
+          answer: |
+              Plains, sunflower plains, flower forest, and meadow biomes,
+              rarely also dripstone caves and the deep dark.
     data_version: "1.21.5"
 ---
 

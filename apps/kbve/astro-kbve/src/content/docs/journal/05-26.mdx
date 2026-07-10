@@ -9,13 +9,52 @@ description: |
    May 26th. Where is my brain? xD
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 26,'
+    accent: every year.
+    lede: 'The May 26th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← May 25'
+          href: /journal/05-25/
+        - label: 'May 27 →'
+          href: /journal/05-27/
+    related:
+        - title: 'Previous · May 25'
+          copy: 'Step back a day to the May 25th log.'
+          href: /journal/05-25/
+          icon: calendar
+        - title: 'Next · May 27'
+          copy: 'Jump ahead to the May 27th log.'
+          href: /journal/05-27/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1684336177286-f215831afc17?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Unity Custom Item Script
 
@@ -101,9 +140,15 @@ graph TD
 
     
 
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **MTG**
 
@@ -111,21 +156,29 @@ Meeting up to play my trump deck!
 I did not get a chance to turn it into a commander deck, but I will do that in June!
 Ugh, summer is already here? Time is moving way too fast.
 
+</BentoProse>
 
-## 2023
-
+<BentoProse id="2023" heading="2023">
 
 - The time stamps are a bit messy for this note because there were a couple failures during the migration to the newer journal system. 
 - The Asynchronous loading seems to be working fine within our first test case inside of Unity but it automatically replaces the cut scene window. So I am thinking we need a button within the loader that the user presses again to go to actually enter the level, I am thinking of calling it `Skip` or `Next` which will be disabled initially on load and then enabled once the asynchronous function has loaded the next scene. 
 - Besides spending time on the Unity project, I decided to go back into the rs project which I believe I will go ahead and end for the time being. I will return to that aspect once I get a couple concepts clear up from my plate. I believe that I am spreading myself a bit too thin for the current amount of work and backlog.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > I have not failed. I've just found 10,000 ways that won't work.
 > — <cite>Thomas Edison</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Test case the asynchronous unity loader with the visual novel cut scenes.
+
+</BentoProse>
+
+</BentoDoc>

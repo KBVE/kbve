@@ -1,5 +1,6 @@
 ---
 title: Wet Sponge
+template: splash
 description: |
     Minecraft Wet Sponge — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 194
     ref: wet_sponge
     slug: wet-sponge
+    content_rev: 1
     display_name: Wet Sponge
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A wet sponge is the water-saturated form of a sponge, created when a dry sponge absorbs nearby water blocks. It drips water particles while in this state and cannot be reused to soak up more water until it is dried out again.
+            Wet sponges dry instantly in the Nether with a burst of steam, or can be smelted in a furnace to return them to their dry form.
+        lore: |
+            A once-thirsty block, still dripping from the ocean depths it drained dry.
+    faq:
+        - question: How do I get a wet sponge?
+          answer: |
+              Wet sponges are created automatically when a dry sponge placed near water absorbs up to 118 nearby water blocks, or they can be looted directly from ocean monument sponge rooms and Elder Guardian drops.
+        - question: How do I dry a wet sponge?
+          answer: |
+              Smelt it in a furnace, or simply carry it into the Nether, where it dries instantly with a steam effect. In Bedrock Edition it can also dry out slowly in dry biomes.
+        - question: Can a wet sponge absorb more water?
+          answer: |
+              No. A sponge must be dried back into its normal form before it can absorb water again.
+        - question: Is the wet sponge renewable?
+          answer: |
+              No, sponges are non-renewable in vanilla survival — the only sources are ocean monuments and Elder Guardian kills.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

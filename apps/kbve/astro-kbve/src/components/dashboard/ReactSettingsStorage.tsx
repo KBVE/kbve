@@ -1,3 +1,9 @@
+/**
+ * @deprecated Cleaned up 2026-07 — /dashboard/account now renders the unified
+ * RN AccountScreen from @kbve/rn (web + mobile, one component). This legacy
+ * account surface is no longer mounted anywhere. Do not extend it; port any
+ * remaining pieces (wallet / market / referral) into @kbve/rn, then delete.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { Trash2, RefreshCw, Loader2 } from 'lucide-react';
 import {
@@ -22,6 +28,7 @@ interface StorageEstimate {
 export default function ReactSettingsStorage() {
 	const [clearing, setClearing] = useState(false);
 	const [cleared, setCleared] = useState(false);
+	const [refreshing, setRefreshing] = useState(false);
 	const [estimate, setEstimate] = useState<StorageEstimate | null>(null);
 	const [lsCount, setLsCount] = useState(0);
 
@@ -49,6 +56,13 @@ export default function ReactSettingsStorage() {
 	useEffect(() => {
 		refreshStats();
 	}, [refreshStats]);
+
+	const handleRefresh = useCallback(() => {
+		if (refreshing) return;
+		setRefreshing(true);
+		refreshStats();
+		setTimeout(() => setRefreshing(false), 600);
+	}, [refreshing, refreshStats]);
 
 	const handleClear = useCallback(async () => {
 		if (
@@ -153,9 +167,23 @@ export default function ReactSettingsStorage() {
 					)}
 					{clearing ? 'Clearing...' : 'Clear All Data'}
 				</button>
-				<button onClick={refreshStats} style={secondaryButtonStyle}>
-					<RefreshCw size={14} />
-					Refresh
+				<button
+					onClick={handleRefresh}
+					disabled={refreshing}
+					style={{
+						...secondaryButtonStyle,
+						opacity: refreshing ? 0.7 : 1,
+						cursor: refreshing ? 'wait' : 'pointer',
+					}}>
+					<RefreshCw
+						size={14}
+						style={
+							refreshing
+								? { animation: 'spin 1s linear infinite' }
+								: {}
+						}
+					/>
+					{refreshing ? 'Refreshing...' : 'Refresh'}
 				</button>
 			</div>
 

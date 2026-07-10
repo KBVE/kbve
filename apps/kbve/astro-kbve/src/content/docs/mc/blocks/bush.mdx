@@ -1,5 +1,6 @@
 ---
 title: Bush
+template: splash
 description: |
     Minecraft Bush — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 133
     ref: bush
     slug: bush
+    content_rev: 1
     display_name: Bush
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bush
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+        - non_solid
+        - biome_colored
+    about:
+        description: |
+            Bush is a decorative plant block whose foliage color matches
+            the surrounding grass, found in forests, plains, and windswept
+            biomes. It only drops itself when broken with shears or a
+            Silk Touch tool.
+        lore: |
+            Bush was added in Java Edition snapshot 25w05a (1.21.5) as
+            small atmospheric ground clutter, reaching Bedrock Edition in
+            version 1.21.70.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Bushes can be placed in a composter, with roughly a 30%
+              chance of producing bone meal, same as most small plants.
+    found_in:
+        - location: Forests, plains, and windswept biomes
+          detail: Generates naturally on grass, dirt, mycelium, podzol, farmland, mud, or moss blocks in forests, river shores, plains, and windswept hills/gravelly hills/forests.
+        - location: Abandoned camps
+          detail: Also appears as decoration in abandoned camp structures found in birch, flower, and regular forests.
+    faq:
+        - question: What tool do I need to collect a Bush?
+          answer: |
+              Shears are the fastest tool and the only way, along with
+              Silk Touch, to make it drop itself — breaking it any other
+              way yields nothing.
+        - question: Why does my Bush look a different color elsewhere?
+          answer: |
+              Bush foliage is biome-colored, matching the local grass
+              tint, so the same block looks different in a swamp versus a
+              plains biome.
+        - question: Can I grow more Bushes with bone meal?
+          answer: |
+              Yes. Applying bone meal to a Bush attempts to grow another
+              Bush on a neighboring valid block.
+        - question: When was Bush added to Minecraft?
+          answer: |
+              It debuted in Java Edition snapshot 25w05a, part of the
+              1.21.5 update, and later came to Bedrock Edition in 1.21.70.
     data_version: "1.21.5"
 ---
 

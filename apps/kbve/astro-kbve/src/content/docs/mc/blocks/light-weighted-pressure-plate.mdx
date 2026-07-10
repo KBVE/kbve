@@ -1,5 +1,6 @@
 ---
 title: Light Weighted Pressure Plate
+template: splash
 description: |
     Minecraft Light Weighted Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 439
     ref: light_weighted_pressure_plate
     slug: light-weighted-pressure-plate
+    content_rev: 1
     display_name: Light Weighted Pressure Plate
     material: redstone
     hardness: 0.5
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_weighted_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - redstone
+        - overworld
+    about:
+        description: |
+            The Light Weighted Pressure Plate is a gold pressure plate that
+            outputs a redstone signal proportional to the number of
+            entities standing on it, up to a maximum strength of 15.
+        lore: |
+            Added in Java Edition 1.5 (2013) alongside the heavy weighted
+            plate; both were reworked in 1.7.2 to count entities rather
+            than item stack size.
+    uses:
+        - title: Redstone Circuits
+          ref: redstone
+          detail: |
+              Placed atop redstone components to trigger circuits based on
+              how many players, mobs, or items are on the plate — useful
+              for crowd counters, item detectors, and farm automation.
+    found_in:
+        - location: Crafting
+          detail: Craft with 2 gold ingots arranged side by side.
+        - location: Ruined Portal Chests
+          detail: Has a small chance to generate inside ruined portal chest loot.
+    faq:
+        - question: What tool do I need to mine a Light Weighted Pressure Plate?
+          answer: |
+              None. Any tool or bare hands will break it and it always
+              drops itself.
+        - question: How is it different from a Heavy Weighted Pressure Plate?
+          answer: |
+              The light plate (gold) reaches maximum signal strength with
+              far fewer entities than the heavy plate (iron), which needs
+              up to 15 entities on it.
+        - question: Do piglins interact with it?
+          answer: |
+              Yes, piglins are attracted to and will pick up light weighted
+              pressure plates because they are made of gold.
+        - question: What can trigger it?
+          answer: |
+              Players, mobs, dropped items, and arrows can all activate it;
+              spectator-mode players and armor stand markers cannot.
     data_version: "1.21.5"
 ---
 

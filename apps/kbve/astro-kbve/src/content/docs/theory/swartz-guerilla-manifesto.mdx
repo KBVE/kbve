@@ -2,30 +2,126 @@
 title: Guerilla Open Access Manifesto
 description: |
     Guerilla Open Access Manifesto by Aaron Swartz
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Guerilla Open Access Manifesto
     order: 42069
 unsplash: 1633545505446-586bf83717f0
 img: https://images.unsplash.com/photo-1633545505446-586bf83717f0?fit=crop&w=1400&h=700&q=75
 tags:
-  - open
-  - research
-  - theory
-  - technology
+    - open
+    - research
+    - theory
+    - technology
+bento:
+    badge: theory · open access · manifesto
+    title: 'Information is power,'
+    accent: share it.
+    lede: >-
+        Aaron Swartz's 2008 call to liberate the world's scientific and cultural
+        heritage from behind corporate paywalls. A moral case for civil
+        disobedience — take knowledge wherever it is stored, make copies, and
+        share them with everyone locked out.
+    ctas:
+        - label: Read the manifesto
+          href: '#manifesto'
+          primary: true
+        - label: About the text
+          href: '#about'
+        - label: Roadmap to open access
+          href: '#roadmap'
+    aside:
+        icon: book
+        title: A moral imperative
+        body: >-
+            The manifesto argues that those with access to scholarly resources
+            hold a privilege they are morally bound to share. Sharing knowledge
+            is not theft — it is the grand tradition of civil disobedience
+            against the private enclosure of public culture.
+        points:
+            - <strong>Privilege</strong> — students, librarians, and scientists can share.
+            - <strong>Duty</strong> — knowledge locked away is knowledge lost.
+            - <strong>Action</strong> — copy, archive, and upload for the world.
+    stats:
+        - { label: Author, value: Aaron Swartz, icon: crown }
+        - { label: Written, value: 'July 2008', icon: calendar }
+        - { label: Place, value: 'Eremo, Italy', icon: map }
+        - { label: License, value: Open Access, icon: license }
+    features:
+        - title: The manifesto
+          icon: book
+          href: '#manifesto'
+          body: The full text of Aaron Swartz's Guerilla Open Access Manifesto, preserved word for word.
+        - title: About the text
+          icon: license
+          href: '#about'
+          body: Context on the movement, the ethics of intellectual property, and the case for freely sharing knowledge.
+        - title: Roadmap to open access
+          icon: key
+          href: '#roadmap'
+          body: Concrete steps — educate, advocate, support open repositories, share scholarship, and build community.
+    related:
+        - title: Programming
+          href: /theory/programming/
+          copy: The craft the open access movement was built to keep free and shared.
+          icon: code
+        - title: Automation
+          href: /theory/automation/
+          copy: Tooling that scales the reach of freely shared knowledge.
+          icon: gears
+        - title: Theory index
+          href: /theory/
+          copy: More essays and ideas on technology, culture, and the open web.
+          icon: book
+    features_eyebrow: On this page
+    features_heading: What this page covers
+    related_eyebrow: Keep exploring
+    related_heading: Related theory
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - { name: Home, path: / }
+        - { name: Theory, path: /theory/ }
+        - { name: Guerilla Open Access Manifesto, path: /theory/swartz-guerilla-manifesto/ }
+    faq:
+        - question: What is the Guerilla Open Access Manifesto?
+          answer: >-
+            It is a short 2008 manifesto by Aaron Swartz calling for people with
+            access to scientific and cultural knowledge to share it freely, as an
+            act of civil disobedience against the corporate paywalls that lock the
+            world's published heritage away from most people.
+        - question: Who wrote the manifesto and when?
+          answer: >-
+            Aaron Swartz wrote it in July 2008 in Eremo, Italy. Swartz was a
+            programmer, writer, and activist who co-authored the RSS specification
+            and helped build Reddit and the Creative Commons technical stack.
+        - question: What is Open Access?
+          answer: >-
+            Open Access is the practice of making scholarly research freely
+            available on the internet under terms that let anyone read, download,
+            and reuse it — removing the price and permission barriers erected by
+            traditional academic publishers.
+        - question: Why does the manifesto call sharing a moral imperative?
+          answer: >-
+            Because knowledge already published and paid for is a shared human
+            inheritance. The manifesto argues that hoarding access behind paywalls
+            denies education to those who cannot pay, and that following unjust
+            laws that enforce this enclosure is itself unjust.
 ---
 
-import {
-	Card,
-	CardGrid,
-	LinkCard,
-	Steps,
-	Aside,
-	Tabs,
-	TabItem,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Guerilla Open Access Manifesto
+<BentoProse id="manifesto" eyebrow="Aaron Swartz · July 2008" heading="Guerilla Open Access Manifesto">
 
 > Information is power.
 > But like all power, there are those who want to keep it for themselves.
@@ -80,11 +176,15 @@ import {
 >> Aaron Swartz,
 >> July 2008, Eremo, Italy
 
+</BentoProse>
 
----
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## About
-
+<BentoProse id="about" eyebrow="Context" heading="About">
 
 The "Guerilla Open Access Manifesto" champions a progressive strategy for sharing knowledge, critiquing the restrictive practices of major publishers who confine valuable scientific and cultural content behind paywalls.
 Crafted by activists driven by a desire to correct global information disparities, the manifesto advocates for civil disobedience through the free and widespread sharing of academic resources by those who have access.
@@ -97,7 +197,9 @@ This document invites us to challenge the status quo by freely sharing the world
 Let's break down the barriers to information and ignite a global enlightenment.
 </Aside>
 
-## Roadmap
+</BentoProse>
+
+<BentoProse id="roadmap" eyebrow="Take action" heading="Roadmap">
 
 <Steps>
 1.  **Educate Yourself and Others**
@@ -143,3 +245,7 @@ Let's break down the barriers to information and ignite a global enlightenment.
     *   **Educate and Include the Next Generation:** Teach students and young researchers about the importance of open access and encourage them to participate in these initiatives from the start of their careers.
 
 </Steps>
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Raw Porkchop
+template: splash
 description: |
     Minecraft Raw Porkchop — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 921
     ref: porkchop
     slug: porkchop
+    content_rev: 1
     display_name: Raw Porkchop
     category: food
     rarity: common
@@ -22,6 +24,31 @@ mc_item:
         saturation: 10.8
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Raw Porkchop is a common food item dropped by pigs and hoglins, restoring
+            hunger when eaten raw or, better still, after being smelted into cooked
+            porkchop. Butcher villagers buy it in bulk, and it is also used to breed,
+            heal, and lead tamed wolves.
+        lore: |
+            A humble cut of pork waiting for the flame to unlock its true potential.
+    faq:
+        - question: Why can't I eat Raw Porkchop when my hunger bar is full?
+          answer: |
+              Raw porkchop is not an "always consumable" item, so you must have some
+              hunger missing before you can eat it.
+        - question: Which mob drops more Raw Porkchop, pigs or hoglins?
+          answer: |
+              Hoglins drop 2-4 raw porkchops per kill compared to a pig's 1-3, making
+              hoglins the better source, especially with Looting.
+        - question: How do I turn Raw Porkchop into cooked porkchop?
+          answer: |
+              Smelt it in a furnace, smoker, or campfire with any fuel source to
+              produce cooked porkchop, which restores more hunger and saturation.
+        - question: Can Raw Porkchop be used with tamed wolves?
+          answer: |
+              Yes, both raw and cooked porkchops can be used to breed, heal, and lead
+              tamed wolves.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Smooth Quartz Stairs
+template: splash
 description: |
     Minecraft Smooth Quartz Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 772
     ref: smooth_quartz_stairs
     slug: smooth-quartz-stairs
+    content_rev: 1
     display_name: Smooth Quartz Stairs
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_quartz_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Smooth Quartz Stairs are a building block that lets players
+            create sloped surfaces and steps using the undecorated,
+            solid-white smooth quartz texture. They do not generate
+            naturally and exist purely for construction.
+        lore: |
+            Added in Java Edition 18w43a as part of the smooth quartz
+            family, giving builders a plain alternative to the pillar and
+            chiseled quartz stair-equivalents.
+    uses:
+        - title: Building & Decoration
+          ref: smooth_quartz
+          detail: |
+              Crafted from six Smooth Quartz Blocks arranged in a staircase
+              pattern (yields four stairs), or cut from a single block with
+              a stonecutter.
+    found_in:
+        - location: Not found naturally
+          detail: Must be crafted or stonecut from Smooth Quartz Blocks; it does not generate in any structure.
+    faq:
+        - question: What tool do I need to mine Smooth Quartz Stairs?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields
+              nothing.
+        - question: How do I get Smooth Quartz Stairs?
+          answer: |
+              Craft six Smooth Quartz Blocks into four stairs, or convert a
+              single block using a stonecutter.
+        - question: Do Smooth Quartz Stairs generate naturally anywhere?
+          answer: |
+              No. Unlike the slab and block forms, stairs must be crafted
+              — they do not appear in any generated structure.
+        - question: Does Fortune increase the drop amount?
+          answer: |
+              No. It always drops exactly one Smooth Quartz Stairs block
+              regardless of enchantments.
     data_version: "1.21.5"
 ---
 

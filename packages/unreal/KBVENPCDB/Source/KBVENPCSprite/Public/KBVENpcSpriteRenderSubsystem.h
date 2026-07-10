@@ -34,10 +34,13 @@ public:
 	virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKBVENpcSpriteRenderSubsystem, STATGROUP_Tickables); }
 
 	UFUNCTION(BlueprintCallable, Category = "KBVE|NPC|Sprite")
-	FKBVENpcSpriteHandle SpawnSprite(UKBVENpcSpriteDef* Def, FVector Location, float FacingYawDeg = 0.0f);
+	FKBVENpcSpriteHandle SpawnSprite(UKBVENpcSpriteDef* Def, FVector Location, float FacingYawDeg = 0.0f, int32 StaticCell = 0);
 
 	UFUNCTION(BlueprintCallable, Category = "KBVE|NPC|Sprite")
 	void UpdateSprite(FKBVENpcSpriteHandle Handle, FVector Location, float FacingYawDeg);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|NPC|Sprite")
+	void SetSpriteCell(FKBVENpcSpriteHandle Handle, int32 Cell);
 
 	UFUNCTION(BlueprintCallable, Category = "KBVE|NPC|Sprite")
 	void DespawnSprite(FKBVENpcSpriteHandle Handle);
@@ -61,6 +64,7 @@ private:
 	void EnsureHost();
 	UStaticMesh* GetPlaneMesh();
 	UMaterialInterface* GetOrCreateBillboardMaterial();
+	UMaterialInterface* GetOrCreateStaticCellMaterial();
 	UInstancedStaticMeshComponent* GetOrCreateHISM(UKBVENpcSpriteDef* Def);
 
 	UPROPERTY(Transient)

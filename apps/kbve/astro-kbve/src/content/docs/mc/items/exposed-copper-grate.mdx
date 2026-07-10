@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper Grate
+template: splash
 description: |
     Minecraft Exposed Copper Grate — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1376
     ref: exposed_copper_grate
     slug: exposed-copper-grate
+    content_rev: 1
     display_name: Exposed Copper Grate
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Exposed Copper Grate is the first oxidation stage of the copper grate, a
+            transparent, perforated block that lets light pass through while preventing mobs
+            from spawning on top of it. It shows early discoloration and green spots from
+            natural weathering compared to a fresh copper grate.
+        lore: |
+            Copper grates generate naturally in trial chambers and are prized for combining
+            mob-proof flooring with an open, industrial look.
+    faq:
+        - question: How do you craft an Exposed Copper Grate?
+          answer: |
+              Arrange four exposed copper blocks in a 2x2 pattern on a crafting table to make
+              four grates, or cut a single grate from an exposed copper block with a stonecutter.
+        - question: Do mobs spawn on top of Exposed Copper Grates?
+          answer: |
+              No, mobs cannot spawn on top of copper grates regardless of oxidation stage.
+        - question: Does the Exposed Copper Grate conduct redstone?
+          answer: |
+              No, it does not conduct redstone signals.
+        - question: Can an Exposed Copper Grate be waterlogged or stop oxidizing?
+          answer: |
+              Yes, it can be waterlogged, and applying honeycomb waxes it to halt further
+              oxidation; an axe removes wax or reverses oxidation by one stage.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

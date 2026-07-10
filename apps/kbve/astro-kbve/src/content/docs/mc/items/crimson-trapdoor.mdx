@@ -1,5 +1,6 @@
 ---
 title: Crimson Trapdoor
+template: splash
 description: |
     Minecraft Crimson Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 774
     ref: crimson_trapdoor
     slug: crimson-trapdoor
+    content_rev: 1
     display_name: Crimson Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A crimson trapdoor is a hinged block crafted from crimson planks that can be
+            opened and closed manually or by redstone power, used to seal off passages,
+            hide entrances, or act as a climbable surface above a ladder. It is
+            waterloggable and can be placed on either the upper or lower half of a block.
+        lore: |
+            Hung on Nether timber hinges, it seals a passage as surely as any door grown
+            from Overworld wood.
+    faq:
+        - question: How many crimson trapdoors does one crafting recipe make?
+          answer: |
+              Arranging 6 crimson planks in the standard trapdoor pattern produces 2
+              crimson trapdoors.
+        - question: Can crimson trapdoors be opened without redstone?
+          answer: |
+              Yes, right-clicking a crimson trapdoor toggles it open or closed without
+              needing any redstone power.
+        - question: Can crimson trapdoors be used as furnace fuel?
+          answer: |
+              No, crimson and warped trapdoors are non-flammable and cannot be used as
+              furnace fuel, unlike most Overworld wood trapdoors.
+        - question: Can you climb a ladder through a crimson trapdoor?
+          answer: |
+              Yes, placing a trapdoor above a ladder and opening it lets players climb
+              straight through the gap.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

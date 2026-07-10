@@ -1,5 +1,6 @@
 ---
 title: Firework Rocket
+template: splash
 description: |
     Minecraft Firework Rocket — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1174
     ref: firework_rocket
     slug: firework-rocket
+    content_rev: 1
     display_name: Firework Rocket
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Firework Rocket is a craftable projectile that can be launched by hand,
+            fired from a dispenser or crossbow, or used to boost elytra flight.
+            Crafted with paper and gunpowder, it can carry up to seven firework stars
+            to customize its explosion, color, and duration, dealing damage that
+            scales with the number of stars attached.
+        lore: |
+            Inspired by real-world New Year's Eve celebrations, added to light up the Minecraft sky.
+    faq:
+        - question: How do I use a firework rocket to boost elytra flight?
+          answer: |
+              Use it while gliding to propel yourself forward at roughly 33.5 blocks
+              per second, with the boost lasting as long as the rocket's flight
+              duration.
+        - question: Can firework rockets be fired from a crossbow?
+          answer: |
+              Yes, they work as crossbow ammunition and only deal damage if they
+              contain an explosion effect; a Multishot crossbow fires three at once.
+        - question: What happens if a rocket has no firework star?
+          answer: |
+              It will not explode on hitting a solid block and instead glides along
+              the surface, though it can still damage entities if it has an
+              explosion effect.
+        - question: How many different fireworks can be made?
+          answer: |
+              Combining colors, shapes, and effects allows for an astronomically
+              large number of distinct fireworks, around 2×10^136 by the wiki's
+              count.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

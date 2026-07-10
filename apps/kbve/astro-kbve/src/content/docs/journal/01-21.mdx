@@ -8,15 +8,64 @@ img: https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?crop=entropy&c
 description: Daily Log for January 21st of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 21,'
+    accent: every year.
+    lede: 'The January 21st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Jan 20'
+          href: /journal/01-20/
+        - label: 'Jan 22 →'
+          href: /journal/01-22/
+    related:
+        - title: 'Previous · Jan 20'
+          copy: 'Step back a day to the January 20th log.'
+          href: /journal/01-20/
+          icon: calendar
+        - title: 'Next · Jan 22'
+          copy: 'Jump ahead to the January 22nd log.'
+          href: /journal/01-22/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="notes" heading="Notes">
 
 <Adsense />
 
-## 2026
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2026" heading="2026">
 
 ### Impression Burst
 
@@ -27,7 +76,9 @@ import { Adsense } from '@/components/astropad';
     I am thinking that if we expand to all OSRS items, it will make it easier to build around crypto and stocks.
     Finally, once its all organized, we can loop back around and work on the game asset area and marketplace.
 
-## 2025
+</BentoProse>
+
+<BentoProse id="2025" heading="2025">
 
 -   **Rust**
 
@@ -55,7 +106,9 @@ import { Adsense } from '@/components/astropad';
 
     
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
     2:40pm -   `Food`
 
@@ -176,3 +229,7 @@ import { Adsense } from '@/components/astropad';
 
             
         
+
+</BentoProse>
+
+</BentoDoc>

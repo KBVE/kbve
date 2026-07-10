@@ -1,5 +1,6 @@
 ---
 title: Hanging Roots
+template: splash
 description: |
     Minecraft Hanging Roots — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 266
     ref: hanging_roots
     slug: hanging-roots
+    content_rev: 1
     display_name: Hanging Roots
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Hanging roots are decorative plant blocks that generate naturally beneath azalea trees in lush caves, dangling from the underside of rooted dirt. They break instantly when struck and can only be collected intact with shears, dropping nothing if mined with any other tool. Players also use them as a minor composter ingredient.
+        lore: |
+            Delicate root structures that dangle from cave ceilings, connecting the surface world above to the mysterious depths below.
+    faq:
+        - question: Where do I find hanging roots?
+          answer: |
+              Hanging roots generate inside a lush cave beneath an azalea tree on the surface above, making lush caves the only natural source.
+        - question: How do I collect hanging roots?
+          answer: |
+              You must use shears to collect them intact; in Bedrock Edition any Silk Touch tool also works, while breaking them with anything else destroys them without a drop.
+        - question: Can I farm hanging roots?
+          answer: |
+              Yes, applying bone meal to rooted dirt grows hanging roots beneath it, and using a hoe on rooted dirt converts it to dirt while yielding hanging roots.
+        - question: What are hanging roots used for?
+          answer: |
+              They are mainly decorative, can only be placed on the underside of blocks, and have a 30% chance of raising a composter's level by one.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

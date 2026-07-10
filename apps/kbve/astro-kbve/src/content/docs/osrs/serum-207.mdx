@@ -1,0 +1,111 @@
+---
+title: Serum 207 | OSRS Price Data
+description: "Serum 207 (4): 4 doses serum 207 as described in Herbi Flax's diary.. High alch: 8 GP, GE limit: 2,000."
+osrs:
+  id: 3408
+  name: Serum 207
+  slug: serum-207
+  examine: 4 doses serum 207 as described in Herbi Flax's diary.
+  members: true
+  icon: Serum 207 (4).png
+  value: 14
+  lowalch: 5
+  highalch: 8
+  limit: 2000
+  potion:
+    doses: 4
+    effects:
+      - description: Used to cure afflicted Mort'ton villagers and as Sanctity restorer in Shades of Mort'ton minigame.
+  recipes:
+    - skill: Herblore
+      level: 15
+      xp: 50
+      materials:
+        - item_name: Tarromin potion (unf)
+        - item_name: Ashes
+      tools:
+        - Pestle and mortar
+      output: Serum 207 (3)
+  related_items:
+    - item_id: 3410
+      item_name: Serum 208 (4)
+      slug: serum-208-4
+      relationship: upgrade
+      description: Sanctified variant created with sacred oil
+  about: "Serum 207 (4) is a 4-dose potion used in the Shades of Mort'ton minigame. The name comes from ingredient values in Herbi Flax's diary: water (100) + tarromin (94) + ashes (13) = 207."
+  history:
+    - date: "2004-10-18"
+      description: Released with the Mortton Shades and Mage Armour update.
+    - date: "2024-07-31"
+      description: Sanctifying Serum 207 now uses 5% sanctity per dose rather than a flat 20% regardless of dosage.
+  properties:
+    release_date: "2004-10-18"
+    update: Mortton Shades and Mage Armour
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    quest: "Shades of Mort'ton"
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+  family_ref:
+    family_slug: serum-207
+    role: base
+  family:
+    slug: serum-207
+    name: Serum 207
+    type: dose
+    canonical_id: 3408
+    members:
+    - id: 3408
+      slug: serum-207
+      name: Serum 207
+      icon: Serum 207 (4).png
+      role: base
+      dose: null
+      value: 14
+      lowalch: 5
+      highalch: 8
+    - id: 3414
+      slug: serum-207-1
+      name: Serum 207 (1)
+      icon: Serum 207 (1).png
+      role: dose
+      dose: 1
+      value: 11
+      lowalch: 4
+      highalch: 6
+    - id: 3412
+      slug: serum-207-2
+      name: Serum 207 (2)
+      icon: Serum 207 (2).png
+      role: dose
+      dose: 2
+      value: 13
+      lowalch: 5
+      highalch: 7
+    - id: 3410
+      slug: serum-207-3
+      name: Serum 207 (3)
+      icon: Serum 207 (3).png
+      role: dose
+      dose: 3
+      value: 13
+      lowalch: 5
+      highalch: 7
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

@@ -1,5 +1,6 @@
 ---
 title: Ominous Trial Key
+template: splash
 description: |
     Minecraft Ominous Trial Key — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1393
     ref: ominous_trial_key
     slug: ominous-trial-key
+    content_rev: 1
     display_name: Ominous Trial Key
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Ominous Trial Key is a stackable item obtained from ominous trial spawners
+            inside trial chambers, dropping at roughly a 30% chance once a spawner's ominous
+            trial is completed. It exists solely to unlock ominous vaults, the more dangerous
+            counterpart to standard vaults, which reward superior loot.
+        lore: |
+            A dark key forged by ominous trial spawners, more formidable than its standard
+            counterpart and promising greater rewards to those bold enough to face enhanced
+            trials.
+    faq:
+        - question: Can I use a regular trial key on an ominous vault?
+          answer: |
+              No. Ominous vaults only accept ominous trial keys, and standard trial keys only
+              open standard vaults; the two are not interchangeable.
+        - question: How do I obtain an Ominous Trial Key?
+          answer: |
+              Defeat an ominous trial triggered at an ominous trial spawner inside a trial
+              chamber; the spawner has roughly a 30% chance to drop the key on completion.
+        - question: Is the Ominous Trial Key renewable?
+          answer: |
+              Yes. Since ominous trial spawners regenerate their trials, players can farm
+              multiple ominous trial keys from the same trial chamber over time.
+        - question: What happens if I rename my Ominous Trial Key?
+          answer: |
+              In Java Edition, renaming the key can trigger a known bug that prevents it from
+              opening standard ominous vaults, so it is best left unrenamed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

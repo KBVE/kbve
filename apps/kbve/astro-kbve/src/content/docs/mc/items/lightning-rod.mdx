@@ -1,5 +1,6 @@
 ---
 title: Lightning Rod
+template: splash
 description: |
     Minecraft Lightning Rod — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 703
     ref: lightning_rod
     slug: lightning-rod
+    content_rev: 1
     display_name: Lightning Rod
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Lightning Rod is a copper block crafted from three copper ingots that redirects
+            nearby lightning strikes to itself, protecting structures from fire and stray bolts.
+            When struck, it emits a redstone pulse at power level 15, making it useful for
+            lightning-triggered redstone contraptions.
+        lore: |
+            A tall copper spike that calls down the storm's fury and channels it safely to the ground.
+    faq:
+        - question: What does a Lightning Rod actually do?
+          answer: |
+              It attracts lightning strikes within a large radius (up to 128 blocks in Java Edition)
+              to itself if it is the highest point in its column, keeping storms from setting
+              nearby wooden builds on fire.
+        - question: Does a Lightning Rod produce a redstone signal?
+          answer: |
+              Yes. When struck by lightning it emits a redstone pulse at power level 15 for
+              8 game ticks, which can trigger connected redstone circuits.
+        - question: How do I craft a Lightning Rod?
+          answer: |
+              Place three copper ingots vertically in a crafting table to craft one Lightning Rod.
+        - question: Does the Lightning Rod need to touch the ground to work?
+          answer: |
+              No. Unlike real-world lightning rods, it does not require a grounding connection
+              to redirect strikes.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

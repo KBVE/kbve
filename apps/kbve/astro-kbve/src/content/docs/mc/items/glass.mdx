@@ -1,5 +1,6 @@
 ---
 title: Glass
+template: splash
 description: |
     Minecraft Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 195
     ref: glass
     slug: glass
+    content_rev: 1
     display_name: Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Glass is a transparent, solid block obtained by smelting sand or red sand in a
+            furnace. It is a versatile crafting ingredient used to make glass panes, bottles,
+            beacons, daylight detectors, and end crystals, and it does not drop itself when
+            broken unless mined with a Silk Touch tool.
+        lore: |
+            Glass was one of the earliest blocks in Minecraft's history: Notch first
+            mentioned adding it as a "purely aesthetic block" on May 21, 2009, and it
+            appeared in the very first Classic version.
+    faq:
+        - question: How do you make Glass?
+          answer: |
+              Smelt sand or red sand with any fuel source in a furnace to produce one glass
+              block per unit smelted.
+        - question: Why doesn't Glass drop anything when broken?
+          answer: |
+              Glass drops nothing when broken with a regular tool; only a pickaxe (or any
+              tool) enchanted with Silk Touch will let you collect the block itself.
+        - question: Does Glass have connected textures?
+          answer: |
+              In Java Edition, glass blocks adjacent to other glass blocks of the same color
+              become invisible where they touch, creating a seamless connected look.
+        - question: Can mobs see through Glass?
+          answer: |
+              No. Even though it looks transparent to players, mobs treat glass as
+              completely opaque and cannot see through it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

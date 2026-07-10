@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1706943384958-e42ad4ee2f73?crop=entropy&c
 description: September 16th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 16,'
+    accent: every year.
+    lede: 'The September 16th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 15'
+          href: /journal/09-15/
+        - label: 'Sep 17 →'
+          href: /journal/09-17/
+    related:
+        - title: 'Previous · Sep 15'
+          copy: 'Step back a day to the September 15th log.'
+          href: /journal/09-15/
+          icon: calendar
+        - title: 'Next · Sep 17'
+          copy: 'Jump ahead to the September 17th log.'
+          href: /journal/09-17/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1706943384958-e42ad4ee2f73?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### ClickHouse Operator
 
@@ -24,7 +65,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Actually, I am thinking that I might finish up this operator and then go back into rebuilding the kubernetes cluster with the cozy stack. 
     This would be an interesting turn of events in the future, I am actually glad that I am back down this road and kept notes.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **12am**
 
@@ -86,19 +135,30 @@ I will add the docs as a reference inside of the issue ticket and will add more 
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 4:45pm - Okay got some of the networking resolved with the Appwrite v1.4.3, its really just getting the general gist of the flow. Honestly looking back at some of the situations, just redeploying the stack was not enough, I had to stop the whole instance and then create a whole new instance. 
 - 7:18pm - Finally got the docker swarm to work within my favor, there were a couple issues that I needed to resolve but for the most part it was pretty dope to see parts of the functions working. Now getting the command line to be operational will be the next step, but that might be something that I am willing to wait off on until things are a bit more stable within the eco-system at Appwrite. 
 - 7:22pm - Now I need to convert over a couple of the cloud functions for the whole eco-system to the new repo and then do the deployment from there. I have to also test case the backup system and make sure that it works as intended, but that will be worth it before the hackathon.
 - 11:05pm - Looks like the swarm is still healthy with no major breaks as of right now, going to keep test casing it and seeing where we can push the boundaries for our application stack.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > To give oneself earnestly to the duties due to men, and, while respecting spiritual beings, to keep aloof from them, may be called wisdom.
 > — <cite>Confucius</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Get Appwrite Swarm up and running with additional integrations.
+
+</BentoProse>
+
+</BentoDoc>

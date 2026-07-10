@@ -1,5 +1,6 @@
 ---
 title: Yellow Terracotta
+template: splash
 description: |
     Minecraft Yellow Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 456
     ref: yellow_terracotta
     slug: yellow-terracotta
+    content_rev: 1
     display_name: Yellow Terracotta
     material: stone
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: yellow_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Yellow Terracotta is a hardened clay block dyed yellow, prized
+            for its high blast resistance and weathered, mesa-style color.
+            It requires at least a wooden pickaxe to break and drop.
+        lore: |
+            Known as "hardened clay" before 1.12, terracotta lets builders
+            recreate the striated look of badlands mesas in any color.
+    uses:
+        - title: Glazed Terracotta
+          ref: yellow_glazed_terracotta
+          detail: |
+              Smelt Yellow Terracotta in a furnace to produce Yellow Glazed
+              Terracotta, a glossy patterned variant popular for decorative
+              floors and directional designs.
+    found_in:
+        - location: Badlands biomes
+          detail: Generates abundantly in terracotta strata within badlands and eroded badlands.
+        - location: Desert Villages
+          detail: Used as a building material in some desert village structures.
+        - location: Crafted from Clay
+          detail: Also obtainable by smelting plain Clay, then dyeing the resulting Terracotta yellow.
+    faq:
+        - question: What's the minimum pickaxe needed to mine Yellow Terracotta?
+          answer: |
+              A wooden pickaxe. Mining it without any pickaxe yields no
+              drop at all.
+        - question: Does Yellow Terracotta need Silk Touch to drop itself?
+          answer: |
+              No. Any pickaxe of at least wood tier drops the block itself
+              normally, no enchantment required.
+        - question: How is Yellow Terracotta different from Yellow Concrete?
+          answer: |
+              Terracotta has much higher blast resistance (4.2) than concrete
+              and cannot be affected by gravity or water, giving it a more
+              matte, weathered look.
+        - question: Can I turn Yellow Terracotta into Glazed Terracotta?
+          answer: |
+              Yes. Smelting it in a furnace or blast furnace produces Yellow
+              Glazed Terracotta, which has a fixed directional pattern.
     data_version: "1.21.5"
 ---
 

@@ -123,13 +123,13 @@ body,
 
 /* Margin-based inset for all sidebar sections (brand, footer) */
 .sidebar-section {
-	margin: 0 1rem;
-	padding: 1.25rem 0.5rem;
+	margin: 0 1.25rem;
+	padding: 1.25rem 0.75rem;
 }
 
 /* Nav uses its own margin so buttons can bleed to full width on hover */
 .sidebar-nav {
-	margin: 0 0.75rem;
+	margin: 0 1rem;
 }
 
 /* Labels fade + collapse when sidebar closes */

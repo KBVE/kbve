@@ -1,5 +1,6 @@
 ---
 title: Polished Blackstone Bricks
+template: splash
 description: |
     Minecraft Polished Blackstone Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,78 @@ mc_block:
     id: 888
     ref: polished_blackstone_bricks
     slug: polished-blackstone-bricks
+    content_rev: 1
     display_name: Polished Blackstone Bricks
     material: nether
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_blackstone_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Polished Blackstone Bricks are a masonry-cut variant of
+            polished blackstone, textured with a subtle brick pattern that
+            hides a faint intentional skull motif. They form the walls and
+            floors of bastion remnants and ruined portals.
+        lore: |
+            The block was added in Java Edition 20w15a for the Nether
+            Update and became renewable in 1.16.2 once piglins began
+            bartering away blackstone-family materials.
+    uses:
+        - title: Polished Blackstone Brick Slab
+          ref: polished_blackstone_brick_slab
+          detail: |
+              Three bricks craft six slabs for half-height detailing.
+        - title: Polished Blackstone Brick Stairs
+          ref: polished_blackstone_brick_stairs
+          detail: |
+              Six bricks craft four stairs for sloped surfaces.
+        - title: Polished Blackstone Brick Wall
+          ref: polished_blackstone_brick_wall
+          detail: |
+              Six bricks craft six walls for fences and parapets.
+    found_in:
+        - location: Bastion remnants
+          detail: Makes up much of the wall and floor structure inside bastion remnants.
+        - location: Ruined portals (Nether)
+          detail: Generates as part of the debris scattered around Nether-side ruined portals.
+        - location: Crafted from Polished Blackstone
+          detail: Four Polished Blackstone blocks craft four bricks, or one converts 1:1 via a stonecutter.
+    faq:
+        - question: What tool do I need to mine Polished Blackstone Bricks?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              drops nothing.
+        - question: Is there a cracked variant?
+          answer: |
+              Yes, Cracked Polished Blackstone Bricks are a separate block
+              obtained by smelting this block in a furnace.
+        - question: How do I craft Polished Blackstone Bricks?
+          answer: |
+              Combine four Polished Blackstone blocks in a crafting grid, or
+              cut Blackstone or Polished Blackstone through a stonecutter.
+        - question: Are they renewable?
+          answer: |
+              Yes. Piglins occasionally barter away blackstone-family
+              blocks, and the underlying Blackstone is effectively
+              unlimited in the Nether.
     data_version: "1.21.5"
 ---
 

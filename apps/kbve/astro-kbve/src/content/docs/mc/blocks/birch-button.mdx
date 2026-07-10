@@ -1,5 +1,6 @@
 ---
 title: Birch Button
+template: splash
 description: |
     Minecraft Birch Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 413
     ref: birch_button
     slug: birch-button
+    content_rev: 1
     display_name: Birch Button
     material: redstone
     hardness: 0.5
@@ -24,10 +26,60 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The Birch Button is a wooden redstone component crafted from
+            Birch Planks that outputs a short redstone pulse when pressed by
+            a player, mob, or projectile.
+        lore: |
+            Wooden buttons were introduced in Java Edition 1.4.2, with the
+            Birch variant following the same recipe as other wood types.
+    uses:
+        - title: Redstone Circuits
+          ref: redstone_dust
+          detail: |
+              Pressing the button sends a 15-tick redstone pulse (30 game
+              ticks), longer than a stone button, useful for doors, dispensers,
+              and other short-timer contraptions.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Overworld wood buttons can be smelted as fuel, burning for a
+              short time in a furnace.
+    found_in:
+        - location: Crafted from Birch Planks
+          detail: One Birch Plank crafts into one Birch Button.
+        - location: Trial Chambers and villages
+          detail: Wooden buttons of various types generate in some structure loot and village builds.
+    faq:
+        - question: What tool do I need to mine a Birch Button?
+          answer: |
+              None — it breaks quickly by hand, though an axe is fastest.
+        - question: How long does a Birch Button stay powered?
+          answer: |
+              Pressing it manually produces a 1.5-second redstone pulse (15
+              redstone ticks), longer than stone buttons but shorter than
+              tripwire.
+        - question: Can arrows activate a Birch Button?
+          answer: |
+              Yes, arrows and tridents can trigger wooden buttons just like
+              stone ones, unlike some other redstone components.
+        - question: Can a Birch Button be used as furnace fuel?
+          answer: |
+              Yes, wooden buttons from Overworld tree types can be burned as
+              a minor fuel source, smelting a fraction of an item.
     data_version: "1.21.5"
 ---
 

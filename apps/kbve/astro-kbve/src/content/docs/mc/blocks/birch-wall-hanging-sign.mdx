@@ -1,5 +1,6 @@
 ---
 title: Birch Hanging Sign
+template: splash
 description: |
     Minecraft Birch Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 235
     ref: birch_wall_hanging_sign
     slug: birch-wall-hanging-sign
+    content_rev: 1
     display_name: Birch Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Birch Hanging Sign is a wall-mounted variant of the birch
+            hanging sign, attached with brackets to the side of a block
+            instead of dangling from chains beneath one. It displays
+            editable text on both faces.
+        lore: |
+            Hanging signs were added in the Wild Update (1.20), designed
+            with input from Mojang developer Agnes Larsson's daughter.
+    uses:
+        - title: Editable Signage
+          ref: birch_wall_hanging_sign
+          detail: |
+              Right-click to open a text editor for up to four lines per
+              side; dye and glow ink sacs recolor and illuminate the text.
+        - title: Waxed Permanent Signs
+          ref: birch_wall_hanging_sign
+          detail: |
+              Applying honeycomb waxes the sign, permanently locking its
+              text against further edits.
+    found_in:
+        - location: Crafted from Stripped Birch Log + Chain
+          detail: 6 stripped birch logs and 2 chains craft 6 birch hanging signs.
+        - location: Village Structures
+          detail: Occasionally found on shop and market stall facades in villages.
+    faq:
+        - question: What tool do I need to mine a birch hanging sign?
+          answer: |
+              None — any tool works, though an axe is fastest.
+        - question: Does it drop if the wall it's attached to breaks?
+          answer: |
+              Yes. Unless placed on a wall bracket, removing the supporting
+              block breaks the sign and drops it as an item.
+        - question: Can I write on both sides?
+          answer: |
+              Yes, interact with either face to edit that side's text
+              independently.
+        - question: Is it flammable?
+          answer: |
+              Yes, like other overworld wood signs; crimson and warped
+              hanging signs are the fireproof exception.
     data_version: "1.21.5"
 ---
 

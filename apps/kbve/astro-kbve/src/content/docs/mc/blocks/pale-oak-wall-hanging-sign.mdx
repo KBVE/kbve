@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Hanging Sign
+template: splash
 description: |
     Minecraft Pale Oak Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 240
     ref: pale_oak_wall_hanging_sign
     slug: pale-oak-wall-hanging-sign
+    content_rev: 1
     display_name: Pale Oak Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Pale Oak Hanging Sign is the wall-mounted form of the Pale Oak
+            hanging sign, suspended from chains under a ledge or block edge
+            and used to display up to four lines of customizable text.
+        lore: |
+            Hanging signs, added in the Trails & Tales update, extended
+            sign placement to beams and overhangs, and Pale Oak's variant
+            carries the wood's pale, bleached look.
+    uses:
+        - title: Pale Oak Hanging Sign
+          ref: pale_oak_hanging_sign
+          detail: |
+              Crafted from 2 Chains and 6 Stripped Pale Oak Logs to make 6
+              hanging signs. Text can be dyed, made to glow with a Glow Ink
+              Sac, and waxed with Honeycomb to prevent further edits.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from 2 Chains and 6 Stripped Pale Oak Logs, yielding 6 signs.
+        - location: Trial Chambers and Trail Ruins
+          detail: Occasionally found in corridor chests or generated structures.
+    faq:
+        - question: What tool do I need to mine a Pale Oak Hanging Sign?
+          answer: |
+              Any tool works, including bare hands, though an axe breaks it
+              fastest.
+        - question: Can I edit the text after placing a Pale Oak Hanging Sign?
+          answer: |
+              Yes, until it is waxed with Honeycomb, after which the text
+              becomes permanently locked.
+        - question: Is Pale Oak Hanging Sign flammable?
+          answer: |
+              No, unlike many other wooden blocks it does not catch fire
+              from nearby flames.
+        - question: Where does a hanging sign attach?
+          answer: |
+              It attaches beneath the block it is placed against, suspended
+              by chains, and can be mounted on wide or narrow surfaces with
+              different chain arrangements.
     data_version: "1.21.5"
 ---
 

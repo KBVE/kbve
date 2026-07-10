@@ -1,5 +1,6 @@
 ---
 title: Smoker
+template: splash
 description: |
     Minecraft Smoker — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,73 @@ mc_block:
     id: 807
     ref: smoker
     slug: smoker
+    content_rev: 1
     display_name: Smoker
     material: stone
     hardness: 3.5
     blast_resistance: 3.5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smoker
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            The Smoker is a furnace variant dedicated to cooking food,
+            processing items in half the time of a regular furnace at the
+            cost of double the fuel per item. It emits light when lit and
+            serves as the butcher villager's job site block.
+        lore: |
+            Added in Village & Pillage alongside the blast furnace, the
+            smoker is the food-cooking counterpart to that ore-smelting
+            block.
+    uses:
+        - title: Fast Food Cooking
+          ref: cooked_beef
+          detail: |
+              Cooks any smeltable food item — meat, fish, potatoes — in 5
+              seconds instead of 10, at double the fuel consumption rate of
+              a furnace, so fuel efficiency per item stays the same.
+        - title: Butcher Job Site
+          ref: villager
+          detail: |
+              Placing a Smoker near an unemployed villager converts it into
+              a butcher, which trades cooked meats and other goods.
+    found_in:
+        - location: Crafted, not found naturally
+          detail: Built from a Furnace and four logs, stripped logs, wood, or stripped wood.
+        - location: Villages
+          detail: Present at butcher houses as part of the structure.
+    faq:
+        - question: What tool do I need to mine a Smoker?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe destroys
+              it with no drop.
+        - question: Can a Smoker cook non-food items?
+          answer: |
+              No. Unlike a furnace or blast furnace, a Smoker only accepts
+              food items as smelting input.
+        - question: Is a Smoker more fuel-efficient than a furnace?
+          answer: |
+              No. It cooks twice as fast but burns fuel twice as quickly,
+              so the number of items cooked per unit of fuel is unchanged.
+        - question: Does Fortune or Silk Touch affect the drop?
+          answer: |
+              No. A Smoker always drops itself as a single item when mined
+              with a pickaxe.
     data_version: "1.21.5"
 ---
 

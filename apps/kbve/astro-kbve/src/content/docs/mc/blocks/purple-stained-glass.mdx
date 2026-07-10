@@ -1,5 +1,6 @@
 ---
 title: Purple Stained Glass
+template: splash
 description: |
     Minecraft Purple Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 295
     ref: purple_stained_glass
     slug: purple-stained-glass
+    content_rev: 1
     display_name: Purple Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - needs_silk_touch
+    about:
+        description: |
+            Purple Stained Glass is a transparent building block dyed with
+            purple dye. It blocks mob spawning and lets players see through
+            adjacent panes of the same color while tinting light and view
+            outside it.
+        lore: |
+            Stained glass has been a decorative staple since its early
+            addition, giving every dye color a see-through building option.
+    uses:
+        - title: Beacon Beam Coloring
+          ref: purple_stained_glass
+          detail: |
+              Stacking stained glass above a beacon tints its light beam;
+              stacking multiple colors blends them along the beam.
+        - title: Stained Glass Panes
+          ref: purple_stained_glass_pane
+          detail: |
+              Crafts into sixteen Purple Stained Glass Panes for a more
+              material-efficient window.
+    found_in:
+        - location: Crafting
+          detail: Craft from 8 Glass surrounding 1 Purple Dye.
+        - location: End City Ships & Trial Chambers
+          detail: Some stained glass colors generate naturally in end ships and trial chambers, though purple is primarily crafted.
+    faq:
+        - question: Do I need Silk Touch to pick it up?
+          answer: |
+              Yes. Mining it with anything other than a Silk Touch tool
+              destroys the block and drops nothing.
+        - question: Can I use it to color a beacon beam?
+          answer: |
+              Yes, place it directly above a beacon (or stack several
+              colors) to tint the light beam that shoots into the sky.
+        - question: Is it flammable?
+          answer: |
+              No, stained glass is non-flammable and cannot be set on fire
+              by lava or nearby flames.
+        - question: Can mobs spawn on it?
+          answer: |
+              No, hostile mobs cannot spawn on stained glass, though zombie
+              reinforcements are an exception.
     data_version: "1.21.5"
 ---
 

@@ -1,0 +1,138 @@
+---
+title: Blighted overload | OSRS Price Data
+description: "Blighted overload (4): 4 doses of blighted overload potion.. High alch: 30 GP, GE limit: 50."
+osrs:
+  id: 29631
+  name: Blighted overload
+  slug: blighted-overload
+  examine: 4 doses of blighted overload potion.
+  members: true
+  icon: Blighted overload (4).png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 50
+  potion:
+    effects:
+      - description: "Boosts Attack and Strength by floor(0.15 x level) + 8."
+        duration: 300
+      - description: "Boosts Ranged by floor(level / 10) + 7."
+        duration: 300
+      - description: "Boosts Magic by floor(level / 10) + 1."
+        duration: 300
+      - description: "Reduces Defence by floor(level / 10) + 1."
+        duration: 300
+      - description: "Inflicts 10 damage over 6 seconds when consumed."
+        duration: 6
+  recipes:
+    - materials:
+        - item_name: Super combat potion (4)
+          quantity: 1
+        - item_name: Ranging potion (4)
+          quantity: 1
+        - item_name: Magic potion (4)
+          quantity: 1
+        - item_name: Chitin
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: Herblore
+      level: 83
+  related_items:
+    - name: Blighted overload (3)
+      relationship: variant
+    - name: Blighted overload (2)
+      relationship: variant
+    - name: Blighted overload (1)
+      relationship: variant
+    - name: Super combat potion (4)
+      relationship: component
+    - name: Ranging potion (4)
+      relationship: component
+    - name: Magic potion (4)
+      relationship: component
+    - name: Chitin
+      relationship: component
+  about: "Blighted overload (4) is a Deadman Mode exclusive potion holding four doses of a combined combat boost. It boosts Attack, Strength, Ranged, and Magic while reducing Defence, but inflicts 10 damage over 6 seconds when consumed."
+  market_strategy:
+    notes:
+      - "Tradeable on the Grand Exchange but only consumable on Deadman Mode worlds."
+      - "Made from a super combat potion, ranging potion, magic potion, and chitin at Herblore level 83."
+      - "Profit after tax was approximately 14,902 coins per craft as of release pricing."
+  trading_tips:
+    - "Demand spikes during Deadman Mode tournaments and seasonal events."
+    - "Watch the price of chitin and ranging/magic potions to time crafting profitably."
+  history:
+    - date: "2024-07-17"
+      description: "Released alongside the Deadman Mode: Apocalypse event."
+    - date: "2026-01-21"
+      description: "Self-damage on consumption reduced from 25 to 10; Defence decay threshold raised to 90% of base level."
+  properties:
+    release_date: "2024-07-17"
+    update: "Deadman Mode: Apocalypse"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.08
+    options:
+      - Drink
+    alchable: true
+    destroy: "Drop"
+  family_ref:
+    family_slug: blighted-overload
+    role: base
+  family:
+    slug: blighted-overload
+    name: Blighted overload
+    type: dose
+    canonical_id: 29631
+    members:
+    - id: 29631
+      slug: blighted-overload
+      name: Blighted overload
+      icon: Blighted overload (4).png
+      role: base
+      dose: null
+      value: 50
+      lowalch: 20
+      highalch: 30
+    - id: 29640
+      slug: blighted-overload-1
+      name: Blighted overload (1)
+      icon: Blighted overload (1).png
+      role: dose
+      dose: 1
+      value: 50
+      lowalch: 20
+      highalch: 30
+    - id: 29637
+      slug: blighted-overload-2
+      name: Blighted overload (2)
+      icon: Blighted overload (2).png
+      role: dose
+      dose: 2
+      value: 50
+      lowalch: 20
+      highalch: 30
+    - id: 29634
+      slug: blighted-overload-3
+      name: Blighted overload (3)
+      icon: Blighted overload (3).png
+      role: dose
+      dose: 3
+      value: 50
+      lowalch: 20
+      highalch: 30
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

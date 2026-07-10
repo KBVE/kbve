@@ -1,7 +1,7 @@
 ---
-title: DiscordSH Bot
-description: |
-    Standalone Discord gateway bot for DiscordSH — slash commands, embed dungeon game, GitHub integration.
+title: DiscordSH Bot — Standalone Discord Gateway Bot
+description: DiscordSH Bot is a standalone poise/serenity Discord gateway bot with slash commands, an embed dungeon game, GitHub integration, and an n8n forwarder.
+sem: 1
 sidebar:
     label: DiscordSH Bot
     order: 421
@@ -26,9 +26,87 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the DiscordSH Bot?
+          answer: discordsh-bot is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server, built on the poise/serenity gateway with shard support.
+        - question: What can the DiscordSH Bot do?
+          answer: It serves slash commands (/github, /gh, /dungeon, /ping, /status, /health, /admin, /skills, /n8n), runs an embed dungeon game with bevy_battle combat and bevy_inventory items, manages GitHub issues and PRs with SVG card rendering, persists players via Supabase, and forwards HMAC-signed requests into in-cluster n8n.
+        - question: How does the /n8n command stay secure?
+          answer: Every /n8n payload is signed with X-KBVE-Signature sha256 HMAC over the timestamp and body so n8n workflows verify origin and reject replays. Requests are also filtered by a globset allowlist, and all three required env vars must be present or the command unregisters itself.
+bento:
+    badge: discord · bot
+    title: Standalone gateway bot
+    accent: DiscordSH Bot
+    lede: >-
+        The standalone Discord gateway bot extracted from the axum-discordsh
+        monolith. Built on the poise/serenity gateway with shard support, it
+        handles every Discord interaction independently of the HTTP server —
+        slash commands, an embed dungeon game, GitHub management, and an
+        HMAC-signed n8n forwarder.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/discordsh/discordsh-bot
+          primary: true
+          external: true
+        - label: Features
+          href: "#overview"
+        - label: Environment
+          href: "#env"
+    aside:
+        icon: lock
+        title: Signed n8n forwarding
+        body: >-
+            Every <code>/n8n</code> payload is signed
+            <code>X-KBVE-Signature: sha256=HMAC</code> over the timestamp and
+            body so workflows verify origin and reject replays, filtered by a
+            globset allowlist. All three required env vars must be present or the
+            command unregisters itself.
+        points:
+            - <strong>Gateway</strong> — poise/serenity with shard support.
+            - <strong>Health</strong> — minimal HTTP server for k8s probes.
+    stats:
+        - { label: App, value: discordsh-bot, icon: discord }
+        - { label: Gateway, value: poise/serenity, icon: server }
+        - { label: Health port, value: '4322', icon: activity }
+        - { label: Status, value: prod, icon: check }
+    features:
+        - title: Slash commands
+          icon: message
+          body: Serves /github, /gh, /dungeon, /ping, /status, /health, /admin, /skills, and /n8n over the poise/serenity gateway.
+        - title: Embed dungeon game
+          icon: sword
+          body: Runs an embed dungeon game with bevy_battle combat and bevy_inventory item management, persisting players via Supabase.
+        - title: GitHub management
+          icon: github
+          body: Manages GitHub issues and PRs with SVG card rendering from within Discord.
+        - title: n8n forwarder
+          icon: gears
+          body: Forwards HMAC-signed requests into in-cluster n8n, verified against a globset allowlist with per-user rate limiting.
+    related:
+        - title: DiscordSH
+          href: /project/discordsh/
+          copy: HTTP server (Astro site, REST API).
+          icon: discord
+        - title: bevy_inventory
+          href: /project/bevy-inventory-crate/
+          copy: The inventory crate powering the embed dungeon game.
+          icon: inventory
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Responsibilities" heading="Overview & features">
 
 `discordsh-bot` is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server.
 
@@ -42,7 +120,9 @@ kube:
 - HMAC-signed forwarder into in-cluster n8n (`/n8n`)
 - Minimal health HTTP server for k8s probes
 
-## Environment Variables
+</BentoProse>
+
+<BentoProse id="env" eyebrow="Configuration" heading="Environment variables">
 
 Required at runtime. In production the values come from `discordsh-config` (ConfigMap) and the `discordsh-redis-secret` / `discordsh-supabase-shared` / `discordsh-n8n-hmac` Secrets. For the dev container, drop them into `apps/discordsh/discordsh-bot/.env` (loaded via `dotenvy` at startup) — anything missing simply disables the related feature instead of failing the boot.
 
@@ -82,7 +162,7 @@ Required at runtime. In production the values come from `discordsh-config` (Conf
 
 Dev-container `.env` example:
 
-```env
+```ini
 N8N_BASE_URL=https://n8n.kbve.com/webhook/
 N8N_HMAC_SECRET=<shared>
 N8N_ALLOWED_PATHS=kbve/*,deploy-*
@@ -92,6 +172,6 @@ N8N_RATE_WINDOW=5
 
 In production the same secret lives once as a SealedSecret in the `n8n` namespace and is mirrored into `discordsh` via ExternalSecret — see `apps/kube/discordsh/seal-n8n-hmac.sh`.
 
-### Related
+</BentoProse>
 
-- [DiscordSH](/project/discordsh/) — HTTP server (Astro site, REST API)
+</BentoDoc>

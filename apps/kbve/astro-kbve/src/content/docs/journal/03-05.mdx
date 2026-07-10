@@ -10,16 +10,52 @@ description: |
     Minor updates to the legal rendering and testing out the bento grid.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 5,'
+    accent: every year.
+    lede: 'The March 5th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Mar 4'
+          href: /journal/03-04/
+        - label: 'Mar 6 →'
+          href: /journal/03-06/
+    related:
+        - title: 'Previous · Mar 4'
+          copy: 'Step back a day to the March 4th log.'
+          href: /journal/03-04/
+          icon: calendar
+        - title: 'Next · Mar 6'
+          copy: 'Jump ahead to the March 6th log.'
+          href: /journal/03-06/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Market
 
@@ -36,7 +72,15 @@ import { Adsense } from '@/components/astropad';
     We would have to dynamically adjust the sprite and character colliders, furthermore we would have to adjust the layering for the character.
     All of these need to be handled during the gd script / singleton setup, ugh, back to the drawing board I go.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Bento
 
@@ -67,8 +111,13 @@ I also help chip get onboarded for the whole monorepo, which is another huge win
 
 We can now expand and build more abstract applications without having to switch around in multiple repos.
 
+</BentoProse>
 
-## Tasks
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Finish Bento Grid
 - [ ] Phaser React Integration
+
+</BentoProse>
+
+</BentoDoc>

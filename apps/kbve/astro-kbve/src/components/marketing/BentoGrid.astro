@@ -1,0 +1,10 @@
+---
+import type { ComponentProps } from 'react';
+import { BentoGrid } from '@kbve/rn-astro';
+type Props = ComponentProps<typeof BentoGrid>;
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<BentoGrid client:only="react" {...props} />
+</div>

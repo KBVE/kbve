@@ -694,11 +694,12 @@ impl ActiveQuest {
     /// Advance to the next step if the current one is complete.
     /// Returns true if advanced, false if already at the last step or not complete.
     pub fn try_advance_step(&mut self) -> bool {
-        if let Some(step) = self.steps.get(self.current_step) {
-            if step.is_complete() && self.current_step + 1 < self.steps.len() {
-                self.current_step += 1;
-                return true;
-            }
+        if let Some(step) = self.steps.get(self.current_step)
+            && step.is_complete()
+            && self.current_step + 1 < self.steps.len()
+        {
+            self.current_step += 1;
+            return true;
         }
         false
     }

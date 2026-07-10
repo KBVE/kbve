@@ -1,5 +1,6 @@
 ---
 title: Painting
+template: splash
 description: |
     Minecraft Painting — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 923
     ref: painting
     slug: painting
+    content_rev: 1
     display_name: Painting
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A painting is a decorative entity that hangs on walls, crafted from 4 sticks
+            and 1 wool block of any color. When placed, it randomly selects one of 47
+            canvas artworks that fits the available wall space, ranging from 1x1 up to 8x8
+            blocks.
+        lore: |
+            The artwork was created by real artists Kristoffer Zetterstrand, Sarah
+            Boeving, and Jens Bergensten, with several pieces referencing classic
+            Minecraft screenshots and other games.
+    faq:
+        - question: |
+              How do you craft a painting in Minecraft?
+          answer: |
+              Combine 4 sticks and 1 wool block of any color in a crafting grid to make
+              1 painting.
+        - question: |
+              Can you choose which painting you get?
+          answer: |
+              Not directly by crafting; placement randomly picks a canvas that fits the
+              available space, though data packs or specific NBT can force a variant.
+        - question: |
+              Where else can you get a painting?
+          answer: |
+              Shepherd villagers sell 3 paintings for 2 emeralds as part of their trades.
+        - question: |
+              How many painting variants exist in Minecraft?
+          answer: |
+              There are 47 total artworks, including 4 elemental paintings (Earth, Wind,
+              Fire, Water) that can only be obtained through commands.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

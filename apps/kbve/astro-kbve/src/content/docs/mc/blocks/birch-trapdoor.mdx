@@ -1,5 +1,6 @@
 ---
 title: Birch Trapdoor
+template: splash
 description: |
     Minecraft Birch Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 303
     ref: birch_trapdoor
     slug: birch-trapdoor
+    content_rev: 1
     display_name: Birch Trapdoor
     material: wood
     hardness: 3
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Birch Trapdoor is a wooden trapdoor crafted from birch
+            planks. It can be opened and closed by hand, redstone signal,
+            or villager pathing, and combines with a fence gate or trapdoor
+            trick to create hidden entrances.
+        lore: |
+            Birch trapdoors generate naturally around composters in desert
+            village farms, one of the few placements tied to a specific
+            wood type.
+    uses:
+        - title: Hidden Passages
+          ref: birch_trapdoor
+          detail: |
+              Placed on the side of a 1-block-tall opening, a trapdoor lets
+              players swim into underwater or hidden rooms without letting
+              water flow through.
+        - title: Furnace Fuel
+          ref: birch_trapdoor
+          detail: |
+              Like other wooden trapdoors, it burns as furnace fuel,
+              smelting 1.5 items per trapdoor.
+    found_in:
+        - location: Desert Villages
+          detail: Generates attached to composters as part of the farm decoration.
+        - location: Crafted from Birch Planks
+          detail: 6 birch planks in a 2x3 grid craft 2 birch trapdoors.
+    faq:
+        - question: What tool do I need to mine a birch trapdoor?
+          answer: |
+              None — any tool or bare hands break it instantly-ish, though
+              an axe is fastest.
+        - question: Does a birch trapdoor burn?
+          answer: |
+              Yes, it is flammable like all overworld wood, unlike crimson
+              or warped trapdoors which never burn.
+        - question: Can villagers open trapdoors?
+          answer: |
+              Yes, villagers path through open trapdoors and can trigger
+              pressure-plate-linked ones.
+        - question: Does Silk Touch or Fortune affect the drop?
+          answer: |
+              No — a birch trapdoor always drops itself as one item
+              regardless of enchantments.
     data_version: "1.21.5"
 ---
 

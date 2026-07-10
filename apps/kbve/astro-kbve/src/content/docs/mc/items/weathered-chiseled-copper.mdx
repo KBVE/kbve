@@ -1,5 +1,6 @@
 ---
 title: Weathered Chiseled Copper
+template: splash
 description: |
     Minecraft Weathered Chiseled Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 100
     ref: weathered_chiseled_copper
     slug: weathered-chiseled-copper
+    content_rev: 1
     display_name: Weathered Chiseled Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Weathered Chiseled Copper is the third of four oxidation stages of the ornamental
+            chiseled copper block, showing a green-tinged patina over its carved surface. It can
+            be crafted by stacking two matching cut copper slabs, cut directly from stonecutting,
+            or found in trial chambers. An axe scrapes it back to the exposed stage, while
+            honeycomb waxes it to halt any further weathering.
+        lore: |
+            Copper ages like fine architecture, and this weathered stage marks the slow march
+            toward full oxidation, its ornate carvings softened under a coat of green patina.
+    faq:
+        - question: What stage of oxidation is Weathered Chiseled Copper?
+          answer: |
+              It is the third of four stages, appearing after exposed copper and just before the
+              fully oxidized stage.
+        - question: How do I stop it from oxidizing further?
+          answer: |
+              Apply honeycomb to wax the block, which permanently locks it at the weathered
+              stage and prevents it from progressing to oxidized.
+        - question: Can I reverse it back to an earlier stage?
+          answer: |
+              Yes. Scraping it with an axe removes one stage of oxidation, turning weathered
+              chiseled copper back into exposed chiseled copper.
+        - question: Does it have any redstone or functional use?
+          answer: |
+              No, it is purely decorative, though placing a note block on top of it produces a
+              distinctive trumpet sound useful in redstone music builds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

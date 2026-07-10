@@ -1,5 +1,6 @@
 ---
 title: Cobblestone
+template: splash
 description: |
     Minecraft Cobblestone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,81 @@ mc_block:
     id: 12
     ref: cobblestone
     slug: cobblestone
+    content_rev: 1
     display_name: Cobblestone
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobblestone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Cobblestone is the rough block left behind when stone is mined
+            without Silk Touch, and one of the most-used early-game building
+            and crafting materials. It also forms naturally wherever flowing
+            water meets flowing lava.
+        lore: |
+            Cobblestone became renewable via lava-water contact as far back
+            as Java Edition Infdev, long before crafting recipes were added.
+    uses:
+        - title: Stone tools and furnaces
+          ref: furnace
+          detail: |
+              Eight Cobblestone craft a Furnace, and Cobblestone is the base
+              ingredient for the stone tool and weapon tier.
+        - title: Smelting into Stone
+          ref: stone
+          detail: |
+              Smelting Cobblestone in a furnace produces regular Stone,
+              reversing the mining process for building purposes.
+        - title: Redstone builds
+          ref: cobblestone
+          detail: |
+              Its high blast resistance and cheap availability make it a
+              staple filler and structural block in redstone contraptions.
+    found_in:
+        - location: Mining stone
+          detail: Breaking Stone with a pickaxe (without Silk Touch) drops Cobblestone.
+        - location: Lava and water contact
+          detail: Flowing lava turns to Cobblestone when it touches flowing water.
+        - location: Villages, strongholds, mineshafts
+          detail: Naturally generates as decoration and structural material in many structures.
+    faq:
+        - question: What tool do I need to mine Cobblestone?
+          answer: |
+              Any pickaxe, starting with wood. Mining stone or cobblestone
+              without a pickaxe drops nothing.
+        - question: Is Cobblestone renewable?
+          answer: |
+              Yes. Flowing lava turns into Cobblestone whenever flowing water
+              touches it, making an infinite supply possible with a simple
+              lava-water setup.
+        - question: What is Cobblestone used to craft?
+          answer: |
+              Furnaces, stone tools and weapons, blast furnaces (via smooth
+              stone), walls, stairs, and many other stone-family blocks.
+        - question: Does Fortune increase Cobblestone drops?
+          answer: |
+              No. Cobblestone always drops exactly one block per break
+              regardless of Fortune or Silk Touch.
     data_version: "1.21.5"
 ---
 

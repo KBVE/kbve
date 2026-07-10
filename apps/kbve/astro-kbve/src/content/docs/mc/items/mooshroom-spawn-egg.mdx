@@ -1,5 +1,6 @@
 ---
 title: Mooshroom Spawn Egg
+template: splash
 description: |
     Minecraft Mooshroom Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1103
     ref: mooshroom_spawn_egg
     slug: mooshroom-spawn-egg
+    content_rev: 1
     display_name: Mooshroom Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Mooshroom Spawn Egg instantly spawns a mooshroom when used on a block surface, and
+            spawns a baby mooshroom if used directly on an existing mooshroom. Like all spawn eggs, it
+            is only available in Creative mode or via commands and is consumed on use in Survival.
+        lore: |
+            Mooshrooms are a rare hybrid creature found in mushroom biomes, blending bovine and fungal traits into one entity.
+    faq:
+        - question: What color mooshroom does the egg spawn?
+          answer: |
+              Mooshrooms always spawn red, though there is a small chance of spawning as a baby.
+        - question: Can I get a baby mooshroom from the spawn egg?
+          answer: |
+              Yes, using the spawn egg directly on an adult mooshroom spawns a baby mooshroom instead
+              of an adult.
+        - question: Can I obtain this spawn egg in Survival mode?
+          answer: |
+              No, spawn eggs are restricted to Creative mode and commands and cannot be obtained through
+              normal Survival gameplay.
+        - question: Can I name the mooshroom before spawning it?
+          answer: |
+              Yes, rename the spawn egg on an anvil first, and the mooshroom it spawns will display
+              that name above its head.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

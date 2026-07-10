@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: November 10th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 10,'
+    accent: every year.
+    lede: 'The November 10th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Nov 9'
+          href: /journal/11-09/
+        - label: 'Nov 11 →'
+          href: /journal/11-11/
+    related:
+        - title: 'Previous · Nov 9'
+          copy: 'Step back a day to the November 9th log.'
+          href: /journal/11-09/
+          icon: calendar
+        - title: 'Next · Nov 11'
+          copy: 'Jump ahead to the November 11th log.'
+          href: /journal/11-11/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   07:13AM
 
@@ -137,3 +178,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     While working on the expo component, I am jamming to that radio session with Fred and Jim!
     The whole work is flames, just nearly a perfect set for this expo work.
     Here is the link to the [set](https://www.youtube.com/watch?v=DE_yVb3JMD8), which should be thrown into that future music application.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

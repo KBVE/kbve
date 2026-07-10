@@ -1,5 +1,6 @@
 ---
 title: Creeper Head
+template: splash
 description: |
     Minecraft Creeper Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 429
     ref: creeper_head
     slug: creeper-head
+    content_rev: 1
     display_name: Creeper Head
     material: stone
     hardness: 1
     blast_resistance: 1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,65 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: creeper_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+        - mob_head
+    about:
+        description: |
+            A Creeper Head is a rare decorative mob head obtainable only
+            when a creeper is killed by another charged creeper's
+            explosion. Wearing it reduces detection range from other
+            creepers.
+        lore: |
+            Added in Java Edition 1.4.2, mob heads let players display
+            trophies of rare in-game events, with the Creeper Head being
+            among the hardest to obtain by chance.
+    uses:
+        - title: Wearable armor
+          ref: creeper_head
+          detail: |
+              Equipped in the helmet slot, it halves how far creepers can
+              detect the wearer, making it useful for sneaking past them.
+        - title: Firework star / banner pattern ingredient
+          ref: firework_star
+          detail: |
+              Used as a crafting ingredient for certain firework star
+              effects and banner patterns depicting a creeper face.
+        - title: Note block decoration
+          ref: note_block
+          detail: |
+              Placing it on a note block changes the instrument sound to a
+              hissing creeper noise.
+    found_in:
+        - location: Charged creeper explosions
+          detail: |
+              Drops when a lightning-charged creeper's explosion kills a
+              regular creeper. In Java Edition only one random head drops
+              per explosion.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              None; it breaks at the same speed with any tool or bare
+              hands, and always drops itself.
+        - question: How do I get a Creeper Head?
+          answer: |
+              You cannot craft or buy one. A creeper must be killed by the
+              explosion of a different, lightning-charged creeper.
+        - question: Does it stack?
+          answer: |
+              Yes, up to 64 per stack, like other mob heads.
+        - question: What's the difference between this and the wall variant?
+          answer: |
+              Creeper Head sits on top of a block and can face 16
+              directions; Creeper Wall Head is a separate block placed on
+              the side of a block, facing one of 4 cardinal directions.
     data_version: "1.21.5"
 ---
 

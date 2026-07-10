@@ -35,4 +35,10 @@ public:
 
 	/** Hard correction from the server (position + velocity). Most predicted drivers self-correct. */
 	virtual void ApplyServerCorrection(const FVector& Position, const FVector& Velocity) {}
+
+	/** Server correction carrying the last consumed input seq, for rollback-replay prediction. */
+	virtual void ApplyServerCorrection(const FVector& Position, const FVector& Velocity, uint32 InputAck)
+	{
+		ApplyServerCorrection(Position, Velocity);
+	}
 };

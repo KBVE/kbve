@@ -1,5 +1,6 @@
 ---
 title: Red Concrete
+template: splash
 description: |
     Minecraft Red Concrete — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 599
     ref: red_concrete
     slug: red-concrete
+    content_rev: 1
     display_name: Red Concrete
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Red concrete is a solid decorative building block, one of sixteen dye-colored variants, formed when red concrete powder contacts water. It has a hardness of 1.8 and requires a wooden pickaxe or better to mine, offering a more pronounced hue than stained terracotta while remaining non-flammable unlike wool.
+        lore: |
+            The bright, solid color of red concrete makes it a favorite for decoration, standing out with a bolder hue than stained terracotta while never catching fire like wool.
+    faq:
+        - question: How is red concrete made?
+          answer: |
+              Red concrete powder must touch water — a source block, flowing water, or a waterlogged block — which causes it to instantly harden into solid red concrete.
+        - question: What tool do I need to mine red concrete?
+          answer: |
+              A wooden pickaxe or better is required; mining it without a pickaxe drops nothing.
+        - question: How is red concrete different from stained terracotta or wool?
+          answer: |
+              Concrete has more pronounced, saturated colors than stained terracotta and higher hardness, but lower blast resistance than stone. Unlike wool, it is not flammable.
+        - question: Can I find red concrete naturally in the world?
+          answer: |
+              Yes, red and white concrete generate naturally in trial chamber atriums as part of decorative murals, introduced in the 1.21 update.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

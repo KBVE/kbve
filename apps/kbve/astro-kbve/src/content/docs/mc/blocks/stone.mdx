@@ -1,5 +1,6 @@
 ---
 title: Stone
+template: splash
 description: |
     Minecraft Stone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,80 @@ mc_block:
     id: 1
     ref: stone
     slug: stone
+    content_rev: 1
     display_name: Stone
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobblestone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: stone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Stone is the most common solid block filling the Overworld
+            below the surface. It normally drops cobblestone when mined,
+            requiring a Silk Touch pickaxe to collect the stone block
+            itself, and it can also be smelted back from cobblestone.
+        lore: |
+            Stone was one of the two original blocks in Minecraft, dating
+            back to the game's earliest RubyDung prototype alongside grass.
+    uses:
+        - title: Stone Bricks & Tools
+          ref: stone_bricks
+          detail: |
+              Crafts into stone bricks, stone tools, furnaces, and serves as
+              the base ingredient for buttons, slabs, stairs, and
+              stonecutters.
+        - title: Redstone Components
+          ref: redstone_comparator
+          detail: |
+              Used to craft redstone comparators and repeaters alongside
+              redstone dust and quartz.
+    found_in:
+        - location: Overworld underground
+          detail: Makes up the majority of solid blocks generated above Y=0.
+        - location: Igloos, trial chambers, abandoned camps
+          detail: Also appears as a structure block in several generated structures.
+    faq:
+        - question: Why do I get cobblestone instead of stone when mining?
+          answer: |
+              Mining stone with a regular pickaxe drops cobblestone by
+              default. Only a pickaxe enchanted with Silk Touch drops the
+              stone block itself.
+        - question: What tool do I need to mine Stone?
+          answer: |
+              At least a wooden pickaxe. Mining with your fist or without a
+              pickaxe drops nothing.
+        - question: Is Stone renewable?
+          answer: |
+              Yes. Cobblestone generators (using flowing lava and water) can
+              be smelted into stone, making it an infinitely renewable
+              resource.
+        - question: Does Fortune affect Stone drops?
+          answer: |
+              No. Fortune has no effect on stone or cobblestone drop
+              quantities; each block still drops exactly one item.
     data_version: "1.21.5"
 ---
 

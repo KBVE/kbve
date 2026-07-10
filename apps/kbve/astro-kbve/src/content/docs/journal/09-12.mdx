@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1691862867327-d07c3fe827f5?crop=entropy&c
 description: September 12th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 12,'
+    accent: every year.
+    lede: 'The September 12th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 11'
+          href: /journal/09-11/
+        - label: 'Sep 13 →'
+          href: /journal/09-13/
+    related:
+        - title: 'Previous · Sep 11'
+          copy: 'Step back a day to the September 11th log.'
+          href: /journal/09-11/
+          icon: calendar
+        - title: 'Next · Sep 13'
+          copy: 'Jump ahead to the September 13th log.'
+          href: /journal/09-13/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1691862867327-d07c3fe827f5?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### OneJS Bridge System
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     This is the warmup fight before the final showdown, if I can get nearly all of the raw performance out of the quasi-ffi between the typescript and c#, then I should be ready for the harder parts of the DOTS.
     Let us pray that we get a decent amount of the work out of the way before the end of this week, so that we can spend the rest of the time focused on the DOTS.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Zoids**
 
@@ -98,20 +147,30 @@ There might be some issues here and there, but I think we can resolve them if we
 We could step up a bit further and organize all the commits that are being made into some different categories.
 After updating those categories, we can pull in a quick ai magic too and give us an updated summary of all the changes too.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:49am - Backend updates should be automated but I am running into a couple different issues, including the backups and data management. The next move would be to build out self-hosted Github runners that we could call within the repo? They would handle the migration of data but outside the scope or control of Github. Furthermore, I think there should be a backup plan for the Github repos themselves, which I have noted.
 - 11:30am - First time in a while where we had a solid lunch with the co-workers, I am always excited to hear the interesting hobbies that people are involved in! I did not know that you could easily build your own in-house hardware because circuit boards can be printed on demand per unit?! I knew it was a service but never realized that it is not just a B2B but a growing B2C operations.
 - 1:09pm - Watching the Apple event! It makes me want to make apps for their products a bit more, its like a motivational speech for tech nerds.
 - 1:36pm - Adding Scene management into virtual engine file, I am also thinking of just making the whole VE file be something that I can reference almost anywhere in the future. It feels weird to merge everything into just one file but slowly it just seems to make more sense as I am going through it. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > But friendship is precious, not only in the shade, but in the sunshine of life, and thanks to a benevolent arrangement the greater part of life is sunshine.
 > — <cite>Thomas Jefferson</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

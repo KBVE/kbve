@@ -9,10 +9,52 @@ description: |
   July 11th. NPC Engine Demo
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 11,'
+    accent: every year.
+    lede: 'The July 11th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 10'
+          href: /journal/07-10/
+        - label: 'Jul 12 →'
+          href: /journal/07-12/
+    related:
+        - title: 'Previous · Jul 10'
+          copy: 'Step back a day to the July 10th log.'
+          href: /journal/07-10/
+          icon: calendar
+        - title: 'Next · Jul 12'
+          copy: 'Jump ahead to the July 12th log.'
+          href: /journal/07-12/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1687731216321-8265eacdc6ca?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Techie
 
@@ -29,8 +71,15 @@ import { Adsense } from '@/components/astropad';
     We should look at seeing if Claude or any of these AI tools can take an exisiting program and turn it into a react application .
     I am going to try and run a quick dry run.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **NPC**
 
@@ -75,18 +124,29 @@ We could set the interface up for the loot table to be fairly generic, then expa
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 5:55am - The sunshine is definitely strong! After finishing up my quick SSS, I am going to finish up some more of the Astro core.
 - 6:04am - While I am tackling some of the Astro stuff, I am going to take a look at a random issue and see if I can progress it too.
 - 9:51pm - 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Once we accept our limits, we go beyond them.
 > — <cite>Albert Einstein</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

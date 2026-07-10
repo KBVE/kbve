@@ -1,5 +1,6 @@
 ---
 title: Bamboo Fence Gate
+template: splash
 description: |
     Minecraft Bamboo Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 604
     ref: bamboo_fence_gate
     slug: bamboo-fence-gate
+    content_rev: 1
     display_name: Bamboo Fence Gate
     material: wood
     hardness: 2
@@ -21,13 +23,58 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Bamboo Fence Gate is a switchable barrier that fits into Bamboo
+            Fence lines, letting players pass through by hand, redstone
+            power, or a wind charge without breaking the fence.
+        lore: |
+            Fence gates date back to 2010; the bamboo variant arrived with
+            the full bamboo wood set in Java Edition 1.20.
+    uses:
+        - title: Bamboo Fence
+          ref: bamboo_fence
+          detail: |
+              Connects seamlessly into Bamboo Fence lines to provide a
+              controllable entry point for pens and yards.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Smelts 1.5 items per gate when used as furnace fuel.
+    found_in:
+        - location: Crafting Table
+          detail: 2 sticks and 4 Bamboo Planks craft 1 Bamboo Fence Gate.
+    faq:
+        - question: What tool mines Bamboo Fence Gate fastest?
+          answer: |
+              An axe, with a golden axe breaking it fastest of all.
+        - question: Does Bamboo Fence Gate block mob jumps?
+          answer: |
+              Yes. A closed fence gate is one and a half blocks tall,
+              stopping most mobs from jumping over it.
+        - question: Can Bamboo Fence Gate be waterlogged?
+          answer: |
+              No. Fence gates cannot hold the waterlogged state in Java
+              Edition.
+        - question: Is Bamboo Fence Gate flammable?
+          answer: |
+              Yes. As an Overworld wood variant it can catch fire and burn
+              away.
     data_version: "1.21.5"
 ---
 

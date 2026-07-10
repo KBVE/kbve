@@ -1,5 +1,6 @@
 ---
 title: Potted Bamboo
+template: splash
 description: |
     Minecraft Potted Bamboo — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,59 @@ mc_block:
     id: 760
     ref: potted_bamboo
     slug: potted-bamboo
+    content_rev: 1
     display_name: Potted Bamboo
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: bamboo
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Bamboo is a decorative pot arrangement holding a single
+            bamboo shoot. It breaks instantly with any tool or by hand and
+            returns both the pot and the bamboo item.
+        lore: |
+            Bamboo is the fastest-growing plant in Minecraft, mirroring its
+            real-world reputation, though potted bamboo stays fixed as a
+            single decorative shoot.
+    found_in:
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with Bamboo places it inside.
+        - location: Jungle Biomes
+          detail: The source Bamboo item is harvested from bamboo thickets in jungle biomes before being potted.
+    faq:
+        - question: What does breaking Potted Bamboo drop?
+          answer: |
+              Both the Flower Pot and one Bamboo item, obtained instantly
+              with any tool or bare hands.
+        - question: Can Potted Bamboo grow taller?
+          answer: |
+              No. Once potted, bamboo stays as a single decorative shoot and
+              will not grow into a full stalk.
+        - question: Does Potted Bamboo attract pandas?
+          answer: |
+              No. Only full bamboo blocks (not the potted item) within range
+              can be used to breed pandas.
     data_version: "1.21.5"
 ---
 

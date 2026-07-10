@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper
+template: splash
 description: |
     Minecraft Weathered Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 968
     ref: weathered_copper
     slug: weathered-copper
+    content_rev: 1
     display_name: Weathered Copper
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weathered_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Weathered Copper is the third of the four oxidation stages of
+            a copper block, showing a heavier green patina than Exposed
+            Copper but not yet the full teal of fully Oxidized Copper.
+        lore: |
+            Copper blocks were revealed at Minecraft Live 2020 and added
+            in Java Edition 1.17, introducing the game's first block that
+            visually ages over time.
+    uses:
+        - title: Weathered Cut Copper
+          ref: weathered_cut_copper
+          detail: |
+              Craft or stonecut into Weathered Cut Copper, then further
+              into slabs, stairs, and chiseled copper for building.
+        - title: Waxed Weathered Copper
+          ref: waxed_weathered_copper
+          detail: Apply honeycomb to freeze the block at this oxidation stage forever.
+    found_in:
+        - location: Trial Chambers
+          detail: Weathered and oxidized copper blocks generate naturally as part of trial chamber structures.
+        - location: Player-aged Copper Block
+          detail: Any placed, unwaxed Copper Block eventually oxidizes into this stage over real time.
+    faq:
+        - question: What tool do I need to mine Weathered Copper?
+          answer: |
+              A stone pickaxe or better. Without one, the block breaks but
+              drops nothing.
+        - question: Will Weathered Copper keep oxidizing?
+          answer: |
+              Yes, it will eventually progress to fully Oxidized Copper
+              unless waxed with a honeycomb.
+        - question: Can I reverse its oxidation?
+          answer: |
+              Yes, scraping it with an axe reverts it one stage to Exposed
+              Copper, and a lightning strike fully deoxidizes it back to
+              plain Copper Block.
+        - question: Does Fortune increase drops when mining it?
+          answer: No. Copper blocks always drop exactly one of themselves regardless of Fortune.
     data_version: "1.21.5"
 ---
 

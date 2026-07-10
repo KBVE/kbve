@@ -1,0 +1,78 @@
+---
+interface Props {
+	eyebrow?: string;
+	heading?: string;
+	id?: string;
+}
+
+const { eyebrow, heading, id } = Astro.props;
+---
+
+<section {id} class="bento-shell bento-section not-content">
+	<div class="bento-shell__inner bento-frame">
+		{
+			(eyebrow || heading) && (
+				<header class="bento-shell__header">
+					{eyebrow && <p class="bento-eyebrow">{eyebrow}</p>}
+					{heading && <h2 class="bento-heading">{heading}</h2>}
+				</header>
+			)
+		}
+		<slot />
+	</div>
+</section>
+
+<style>
+	.bento-shell__header {
+		padding: 3rem 1rem 2rem;
+	}
+
+	@media (min-width: 640px) {
+		.bento-shell__header {
+			padding-inline: 1.5rem;
+		}
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	onMount(() => {
+		const sections = document.querySelectorAll<HTMLElement>(
+			'.bento-shell, .bento-hero',
+		);
+		if (!sections.length) return;
+
+		const reduced = window.matchMedia(
+			'(prefers-reduced-motion: reduce)',
+		).matches;
+
+		if (reduced) {
+			sections.forEach((s) => s.setAttribute('data-bento-reveal', 'in'));
+			return;
+		}
+
+		sections.forEach((s) => s.setAttribute('data-bento-reveal', 'pending'));
+
+		const io = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (!entry.isIntersecting) return;
+					const el = entry.target as HTMLElement;
+					el.setAttribute('data-bento-reveal', 'in');
+					io.unobserve(el);
+				});
+			},
+			{ threshold: 0.08, rootMargin: '0px 0px -5% 0px' },
+		);
+
+		sections.forEach((s) => io.observe(s));
+		teardownOnLeave(io);
+
+		function teardownOnLeave(observer: IntersectionObserver) {
+			window.addEventListener('pagehide', () => observer.disconnect(), {
+				once: true,
+			});
+		}
+	});
+</script>

@@ -1,5 +1,6 @@
 ---
 title: Potted Warped Roots
+template: splash
 description: |
     Minecraft Potted Warped Roots — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 881
     ref: potted_warped_roots
     slug: potted-warped-roots
+    content_rev: 1
     display_name: Potted Warped Roots
     material: plant
     hardness: 0
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: warped_roots
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - nether
+    about:
+        description: |
+            Potted Warped Roots is a decorative flower pot holding a cluster
+            of thin, blue Warped Roots. It is purely decorative and shares no
+            crop or crafting function beyond the potted display.
+        lore: |
+            Warped Roots resemble a colony of tall, thin mushrooms and help
+            define the alien, otherworldly look of the Nether's warped
+            forest biome.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing Warped Roots into a composter has a chance to raise
+              the compost level, an easy way to farm bone meal in the Nether.
+    found_in:
+        - location: Warped forest biome
+          detail: Generates often on warped nylium and soul soil throughout warped forests in the Nether.
+        - location: Flower pot
+          detail: Right-clicking a flower pot with Warped Roots plants this potted variant.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool or bare hands break it instantly — hardness is 0.
+        - question: What does breaking it drop?
+          answer: |
+              It drops both a Flower Pot and Warped Roots as separate items.
+        - question: Is Potted Warped Roots functional or purely decorative?
+          answer: |
+              Purely decorative — unlike Warped Fungus, it has no hoglin
+              repellent or stick-crafting use.
+        - question: Where do Warped Roots generate?
+          answer: |
+              They generate on warped nylium and soul soil in warped forest
+              biomes in the Nether and can spread there via bone meal.
     data_version: "1.21.5"
 ---
 

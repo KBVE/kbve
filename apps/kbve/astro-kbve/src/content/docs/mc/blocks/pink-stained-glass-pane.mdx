@@ -1,5 +1,6 @@
 ---
 title: Pink Stained Glass Pane
+template: splash
 description: |
     Minecraft Pink Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 474
     ref: pink_stained_glass_pane
     slug: pink-stained-glass-pane
+    content_rev: 1
     display_name: Pink Stained Glass Pane
     material: glass
     hardness: 0.3
@@ -26,8 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Pink Stained Glass Pane is a thin, colored window block that
+            uses a quarter of the resources of a full glass block for the
+            same coverage area. It connects visually to adjacent panes and
+            solid blocks.
+        lore: |
+            Stained glass panes were added as a dyed variant of ordinary
+            glass panes, giving builders efficient, colorful windows.
+    uses:
+        - title: Windows & Barriers
+          ref: pink_stained_glass_pane
+          detail: |
+              Used to build transparent, colored windows and fences that
+              still block mob and player movement while letting light and
+              view through.
+    found_in:
+        - location: Crafting table
+          detail: Craft from 6 Pink Stained Glass blocks (16 panes), or from 4 Glass Panes plus Pink Dye (8 panes).
+        - location: Trail Ruins
+          detail: Pink stained glass panes appear as loot block decoration inside Trail Ruins structures.
+    faq:
+        - question: What tool do I need to mine Pink Stained Glass Pane?
+          answer: |
+              Any tool works at the same speed; a pickaxe is not required.
+        - question: Does it drop itself when mined?
+          answer: |
+              Only with a Silk Touch enchanted tool. Without Silk Touch,
+              mining it yields nothing.
+        - question: Can it be used to lock a map?
+          answer: |
+              No, unlike regular (undyed) glass panes, stained glass panes
+              cannot be used to create a locked map frame.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Brown Bundle
+template: splash
 description: |
     Minecraft Brown Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 987
     ref: brown_bundle
     slug: brown-bundle
+    content_rev: 1
     display_name: Brown Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Brown Bundle is a dyed variant of the bundle, a storage item that holds
+            a mix of different item types in a single inventory slot. It is created by
+            applying brown dye to an undyed bundle.
+        lore: |
+            Inspired by ancient coin purses, the bundle finally arrived in Minecraft
+            years after it was first teased at Minecraft Live 2020.
+    faq:
+        - question: How do you make a Brown Bundle?
+          answer: |
+              Combine any bundle with brown dye to recolor it, or craft a base bundle
+              from string and leather first.
+        - question: How much can a Brown Bundle hold?
+          answer: |
+              A bundle holds one full stack's worth of items total, with each item
+              taking up space proportional to its own stack size.
+        - question: Can a Brown Bundle hold other bundles?
+          answer: |
+              Bundles can be nested inside other bundles, though this consumes a large
+              portion of the outer bundle's capacity.
+        - question: How do you take items out of a Brown Bundle?
+          answer: |
+              Hover over the bundle, scroll to select the desired item stack, then
+              right-click to remove it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,0 +1,1176 @@
+---
+type MilestoneStatus = 'shipped' | 'active' | 'planned';
+
+interface Milestone {
+	quarter: string;
+	title: string;
+	body: string;
+	status: MilestoneStatus;
+	href?: string;
+}
+
+const milestones: Milestone[] = [
+	{
+		quarter: 'Q1 2026',
+		title: 'Asymmetric auth',
+		body: 'Supabase JWT migration to ES256 with JWKS verification across every service and game server.',
+		status: 'shipped',
+		href: '/application/kubernetes',
+	},
+	{
+		quarter: 'Q2 2026',
+		title: 'Desktop launcher',
+		body: 'Unified Tauri launcher with single sign-on shared between our games and the KBVE desktop app.',
+		status: 'shipped',
+	},
+	{
+		quarter: 'Q3 2026',
+		title: 'ARPG persistence',
+		body: 'Character saves flowing from game servers into kilobase with a ledger-backed audit trail.',
+		status: 'active',
+		href: '/arcade/',
+	},
+	{
+		quarter: 'Q3 2026',
+		title: 'Homepage bento',
+		body: 'Live-data bento redesign: meta rail, community globe, pipeline flow — the page you are reading now.',
+		status: 'active',
+	},
+	{
+		quarter: 'Q4 2026',
+		title: 'Dashboard',
+		body: 'User dashboard rebuilt on the same bento system, wired to live cluster and game telemetry.',
+		status: 'planned',
+		href: '/dashboard/',
+	},
+	{
+		quarter: 'Q4 2026',
+		title: 'Arcade expansion',
+		body: 'New titles land in the arcade with shared item, spell, and map databases powering each one.',
+		status: 'planned',
+		href: '/arcade/',
+	},
+];
+
+const statusLabel: Record<MilestoneStatus, string> = {
+	shipped: 'Shipped',
+	active: 'In progress',
+	planned: 'Planned',
+};
+---
+
+<section class="bento-roadmap bento-section not-content">
+	<div class="bento-roadmap__bg" aria-hidden="true"></div>
+	<div class="bento-roadmap__vignette" aria-hidden="true"></div>
+	<div class="bento-roadmap__frame bento-frame">
+		<header class="bento-roadmap__intro">
+			<p class="bento-eyebrow">Roadmap</p>
+			<h2 class="bento-roadmap__heading">
+				Built in the open,<br />shipped in the open.
+			</h2>
+			<p class="bento-roadmap__sub">
+				Every milestone below maps to real issues, pull requests, and
+				deployments in the KBVE monorepo. No private backlog — the plan
+				is the repo.
+			</p>
+			<div class="bento-roadmap__ctas">
+				<a
+					class="bento-roadmap__cta bento-roadmap__cta--primary"
+					href="https://github.com/KBVE/kbve/milestones"
+					target="_blank"
+					rel="noopener noreferrer">
+					Follow on GitHub
+					<svg
+						viewBox="0 0 24 24"
+						width="13"
+						height="13"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true">
+						<path d="M5 12h14m-6-6 6 6-6 6"></path>
+					</svg>
+				</a>
+				<a class="bento-roadmap__cta" href="/discord">
+					Join the Discord
+				</a>
+			</div>
+			<a
+				class="bento-roadmap__badge bento-card--glass"
+				href="https://github.com/KBVE/kbve"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="bento-roadmap__badge-dot" aria-hidden="true">
+				</span>
+				<span class="bento-roadmap__badge-strong">
+					Synced from the monorepo
+				</span>
+				<span class="bento-roadmap__badge-sep" aria-hidden="true">
+					·
+				</span>
+				<span>issues sync to Discord</span>
+			</a>
+		</header>
+
+		<div
+			class="bento-roadmap__scroller"
+			tabindex="0"
+			aria-label="Roadmap timeline">
+			<div class="bento-roadmap__rail" aria-hidden="true"></div>
+			<ol class="bento-roadmap__track">
+				{
+					milestones.map((m) => (
+						<li class="bento-roadmap__stop" data-status={m.status}>
+							<span class="bento-roadmap__quarter">
+								{m.quarter}
+							</span>
+							<span
+								class="bento-roadmap__node"
+								aria-hidden="true"
+							/>
+							<article class="bento-roadmap__card bento-card bento-card--interactive bento-card--glass">
+								<span class="bento-roadmap__status bento-chip">
+									<span
+										class="bento-roadmap__dot"
+										aria-hidden="true"
+									/>
+									{statusLabel[m.status]}
+								</span>
+								<h3 class="bento-roadmap__title">{m.title}</h3>
+								<p class="bento-roadmap__body">{m.body}</p>
+								{m.href && (
+									<a
+										class="bento-roadmap__link"
+										href={m.href}>
+										Learn more →
+									</a>
+								)}
+							</article>
+							{m.status === 'active' && (
+								<ol
+									class="bento-roadmap__queue"
+									data-roadmap-queue
+									aria-label="Live workflow runs">
+									{[0, 1, 2].map(() => (
+										<li
+											class="bento-roadmap__run bento-card bento-card--glass"
+											data-run-slot
+											data-state="idle">
+											<span
+												class="bento-roadmap__run-dot"
+												aria-hidden="true"
+											/>
+											<strong data-run-name>
+												Queue idle
+											</strong>
+											<span data-run-status>
+												Waiting for workflow…
+											</span>
+										</li>
+									))}
+								</ol>
+							)}
+						</li>
+					))
+				}
+			</ol>
+		</div>
+	</div>
+	<div
+		class="bento-roadmap__kanban bento-card bento-card--glass"
+		data-roadmap-kanban>
+		<span class="bento-roadmap__kanban-icon bento-icon-tile">
+			<svg
+				viewBox="0 0 24 24"
+				width="16"
+				height="16"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true">
+				<path d="M6 5v11"></path>
+				<path d="M12 5v6"></path>
+				<path d="M18 5v14"></path>
+			</svg>
+		</span>
+		<span class="bento-roadmap__kanban-label">Kanban Milestones</span>
+	</div>
+</section>
+
+<style>
+	.bento-roadmap {
+		--roadmap-red: color-mix(in srgb, var(--color-red, #ad0013) 65%, white);
+		--roadmap-forest: #2d6a4f;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.bento-roadmap__bg {
+		position: absolute;
+		inset: 0;
+		background-image: url('https://images.unsplash.com/photo-1714333679834-e57141e6945c?q=80&w=1981&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+		background-size: cover;
+		background-position: center;
+		opacity: 0.35;
+		filter: saturate(0.75) brightness(0.7) contrast(1.05);
+		pointer-events: none;
+	}
+
+	.bento-roadmap__vignette {
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(
+				circle at 50% 12%,
+				color-mix(in srgb, var(--sl-color-accent-high) 10%, transparent)
+					0%,
+				transparent 38%
+			),
+			radial-gradient(
+				ellipse at center,
+				transparent 20%,
+				var(--sl-color-black) 85%
+			),
+			linear-gradient(
+				to bottom,
+				var(--sl-color-black) 0%,
+				transparent 14%,
+				transparent 86%,
+				var(--sl-color-black) 100%
+			);
+		pointer-events: none;
+	}
+
+	.bento-roadmap__frame {
+		position: relative;
+	}
+
+	.bento-roadmap__intro {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		padding: 3.5rem 1.5rem 1rem;
+	}
+
+	.bento-roadmap__intro .bento-eyebrow {
+		color: var(--roadmap-red);
+	}
+
+	.bento-roadmap__heading {
+		margin-top: 0.25rem;
+		font-size: clamp(1.75rem, 4.5vw, 3rem);
+		font-weight: 700;
+		letter-spacing: -0.025em;
+		line-height: 1.1;
+		color: var(--sl-color-white);
+	}
+
+	.bento-roadmap__sub {
+		margin-top: 1rem;
+		max-width: 34rem;
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-roadmap__ctas {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 1.75rem;
+	}
+
+	.bento-roadmap__cta {
+		position: relative;
+		overflow: hidden;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-width: 11rem;
+		justify-content: center;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		text-decoration: none;
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		box-shadow: inset 0 1px 0
+			color-mix(in srgb, var(--sl-color-white) 8%, transparent);
+		-webkit-backdrop-filter: blur(12px);
+		backdrop-filter: blur(12px);
+		transition:
+			background-color 140ms ease,
+			border-color 140ms ease,
+			transform 140ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	.bento-roadmap__cta:hover {
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 10%,
+			transparent
+		);
+		transform: translateY(-1px);
+	}
+
+	.bento-roadmap__cta::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: linear-gradient(
+			105deg,
+			transparent 40%,
+			color-mix(in srgb, var(--sl-color-white) 22%, transparent) 50%,
+			transparent 60%
+		);
+		background-size: 250% 100%;
+		background-position-x: 180%;
+		background-repeat: no-repeat;
+		pointer-events: none;
+	}
+
+	.bento-roadmap__cta:hover::after {
+		animation: bento-roadmap-sheen 800ms ease;
+	}
+
+	.bento-roadmap__cta--primary::after {
+		animation: bento-roadmap-sheen 3.4s ease-in-out infinite;
+	}
+
+	@keyframes bento-roadmap-sheen {
+		from {
+			background-position-x: 180%;
+		}
+		to {
+			background-position-x: -80%;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-roadmap__cta::after,
+		.bento-roadmap__cta--primary::after,
+		.bento-roadmap__cta:hover::after {
+			animation: none;
+		}
+	}
+
+	.bento-roadmap__cta--primary {
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 28%,
+			transparent
+		);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 45%,
+			transparent
+		);
+		box-shadow:
+			inset 0 1px 0
+				color-mix(in srgb, var(--sl-color-white) 18%, transparent),
+			inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+	}
+
+	.bento-roadmap__cta--primary:hover {
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 38%,
+			transparent
+		);
+	}
+
+	.bento-roadmap__cta:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px var(--sl-color-accent-low);
+	}
+
+	.bento-roadmap__cta svg {
+		transition: transform 140ms ease;
+	}
+
+	.bento-roadmap__cta:hover svg {
+		transform: translateX(2px);
+	}
+
+	/* Trust-badge pill, bentonow style */
+	.bento-roadmap__badge {
+		display: inline-flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		margin-top: 1.5rem;
+		padding: 0.5rem 0.875rem;
+		border-radius: 0.375rem;
+		border: 1px solid var(--bento-hairline);
+		font-size: 0.6875rem;
+		color: var(--sl-color-gray-3);
+		text-decoration: none;
+		transition: border-color 180ms ease;
+	}
+
+	.bento-roadmap__badge:hover {
+		border-color: var(--bento-hairline-strong);
+	}
+
+	.bento-roadmap__badge-dot {
+		width: 0.4375rem;
+		height: 0.4375rem;
+		border-radius: 9999px;
+		background-color: var(--sl-color-green);
+	}
+
+	.bento-roadmap__badge-strong {
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.bento-roadmap__badge-sep {
+		opacity: 0.5;
+	}
+
+	/* ── Timeline ── */
+	.bento-roadmap__scroller {
+		position: relative;
+		overflow-x: auto;
+		padding: 1.5rem 1.5rem 2.5rem;
+		scrollbar-width: thin;
+		scrollbar-color: var(--bento-hairline-strong) transparent;
+	}
+
+	.bento-roadmap__scroller:focus-visible {
+		outline: none;
+		box-shadow: inset 0 0 0 2px var(--sl-color-accent-low);
+	}
+
+	/* Rail line: marching dashes, same grammar as the meta rail */
+	.bento-roadmap__rail {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 4.375rem;
+		height: 2px;
+		min-width: 100%;
+		background-image: linear-gradient(
+			90deg,
+			color-mix(in srgb, var(--roadmap-red) 60%, transparent) 50%,
+			transparent 50%
+		);
+		background-size: 16px 2px;
+		animation: bento-roadmap-rail 1.2s linear infinite;
+	}
+
+	@keyframes bento-roadmap-rail {
+		to {
+			background-position-x: 16px;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-roadmap__rail {
+			animation: none;
+		}
+	}
+
+	.bento-roadmap__track {
+		position: relative;
+		display: flex;
+		gap: 1rem;
+		width: max-content;
+		min-width: 100%;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.bento-roadmap__stop {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		width: 17rem;
+		flex-shrink: 0;
+	}
+
+	.bento-roadmap__quarter {
+		font-size: 0.625rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+		padding-left: 0.125rem;
+	}
+
+	/* Station node sitting on the rail */
+	.bento-roadmap__node {
+		position: relative;
+		width: 0.75rem;
+		height: 0.75rem;
+		margin: 1.0625rem 0 1.25rem 0.125rem;
+		border-radius: 9999px;
+		border: 2px solid var(--roadmap-forest);
+		background-color: color-mix(
+			in srgb,
+			var(--roadmap-forest) 25%,
+			var(--sl-color-black)
+		);
+	}
+
+	/* Off-ramp: connects the node down to its milestone card */
+	.bento-roadmap__node::before {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 2px;
+		height: 1.375rem;
+		background-image: linear-gradient(
+			color-mix(in srgb, var(--roadmap-red) 60%, transparent) 50%,
+			transparent 50%
+		);
+		background-size: 2px 8px;
+	}
+
+	.bento-roadmap__stop[data-status='shipped'] .bento-roadmap__node {
+		border-color: var(--sl-color-green);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-green) 35%,
+			var(--sl-color-black)
+		);
+	}
+
+	.bento-roadmap__stop[data-status='active'] .bento-roadmap__node {
+		border-color: var(--sl-color-accent-high);
+	}
+
+	.bento-roadmap__stop[data-status='active'] .bento-roadmap__node::after {
+		content: '';
+		position: absolute;
+		inset: -6px;
+		border-radius: 9999px;
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-accent-high) 60%, transparent);
+		animation: bento-roadmap-pulse 1.8s ease-out infinite;
+	}
+
+	@keyframes bento-roadmap-pulse {
+		0% {
+			transform: scale(0.6);
+			opacity: 1;
+		}
+		100% {
+			transform: scale(1.4);
+			opacity: 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-roadmap__stop[data-status='active'] .bento-roadmap__node::after {
+			animation: none;
+			opacity: 0.6;
+		}
+	}
+
+	.bento-roadmap__card {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.625rem;
+		width: 100%;
+		padding: 1.375rem 1.5rem 1.5rem;
+	}
+
+	.bento-roadmap__stop[data-status='planned'] .bento-roadmap__card {
+		opacity: 0.75;
+	}
+
+	.bento-roadmap__stop[data-status='planned'] .bento-roadmap__card:hover {
+		opacity: 1;
+	}
+
+	.bento-roadmap__dot {
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: 9999px;
+		background-color: var(--sl-color-gray-4);
+	}
+
+	.bento-roadmap__stop[data-status='shipped'] .bento-roadmap__dot {
+		background-color: var(--sl-color-green);
+	}
+
+	.bento-roadmap__stop[data-status='active'] .bento-roadmap__dot {
+		background-color: var(--sl-color-accent-high);
+	}
+
+	.bento-roadmap__title {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		line-height: 1.3;
+		color: var(--sl-color-white);
+	}
+
+	.bento-roadmap__body {
+		margin: 0;
+		font-size: 0.75rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-roadmap__link {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--sl-color-accent-high);
+		text-decoration: none;
+	}
+
+	.bento-roadmap__link:hover {
+		text-decoration: underline;
+	}
+
+	/* Left-gutter kanban badge: positioned by the wire script */
+	.bento-roadmap__kanban {
+		position: fixed;
+		z-index: 30;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4375rem;
+		width: 5.5rem;
+		aspect-ratio: 1;
+		padding: 0.5rem;
+		text-align: center;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 400ms ease;
+		border-color: color-mix(in srgb, var(--roadmap-red) 40%, transparent);
+	}
+
+	.bento-roadmap__kanban-icon {
+		color: color-mix(in srgb, var(--roadmap-red) 85%, white);
+	}
+
+	.bento-roadmap__kanban-label {
+		font-size: 0.5625rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		line-height: 1.35;
+		color: var(--sl-color-gray-2);
+	}
+
+	/* Vertical branch: live workflow runs feeding the milestone */
+	.bento-roadmap__queue {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		width: calc(100% - 0.5rem);
+		margin: 0.875rem 0 0 0.4375rem;
+		padding: 0.125rem 0 0.125rem 1rem;
+		border-left: 2px dashed
+			color-mix(in srgb, var(--roadmap-red) 45%, transparent);
+	}
+
+	.bento-roadmap__run {
+		display: flex;
+		align-items: center;
+		gap: 0.4375rem;
+		min-height: 2rem;
+		padding: 0.375rem 0.625rem;
+		font-size: 0.625rem;
+		line-height: 1.4;
+		color: var(--sl-color-gray-3);
+		white-space: nowrap;
+		overflow: hidden;
+		transition:
+			opacity 260ms ease,
+			border-color 260ms ease;
+	}
+
+	.bento-roadmap__run[data-state='idle'] {
+		opacity: 0.45;
+		border-style: dashed;
+		box-shadow: none;
+	}
+
+	.bento-roadmap__run strong {
+		font-weight: 600;
+		color: var(--sl-color-white);
+		text-transform: capitalize;
+		white-space: nowrap;
+	}
+
+	.bento-roadmap__run [data-run-status] {
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.bento-roadmap__run-dot {
+		flex-shrink: 0;
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: 9999px;
+		background-color: var(--sl-color-gray-4);
+	}
+
+	.bento-roadmap__run[data-state='running'] .bento-roadmap__run-dot {
+		background-color: var(--sl-color-accent-high);
+		animation: bento-run-pulse 1.4s ease-in-out infinite;
+	}
+
+	@keyframes bento-run-pulse {
+		50% {
+			opacity: 0.35;
+		}
+	}
+
+	.bento-roadmap__run[data-state='done'] .bento-roadmap__run-dot {
+		background-color: var(--sl-color-green);
+	}
+
+	.bento-roadmap__run[data-state='done'] {
+		color: var(--sl-color-gray-2);
+	}
+
+	.bento-roadmap__run[data-state='dropped'] {
+		opacity: 0.5;
+		text-decoration: line-through;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-roadmap__run,
+		.bento-roadmap__run[data-state='running'] .bento-roadmap__run-dot {
+			animation: none;
+		}
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+	import { $bentoShipment } from '@kbve/droid';
+
+	onMount(() => {
+		const roadmap = document.querySelector<HTMLElement>('.bento-roadmap');
+		if (!roadmap) return;
+
+		const wide = window.matchMedia('(min-width: 85rem)');
+		const ns = 'http://www.w3.org/2000/svg';
+		const svg = document.createElementNS(ns, 'svg');
+		svg.setAttribute('aria-hidden', 'true');
+		svg.style.cssText =
+			'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:30;';
+		const makePath = (extra = '') => {
+			const p = document.createElementNS(ns, 'path');
+			p.setAttribute('class', `bento-wire bento-wire--dots ${extra}`);
+			p.setAttribute('fill', 'none');
+			p.style.transition = 'stroke 300ms ease, opacity 400ms ease';
+			p.style.opacity = '0';
+			svg.appendChild(p);
+			return p;
+		};
+		const pathRight = makePath();
+		const pathLeft = makePath();
+		const pathDown = makePath('bento-wire--live');
+		const pathKanban = makePath('bento-wire--live');
+		document.body.appendChild(svg);
+
+		let raf = 0;
+		let pulseTimer = 0;
+
+		const offscreen = (top: number, bottom: number) =>
+			top > window.innerHeight + 200 || bottom < -200;
+
+		const redraw = () => {
+			raf = 0;
+			const frame = roadmap.querySelector<HTMLElement>(
+				'.bento-roadmap__frame',
+			);
+			const badge = roadmap.querySelector<HTMLElement>(
+				'.bento-roadmap__badge',
+			);
+			const rail = roadmap.querySelector<HTMLElement>(
+				'.bento-roadmap__rail',
+			);
+			if (!wide.matches || !frame || !badge) {
+				pathRight.style.opacity = '0';
+				pathLeft.style.opacity = '0';
+				pathDown.style.opacity = '0';
+				return;
+			}
+			const f = frame.getBoundingClientRect();
+			const b = badge.getBoundingClientRect();
+			const by = b.top + b.height / 2;
+			const bx = b.left + b.width / 2;
+
+			const out = document.querySelector<HTMLElement>(
+				'.react-flow__node[data-id="live"]',
+			);
+			if (out) {
+				const o = out.getBoundingClientRect();
+				const x1 = o.right;
+				const y1 = o.top + o.height / 2;
+				const gx = f.right + 28;
+				const x2 = b.right + 6;
+				if (
+					offscreen(o.top, b.bottom) ||
+					by <= y1 ||
+					gx <= x1 ||
+					x2 >= gx
+				) {
+					pathRight.style.opacity = '0';
+				} else {
+					const bend = Math.min(56, (by - y1) / 2);
+					pathRight.setAttribute(
+						'd',
+						`M ${x1} ${y1}` +
+							` C ${x1 + (gx - x1) * 0.6} ${y1}, ${gx} ${y1}, ${gx} ${y1 + bend}` +
+							` L ${gx} ${by - bend}` +
+							` C ${gx} ${by}, ${x2 + (gx - x2) * 0.6} ${by}, ${x2} ${by}`,
+					);
+					pathRight.style.opacity = '1';
+				}
+			} else {
+				pathRight.style.opacity = '0';
+			}
+
+			const arrow =
+				document.querySelector<HTMLElement>('[data-meta-arrow]');
+			if (arrow) {
+				const r = arrow.getBoundingClientRect();
+				const ax = r.left + r.width / 2;
+				const ay = r.bottom + 6;
+				const x2 = b.left - 6;
+				if (offscreen(r.top, b.bottom) || by <= ay || x2 <= ax) {
+					pathLeft.style.opacity = '0';
+				} else {
+					const bend = Math.min(56, (by - ay) / 2);
+					pathLeft.setAttribute(
+						'd',
+						`M ${ax} ${ay}` +
+							` L ${ax} ${by - bend}` +
+							` C ${ax} ${by}, ${ax + (x2 - ax) * 0.4} ${by}, ${x2} ${by}`,
+					);
+					pathLeft.style.opacity = '1';
+				}
+			} else {
+				pathLeft.style.opacity = '0';
+			}
+
+			if (rail) {
+				const railTop = rail.getBoundingClientRect().top;
+				const y1 = b.bottom + 6;
+				if (offscreen(b.top, railTop) || railTop <= y1) {
+					pathDown.style.opacity = '0';
+				} else {
+					pathDown.setAttribute(
+						'd',
+						`M ${bx} ${y1} L ${bx} ${railTop}`,
+					);
+					pathDown.style.opacity = '1';
+				}
+			} else {
+				pathDown.style.opacity = '0';
+			}
+
+			const kanban = roadmap.querySelector<HTMLElement>(
+				'[data-roadmap-kanban]',
+			);
+			if (kanban && rail) {
+				const railY = rail.getBoundingClientRect().top + 1;
+				const kw = kanban.offsetWidth || 88;
+				const kh = kanban.offsetHeight || 88;
+				const kx = f.left - 36 - kw;
+				if (kx < 8 || offscreen(railY, railY)) {
+					kanban.style.opacity = '0';
+					pathKanban.style.opacity = '0';
+				} else {
+					kanban.style.left = `${kx}px`;
+					kanban.style.top = `${railY - kh / 2}px`;
+					kanban.style.opacity = '1';
+					pathKanban.setAttribute(
+						'd',
+						`M ${kx + kw + 4} ${railY} L ${f.left + 16} ${railY}`,
+					);
+					pathKanban.style.opacity = '1';
+				}
+			} else if (kanban) {
+				kanban.style.opacity = '0';
+				pathKanban.style.opacity = '0';
+			}
+		};
+
+		const queue = () => {
+			if (!raf) raf = requestAnimationFrame(redraw);
+		};
+
+		const pulse = () => {
+			for (const p of [pathRight, pathLeft, pathDown])
+				p.style.stroke = 'var(--sl-color-accent-high)';
+			window.clearTimeout(pulseTimer);
+			pulseTimer = window.setTimeout(() => {
+				for (const p of [pathRight, pathLeft, pathDown])
+					p.style.stroke = '';
+			}, 1400);
+		};
+
+		const reduced = window.matchMedia(
+			'(prefers-reduced-motion: reduce)',
+		).matches;
+		const SPEED = 420;
+		type RunState = 'running' | 'done' | 'dropped';
+		type Run = { id: number; word: string; state: RunState; text: string };
+		type RunQueue = {
+			stop: HTMLElement;
+			slots: HTMLElement[];
+			runs: Run[];
+		};
+
+		const queues: RunQueue[] = Array.from(
+			roadmap.querySelectorAll<HTMLElement>('[data-roadmap-queue]'),
+		).flatMap((el) => {
+			const stop = el.closest<HTMLElement>('.bento-roadmap__stop');
+			return stop
+				? [
+						{
+							stop,
+							slots: Array.from(
+								el.querySelectorAll<HTMLElement>(
+									'[data-run-slot]',
+								),
+							),
+							runs: [],
+						},
+					]
+				: [];
+		});
+		const routes = new Map<number, RunQueue>();
+		let nextQueue = 0;
+
+		const renderRuns = (q: RunQueue) => {
+			for (const [i, slot] of q.slots.entries()) {
+				const run = q.runs[i];
+				const name = slot.querySelector<HTMLElement>('[data-run-name]');
+				const status =
+					slot.querySelector<HTMLElement>('[data-run-status]');
+				if (!name || !status) continue;
+				if (run) {
+					slot.dataset.state = run.state;
+					name.textContent = `${run.word} workflow #${run.id}`;
+					status.textContent = run.text;
+				} else {
+					slot.dataset.state = 'idle';
+					name.textContent = 'Queue idle';
+					status.textContent = 'Waiting for workflow…';
+				}
+			}
+		};
+
+		const addRun = (id: number, word: string) => {
+			if (!queues.length) return;
+			const q = queues[nextQueue % queues.length];
+			nextQueue += 1;
+			routes.set(id, q);
+			q.runs.unshift({
+				id,
+				word,
+				state: 'running',
+				text: 'Runner started.',
+			});
+			if (q.runs.length > q.slots.length) {
+				const evicted = q.runs.pop();
+				if (evicted) routes.delete(evicted.id);
+			}
+			renderRuns(q);
+		};
+
+		const setRun = (id: number, state: RunState, text: string) => {
+			const q = routes.get(id);
+			const run = q?.runs.find((r) => r.id === id);
+			if (!q || !run) return;
+			run.state = state;
+			run.text = text;
+			renderRuns(q);
+		};
+
+		const flashMilestone = (stop: HTMLElement | null) => {
+			const card = stop?.querySelector<HTMLElement>(
+				'.bento-roadmap__card',
+			);
+			if (!card) return;
+			card.setAttribute('data-active', '');
+			window.setTimeout(() => card.removeAttribute('data-active'), 1600);
+		};
+
+		const travel = (runId: number) => {
+			pulse();
+			const stop = routes.get(runId)?.stop ?? null;
+			const dock = () => {
+				flashMilestone(stop);
+				setRun(runId, 'done', 'Completed.');
+			};
+			const rail = roadmap.querySelector<HTMLElement>(
+				'.bento-roadmap__rail',
+			);
+			if (
+				reduced ||
+				!stop ||
+				!rail ||
+				pathRight.style.opacity === '0' ||
+				pathDown.style.opacity === '0'
+			) {
+				dock();
+				return;
+			}
+			const word = routes
+				.get(runId)
+				?.runs.find((r) => r.id === runId)?.word;
+			const dot = document.createElementNS(ns, 'g');
+			const box = document.createElementNS(ns, 'rect');
+			box.setAttribute('x', '-5');
+			box.setAttribute('y', '-5');
+			box.setAttribute('width', '10');
+			box.setAttribute('height', '10');
+			box.setAttribute('rx', '2');
+			box.setAttribute('fill', 'var(--sl-color-accent-high, #a67d43)');
+			box.style.filter =
+				'drop-shadow(0 0 5px var(--sl-color-accent-high, #a67d43))';
+			const seam = document.createElementNS(ns, 'path');
+			seam.setAttribute('d', 'M 0 -5 V 5 M -5 0 H 5');
+			seam.setAttribute(
+				'stroke',
+				'color-mix(in srgb, var(--sl-color-black) 55%, transparent)',
+			);
+			seam.setAttribute('stroke-width', '1');
+			dot.append(box, seam);
+			if (word) {
+				const tag = document.createElementNS(ns, 'text');
+				tag.setAttribute('x', '9');
+				tag.setAttribute('y', '3');
+				tag.setAttribute(
+					'fill',
+					'var(--sl-color-accent-high, #a67d43)',
+				);
+				tag.style.cssText =
+					'font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:capitalize;paint-order:stroke;stroke:var(--sl-color-black);stroke-width:2px;';
+				tag.textContent = `${word} #${runId}`;
+				dot.appendChild(tag);
+			}
+			svg.appendChild(dot);
+
+			let seg = 0;
+			let dist = 0;
+			let last = performance.now();
+
+			const step = (now: number) => {
+				dist += ((now - last) / 1000) * SPEED;
+				last = now;
+				let pt: { x: number; y: number } | null = null;
+
+				if (seg <= 1) {
+					const p = seg === 0 ? pathRight : pathDown;
+					if (p.style.opacity === '0') {
+						seg += 1;
+						dist = 0;
+						requestAnimationFrame(step);
+						return;
+					}
+					const len = p.getTotalLength();
+					if (dist >= len) {
+						seg += 1;
+						dist = 0;
+						requestAnimationFrame(step);
+						return;
+					}
+					pt = p.getPointAtLength(dist);
+				} else {
+					const railY = rail.getBoundingClientRect().top + 1;
+					const node = stop.querySelector<HTMLElement>(
+						'.bento-roadmap__node',
+					);
+					const badge = roadmap.querySelector<HTMLElement>(
+						'.bento-roadmap__badge',
+					);
+					if (!node || !badge) {
+						dot.remove();
+						dock();
+						return;
+					}
+					const nr = node.getBoundingClientRect();
+					const br = badge.getBoundingClientRect();
+					const x0 = br.left + br.width / 2;
+					const x1 = nr.left + nr.width / 2;
+					const len = Math.abs(x1 - x0);
+					if (dist >= len) {
+						dot.remove();
+						dock();
+						return;
+					}
+					pt = {
+						x: x0 + Math.sign(x1 - x0) * dist,
+						y: railY,
+					};
+				}
+
+				dot.setAttribute('transform', `translate(${pt.x}, ${pt.y})`);
+				requestAnimationFrame(step);
+			};
+			requestAnimationFrame(step);
+		};
+
+		const unbindStore = $bentoShipment.listen((s) => {
+			if (!s) return;
+			if (s.stage === 'shipped') {
+				addRun(s.id, s.word);
+			} else if (s.stage === 'arrived') {
+				setRun(s.id, 'running', 'In pipeline…');
+			} else if (s.stage === 'delivered') {
+				setRun(s.id, 'running', 'Deploying…');
+				travel(s.id);
+			} else if (s.stage === 'dropped') {
+				setRun(s.id, 'dropped', 'Dropped.');
+			}
+		});
+
+		window.addEventListener('scroll', queue, {
+			capture: true,
+			passive: true,
+		});
+		window.addEventListener('resize', queue, { passive: true });
+		const settle = window.setInterval(queue, 1200);
+		queue();
+
+		window.addEventListener(
+			'pagehide',
+			() => {
+				unbindStore();
+				window.clearInterval(settle);
+				window.clearTimeout(pulseTimer);
+				if (raf) cancelAnimationFrame(raf);
+				window.removeEventListener('scroll', queue, {
+					capture: true,
+				});
+				window.removeEventListener('resize', queue);
+				svg.remove();
+			},
+			{ once: true },
+		);
+	});
+</script>

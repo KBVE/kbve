@@ -175,6 +175,51 @@ class AuthBridge {
 		if (error) throw error;
 		return data.session;
 	}
+
+	/**
+	 * Email + password sign-up. Requires an hCaptcha token (GoTrue enforces
+	 * captcha on password flows). `username` is stashed in user_metadata for
+	 * the profile hook to pick up after email confirmation.
+	 */
+	async signUpWithPassword(params: {
+		email: string;
+		password: string;
+		captchaToken: string;
+		username?: string;
+	}) {
+		const client = this.ensureClient();
+		const { data, error } = await client.auth.signUp({
+			email: params.email,
+			password: params.password,
+			options: {
+				captchaToken: params.captchaToken,
+				emailRedirectTo: `${window.location.origin}/auth/callback`,
+				data: params.username
+					? { username: params.username }
+					: undefined,
+			},
+		});
+		if (error) throw error;
+		return data;
+	}
+
+	/**
+	 * Email + password sign-in. Requires an hCaptcha token.
+	 */
+	async signInWithPassword(params: {
+		email: string;
+		password: string;
+		captchaToken: string;
+	}) {
+		const client = this.ensureClient();
+		const { data, error } = await client.auth.signInWithPassword({
+			email: params.email,
+			password: params.password,
+			options: { captchaToken: params.captchaToken },
+		});
+		if (error) throw error;
+		return data;
+	}
 }
 
 // Singleton instance

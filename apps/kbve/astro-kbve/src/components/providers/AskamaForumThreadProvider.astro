@@ -139,7 +139,7 @@
 					<div class="thread-compose__row">
 						<p class="thread-compose__hint">
 							Need a username first? Set one from your <a
-								href="/dashboard/profile/">
+								href="/dashboard/account/">
 								profile
 							</a>.
 						</p>
@@ -773,10 +773,6 @@
 	 * Reset the wrapper so our forum shell can use the full width and
 	 * own the spacing. Scoped to `.forum-shell` ancestors so we don't
 	 * touch the rest of Starlight. */
-	:global(.sl-markdown-content):has(.forum-shell) {
-		max-width: none;
-		margin: 0;
-	}
 	:global(.sl-markdown-content) .forum-shell :is(p, h1, h2, h3, h4) {
 		margin-top: 0;
 	}
@@ -1481,6 +1477,13 @@
 	.forum-card__copy {
 		font-size: 0.8125rem;
 		color: var(--forum-muted);
+		margin: 0;
+	}
+</style>
+
+<style is:global>
+	.sl-markdown-content:has(.forum-shell) {
+		max-width: none;
 		margin: 0;
 	}
 </style>

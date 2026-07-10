@@ -21,7 +21,7 @@ const BAKED_ITEMDB_JSON: &str = include_str!("../data/itemdb.json");
 
 /// Startup system: parse the baked itemdb JSON, insert it as a Bevy resource,
 /// and initialize the global reference so ProtoItemKind can resolve names/stacks.
-pub fn load_baked_itemdb(mut commands: Commands) {
+pub fn load_baked_itemdb(_commands: Commands) {
     match ItemDb::from_json(BAKED_ITEMDB_JSON) {
         Ok(db) => {
             let count = db.len();

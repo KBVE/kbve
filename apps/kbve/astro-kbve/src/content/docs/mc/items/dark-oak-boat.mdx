@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Boat
+template: splash
 description: |
     Minecraft Dark Oak Boat — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 822
     ref: dark_oak_boat
     slug: dark-oak-boat
+    content_rev: 1
     display_name: Dark Oak Boat
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Dark Oak Boat is a drivable vehicle entity crafted from five dark oak
+            planks arranged in a U-shape, letting a player and one passenger cross water
+            or race across ice. It can also be obtained by breaking an existing boat and
+            picking up the dropped item.
+        lore: |
+            Boats move fastest of all on blue ice, reaching speeds far beyond what a
+            player can manage on foot.
+    faq:
+        - question: How do I craft a Dark Oak Boat?
+          answer: |
+              Arrange five dark oak planks in a U-shape in a crafting grid to produce one
+              boat.
+        - question: What is the Dark Oak Boat used for?
+          answer: |
+              It transports players and mobs across water and ice, and it can also be
+              used as furnace fuel, burning for 60 seconds.
+        - question: Does riding a boat cause fall damage or hunger loss?
+          answer: |
+              No, boats completely nullify fall damage and using one does not deplete the
+              hunger bar.
+        - question: How fast can a Dark Oak Boat travel?
+          answer: |
+              It can reach up to about 72.7 blocks per second on blue ice, and around 40
+              blocks per second on regular ice.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

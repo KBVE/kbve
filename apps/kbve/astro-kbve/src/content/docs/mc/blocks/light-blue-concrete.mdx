@@ -1,5 +1,6 @@
 ---
 title: Light Blue Concrete
+template: splash
 description: |
     Minecraft Light Blue Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 681
     ref: light_blue_concrete
     slug: light-blue-concrete
+    content_rev: 1
     display_name: Light Blue Concrete
     material: stone
     hardness: 1.8
@@ -24,10 +26,54 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Light Blue Concrete is a solid, fully-saturated building block
+            formed when Light Blue Concrete Powder solidifies in water. It
+            offers brighter, more vivid colors than stained terracotta or
+            wool and, unlike wool, does not burn.
+        lore: |
+            Concrete released in Java Edition 1.12 (the World of Color
+            Update) to give builders a non-flammable block with vivid,
+            saturated color.
+    uses:
+        - title: Building and Decoration
+          ref: light_blue_concrete
+          detail: |
+              Used purely as a solid, mineable building material; it has
+              no further crafting uses beyond decoration and construction.
+    found_in:
+        - location: Crafting via water contact
+          detail: Made by letting light blue concrete powder touch a water source, flowing water, or a waterlogged block.
+        - location: Trial chamber atriums
+          detail: Some concrete colors generate naturally in trial chamber structures.
+    faq:
+        - question: What tool do I need to mine Light Blue Concrete?
+          answer: |
+              Any pickaxe. Without a pickaxe, mining it drops nothing.
+        - question: Is Light Blue Concrete flammable?
+          answer: |
+              No. Unlike wool, concrete never catches fire, making it a
+              safer building choice near lava or fire.
+        - question: Can I get it back to powder form?
+          answer: |
+              No. The conversion from powder to concrete is one-way; there
+              is no way to turn concrete back into concrete powder.
+        - question: Is Light Blue Concrete renewable?
+          answer: |
+              Yes, since its precursor concrete powder is renewable via
+              piglin-bartered gravel, sand, and dye.
     data_version: "1.21.5"
 ---
 

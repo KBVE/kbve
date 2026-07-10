@@ -1,7 +1,7 @@
 ---
-title: bevy_db
-description: |
-    bevy_db — Cross-platform async key-value persistence for Bevy. redb on native, IndexedDB on WASM.
+title: bevy_db — Async Key-Value Persistence for Bevy
+description: bevy_db is a cross-platform async key-value persistence crate for Bevy — redb on native, IndexedDB on WASM, all I/O off the game thread via bevy_tasker.
+sem: 1
 sidebar:
     label: bevy_db
 tags:
@@ -21,20 +21,89 @@ version_toml: packages/rust/bevy/bevy_db/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the bevy_db crate do?
+          answer: It provides async key-value persistence for Bevy with a single game-facing API and two backends — redb, a pure-Rust B+tree, on native platforms and rexie over IndexedDB in the browser on WASM.
+        - question: How does bevy_db avoid stalling the game loop?
+          answer: All disk and IndexedDB I/O runs off the game thread through the bevy_tasker crate. Game systems poll DbRequest handles with try_recv to drain results without blocking the schedule.
+        - question: What is the public API surface of bevy_db?
+          answer: BevyDbPlugin initializes the backend and inserts the Db resource, Db is the request handle for get, put, and delete, DbRequest is the pending async result polled with try_recv, and DbError is the backend-agnostic error enum.
+bento:
+    badge: crates · rust · bevy
+    title: Async key-value for
+    accent: bevy_db
+    lede: >-
+        A cross-platform persistence crate for Bevy — one game-facing API, two
+        storage engines, every read and write kept off the game thread so the
+        schedule never stalls.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_db
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: zap
+        title: Never blocks the frame
+        body: >-
+            I/O is dispatched off the game thread via
+            <a href="/project/bevy-tasker-crate/">bevy_tasker</a>. Systems poll
+            DbRequest handles with try_recv() to drain results without blocking.
+        points:
+            - <strong>Native</strong> — redb, a pure-Rust B+tree store on disk.
+            - <strong>WASM</strong> — rexie over IndexedDB in the browser.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Native, value: redb, icon: database }
+        - { label: WASM, value: rexie, icon: package }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: One API, two backends
+          icon: expand
+          body: The same Db handle works on native and WASM; the backend is selected at compile time.
+        - title: Off-thread I/O
+          icon: gears
+          body: All persistence work is dispatched through bevy_tasker, so game systems never block on disk or IndexedDB.
+        - title: Poll-based results
+          icon: clock
+          body: Pending operations return a DbRequest that systems drain with try_recv(), fitting naturally into a Bevy schedule.
+        - title: Backend-agnostic errors
+          icon: alert
+          body: A single DbError enum abstracts over redb and IndexedDB failure modes.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy::prelude::*;
+            use bevy_db::{BevyDbPlugin, Db, DbRequest};
+
+            App::new()
+                .add_plugins(BevyDbPlugin::default())
+                .run();
+    related:
+        - title: bevy_tasker
+          href: /project/bevy-tasker-crate/
+          copy: The off-thread task pool that runs all bevy_db I/O.
+          icon: gears
+        - title: bevy_supa
+          href: /project/bevy-supa-crate/
+          copy: Supabase-backed persistence for Bevy that complements local key-value storage.
+          icon: shield
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-Async key-value persistence with one Bevy-facing API and two backends:
-
-- **Native** — `redb` pure-Rust B+tree on disk
-- **WASM** — `rexie` over IndexedDB in the browser
-
-All I/O runs off the game thread via [`bevy_tasker`](/project/bevy-tasker-crate/). Game systems poll `DbRequest<T>` handles via `try_recv()` to drain results without stalling the schedule.
-
-## Surface
-
-- `BevyDbPlugin` — initializes the backend and inserts the `Db` resource
-- `Db` — request handle for `get` / `put` / `delete`
-- `DbRequest<T>` — pending async result polled with `try_recv()`
-- `DbError` — backend-agnostic error enum
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

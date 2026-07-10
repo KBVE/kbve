@@ -1,5 +1,6 @@
 ---
 title: Emerald Ore
+template: splash
 description: |
     Minecraft Emerald Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 74
     ref: emerald_ore
     slug: emerald-ore
+    content_rev: 1
     display_name: Emerald Ore
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Emerald Ore is a rare mineral block found in mountain and windswept
+            hills biomes, generating between Y -16 and Y 320 with a peak around
+            Y 232. Mining it with an iron pickaxe or better yields one emerald,
+            boosted by Fortune, or the block itself with Silk Touch.
+        lore: |
+            A scarce green vein tucked into the highest, coldest peaks of the
+            world.
+    faq:
+        - question: Where does Emerald Ore generate?
+          answer: |
+              It generates in mountain and windswept hills biome variants, such
+              as meadows, groves, jagged peaks, and windswept forests, mostly
+              around Y 232.
+        - question: What tool is needed to mine Emerald Ore?
+          answer: |
+              An iron pickaxe or better is required; anything weaker fails to
+              drop an emerald.
+        - question: Does Fortune affect Emerald Ore drops?
+          answer: |
+              Yes, the Fortune enchantment increases the emerald yield per
+              block, up to four emeralds at higher Fortune levels.
+        - question: Is Emerald Ore rarer than Diamond Ore?
+          answer: |
+              Yes, Emerald Ore is rarer overall, though its scattered
+              generation in mountain biomes can make it feel more common
+              locally than diamonds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

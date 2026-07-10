@@ -1,5 +1,6 @@
 ---
 title: Block of Coal
+template: splash
 description: |
     Minecraft Block of Coal — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 83
     ref: coal_block
     slug: coal-block
+    content_rev: 1
     display_name: Block of Coal
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Block of coal is a storage block crafted from nine regular coal arranged in a 3x3 grid, compacting nine coal into a single inventory slot. It cannot be crafted from charcoal, only mined coal.
+            As furnace fuel it burns for 800 seconds, smelting 80 items — ten times longer than a single coal and about 11% more efficient than burning nine coal individually — though it cannot fuel a minecart with furnace.
+        lore: |
+            Added in Java Edition 1.6.1, the block was inspired by an April Fools' joke about coal blocks before becoming a real, useful storage and fuel item.
+    faq:
+        - question: How do I craft a block of coal?
+          answer: |
+              Arrange nine regular coal in a 3x3 crafting grid; charcoal cannot be used as a substitute.
+        - question: How long does a block of coal burn as furnace fuel?
+          answer: |
+              It burns for 800 seconds, enough to smelt 80 items, which is ten times longer than a single piece of coal.
+        - question: Is a block of coal more efficient than using nine separate coal?
+          answer: |
+              Yes, it is about 11.11% more fuel-efficient than burning nine individual coal items, in addition to saving inventory space.
+        - question: Can I use a block of coal to power a furnace minecart?
+          answer: |
+              No, blocks of coal cannot be used as fuel for the minecart with furnace.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

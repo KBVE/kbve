@@ -1,7 +1,7 @@
 ---
-title: Minecraft Lobby
-description: |
-    PaperMC 1.21.11 lobby server — the default landing target and fallback for the KBVE MC Velocity proxy. Superflat peaceful world with minimal plugin set.
+title: Minecraft Lobby — PaperMC Landing and Fallback Server
+description: PaperMC 1.21.11 lobby server — default landing target and fallback for the KBVE MC Velocity proxy, running a superflat peaceful world with minimal plugins.
+sem: 1
 sidebar:
     label: MC Lobby
     order: 451
@@ -27,9 +27,90 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the MC Lobby server?
+          answer: It is a PaperMC 1.21.11 lobby server in the KBVE Minecraft stack. It is the first server new players land on and the fallback when the Fabric survival backend disconnects, so players are moved here instead of being kicked until Fabric returns.
+        - question: What kind of world does the lobby run?
+          answer: A vanilla superflat preset (bedrock plus two dirt and grass, plains biome, no structures, no mob spawning) with DIFFICULTY=peaceful for zero combat. The Nether and End are disabled, keeping all activity on the overworld.
+        - question: How does the lobby integrate with the Velocity proxy?
+          answer: The Velocity proxy lists the lobby as its default try target and uses failover-on-unexpected-server-disconnect, so players disconnected from the mc backend are automatically routed back to the lobby rather than kicked to the disconnect screen.
+bento:
+    badge: minecraft · paper · lobby · velocity
+    title: PaperMC landing &
+    accent: fallback
+    lede: >-
+        A PaperMC 1.21.11 lobby server that sits alongside the Fabric survival
+        backend in the KBVE MC stack. It is the first server new players land on
+        and the fallback when the Fabric backend disconnects — instead of being
+        kicked, players are moved here until Fabric comes back.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/mc/lobby
+          primary: true
+          external: true
+        - label: World & plugins
+          href: "#world"
+        - label: Velocity
+          href: "#velocity"
+    aside:
+        icon: map
+        title: Superflat peaceful world
+        body: >-
+            A vanilla superflat preset (bedrock + 2 dirt + grass, plains biome,
+            no structures, no mob spawning) with <code>DIFFICULTY=peaceful</code>
+            for zero combat. Nether and End are disabled, keeping all activity on
+            the overworld.
+        points:
+            - <strong>Default</strong> — the proxy's first try target.
+            - <strong>Fallback</strong> — catches players when mc disconnects.
+    stats:
+        - { label: App, value: mc-lobby, icon: box }
+        - { label: Type, value: PaperMC 1.21.11, icon: package }
+        - { label: World, value: Superflat peaceful, icon: map }
+        - { label: Role, value: Lobby + fallback, icon: server }
+    features:
+        - title: Default landing target
+          icon: route
+          body: The first server new players connect to, listed as the Velocity proxy's default try target.
+        - title: Failover fallback
+          icon: shield
+          body: failover-on-unexpected-server-disconnect routes disconnected mc players back here instead of kicking them.
+        - title: Superflat peaceful world
+          icon: map
+          body: Vanilla superflat, plains biome, peaceful difficulty, Nether and End disabled — zero combat.
+        - title: Cross-server permissions
+          icon: key
+          body: LuckPerms syncs permissions over the pluginmsg channel, same wire format as Fabric + Velocity.
+        - title: Velocity forwarding
+          icon: network
+          body: Paper native Velocity forwarding via the paper-global.yml secret, registered with the proxy as lobby.
+    related:
+        - title: mc (Fabric survival backend)
+          href: /project/mc/
+          copy: The Fabric survival backend the lobby falls back from.
+          icon: box
+        - title: mc-velocity
+          href: /project/mc-velocity/
+          copy: Custom Velocity proxy + command plugin fronting the stack.
+          icon: network
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="world" eyebrow="World" heading="World & plugins">
 
 PaperMC-based lobby server that sits alongside the [Fabric survival backend](/project/mc/) in the KBVE MC stack. It's the first server new players land on when they connect, and the fallback when the Fabric backend disconnects unexpectedly — instead of getting kicked, players get moved here until Fabric comes back.
 
@@ -46,7 +127,9 @@ The world is a vanilla **superflat** preset (bedrock + 2 dirt + grass, plains bi
 | WorldEdit | Admin building tool; same version line as Fabric for consistency. |
 | AdvancedPortals | Physical portal regions that fire proxy commands on player entry. Lets us place decorative portals that teleport players to other backends via the [Velocity command plugin](/project/mc-velocity/). |
 
-### Architecture
+</BentoProse>
+
+<BentoProse id="velocity" eyebrow="Proxy" heading="Architecture & Velocity">
 
 ```
 itzg/minecraft-server:java25
@@ -71,7 +154,6 @@ try = ["lobby", "mc"]
 
 Combined with `failover-on-unexpected-server-disconnect = true` in the Velocity advanced section, this means players on `mc` who get disconnected (fleet restart, pod recycle, Fabric crash) are automatically sent back to the lobby instead of getting kicked to their client disconnect screen.
 
-### Related
+</BentoProse>
 
-- [mc (Fabric survival backend)](/project/mc/)
-- [mc-velocity (custom Velocity proxy + command plugin)](/project/mc-velocity/)
+</BentoDoc>

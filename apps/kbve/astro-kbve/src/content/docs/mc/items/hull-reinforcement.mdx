@@ -1,0 +1,37 @@
+---
+title: Hull Reinforcement
+template: splash
+description: |
+    Immersive Aircraft Hull Reinforcement — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Hull Reinforcement
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900022
+    ref: immersive_aircraft:hull_reinforcement
+    slug: hull-reinforcement
+    content_rev: 0
+    display_name: Hull Reinforcement
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            Extra plating that increases an aircraft’s durability and crash resistance.
+        lore: |
+            Bumps happen; plan for them.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

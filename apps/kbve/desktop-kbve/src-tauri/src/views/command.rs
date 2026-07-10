@@ -43,10 +43,11 @@ pub struct ViewSnapshot {
 }
 
 /// The lifecycle status of a view actor.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum ViewStatus {
     /// Registered but not yet started.
+    #[default]
     Idle,
     /// Actor task is running and processing commands.
     Running,
@@ -54,10 +55,4 @@ pub enum ViewStatus {
     Paused,
     /// Task has exited (graceful shutdown or error).
     Stopped,
-}
-
-impl Default for ViewStatus {
-    fn default() -> Self {
-        Self::Idle
-    }
 }

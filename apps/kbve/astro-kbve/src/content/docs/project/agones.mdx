@@ -1,7 +1,7 @@
 ---
-title: Agones
-description: |
-    Vendored Agones Unreal SDK (server-only) — drives GameServer lifecycle (Ready / Health / Shutdown) through the Agones sidecar REST API.
+title: Agones Unreal SDK — Server-Only GameServer Lifecycle Plugin
+description: Vendored Agones Unreal SDK plugin (server-only) drives GameServer lifecycle Ready, Health, and Shutdown through the Agones sidecar REST API on dedicated builds.
+sem: 1
 sidebar:
     label: Agones
     order: 94
@@ -22,17 +22,95 @@ status: active
 min_engine_version: "5.4"
 supported_platforms:
     - Linux
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the Agones Unreal SDK plugin?
+          answer: It is a pristine vendored mirror of the upstream googleforgames/agones Unreal SDK (release-1.58.0, Apache-2.0), pinned for the KBVE dedicated-server stack. It wraps the Agones sidecar REST API so an Unreal dedicated server can register itself with an Agones Fleet.
+        - question: How does the plugin manage the GameServer lifecycle?
+          answer: The UAgonesSubsystem auto-connects on dedicated-server builds. It polls /gameserver, calls /ready, and pings /health against the Agones sidecar so the server binary becomes allocatable and stays healthy under a Fleet.
+        - question: Is the Agones plugin compiled into client or editor builds?
+          answer: No. The module declares TargetAllowList ["Server"], so it is only built into dedicated-server targets and never into client or editor builds.
+bento:
+    badge: unreal · agones · server
+    title: Server-only GameServer lifecycle
+    accent: Agones Unreal SDK
+    lede: >-
+        A pristine vendored mirror of the upstream Agones Unreal SDK
+        (googleforgames/agones, release-1.58.0), pinned for the KBVE
+        dedicated-server stack. It wraps the Agones sidecar REST API so an
+        Unreal dedicated server can register with and be managed by a Fleet.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/Agones
+          primary: true
+          external: true
+        - label: Key facts
+          href: "#facts"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: server
+        title: Auto-connects on dedicated builds
+        body: >-
+            The <code>UAgonesSubsystem</code> auto-connects on dedicated-server
+            builds — polling <code>/gameserver</code>, calling
+            <code>/ready</code>, and pinging <code>/health</code> — so a server
+            binary becomes allocatable under a Fleet.
+        points:
+            - '<strong>Server-only</strong> — <code>TargetAllowList: ["Server"]</code>.'
+            - <strong>Vendored</strong> — unmodified upstream, see VENDORING.md.
+    stats:
+        - { label: Plugin, value: Agones, icon: server }
+        - { label: Upstream, value: release-1.58.0, icon: branch }
+        - { label: License, value: Apache-2.0, icon: license }
+        - { label: Platform, value: Linux server, icon: deploy }
+    features:
+        - title: Auto-connecting subsystem
+          icon: activity
+          body: UAgonesSubsystem connects to the Agones sidecar on dedicated-server startup with no manual wiring.
+        - title: Lifecycle over REST
+          icon: deploy
+          body: Polls /gameserver, calls /ready, and pings /health to keep the pod allocatable and healthy.
+        - title: Server-only module
+          icon: shield
+          body: 'TargetAllowList: ["Server"] keeps the plugin out of client and editor builds.'
+        - title: Vendored & pinned
+          icon: branch
+          body: An unmodified upstream mirror; VENDORING.md documents the upstream pin and resync steps.
+    related:
+        - title: KBVEAgones
+          href: /project/kbveagones/
+          copy: The KBVE-specific ROWS wiring layered on top of this vendored SDK.
+          icon: server
+        - title: KBVEROWS
+          href: /project/kbverows/
+          copy: Rust Open World Server backend integration for UE5.
+          icon: network
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-Pristine mirror of the upstream Agones Unreal SDK (googleforgames/agones,
-`release-1.58.0`, Apache-2.0), pinned for the KBVE dedicated-server stack. The
-`UAgonesSubsystem` auto-connects on dedicated-server builds — polls
-`/gameserver`, calls `/ready`, and pings `/health` — so a server binary becomes
-allocatable under an Agones Fleet.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-Server-only: the module is `TargetAllowList: ["Server"]`, so it is never
-compiled into client/editor builds. The KBVE-specific ROWS wiring lives in the
-separate [KBVEAgones](./kbveagones) plugin. See `VENDORING.md` in the plugin for
-the upstream pin and resync steps.
+<BentoProse id="facts" eyebrow="At a glance" heading="Key facts">
+
+| | |
+|---|---|
+| **Plugin** | `Agones` |
+| **Version** | 2.0.0 (upstream `release-1.58.0`) |
+| **Engine** | Unreal Engine 5.4+ |
+| **License** | Apache-2.0 |
+| **Source** | [`packages/unreal/Agones`](https://github.com/KBVE/kbve/tree/main/packages/unreal/Agones) |
+| **Platforms** | Linux (dedicated server) |
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Lime Bed
+template: splash
 description: |
     Minecraft Lime Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 115
     ref: lime_bed
     slug: lime-bed
+    content_rev: 1
     display_name: Lime Bed
-    material: stone
+    material: wood
     hardness: 0.2
     blast_resistance: 0.2
     best_tool: hand
@@ -24,10 +26,62 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - not_flammable
+        - explosive
+    about:
+        description: |
+            The lime bed lets a player sleep through the night, set their
+            respawn point, and skip to morning. Any tool breaks it equally
+            fast, since no tool speeds up the process.
+        lore: |
+            Beds were added in Beta 1.3 and became dyeable into all sixteen
+            colors starting in 1.12.
+    uses:
+        - title: Sleeping and Respawn
+          ref: lime_bed
+          detail: |
+              Sleeping in the bed skips the night and sets the player's
+              spawn point nearby.
+        - title: Nether/End Explosive
+          ref: lime_bed
+          detail: |
+              Attempting to sleep in a bed in the Nether or the End
+              triggers an explosion with a power of 5, making beds a cheap
+              demolition tool in those dimensions.
+    found_in:
+        - location: Crafting
+          detail: Crafted from three lime wool and three wood planks of any type.
+        - location: Igloos and Villages
+          detail: Naturally generated inside igloo basements and village houses, colored by biome.
+        - location: Villager Trades
+          detail: Sold by journeyman-level shepherd villagers for three emeralds.
+    faq:
+        - question: Does a tool speed up mining a lime bed?
+          answer: |
+              No. Beds break at the same speed regardless of tool used.
+        - question: Can I recolor an existing bed?
+          answer: |
+              Yes, combine the bed with a dye in a crafting grid to change
+              its color.
+        - question: Why did my bed explode?
+          answer: |
+              Beds explode when a player tries to sleep in them in the
+              Nether or the End, since sleeping is disabled there.
+        - question: Does sleeping heal the player?
+          answer: |
+              In Bedrock Edition on Peaceful difficulty sleeping restores
+              health; primarily it skips the night and resets the spawn
+              point.
     data_version: "1.21.5"
 ---
 

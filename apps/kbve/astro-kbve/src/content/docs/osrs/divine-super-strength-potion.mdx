@@ -1,0 +1,146 @@
+---
+title: Divine super strength potion | OSRS Price Data
+description: "Divine super strength potion(4): 4 doses of divine super strength potion.. High alch: 150 GP, GE limit: 2,000."
+osrs:
+  id: 23709
+  name: Divine super strength potion
+  slug: divine-super-strength-potion
+  examine: 4 doses of divine super strength potion.
+  members: true
+  icon: Divine super strength potion(4).png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 2000
+  family_ref:
+    family_slug: divine-super-strength-potion
+    role: base
+  family:
+    slug: divine-super-strength-potion
+    name: Divine super strength potion
+    type: dose
+    canonical_id: 23709
+    members:
+    - id: 23709
+      slug: divine-super-strength-potion
+      name: Divine super strength potion
+      icon: Divine super strength potion(4).png
+      role: base
+      dose: null
+      value: 250
+      lowalch: 100
+      highalch: 150
+    - id: 23718
+      slug: divine-super-strength-potion-1
+      name: Divine super strength potion(1)
+      icon: Divine super strength potion(1).png
+      role: dose
+      dose: 1
+      value: 40
+      lowalch: 16
+      highalch: 24
+    - id: 23715
+      slug: divine-super-strength-potion-2
+      name: Divine super strength potion(2)
+      icon: Divine super strength potion(2).png
+      role: dose
+      dose: 2
+      value: 90
+      lowalch: 36
+      highalch: 54
+    - id: 23712
+      slug: divine-super-strength-potion-3
+      name: Divine super strength potion(3)
+      icon: Divine super strength potion(3).png
+      role: dose
+      dose: 3
+      value: 170
+      lowalch: 68
+      highalch: 102
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2015-12-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    doses: 4
+    herblore_level: 97
+    herblore_xp: 220
+    effect: "Boosts Strength by 5 + 15% of base level for the full duration without decay."
+    effects:
+      - stat: strength
+        boost_type: "boost"
+        boost_formula: "5 + 15% of base"
+        duration: 300
+        description: "Raises Strength by 5 + 15% of the player's base Strength level, with the boost held for the full 5 minutes rather than decaying tick-by-tick."
+  recipes:
+    - skill: herblore
+      level: 97
+      xp: 220
+      materials:
+        - item_name: Super strength(4)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Divine super strength potion(1)
+      slug: divine-super-strength-potion-1
+      relationship: variant
+      description: "1-dose decant of the same divine super strength brew."
+    - item_name: Divine super strength potion(2)
+      slug: divine-super-strength-potion-2
+      relationship: variant
+      description: "2-dose decant of the same divine super strength brew."
+    - item_name: Divine super strength potion(3)
+      slug: divine-super-strength-potion-3
+      relationship: variant
+      description: "3-dose decant of the same divine super strength brew."
+    - item_name: Super strength(4)
+      slug: super-strength-4
+      relationship: component
+      description: "Base Strength potion required to brew the divine variant."
+    - item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: "Secondary ingredient added to a Super strength to turn it divine."
+  about: |-
+    > _"4 doses of divine super strength potion."_
+
+    Divine super strength holds its 5 + 15% Strength boost steady for the whole 5-minute duration, making it the premier PvP and high-end PvM Strength potion when stat decay matters. The catch is the 10 HP self-hit on every sip and the 97 Herblore requirement to brew.
+  market_strategy:
+    notes:
+      - "Demand concentrates around PKers and inferno/colosseum trips where stat-decay matters."
+      - "Crystal dust supply ties the price to Prifddinas activity and Song of the Elves completions."
+      - "Decanting flips between the (1)/(2)/(3)/(4) tiers can outperform raw flipping during patch volatility."
+  trading_tips:
+    - "Watch per-dose spreads between the (1), (2), (3), and (4) variants for decanter arbitrage."
+    - "Buy limit is 2,000 per 4 hours; large PKers stockpile heavily before bounty events."
+  history:
+    - date: "2015-12-10"
+      description: "Released alongside the rest of the divine potion line for 5 + 15% non-decaying boosts."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

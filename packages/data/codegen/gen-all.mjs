@@ -293,6 +293,12 @@ for (const proto of selected) {
 		if (dest.denoZod) {
 			body = body.replace(/^import \{ z \} from 'zod';$/m, DENO_ZOD_IMPORT);
 		}
+		if (dest.astroZod) {
+			body = body.replace(
+				/^import \{ z \} from 'zod';$/m,
+				"import { z } from 'astro/zod';",
+			);
+		}
 		writeFileSync(destPath, body);
 		console.log(`    ↳ vendored → ${dest.path}`);
 	}

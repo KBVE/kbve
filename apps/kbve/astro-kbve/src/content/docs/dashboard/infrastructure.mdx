@@ -1,0 +1,50 @@
+---
+title: Infrastructure
+description: |
+  Staff infrastructure hub — proxied cluster dashboards and external ops UIs for KBVE.
+tableOfContents: false
+graph:
+    visible: false
+sidebar:
+    label: Infrastructure
+    order: 3
+tags:
+    - dashboard
+    - infrastructure
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Everything that keeps the cluster running, in one place. The **internal** entries are the in-site
+proxied dashboards; the **external** UIs open in a new tab behind their own logins.
+
+## Internal Dashboards
+
+<CardGrid>
+	<LinkCard title="Argo" href="/dashboard/argo/" description="GitOps deployments and application sync status." />
+	<LinkCard title="Edge" href="/dashboard/edge/" description="Edge function health and status." />
+	<LinkCard title="Virtual Machines" href="/dashboard/vm/" description="KubeVirt VM management." />
+	<LinkCard title="ClickHouse" href="/dashboard/clickhouse/" description="Log aggregation and analytics." />
+	<LinkCard title="Grafana" href="/dashboard/grafana/" description="Proxied cluster monitoring." />
+	<LinkCard title="Forgejo" href="/dashboard/forgejo/" description="Git hosting dashboard." />
+</CardGrid>
+
+## External Infrastructure
+
+<CardGrid>
+	<Card title="ArgoCD">
+		GitOps deployments and application sync status.
+
+		<a href="https://argo.kbve.com/" target="_blank" rel="noopener noreferrer">Open ArgoCD →</a>
+	</Card>
+	<Card title="Grafana">
+		Cluster metrics, dashboards, and alerting.
+
+		<a href="https://grafana.kbve.com/" target="_blank" rel="noopener noreferrer">Open Grafana →</a>
+	</Card>
+	<Card title="Longhorn">
+		Distributed block storage — volumes, snapshots, and backups.
+
+		<a href="https://longhorn.kbve.com/" target="_blank" rel="noopener noreferrer">Open Longhorn →</a>
+	</Card>
+</CardGrid>

@@ -1,5 +1,6 @@
 ---
 title: Powder Snow Bucket
+template: splash
 description: |
     Minecraft Powder Snow Bucket — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 953
     ref: powder_snow_bucket
     slug: powder-snow-bucket
+    content_rev: 1
     display_name: Powder Snow Bucket
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A powder snow bucket is a bucket filled with powder snow, obtained by using an empty
+            bucket on a powder snow block or a powder snow cauldron. It is the only way to carry
+            powder snow as an item, and using it places a powder snow block in the world.
+        lore: |
+            Introduced alongside the Caves & Cliffs update, this bucket lets players haul the
+            treacherous, sinking snow of frozen peaks anywhere they please.
+    faq:
+        - question: How do I fill a bucket with powder snow?
+          answer: |
+              Use an empty bucket on an existing powder snow block or a cauldron that has
+              collected powder snow, and the bucket will scoop it up.
+        - question: What can I do with a powder snow bucket?
+          answer: |
+              Place it to create a powder snow block, pour it into an empty cauldron to make a
+              powder snow cauldron, or stack placed blocks with leather boots equipped to build
+              tall, safe towers.
+        - question: Does powder snow protect against fall damage?
+          answer: |
+              Yes. Standing in powder snow cushions falls completely, even in the Nether, which
+              makes it useful for builders needing a safe landing.
+        - question: Is powder snow the same as regular snow layers?
+          answer: |
+              No. Powder snow is a distinct hazardous block that causes freezing damage over time
+              unless the player wears leather boots, unlike the cosmetic snow layer block.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Tropical Fish
+template: splash
 description: |
     Minecraft Tropical Fish — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 997
     ref: tropical_fish
     slug: tropical-fish
+    content_rev: 1
     display_name: Tropical Fish
     category: misc
     rarity: common
@@ -22,6 +24,25 @@ mc_item:
         saturation: 0.4
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The raw item dropped when a tropical fish mob dies, obtained by killing one of the passive fish that school in warm oceans, mangrove swamps, and lush caves. It restores only 1 hunger point and 0.4 saturation when eaten, and unlike cod or salmon it cannot be cooked, so it is rarely used as a serious food source.
+            Tropical fish themselves come in thousands of shape, color, and pattern combinations, though most players only ever see the 22 uniquely-named variants.
+        lore: |
+            Tropical fish were promised as far back as 2010 but only swam into the game with the 2018 Update Aquatic.
+    faq:
+        - question: How do I get Tropical Fish items?
+          answer: |
+              Kill a tropical fish mob to get a guaranteed drop of one raw tropical fish, or catch one alive with a water bucket instead if you want to keep it.
+        - question: Can Tropical Fish be cooked?
+          answer: |
+              No. Unlike cod and salmon, raw tropical fish has no cooked recipe, so it is always eaten raw.
+        - question: Is Tropical Fish a good food source?
+          answer: |
+              Not really, it only restores 1 hunger point and 0.4 saturation, far less than most other foods, so it is better used decoratively than as a survival food staple.
+        - question: Why do tropical fish look so different from each other?
+          answer: |
+              The game supports thousands of shape, color, and pattern combinations for the mob, with 22 specific combinations given unique names like Clownfish and Blue Tang.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

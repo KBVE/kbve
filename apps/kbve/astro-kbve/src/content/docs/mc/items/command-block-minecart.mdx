@@ -1,5 +1,6 @@
 ---
 title: Minecart with Command Block
+template: splash
 description: |
     Minecraft Minecart with Command Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1193
     ref: command_block_minecart
     slug: command-block-minecart
+    content_rev: 1
     display_name: Minecart with Command Block
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Minecart with Command Block is a creative- and command-only item that fuses a
+            minecart's mobility with a command block's ability to run console commands, executing
+            them at its current position as it rolls along rails. It cannot be crafted and has no
+            survival-mode acquisition path.
+        lore: |
+            A mobile command console on wheels, running orders wherever the rails happen to lead.
+    faq:
+        - question: How do you obtain a minecart with command block?
+          answer: |
+              Only through Creative mode inventory (Operator Utilities tab, cheats enabled) or
+              commands such as /give or /summon; it has no crafting recipe.
+        - question: How often does it execute its command?
+          answer: |
+              When powered by an activator rail, it executes its stored command once every four
+              game ticks.
+        - question: Can I read its output with redstone?
+          answer: |
+              Yes, placing it on a detector rail wired to a comparator outputs a signal based on the
+              command's success count.
+        - question: What happens if I break it?
+          answer: |
+              Breaking it only drops a regular minecart; the command block itself is lost and cannot
+              be recovered.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

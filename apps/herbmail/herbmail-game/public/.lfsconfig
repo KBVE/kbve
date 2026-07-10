@@ -1,0 +1,24 @@
+; Git LFS endpoint for the herbmail PSX-style vite game art (textures, models,
+; audio).
+;
+; Pointer files (~150 byte text stubs) live in this GitHub monorepo; the real
+; PNG/WEBP/GLB/audio blobs live on the self-hosted Forgejo instance at
+; git.kbve.com/KBVE/herbmail.git. Routing is via ingress-nginx (.74) not the
+; Cilium gateway (.71) for the same Cloudflare-origin reason documented in the
+; rareicon .lfsconfig at the repo root.
+;
+; LIMITATION: stock git-lfs only honors `lfs.url` from the .lfsconfig at the
+; *repository root* (this nested file is ignored by git-lfs itself). The
+; repo-root .lfsconfig still points at KBVE/rareicon. To push/pull herbmail
+; LFS blobs to the correct endpoint, use the kbve.sh wrapper:
+;
+;   ./kbve.sh -lfs herbmail push origin <branch>
+;   ./kbve.sh -lfs herbmail pull
+;   ./kbve.sh -lfs herbmail fetch --all
+;   ./kbve.sh -lfs herbmail register
+;
+; The wrapper injects `-c lfs.url=<this url>` so devs never have to remember it.
+; This .lfsconfig stays as the documented source of truth for the endpoint value
+; the wrapper hard-codes.
+[lfs]
+    url = https://git.kbve.com/KBVE/herbmail.git/info/lfs

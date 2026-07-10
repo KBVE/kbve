@@ -1,34 +1,153 @@
 ---
 title: ArgoCD
 description: |
-    ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes.
+    ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes that syncs the desired state in Git
+    with the live cluster. This guide covers the architecture, CLI, sync policies, the KBVE annotation standard,
+    and troubleshooting.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: ArgoCD
     order: 12
 unsplash: 1667372459726-a8fb4f5e4a5b
 img: https://images.unsplash.com/photo-1667372459726-a8fb4f5e4a5b?fit=crop&w=1400&h=700&q=75
+tags:
+    - kubernetes
+    - gitops
+    - ci-cd
+sem: 1
+ogTitle: ArgoCD Guide — GitOps Continuous Delivery for Kubernetes
+ogDescription: Learn ArgoCD, the declarative GitOps CD tool for Kubernetes — architecture, the argocd CLI, automated sync with self-heal and prune, ignoreDifferences, finalizers, and troubleshooting stuck syncs.
+jsonld:
+    type: Article
+    keywords:
+        - argocd
+        - gitops
+        - continuous delivery
+        - kubernetes deployment
+        - argo cd sync
+        - declarative cd
+    faq:
+        - question: What is ArgoCD?
+          answer: ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes. It treats a Git repository as the source of truth for the desired application state and continuously syncs the live cluster to match, automating deployments and detecting drift.
+        - question: What is GitOps?
+          answer: GitOps is an operational model where the desired state of infrastructure and applications is declared in Git, and an automated agent reconciles the running system to match. Git becomes the single source of truth, so every change is version-controlled, reviewable, and auditable.
+        - question: What is the difference between prune and self-heal in ArgoCD?
+          answer: prune deletes cluster resources that were removed from Git, keeping the cluster from accumulating orphans. selfHeal reverts manual kubectl changes back to the Git-defined state. Together they enforce that the live cluster always matches the repository.
+        - question: How do I fix an ArgoCD application stuck in Progressing?
+          answer: Check the operation with argocd app get, terminate a stuck sync using argocd app terminate-op, then force a fresh sync with argocd app sync --force. A hard refresh (--hard-refresh) bypasses the cache when an app shows out of sync despite matching Git.
+        - question: What are ignoreDifferences used for in ArgoCD?
+          answer: ignoreDifferences tells ArgoCD to skip specific resource fields when comparing live and desired state, so it does not fight controllers that own those fields — for example an autoscaler managing an Agones Fleet's spec.replicas would otherwise be reverted on every sync.
+bento:
+    badge: application · gitops · ci-cd
+    title: 'Git as the source of truth,'
+    accent: ArgoCD.
+    lede: >-
+        The declarative GitOps engine behind the KBVE cluster — every
+        application manifest lives in Git, and ArgoCD keeps the live cluster
+        synced to match. This guide covers the architecture, the argocd CLI,
+        automated sync with self-heal and prune, the KBVE annotation standard,
+        and fixing stuck syncs.
+    ctas:
+        - label: Architecture
+          href: '#architecture'
+          primary: true
+        - label: Annotation standard
+          href: '#application-annotation-standard'
+        - label: CLI commands
+          href: '#cli-commands'
+        - label: Troubleshooting
+          href: '#troubleshooting'
+    aside:
+        icon: deploy
+        title: Reconcile, don't apply
+        body: >-
+            Never manually apply manifests that ArgoCD manages — declare the
+            desired state in apps/kube, commit, and let the controller converge
+            the cluster. Drift gets healed, orphans get pruned, and every
+            change stays reviewable.
+        points:
+            - <strong>Self-heal</strong> — manual kubectl edits revert to Git.
+            - <strong>Prune</strong> — resources removed from Git are deleted.
+            - <strong>Annotations</strong> — every app links back to its source path.
+    stats:
+        - { label: Apps managed, value: '68+', icon: deploy }
+        - { label: Sync policy, value: self-heal + prune, icon: check }
+        - { label: Manifests, value: apps/kube/, icon: branch }
+        - { label: Annotation schema, value: v1, icon: info }
+    features:
+        - title: Architecture
+          icon: gears
+          href: '#architecture'
+          body: Application controller, repo server, API server, and the CRDs that define applications and projects.
+        - title: Annotation standard
+          icon: book
+          href: '#application-annotation-standard'
+          body: The kbve.com/* schema linking every Application to its source directory — categories, stacks, tenants, and kubectl queries.
+        - title: CLI commands
+          icon: code
+          href: '#cli-commands'
+          body: Install the argocd CLI, log in via port-forward, and the everyday sync, diff, and delete commands.
+        - title: Troubleshooting
+          icon: alert
+          href: '#troubleshooting'
+          body: Stuck Progressing operations, out-of-sync despite matching Git, custom health checks, and controller logs.
+    related:
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: The cluster ArgoCD reconciles — Talos, kubectl, and operations.
+          icon: server
+        - title: Git
+          href: /application/git/
+          copy: The source of truth and CI/CD integration feeding every sync.
+          icon: branch
+        - title: Longhorn
+          href: /application/longhorn/
+          copy: Cluster storage that upgrades alongside ArgoCD-managed workloads.
+          icon: database
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1667372459726-a8fb4f5e4a5b?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
 import {
-  Aside,
   Steps,
   Card,
   CardGrid,
-  Code,
-  FileTree,
   Tabs,
   TabItem,
 } from '@astrojs/starlight/components';
-
 import { Giscus, Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Information
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes. It automates the deployment of applications by synchronizing the desired state defined in Git repositories with the actual state in Kubernetes clusters.
 
-<Adsense />
+Jump to the [architecture](#architecture), [CLI commands](#cli-commands), [sync policies](#application-management), or [troubleshooting](#troubleshooting).
 
-## Architecture
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="architecture" eyebrow="How it works" heading="Architecture">
 
 ArgoCD follows the GitOps pattern where Git repositories are the source of truth for defining the desired application state. Key components include:
 
@@ -47,9 +166,9 @@ ArgoCD follows the GitOps pattern where Git repositories are the source of truth
   </Card>
 </CardGrid>
 
----
+</BentoProse>
 
-## KBVE Cluster Integration
+<BentoProse id="kbve-cluster-integration" eyebrow="In production" heading="KBVE Cluster Integration">
 
 The KBVE production cluster runs ArgoCD to manage 68+ applications across multiple namespaces. All application manifests are stored in the [`apps/kube/`](https://github.com/kbve/kbve/tree/main/apps/kube) directory.
 
@@ -57,9 +176,9 @@ The KBVE production cluster runs ArgoCD to manage 68+ applications across multip
 
 View live deployment status: [ArgoCD Dashboard](/dashboard/argo/)
 
----
+</BentoProse>
 
-## Application Annotation Standard
+<BentoProse id="application-annotation-standard" eyebrow="Traceable metadata" heading="Application Annotation Standard">
 
 ### Overview
 
@@ -228,9 +347,9 @@ kubectl get applications -n argocd -o json | \
   jq '.items[] | {name: .metadata.name, path: .metadata.annotations."kbve.com/source-path"}'
 ```
 
----
+</BentoProse>
 
-## Talos Integration
+<BentoProse id="talos-integration" eyebrow="Upgrade safety" heading="Talos Integration">
 
 ### Pause ArgoCD During Upgrades
 
@@ -251,9 +370,15 @@ This prevents the application-controller from interfering with:
 
 See the full Talos upgrade procedure in [Kubernetes - Talos](/application/kubernetes/#talos).
 
----
+</BentoProse>
 
-## CLI Commands
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="cli-commands" eyebrow="Daily drivers" heading="CLI Commands">
 
 ### Installation
 
@@ -311,9 +436,9 @@ argocd app delete <app-name>
 argocd app create -f application.yaml
 ```
 
----
+</BentoProse>
 
-## Application Management
+<BentoProse id="application-management" eyebrow="Sync policies" heading="Application Management">
 
 ### Sync Policies
 
@@ -354,9 +479,9 @@ metadata:
 
 This ensures when an ArgoCD Application is deleted, all deployed resources are cleaned up.
 
----
+</BentoProse>
 
-## Troubleshooting
+<BentoProse id="troubleshooting" eyebrow="When syncs stall" heading="Troubleshooting">
 
 ### Application Stuck in Progressing
 
@@ -417,9 +542,9 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller -
 kubectl logs -n argocd -l app.kubernetes.io/name=argocd-repo-server -f
 ```
 
----
+</BentoProse>
 
-## Best Practices
+<BentoProse id="best-practices" eyebrow="Operate well" heading="Best Practices">
 
 <Steps>
 
@@ -449,14 +574,20 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-repo-server -f
 
 </Steps>
 
----
+</BentoProse>
 
-## Related Documentation
+<BentoProse id="related-documentation" eyebrow="Further reading" heading="Related Documentation">
 
 - [Kubernetes](/application/kubernetes/) - General Kubernetes operations
 - [ArgoCD Dashboard](/dashboard/argo/) - Live cluster deployment status
 - [GitHub Actions](/application/git/) - CI/CD integration with ArgoCD
 
----
+</BentoProse>
 
-<Giscus />
+</BentoDoc>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

@@ -8,19 +8,67 @@ img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&c
 description: Daily Log for January 31th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 31,'
+    accent: every year.
+    lede: 'The January 31st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Jan 30'
+          href: /journal/01-30/
+        - label: 'Feb 1 →'
+          href: /journal/02-01/
+    related:
+        - title: 'Previous · Jan 30'
+          copy: 'Step back a day to the January 30th log.'
+          href: /journal/01-30/
+          icon: calendar
+        - title: 'Next · Feb 1'
+          copy: 'Jump ahead to the February 1st log.'
+          href: /journal/02-01/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1569396116180-210c182bedb8?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="notes" heading="Notes">
 
     #### Tables
 
         The table for view management should be simple enough to help keep track of valid views that are performed on the instance of what is being queried.
         We could make it easier to help 
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   **Gamejam**
 
@@ -47,7 +95,9 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
     -   7:30am -   `Epoxy`
 
@@ -88,3 +138,7 @@ import { Adsense } from '@/components/astropad';
 
 
          
+
+</BentoProse>
+
+</BentoDoc>

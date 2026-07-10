@@ -1,0 +1,104 @@
+---
+title: Sapphire glacialis mix | OSRS Price Data
+description: "Sapphire glacialis mix (2): There's a sapphire glacialis butterfly in here.. High alch: 18 GP."
+osrs:
+  id: 29180
+  name: Sapphire glacialis mix
+  slug: sapphire-glacialis-mix
+  examine: There's a sapphire glacialis butterfly in here.
+  members: true
+  icon: Sapphire glacialis mix (2).png
+  value: 30
+  lowalch: 12
+  highalch: 18
+  limit: null
+  material:
+    type: potion
+    tier: mid
+  potion:
+    doses: 2
+    effects:
+      - description: Boosts Defence by floor(level x 15/100) + 4, ranging from +4 (levels 1-6) to +18 (levels 94-99).
+  recipes:
+    - skill: hunter
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Jarred sapphire glacialis
+          item_id: 0
+          quantity: 1
+        - item_name: Raw hunter meat
+          item_id: 0
+          quantity: 1
+      description: Combined with pestle and mortar in 3 ticks
+  related_items:
+    - item_id: 0
+      item_name: Sapphire glacialis mix (1)
+      slug: sapphire-glacialis-mix-1
+      relationship: variant
+      description: 1-dose variant
+  about: Sapphire glacialis mix is a 2-dose Defence-boosting hunter mix introduced with the Varlamore Part One update.
+  market_strategy:
+    notes:
+      - Niche Defence boost potion
+      - Made from Varlamore hunting
+      - Not GE listed (limit null)
+      - 2-dose variant
+  history:
+    - date: "2024-04-03"
+      description: Group Ironmen can now correctly share hunter mixes and butterflies with their group.
+    - date: "2024-03-20"
+      description: Sapphire glacialis mix (2) released with Varlamore Part One.
+  family_ref:
+    family_slug: sapphire-glacialis-mix
+    role: base
+  family:
+    slug: sapphire-glacialis-mix
+    name: Sapphire glacialis mix
+    type: dose
+    canonical_id: 29180
+    members:
+    - id: 29180
+      slug: sapphire-glacialis-mix
+      name: Sapphire glacialis mix
+      icon: Sapphire glacialis mix (2).png
+      role: base
+      dose: null
+      value: 30
+      lowalch: 12
+      highalch: 18
+    - id: 29198
+      slug: sapphire-glacialis-mix-1
+      name: Sapphire glacialis mix (1)
+      icon: Sapphire glacialis mix (1).png
+      role: dose
+      dose: 1
+      value: 30
+      lowalch: 12
+      highalch: 18
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

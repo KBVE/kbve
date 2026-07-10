@@ -1,5 +1,6 @@
 ---
 title: Panda Spawn Egg
+template: splash
 description: |
     Minecraft Panda Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1106
     ref: panda_spawn_egg
     slug: panda-spawn-egg
+    content_rev: 1
     display_name: Panda Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Panda Spawn Egg is a Creative-mode item that instantly spawns a panda
+            when used on a block surface. Pandas spawned this way get a random
+            personality and have a small chance to appear as a baby, while using the
+            egg on an existing panda produces a baby matching its parent.
+        lore: |
+            Pandas and their spawn egg were added to give players access to the shy,
+            bamboo-loving mob from the Jungle Awakens update.
+    faq:
+        - question: How do I get a Panda Spawn Egg?
+          answer: |
+              It is only obtainable in Creative mode inventory or via commands such as
+              /give; it cannot be found through normal survival gameplay.
+        - question: How do I use a Panda Spawn Egg?
+          answer: |
+              Use it on any surface to spawn a panda with its feet adjacent to that
+              surface.
+        - question: What happens if I use it on an existing panda?
+          answer: |
+              It spawns a baby panda that matches the personality of the targeted
+              parent panda.
+        - question: Can Panda Spawn Eggs stack with other spawn eggs?
+          answer: |
+              They stack up to 64, but only with other Panda Spawn Eggs, not with eggs
+              for different mobs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

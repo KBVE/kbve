@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper Bulb
+template: splash
 description: |
     Minecraft Weathered Copper Bulb — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1385
     ref: weathered_copper_bulb
     slug: weathered-copper-bulb
+    content_rev: 1
     display_name: Weathered Copper Bulb
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Weathered Copper Bulb is the third oxidation stage of the redstone-toggled copper
+            light source, glowing at a dimmer light level than its unoxidized or exposed forms. It
+            toggles on or off from a single redstone pulse and needs no continuous power to stay
+            lit. Crafted from a block of copper, a blaze rod, and redstone dust, it can be waxed
+            with honeycomb to freeze it permanently at this weathered, dimmer state.
+        lore: |
+            Its copper housing has dulled to green, the light within noticeably fainter than a
+            fresh bulb, a small price paid for the weight of time left unwaxed.
+    faq:
+        - question: How bright is a Weathered Copper Bulb compared to a fresh one?
+          answer: |
+              Its light level is dimmer than the unoxidized or exposed stages; brightness drops
+              step by step through unoxidized, exposed, weathered, and oxidized.
+        - question: Does it need constant redstone power to stay lit?
+          answer: |
+              No. A single redstone pulse toggles it on or off, and it keeps emitting light
+              without any continuous signal until pulsed again.
+        - question: How do I restore its full brightness?
+          answer: |
+              Scrape it with an axe to remove oxidation, stepping it back toward the exposed and
+              then unoxidized stage and its higher light level.
+        - question: Can a comparator read its lit state?
+          answer: |
+              Yes. A comparator facing a lit copper bulb outputs a signal strength of 15
+              regardless of its oxidation stage, useful for compact redstone logic.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

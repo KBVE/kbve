@@ -1,5 +1,6 @@
 ---
 title: Witch Spawn Egg
+template: splash
 description: |
     Minecraft Witch Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1139
     ref: witch_spawn_egg
     slug: witch-spawn-egg
+    content_rev: 1
     display_name: Witch Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Witch Spawn Egg is a Creative-mode item that instantly spawns a Witch, a hostile mob resembling a
+            pale-skinned villager in purple robes. Witches naturally spawn in swamp huts and use splash potions
+            offensively while drinking beneficial potions to defend themselves.
+        lore: |
+            A villager struck by lightning can transform into a witch, hinting at a dark connection between the
+            two mobs.
+    faq:
+        - question: How is the Witch Spawn Egg used?
+          answer: |
+              In Creative mode, right-clicking a block with the spawn egg instantly spawns a Witch at that
+              location, useful for testing or building.
+        - question: Where do witches spawn naturally without a spawn egg?
+          answer: |
+              Witches spawn in swamp huts at light level 0, and also join raids starting from wave 3 or 4.
+        - question: What do witches drop when killed?
+          answer: |
+              Witches always drop 4-8 redstone dust, and can randomly drop glass bottles, glowstone dust,
+              gunpowder, spider eyes, sugar, and sticks.
+        - question: How do witches behave in combat?
+          answer: |
+              They throw damaging splash potions like Harming and Poison at enemies while drinking potions like
+              Healing and Fire Resistance to protect themselves, and support illagers with Regeneration potions
+              during raids.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

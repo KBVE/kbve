@@ -1,5 +1,6 @@
 ---
 title: Magenta Bundle
+template: splash
 description: |
     Minecraft Magenta Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 977
     ref: magenta_bundle
     slug: magenta-bundle
+    content_rev: 1
     display_name: Magenta Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Magenta Bundle is a storage item that lets a single
+            inventory slot hold mixed item types, up to the equivalent of
+            one stack. Its magenta dye coating makes it easy to tell apart
+            from other colored bundles at a glance, and its contents can be
+            browsed and withdrawn through a scrollable tooltip.
+        lore: |
+            Bundles are inspired by the ancient Roman coin purse and were
+            the last feature from Minecraft Live 2020 to finally ship, four
+            years after their reveal.
+        faq:
+            - question: How much space does an item take up inside a Magenta Bundle?
+              answer: |
+                  Items that normally stack to 64 take up 1/64 of the
+                  bundle, items that stack to 16 take up 1/16, and
+                  non-stacking items take up the entire bundle.
+            - question: Can a Magenta Bundle hold another bundle inside it?
+              answer: |
+                  Yes, bundles can be nested inside each other, though
+                  shulker boxes cannot be stored inside a bundle.
+            - question: How do I craft a Magenta Bundle?
+              answer: |
+                  Craft a plain bundle from one string and one leather,
+                  then combine it with magenta dye to recolor it.
+            - question: How do I take items back out of a Magenta Bundle?
+              answer: |
+                  Right-click the bundle to open its scrollable tooltip,
+                  scroll to the desired item, then right-click again to
+                  withdraw it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

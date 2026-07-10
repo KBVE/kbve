@@ -1,5 +1,6 @@
 ---
 title: Cake
+template: splash
 description: |
     Minecraft Cake — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 283
     ref: cake
     slug: cake
+    content_rev: 1
     display_name: Cake
     material: stone
     hardness: 0.5
@@ -24,10 +26,52 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - overworld
+        - food
+    about:
+        description: |
+            Cake is a placeable food block that must be set on a solid
+            surface before it can be eaten slice by slice, restoring hunger
+            to whoever bites in — including wandering pandas.
+        lore: |
+            Cake exists because Notch promised to add it if Minecraft won
+            the 2010 Indie of the Year award, and it did.
+    uses:
+        - title: Hunger Restoration
+          ref: cake
+          detail: |
+              Each of its 7 slices restores 2 hunger points, for 14 total,
+              eaten directly off the placed block rather than from the
+              hotbar.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing cake in a composter raises the compost level by 1,
+              same as most other food items.
+    found_in:
+        - location: Crafted only
+          detail: Not found naturally; crafted from 3 milk buckets, 2 sugar, 1 egg, and 3 wheat.
+    faq:
+        - question: What does mining a cake drop?
+          answer: |
+              Nothing. Cake cannot be recollected once placed, even with
+              Silk Touch — breaking it destroys it entirely.
+        - question: Can I eat cake straight from my inventory?
+          answer: |
+              No. Unlike other food, cake must first be placed on a solid
+              block before any slice can be eaten.
+        - question: Can multiple players eat from one cake?
+          answer: |
+              Yes. Multiple players can eat slices simultaneously, limited
+              to one slice consumed per game tick.
+        - question: Does a cake block emit a redstone signal?
+          answer: |
+              Yes, a comparator reads the number of remaining slices as its
+              output signal strength.
     data_version: "1.21.5"
 ---
 

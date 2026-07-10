@@ -1,5 +1,6 @@
 ---
 title: Cherry Log
+template: splash
 description: |
     Minecraft Cherry Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 54
     ref: cherry_log
     slug: cherry-log
+    content_rev: 1
     display_name: Cherry Log
     material: wood
     hardness: 2
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The Cherry Log is the trunk block of cherry trees, bark on
+            every face like other logs but tinted a warm brown to
+            contrast with the tree's pale pink leaves and planks.
+        lore: |
+            Cherry Log arrived with the cherry grove biome in the
+            Trails & Tales update (1.20), completing the tenth wood set
+            of the era.
+    uses:
+        - title: Cherry Planks
+          ref: cherry_planks
+          detail: |
+              Crafts into 4 cherry planks per log, the base ingredient
+              for cherry tools, doors, fences, and other wooden blocks.
+        - title: Charcoal
+          ref: charcoal
+          detail: |
+              Can be smelted in a furnace to produce charcoal, a
+              substitute for coal.
+        - title: Furnace fuel
+          ref: furnace
+          detail: |
+              Burns in a furnace, smelting 1.5 items per log.
+    found_in:
+        - location: Cherry grove biome
+          detail: Generates as the trunks of cherry trees throughout the biome.
+        - location: Wandering trader
+          detail: Occasionally purchasable from wandering traders, 8 logs per emerald.
+    faq:
+        - question: What tool do I need to mine a Cherry Log?
+          answer: |
+              None — it can be broken by hand, though an axe is the
+              fastest tool.
+        - question: Is the Cherry Log flammable?
+          answer: |
+              Yes. Like other overworld logs, it catches fire from lava
+              and adjacent flames.
+        - question: How do I get Stripped Cherry Log?
+          answer: |
+              Right-click a Cherry Log with an axe in hand to strip its
+              bark, revealing the lighter stripped variant.
+        - question: Does it drop anything special with Silk Touch or Fortune?
+          answer: |
+              No. A Cherry Log always drops itself as a single item
+              regardless of the tool or enchantments used.
     data_version: "1.21.5"
 ---
 

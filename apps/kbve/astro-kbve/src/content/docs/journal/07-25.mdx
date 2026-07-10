@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1505236732171-72a5b19c4981?crop=entropy&c
 description: July 25th. Lot.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 25,'
+    accent: every year.
+    lede: 'The July 25th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 24'
+          href: /journal/07-24/
+        - label: 'Jul 26 →'
+          href: /journal/07-26/
+    related:
+        - title: 'Previous · Jul 24'
+          copy: 'Step back a day to the July 24th log.'
+          href: /journal/07-24/
+          icon: calendar
+        - title: 'Next · Jul 26'
+          copy: 'Jump ahead to the July 26th log.'
+          href: /journal/07-26/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1505236732171-72a5b19c4981?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Airship
 
@@ -22,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     For my next godot game, I want to make sure the scenes , prefabs and assets are all combined into a single folder per entity.
     Even the pools and tile systems could be used for this in the future.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Swarm**
 Played a quick couple rounds of the Swarm gamemode and I found it to be a bit interesting!
@@ -53,7 +102,10 @@ There are still major changes that we would have to do to get this to work witho
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 6:00am - The birds are starting to become a pain, not only are they taking a bit of an excessive dump on my car, they seem to be multiplying a bit faster around our home. I noticed nests near the shed, by our tress, we are slowly becoming a pit stop for the birdbros. 
 - 8:00am - Automatic deployment of [Portainer](https://kbve.com/application/portainer/) will come in three stages, the first will be the command and control center, the second will be for the docker swarm deployments and the third will be for all edge nodes. The current setup is through ansible and terraform but I wanted to migrate towards utilizing Github actions to execute the commands. Part of the reason was to build custom and future tools that I could bring into eco-systems, which could help with auto-scaling, security and general automation. 
 - 11:00am - Going to roll some more option contracts, it seems that I no longer have any SPY within my inventory, which is a shame because getting back into the puts seem a bit too expensive for the casual return. I will wait for my TSLA/AAPL/GOOG to calm down and approach SPY again mid-August. Cash balance is around $68,000 but our position in $O has been increasing rapidly, we should approach $2000 monthly dividends by late 2024. 
@@ -62,13 +114,21 @@ There are still major changes that we would have to do to get this to work witho
 - 4:00pm - Market has closed with some wiggle room before tomorrow's fed meeting. I am really hoping that they pause interest rates with a decent pause until late Q4 of 2023! If they do increase the rate, I am hoping that it is a steady 25bps instead of a 50bps.
 - 6:00pm - I started to clean up mini-Charles aka Charlie's work area and should note down the updates that I would need for it. I could add more information into the issue ticket and then migrate that information over to the documentation of Charlies? I suppose we would have to talk more about this later down the line. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > May all beings have happy minds.
 > — <cite>The Buddha</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

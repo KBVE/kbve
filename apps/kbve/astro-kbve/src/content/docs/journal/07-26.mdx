@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1505236732171-72a5b19c4981?crop=entropy&c
 description: July 26th. DevOps.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 26,'
+    accent: every year.
+    lede: 'The July 26th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 25'
+          href: /journal/07-25/
+        - label: 'Jul 27 →'
+          href: /journal/07-27/
+    related:
+        - title: 'Previous · Jul 25'
+          copy: 'Step back a day to the July 25th log.'
+          href: /journal/07-25/
+          icon: calendar
+        - title: 'Next · Jul 27'
+          copy: 'Jump ahead to the July 27th log.'
+          href: /journal/07-27/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1505236732171-72a5b19c4981?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Airship Chunks & NPCs
 
@@ -22,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     My biggest concern is the FPS for the web build, I am hoping that there could be some additional methods that I could do to make it smoother.
     
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **DevOps**
 
@@ -245,18 +294,29 @@ Everything looks passing, lets move on with adding the next sanitization functio
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 7:00am - I believe it is time that I setup a new morning ritual, including one that involves a bit more time being spent outside of the home but in a way that would benefit me? I noticed that Unsplash has a limit of 10 image submissions a week, so maybe I should start to build out a collection of images to take and prepare for submissions. My aim should be just to get at least one image out there a week, going towards 10 a week seems a bit much. 
 - 8:20am - Okay I need to write this out as a journal entry first, then I will make it into an issue ticket and finally migrate it over to the rareicon documentation? We take an AI generate image / concept and then add our own artistic touches to it, we could paint our own version of it or use photoshop over the image. Afterwards we would render or display the image inside a digital frame and then using my sony alpha, we take a photo of that digital display somewhere in the real world? It would be a bit of augmented reality and I think it could create some really stunning and visually pleasing photo images. I feel like that is was similar to the Opsz concept that I still need to get out there, damn these backlogs are becoming a pain.
 - 11:50am - I believe we have a solid plan for the day! I am going to pickup @andsam and we are about to have a solid kbve session, it will start off with a visit to my 2nd favorite deli, Mr. Subs! I am just craving their 14c, which is a turkey, cheese and capicola cold sub with bacon inside a fresh gutted loaf of little Italy. Honestly my only concern is that they will run out of fresh bread but if they do, I have a backup plan because right next to the deli is a ramen shop, which happens to also make some of the best ramen in NJ! So there is always a win when visiting that area. After we get our meal, we shall visit the home and then take a look at the current physical state of all the hardware. This will include the charlies, drones and other robots for the time being! Wrapping up the deli and robot lab adventure will be some quick caffeine infusion and finally a visit to el Portal. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > We do not quit playing because we grow old, we grow old because we quit playing.
 > — <cite>Oliver Wendell Holmes Jr.</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] - Robo Foodie Day.
+
+</BentoProse>
+
+</BentoDoc>

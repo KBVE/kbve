@@ -1,5 +1,6 @@
 ---
 title: Copper Grate
+template: splash
 description: |
     Minecraft Copper Grate — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1375
     ref: copper_grate
     slug: copper-grate
+    content_rev: 1
     display_name: Copper Grate
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Copper Grates are decorative, see-through copper blocks whose perforated
+            pattern lets light and mobs' line of sight pass through while still
+            blocking movement. They can be crafted or stonecut from any copper block
+            variant and, like other copper blocks, weather through four oxidation
+            stages unless sealed with honeycomb wax.
+        lore: |
+            Their perforated design was mainly inspired by chain link fencing.
+    faq:
+        - question: How do I get a Copper Grate?
+          answer: |
+              Craft one from a matching copper block to get 4 grates, or cut a copper
+              block on a stonecutter for the same yield.
+        - question: Does a Copper Grate conduct redstone or block mob spawning?
+          answer: |
+              No, it does not conduct redstone signals, and mobs cannot spawn on top
+              of it.
+        - question: Can Copper Grates oxidize and be waxed?
+          answer: |
+              Yes, unwaxed grates progress through four oxidation stages over time;
+              applying honeycomb waxes them to lock in their current stage.
+        - question: What happens when two identical Copper Grates are placed next to each other?
+          answer: |
+              Adjacent grates that share the same oxidation and wax state become
+              visually seamless, appearing to merge into one surface.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

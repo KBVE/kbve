@@ -1,5 +1,6 @@
 ---
 title: Infested Chiseled Stone Bricks
+template: splash
 description: |
     Minecraft Infested Chiseled Stone Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 322
     ref: infested_chiseled_stone_bricks
     slug: infested-chiseled-stone-bricks
+    content_rev: 1
     display_name: Infested Chiseled Stone Bricks
     material: stone
     hardness: 0.75
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_stone_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Infested Chiseled Stone Bricks look identical to ordinary
+            chiseled stone bricks but conceal a hostile silverfish. Breaking
+            one without Silk Touch destroys the block and releases the
+            silverfish to attack, making stronghold libraries and similar
+            decorated rooms a hidden hazard.
+        lore: |
+            Infested blocks were originally named "Monster Eggs" before
+            being renamed to their current form in version 1.13.
+    uses:
+        - title: Silk Touch Harvesting
+          ref: chiseled_stone_bricks
+          detail: |
+              Mining with Silk Touch yields the clean, non-infested
+              chiseled stone bricks instead of releasing a silverfish,
+              letting builders safely reuse the decorative block.
+    found_in:
+        - location: Strongholds
+          detail: Generates among chiseled stone brick library and corridor decorations inside strongholds.
+        - location: Igloo Basements
+          detail: Occasionally found mixed into the hidden basement rooms beneath igloos.
+    faq:
+        - question: What happens if I mine it without Silk Touch?
+          answer: |
+              The block breaks, drops nothing, and an aggressive silverfish
+              spawns in its place and immediately attacks.
+        - question: Can I tell it apart from normal chiseled stone bricks?
+          answer: |
+              Visually no, but placing a note block on it produces a
+              flute or harp sound instead of the bass drum sound of
+              regular stone bricks.
+        - question: Does breaking one trigger nearby infested blocks?
+          answer: |
+              Attacking the spawned silverfish can cause nearby infested
+              blocks to break as well, chain-spawning more silverfish.
+        - question: What tool mines it fastest?
+          answer: |
+              A pickaxe of any tier. It requires no minimum tier to drop
+              and breaks in about half the time of a normal stone brick.
     data_version: "1.21.5"
 ---
 

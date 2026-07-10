@@ -1,14 +1,10 @@
 import { memo, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import {
-	ErrorState,
-	LoadingState,
-	Stack,
-	Text,
-	VirtualList,
-	tokens,
-} from '../ui';
+import { Stack, Text, tokens } from './_ui';
+import { ErrorState } from '../ui/feedback/ErrorState';
+import { LoadingState } from '../ui/feedback/LoadingState';
+import { VirtualList } from '../ui/lists/VirtualList';
 import { StatGrid } from './StatGrid';
 import { useStream, useStreamLifecycle, useStreamSelector } from './useStream';
 import type {
@@ -244,13 +240,14 @@ export function StreamView<TItem>({
 		);
 	}
 
-	const stats = lens.stats?.(state.items) ?? [];
+	const stats = lens.stats?.(state.items, state.meta) ?? [];
 	const lensU = lens as unknown as StreamLens<unknown>;
 	const storeU = store as unknown as StreamStore<unknown>;
 
 	return (
 		<Stack gap="md">
 			{stats.length ? <StatGrid stats={stats} /> : null}
+			{lens.metaPanel ? lens.metaPanel(state.meta) : null}
 
 			<Stack direction="row" gap="sm" align="center" wrap>
 				{lens.filters?.length ? (

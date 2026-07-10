@@ -1,5 +1,6 @@
 ---
 title: Green Glazed Terracotta
+template: splash
 description: |
     Minecraft Green Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 675
     ref: green_glazed_terracotta
     slug: green-glazed-terracotta
+    content_rev: 1
     display_name: Green Glazed Terracotta
     material: stone
     hardness: 1.4
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Green Glazed Terracotta is a decorative variant of terracotta
+            made by smelting green stained terracotta, with a rotating
+            pattern texture that changes based on which way it faces when
+            placed. Arranging four blocks in a 2x2 grid lets builders form
+            larger repeating patterns.
+        lore: |
+            Glazed terracotta was inspired by a Moroccan-styled bathroom
+            floor designer Jens Bergensten saw at a hotel in California.
+    uses:
+        - title: Decorative Building
+          ref: green_glazed_terracotta
+          detail: |
+              Used purely as a building material; its directional texture
+              makes it popular for floor and wall mosaics when placed in
+              repeating 2x2 or larger grids.
+    found_in:
+        - location: Smelting
+          detail: Obtained by smelting Green Stained Terracotta in a furnace, blast furnace, or smoker.
+        - location: Mason villager trades
+          detail: Expert-level Mason villagers trade an emerald for 12 glazed terracotta blocks, making it renewable.
+    faq:
+        - question: What tool do I need to mine Green Glazed Terracotta?
+          answer: |
+              Any pickaxe works; it drops itself with any pickaxe tier,
+              including wood, so there is no minimum tier requirement.
+        - question: How do I get Green Glazed Terracotta?
+          answer: |
+              Smelt Green Stained Terracotta in a furnace, blast furnace, or
+              smoker, or trade an emerald with an expert-level Mason
+              villager for 12 blocks.
+        - question: Does it burn in lava or fire?
+          answer: |
+              No. Like all terracotta and glazed terracotta, it is
+              non-flammable and does not catch fire from lava.
+        - question: Can I move it with a piston?
+          answer: |
+              A regular piston can push it, but sticky pistons cannot pull
+              it back and it will not stick to slime or honey blocks.
     data_version: "1.21.5"
 ---
 

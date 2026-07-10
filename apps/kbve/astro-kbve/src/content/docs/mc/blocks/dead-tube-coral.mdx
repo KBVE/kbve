@@ -1,5 +1,6 @@
 ---
 title: Dead Tube Coral
+template: splash
 description: |
     Minecraft Dead Tube Coral — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 725
     ref: dead_tube_coral
     slug: dead-tube-coral
+    content_rev: 1
     display_name: Dead Tube Coral
     material: stone
     hardness: 0
@@ -26,8 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_tube_coral
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Dead Tube Coral is the lifeless, grayscale form of Tube Coral. It
+            forms when living tube coral is placed or exposed outside of
+            water, dying within a few seconds, and can only be collected as
+            an item using a Silk Touch tool.
+        lore: |
+            Coral and its dead variants were added in the Update Aquatic
+            (1.13), bringing detailed ocean biome decoration to the game.
+    found_in:
+        - location: Warm ocean biomes
+          detail: Naturally generates as dead coral within coral reef structures, primarily on Bedrock Edition.
+        - location: Anywhere, by placement
+          detail: Created by placing live Tube Coral out of water, where it dies after 3 to 5 seconds.
+    faq:
+        - question: How do I get Dead Tube Coral to keep as an item?
+          answer: |
+              Mine it with a tool enchanted with Silk Touch. Without Silk
+              Touch, the block breaks instantly and drops nothing.
+        - question: Can Dead Tube Coral be brought back to life?
+          answer: |
+              No. Once coral dies it stays dead permanently; there is no way
+              to revert it to a living coral block.
+        - question: Does Fortune increase the drops?
+          answer: |
+              No. Fortune has no effect on coral blocks — only Silk Touch
+              matters for obtaining the item.
+        - question: What is Dead Tube Coral used for?
+          answer: |
+              Purely decoration and building, most often in aquarium or reef
+              builds, since it does not support sea pickles or other living
+              coral behavior.
     data_version: "1.21.5"
 ---
 

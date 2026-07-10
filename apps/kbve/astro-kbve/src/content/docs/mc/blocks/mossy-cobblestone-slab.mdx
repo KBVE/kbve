@@ -1,5 +1,6 @@
 ---
 title: Mossy Cobblestone Slab
+template: splash
 description: |
     Minecraft Mossy Cobblestone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 782
     ref: mossy_cobblestone_slab
     slug: mossy-cobblestone-slab
+    content_rev: 1
     display_name: Mossy Cobblestone Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mossy_cobblestone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Mossy Cobblestone Slab is the half-height slab form of Mossy
+            Cobblestone, letting builders create thin overgrown-stone
+            surfaces, half-block steps, or double slabs that look identical to
+            the full block.
+        lore: |
+            It was added in the same 1.14 update that overhauled slabs and
+            stairs across all of Minecraft's stone variants.
+    uses:
+        - title: Decorative flooring and steps
+          ref: mossy_cobblestone_slab
+          detail: |
+              Two slabs placed one atop the other form a full block visually
+              indistinguishable from Mossy Cobblestone, useful for
+              half-height detailing in builds.
+    found_in:
+        - location: Pillager outposts
+          detail: Generates naturally as part of outpost towers and scaffolding.
+        - location: Crafted from Mossy Cobblestone
+          detail: Three Mossy Cobblestone in a row yield six slabs, or one block on a stonecutter yields two.
+    faq:
+        - question: What tool do I need to mine Mossy Cobblestone Slab?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without one drops
+              nothing.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes. It always drops one Mossy Cobblestone Slab per slab layer
+              broken, unaffected by Silk Touch or Fortune.
+        - question: Can I get Mossy Cobblestone Slab without crafting?
+          answer: |
+              Yes, it also generates naturally in pillager outpost towers.
+        - question: Is Mossy Cobblestone Slab waterloggable?
+          answer: |
+              Yes. Placing it in water lets it hold the water source, matching
+              behavior of other slabs.
     data_version: "1.21.5"
 ---
 

@@ -9,16 +9,52 @@ description: |
     Uncle Sam. 15th of April.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 15,'
+    accent: every year.
+    lede: 'The April 15th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Apr 14'
+          href: /journal/04-14/
+        - label: 'Apr 16 →'
+          href: /journal/04-16/
+    related:
+        - title: 'Previous · Apr 14'
+          copy: 'Step back a day to the April 14th log.'
+          href: /journal/04-14/
+          icon: calendar
+        - title: 'Next · Apr 16'
+          copy: 'Jump ahead to the April 16th log.'
+          href: /journal/04-16/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1659646339818-6a8511cabeb1?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### RimWorld
 
@@ -32,9 +68,20 @@ import { Adsense } from '@/components/astropad';
     I need to make a quick note on the plugins that we are using in 1.5x , maybe making a mod list for it all.
     I should also look into how mods get published too.
 
-## 2024
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Charles
 
 This entry has been delayed a bit because there was a ton of changes that we had to do with charles.
+
+</BentoProse>
+
+</BentoDoc>

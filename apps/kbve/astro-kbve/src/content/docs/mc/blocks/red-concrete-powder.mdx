@@ -1,5 +1,6 @@
 ---
 title: Red Concrete Powder
+template: splash
 description: |
     Minecraft Red Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 708
     ref: red_concrete_powder
     slug: red-concrete-powder
+    content_rev: 1
     display_name: Red Concrete Powder
     material: dirt
     hardness: 0.5
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - gravity_affected
+        - overworld
+    about:
+        description: |
+            Red Concrete Powder is a gravity-affected block crafted from
+            red dye, sand, and gravel. It falls like sand when unsupported
+            and instantly solidifies into solid Red Concrete when it
+            touches water.
+        lore: |
+            Concrete powder was added in Java Edition 1.12 alongside a
+            vivid new color palette, giving builders saturated blocks that
+            harden on contact with water.
+    uses:
+        - title: Red Concrete
+          ref: red_concrete
+          detail: |
+              Touching flowing or source water, or a waterlogged block,
+              instantly converts the powder into solid Red Concrete.
+    found_in:
+        - location: Crafted
+          detail: |
+              8 red dye, 4 sand, and 4 gravel craft 8 Red Concrete Powder in
+              a shapeless recipe.
+    faq:
+        - question: What tool do I need to mine Red Concrete Powder?
+          answer: |
+              None required — any tool works, and a shovel is fastest. It
+              always drops itself.
+        - question: Why did my Red Concrete Powder disappear?
+          answer: |
+              It solidified into Red Concrete after touching water, or it
+              fell and landed somewhere unexpected since it obeys gravity.
+        - question: Can red sand be used instead of sand in the recipe?
+          answer: |
+              No. Only regular sand works; red sand is not a valid
+              ingredient for concrete powder.
+        - question: Is Red Concrete Powder renewable?
+          answer: |
+              Yes. Sand, gravel, and dye are all renewable, and piglins can
+              barter gravel, making an unlimited supply possible.
     data_version: "1.21.5"
 ---
 

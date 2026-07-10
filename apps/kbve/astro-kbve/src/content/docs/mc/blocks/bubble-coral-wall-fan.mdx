@@ -1,5 +1,6 @@
 ---
 title: Bubble Coral Wall Fan
+template: splash
 description: |
     Minecraft Bubble Coral Wall Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 752
     ref: bubble_coral_wall_fan
     slug: bubble-coral-wall-fan
+    content_rev: 1
     display_name: Bubble Coral Wall Fan
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bubble_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - coral
+        - underwater
+        - non_solid
+    about:
+        description: |
+            Bubble Coral Wall Fan is the wall-mounted form a Bubble Coral
+            Fan takes automatically when placed against the side of a
+            block. It is a distinct block internally but functions and
+            drops identically to the standing fan.
+        lore: |
+            Wall variants exist for every coral fan so that item form
+            (Bubble Coral Fan) can render correctly whether placed on a
+            floor, ceiling-adjacent side, or wall.
+    uses:
+        - title: Underwater Wall Decoration
+          ref: bubble_coral_fan
+          detail: |
+              Used to decorate reef walls and structures; breaking it with
+              Silk Touch yields a Bubble Coral Fan item, which can be
+              replaced on a floor or another wall.
+    found_in:
+        - location: Warm ocean coral reef structures
+          detail: Generates naturally where coral fans grow against the side of a block underwater.
+        - location: Player placement
+          detail: Automatically created when a Bubble Coral Fan item is placed against the side of a block.
+    faq:
+        - question: Is Bubble Coral Wall Fan a separate item?
+          answer: |
+              No. It shares the same item, Bubble Coral Fan; the wall
+              form only exists as a placed block state.
+        - question: Do I need Silk Touch to keep it alive?
+          answer: |
+              Yes. Without Silk Touch it drops nothing, same as its
+              free-standing counterpart.
+        - question: What happens without water?
+          answer: |
+              It wilts into Dead Bubble Coral Wall Fan within a few
+              seconds if not touching water or a waterlogged block.
+        - question: Can a piston push it?
+          answer: |
+              No, pushing a live coral wall fan with a piston breaks the
+              block instead of moving it.
     data_version: "1.21.5"
 ---
 

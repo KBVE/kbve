@@ -4,6 +4,8 @@
 #include "SchuckCharacterSelect.h"
 #include "Core/chuckSessionSubsystem.h"
 #include "SKBVELoginWidget.h"
+#include "SchuckUsernameSetup.h"
+#include "Net/chuckKbveApiClient.h"
 #include "SKBVEAccountPanel.h"
 #include "SKBVELoadingPanel.h"
 #include "Engine/GameInstance.h"
@@ -45,6 +47,16 @@ void AchuckMenuPlayerController::BeginPlay()
 		.OnQuitClicked(FSimpleDelegate::CreateUObject(this, &AchuckMenuPlayerController::HandleQuit));
 
 	LoginWidget   = SNew(SKBVELoginWidget).Subsystem(SupabaseSubsystem).Title(NSLOCTEXT("chuck", "LoginTitle", "Sign in to ChuckRPG"));
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		ApiClient = GI->GetSubsystem<UchuckKbveApiClient>();
+	}
+	UsernameWidget = SNew(SchuckUsernameSetup)
+		.Subsystem(SupabaseSubsystem)
+		.ApiClient(ApiClient)
+		.OnUsernameSet(FchuckOnUsernameSet::CreateUObject(this, &AchuckMenuPlayerController::HandleUsernameSet))
+		.OnSessionExpired(FSimpleDelegate::CreateUObject(this, &AchuckMenuPlayerController::HandleUsernameSessionExpired));
+	UsernameWidget->SetVisibility(EVisibility::Collapsed);
 	AccountWidget = SNew(SKBVEAccountPanel).Subsystem(SupabaseSubsystem);
 	LoadingWidget = SNew(SKBVELoadingPanel).UnitLabel(TEXT("chunks"));
 	LoadingWidget->SetVisibility(EVisibility::Collapsed);
@@ -64,6 +76,7 @@ void AchuckMenuPlayerController::BeginPlay()
 		Viewport->AddViewportWidgetContent(MenuWidget.ToSharedRef(),    10);
 		Viewport->AddViewportWidgetContent(AccountWidget.ToSharedRef(), 40);
 		Viewport->AddViewportWidgetContent(LoginWidget.ToSharedRef(),   45);
+		Viewport->AddViewportWidgetContent(UsernameWidget.ToSharedRef(), 46);
 		Viewport->AddViewportWidgetContent(CharSelectWidget.ToSharedRef(), 50);
 		Viewport->AddViewportWidgetContent(LoadingWidget.ToSharedRef(), 60);
 	}
@@ -103,7 +116,8 @@ void AchuckMenuPlayerController::BeginPlay()
 	const float ChunkExtent    = CellsPerEdge * CellSize;
 	const FIntPoint AnchorChunk(0, 0);
 	const int32 PrewarmRadius  = 9;
-	FchuckTerrainPrewarm::Get().Kick(SpawnSeed, AnchorChunk, PrewarmRadius, CellsPerEdge, CellSize);
+	const bool bFlatWorld      = PlayLevelName.ToString().Contains(TEXT("ArpgWorld"));
+	FchuckTerrainPrewarm::Get().Kick(SpawnSeed, AnchorChunk, PrewarmRadius, CellsPerEdge, CellSize, bFlatWorld);
 
 	if (UMaterialInterface* Master = FKBVEWorldGrassShader::GetOrCreateMasterMaterial(this))
 	{
@@ -218,7 +232,7 @@ void AchuckMenuPlayerController::TickLoadingTransition(float DeltaSeconds)
 		bLoadingActive = false;
 		bShowMouseCursor = false;
 		SetInputMode(FInputModeGameOnly());
-		UGameplayStatics::OpenLevel(this, PlayLevelName);
+		UGameplayStatics::OpenLevel(this, PlayLevelName, true, TEXT("game=/Script/chuck.chuckSimgridGameMode"));
 	}
 }
 
@@ -302,6 +316,7 @@ void AchuckMenuPlayerController::HandleSupabaseSessionRefreshed(const FKBVESupab
 			Rows->AdoptSupabaseSession(Session.AccessToken, Session.User.Id, Session.User.KbveUsername);
 		}
 	}
+	RefreshAuthVisibility(true);
 }
 
 void AchuckMenuPlayerController::ApplyAccountFromSession(const FKBVESupabaseSession& Session)
@@ -325,6 +340,7 @@ void AchuckMenuPlayerController::ApplyAccountFromSession(const FKBVESupabaseSess
 
 void AchuckMenuPlayerController::HandleSupabaseSignedOut()
 {
+	LocalUsername.Reset();
 	RefreshAuthVisibility(false);
 	if (UGameInstance* GI = GetGameInstance())
 	{
@@ -335,15 +351,40 @@ void AchuckMenuPlayerController::HandleSupabaseSignedOut()
 	}
 }
 
+void AchuckMenuPlayerController::HandleUsernameSet(const FString& Canonical)
+{
+	LocalUsername = Canonical;
+	UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get();
+	RefreshAuthVisibility(Sub && Sub->IsSignedIn());
+}
+
+void AchuckMenuPlayerController::HandleUsernameSessionExpired()
+{
+	LocalUsername.Reset();
+	if (UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get())
+	{
+		Sub->SignOut();
+	}
+	RefreshAuthVisibility(false);
+}
+
 void AchuckMenuPlayerController::RefreshAuthVisibility(bool bSignedIn)
 {
+	UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get();
+	const bool bHasUsername = (Sub && !Sub->GetUser().KbveUsername.IsEmpty()) || !LocalUsername.IsEmpty();
+	const bool bNeedUsername = bSignedIn && !bHasUsername;
+
 	if (LoginWidget.IsValid())
 	{
 		LoginWidget->SetVisibility(bSignedIn ? EVisibility::Collapsed : EVisibility::Visible);
 	}
+	if (UsernameWidget.IsValid())
+	{
+		UsernameWidget->SetVisibility(bNeedUsername ? EVisibility::Visible : EVisibility::Collapsed);
+	}
 	if (AccountWidget.IsValid())
 	{
-		AccountWidget->SetVisibility(bSignedIn ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
+		AccountWidget->SetVisibility((bSignedIn && bHasUsername) ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
 	}
 }
 

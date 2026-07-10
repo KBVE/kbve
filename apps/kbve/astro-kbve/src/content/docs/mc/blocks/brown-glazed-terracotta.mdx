@@ -1,5 +1,6 @@
 ---
 title: Brown Glazed Terracotta
+template: splash
 description: |
     Minecraft Brown Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 674
     ref: brown_glazed_terracotta
     slug: brown-glazed-terracotta
+    content_rev: 1
     display_name: Brown Glazed Terracotta
     material: stone
     hardness: 1.4
     blast_resistance: 1.4
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Brown Glazed Terracotta is a vibrant, patterned decorative
+            block made by smelting Brown Stained Terracotta. Its directional
+            texture aligns with adjacent matching blocks to form larger
+            tile-like patterns.
+        lore: |
+            Jens Bergensten based glazed terracotta's design on Moroccan
+            bathroom tiles he saw at a California hotel.
+    uses:
+        - title: Patterned Flooring
+          ref: brown_stained_terracotta
+          detail: |
+              Placed in 2x2 or larger grids of the same color, its texture
+              lines up to create larger decorative patterns, popular for
+              floors and pixel art.
+    found_in:
+        - location: Villages
+          detail: Generates on certain building roofs and floors depending on village biome.
+        - location: Trail Ruins & Trial Chambers
+          detail: Appears as part of generated structure decoration.
+        - location: Smelting
+          detail: Smelt Brown Stained Terracotta in a furnace to produce it.
+    faq:
+        - question: What tool do I need to mine Brown Glazed Terracotta?
+          answer: |
+              At least a wooden pickaxe. Without one, the block breaks but
+              drops nothing.
+        - question: Can Brown Glazed Terracotta be moved by pistons?
+          answer: |
+              Regular pistons can push it, but sticky pistons cannot pull
+              it back since it does not stick to slime or honey blocks.
+        - question: How do I craft Brown Glazed Terracotta?
+          answer: |
+              You cannot craft it directly; smelt Brown Stained Terracotta
+              in a furnace with any fuel.
+        - question: Is Brown Glazed Terracotta flammable?
+          answer: |
+              No. Like regular terracotta, it does not burn or catch fire.
     data_version: "1.21.5"
 ---
 

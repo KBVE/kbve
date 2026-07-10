@@ -1,5 +1,6 @@
 ---
 title: Granite Slab
+template: splash
 description: |
     Minecraft Granite Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 786
     ref: granite_slab
     slug: granite-slab
+    content_rev: 1
     display_name: Granite Slab
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: granite_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Granite Slab is a decorative half-height variant of granite
+            used for detailing floors, steps, and trim. It requires at
+            least a wooden pickaxe to mine and drops nothing without one.
+        lore: |
+            Added alongside the other stone-cutter decorative blocks in
+            Java Edition 1.14, granite slabs give builders a smoother way
+            to cap granite structures.
+    uses:
+        - title: Building decoration
+          ref: granite
+          detail: |
+              Crafted from granite blocks or cut with a stonecutter, used
+              for half-height steps, borders, and trim in builds.
+    found_in:
+        - location: Crafting table
+          detail: Three granite blocks craft into six granite slabs.
+        - location: Stonecutter
+          detail: One granite block cuts into two granite slabs with no waste.
+    faq:
+        - question: Does Granite Slab generate naturally?
+          answer: |
+              No. It does not generate naturally in the world; it must be
+              crafted or cut from granite blocks.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              destroys the slab with no drop.
+        - question: Can two granite slabs form a full block?
+          answer: |
+              Yes. Placing one slab on top of another in the same block
+              space combines them into a full granite block visually,
+              matching vanilla double-slab behavior.
+        - question: Is Granite Slab flammable?
+          answer: |
+              No. Like all stone-type blocks, it does not burn or catch
+              fire.
     data_version: "1.21.5"
 ---
 

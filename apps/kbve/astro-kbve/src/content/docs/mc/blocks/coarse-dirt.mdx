@@ -1,5 +1,6 @@
 ---
 title: Coarse Dirt
+template: splash
 description: |
     Minecraft Coarse Dirt — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 10
     ref: coarse_dirt
     slug: coarse-dirt
+    content_rev: 1
     display_name: Coarse Dirt
     material: dirt
     hardness: 0.5
@@ -24,10 +26,61 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: coarse_dirt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Coarse Dirt is a dirt variant that grass and mycelium cannot
+            spread onto, making it useful for keeping paths and clearings
+            free of grass. It drops itself and requires no specific tool
+            tier.
+        lore: |
+            Coarse Dirt was added in the Bountiful Update (1.8), giving
+            windswept biomes their distinct rocky, grass-resistant terrain.
+    uses:
+        - title: Dirt (tilled)
+          ref: dirt
+          detail: |
+              Using a hoe on Coarse Dirt converts it into regular dirt,
+              making it farmable.
+        - title: Dirt Path
+          ref: dirt_path
+          detail: |
+              Using a shovel on Coarse Dirt turns it into a dirt path, same
+              as with regular dirt.
+    found_in:
+        - location: Windswept Savanna and Badlands
+          detail: Generates as the natural surface block in windswept savannas, wooded badlands, and old growth taiga biomes.
+        - location: Piglin bartering
+          detail: Piglins occasionally trade gravel for coarse dirt, making it a renewable resource.
+        - location: Woodland Mansions
+          detail: Appears in mushroom farm rooms and trail ruins/abandoned camp structures.
+    faq:
+        - question: Can grass spread onto Coarse Dirt?
+          answer: |
+              No. Coarse Dirt specifically resists grass and mycelium
+              spreading, unlike regular dirt.
+        - question: How do I turn Coarse Dirt back into regular Dirt?
+          answer: |
+              Right-click it with a hoe to till it into dirt, same as
+              regular dirt farmland conversion.
+        - question: Is Coarse Dirt renewable?
+          answer: |
+              Yes. It can be crafted from 2 dirt and 2 gravel, and obtained
+              renewably by bartering gravel with piglins.
+        - question: What happens if I pour water on Coarse Dirt?
+          answer: |
+              A water bottle used on Coarse Dirt converts it into mud,
+              similar to regular dirt.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Purple Shulker Box
+template: splash
 description: |
     Minecraft Purple Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,34 @@ mc_item:
     id: 563
     ref: purple_shulker_box
     slug: purple-shulker-box
+    content_rev: 1
     display_name: Purple Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Purple Shulker Box is a dyeable storage block with 27 slots that,
+            unlike a chest, keeps its contents intact when broken and picked up. It
+            is made by dyeing any Shulker Box purple in a crafting grid.
+        lore: |
+            A box grown from the ender-touched shell of a shulker, its purple hue
+            marking it as a traveler's trusted vault.
+    faq:
+        - question: How is a Purple Shulker Box different from a chest?
+          answer: |
+              Breaking it drops the box as an item with its inventory preserved,
+              letting players carry stored items around instead of losing them.
+        - question: How do I dye a Shulker Box purple?
+          answer: |
+              Place any Shulker Box together with Purple Dye in a crafting grid to
+              recolor it without losing its contents.
+        - question: Can I stack Shulker Boxes inside each other?
+          answer: |
+              No, Shulker Boxes cannot be placed inside other Shulker Boxes or
+              bundles, though they can be stored in most other containers.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Bamboo Trapdoor
+template: splash
 description: |
     Minecraft Bamboo Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 310
     ref: bamboo_trapdoor
     slug: bamboo-trapdoor
+    content_rev: 1
     display_name: Bamboo Trapdoor
     material: wood
     hardness: 3
@@ -24,10 +26,53 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            A bamboo trapdoor is a hinged wood door that can be mounted on
+            walls or floors and opened manually or with redstone power,
+            useful for hidden passages, animal pens, and secret entrances.
+        lore: |
+            Trapdoors give redstone builders and decorators a wood door
+            that swings on a horizontal axis instead of a vertical one.
+    uses:
+        - title: Bamboo Trapdoor
+          ref: bamboo_trapdoor
+          detail: |
+              Six bamboo planks arranged in a 2x3 grid craft two
+              trapdoors. It can be toggled by hand, pressure plate, lever,
+              or any redstone signal.
+    found_in:
+        - location: Crafted by the player
+          detail: Made from six bamboo planks at a crafting table.
+        - location: Generated structures
+          detail: Some wood variants of trapdoors generate in villages, igloos, and shipwrecks.
+    faq:
+        - question: What tool do I need to mine a bamboo trapdoor?
+          answer: |
+              None required — any tool works, though an axe is fastest.
+        - question: Does a bamboo trapdoor burn?
+          answer: |
+              It does not burn on its own, but adjacent fire or lava can
+              still destroy it in the Overworld.
+        - question: Can bamboo trapdoors be waterlogged?
+          answer: |
+              Yes, they can be placed in water to become waterlogged and
+              hold a water source in place.
+        - question: Can bamboo trapdoors be used as furnace fuel?
+          answer: |
+              Yes, overworld wood trapdoors smelt 1.5 items per trapdoor
+              burned.
     data_version: "1.21.5"
 ---
 

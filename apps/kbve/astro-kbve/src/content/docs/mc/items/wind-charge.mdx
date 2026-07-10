@@ -1,5 +1,6 @@
 ---
 title: Wind Charge
+template: splash
 description: |
     Minecraft Wind Charge — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1151
     ref: wind_charge
     slug: wind-charge
+    content_rev: 1
     display_name: Wind Charge
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Wind Charge is a throwable projectile crafted from breeze rods that bursts into a gust of wind on
+            impact, knocking nearby entities and the thrower into the air. It deals a small amount of damage and can
+            activate doors, buttons, levers, and bells.
+        lore: |
+            Its wind burst mirrors the attack of the breeze mob it is crafted from, giving players a tamed version
+            of the same force that makes breezes dangerous in trial chambers.
+    faq:
+        - question: How do you obtain wind charges?
+          answer: |
+              Craft them from breeze rods, with one rod yielding four wind charges, or find them as loot in trial
+              chamber vaults and ominous vaults.
+        - question: What does a wind charge do on impact?
+          answer: |
+              It bursts into wind, dealing 1 HP of damage and knocking entities back roughly 2.5 blocks, and can
+              also trigger doors, buttons, levers, and bells.
+        - question: Can wind charges be used for movement?
+          answer: |
+              Yes, throwing one straight down launches the player upward about 6 blocks, making it useful for quick
+              vertical mobility.
+        - question: Is there a cooldown on throwing wind charges?
+          answer: |
+              Yes, there is a 0.5-second cooldown between throws, and the projectile can be deflected by other
+              projectiles or melee attacks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

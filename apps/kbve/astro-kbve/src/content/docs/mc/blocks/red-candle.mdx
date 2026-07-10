@@ -1,5 +1,6 @@
 ---
 title: Red Candle
+template: splash
 description: |
     Minecraft Red Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 918
     ref: red_candle
     slug: red-candle
+    content_rev: 1
     display_name: Red Candle
     material: stone
     hardness: 0.1
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Red Candle is a small, dyed light-source block that can be
+            placed alone or stacked up to four per block space, and lit
+            with flint and steel for a soft red-tinted glow.
+        lore: |
+            Candles debuted in Java Edition 1.17, giving players a
+            compact, dyeable alternative to torches and lanterns.
+    uses:
+        - title: Light Source
+          ref: red_candle
+          detail: |
+              Light with flint and steel or a fire charge for a light
+              level of 3 per candle, up to 12 when four share one block.
+        - title: Candle Cake
+          ref: red_candle_cake
+          detail: |
+              Place on an uneaten cake to create Cake with Red Candle, a
+              combined food and light decoration.
+    found_in:
+        - location: Crafting
+          detail: Craft from a regular candle (string plus honeycomb) combined with red dye.
+        - location: Trail ruins and trial chambers
+          detail: Red candles can be found in suspicious gravel in trail ruins and as loot in trial chambers.
+        - location: Villager trading
+          detail: Master-level librarian villagers occasionally trade red candles for emeralds.
+    faq:
+        - question: Can multiple candles be placed in one block space?
+          answer: |
+              Yes, up to four candles of the same color stack in a single
+              block, increasing the light level when lit.
+        - question: Does a red candle catch fire from lava?
+          answer: |
+              No. Candles do not burn or ignite from contact with lava or
+              fire.
+        - question: Can candles be placed underwater?
+          answer: |
+              Yes. Candles are waterloggable, though they cannot be lit
+              while submerged.
+        - question: Is the candle affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Red Candle regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

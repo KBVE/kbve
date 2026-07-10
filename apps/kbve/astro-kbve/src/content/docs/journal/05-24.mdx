@@ -9,13 +9,52 @@ description: |
    May 24th. Journal of Information.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 24,'
+    accent: every year.
+    lede: 'The May 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← May 23'
+          href: /journal/05-23/
+        - label: 'May 25 →'
+          href: /journal/05-25/
+    related:
+        - title: 'Previous · May 23'
+          copy: 'Step back a day to the May 23rd log.'
+          href: /journal/05-23/
+          icon: calendar
+        - title: 'Next · May 25'
+          copy: 'Jump ahead to the May 25th log.'
+          href: /journal/05-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1716467175711-2e9321925230?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Weekly Unity Session
 
@@ -52,7 +91,15 @@ import { Adsense } from '@/components/astropad';
     While waiting or the updates to be processed, I will go ahead and begin a passive build with the recent updates that we finished today.
     Actually I am not too sure if the builds would be ready, I will have to double check the scene and see if there were changes made to it.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **API**
 
@@ -70,8 +117,9 @@ We can extend out some of the `khashvault` storage variables, I am thinking of a
 
 I would have made more progress with this system but there have been problems with handling the state management, including the process of grabbing information and rendering it again upon update.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 9:00am - It's hump day! Time to get cracking at the general vibes of Memegramming. 
 
@@ -83,14 +131,22 @@ I would have made more progress with this system but there have been problems wi
 
 - 9:30pm - Okay besides AppWrite
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Where there is charity and wisdom, there is neither fear nor ignorance.
 > — <cite>Francis of Assisi</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Take out trash
 - [ ] Finish Unity API Login - Not Done, pushing it till next day.
+
+</BentoProse>
+
+</BentoDoc>

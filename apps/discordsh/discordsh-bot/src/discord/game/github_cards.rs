@@ -954,12 +954,12 @@ pub fn build_activity_chart(issues: &[GitHubIssue], repo_name: &str) -> Activity
                 opened_by_day[day_count - 1 - days_ago as usize] += 1;
             }
         }
-        if issue.state == "closed" {
-            if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&issue.updated_at) {
-                let days_ago = (now - dt.with_timezone(&chrono::Utc)).num_days();
-                if days_ago >= 0 && (days_ago as usize) < day_count {
-                    closed_by_day[day_count - 1 - days_ago as usize] += 1;
-                }
+        if issue.state == "closed"
+            && let Ok(dt) = chrono::DateTime::parse_from_rfc3339(&issue.updated_at)
+        {
+            let days_ago = (now - dt.with_timezone(&chrono::Utc)).num_days();
+            if days_ago >= 0 && (days_ago as usize) < day_count {
+                closed_by_day[day_count - 1 - days_ago as usize] += 1;
             }
         }
     }

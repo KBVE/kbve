@@ -1,5 +1,6 @@
 ---
 title: Dragon Head
+template: splash
 description: |
     Minecraft Dragon Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 432
     ref: dragon_wall_head
     slug: dragon-wall-head
+    content_rev: 1
     display_name: Dragon Head
     material: stone
     hardness: 1
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dragon_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - blast_resistant
+        - overworld
+    about:
+        description: |
+            Dragon Wall Head is the wall-mounted placement state of the
+            Dragon Head block, jutting horizontally out of a wall instead
+            of sitting flat on the ground. It shares the same model and
+            behavior as the standing Dragon Head.
+        lore: |
+            Added in Java Edition 1.9 alongside the End Update, it exists
+            purely as the wall-attached variant used automatically when a
+            Dragon Head is placed against a vertical surface.
+    uses:
+        - title: Note Block Instrument
+          ref: note_block
+          detail: |
+              Placing a Dragon Head above a note block changes its sound to
+              a dragon roar when played, regardless of standing or wall form.
+    found_in:
+        - location: End Ships
+          detail: Automatically used when a Dragon Head from an End ship is placed against a wall.
+    faq:
+        - question: How is this different from Dragon Head?
+          answer: |
+              It is the same block, just oriented against a wall instead of
+              standing upright — placing a Dragon Head on a wall surface
+              automatically becomes this state.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — it drops with any tool, or even by hand.
+        - question: What does it drop?
+          answer: |
+              A single Dragon Head item, which can be replaced onto the
+              ground or another wall.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops one Dragon Head regardless of enchantments.
     data_version: "1.21.5"
 ---
 

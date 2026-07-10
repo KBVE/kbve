@@ -1,9 +1,9 @@
 #include "SchuckMainMenu.h"
 
 #include "ChuckUIStyle.h"
+#include "SKBVEButton.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
-#include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SScaleBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -86,16 +86,11 @@ TSharedRef<SWidget> SchuckMainMenu::BuildMenuButton(
 {
 	const ISlateStyle& Style = FChuckUIStyle::Get();
 
-	return SNew(SButton)
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
+	return SNew(SKBVEButton)
+		.Text(Label)
+		.Font(Font)
 		.ContentPadding(Style.GetMargin(FChuckUIStyle::FKeys::Button_ContentPadding))
-		.OnClicked(ClickHandler)
-		[
-			SNew(STextBlock)
-			.Text(Label)
-			.Font(Font)
-		];
+		.OnClicked(ClickHandler);
 }
 
 FReply SchuckMainMenu::HandlePlay()

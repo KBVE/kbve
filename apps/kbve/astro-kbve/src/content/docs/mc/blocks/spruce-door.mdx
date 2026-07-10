@@ -1,5 +1,6 @@
 ---
 title: Spruce Door
+template: splash
 description: |
     Minecraft Spruce Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 614
     ref: spruce_door
     slug: spruce-door
+    content_rev: 1
     display_name: Spruce Door
     material: wood
     hardness: 3
@@ -24,10 +26,66 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - redstone_component
+    about:
+        description: |
+            Spruce Door is a two-tile-tall wooden barrier crafted from
+            spruce planks. It can be opened and closed manually or with a
+            redstone signal, and creates a breathable air pocket underwater.
+        lore: |
+            Wooden doors have existed since Minecraft's earliest versions and
+            gained wood-specific variants, including Spruce, in later updates.
+    uses:
+        - title: Entrance Barrier
+          ref: spruce_planks
+          detail: |
+              Six Spruce Planks arranged in two columns of three craft three
+              Spruce Doors, used to seal off builds while allowing player
+              and villager passage.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Being an Overworld wood type, a Spruce Door can be smelted as
+              furnace fuel, unlike its Crimson or Warped counterparts.
+    found_in:
+        - location: Crafting
+          detail: |
+              Crafted from six Spruce Planks on a crafting table, yielding
+              three doors per craft.
+        - location: Taiga Villages and Structures
+          detail: |
+              Naturally generates as part of spruce-themed village houses and
+              some taiga structures.
+    faq:
+        - question: Can zombies break down a Spruce Door?
+          answer: |
+              On Hard difficulty, certain zombies and vindicators can break
+              wooden doors like Spruce, so reinforce entrances if needed.
+        - question: Does a Spruce Door create an air pocket underwater?
+          answer: |
+              Yes, an open or closed door creates a breathable air pocket,
+              useful for underwater bases; it is not waterloggable in Java
+              Edition, however.
+        - question: Can I power a Spruce Door with redstone?
+          answer: |
+              Yes. A redstone signal from a button, lever, or pressure plate
+              toggles it open and closed just like manual interaction.
+        - question: Is Spruce Door affected by Fortune?
+          answer: |
+              No. It always drops exactly one door item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

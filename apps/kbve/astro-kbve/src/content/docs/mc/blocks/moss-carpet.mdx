@@ -1,5 +1,6 @@
 ---
 title: Moss Carpet
+template: splash
 description: |
     Minecraft Moss Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1048
     ref: moss_carpet
     slug: moss-carpet
+    content_rev: 1
     display_name: Moss Carpet
     material: dirt
     hardness: 0.1
@@ -24,10 +26,52 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: moss_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Moss Carpet is a thin, green decorative block resembling a
+            carpet, generated from moss blocks. Unlike wool carpets, it is
+            non-flammable and cannot be pushed by pistons.
+        lore: |
+            Introduced alongside moss blocks in the Caves & Cliffs update
+            (1.17) as a matching thin variant for lush cave decoration.
+    uses:
+        - title: Decorative Flooring
+          ref: moss_block
+          detail: |
+              Used purely as a thin decorative surface layer over other
+              blocks, matching the look of lush caves and mangrove swamps.
+    found_in:
+        - location: Lush Caves & Mangrove Swamps
+          detail: Generates naturally in lush caves and on mangrove tree roots.
+        - location: Crafted from Moss Blocks
+          detail: Two moss blocks craft into three moss carpets.
+    faq:
+        - question: Does Moss Carpet burn?
+          answer: |
+              No, unlike wool carpets it is non-flammable and immune to
+              fire spread.
+        - question: What does Moss Carpet drop when broken?
+          answer: |
+              Itself, one moss carpet, with any tool or bare hands.
+        - question: How do I craft Moss Carpet?
+          answer: |
+              Place 2 moss blocks side by side in a crafting grid to yield
+              3 moss carpets.
+        - question: Can Moss Carpet be pushed by a piston?
+          answer: |
+              No, like other carpets it cannot be moved by pistons.
     data_version: "1.21.5"
 ---
 

@@ -1,7 +1,7 @@
 ---
-title: KBVEItemDB
-description: |
-    Game-agnostic item database loader + inventory model + dropped-item Mass fragment. Loads the shared itemdb artifact into runtime item defs (incl. consumable/food effect fields aligned to KBVEGameplay), with key/ref lookup and a generic inventory slot/stack/bag model.
+title: KBVEItemDB — Item Database & Inventory Plugin for Unreal
+description: KBVEItemDB is a game-agnostic Unreal Engine item database, inventory model, and dropped-item Mass fragment that loads the shared itemdb artifact.
+sem: 1
 sidebar:
     label: KBVEItemDB
     order: 78
@@ -24,28 +24,91 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVEItemDB plugin?
+          answer: KBVEItemDB is a game-agnostic Unreal Engine plugin providing an item database loader, a generic inventory model, and a dropped-item Mass fragment. It loads the shared itemdb artifact into runtime item defs and looks them up by key or ref.
+        - question: How does KBVEItemDB relate to KBVEGameplay?
+          answer: KBVEItemDB is the data and inventory half; KBVEGameplay is the effect half. Item defs carry consumable/food fields aligned to FKBVEEffectSpec, so a consumer builds an effect spec from an item and applies it through KBVEGameplay's UKBVEEffectComponent.
+        - question: How are consumables modeled in KBVEItemDB?
+          answer: type_flags classify items as FOOD, DRINK, or POTION, and a food block carries the numbers such as heals, restore_mana, restore_energy, regen_per_second, regen_duration, and cooldown. An item with a food block or a food/drink/potion type bit is consumable without an explicit consumable flag.
+bento:
+    badge: unreal · item
+    title: Item database & inventory
+    accent: KBVEItemDB
+    lede: >-
+        A game-agnostic item database, inventory model, and dropped-item Mass
+        bridge — the data/inventory half to KBVEGameplay's effect half. It loads
+        the shared itemdb artifact into runtime item defs and looks them up by
+        key or ref.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEItemDB
+          primary: true
+          external: true
+        - label: Consumables
+          href: "#consumables"
+        - label: Dropped items
+          href: "#dropped"
+        - label: Persistence
+          href: "#persistence"
+    aside:
+        icon: inventory
+        title: Data half of a pair
+        body: >-
+            Item <strong>data</strong> stays in the shared itemdb MDX. KBVEItemDB
+            carries it plus the inventory model; <strong>KBVEGameplay</strong>
+            applies the consumable effects (atlas/icon rendering deferred).
+        points:
+            - <strong>Fields</strong> — aligned to FKBVEEffectSpec so a game maps item → effect.
+            - <strong>Persistence</strong> — durable local inventory via KBVESQLite.
+    stats:
+        - { label: Plugin, value: KBVEItemDB, icon: inventory }
+        - { label: Engine, value: "UE 5.4+", icon: settings }
+        - { label: Platforms, value: "Win64 · Linux · Mac", icon: box }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Item def
+          icon: inventory
+          body: FKBVEItemDef / FKBVEItemFood — runtime item def with identity, type flags, rarity, stacking, prices, tags, and consumable/food effect fields aligned to FKBVEEffectSpec.
+        - title: Database subsystem
+          icon: database
+          body: UKBVEItemDatabase (GameInstance subsystem) loads Content/Data/itemdb-data.json via UE Json; lookup by key / ref. Mirrors the chuckItemDB pattern.
+        - title: Inventory model
+          icon: bag
+          body: FKBVEInventory / FKBVEInventoryBag / FKBVEInventoryStack plus UKBVEInventoryLibrary (TryAdd / CountItem / FindFirstSlot) — a generic inventory model.
+        - title: Dropped-item fragment
+          icon: box
+          body: FKBVEDroppedItemFragment / FKBVEDroppedItemTag — Mass fragment for world-dropped items (key, count, rarity, lifetime, magnet/pickup radius).
+    features_heading: What it ships
+    related:
+        - title: KBVEGameplay
+          href: /project/kbvegameplay/
+          copy: The effect half — applies the consumable effects an item def describes.
+          icon: zap
+        - title: KBVESQLite
+          href: /project/kbvesqlite/
+          copy: The SQLite provider KBVEItemDB uses for durable inventory persistence.
+          icon: database
+        - title: KBVEZstd
+          href: /project/kbvezstd/
+          copy: Compression plugin in the same Unreal plugin family.
+          icon: package
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-Game-agnostic item database + inventory + Mass bridge. The data/inventory half
-to [KBVEGameplay](/project/kbvegameplay)'s effect half:
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-- **`FKBVEItemDef` / `FKBVEItemFood`** — runtime item def: identity, type flags,
-  rarity, stacking, prices, tags, and consumable/food effect fields
-  (heals / restoreMana / restoreEnergy / regenPerSecond / regenDuration / cooldown
-  / animationRef) — aligned to `FKBVEEffectSpec` so a game maps item → effect.
-- **`UKBVEItemDatabase`** (GameInstance subsystem) — loads `Content/Data/itemdb-data.json`
-  via UE Json; lookup by key / ref. Mirrors the `chuckItemDB` pattern.
-- **`FKBVEInventory` / `FKBVEInventoryBag` / `FKBVEInventoryStack`** + `UKBVEInventoryLibrary`
-  (`TryAdd` / `CountItem` / `FindFirstSlot`) — generic inventory model.
-- **`FKBVEDroppedItemFragment` / `FKBVEDroppedItemTag`** — Mass fragment for
-  world-dropped items (key, count, rarity, lifetime, magnet/pickup radius).
-
-Item DATA stays in the shared itemdb MDX. KBVEItemDB carries it + the inventory
-model; KBVEGameplay applies the consumable effects (atlas/icon rendering deferred).
-
-### Consumables (type- + data-driven)
+<BentoProse id="consumables" eyebrow="Type- + data-driven" heading="Consumables">
 
 `type_flags` classify the consumable — FOOD (`0x08`) / DRINK (`0x10`) / POTION
 (`0x20`) — and the `food:` block carries the numbers: `heals` / `restore_mana` /
@@ -57,7 +120,9 @@ target (food → health, drink → mana/stamina); the data fills the magnitudes.
 item with a `food:` block or a food/drink/potion type bit is consumable without
 needing an explicit `consumable: true`.
 
-## Dropped items (`AKBVEDroppedItemActor` / `UKBVEDroppedItemPool`)
+</BentoProse>
+
+<BentoProse id="dropped" eyebrow="AKBVEDroppedItemActor / UKBVEDroppedItemPool" heading="Dropped items">
 
 Pooled, billboarded world-drop system — extracted from chuck's
 `chuckDroppedItemActor` / `chuckDroppedItemPool` and made game-agnostic.
@@ -84,7 +149,9 @@ pool's provider + pickup sink once, and `ServerDropSlot` just calls
 `SpawnDrop(ItemKey, Count, Loc)`. chuck's old `chuckDroppedItemActor` /
 `chuckDroppedItemPool` are deleted.
 
-## Generated proto types (`gen-itemdb-uecpp.mjs`)
+</BentoProse>
+
+<BentoProse id="proto" eyebrow="gen-itemdb-uecpp.mjs" heading="Generated proto types">
 
 The same `itemdb.binpb` descriptor that feeds the zod generator also feeds a UE
 C++ emitter (`packages/data/codegen/gen-itemdb-uecpp.mjs`, run via
@@ -119,7 +186,9 @@ data). The mirror of the zod generator, emitting UE-native `USTRUCT`s instead of
 `UchuckItemDB` still owns chuck's atlas / icon-MID / rarity-halo rendering on top of
 the shared `FKBVEItemDef`.
 
-## Persistence (`FKBVEInventoryStore` / `UKBVEInventoryStoreSubsystem`)
+</BentoProse>
+
+<BentoProse id="persistence" eyebrow="FKBVEInventoryStore / UKBVEInventoryStoreSubsystem" heading="Persistence">
 
 Durable local inventory via the **KBVESQLite** plugin — row-per-slot
 (`player_inventory(player_id, bag_ref, slot_idx, item_key, count, durability, flags)`,
@@ -135,3 +204,7 @@ WAL), save/load/count/clear by player id, opened at `Saved/KBVE/inventory.db`.
    KBVE code (its own vendored `sqlite3`). Do not also link the engine's
    `SQLiteCore` in the same module — duplicate `sqlite3_*` symbols crash the build/run.
    Plugins depending on KBVESQLite declare `dependency_plugins: packages/unreal/KBVESQLite`.
+
+</BentoProse>
+
+</BentoDoc>

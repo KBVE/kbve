@@ -1,5 +1,6 @@
 ---
 title: Weathered Cut Copper Slab
+template: splash
 description: |
     Minecraft Weathered Cut Copper Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 989
     ref: weathered_cut_copper_slab
     slug: weathered-cut-copper-slab
+    content_rev: 1
     display_name: Weathered Cut Copper Slab
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weathered_cut_copper_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Weathered Cut Copper Slab is a decorative half-height slab cut
+            from Weathered Cut Copper, sharing its heavily green-patinaed
+            oxidation stage and still able to oxidize further unless waxed.
+        lore: |
+            Cut copper slabs were added in Java Edition 20w45a (1.17), and
+            gained natural trial chamber generation in 1.21.
+    uses:
+        - title: Building material
+          ref: weathered_cut_copper_slab
+          detail: |
+              Used for half-block details, roofing, and trim in copper
+              builds; stacks two slabs to form a full Weathered Cut Copper
+              block.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed weathered/oxidized cut copper slabs generate as part of trial chamber vault rooms and decoration.
+        - location: Stonecutter or crafting table
+          detail: |
+              Crafted from 3 Weathered Cut Copper (yields 6 slabs) or cut
+              from a Weathered Cut Copper block or Weathered Copper block
+              via the stonecutter.
+    faq:
+        - question: What tool do I need to mine this slab?
+          answer: A stone pickaxe or better; lesser tools break it without a drop.
+        - question: Does it keep oxidizing after placement?
+          answer: |
+              Yes, unless waxed with honeycomb, it will eventually progress
+              to an Oxidized Cut Copper Slab.
+        - question: How many slabs do I get per craft?
+          answer: |
+              Crafting 3 Weathered Cut Copper blocks yields 6 slabs; cutting
+              a single block via the stonecutter yields 2.
+        - question: Can I combine two slabs into a full block?
+          answer: |
+              Yes, placing two of the same slab in the same space forms a
+              full Weathered Cut Copper block.
     data_version: "1.21.5"
 ---
 

@@ -282,6 +282,242 @@
           "implicitDependencies": []
         }
       },
+      "deathslayer-launcher": {
+        "name": "deathslayer-launcher",
+        "type": "app",
+        "data": {
+          "root": "apps/deathslayer/deathslayer-launcher",
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {
+              "NPM Scripts": [
+                "preview",
+                "tauri"
+              ]
+            },
+            "js": {
+              "packageName": "@kbve/deathslayer-launcher",
+              "packageVersion": "0.1.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve": {
+              "continuous": true,
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Starts Vite dev server",
+                "help": {
+                  "command": "pnpm exec vite --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                },
+                "deprecated": "Use devTargetName instead. This option will be removed in Nx 22."
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/deathslayer/deathslayer-launcher",
+                "command": "vite"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "lsof -ti:1423 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri dev"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "preview": {
+              "executor": "nx:run-script",
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Locally preview Vite production build",
+                "help": {
+                  "command": "pnpm exec vite preview --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                },
+                "scriptContent": "vite preview",
+                "runCommand": "pnpm run preview"
+              },
+              "options": {
+                "script": "preview"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/deathslayer/deathslayer-launcher",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects deathslayer-launcher --includeDependencies -- pnpm exec nx build-deps deathslayer-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {
+                "lintFilePatterns": [
+                  "apps/deathslayer/deathslayer-launcher/src/**/*.{ts,tsx}"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "tauri": {
+              "executor": "nx:run-script",
+              "metadata": {
+                "scriptContent": "tauri",
+                "runCommand": "pnpm run tauri"
+              },
+              "options": {
+                "script": "tauri"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev:web": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "lsof -ti:1423 | xargs kill 2>/dev/null; pnpm dev"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:rust": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p deathslayer-launcher"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher/src-tauri"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:tauri": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build"
+                ],
+                "cwd": "apps/deathslayer/deathslayer-launcher"
+              },
+              "configurations": {
+                "production": {
+                  "commands": [
+                    "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build --release"
+                  ],
+                  "cwd": "apps/deathslayer/deathslayer-launcher"
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "name": "deathslayer-launcher",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/deathslayer/deathslayer-launcher",
+          "tags": [
+            "npm:private"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "astro-cryptothrone": {
         "name": "astro-cryptothrone",
         "type": "app",
@@ -1057,7 +1293,7 @@
                   "RUNTIME_BYTES=$(docker image inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Size}}') && echo \"Runtime size: $((RUNTIME_BYTES / 1024 / 1024)) MiB\" && [ $RUNTIME_BYTES -lt 41943040 ] && echo 'PASS: runtime under 40 MiB'",
                   "rm -f /tmp/chisel-runtime.tar",
                   "echo '=== Builder image — toolchain tests ==='",
-                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'rustc --version | grep -q \"rustc 1.94\"' && echo 'PASS: rustc 1.94 pinned'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'rustc --version | grep -q \"rustc 1.96\"' && echo 'PASS: rustc 1.96 pinned'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'cargo --version' && echo 'PASS: cargo present'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'cargo chef --version' && echo 'PASS: cargo-chef present'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'sccache --version' && echo 'PASS: sccache present'",
@@ -1076,7 +1312,7 @@
                   "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1$' && echo 'PASS: Playwright browser download disabled'",
                   "echo '=== All chisel base image tests passed ==='",
                   "echo 'Runtime: user, workdir, jemalloc, libpq, CA bundle, no-shell, size<40MiB'",
-                  "echo 'Builder: rustc 1.94, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
+                  "echo 'Builder: rustc 1.96, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
                 ],
                 "parallel": false
               },
@@ -1133,11 +1369,6 @@
                     "ghcr.io/kbve/chisel-ubuntu-axum:latest"
                   ],
                   "push": true,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/chisel-ubuntu-axum"
-                    ]
-                  },
                   "cache-from": [
                     "type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache-runtime"
                   ],
@@ -1176,11 +1407,6 @@
                     "ghcr.io/kbve/chisel-ubuntu-axum:builder"
                   ],
                   "push": true,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/chisel-ubuntu-axum"
-                    ]
-                  },
                   "cache-from": [
                     "type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache-builder"
                   ],
@@ -2800,6 +3026,16 @@
                   "./apps/rentearth/unreal-rentearth/scripts/launch-editor.sh"
                 ],
                 "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "clangd-db": {
+              "executor": "nx:run-commands",
+              "forwardAllArgs": true,
+              "options": {
+                "cwd": "packages/python/kbve",
+                "command": "uv run kbve-unreal-clangd"
               },
               "configurations": {},
               "parallelism": true
@@ -6990,6 +7226,15 @@
               },
               "configurations": {},
               "parallelism": true
+            },
+            "component": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "options": {
+                "config": "apps/agones/arpg/arpg-e2e/playwright.ct.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
             }
           },
           "name": "arpg-e2e",
@@ -10258,7 +10503,7 @@
               "options": {
                 "cwd": "apps/kbve/astro-kbve",
                 "commands": [
-                  "rm -rf .astro",
+                  "rm -rf .astro node_modules/.vite node_modules/.astro ../../../node_modules/.vite",
                   "nx exec -- astro sync",
                   "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro dev"
                 ],
@@ -10363,6 +10608,36 @@
               "options": {
                 "command": "node -e \"const fs=require('fs');const src='dist/apps/astro-kbve/api/ci-registry.json';const dst='.github/ci-dispatch-manifest.json';if(!fs.existsSync(src)){console.error('Build output not found — run astro-kbve:build first');process.exit(1);}const data=JSON.parse(fs.readFileSync(src,'utf8'));const{index,...manifest}=data;fs.writeFileSync(dst,JSON.stringify(manifest,null,'\\t')+'\\n');console.log('Wrote',dst,'—',manifest.summary.total,'tracked items');\"",
                 "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:ci-manifest": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{projectRoot}/src/content/docs/project/*.mdx",
+                "{projectRoot}/src/data/ci/manifest-builder.ts",
+                "{projectRoot}/src/data/ci/project-schema.ts",
+                "{projectRoot}/src/data/schema/ICiProjectSchema.ts",
+                "{projectRoot}/scripts/gen-ci-manifest.mts",
+                "{workspaceRoot}/packages/data/codegen/generated/ci_registry-schema.ts"
+              ],
+              "outputs": [
+                "{workspaceRoot}/.github/ci-dispatch-manifest.json"
+              ],
+              "cache": true,
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "command": "npx tsx scripts/gen-ci-manifest.mts"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:ci-manifest:check": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "command": "npx tsx scripts/gen-ci-manifest.mts --check"
               },
               "configurations": {},
               "parallelism": true
@@ -12017,7 +12292,7 @@
             "description": "A DevOps helper library, providing better functions and extensions.",
             "js": {
               "packageName": "@kbve/devops",
-              "packageVersion": "0.0.19",
+              "packageVersion": "0.0.22",
               "packageExports": {
                 ".": {
                   "import": "./devops.es.js",
@@ -12707,8 +12982,6 @@
                   "types": "./components/social/twitch/ServiceTwitch.d.ts"
                 },
                 "./components/social/discord/DiscordEmbed.astro": "./components/social/discord/DiscordEmbed.astro",
-                "./components/social/discord/DiscordCalendar.astro": "./components/social/discord/DiscordCalendar.astro",
-                "./components/social/discord/DiscordRule.astro": "./components/social/discord/DiscordRule.astro",
                 "./components/social/discord/ReactDiscordEmbed": {
                   "import": "./components/social/discord/ReactDiscordEmbed.js",
                   "types": "./components/social/discord/ReactDiscordEmbed.d.ts"
@@ -12728,6 +13001,7 @@
                 "./components/social/github/Activity/AstroGithubActivity.astro": "./components/social/github/Activity/AstroGithubActivity.astro",
                 "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro": "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro",
                 "./components/social/github/Contribute/AstroGithubContribute.astro": "./components/social/github/Contribute/AstroGithubContribute.astro",
+                "./components/social/github/Readme/AstroGithubReadme.astro": "./components/social/github/Readme/AstroGithubReadme.astro",
                 "./components/utility/DeferredSection.astro": "./components/utility/DeferredSection.astro",
                 "./components/social/icons/SocialIcon.astro": "./components/social/icons/SocialIcon.astro",
                 "./components/social/comic/KBVEComicSocials.astro": "./components/social/comic/KBVEComicSocials.astro",
@@ -13893,6 +14167,78 @@
           "implicitDependencies": []
         }
       },
+      "kbve-tauri": {
+        "name": "kbve-tauri",
+        "type": "lib",
+        "data": {
+          "root": "packages/npm/tauri",
+          "targets": {
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit -p packages/npm/tauri/tsconfig.lib.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "kbve-tauri",
+          "projectType": "library",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/npm/tauri/src",
+          "tags": [
+            "npm:public",
+            "npm:kbve",
+            "npm:tauri",
+            "npm:launcher",
+            "npm:supabase",
+            "npm:oauth",
+            "scope:shared",
+            "type:lib"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "description": "Shared Tauri desktop surface for KBVE launchers — typed invoke wrappers + types for Supabase OAuth (erust-backed) and game install/launch.",
+            "js": {
+              "packageName": "@kbve/tauri",
+              "packageVersion": "0.0.1",
+              "packageExports": {
+                ".": {
+                  "types": "./src/index.ts",
+                  "import": "./src/index.ts"
+                }
+              },
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "kilobase": {
         "name": "kilobase",
         "type": "app",
@@ -14173,41 +14519,33 @@
                 "engine": "docker",
                 "context": "apps/kbve/kilobase",
                 "file": "apps/kbve/kilobase/Dockerfile",
-                "metadata": {
-                  "images": [
-                    "kbve/kilobase"
-                  ],
+                "load": true,
+                "tags": [
+                  "kbve/kilobase:latest"
+                ]
+              },
+              "configurations": {
+                "local": {
                   "load": true,
+                  "push": false,
                   "tags": [
-                    "17.4.15",
-                    "17.4"
+                    "kbve/kilobase:latest"
                   ]
                 },
-                "configurations": {
-                  "local": {
-                    "tags": [
-                      "17.4.15",
-                      "17.4"
-                    ],
-                    "push": false
-                  },
-                  "production": {
-                    "tags": [
-                      "17.4.15",
-                      "17.4"
-                    ],
-                    "push": true,
-                    "customBuildOptions": "--push",
-                    "cache-from": [
-                      "type=registry,ref=kbve/kilobase:buildcache"
-                    ],
-                    "cache-to": [
-                      "type=registry,ref=kbve/kilobase:buildcache,mode=max"
-                    ]
-                  }
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/kilobase:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/kilobase:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/kilobase:buildcache,mode=max"
+                  ]
                 }
               },
-              "configurations": {},
               "parallelism": true
             }
           },
@@ -14496,7 +14834,7 @@
             "description": "Phaser + React Three Fiber integration layer for React 19",
             "js": {
               "packageName": "@kbve/laser",
-              "packageVersion": "0.1.4",
+              "packageVersion": "0.1.5",
               "packageExports": {
                 ".": {
                   "import": "./laser.es.js",
@@ -15724,42 +16062,10 @@
               "parallelism": true
             },
             "test": {
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "cache": true,
-              "executor": "nx:run-script",
-              "metadata": {
-                "scriptContent": "vitest run",
-                "runCommand": "pnpm run test"
-              },
+              "executor": "nx:run-commands",
               "options": {
-                "script": "test"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test:watch": {
-              "executor": "nx:run-script",
-              "metadata": {
-                "scriptContent": "vitest",
-                "runCommand": "pnpm run test:watch"
-              },
-              "options": {
-                "script": "test:watch"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test:coverage": {
-              "executor": "nx:run-script",
-              "metadata": {
-                "scriptContent": "vitest run --coverage",
-                "runCommand": "pnpm run test:coverage"
-              },
-              "options": {
-                "script": "test:coverage"
+                "cwd": "packages/npm/rn",
+                "command": "vitest run"
               },
               "configurations": {},
               "parallelism": true
@@ -15784,13 +16090,7 @@
           },
           "projectType": "library",
           "metadata": {
-            "targetGroups": {
-              "NPM Scripts": [
-                "test",
-                "test:watch",
-                "test:coverage"
-              ]
-            },
+            "targetGroups": {},
             "description": "React Native shared layer for KBVE mobile apps — agent-control protocol types, hooks, and UI primitives.",
             "js": {
               "packageName": "@kbve/rn",
@@ -15807,6 +16107,10 @@
                 "./ui": {
                   "types": "./src/ui/index.ts",
                   "import": "./src/ui/index.ts"
+                },
+                "./ui/*": {
+                  "types": "./src/ui/*.tsx",
+                  "import": "./src/ui/*.tsx"
                 },
                 "./store": {
                   "types": "./src/store/index.ts",
@@ -17348,6 +17652,13 @@
       ],
       "firecracker-python-net": [],
       "firecracker-python-web": [],
+      "deathslayer-launcher": [
+        {
+          "source": "deathslayer-launcher",
+          "target": "kbve-tauri",
+          "type": "static"
+        }
+      ],
       "astro-cryptothrone": [
         {
           "source": "astro-cryptothrone",
@@ -17363,6 +17674,11 @@
           "source": "astro-cryptothrone",
           "target": "laser",
           "type": "dynamic"
+        },
+        {
+          "source": "astro-cryptothrone",
+          "target": "observ",
+          "type": "static"
         }
       ],
       "bevy_statemachine": [],
@@ -17418,7 +17734,13 @@
           "type": "implicit"
         }
       ],
-      "kbve-desktop": [],
+      "kbve-desktop": [
+        {
+          "source": "kbve-desktop",
+          "target": "erust",
+          "type": "static"
+        }
+      ],
       "axum-chuckrpg-e2e": [
         {
           "source": "axum-chuckrpg-e2e",
@@ -17598,7 +17920,18 @@
       ],
       "bevy_chat": [],
       "bevy_supa": [],
-      "chuck-launcher": [],
+      "chuck-launcher": [
+        {
+          "source": "chuck-launcher",
+          "target": "observ",
+          "type": "static"
+        },
+        {
+          "source": "chuck-launcher",
+          "target": "kbve-tauri",
+          "type": "static"
+        }
+      ],
       "discordsh-bot": [
         {
           "source": "discordsh-bot",
@@ -17722,6 +18055,11 @@
         },
         {
           "source": "kbve-react-native",
+          "target": "observ",
+          "type": "static"
+        },
+        {
+          "source": "kbve-react-native",
           "target": "rn",
           "type": "static"
         },
@@ -17802,6 +18140,16 @@
           "source": "arpg-e2e",
           "target": "arpg",
           "type": "implicit"
+        },
+        {
+          "source": "arpg-e2e",
+          "target": "laser",
+          "type": "static"
+        },
+        {
+          "source": "arpg-e2e",
+          "target": "arpg-web",
+          "type": "static"
         }
       ],
       "kasm-void": [],
@@ -17944,7 +18292,13 @@
           "type": "static"
         }
       ],
-      "desktop-kbve": [],
+      "desktop-kbve": [
+        {
+          "source": "desktop-kbve",
+          "target": "kbve-tauri",
+          "type": "static"
+        }
+      ],
       "droid-e2e": [
         {
           "source": "droid-e2e",
@@ -18001,6 +18355,11 @@
           "source": "arpg-web",
           "target": "laser",
           "type": "static"
+        },
+        {
+          "source": "arpg-web",
+          "target": "observ",
+          "type": "static"
         }
       ],
       "astro-kbve": [
@@ -18026,13 +18385,18 @@
         },
         {
           "source": "astro-kbve",
+          "target": "rn-astro",
+          "type": "static"
+        },
+        {
+          "source": "astro-kbve",
           "target": "rn",
           "type": "static"
         },
         {
           "source": "astro-kbve",
-          "target": "rn-astro",
-          "type": "static"
+          "target": "rn",
+          "type": "dynamic"
         }
       ],
       "factorio-ctl": [
@@ -18186,6 +18550,7 @@
           "type": "static"
         }
       ],
+      "kbve-tauri": [],
       "kilobase": [],
       "laser": [],
       "chat": [],

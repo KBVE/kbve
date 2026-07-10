@@ -1,5 +1,6 @@
 ---
 title: Chiseled Tuff
+template: splash
 description: |
     Minecraft Chiseled Tuff — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 951
     ref: chiseled_tuff
     slug: chiseled-tuff
+    content_rev: 1
     display_name: Chiseled Tuff
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_tuff
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Chiseled Tuff shows a swirling wind-charge motif carved into its
+            surface, echoing the Breeze mob and the flow banner pattern
+            found throughout trial chamber decor.
+        lore: |
+            Introduced with tuff's expanded building-block family in the
+            Trial Chambers update (1.21), tying tuff's look to the Breeze's
+            wind theme.
+    uses:
+        - title: Decorative Trim
+          ref: chiseled_tuff
+          detail: |
+              Used purely for decoration, particularly in builds that
+              reference the trial chamber or Breeze aesthetic.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally as decorative trim throughout trial chamber structures.
+        - location: Crafting or Stonecutter
+          detail: Craft from 2 Tuff Slabs, or stonecut directly from Tuff.
+    faq:
+        - question: What tool do I need to mine Chiseled Tuff?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without a pickaxe
+              drops nothing.
+        - question: Does the carving relate to a specific mob?
+          answer: |
+              Yes, its wind-swirl pattern echoes the Breeze, the wind-charge
+              throwing mob added in the same update.
+        - question: Is Chiseled Tuff renewable?
+          answer: |
+              No. It depends on mining natural tuff deposits, which are
+              finite per world.
+        - question: Where does raw Tuff come from?
+          answer: |
+              Tuff generates in large deposits underground, especially near
+              deepslate and around dripstone caves.
     data_version: "1.21.5"
 ---
 

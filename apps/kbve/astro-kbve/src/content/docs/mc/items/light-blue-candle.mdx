@@ -1,5 +1,6 @@
 ---
 title: Light Blue Candle
+template: splash
 description: |
     Minecraft Light Blue Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 1309
     ref: light_blue_candle
     slug: light-blue-candle
+    content_rev: 1
     display_name: Light Blue Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Light Blue Candle is a dyed decorative light source made by combining a
+            candle with light blue dye. Up to four candles of the same color can be
+            placed in a single block space, and lighting them with flint and steel
+            raises the emitted light level in steps of 3.
+        lore: |
+            A pale blue taper that flickers softly once lit, dyed to match a room's
+            décor rather than left plain white.
+    faq:
+        - question: How do you craft a Light Blue Candle?
+          answer: |
+              Combine a plain candle with light blue dye in a crafting grid;
+              the resulting colored candle cannot be re-dyed afterward.
+        - question: How much light does a Light Blue Candle give off?
+          answer: |
+              A single candle emits light level 3, and up to four identically
+              colored candles placed together increase the light level by 3 each,
+              for a maximum of 12.
+        - question: How do you light and extinguish a candle?
+          answer: |
+              Light it with flint and steel, a fire charge, or a flaming
+              projectile; put it out by right-clicking it or exposing it to water,
+              and note waterlogged candles cannot be lit at all.
+        - question: Can a Light Blue Candle be placed on a cake?
+          answer: |
+              Yes, placing a single candle on an uneaten cake creates a candle
+              cake, a decorative light source shaped like a lit birthday cake.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

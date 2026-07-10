@@ -1,5 +1,6 @@
 ---
 title: Chain
+template: splash
 description: |
     Minecraft Chain — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 378
     ref: chain
     slug: chain
+    content_rev: 1
     display_name: Chain
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A chain is a decorative metal block crafted from 2 nuggets and 1 ingot of
+            iron or copper. It connects seamlessly to hanging lanterns, bells, and
+            hanging signs, can be suspended freely in mid-air, and stacks both
+            vertically and horizontally along the same orientation.
+        lore: |
+            Chains connect horizontally or vertically but never across different
+            orientations, rewarding builders who plan their layout carefully.
+    faq:
+        - question: Can pistons move chains?
+          answer: |
+              Yes, chains can be pushed by pistons without breaking, making them
+              useful in redstone contraptions.
+        - question: What's different about copper chains?
+          answer: |
+              Copper chains oxidize through four stages over time and can be waxed to
+              halt weathering, while iron chains never change.
+        - question: Can I walk across a horizontal chain?
+          answer: |
+              A horizontal chain one block above a surface is walkable, but at two
+              blocks high it blocks movement instead.
+        - question: Do chains align to the normal block grid?
+          answer: |
+              No, chains are only 3 pixels wide centered on their axis, making them the
+              only block type misaligned with the standard pixel grid.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

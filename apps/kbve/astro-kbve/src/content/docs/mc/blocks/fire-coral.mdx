@@ -1,5 +1,6 @@
 ---
 title: Fire Coral
+template: splash
 description: |
     Minecraft Fire Coral — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 733
     ref: fire_coral
     slug: fire-coral
+    content_rev: 1
     display_name: Fire Coral
     material: stone
     hardness: 0
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: fire_coral
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - waterlogged
+        - coral
+    about:
+        description: |
+            Fire Coral is a red coral block that generates in coral reef
+            structures within warm ocean biomes. Like all coral blocks it
+            requires adjacent water to survive; placed out of water it dies
+            within seconds and turns into Dead Fire Coral.
+        lore: |
+            Coral blocks were added in the Update Aquatic (1.13) to bring
+            vibrant reef life to warm oceans.
+    uses:
+        - title: Decoration
+          ref: fire_coral
+          detail: |
+              Used purely as an aquarium and reef decoration block; it has
+              no crafting recipe uses of its own.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as part of coral reef structures alongside other coral types and coral fans.
+        - location: Bone meal growth
+          detail: Applying bone meal to a coral block can grow new coral and coral fan blocks nearby.
+    faq:
+        - question: How do I harvest Fire Coral?
+          answer: |
+              You must mine it with a Silk Touch enchanted tool. Any other
+              tool destroys it instantly with no drop.
+        - question: Why did my Fire Coral turn gray?
+          answer: |
+              Coral dies when it is not touching water (or a waterlogged
+              block) and converts into its dead variant after a few seconds.
+        - question: Can Fire Coral be placed anywhere?
+          answer: |
+              It can be placed anywhere, but it only stays alive if at least
+              one adjacent block is water or waterlogged.
+        - question: Does Fire Coral burn?
+          answer: |
+              No, coral blocks are not flammable and are unaffected by fire
+              or lava contact from the side.
     data_version: "1.21.5"
 ---
 

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: November 9th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 9,'
+    accent: every year.
+    lede: 'The November 9th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Nov 8'
+          href: /journal/11-08/
+        - label: 'Nov 10 →'
+          href: /journal/11-10/
+    related:
+        - title: 'Previous · Nov 8'
+          copy: 'Step back a day to the November 8th log.'
+          href: /journal/11-08/
+          icon: calendar
+        - title: 'Next · Nov 10'
+          copy: 'Jump ahead to the November 10th log.'
+          href: /journal/11-10/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Sunday Funday
 
@@ -21,7 +62,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Revisiting the custom cache that we are running ontop of the current unity ECS.
     Our biggest bottleneck seems to be CPU, so once we can get the cache system operational, we should easily see around 200 stable FPS.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   7:30PM
 
@@ -32,3 +81,6 @@ import { Adsense, Tasks } from '@/components/astropad';
     By next week, I want to create at least 3 or 5 new characters for the game.
     Now I have to spend most of the day working on the different tilemaps.
 
+</BentoProse>
+
+</BentoDoc>

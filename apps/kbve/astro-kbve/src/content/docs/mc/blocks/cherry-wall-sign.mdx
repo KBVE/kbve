@@ -1,5 +1,6 @@
 ---
 title: Cherry Sign
+template: splash
 description: |
     Minecraft Cherry Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 215
     ref: cherry_wall_sign
     slug: cherry-wall-sign
+    content_rev: 1
     display_name: Cherry Sign
     material: wood
     hardness: 1
@@ -26,8 +28,48 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Cherry Sign is the wall-mounted placement state of the
+            cherry sign, attached flush to the side of a block. It shows
+            up to four lines of customizable text and supports dye
+            coloring, glow ink, and honeycomb waxing.
+        lore: |
+            Cherry wood signs arrived with the Trails & Tales update
+            (1.20), expanding the roster of wood-type signs available for
+            builders.
+    uses:
+        - title: Cherry Sign
+          ref: cherry_sign
+          detail: |
+              Craft from 6 cherry planks and 1 stick to produce 3 signs;
+              placing one against the side of a block creates this wall
+              sign form.
+    found_in:
+        - location: Crafting only
+          detail: Cherry signs do not generate naturally; they must be crafted from cherry planks and a stick.
+    faq:
+        - question: What tool do I need to mine a Cherry Sign?
+          answer: |
+              Any tool works, and an axe is fastest. It always drops the
+              sign item on break regardless of tool used.
+        - question: Can I still edit the text later?
+          answer: |
+              Yes, right-click the sign with an empty hand to reopen the
+              text editor, unless it has been waxed with honeycomb.
+        - question: Can a Cherry Sign be used as furnace fuel?
+          answer: |
+              No. Unlike some other wood items, signs are not accepted as
+              furnace fuel.
     data_version: "1.21.5"
 ---
 

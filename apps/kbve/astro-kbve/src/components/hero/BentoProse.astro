@@ -1,0 +1,26 @@
+---
+interface Props {
+	eyebrow?: string;
+	heading?: string;
+	id?: string;
+	class?: string;
+}
+
+const { eyebrow, heading, id, class: klass = '' } = Astro.props;
+---
+
+<section {id} class="bento-section">
+	<div class:list={['bento-frame', 'bento-band', 'bento-prose', klass]}>
+		{
+			(eyebrow || heading) && (
+				<header class="bento-prose__header">
+					{eyebrow && <p class="bento-eyebrow">{eyebrow}</p>}
+					{heading && <h2 class="bento-heading">{heading}</h2>}
+				</header>
+			)
+		}
+		<div class="bento-prose__body">
+			<slot />
+		</div>
+	</div>
+</section>

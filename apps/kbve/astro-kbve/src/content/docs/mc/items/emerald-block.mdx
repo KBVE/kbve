@@ -1,5 +1,6 @@
 ---
 title: Block of Emerald
+template: splash
 description: |
     Minecraft Block of Emerald — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 411
     ref: emerald_block
     slug: emerald-block
+    content_rev: 1
     display_name: Block of Emerald
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Block of Emerald is a mineral storage block that compresses nine
+            emeralds into a single, more compact item. It requires an iron
+            pickaxe or better to mine and can also power beacon pyramids
+            alongside blocks of iron, gold, diamond, and netherite.
+        lore: |
+            A shimmering vault of villager currency, condensed into a single
+            gleaming cube.
+    faq:
+        - question: How do you craft a Block of Emerald?
+          answer: |
+              Place nine emeralds in a crafting grid to produce one Block of
+              Emerald, or mine one that has been placed to get the block back
+              directly.
+        - question: What tool do I need to mine it?
+          answer: |
+              An iron pickaxe or better is required; wooden and stone pickaxes
+              will not break the block for a usable drop.
+        - question: Can a Block of Emerald power a beacon?
+          answer: |
+              Yes, it can be used in a beacon pyramid alongside blocks of iron,
+              gold, diamond, or netherite to activate and upgrade a beacon.
+        - question: Does breaking it always drop the emeralds?
+          answer: |
+              Breaking the block with a valid pickaxe drops the block itself as
+              an item, not nine loose emeralds; you must craft it back down to
+              individual emeralds if needed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

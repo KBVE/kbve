@@ -1,5 +1,6 @@
 ---
 title: Iron Bars
+template: splash
 description: |
     Minecraft Iron Bars — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 326
     ref: iron_bars
     slug: iron-bars
+    content_rev: 1
     display_name: Iron Bars
     material: metal
     hardness: 5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: iron_bars
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - bars
+        - overworld
+    about:
+        description: |
+            Iron Bars are a thin, transparent barrier block that forms a
+            central post and connects visually to adjacent bars, walls, and
+            solid blocks. They block fluids and most projectiles while
+            still letting light and players squeeze through small gaps.
+        lore: |
+            Iron bars first appeared in stronghold preview screenshots
+            Notch shared in July 2011, before being officially added in
+            Beta 1.8.
+    uses:
+        - title: Fencing and Cages
+          ref: iron_bars
+          detail: |
+              Crafted from 6 Iron Ingots into 16 Iron Bars, used to build
+              prison cells, window bars, and protective cages around
+              end crystals or valuables.
+    found_in:
+        - location: Villages
+          detail: Used in windows and jail cells of savanna, desert, plains, and snowy village houses.
+        - location: Strongholds and woodland mansions
+          detail: Line prison cells and corridor windows in stronghold and mansion generation.
+        - location: Crafting
+          detail: Craft 6 Iron Ingots in a horizontal row pattern to get 16 Iron Bars.
+    faq:
+        - question: Can players or mobs fit through a gap of iron bars?
+          answer: |
+              Yes. A 2x2 opening in a bar wall is large enough for players
+              and most mobs to pass through, though fluids cannot flow
+              through the gaps.
+        - question: Do iron bars block arrows?
+          answer: |
+              In Bedrock Edition, arrows cannot pass through iron bars, but
+              in Java Edition projectiles can fly through the gaps.
+        - question: What is the fastest tool to mine iron bars?
+          answer: |
+              A golden pickaxe breaks them fastest at about 0.65 seconds,
+              while a netherite pickaxe takes roughly 0.85 seconds.
+        - question: Do I need Silk Touch to collect iron bars?
+          answer: |
+              No. Any pickaxe of wood tier or higher drops the Iron Bars
+              block itself with no enchantment required.
     data_version: "1.21.5"
 ---
 

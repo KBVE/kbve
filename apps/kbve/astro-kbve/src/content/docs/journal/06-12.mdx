@@ -9,11 +9,52 @@ description: |
   June 12th. The Sun! It Burns! A reference for my fallout homies.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 12,'
+    accent: every year.
+    lede: 'The June 12th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 11'
+          href: /journal/06-11/
+        - label: 'Jun 13 →'
+          href: /journal/06-13/
+    related:
+        - title: 'Previous · Jun 11'
+          copy: 'Step back a day to the June 11th log.'
+          href: /journal/06-11/
+          icon: calendar
+        - title: 'Next · Jun 13'
+          copy: 'Jump ahead to the June 13th log.'
+          href: /journal/06-13/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### EGui - Da Waffle
 
@@ -51,7 +92,15 @@ import { Adsense } from '@/components/astropad';
     Yet I can see Air India not providing the best service and not doing the best maintenance.
     It is still too early to know what exactly happen, but its crazy to see it on the news and recongizing the parts of the city.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **GitHub Actions Musical**
 
@@ -116,7 +165,9 @@ Next
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 11:00am - Waiting to transfer out a couple hundred grand from the recent sale of tesla stocks. I ended up exiting 600 shares and plan to transfer the move to another brokerage.
 
@@ -159,13 +210,21 @@ Next
 
 - 10:25pm - The new windows server is up and running but there are a couple issues that I am already running into. The first being that docker is extremely slow and I am not too sure why! I really do not want to spend the time to figure out, it might be something to do with the drivers but the amount of time that I would have to spend is starting to look a bit tiring. Damn I am getting old.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > In the end we retain from our studies only that which we practically apply.
 > — <cite>Johann Wolfgang von Goethe</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

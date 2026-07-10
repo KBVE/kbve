@@ -1,5 +1,6 @@
 ---
 title: Blue Carpet
+template: splash
 description: |
     Minecraft Blue Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 517
     ref: blue_carpet
     slug: blue-carpet
+    content_rev: 1
     display_name: Blue Carpet
     material: wool
     hardness: 0.1
@@ -26,8 +28,63 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Blue carpet is a thin, wool-based decorative block that also
+            muffles vibrations from sculk sensors, similarly to wool. It
+            can be crafted directly from wool or by dyeing white carpet.
+        lore: |
+            Carpets were added in 1.8 as a way to add colored flooring
+            without the full height of a wool block.
+    uses:
+        - title: Decoration & Sound Dampening
+          ref: blue_carpet
+          detail: |
+              Used for flooring and llama rugs; like wool, it dampens
+              vibrations picked up by sculk sensors, making it useful near
+              redstone builds that use sculk.
+        - title: Mob-Passable Barrier
+          ref: blue_carpet
+          detail: |
+              Placed atop fences or walls, carpet lets players walk
+              through while still blocking most mobs, since fences remain
+              tall for collision purposes.
+    found_in:
+        - location: Snowy Tundra Villages & Ancient Cities
+          detail: |
+              Generates naturally as flooring and decoration in snowy
+              village houses and in ancient city structures.
+        - location: Crafted
+          detail: |
+              Two blue wool blocks in a row craft three carpets, or dye a
+              white carpet with blue dye.
+    faq:
+        - question: What tool do I need to mine carpet?
+          answer: |
+              None required — it breaks in about 0.15 seconds with any
+              tool or bare hands and always drops itself.
+        - question: Is carpet flammable?
+          answer: |
+              Yes. Like wool, it can catch fire from nearby flames or
+              lava and burns away completely.
+        - question: Does carpet stop mobs from walking over it?
+          answer: |
+              No, mobs can walk on carpet normally; it is purely
+              decorative and does not act as a barrier on its own.
+        - question: Can carpet be placed on a llama?
+          answer: |
+              Yes. Right-clicking a llama with carpet decorates it with a
+              colored rug pattern; blue carpet gives it an enderman-eyes
+              design.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Red Terracotta
+template: splash
 description: |
     Minecraft Red Terracotta — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 471
     ref: red_terracotta
     slug: red-terracotta
+    content_rev: 1
     display_name: Red Terracotta
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Red Terracotta is a dyed variant of terracotta made by crafting plain terracotta with red
+            dye in a 2x2 pattern, yielding eight blocks at once. It generates naturally in badlands
+            biomes and in several village and desert structures, and unlike wool it cannot be re-dyed
+            once colored.
+        lore: |
+            Hardened clay fired and stained a deep rust-red, sturdy enough to outlast the sands around it.
+    faq:
+        - question: How is Red Terracotta obtained?
+          answer: |
+              Craft four plain terracotta blocks with a red dye in a 2x2 grid to produce eight red
+              terracotta blocks, or mine it directly from badlands biomes and desert structures.
+        - question: Can Red Terracotta be recolored?
+          answer: |
+              No. Once terracotta is dyed a color it is permanent; it cannot be crafted into a
+              different color afterward, unlike wool or concrete powder.
+        - question: What is Red Terracotta used for besides building?
+          answer: |
+              It can be smelted in a furnace to produce red glazed terracotta, which has a directional
+              arrow-like pattern useful for decorative floors and banners.
+        - question: Is Red Terracotta renewable?
+          answer: |
+              Yes. Expert-level mason villagers buy stained terracotta of any color for emeralds,
+              and players can always craft more from clay and dye, making it fully renewable.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

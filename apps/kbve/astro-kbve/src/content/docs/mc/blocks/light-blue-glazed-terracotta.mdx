@@ -1,5 +1,6 @@
 ---
 title: Light Blue Glazed Terracotta
+template: splash
 description: |
     Minecraft Light Blue Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 665
     ref: light_blue_glazed_terracotta
     slug: light-blue-glazed-terracotta
+    content_rev: 1
     display_name: Light Blue Glazed Terracotta
     material: stone
     hardness: 1.4
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Light Blue Glazed Terracotta is a decorative, hard-glazed
+            block made by smelting light blue stained terracotta. Its
+            patterned texture aligns across a 2x2 grid of matching blocks
+            to form larger arrow-like or swirl patterns.
+        lore: |
+            Glazed terracotta was added in Java Edition 1.12 as a shiny,
+            patterned counterpart to plain stained terracotta.
+    uses:
+        - title: Patterned Building
+          ref: light_blue_glazed_terracotta
+          detail: |
+              Arranged in 2x2 or larger grids to form directional arrow or
+              swirl motifs commonly used in flags, banners, and floor art.
+    found_in:
+        - location: Smelting
+          detail: Smelt light blue stained terracotta with any fuel to produce it.
+        - location: Desert village toolsmith houses
+          detail: Generates naturally as roofing in toolsmith houses and trail ruins.
+        - location: Mason villager trades
+          detail: Expert-level mason villagers sell glazed terracotta for 1 emerald.
+    faq:
+        - question: What tool do I need to mine Light Blue Glazed Terracotta?
+          answer: |
+              Any pickaxe. Mining without one drops nothing.
+        - question: Can it be pulled by pistons?
+          answer: |
+              No. Sticky pistons cannot pull glazed terracotta, though
+              regular pistons can still push it.
+        - question: How is it obtained without smelting?
+          answer: |
+              Trading with an expert-level mason villager for 1 emerald,
+              or finding it generated in desert villages and trail ruins.
+        - question: Does its orientation matter when placed?
+          answer: |
+              Yes. Its facing direction determines how the pattern lines
+              up with neighboring glazed terracotta blocks.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Enchanting Table
+template: splash
 description: |
     Minecraft Enchanting Table — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 354
     ref: enchanting_table
     slug: enchanting-table
+    content_rev: 1
     display_name: Enchanting Table
     material: stone
     hardness: 5
     blast_resistance: 1200
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 7
     light_opacity: 0
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: enchanting_table
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - utility
+        - enchanting
+        - blast_resistant
+    about:
+        description: |
+            The Enchanting Table lets players spend experience levels and
+            lapis lazuli to enchant tools, armor, weapons, and books. It is
+            built largely from obsidian and features an animated floating
+            book, emitting a soft glow.
+        lore: |
+            First shown in September 2011 and added in Beta 1.9 Prerelease 3.
+            Its blast resistance of 1200 matches obsidian, reflecting its
+            construction.
+    uses:
+        - title: Enchanting
+          detail: |
+              Spend experience levels and lapis lazuli to apply random
+              enchantments to gear and books.
+        - title: Bookshelf Boost
+          detail: |
+              Surround the table with up to 15 bookshelves (one air gap
+              between each and the table) to unlock level-30 enchantments,
+              the maximum available.
+    found_in:
+        - location: Crafting
+          detail: One book on top, two diamonds on the sides, and four obsidian filling the bottom and center-sides.
+        - location: Structures
+          detail: Occasionally generates in end ships and stronghold libraries.
+    faq:
+        - question: What tool do I need to mine an enchanting table?
+          answer: |
+              A pickaxe of any tier (wooden or better). It drops itself; a
+              hand or wrong tool yields nothing.
+        - question: How do I reach level 30 enchantments?
+          answer: |
+              Place 15 bookshelves around the table, each with a single air
+              block between it and the table, to unlock the full enchantment
+              range.
+        - question: What do I need to enchant an item?
+          answer: |
+              Enough experience levels and at least one lapis lazuli per
+              enchant, placed in the table's interface.
     data_version: "1.21.5"
 ---
 

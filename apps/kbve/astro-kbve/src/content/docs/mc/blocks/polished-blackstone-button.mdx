@@ -1,5 +1,6 @@
 ---
 title: Polished Blackstone Button
+template: splash
 description: |
     Minecraft Polished Blackstone Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 898
     ref: polished_blackstone_button
     slug: polished-blackstone-button
+    content_rev: 1
     display_name: Polished Blackstone Button
     material: redstone
     hardness: 0.5
@@ -24,10 +26,60 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_blackstone_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - redstone_component
+    about:
+        description: |
+            Polished Blackstone Button is a Nether-themed redstone button
+            crafted from a single polished blackstone block. It functions
+            identically to stone buttons, producing a one-second pulse when
+            pressed or hit by a projectile.
+        lore: |
+            Added alongside the rest of the polished blackstone family in
+            the Nether Update (Java Edition 1.16).
+    uses:
+        - title: Redstone Trigger
+          ref: redstone_dust
+          detail: |
+              Placed on a block face, it powers adjacent redstone dust and
+              mechanism components for one second when activated, making it
+              useful for doors, dispensers, and hidden traps.
+    found_in:
+        - location: Crafted from Polished Blackstone
+          detail: One polished blackstone block crafts one button.
+        - location: Piglin Bartering
+          detail: |
+              Piglins have an 8.71% chance to give 8-16 blackstone per
+              barter, making the whole polished blackstone family
+              renewable.
+    faq:
+        - question: What tool do I need to mine a Polished Blackstone Button?
+          answer: |
+              Any tool works, though a pickaxe is fastest. Unlike the solid
+              blackstone blocks, the button drops itself regardless of tool.
+        - question: How long does the button stay powered?
+          answer: |
+              Exactly one second (10 redstone ticks) after being pressed or
+              struck by an arrow or wind charge.
+        - question: Can I waterlog a Polished Blackstone Button?
+          answer: |
+              Not in Java Edition. Bedrock Edition allows the button to be
+              waterlogged.
+        - question: Where do I get Polished Blackstone to craft it?
+          answer: |
+              Craft polished blackstone from blackstone at a crafting table,
+              or gather blackstone directly from Nether basalt deltas and
+              ruined portals.
     data_version: "1.21.5"
 ---
 

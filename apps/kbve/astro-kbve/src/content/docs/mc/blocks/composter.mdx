@@ -1,5 +1,6 @@
 ---
 title: Composter
+template: splash
 description: |
     Minecraft Composter — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 868
     ref: composter
     slug: composter
+    content_rev: 1
     display_name: Composter
     material: wood
     hardness: 0.6
@@ -26,8 +28,63 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: composter
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The composter turns organic materials such as seeds, crops, and
+            saplings into bone meal, giving farmers a renewable way to
+            produce fertilizer without villager trading or bone drops. It
+            also serves as a comparator-readable storage container that
+            reports its fill level.
+        lore: |
+            Added in the Village & Pillage update, the composter gave farmer
+            villagers a proper job site block and turned crop byproducts
+            into a useful resource.
+    uses:
+        - title: Bone Meal
+          ref: bone_meal
+          detail: |
+              Adding compostable items has a 30-100% chance to raise the
+              fill level; a full composter yields one bone meal when
+              collected, either by hand or via hopper.
+        - title: Farmer Job Site
+          ref: composter
+          detail: |
+              Placing a composter lets an unemployed villager become a
+              farmer, who will then tend and harvest nearby crops.
+    found_in:
+        - location: Villages
+          detail: Generates in village farm plots as part of farmer houses.
+        - location: Trail Ruins
+          detail: Occasionally found among the buried block clusters of trail ruins.
+        - location: Crafted
+          detail: Built from 7 wooden slabs of any type at a crafting table.
+    faq:
+        - question: What tool do I need to mine a composter?
+          answer: |
+              None — it can be broken by hand, though an axe breaks it
+              fastest (0.45 seconds with a wooden axe).
+        - question: Does a composter keep its compost when broken?
+          answer: |
+              No. Breaking a composter drops the empty composter block only;
+              any progress toward bone meal is lost.
+        - question: What is the best item to compost?
+          answer: |
+              Items with a 100% chance include cakes and pumpkin pies,
+              filling the composter in a single use.
+        - question: Can hoppers automate a composter?
+          answer: |
+              Yes. A hopper feeding into the top inserts compostable items,
+              and a hopper underneath extracts bone meal automatically.
     data_version: "1.21.5"
 ---
 

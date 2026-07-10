@@ -10,14 +10,52 @@ description: |
     It's a glorious moment where pranks bloom like flowers in spring, a reminder to dance on the edge of madness and never, ever play it safe.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 1,'
+    accent: every year.
+    lede: 'The April 1st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 31'
+          href: /journal/03-31/
+        - label: 'Apr 2 →'
+          href: /journal/04-02/
+    related:
+        - title: 'Previous · Mar 31'
+          copy: 'Step back a day to the March 31st log.'
+          href: /journal/03-31/
+          icon: calendar
+        - title: 'Next · Apr 2'
+          copy: 'Jump ahead to the April 2nd log.'
+          href: /journal/04-02/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1603855873822-0931a843ee3a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Isometric Networking
 
@@ -27,7 +65,15 @@ import { Adsense } from '@/components/astropad';
   It might be that I am trying to run the websocket and the web transport on the same netcode, thus causing this issue, damn it.
   If that is the case, then that means we did end up spending way too much time trying to resolve it.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity CICD
 
@@ -51,7 +97,9 @@ import { Adsense } from '@/components/astropad';
 
     Making sure that the twitch irc works, we will have to look into how the `refreshing-token` feature is being used in the crate.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### Docker
 
@@ -217,3 +265,7 @@ However there are a couple errors that are appearing in the source code, includi
 So there might be an issue with how we are doing the root / application rendering.
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Dead Bubble Coral
+template: splash
 description: |
     Minecraft Dead Bubble Coral — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 635
     ref: dead_bubble_coral
     slug: dead-bubble-coral
+    content_rev: 1
     display_name: Dead Bubble Coral
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Dead Bubble Coral is the lifeless, gray form of Bubble Coral, a small non-solid plant block that grows on coral blocks. It can be mined instantly with any tool but is only obtainable in item form using a Silk Touch enchanted pickaxe in Java Edition, since without Silk Touch it drops nothing.
+            It transforms permanently from the living plant within a few seconds of being exposed to air, and unlike its living counterpart it no longer produces the rising-bubble particle effect.
+        lore: |
+            A withered coral sprig, drained of the shimmering bubbles that once rose from its living form.
+    faq:
+        - question: How do you get Dead Bubble Coral?
+          answer: |
+              Mine a living Bubble Coral with a Silk Touch enchanted pickaxe in Java Edition, or let a living Bubble Coral die from lack of water and then mine the dead version with Silk Touch.
+        - question: What happens if you mine it without Silk Touch?
+          answer: |
+              It drops nothing, since Dead Bubble Coral requires Silk Touch to be collected as an item.
+        - question: Can Dead Bubble Coral be planted like the living version?
+          answer: |
+              Yes, it can be placed on top of any solid block similarly to living coral, but it will never produce bubbles or regrow.
+        - question: Does Dead Bubble Coral need water to survive?
+          answer: |
+              No, being already dead it does not require water and will not decay or change further when placed on land.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

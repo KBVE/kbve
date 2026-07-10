@@ -1,5 +1,6 @@
 ---
 title: Elder Guardian Spawn Egg
+template: splash
 description: |
     Minecraft Elder Guardian Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1086
     ref: elder_guardian_spawn_egg
     slug: elder-guardian-spawn-egg
+    content_rev: 1
     display_name: Elder Guardian Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Elder Guardian Spawn Egg is a creative-mode and command item that spawns an
+            Elder Guardian, a large hostile aquatic mob found only in ocean monuments. It
+            attacks with a laser beam, inflicts Mining Fatigue on nearby players, and
+            defends itself with spikes when struck in melee.
+        lore: |
+            Elder Guardians were designed to push players toward solving an ocean monument's
+            maze layout rather than simply mining through its walls.
+    faq:
+        - question: How do I obtain an Elder Guardian normally?
+          answer: |
+              The spawn egg is only available via Creative mode or commands; in Survival,
+              Elder Guardians spawn naturally with each ocean monument, three per structure.
+        - question: What does the Mining Fatigue effect do?
+          answer: |
+              Roughly every 60 seconds, nearby Elder Guardians apply Mining Fatigue III to
+              all Survival players within 50 blocks, reducing attack and mining speed for
+              5 minutes.
+        - question: How tough is an Elder Guardian?
+          answer: |
+              It has 80 health and deals heavy laser damage plus spike damage on contact,
+              making it one of the more dangerous mobs to fight underwater.
+        - question: What does defeating an Elder Guardian reward?
+          answer: |
+              It guarantees a drop of wet sponge along with prismarine materials and fish,
+              making it a reliable way to obtain sponges.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -43,7 +43,7 @@ mod tests {
         let (url, anon_key) = env_config();
         let config = SupabaseConfig::new(&url, &anon_key);
         let auth_url = config.auth_url("token?grant_type=password");
-        assert!(auth_url.starts_with(&url.trim_end_matches('/')));
+        assert!(auth_url.starts_with(url.trim_end_matches('/')));
         assert!(auth_url.contains("/auth/v1/"));
     }
 
@@ -53,7 +53,7 @@ mod tests {
         let (url, anon_key) = env_config();
         let config = SupabaseConfig::new(&url, &anon_key);
         let func_url = config.functions_url("test-function");
-        assert!(func_url.starts_with(&url.trim_end_matches('/')));
+        assert!(func_url.starts_with(url.trim_end_matches('/')));
         assert!(func_url.contains("/functions/v1/test-function"));
     }
 

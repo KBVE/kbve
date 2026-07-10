@@ -1,5 +1,6 @@
 ---
 title: Poppy
+template: splash
 description: |
     Minecraft Poppy — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 159
     ref: poppy
     slug: poppy
+    content_rev: 1
     display_name: Poppy
     material: plant
     hardness: 0
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: poppy
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Poppy is a common red flower found across most Overworld
+            grassy biomes. It breaks instantly with any tool or by hand and
+            can be dyed into red dye, planted in flower pots, or used to
+            brew a Night Vision suspicious stew.
+        lore: |
+            Known as "rose" since Minecraft Classic, the block was renamed
+            Poppy and given its current texture in version 1.7.2.
+    uses:
+        - title: Red Dye
+          ref: red_dye
+          detail: |
+              Crafts into one red dye, used for dyeing wool, terracotta,
+              banners, and other colorable blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combined with a mushroom and a bowl, a poppy brews suspicious
+              stew that grants the Night Vision effect.
+        - title: Flower Pot Decoration
+          ref: potted_poppy
+          detail: |
+              Placed in a flower pot to create a small decorative potted
+              poppy for interiors.
+    found_in:
+        - location: Overworld grasslands
+          detail: Generates on dirt and grass blocks in most grassy biomes, especially plains and windswept hills.
+        - location: Villages and structures
+          detail: Found decorating villages, woodland mansions, and abandoned camps.
+    faq:
+        - question: What tool do I need to break a Poppy?
+          answer: |
+              None. It breaks instantly with any item or by hand and always
+              drops itself.
+        - question: Does Fortune increase Poppy drops?
+          answer: |
+              No. A Poppy always drops exactly one item regardless of
+              enchantments.
+        - question: Can Poppies burn?
+          answer: |
+              Yes, they are flammable and can be destroyed by nearby fire,
+              though they do not ignite from lava contact directly.
+        - question: What was the Poppy originally called?
+          answer: |
+              It was called "rose" from Minecraft Classic through version
+              1.7.1, before being renamed Poppy with a new texture.
     data_version: "1.21.5"
 ---
 

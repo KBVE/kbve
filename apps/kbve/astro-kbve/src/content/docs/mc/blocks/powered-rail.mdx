@@ -1,5 +1,6 @@
 ---
 title: Powered Rail
+template: splash
 description: |
     Minecraft Powered Rail — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 126
     ref: powered_rail
     slug: powered-rail
+    content_rev: 1
     display_name: Powered Rail
     material: redstone
     hardness: 0.7
@@ -24,10 +26,64 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: powered_rail
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - waterloggable
+        - redstone_component
+        - overworld
+    about:
+        description: |
+            Powered Rail is a redstone-powered track variant that
+            accelerates or brakes passing minecarts depending on whether
+            it currently receives redstone power. Unpowered, it acts as a
+            brake; powered, it boosts minecart speed.
+        lore: |
+            Added in Beta 1.5 under the working name "golden tracks," its
+            boost strength was later tuned to compensate for changes to
+            minecart physics.
+    uses:
+        - title: Minecart Boosters
+          ref: minecart
+          detail: |
+              Placed every few blocks along a track and powered by
+              redstone torches, repeaters, or levers, powered rails keep
+              minecarts moving at speed over long distances.
+        - title: Launch Rail
+          ref: minecart
+          detail: |
+              A single powered rail facing a solid block can launch a
+              stationary minecart forward when powered.
+    found_in:
+        - location: Crafted from Gold Ingots
+          detail: 6 Gold Ingots, 1 Stick, and 1 Redstone Dust craft 6 Powered Rails.
+        - location: Mineshaft minecart chests
+          detail: Found in mineshaft chest minecarts with roughly a 27% chance, 1-4 per stack.
+    faq:
+        - question: What tool do I need to mine Powered Rail?
+          answer: |
+              Any pickaxe works and mines it fastest, but it can be broken
+              by hand as well since it has no tool-tier requirement.
+        - question: How do I craft Powered Rail?
+          answer: |
+              Combine 6 Gold Ingots, 1 Stick, and 1 Redstone Dust in a
+              crafting table to produce 6 Powered Rails at once.
+        - question: What's the difference between Powered and Normal Rail?
+          answer: |
+              Powered Rail can be toggled between braking and boosting a
+              minecart depending on redstone power, while a normal rail
+              only guides the cart's path with no speed effect.
+        - question: How far can one Powered Rail push a minecart chain?
+          answer: |
+              A single powered segment can propagate power to adjacent
+              powered rails up to 8 blocks away along a connected line.
     data_version: "1.21.5"
 ---
 

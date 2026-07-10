@@ -6,7 +6,16 @@
 		"kbve.ci.FactorioMod",
 		"kbve.ci.GameEngineConfig",
 		"kbve.ci.KubeMetadata",
-		"kbve.ci.SteamApp"
+		"kbve.ci.SteamApp",
+		"kbve.ci.BentoDoc",
+		"kbve.ci.BentoCta",
+		"kbve.ci.BentoAside",
+		"kbve.ci.BentoStat",
+		"kbve.ci.BentoFeature",
+		"kbve.ci.BentoRelated",
+		"kbve.ci.BentoUsage",
+		"kbve.ci.BentoFaq",
+		"kbve.ci.BentoTheme"
 	],
 
 	"enums": {

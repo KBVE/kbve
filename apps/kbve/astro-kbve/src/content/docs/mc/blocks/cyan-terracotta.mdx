@@ -1,5 +1,6 @@
 ---
 title: Cyan Terracotta
+template: splash
 description: |
     Minecraft Cyan Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 461
     ref: cyan_terracotta
     slug: cyan-terracotta
+    content_rev: 1
     display_name: Cyan Terracotta
     material: stone
     hardness: 1.25
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Cyan Terracotta is a dyed variant of terracotta, a hardened-clay
+            building block prized for its resistance to fire and its bold,
+            muted color palette. It cannot be crafted directly from clay;
+            it is made by dyeing plain terracotta.
+        lore: |
+            Originally named "hardened clay," the block was renamed
+            terracotta in Java Edition 1.12 to better reflect its material.
+    uses:
+        - title: Cyan Glazed Terracotta
+          ref: cyan_glazed_terracotta
+          detail: |
+              Smelting cyan terracotta in a furnace or blast furnace
+              produces cyan glazed terracotta, which carries a distinct
+              directional pattern instead of a plain color.
+    found_in:
+        - location: Crafting table
+          detail: |
+              Not naturally generated in this color; made by surrounding
+              8 terracotta blocks with 1 cyan dye.
+        - location: Badlands biome (plain terracotta)
+          detail: |
+              Undyed terracotta generates abundantly in badlands biomes and
+              is the base material dyed to make cyan terracotta.
+    faq:
+        - question: Does Cyan Terracotta generate naturally?
+          answer: |
+              No. Only plain (uncolored) terracotta generates naturally in
+              badlands biomes; colored variants like cyan must be dyed.
+        - question: What tool mines it fastest?
+          answer: |
+              A pickaxe. Any tier works since it has no minimum tool
+              requirement, but higher tiers break it faster.
+        - question: Is Cyan Terracotta flammable?
+          answer: |
+              No. Terracotta does not burn, making it a popular fireproof
+              building material.
+        - question: What can I craft from it?
+          answer: |
+              Smelting it produces Cyan Glazed Terracotta, prized for its
+              patterned texture in builds.
     data_version: "1.21.5"
 ---
 

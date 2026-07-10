@@ -1,5 +1,6 @@
 ---
 title: Powered Rail
+template: splash
 description: |
     Minecraft Powered Rail — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 796
     ref: powered_rail
     slug: powered-rail
+    content_rev: 1
     display_name: Powered Rail
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A powered rail is a special track that accelerates or brakes minecarts depending on
+            whether it is receiving redstone power. It is crafted from six gold ingots, one stick,
+            and one redstone dust, and can also be found in mineshaft chests.
+        lore: |
+            Since Beta 1.5, these gilded rails have kept minecart lines humming, snapping carts
+            forward with a jolt of redstone or bringing them to a sudden, screeching halt.
+    faq:
+        - question: How do I craft a powered rail?
+          answer: |
+              Combine 6 gold ingots, 1 stick, and 1 redstone dust in a crafting table to produce 6
+              powered rails.
+        - question: How do powered rails speed up minecarts?
+          answer: |
+              When powered by redstone, a powered rail gives passing minecarts a boost in their
+              direction of travel, increasing their speed each tick they cross it.
+        - question: What happens if a powered rail is not powered?
+          answer: |
+              An unpowered powered rail acts as a brake, rapidly slowing and typically stopping any
+              minecart that travels over it within about one block.
+        - question: How many powered rails do I need for a long minecart line?
+          answer: |
+              A common rule of thumb is placing one powered rail roughly every 8 blocks or so along
+              a straight track to keep a minecart moving at full speed, though the exact spacing
+              depends on the track's layout and slopes.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

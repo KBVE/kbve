@@ -1,5 +1,6 @@
 ---
 title: Brain Coral Wall Fan
+template: splash
 description: |
     Minecraft Brain Coral Wall Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 751
     ref: brain_coral_wall_fan
     slug: brain-coral-wall-fan
+    content_rev: 1
     display_name: Brain Coral Wall Fan
     material: stone
     hardness: 0
@@ -24,10 +26,51 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brain_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - coral
+    about:
+        description: |
+            Brain Coral Wall Fan is the wall-mounted placement state of a
+            Brain Coral Fan, automatically used when the fan is attached to
+            the side of a block instead of on top. It shares the same
+            fragility, needing water to survive.
+        lore: |
+            This is a technical block state rather than a separate item —
+            placing a Brain Coral Fan item against a block's side yields
+            this wall variant.
+    uses:
+        - title: Decoration
+          ref: brain_coral_fan
+          detail: |
+              Used to decorate vertical surfaces in reefs and underwater
+              builds where a fan needs to face sideways.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as part of coral reef structures whenever a fan attaches to a block's side.
+        - location: Placing a Brain Coral Fan item
+          detail: Placing the Brain Coral Fan item against the side of a block creates this wall variant automatically.
+    faq:
+        - question: Is Brain Coral Wall Fan a separate item?
+          answer: |
+              No. It is the wall-attached block state of the Brain Coral
+              Fan item; it cannot be obtained directly in Bedrock Edition
+              without add-ons.
+        - question: Do I need Silk Touch to collect it?
+          answer: |
+              Yes, mining it without Silk Touch destroys it with no drop.
+        - question: What happens if it is removed from water?
+          answer: |
+              It dies and turns into a Dead Brain Coral Wall Fan within a
+              few seconds, an irreversible change.
     data_version: "1.21.5"
 ---
 

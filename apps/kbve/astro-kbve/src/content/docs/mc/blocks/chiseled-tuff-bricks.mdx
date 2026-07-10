@@ -1,5 +1,6 @@
 ---
 title: Chiseled Tuff Bricks
+template: splash
 description: |
     Minecraft Chiseled Tuff Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 956
     ref: chiseled_tuff_bricks
     slug: chiseled-tuff-bricks
+    content_rev: 1
     display_name: Chiseled Tuff Bricks
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_tuff_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Chiseled Tuff Bricks are a decorative tuff brick variant showing
+            a large central brick framed by a geometric carved pattern,
+            used as an architectural accent in trial chamber structures.
+        lore: |
+            Added with the Tuff brick family in the Trial Chambers update
+            (1.21), completing the tuff building set alongside Polished
+            Tuff and Tuff Bricks.
+    uses:
+        - title: Decorative Trim
+          ref: chiseled_tuff_bricks
+          detail: |
+              Used purely for decoration on walls and floors, especially in
+              builds imitating the trial chamber aesthetic.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally as architectural detail throughout trial chamber structures.
+        - location: Crafting or Stonecutter
+          detail: Craft from 2 Tuff Brick Slabs, or stonecut from Tuff, Polished Tuff, or Tuff Bricks.
+    faq:
+        - question: What tool do I need to mine Chiseled Tuff Bricks?
+          answer: |
+              Any pickaxe, wood tier or better. Without one it drops
+              nothing.
+        - question: Can I find these outside of trial chambers?
+          answer: |
+              Not naturally — you'll need to craft or stonecut them from
+              tuff or tuff bricks yourself elsewhere.
+        - question: Is this block renewable?
+          answer: |
+              No. Tuff is a finite resource tied to underground and deepslate
+              generation, so the supply is limited by how much tuff you mine.
+        - question: What sound does it make with note blocks?
+          answer: |
+              A bass drum sound, the same as other stone-type blocks.
     data_version: "1.21.5"
 ---
 

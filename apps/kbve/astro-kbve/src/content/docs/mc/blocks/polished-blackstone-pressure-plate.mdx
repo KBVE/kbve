@@ -1,5 +1,6 @@
 ---
 title: Polished Blackstone Pressure Plate
+template: splash
 description: |
     Minecraft Polished Blackstone Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 897
     ref: polished_blackstone_pressure_plate
     slug: polished-blackstone-pressure-plate
+    content_rev: 1
     display_name: Polished Blackstone Pressure Plate
     material: redstone
     hardness: 0.5
@@ -24,10 +26,57 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_blackstone_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - redstone_component
+    about:
+        description: |
+            Polished Blackstone Pressure Plate is a redstone component
+            crafted from two polished blackstone blocks. It behaves like a
+            stone pressure plate, but detects only players and mobs rather
+            than dropped items.
+        lore: |
+            Introduced with the rest of the polished blackstone set in the
+            Nether Update (Java Edition 1.16).
+    uses:
+        - title: Redstone Trigger
+          ref: redstone_dust
+          detail: |
+              Placed atop a solid block, it powers adjacent redstone
+              components while a player or mob stands on it, commonly used
+              for hidden doors and mob traps.
+    found_in:
+        - location: Crafted from Polished Blackstone
+          detail: Two polished blackstone blocks stacked vertically craft one plate.
+        - location: Piglin Bartering
+          detail: |
+              Piglins have an 8.71% chance to give 8-16 blackstone per
+              barter, making the plate renewable.
+    faq:
+        - question: What tool do I need to mine a Polished Blackstone Pressure Plate?
+          answer: |
+              Any tool works, and it drops itself regardless of tool used.
+        - question: Does it detect dropped items like a wooden pressure plate?
+          answer: |
+              No. Like all stone-type pressure plates, it only triggers for
+              players and mobs, not items or arrows.
+        - question: Can I use it in crafting recipes?
+          answer: |
+              No, unlike stone pressure plates it has no further crafting
+              use beyond being placed as a redstone component.
+        - question: Is it waterloggable?
+          answer: |
+              Yes, but only in Bedrock Edition. Java Edition does not allow
+              waterlogging this block.
     data_version: "1.21.5"
 ---
 

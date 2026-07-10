@@ -1,5 +1,6 @@
 ---
 title: Horn Coral Fan
+template: splash
 description: |
     Minecraft Horn Coral Fan — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 643
     ref: horn_coral_fan
     slug: horn-coral-fan
+    content_rev: 1
     display_name: Horn Coral Fan
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Horn Coral Fan is a yellow, non-solid coral fan that grows
+            attached to the top or sides of blocks in warm ocean coral reefs. It
+            must remain submerged in water or it withers into a dead coral fan
+            within seconds, and can only be recovered as an item with Silk Touch.
+        lore: |
+            A delicate golden frond that sways only so long as the current keeps it wet.
+    faq:
+        - question: How do you place a Horn Coral Fan?
+          answer: |
+              It attaches to the top or sides of a block, never the bottom, and
+              can be waterlogged so it survives while placed in water.
+        - question: How do you obtain a Horn Coral Fan without it dying?
+          answer: |
+              Mine it with a Silk Touch enchanted tool; without Silk Touch it
+              breaks instantly and drops nothing.
+        - question: What happens if a Horn Coral Fan is out of water?
+          answer: |
+              It dries out and turns into a dead coral fan within a few seconds,
+              and this change cannot be undone.
+        - question: Can Horn Coral Fans be renewed?
+          answer: |
+              Yes, applying bone meal near living coral in a warm ocean biome can
+              generate new coral fans, making them a renewable resource.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

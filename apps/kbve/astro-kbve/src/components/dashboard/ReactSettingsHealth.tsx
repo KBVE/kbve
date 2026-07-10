@@ -1,3 +1,9 @@
+/**
+ * @deprecated Cleaned up 2026-07 — /dashboard/account now renders the unified
+ * RN AccountScreen from @kbve/rn (web + mobile, one component). This legacy
+ * account surface is no longer mounted anywhere. Do not extend it; port any
+ * remaining pieces (wallet / market / referral) into @kbve/rn, then delete.
+ */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
 	RefreshCw,
@@ -65,6 +71,7 @@ export default function ReactSettingsHealth() {
 
 	const runChecks = useCallback(async () => {
 		setRunning(true);
+		const startedAt = performance.now();
 		const results: WorkerCheck[] = [];
 
 		results.push({
@@ -188,7 +195,8 @@ export default function ReactSettingsHealth() {
 		});
 
 		setChecks(results);
-		setRunning(false);
+		const elapsed = performance.now() - startedAt;
+		setTimeout(() => setRunning(false), Math.max(0, 600 - elapsed));
 	}, []);
 
 	useEffect(() => {

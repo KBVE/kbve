@@ -12,6 +12,9 @@ members = [
     "packages/rust/bevy/bevy_skills",
 ]
 
+[workspace.package]
+rust-version = "1.96"
+
 [profile.release]
 opt-level = 3
 lto = true

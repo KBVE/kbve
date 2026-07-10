@@ -1,5 +1,6 @@
 ---
 title: Orange Candle
+template: splash
 description: |
     Minecraft Orange Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1307
     ref: orange_candle
     slug: orange-candle
+    content_rev: 1
     display_name: Orange Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            An Orange Candle is a dyeable, light-emitting block crafted from string and honeycomb, then
+            colored with orange dye. Up to four candles can be placed together in a single block space,
+            and lighting them with flint and steel raises the light level from 3 up to 12.
+        lore: |
+            Candles bring a warm, flickering glow to builds and can even be placed atop cakes for a festive touch.
+    faq:
+        - question: How do you make an Orange Candle?
+          answer: |
+              Craft a plain candle from string and honeycomb, then combine it with orange dye at a
+              crafting table to color it orange.
+        - question: How much light does an Orange Candle give off?
+          answer: |
+              A single lit candle emits a light level of 3. Grouping up to four candles in one block
+              and lighting them all increases the light level up to 12.
+        - question: Can an Orange Candle be lit while waterlogged?
+          answer: |
+              No. Candles cannot be lit if they are waterlogged, and water will extinguish an already
+              lit candle.
+        - question: Can Orange Candles be placed on cakes?
+          answer: |
+              Yes. Placing a candle on a cake creates a decorative candle cake, which can also be lit
+              for a festive centerpiece.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

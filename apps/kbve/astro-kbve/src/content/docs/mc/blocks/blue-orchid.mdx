@@ -1,5 +1,6 @@
 ---
 title: Blue Orchid
+template: splash
 description: |
     Minecraft Blue Orchid — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 160
     ref: blue_orchid
     slug: blue-orchid
+    content_rev: 1
     display_name: Blue Orchid
     material: plant
     hardness: 0
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_orchid
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Blue Orchid is a small flower that generates only in swamp
+            biomes, growing on grass and dirt. It breaks instantly with any
+            tool or by hand, always dropping itself.
+        lore: |
+            It was added in Java Edition 13w36a (1.7.2) as one of the
+            original decorative flower blocks.
+    uses:
+        - title: Light Blue Dye
+          ref: light_blue_dye
+          detail: |
+              Crafted into Light Blue Dye, used for dyeing wool, terracotta,
+              and other colorable blocks and items.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combined with a mushroom and a bowl to make Suspicious Stew,
+              which grants the Saturation effect when eaten.
+        - title: Bee Breeding
+          ref: bee
+          detail: |
+              Can be used to breed, grow, and lure bees, and increases honey
+              production when planted near beehives.
+    found_in:
+        - location: Swamp Biomes
+          detail: Generates naturally on grass and dirt as part of swamp vegetation.
+        - location: Woodland Mansions
+          detail: Appears in potted form as decoration inside woodland mansion rooms.
+    faq:
+        - question: What tool do I need to mine Blue Orchid?
+          answer: |
+              None. It can be broken instantly by hand or with any tool,
+              always dropping itself.
+        - question: Is Blue Orchid affected by Fortune?
+          answer: |
+              No, flowers like Blue Orchid always drop exactly one item
+              regardless of Fortune.
+        - question: Where can I find Blue Orchid naturally?
+          answer: |
+              Only in swamp biomes, making it rarer to gather than most
+              other flowers.
+        - question: What can I make with Blue Orchid?
+          answer: |
+              Light Blue Dye, Suspicious Stew, and it also helps attract
+              and breed bees.
     data_version: "1.21.5"
 ---
 

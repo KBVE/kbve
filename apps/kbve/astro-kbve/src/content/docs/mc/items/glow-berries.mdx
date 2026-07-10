@@ -1,5 +1,6 @@
 ---
 title: Glow Berries
+template: splash
 description: |
     Minecraft Glow Berries — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1281
     ref: glow_berries
     slug: glow-berries
+    content_rev: 1
     display_name: Glow Berries
     category: food
     rarity: common
@@ -22,6 +24,37 @@ mc_item:
         saturation: 1.6
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Glow Berries are a food item harvested from cave vines that hang from
+            the ceilings of lush caves. Eating one restores 2 hunger points, and
+            the berries can also be replanted to grow new light-emitting vines.
+        lore: |
+            Bioluminescent fruit that clings to the roots of the deep, lighting
+            the way for anyone brave enough to explore a lush cave.
+    faq:
+        - question: How do I get Glow Berries?
+          answer: |
+              Break a cave vine block that is bearing berries to collect one, or
+              right-click (use) the vine without breaking it to harvest berries
+              while leaving the vine intact. They also generate naturally in lush
+              caves and appear in some mineshaft, ancient city, and trial chamber
+              loot chests.
+        - question: What do Glow Berries do when eaten?
+          answer: |
+              Eating a glow berry restores 2 hunger points and a small amount of
+              saturation. They can be eaten even when the hunger bar is full,
+              like most other foods that aren't steak or similar.
+        - question: Can Glow Berries be planted?
+          answer: |
+              Yes. Using a glow berry on the underside of certain blocks starts a
+              new cave vine that grows downward over time and can eventually
+              bear its own berries.
+        - question: Do cave vines with Glow Berries emit light?
+          answer: |
+              Yes, a cave vine block bearing berries emits light level 14, making
+              berry-laden vines a natural light source useful for illuminating
+              caves.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

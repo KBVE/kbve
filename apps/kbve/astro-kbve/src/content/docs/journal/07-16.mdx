@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1721046583031-07296af14cc7?crop=entropy&c
 description: July 16th. Dialogue System.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 16,'
+    accent: every year.
+    lede: 'The July 16th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 15'
+          href: /journal/07-15/
+        - label: 'Jul 17 →'
+          href: /journal/07-17/
+    related:
+        - title: 'Previous · Jul 15'
+          copy: 'Step back a day to the July 15th log.'
+          href: /journal/07-15/
+          icon: calendar
+        - title: 'Next · Jul 17'
+          copy: 'Jump ahead to the July 17th log.'
+          href: /journal/07-17/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721046583031-07296af14cc7?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Pirate 17
 
@@ -28,7 +70,15 @@ import { Adsense } from '@/components/astropad';
     Rolling the puts into the next week, hopefully they do not get called and expire without any problems.
     I am not looking to do anything but collect that sweet sweet wheel money.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Settings**
 The game needs a settings menu and then an option to enable and disable debug mode.
@@ -95,7 +145,10 @@ One of the future improvements that we could make with the dice rolling is to op
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 6:30am - Started to add state management through nanostores into the React Native application. 
 - 6:41am - Removing the `react-hook-form` from the RentEarth repo because I was having some issues getting it to work with the Tamagui framework. There was a solution to use a 3rd party plugin, but I felt like it might best to step away from that for now and use write something a bit more simple. 
 - 6:50am - Renaming the `/auth/` path to `/account/` to keep the same naming convention across the multiple tenets. I should note that I am thinking of renaming the RogueJester to RentEarth and pivoting the gaming to be a bit more focused on this concept. It would be an interesting shift per say, but it seems that the marketing potential is definitely higher with this name. I suppose the RJ is a codename for the project and is not the final title name. I find it interesting how even the name of a video game can help determine its future, at least to an extent that falls under the branding. 
@@ -103,13 +156,21 @@ One of the future improvements that we could make with the dice rolling is to op
 - 10:52am - I created an issue ticket related to the storage situation, it would be called inside of various platforms from React to our mobile apps to Unity. Thinking through how we would go about setting it up, I am also thinking that while we do it, we should also build a proof of concept. I suppose we could look into making it a npm package? That way we could reference it anywhere we would want. 
 - 2:30pm - Taco bell is a double edge sword and in some cases the most dangerous offering that a person can give. We know how bad it can be for the body but if anyone offers to pick you up some taco bell? Are you going to say no? But that is something that I need to learn and understand. It is okay to deny food, definitely if afterwards you know your friend next to the da pepe will suffer. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Every time you smile at someone, it is an action of love, a gift to that person, a beautiful thing.
 > — <cite>Mother Teresa</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,25 +1,49 @@
 import { _title } from '../../sanitization';
 import { GithubActionReferenceMap } from './types';
 
-export function _$gha_findActionInTitle(
-  title: string,
-  referenceMap: GithubActionReferenceMap[],
+function findActionInTitle(
+	title: string,
+	referenceMap: GithubActionReferenceMap[],
 ): string {
-  const sanitizedTitle = _title(title);
+	const sanitizedTitle = _title(title);
 
-  for (const item of referenceMap) {
-    if (sanitizedTitle.includes(item.keyword)) {
-      return item.action;
-    }
-  }
-  throw new Error('No matching keyword found in title');
+	for (const item of referenceMap) {
+		if (sanitizedTitle.includes(item.keyword)) {
+			return item.action;
+		}
+	}
+	throw new Error('No matching keyword found in title');
 }
 
 const defaultReferenceMap: GithubActionReferenceMap[] = [
-  { keyword: 'atlas', action: 'atlas_action' },
-  { keyword: 'music', action: 'music_action' },
+	{ keyword: 'atlas', action: 'atlas_action' },
+	{ keyword: 'music', action: 'music_action' },
 ];
 
-export function _$gha_kbve_ActionProcess(title: string): string {
-  return _$gha_findActionInTitle(title.toLowerCase(), defaultReferenceMap);
+function kbveActionProcess(title: string): string {
+	return findActionInTitle(title.toLowerCase(), defaultReferenceMap);
 }
+
+export function findActionInTitleSafe(
+	title: string,
+	referenceMap: GithubActionReferenceMap[],
+): string | null {
+	const sanitizedTitle = _title(title);
+	for (const item of referenceMap) {
+		if (sanitizedTitle.includes(item.keyword)) {
+			return item.action;
+		}
+	}
+	return null;
+}
+
+export const actions = {
+	findActionInTitle,
+	kbveActionProcess,
+	findActionInTitleSafe,
+};
+
+/** @deprecated Use `gha.actions.findActionInTitle`. */
+export const _$gha_findActionInTitle = findActionInTitle;
+/** @deprecated Use `gha.actions.kbveActionProcess`. */
+export const _$gha_kbve_ActionProcess = kbveActionProcess;

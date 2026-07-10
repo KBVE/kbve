@@ -1,5 +1,6 @@
 ---
 title: Bamboo Door
+template: splash
 description: |
     Minecraft Bamboo Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 622
     ref: bamboo_door
     slug: bamboo-door
+    content_rev: 1
     display_name: Bamboo Door
     material: wood
     hardness: 3
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Bamboo Door is a two-tile-tall barrier crafted from Bamboo
+            Planks that players can open and close by hand or with redstone
+            power, without needing a button or lever.
+        lore: |
+            Wooden doors trace back to Infdev in 2010; the bamboo variant
+            joined the full wood-type door set in Java Edition 1.20.
+    uses:
+        - title: Building Entrances
+          ref: bamboo_planks
+          detail: |
+              Used as the primary access point for player builds, letting
+              light through while blocking most mobs.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Smelts 1 item per door when used as furnace fuel.
+    found_in:
+        - location: Crafting Table
+          detail: 6 Bamboo Planks craft 3 Bamboo Doors.
+    faq:
+        - question: What tool mines Bamboo Door fastest?
+          answer: |
+              An axe. It can still be broken by hand, just more slowly.
+        - question: Can zombies break down Bamboo Door?
+          answer: |
+              No. Zombies can only break wooden doors on Hard difficulty in
+              older versions; in current versions they cannot break any
+              wooden doors.
+        - question: Is Bamboo Door waterloggable?
+          answer: |
+              No. Like other wooden doors, it cannot be placed underwater
+              with the waterlogged state in Java Edition.
+        - question: Is Bamboo Door flammable?
+          answer: |
+              Yes. As an Overworld wood variant it can catch fire and burn.
     data_version: "1.21.5"
 ---
 

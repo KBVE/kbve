@@ -1,5 +1,6 @@
 ---
 title: Suspicious Stew
+template: splash
 description: |
     Minecraft Suspicious Stew — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1255
     ref: suspicious_stew
     slug: suspicious-stew
+    content_rev: 1
     display_name: Suspicious Stew
     category: food
     rarity: common
@@ -22,6 +24,30 @@ mc_item:
         saturation: 86.4
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Suspicious stew is a food item crafted from mushrooms, a bowl, and a small flower, granting a
+            temporary status effect determined by the flower used. It restores 6 hunger and 7.2
+            saturation, and can be obtained from crafting, mooshroom milking, village loot, or trading.
+        lore: |
+            A bubbling bowl of mushrooms and blossoms, whose flavor hides a flower's hidden magic within every spoonful.
+    faq:
+        - question: How do I know what effect my stew will have?
+          answer: |
+              The effect isn't visible in normal tooltips outside Creative mode, so you must remember which
+              flower you used, since the stew looks identical regardless of effect.
+        - question: Why are dandelion and blue orchid stews special?
+          answer: |
+              Their Saturation effect makes dandelion and blue orchid stews superfoods, combining with the
+              stew's base nutrition to restore hunger very efficiently in a single item.
+        - question: Can I eat suspicious stew when my hunger bar is full?
+          answer: |
+              Yes, suspicious stew can be eaten even if the player's hunger bar is full, unlike most other
+              food items.
+        - question: How is suspicious stew crafted?
+          answer: |
+              Combine a red mushroom, a brown mushroom, a bowl, and any small flower at a crafting table,
+              or obtain it by milking a brown mooshroom that has been fed a flower.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

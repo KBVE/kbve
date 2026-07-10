@@ -1,5 +1,6 @@
 ---
 title: Gray Bed
+template: splash
 description: |
     Minecraft Gray Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 117
     ref: gray_bed
     slug: gray-bed
+    content_rev: 1
     display_name: Gray Bed
-    material: stone
+    material: wood
     hardness: 0.2
     blast_resistance: 0.2
     best_tool: hand
@@ -23,11 +25,62 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Gray Bed lets players sleep through the night and set
+            their respawn point. Like all beds, using it outside the
+            Overworld triggers a powerful explosion instead of sleep.
+        lore: |
+            Beds bounce entities on landing and reduce fall damage,
+            a side effect of their soft, springy model.
+    uses:
+        - title: Sleeping & Respawn
+          ref: gray_bed
+          detail: |
+              Right-click to skip the night and set your spawn point
+              nearby; villagers also need spare beds to breed.
+        - title: Nether/End Explosive
+          ref: tnt
+          detail: |
+              Sleeping in a bed in the Nether or the End instead detonates
+              it with power 5, useful for clearing terrain like Ancient
+              Debris pockets.
+    found_in:
+        - location: Villages
+          detail: Generates in houses of villages matching the local biome's wood type.
+        - location: Crafted or Dyed
+          detail: |
+              Craft from gray wool and any planks, or dye an existing bed
+              gray with gray dye.
+    faq:
+        - question: What tool do I need to break a bed?
+          answer: |
+              None — any tool or bare hands breaks a bed equally fast due
+              to its very low hardness.
+        - question: What happens if I sleep in a bed in the Nether?
+          answer: |
+              The bed explodes with power 5 instead of letting you sleep,
+              damaging nearby blocks and entities.
+        - question: Do beds catch fire?
+          answer: |
+              Yes, beds are flammable and can be destroyed by nearby fire
+              or lava.
+        - question: Can I change a bed's color after crafting it?
+          answer: |
+              Yes. Combine the bed with any dye in a crafting grid to
+              recolor it, including to gray.
     data_version: "1.21.5"
 ---
 

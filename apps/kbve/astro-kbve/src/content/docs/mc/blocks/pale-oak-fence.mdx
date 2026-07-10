@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Fence
+template: splash
 description: |
     Minecraft Pale Oak Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 611
     ref: pale_oak_fence
     slug: pale-oak-fence
+    content_rev: 1
     display_name: Pale Oak Fence
     material: wood
     hardness: 2
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Oak Fence is a wooden barrier block crafted from pale
+            oak planks and sticks, taller than a full block so mobs and
+            players cannot jump over it, and it links visually with any
+            adjacent fence or fence gate.
+        lore: |
+            It was introduced with the pale oak wood set in the Garden
+            Awakens drop (Java Edition 1.21.4), matching the bleached
+            timber found throughout pale gardens.
+    uses:
+        - title: Pens and Property Lines
+          ref: pale_oak_fence
+          detail: |
+              Used to enclose animals, mark boundaries, and build
+              decorative railings; connects to fence gates for a
+              passable opening.
+        - title: Lead Attachment
+          ref: lead
+          detail: |
+              Mobs on a lead can be tied to a fence post, keeping them in
+              place.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Smelts as furnace fuel like most other wood-based blocks.
+    found_in:
+        - location: Crafting
+          detail: Four pale oak planks and two sticks craft three pale oak fences.
+        - location: Pale Garden Builds
+          detail: Frequently used decoratively around pale garden and pale oak-themed structures, though it does not generate naturally.
+    faq:
+        - question: What tool do I need to mine Pale Oak Fence?
+          answer: |
+              None. It breaks with any tool, or by hand, and always drops
+              itself.
+        - question: Can mobs jump over Pale Oak Fence?
+          answer: |
+              No. Fences are 1.5 blocks tall, tall enough to stop most
+              mobs and players from jumping over them.
+        - question: Is Pale Oak Fence flammable?
+          answer: |
+              Yes. Overworld wood fences, including pale oak, can catch
+              fire and burn away if exposed to flame.
+        - question: Does Pale Oak Fence connect to other wood types?
+          answer: |
+              Yes. Fences of any wood connect visually to one another and
+              to fence gates of any type.
     data_version: "1.21.5"
 ---
 

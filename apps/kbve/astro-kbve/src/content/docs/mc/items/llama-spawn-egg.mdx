@@ -1,5 +1,6 @@
 ---
 title: Llama Spawn Egg
+template: splash
 description: |
     Minecraft Llama Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1101
     ref: llama_spawn_egg
     slug: llama-spawn-egg
+    content_rev: 1
     display_name: Llama Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Llama Spawn Egg is a Creative-mode item that instantly
+            spawns a llama when used on a surface. Like all spawn eggs it
+            bypasses natural spawning rules and can only be obtained through
+            Creative inventory or commands, and using it on an existing
+            llama produces a baby.
+        lore: |
+            These eggs bypass natural spawn mechanics, granting players
+            direct control over which mobs populate their world.
+        faq:
+            - question: How can I get a Llama Spawn Egg in Survival mode?
+              answer: |
+                  Spawn eggs cannot be obtained naturally in Survival. They
+                  must be accessed through Creative mode or a command such
+                  as /give @s llama_spawn_egg.
+            - question: What happens if I use the Llama Spawn Egg on an existing llama?
+              answer: |
+                  Using a spawn egg on a mob of the same species spawns a
+                  baby version of that mob instead of an adult.
+            - question: Does the Llama Spawn Egg work on a monster spawner?
+              answer: |
+                  Yes, using a spawn egg on a monster spawner changes which
+                  mob that spawner will produce.
+            - question: Are spawn eggs available for every mob in the game?
+              answer: |
+                  No, a handful of mobs such as the Giant and Elder Guardian
+                  Ghost have no vanilla spawn egg, though custom ones can be
+                  created via data or item components.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

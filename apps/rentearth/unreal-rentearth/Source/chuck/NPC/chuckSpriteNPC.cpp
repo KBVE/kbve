@@ -194,7 +194,7 @@ void AchuckSpriteNPC::Tick(float DeltaSeconds)
 	Quad->SetWorldRotation(BillboardRot);
 }
 
-static FAutoConsoleCommand GchuckSpawnSlimeCmd(
+static FAutoConsoleCommand* GchuckSpawnSlimeCmd = new FAutoConsoleCommand(
 	TEXT("chuck.SpawnSlime"),
 	TEXT("Spawn a slime sprite NPC 3m in front of the local player."),
 	FConsoleCommandDelegate::CreateLambda([]()

@@ -1,5 +1,6 @@
 ---
 title: Spider Eye
+template: splash
 description: |
     Minecraft Spider Eye — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1060
     ref: spider_eye
     slug: spider-eye
+    content_rev: 1
     display_name: Spider Eye
     category: food
     rarity: common
@@ -22,6 +24,36 @@ mc_item:
         saturation: 12.8
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The spider eye is a food item dropped by spiders, cave spiders, and witches, and it can
+            also be found in desert pyramid chests. Eating one restores hunger and saturation but
+            inflicts a short bout of Poison, making it a risky snack rather than a reliable food source.
+            Its main value lies in crafting: combined with a brown mushroom and sugar it becomes a
+            fermented spider eye, a key ingredient for potions of Weakness and other corrupted brews.
+        lore: |
+            A staple ingredient of arachnid-slaying and witch alchemy since the earliest days of Beta.
+    faq:
+        - question: |
+              Is it safe to eat a spider eye?
+          answer: |
+              It restores 2 hunger and 3.2 saturation, but it also poisons you for a few seconds,
+              so it is better used for brewing than for emergency food.
+        - question: |
+              What is the spider eye used for?
+          answer: |
+              It ferments into a fermented spider eye for corrupting potions, brews into potions of
+              Poison, and can be fed to armadillos to encourage breeding.
+        - question: |
+              Where can I find spider eyes?
+          answer: |
+              Spiders, cave spiders, and witches drop them, and desert pyramid chests can also
+              contain a small stack.
+        - question: |
+              Do enchantments affect spider eye drops?
+          answer: |
+              Yes, Looting on the killing weapon increases the chance and quantity of spider eyes
+              dropped by spiders and cave spiders.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Cobbled Deepslate Stairs
+template: splash
 description: |
     Minecraft Cobbled Deepslate Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1061
     ref: cobbled_deepslate_stairs
     slug: cobbled-deepslate-stairs
+    content_rev: 1
     display_name: Cobbled Deepslate Stairs
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobbled_deepslate_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Cobbled Deepslate Stairs are a decorative stepped variant of
+            cobbled deepslate, keeping the rough, unpolished look of the
+            base block. They generate naturally within ancient city
+            structures found deep in the Deep Dark biome.
+        lore: |
+            Introduced as "grimstone stairs" in Java Edition 21w07a, the
+            block was renamed and later added to ancient city generation
+            in 1.19.
+    uses:
+        - title: Building & Decoration
+          ref: cobbled_deepslate
+          detail: |
+              Used for vertical navigation and detailing in deepslate-themed
+              builds, matching cobbled deepslate walls and slabs.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as part of ancient city structures in the deep dark.
+        - location: Crafting table or stonecutter
+          detail: |
+              Crafted from 6 cobbled deepslate (yields 4 stairs), or cut
+              from cobbled deepslate or deepslate at a stonecutter.
+    faq:
+        - question: What tool do I need to mine Cobbled Deepslate Stairs?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one set of stairs regardless of
+              enchantments.
+        - question: Where do Cobbled Deepslate Stairs generate naturally?
+          answer: |
+              They spawn as part of ancient city structures in the deep
+              dark biome.
+        - question: Can stairs be placed upside down or in corners?
+          answer: |
+              Yes. Like all stairs, they support upside-down placement and
+              form corner shapes automatically based on adjacent blocks.
     data_version: "1.21.5"
 ---
 

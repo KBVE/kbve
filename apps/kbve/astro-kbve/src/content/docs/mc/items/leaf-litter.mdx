@@ -1,5 +1,6 @@
 ---
 title: Leaf Litter
+template: splash
 description: |
     Minecraft Leaf Litter — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 260
     ref: leaf_litter
     slug: leaf-litter
+    content_rev: 1
     display_name: Leaf Litter
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Leaf litter is a thin decorative block resembling fallen leaves, generating
+            naturally on the floor of forests, dark forests, and wooded badlands. Up to
+            four layers can occupy the same block space, and it can also be obtained by
+            smelting any leaves block.
+        lore: |
+            The soft carpet of decay that gathers beneath every old tree.
+    faq:
+        - question: How do I get leaf litter?
+          answer: |
+              It generates naturally around trees in forest biomes, or can be crafted by
+              smelting any type of leaves block in a furnace.
+        - question: Where can leaf litter be placed?
+          answer: |
+              It can only be placed on top of blocks with a full solid top surface, and
+              it faces the direction the player was looking when placed.
+        - question: Does leaf litter have any practical use besides decoration?
+          answer: |
+              Yes, it can be used as furnace fuel and as a composting ingredient with a
+              30% chance to raise the compost level.
+        - question: Can trees grow through leaf litter?
+          answer: |
+              Yes, leaf litter is replaceable, so saplings and other growth can push
+              through it without needing to be manually cleared first.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

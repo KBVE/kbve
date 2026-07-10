@@ -1,5 +1,6 @@
 ---
 title: Fire Coral Wall Fan
+template: splash
 description: |
     Minecraft Fire Coral Wall Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 753
     ref: fire_coral_wall_fan
     slug: fire-coral-wall-fan
+    content_rev: 1
     display_name: Fire Coral Wall Fan
     material: stone
     hardness: 0
@@ -23,11 +25,60 @@ mc_block:
     light_opacity: 1
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: fire_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+        - coral
+    about:
+        description: |
+            Fire Coral Wall Fan is the wall-mounted placement form of Fire
+            Coral Fan, automatically used by the game when a coral fan is
+            attached to the side of a block instead of its top. It shares
+            the same living-coral behavior and drops as the regular fan.
+        lore: |
+            Wall fan variants exist as a technical block state so coral
+            fans can attach to vertical surfaces; players never select this
+            block directly — placing a Fire Coral Fan against a wall
+            produces it automatically.
+    uses:
+        - title: Decoration
+          ref: fire_coral_fan
+          detail: |
+              Used identically to Fire Coral Fan for reef-themed builds, but
+              specifically for vertical, wall-mounted placements.
+    found_in:
+        - location: Warm Ocean coral reefs
+          detail: Generates naturally on the vertical faces of blocks within warm ocean reef structures.
+        - location: Player placement
+          detail: Produced automatically when a player places a Fire Coral Fan item against the side of a block.
+    faq:
+        - question: How is this different from Fire Coral Fan?
+          answer: |
+              It is the same item and drop, just the block state used when
+              the fan is attached to a vertical block face instead of a
+              horizontal top surface.
+        - question: Do I need Silk Touch to harvest it?
+          answer: |
+              Yes. Without Silk Touch it breaks with no drop; with Silk
+              Touch it drops a Fire Coral Fan item.
+        - question: Does it need water to survive?
+          answer: |
+              Yes, the same as Fire Coral Fan — losing water contact kills
+              it and turns it into the dead wall fan variant.
+        - question: Can I obtain this block directly as an item?
+          answer: |
+              No. There is no separate item for the wall fan; placing the
+              Fire Coral Fan item against a wall creates this block state
+              automatically.
     data_version: "1.21.5"
 ---
 

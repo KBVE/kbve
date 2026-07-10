@@ -1,5 +1,6 @@
 ---
 title: Light Gray Banner
+template: splash
 description: |
     Minecraft Light Gray Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 555
     ref: light_gray_wall_banner
     slug: light-gray-wall-banner
+    content_rev: 1
     display_name: Light Gray Banner
     material: wood
     hardness: 1
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Light Gray Banner (wall-mounted form) is a tall decorative
+            block hung on a vertical surface, displaying a colored field
+            that can be layered with up to six patterns applied at a
+            loom. It always drops as the standalone banner item when
+            broken.
+        lore: |
+            Banners let players design and share custom emblems, which
+            can also be copied onto shields for use in combat.
+    uses:
+        - title: Loom patterns
+          ref: light_gray_banner
+          detail: |
+              Combine with a Banner Pattern item and dye at a loom to add
+              a design layer; up to six layers can be stacked on one
+              banner.
+        - title: Shield decoration
+          ref: shield
+          detail: |
+              Combine a patterned banner with a shield in a crafting grid
+              to copy the banner's design onto the shield.
+    found_in:
+        - location: Crafting
+          detail: Craft from 6 Light Gray Wool blocks plus 1 stick, arranged in a sign-like pattern, to get a standing banner; place against a wall to get the wall banner form.
+        - location: Furnace fuel
+          detail: Banners can be burned as furnace fuel, smelting 1.5 items each.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              An axe mines it fastest, but any tool works and there is
+              no minimum tier requirement.
+        - question: Is the wall banner a different item from the standing banner?
+          answer: |
+              No. Both the standing and wall-mounted forms drop the same
+              Light Gray Banner item; the placement form only depends on
+              whether it is placed on the floor or against a wall.
+        - question: Is the banner flammable?
+          answer: |
+              No. Banners do not burn, though lava can scorch the air
+              block next to one as if it were flammable without actually
+              destroying the banner.
+        - question: How many pattern layers can a banner hold?
+          answer: |
+              Up to six layers, applied one at a time at a loom using a
+              banner pattern item and a dye.
     data_version: "1.21.5"
 ---
 

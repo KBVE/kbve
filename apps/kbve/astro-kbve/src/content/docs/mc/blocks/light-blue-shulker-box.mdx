@@ -1,5 +1,6 @@
 ---
 title: Light Blue Shulker Box
+template: splash
 description: |
     Minecraft Light Blue Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 649
     ref: light_blue_shulker_box
     slug: light-blue-shulker-box
+    content_rev: 1
     display_name: Light Blue Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Light Blue Shulker Box is a portable, 27-slot storage
+            container dyed light blue and crafted from a shulker shell and
+            a chest. Mining it with any pickaxe always drops the box with
+            its full inventory contents intact.
+        lore: |
+            Shulker boxes were added in Java Edition 1.11, letting players
+            carry entire inventories of items as a single block, using
+            shells dropped by shulkers found in End cities.
+    uses:
+        - title: Portable Storage
+          ref: light_blue_shulker_box
+          detail: |
+              Holds 27 item stacks and can be placed, mined, and carried
+              in an inventory without losing its contents, unlike a chest.
+    found_in:
+        - location: Crafting table
+          detail: Combine a shulker shell with a chest to make an undyed shulker box, then dye it light blue.
+        - location: End cities
+          detail: Shulker shells are obtained by defeating shulker mobs guarding End city loot.
+    faq:
+        - question: What tool do I need to mine Light Blue Shulker Box?
+          answer: |
+              Any pickaxe. It breaks without one but yields no drop.
+        - question: Does mining it lose the items inside?
+          answer: |
+              No. Shulker boxes always retain their contents when mined,
+              renamed, or dyed a different color, with no Silk Touch
+              needed.
+        - question: Can I stack multiple shulker boxes?
+          answer: |
+              No. A shulker box does not stack in an inventory slot while
+              it contains items, though empty ones stack up to 64.
+        - question: Can it survive an explosion?
+          answer: |
+              It has moderate blast resistance and can be destroyed by
+              strong explosions, which also destroys the stored items
+              unless picked up first.
     data_version: "1.21.5"
 ---
 

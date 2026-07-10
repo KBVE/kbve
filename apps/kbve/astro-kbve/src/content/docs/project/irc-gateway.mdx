@@ -1,7 +1,7 @@
 ---
-title: IRC Gateway
-description: |
-    IRC gateway service for KBVE.
+title: IRC Gateway — WebSocket-to-IRC Bridge
+description: Rust Axum IRC gateway bridging WebSocket clients to an Ergo IRC server with JWT auth, per-channel Valkey history, rate limiting, and a shared chat schema.
+sem: 1
 sidebar:
     label: IRC Gateway
     order: 51
@@ -11,7 +11,7 @@ tags:
 key: irc_gateway
 pipeline: docker
 app_name: irc-gateway
-version: "0.1.27"
+version: "0.1.28"
 source_path: apps/irc
 version_toml: apps/irc/version.toml
 version_target: apps/irc/irc-gateway/Cargo.toml
@@ -29,8 +29,101 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the IRC Gateway do?
+          answer: It is a Rust Axum service that bridges WebSocket clients to an Ergo IRC server, adding JWT authentication, per-channel chat history, rate limiting, and a shared chat message schema.
+        - question: How is chat history handled?
+          answer: A dedicated listener task per channel holds its own IRC connection and appends every PRIVMSG to a per-channel ring buffer, so freshly connected clients can be shown recent backscroll.
+        - question: What transport and auth does it use?
+          answer: It exposes WebSocket and REST transports over Axum with JWT verification, and uses the shared bevy_chat schema to translate between ChatMessage and IRC PRIVMSG frames.
+bento:
+    badge: docker · networking
+    title: WebSocket-to-IRC
+    accent: bridge
+    lede: >-
+        A Rust Axum service that bridges WebSocket clients to an Ergo IRC server
+        — adding JWT auth, per-channel Valkey history, rate limiting, and a
+        shared chat schema so web and game clients speak the same vocabulary as
+        the IRC network. Fronts KBVE's /minechat and /gamechat channels.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/irc
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Deploy
+          href: "#deploy"
+    aside:
+        icon: message
+        title: Per-channel backscroll
+        body: >-
+            A dedicated listener task per channel holds its own IRC connection
+            and appends every PRIVMSG to a Valkey-backed ring buffer, so freshly
+            connected clients see recent history plus live messages.
+        points:
+            - <strong>Auth</strong> — JWT verified before channel access.
+            - <strong>Schema</strong> — bevy_chat ChatMessage ⇄ IRC PRIVMSG.
+    stats:
+        - { label: Image, value: kbve/irc-gateway, icon: box }
+        - { label: Language, value: Rust, icon: rust }
+        - { label: Backend, value: Ergo + Valkey, icon: server }
+        - { label: Auth, value: JWT, icon: key }
+    features:
+        - title: WebSocket ↔ IRC bridge
+          icon: network
+          body: Proxies WebSocket sessions onto Ergo IRC connections.
+        - title: JWT auth
+          icon: key
+          body: Validates tokens before granting channel access.
+        - title: Per-channel history
+          icon: clock
+          body: A listener task per channel rings recent PRIVMSGs for backscroll.
+        - title: Rate limiting
+          icon: shield
+          body: Ingress throttling to protect the IRC backend.
+        - title: Shared chat schema
+          icon: message
+          body: bevy_chat ChatMessage ⇄ IRC PRIVMSG translation.
+        - title: REST + WebSocket transports
+          icon: server
+          body: HTTP endpoints alongside the live socket.
+    related:
+        - title: Bevy Chat Crate
+          href: /project/bevy-chat-crate/
+          copy: Shared chat message schema.
+          icon: message
+        - title: DiscordSH
+          href: /project/discordsh/
+          copy: Discord bridge sharing the chat pipeline.
+          icon: discord
+        - title: Minecraft Server
+          href: /project/mc/
+          copy: Game server feeding the /minechat channel.
+          icon: box
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-IRC gateway networking service.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="deploy" eyebrow="Runtime" heading="Usage & deploy">
+
+Built and deployed as the `kbve/irc-gateway` container on Kubernetes; clients
+connect over WebSocket with a valid JWT to join a channel and receive recent
+history plus live messages.
+
+</BentoProse>
+
+</BentoDoc>

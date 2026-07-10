@@ -1,5 +1,6 @@
 ---
 title: Potted Fern
+template: splash
 description: |
     Minecraft Potted Fern — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 391
     ref: potted_fern
     slug: potted-fern
+    content_rev: 1
     display_name: Potted Fern
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: fern
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - decoration
+    about:
+        description: |
+            Potted Fern is a decorative block formed by placing a Fern
+            into a Flower Pot. It breaks instantly with any tool or bare
+            hand, releasing the flower pot and the fern as two separate
+            item drops, unlike the free-standing fern which needs shears
+            to reliably drop itself.
+        lore: |
+            Ferns have grown in jungles and taigas since early versions of
+            the game, and potting one lets players bring that greenery
+            indoors as decoration.
+    uses:
+        - title: Decoration
+          ref: fern
+          detail: |
+              A potted fern is purely decorative, commonly used to add
+              jungle or taiga theming to interiors without needing shears
+              to harvest a full fern block from the world.
+    found_in:
+        - location: Woodland Mansions and taiga villages
+          detail: Potted ferns generate naturally in woodland mansions and taiga village mason houses.
+        - location: Crafted by the player
+          detail: Craft an empty flower pot from 3 bricks, then place a fern into it.
+    faq:
+        - question: What tool do I need to mine a Potted Fern?
+          answer: |
+              None — it breaks instantly with any tool or bare hands.
+        - question: What do I get when I break it?
+          answer: |
+              Two separate items: one Flower Pot and one Fern, unlike
+              breaking a free-standing fern, which needs shears to drop
+              the fern instead of wheat seeds.
+        - question: Does the potted fern drop wheat seeds like the regular block?
+          answer: |
+              No. Breaking the potted version always yields the fern item
+              itself, since the pot mechanic bypasses the normal seed-drop
+              chance.
+        - question: Where can I find one already placed?
+          answer: |
+              Woodland mansions and taiga village mason houses generate
+              with a potted fern as decoration.
     data_version: "1.21.5"
 ---
 

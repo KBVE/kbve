@@ -1,5 +1,6 @@
 ---
 title: Dandelion
+template: splash
 description: |
     Minecraft Dandelion — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 157
     ref: dandelion
     slug: dandelion
+    content_rev: 1
     display_name: Dandelion
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dandelion
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Dandelion is a common yellow flower that grows on grass
+            and dirt across most Overworld biomes. It breaks instantly
+            with any tool or bare hand.
+        lore: |
+            One of the earliest blocks in the game, dating back to the
+            Classic version before flowers had individual names.
+    uses:
+        - title: Yellow Dye
+          ref: yellow_dye
+          detail: |
+              Crafting a dandelion produces one yellow dye, used to color
+              wool, terracotta, glass, and other dyeable blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combined with a bowl, a mushroom, and other flowers, a
+              dandelion brews a stew that grants a beneficial effect.
+    found_in:
+        - location: Plains, Forests, Sunflower Plains
+          detail: |
+              Generates scattered across most grassy Overworld biomes,
+              excluding swamps, badlands, and cherry groves.
+        - location: Village flower pots
+          detail: |
+              Occasionally placed as decoration in flower pots inside
+              villages and woodland mansions.
+    faq:
+        - question: What tool do I need to mine a dandelion?
+          answer: |
+              None. It breaks instantly with any tool or bare hand, and
+              always drops itself.
+        - question: Does bone meal affect dandelions?
+          answer: |
+              No. Bone meal does not grow, duplicate, or affect existing
+              flowers like dandelions.
+        - question: What is a dandelion used for?
+          answer: |
+              Crafting yellow dye, brewing suspicious stew, and composting
+              into bone meal.
+        - question: Do bees interact with dandelions?
+          answer: |
+              Yes. Bees pollinate dandelions and use them as a food source
+              for breeding.
     data_version: "1.21.5"
 ---
 

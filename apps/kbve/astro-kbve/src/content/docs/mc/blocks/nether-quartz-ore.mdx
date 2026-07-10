@@ -1,5 +1,6 @@
 ---
 title: Nether Quartz Ore
+template: splash
 description: |
     Minecraft Nether Quartz Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 444
     ref: nether_quartz_ore
     slug: nether-quartz-ore
+    content_rev: 1
     display_name: Nether Quartz Ore
     material: nether
     hardness: 3
     blast_resistance: 3
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: quartz
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - pickaxe_mineable
+        - nether
+        - ore
+    about:
+        description: |
+            Nether Quartz Ore is the only source of Nether Quartz, generating
+            as scattered blobs throughout every biome of the Nether. It looks
+            similar to netherrack but is studded with pale, speckled crystal.
+        lore: |
+            Added in Java Edition 1.5, Nether Quartz Ore was the first new ore
+            added since the game's early development.
+    uses:
+        - title: Quartz Blocks and Pillars
+          ref: quartz_block
+          detail: |
+              Nether Quartz smelts directly from the ore or crafts into
+              quartz blocks, pillars, and chiseled quartz for decorative
+              building, as well as daylight sensors and observers.
+        - title: Comparators
+          ref: comparator
+          detail: |
+              Nether Quartz is a key ingredient in crafting redstone
+              comparators alongside redstone dust and stone.
+    found_in:
+        - location: The Nether (all biomes)
+          detail: Generates as ore blobs of 0-24 blocks embedded in netherrack, with extra clusters in basalt deltas.
+        - location: Y = 10 to 117
+          detail: Spawns across most of the Nether's height range, unlike overworld ores that cluster at specific depths.
+    faq:
+        - question: What tool do I need to mine Nether Quartz Ore?
+          answer: |
+              Any pickaxe, including wooden. Without a pickaxe the block
+              cannot be broken for a drop.
+        - question: Does Fortune affect Nether Quartz Ore?
+          answer: |
+              Yes. Fortune III can yield up to 4 Nether Quartz per block
+              instead of the usual 1.
+        - question: What does Silk Touch do to Nether Quartz Ore?
+          answer: |
+              It causes the ore block itself to drop instead of Nether
+              Quartz, useful for decorative builds that want the ore texture.
+        - question: What is Nether Quartz used for?
+          answer: |
+              Crafting quartz blocks, pillars, stairs, and slabs for
+              building, plus comparators, daylight sensors, and observers for
+              redstone circuits.
     data_version: "1.21.5"
 ---
 

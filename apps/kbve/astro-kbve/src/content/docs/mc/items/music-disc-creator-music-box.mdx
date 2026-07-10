@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 1236
     ref: music_disc_creator_music_box
     slug: music-disc-creator-music-box
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc (Creator Music Box) plays a 1:13 music-box rendition of Lena Raine's
+            "Creator" track. It is found in Trial Chamber decorated pots at a 1.4% chance, making
+            it a rare, non-renewable pickup outside of that structure.
+        lore: |
+            A tinny, mechanical reprise of "Creator" as if replayed through the trial chambers'
+            own puzzle-box machinery.
+    faq:
+        - question: How do I get Music Disc (Creator Music Box)?
+          answer: |
+              Loot decorated pots inside Trial Chambers; it has roughly a 1.4% chance of appearing.
+        - question: Who made this track?
+          answer: |
+              Lena Raine composed it as a shorter music-box arrangement of her "Creator" track.
+        - question: How does it differ from the regular Creator disc?
+          answer: |
+              It runs 1:13 versus Creator's 2:56 and is a distinct, more mechanical-sounding
+              arrangement of the same melody.
+        - question: What rarity is this disc?
+          answer: |
+              It is Rare and does not stack.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

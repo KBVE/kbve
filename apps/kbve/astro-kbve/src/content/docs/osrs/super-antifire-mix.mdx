@@ -1,0 +1,104 @@
+---
+title: Super antifire mix | OSRS Price Data
+description: "Super antifire mix(2): Two doses of fishy super anti-firebreath potion.. High alch: 118 GP, GE limit: 2,000."
+osrs:
+  id: 21994
+  name: Super antifire mix
+  slug: super-antifire-mix
+  examine: Two doses of fishy super anti-firebreath potion.
+  members: true
+  icon: Super antifire mix(2).png
+  value: 198
+  lowalch: 79
+  highalch: 118
+  limit: 2000
+  potion:
+    doses: 2
+    effects:
+      - description: Provides 3 minutes of complete dragonfire protection (with antifire shield/dragonfire shield).
+      - description: Restores 6 Hitpoints on drink.
+  recipes:
+    - skill: herblore
+      level: 98
+      xp: 140
+      materials:
+        - item_name: Super antifire potion(2)
+          item_id: 21981
+          quantity: 1
+        - item_name: Caviar
+          item_id: 7588
+          quantity: 1
+      product: Super antifire mix(2)
+      product_id: 21994
+      product_quantity: 1
+      facility: Barbarian Herblore (Otto Godblessed)
+  related_items:
+    - item_id: 21978
+      item_name: Super antifire potion(4)
+      slug: super-antifire-potion-4
+      relationship: alternative
+      description: Standard (non-mix) variant
+    - item_id: 21992
+      item_name: Super antifire mix(1)
+      slug: super-antifire-mix-1
+      relationship: downgrade
+      description: Single-dose variant
+  about: Super antifire mix(2) is a 2-dose Barbarian Herblore brew (98 Herblore) granting 3 minutes of complete dragonfire protection and restoring 6 HP per dose.
+  market_strategy:
+    notes:
+      - 98 Herblore + Barbarian training gates supply
+      - Caviar supply caps margins
+      - Demand spikes for Vorkath / Wyrms
+      - Combat HP heal is the main selling point
+  family_ref:
+    family_slug: super-antifire-mix
+    role: base
+  family:
+    slug: super-antifire-mix
+    name: Super antifire mix
+    type: dose
+    canonical_id: 21994
+    members:
+    - id: 21994
+      slug: super-antifire-mix
+      name: Super antifire mix
+      icon: Super antifire mix(2).png
+      role: base
+      dose: null
+      value: 198
+      lowalch: 79
+      highalch: 118
+    - id: 21997
+      slug: super-antifire-mix-1
+      name: Super antifire mix(1)
+      icon: Super antifire mix(1).png
+      role: dose
+      dose: 1
+      value: 132
+      lowalch: 52
+      highalch: 79
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

@@ -1,5 +1,6 @@
 ---
 title: Snow
+template: splash
 description: |
     Minecraft Snow — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 325
     ref: snow
     slug: snow
+    content_rev: 1
     display_name: Snow
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Snow layers are thin ground coverings found in snowy biomes that can stack up to eight
+            layers on top of a solid block. They are obtained by mining with a shovel, which yields
+            snowballs, or crafted directly from snow blocks, and are useful for both terrain building
+            and blocking hostile mob spawns.
+        lore: |
+            A light layer of snow can blanket the world beside a cactus without ever destroying it,
+            a small quirk of how Minecraft handles fragile terrain.
+    faq:
+        - question: How do I collect snow layers?
+          answer: |
+              Mine them with a shovel; in Java Edition each layer yields one snowball, while Bedrock
+              Edition drops between one and four snowballs depending on the stack's height.
+        - question: Where can snow be placed?
+          answer: |
+              Snow can only be placed on a solid block that is not ice, and in Bedrock Edition it is
+              affected by gravity and falls if left unsupported.
+        - question: Does snow melt?
+          answer: |
+              Yes, it melts near light sources with a light level of 12 or higher, such as torches,
+              redstone lamps, or campfires within a short radius.
+        - question: Does snow affect mob spawning?
+          answer: |
+              Snow layers between 2 and 7 thickness prevent hostile mobs from spawning on top of them,
+              making deep snow useful for safe outdoor building.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

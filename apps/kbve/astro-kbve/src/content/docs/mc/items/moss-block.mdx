@@ -1,5 +1,6 @@
 ---
 title: Moss Block
+template: splash
 description: |
     Minecraft Moss Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 262
     ref: moss_block
     slug: moss-block
+    content_rev: 1
     display_name: Moss Block
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The moss block is a natural decorative block found mainly in lush cave biomes. Applying bone
+            meal to it spreads moss across nearby compatible blocks and generates grass, moss carpet,
+            and azaleas on top, and it also speeds up sniffer egg hatching when placed underneath one.
+        lore: |
+            First revealed at Minecraft Live 2020 as part of the lush caves biome, the moss block became a renewable centerpiece of overgrown landscapes.
+    faq:
+        - question: How does moss spread to other blocks?
+          answer: |
+              Apply bone meal to a moss block. It converts nearby compatible blocks such as dirt, stone,
+              andesite, granite, diorite, and deepslate into moss and grows foliage above them.
+        - question: Where does moss generate naturally?
+          answer: |
+              It generates on floors and ceilings within lush caves, and around some spawners in trial
+              chambers.
+        - question: Does moss help hatch sniffer eggs faster?
+          answer: |
+              Yes, placing a sniffer egg on top of a moss block roughly halves its hatching time compared
+              to other blocks.
+        - question: Can moss spread to any block?
+          answer: |
+              No, only specific blocks are compatible, including dirt, grass, stone, granite, andesite,
+              diorite, deepslate, podzol, mycelium, coarse dirt, and rooted dirt.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

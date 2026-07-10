@@ -1,5 +1,6 @@
 ---
 title: Crimson Planks
+template: splash
 description: |
     Minecraft Crimson Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 842
     ref: crimson_planks
     slug: crimson-planks
+    content_rev: 1
     display_name: Crimson Planks
     material: nether
     hardness: 2
@@ -26,8 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Crimson Planks are the processed form of crimson stems,
+            giving the Nether's fungal wood a smooth, buildable plank
+            texture with a deep red hue.
+        lore: |
+            Introduced in the Nether Update (1.16) alongside warped
+            planks, crimson planks offer a fire-safe alternative to
+            overworld wood.
+    uses:
+        - title: Nether Wood Furniture
+          ref: crimson_stairs
+          detail: |
+              Crafted into crimson stairs, slabs, fences, gates, doors,
+              trapdoors, pressure plates, buttons, and signs — the full
+              crimson wood furniture set (boats cannot be made from it).
+    found_in:
+        - location: Crafting
+          detail: Made from 1 crimson stem, stripped stem, crimson wood, or stripped hyphae, yielding 4 planks each.
+    faq:
+        - question: Do Crimson Planks burn?
+          answer: |
+              No. Crimson and warped planks are non-flammable in Java
+              Edition, unlike every overworld plank type, and cannot even
+              catch fire from lava.
+        - question: What tool do I need to mine Crimson Planks?
+          answer: |
+              None required — an axe is fastest, but any tool or bare
+              hands will break it and always drop the block itself.
+        - question: Can I make a boat from Crimson Planks?
+          answer: |
+              No. Nether wood planks cannot be crafted into boats.
     data_version: "1.21.5"
 ---
 

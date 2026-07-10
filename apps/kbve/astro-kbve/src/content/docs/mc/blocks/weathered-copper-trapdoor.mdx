@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper Trapdoor
+template: splash
 description: |
     Minecraft Weathered Copper Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1019
     ref: weathered_copper_trapdoor
     slug: weathered-copper-trapdoor
+    content_rev: 1
     display_name: Weathered Copper Trapdoor
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weathered_copper_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Weathered Copper Trapdoor is the third oxidation stage of the
+            copper trapdoor, sitting between Exposed and Oxidized. It opens
+            and closes like a normal trapdoor via player interaction or
+            redstone power, but its green-tinged patina slowly deepens
+            further unless the block is waxed with honeycomb.
+        lore: |
+            Copper trapdoors were revealed at Minecraft Live 2023 and
+            shipped in Java Edition 1.21, giving the long-oxidizing copper
+            family its own functional door and trapdoor set.
+    uses:
+        - title: Waxed Weathered Copper Trapdoor
+          ref: waxed_weathered_copper_trapdoor
+          detail: |
+              Combine with a honeycomb to lock the trapdoor at this
+              oxidation stage, preventing it from ever turning fully
+              Oxidized.
+    found_in:
+        - location: Trial Chambers
+          detail: |
+              Weathered is an intermediate stage, so it mostly appears as a
+              block placed by players from a fresh copper trapdoor left to
+              age, or briefly while a naturally generated trapdoor is mid-oxidation.
+        - location: Player-built redstone contraptions
+          detail: Used as an oxidizing decorative trapdoor for vaults, hatches, and redstone doors.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Mining with anything weaker, or by
+              hand, destroys the block without dropping it.
+        - question: Does it keep oxidizing after I place it?
+          answer: |
+              Yes, unless waxed. A Weathered Copper Trapdoor will eventually
+              progress to Oxidized Copper Trapdoor over time.
+        - question: How do I stop it from oxidizing further?
+          answer: |
+              Right-click it with a honeycomb to wax it, locking in the
+              current Weathered stage permanently.
+        - question: Can I reverse the oxidation?
+          answer: |
+              Yes. Scraping it with an axe removes one oxidation stage,
+              turning it back into Exposed Copper Trapdoor.
     data_version: "1.21.5"
 ---
 

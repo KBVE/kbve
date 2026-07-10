@@ -9,13 +9,52 @@ description: |
    June 1st. New month, new crimes.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 1,'
+    accent: every year.
+    lede: 'The June 1st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 31'
+          href: /journal/05-31/
+        - label: 'Jun 2 →'
+          href: /journal/06-02/
+    related:
+        - title: 'Previous · May 31'
+          copy: 'Step back a day to the May 31st log.'
+          href: /journal/05-31/
+          icon: calendar
+        - title: 'Next · Jun 2'
+          copy: 'Jump ahead to the June 2nd log.'
+          href: /journal/06-02/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1624221023334-16e25184b8b0?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Factorio Spider
 
@@ -26,7 +65,15 @@ import { Adsense } from '@/components/astropad';
     Afterwards I am thinking of making a level and rpg system, maybe even include a quest system?
     So many endless options once we get the core loop built out.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Steam Integration
 
@@ -36,7 +83,9 @@ import { Adsense } from '@/components/astropad';
     There is still a bunch of work to do, but its a great feeling to start seeing the progress of my first indie game.
     I am excited to build up wish lists and get a fully function game out there into the eco-system!
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Mind**
 
@@ -54,20 +103,30 @@ While I am at it, need to double check and make the monthly rounds on the credit
 I find june and december to be those two special months where you want to perform a quick capitalism health check.
 Making sure everything is good to go and paid off.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:00am - Markets are doing great so far but we shall see how long it lasts, the usual debt ceiling drama always shakes up the movement. I been thinking how many people are generating millions from this uncertain drama, it seems almost manufactured to generate absolute absurd amounts of wealth. These covered calls, puts, err... well the whole wheel system has been doing great in these drama filled markets. Hopefully I can grab another 100 shares of $SPY this month, it would be crazy to see if rally into all time highs while the general economy seems to be in an earthquake fault zone.
 - 3:00pm - A quick league session and some general meme gaming as I restructure my time and brain. 
 - 5:00pm - I went food shopping and noticed that certain prices have been dropping and cooling off. Part of me wants to start keeping track of the prices of certain core items, like eggs and fruits? Then maybe start to document their prices as a reference! I am sure there are already apps and services that do this, so I felt like it would just be a personal concept, maybe not really worth too much time to invest into it. 
 - 8:00pm - Looking through the whole
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > We should not judge people by their peak of excellence; but by the distance they have traveled from the point where they started.
 > — <cite>Henry Ward Beecher</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

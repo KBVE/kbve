@@ -1,5 +1,6 @@
 ---
 title: Potted Brown Mushroom
+template: splash
 description: |
     Minecraft Potted Brown Mushroom — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,60 @@ mc_block:
     id: 406
     ref: potted_brown_mushroom
     slug: potted-brown-mushroom
+    content_rev: 1
     display_name: Potted Brown Mushroom
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 1
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: brown_mushroom
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+    about:
+        description: |
+            Potted Brown Mushroom is a decorative pot arrangement holding a
+            single brown mushroom. It breaks instantly with any tool or by
+            hand and emits a faint light level of 1.
+        lore: |
+            The brown mushroom is modeled on the edible penny bun mushroom
+            found in real life, and normally thrives in dim, damp places.
+    found_in:
+        - location: Woodland Mansions
+          detail: Generates inside the "mushroom farm" rooms of generated mansions.
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with a Brown Mushroom places it inside.
+    faq:
+        - question: What does breaking Potted Brown Mushroom drop?
+          answer: |
+              Both the Flower Pot and one Brown Mushroom item, obtained
+              instantly with any tool or bare hands.
+        - question: Does Potted Brown Mushroom give off light?
+          answer: |
+              Yes, a faint light level of 1, the same as an unpotted brown
+              mushroom block.
+        - question: What can Brown Mushrooms be used for once unpotted?
+          answer: |
+              Crafting mushroom stew, fermented spider eyes, rabbit stew, or
+              suspicious stew, and growing into a huge brown mushroom with
+              bone meal when planted.
     data_version: "1.21.5"
 ---
 

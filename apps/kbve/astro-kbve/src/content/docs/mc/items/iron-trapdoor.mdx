@@ -1,5 +1,6 @@
 ---
 title: Iron Trapdoor
+template: splash
 description: |
     Minecraft Iron Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 763
     ref: iron_trapdoor
     slug: iron-trapdoor
+    content_rev: 1
     display_name: Iron Trapdoor
     category: decoration
     rarity: common
@@ -20,6 +22,29 @@ mc_item:
     tier: iron
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The iron trapdoor is crafted from four iron ingots and can only be opened or closed by
+            a redstone signal, never by direct player interaction. It opens and closes instantly,
+            making it useful as a mob-proof, automation-friendly door.
+        lore: |
+            Because players cannot toggle it by hand, the iron trapdoor is a staple of redstone
+            security doors and hidden entrances.
+    faq:
+        - question: How do you open an iron trapdoor?
+          answer: |
+              Only by weakly powering a cardinally adjacent block with redstone, such as a lever,
+              button, or circuit; players cannot open it by clicking.
+        - question: How do you craft an iron trapdoor?
+          answer: |
+              Arrange four iron ingots in a crafting table to produce one iron trapdoor.
+        - question: Can mobs pass through a closed iron trapdoor?
+          answer: |
+              No, since it can only be toggled by redstone and is solid when closed, mobs cannot
+              open or bypass it on their own.
+        - question: Where can you find iron trapdoors naturally?
+          answer: |
+              They generate naturally in ancient cities, so they can be found without crafting.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

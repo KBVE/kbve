@@ -1,13 +1,15 @@
 ---
-title: uevy cam
-description: |
-    uevy cam — Bevy game crate for the KBVE isometric engine.
+title: Bevy Cam — Isometric Camera Crate
+description: Bevy isometric camera crate with pixel snapping, multiplicative zoom, and a two-stage render-to-texture pipeline for crisp pixel-art rendering.
+sem: 1
 sidebar:
-    label: uevy cam
+    label: Bevy Cam
 tags:
     - crates
     - rust
     - bevy
+    - camera
+    - gamedev
 key: bevy_cam_crate
 pipeline: crates
 package_name: bevy_cam
@@ -19,8 +21,103 @@ version_toml: packages/rust/bevy/bevy_cam/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the bevy_cam crate do?
+          answer: It provides an isometric camera plugin for Bevy 0.18 that renders the 3D scene to a low-resolution texture at a fixed pixel density, then upscales it with nearest-neighbor sampling for crisp pixel-art output.
+        - question: How does the camera follow a target?
+          answer: Attach the CameraFollowTarget component to any entity. The scene camera tracks it and snaps to the pixel grid on all three camera-space axes to eliminate sub-pixel jitter.
+        - question: Is scroll-wheel zoom supported?
+          answer: Yes, behind the optional "zoom" feature flag. Zoom is multiplicative — each notch scales by a fixed percentage and interpolates smoothly toward the target — and is off by default to avoid wasted system dispatch on fixed-camera games.
+bento:
+    badge: crates · rust · bevy
+    title: Isometric camera for
+    accent: bevy_cam
+    lede: >-
+        An isometric camera plugin for Bevy 0.18 — a two-stage
+        render-to-texture pipeline keeps pixel art crisp at any window size,
+        with pixel-grid follow and optional multiplicative zoom.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_cam
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: video
+        title: Crisp pixels at any size
+        body: >-
+            A scene camera renders the 3D world to a low-resolution texture at a
+            fixed <strong>pixel_density</strong>, then a display camera upscales it
+            with nearest-neighbor sampling — no full 3D material pass.
+        points:
+            - <strong>Pixel-snapped follow</strong> — tracks CameraFollowTarget on all three camera-space axes to kill jitter.
+            - <strong>Optional zoom</strong> — multiplicative scroll-wheel zoom behind the zoom feature flag.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Engine, value: "Bevy 0.18", icon: gears }
+        - { label: Pipeline, value: 2-stage, icon: video }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Two-stage pixel pipeline
+          icon: video
+          body: >-
+            A scene camera renders the 3D world to a low-resolution texture at
+            pixel_density pixels per world unit (nearest-neighbor), and a display
+            camera upscales it to the window via a fullscreen sprite, avoiding a
+            full 3D material pass.
+        - title: Pixel-snapped follow
+          icon: expand
+          body: >-
+            The scene camera tracks entities marked CameraFollowTarget, snapping on
+            all three camera-space axes to kill sub-pixel jitter.
+        - title: Multiplicative zoom
+          icon: zap
+          body: >-
+            Optional <strong>zoom</strong> feature — uniform-feeling zoom that
+            scales by a fixed percentage per notch and interpolates smoothly.
+        - title: Display-camera hooks
+          icon: settings
+          body: >-
+            The display camera carries a DisplayCamera marker so games can attach
+            post-processing after startup.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy_cam::{IsometricCameraPlugin, CameraConfig, CameraFollowTarget};
+
+            app.add_plugins(IsometricCameraPlugin::new(CameraConfig {
+                offset: Vec3::new(15.0, 20.0, 15.0),
+                viewport_height: 20.0,
+                pixel_density: 32,
+                ..default()
+            }));
+
+            // Attach CameraFollowTarget to whatever entity the camera should track:
+            commands.spawn((Transform::default(), CameraFollowTarget));
+    related:
+        - title: Bevy Player Crate
+          href: /project/bevy-player-crate
+          copy: Player controller that pairs with the camera follow target.
+          icon: box
+        - title: Isometric
+          href: /project/isometric
+          copy: The KBVE isometric engine this camera powers.
+          icon: expand
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-uevy cam Bevy crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

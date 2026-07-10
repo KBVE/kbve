@@ -1,5 +1,6 @@
 ---
 title: Block of Resin
+template: splash
 description: |
     Minecraft Block of Resin — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 344
     ref: resin_block
     slug: resin-block
+    content_rev: 1
     display_name: Block of Resin
     material: stone
     hardness: 0
@@ -24,10 +26,60 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: resin_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Block of Resin is a solid decorative block crafted from nine
+            Resin Clumps in a 3x3 pattern. It breaks instantly with any
+            tool and does not burn, making it a handy filler or scaffold
+            block as well as a crafting ingredient for Creaking Hearts.
+        lore: |
+            Added in the Pale Garden update (Java 1.21.4, snapshot 24w44a),
+            it is the compacted storage form of Resin Clumps harvested from
+            attacked Creakings.
+    uses:
+        - title: Creaking Heart
+          ref: creaking_heart
+          detail: |
+              Combined with Pale Oak Logs to craft a Creaking Heart, the
+              block that spawns and anchors a Creaking guardian.
+        - title: Resin Bricks
+          ref: resin_bricks
+          detail: |
+              Smelting a Block of Resin (via its clumps) or crafting from
+              Resin Bricks feeds into the resin brick building set:
+              bricks, slabs, stairs, and walls.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from 9 Resin Clumps arranged in a full 3x3 grid.
+        - location: Pale Garden abandoned camps
+          detail: Also generates naturally as decoration in pale garden camp structures.
+    faq:
+        - question: What tool do I need to mine a Block of Resin?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Is Block of Resin flammable?
+          answer: |
+              No. It does not catch fire from lava or nearby fire.
+        - question: Can I get my Resin Clumps back?
+          answer: |
+              Yes. Crafting a Block of Resin is reversible — placing it
+              back in a crafting grid uncrafts it into 9 Resin Clumps.
+        - question: What is Block of Resin used for?
+          answer: |
+              Mainly decoration and as an ingredient for Creaking Hearts;
+              its instant breaking also makes it useful as a temporary
+              building or scaffold block.
     data_version: "1.21.5"
 ---
 

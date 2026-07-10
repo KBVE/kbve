@@ -1,5 +1,6 @@
 ---
 title: Waxed Exposed Cut Copper
+template: splash
 description: |
     Minecraft Waxed Exposed Cut Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 998
     ref: waxed_exposed_cut_copper
     slug: waxed-exposed-cut-copper
+    content_rev: 1
     display_name: Waxed Exposed Cut Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_exposed_cut_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Exposed Cut Copper is a decoratively-carved copper block
+            that has been treated with honeycomb, locking it at the
+            lightly-weathered "exposed" stage. It shares the smooth,
+            chiseled-panel look of cut copper without ever aging further.
+        lore: |
+            Part of the copper building-block set from the Trails & Tales
+            update, letting builders freeze any of copper's four oxidation
+            looks permanently.
+    uses:
+        - title: Cut Copper Stairs & Slabs
+          ref: waxed_exposed_cut_copper_stairs
+          detail: |
+              Craft or stonecut into waxed exposed cut copper stairs and
+              slabs for matching decorative trim.
+    found_in:
+        - location: Crafted from Waxed Exposed Blocks of Copper
+          detail: Stonecut or crafted from waxed exposed copper blocks, or waxed with honeycomb after cutting.
+        - location: Trial Chambers
+          detail: Waxed copper variants generate naturally as part of trial chamber vaults and structures.
+    faq:
+        - question: Will this block oxidize further?
+          answer: |
+              No. Waxing permanently locks it at the exposed stage; it
+              cannot progress to weathered or oxidized.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Mining without a pickaxe yields
+              no drop.
+        - question: Can it be un-waxed?
+          answer: |
+              Yes, scraping with an axe removes the wax, letting the block
+              resume oxidizing over time.
+        - question: What does it drop?
+          answer: |
+              Mining it with a sufficient pickaxe drops one Waxed Exposed
+              Cut Copper block, unaffected by Fortune or Silk Touch.
     data_version: "1.21.5"
 ---
 

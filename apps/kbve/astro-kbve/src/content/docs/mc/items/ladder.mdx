@@ -1,5 +1,6 @@
 ---
 title: Ladder
+template: splash
 description: |
     Minecraft Ladder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 323
     ref: ladder
     slug: ladder
+    content_rev: 1
     display_name: Ladder
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The ladder is a non-solid climbable block that lets players and mobs move
+            vertically along walls. It is crafted from 7 sticks and can also be found
+            in strongholds, villages, igloos, ancient cities, and other structures.
+        lore: |
+            A simple wooden frame nailed to a wall, giving climbers a foothold where
+            no stairs will fit.
+    faq:
+        - question: How do you craft a ladder?
+          answer: |
+              Arrange 7 sticks in two vertical columns with one stick connecting
+              them in the middle on a crafting table to produce 3 ladders.
+        - question: Where can ladders be placed?
+          answer: |
+              Ladders can be attached to the side of any solid block face, and
+              they can be waterlogged without creating an air pocket.
+        - question: Do ladders reduce fall damage?
+          answer: |
+              Yes, entering a ladder while falling immediately stops fall damage,
+              making them useful as an emergency safety measure.
+        - question: Can ladders be found without crafting them?
+          answer: |
+              Yes, ladders generate naturally in strongholds, villages, igloos,
+              woodland mansions, ancient cities, and several other structures.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

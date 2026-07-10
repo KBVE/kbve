@@ -1,6 +1,11 @@
-import { memo } from 'react';
+import { memo, useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import {
+	ActivityIndicator,
+	Platform,
+	Pressable,
+	StyleSheet,
+} from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import Animated, {
 	useAnimatedStyle,
@@ -18,7 +23,8 @@ export type ButtonVariant =
 	| 'secondary'
 	| 'outline'
 	| 'ghost'
-	| 'danger';
+	| 'danger'
+	| 'danger-ghost';
 
 export interface ButtonProps {
 	title?: string;
@@ -31,6 +37,8 @@ export interface ButtonProps {
 	/** Accessible name (maps to aria-label on web). Required for icon-only buttons. */
 	accessibilityLabel?: string;
 	accessibilityHint?: string;
+	/** Native hover tooltip. Web / Tauri only (sets DOM title); no-op on native. */
+	tooltip?: string;
 }
 
 export const Button = memo(function Button({
@@ -43,9 +51,25 @@ export const Button = memo(function Button({
 	style,
 	accessibilityLabel,
 	accessibilityHint,
+	tooltip,
 }: ButtonProps) {
 	const t = useTheme();
 	const inactive = disabled || loading;
+	const [hovered, setHovered] = useState(false);
+
+	// Native browser tooltip on web / Tauri. RNW doesn't forward `title` as a
+	// prop, but its refs resolve to the DOM node — set it imperatively.
+	const tooltipRef = useCallback(
+		(node: unknown) => {
+			if (Platform.OS !== 'web' || !tooltip || !node) return;
+			const el: any =
+				(node as any).nodeType === 1 ? node : (node as any).getNode?.();
+			if (el && typeof el.setAttribute === 'function') {
+				el.setAttribute('title', tooltip);
+			}
+		},
+		[tooltip],
+	);
 	const scale = useSharedValue(1);
 	const animatedStyle = useAnimatedStyle(() => ({
 		transform: [{ scale: scale.value }],
@@ -57,7 +81,7 @@ export const Button = memo(function Button({
 			borderColor: 'rgba(255,255,255,0.22)',
 		},
 		secondary: {
-			backgroundColor: t.color.surface,
+			backgroundColor: t.color.surfaceAlt,
 			borderColor: t.color.border,
 		},
 		outline: {
@@ -69,7 +93,30 @@ export const Button = memo(function Button({
 			backgroundColor: t.color.danger,
 			borderColor: 'rgba(255,255,255,0.22)',
 		},
+		'danger-ghost': {
+			backgroundColor: 'transparent',
+			borderColor: t.color.border,
+		},
 	}[variant];
+
+	// Web hover feedback (no-op on native — hover events never fire there).
+	const hoverFill: ViewStyle | null =
+		hovered && !inactive
+			? {
+					primary: { borderColor: 'rgba(255,255,255,0.5)' },
+					secondary: { borderColor: t.color.primary },
+					outline: {
+						borderColor: t.color.primary,
+						backgroundColor: 'rgba(127,127,127,0.10)',
+					},
+					ghost: { backgroundColor: 'rgba(127,127,127,0.10)' },
+					danger: { borderColor: 'rgba(255,255,255,0.5)' },
+					'danger-ghost': {
+						borderColor: t.color.danger,
+						backgroundColor: 'rgba(239,68,68,0.10)',
+					},
+				}[variant]
+			: null;
 
 	const labelColor = {
 		primary: t.color.onPrimary,
@@ -77,13 +124,16 @@ export const Button = memo(function Button({
 		outline: t.color.text,
 		ghost: t.color.textMuted,
 		danger: '#fff',
+		'danger-ghost': t.color.danger,
 	}[variant];
 
 	return (
 		<AnimatedPressable
+			ref={tooltipRef}
 			style={[
 				styles.base,
 				fill,
+				hoverFill,
 				inactive ? styles.inactive : null,
 				animatedStyle,
 				style,
@@ -96,6 +146,8 @@ export const Button = memo(function Button({
 			}
 			accessibilityHint={accessibilityHint}
 			accessibilityState={{ disabled: inactive }}
+			onHoverIn={() => setHovered(true)}
+			onHoverOut={() => setHovered(false)}
 			onPressIn={() => {
 				scale.value = withSpring(0.95, { damping: 18, stiffness: 320 });
 			}}

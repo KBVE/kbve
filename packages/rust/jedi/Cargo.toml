@@ -8,7 +8,7 @@ description = "Jedi is the Juggernaut Electronic Data Interchange package. This 
 homepage = "https://kbve.com/application/rust/#jedi"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/jedi"
 readme = "README.md"
-rust-version = "1.85"
+rust-version.workspace = true
 
 
 [build-dependencies]
@@ -27,32 +27,11 @@ bitflags = { version = "2.9.0", features = ["serde"] }
 thiserror = "2"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { version = "0.6.8", features = [
-    "add-extension",
-    "auth",
-    "compression-full",
-    "limit",
-    "trace",
-    "fs",
-    "cors"
-] }
-tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
+tokio = { version = "1.43", features = ["rt-multi-thread", "macros", "sync", "time", "net", "fs", "io-util"] }
 tokio-postgres = { version = "0.7.2", optional = true, features = ["with-uuid-1", "with-chrono-0_4", "with-serde_json-1"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-axum = { version = "0.8.5", features = ["ws", "macros"] }
-axum-extra = { version = "0.12.1", features = [
-    "typed-header",
-    "protobuf",
-    "query",
-    "json-deserializer",
-    "error-response",
-    "cookie",
-    "form",
-    "file-stream"
-]}
-askama = "0.15.4"
-bb8 = { version = "0.9.0", optional = true }
+axum = { version = "0.8.9", features = ["ws", "macros"] }
+bb8 ={ version = "0.9.0", optional = true }
 bb8-postgres = { version = "0.9.0", optional = true }
 tokio-postgres-rustls = { version = "0.13", optional = true }
 rustls = { version = "0.23", optional = true, default-features = false, features = ["ring"] }
@@ -60,31 +39,27 @@ webpki-roots = { version = "0.26", optional = true }
 url = { version = "2", optional = true }
 uuid = { version = "1", optional = true, features = ["serde", "v4"] }
 rustls-pemfile = { version = "2", optional = true }
-fred = { version = "10", features = [
+fred = { version = "10", optional = true, features = [
   "i-keys", "i-lists", "i-pubsub", "i-std", "subscriber-client",
   "serde-json", "i-server", "i-scripts", "i-streams",
   "metrics", "enable-rustls", "i-tracking"
 ] }
 prost = { version = "0.14", features = ["derive"] }
 papaya = "0.2.1"
-tonic = "0.14.5"
-tonic-health = "0.14.5"
-tonic-prost = "0.14.5"
-tonic-reflection = "0.14.5"
-http-body-util = "0.1"
-ulid = { version = "1", features = ["serde", "uuid"] }
+tonic = { version = "0.14.5", optional = true }
+tonic-health = { version = "0.14.5", optional = true }
+tonic-prost = { version = "0.14.5", optional = true }
+tonic-reflection = { version = "0.14.5", optional = true }
+ulid ={ version = "1", features = ["serde", "uuid"] }
 chrono = { version = "0.4", features = ["serde"] }
 futures-util = "0.3"
-hyper = { version = "1.0", features = ["server", "http1", "http2"] }
-hyper-util = { version = "0.1", features = ["tokio", "server-auto", "http1"] }
 rustc-hash = "2.1.1"
 flexbuffers = "25.2.10"
 # Twitch
-twitch-irc = { version = "5.0.1", default-features = false, features = ["with-serde", "refreshing-token-rustls-webpki-roots", "transport-tcp", "transport-tcp-rustls-webpki-roots", "transport-ws", "transport-ws-rustls-webpki-roots"] }
+twitch-irc = { version = "5.0.1", optional = true, default-features = false, features = ["with-serde", "refreshing-token-rustls-webpki-roots", "transport-tcp", "transport-tcp-rustls-webpki-roots", "transport-ws", "transport-ws-rustls-webpki-roots"] }
 # Replaceable
 crossbeam = "0.8.4"
 regex = "1.10.3"
-once_cell = "1.21.1"
 # Local Supabase JWT verification (HS256 + ES256/JWKS) — rust_crypto for ES256.
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 # ClickHouse (optional)
@@ -100,6 +75,8 @@ clickhouse = ["dep:clickhouse"]
 prometheus = ["dep:axum-prometheus", "dep:metrics"]
 forgejo = []
 itch = []
+twitch = ["dep:twitch-irc"]
+grpc = ["dep:tonic", "dep:tonic-prost", "dep:tonic-health", "dep:tonic-reflection"]
 postgres = [
     "dep:tokio-postgres",
     "dep:bb8",
@@ -111,7 +88,14 @@ postgres = [
     "dep:url",
     "dep:uuid",
 ]
-valkey = ["dep:lru"]
+valkey = ["dep:lru", "dep:fred"]
+observ = ["dep:tracing-subscriber"]
+
+[dependencies.tracing-subscriber]
+version = "0.3"
+optional = true
+default-features = false
+features = ["registry", "std"]
 
 [dev-dependencies]
 serial_test = "3"

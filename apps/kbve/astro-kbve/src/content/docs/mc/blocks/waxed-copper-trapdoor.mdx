@@ -1,5 +1,6 @@
 ---
 title: Waxed Copper Trapdoor
+template: splash
 description: |
     Minecraft Waxed Copper Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1020
     ref: waxed_copper_trapdoor
     slug: waxed-copper-trapdoor
+    content_rev: 1
     display_name: Waxed Copper Trapdoor
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_copper_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Copper Trapdoor is a functional door-like block crafted
+            from copper ingots and sealed with honeycomb wax so it never
+            oxidizes. It can be opened manually or triggered by a redstone
+            signal like any other trapdoor.
+        lore: |
+            Copper Trapdoors and their waxed counterparts were added in the
+            Trials Update (1.21), rounding out copper's functional block set
+            alongside copper doors and copper bulbs.
+    uses:
+        - title: Redstone Doorway
+          ref: waxed_copper_trapdoor
+          detail: |
+              Placed in floors or walls as a hatch that opens and closes
+              with a lever, button, or redstone signal, useful for secret
+              entrances or automated farms.
+    found_in:
+        - location: Trial Chambers
+          detail: Oxidized and waxed variants generate naturally as part of trial chamber vault decoration.
+        - location: Crafted
+          detail: 4 Copper Ingots in a 2x2 pattern craft 1 Copper Trapdoor, then honeycomb waxes it.
+    faq:
+        - question: What tool do I need to mine Waxed Copper Trapdoor?
+          answer: |
+              A stone pickaxe or better. Anything weaker destroys the block
+              without a drop.
+        - question: Does waxing stop it from oxidizing?
+          answer: |
+              Yes. The honeycomb wax coating permanently freezes the
+              trapdoor's current oxidation stage until an axe removes it.
+        - question: Can it still be opened with redstone?
+          answer: |
+              Yes. Waxing only prevents weathering — it still responds to
+              levers, buttons, pressure plates, and redstone signals like
+              any trapdoor.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes, it always drops one Waxed Copper Trapdoor as long as a
+              stone pickaxe or better is used; Silk Touch and Fortune have
+              no effect.
     data_version: "1.21.5"
 ---
 

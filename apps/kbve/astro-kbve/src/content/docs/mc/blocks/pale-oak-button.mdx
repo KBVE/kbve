@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Button
+template: splash
 description: |
     Minecraft Pale Oak Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 418
     ref: pale_oak_button
     slug: pale-oak-button
+    content_rev: 1
     display_name: Pale Oak Button
     material: redstone
     hardness: 0.5
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Pale Oak Button is a wooden button crafted from pale oak
+            planks. Like all wood buttons it is a momentary redstone
+            power source, activating for 1.5 seconds when pressed.
+        lore: |
+            It was added with the pale oak wood set in the Garden
+            Awakens drop (Java Edition 1.21.4), giving the pale garden
+            biome its own matching button variant.
+    uses:
+        - title: Redstone Trigger
+          ref: redstone
+          detail: |
+              Placed on a block face and pressed by a player, arrow, wind
+              charge, or trident to briefly output a redstone signal of
+              level 15, commonly used for doors, dispensers, and traps.
+    found_in:
+        - location: Crafting
+          detail: Craft from a single pale oak plank to get a pale oak button.
+        - location: Trial Chambers
+          detail: Oak-family buttons, including pale oak, can appear as part of trial chamber vault and mechanism structures.
+    faq:
+        - question: What tool do I need to mine Pale Oak Button?
+          answer: |
+              None required. It breaks instantly by hand, though an axe
+              is the quickest tool.
+        - question: How long does a Pale Oak Button stay powered?
+          answer: |
+              Wooden buttons, including pale oak, stay powered for 1.5
+              seconds after being pressed, longer than stone buttons.
+        - question: Can projectiles trigger a Pale Oak Button?
+          answer: |
+              Yes. Arrows, tridents, and wind charges can press wooden
+              buttons, making them useful for tripwire-free triggers.
+        - question: Is Pale Oak Button flammable?
+          answer: |
+              No. Buttons do not catch fire or burn like full wood blocks
+              such as planks or fences.
     data_version: "1.21.5"
 ---
 

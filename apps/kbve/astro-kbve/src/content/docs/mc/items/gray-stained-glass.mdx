@@ -1,5 +1,6 @@
 ---
 title: Gray Stained Glass
+template: splash
 description: |
     Minecraft Gray Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 508
     ref: gray_stained_glass
     slug: gray-stained-glass
+    content_rev: 1
     display_name: Gray Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Gray Stained Glass is a transparent, colored variant of glass crafted by dyeing
+            regular glass gray. It keeps the see-through quality of normal glass while adding
+            tinted color, and can also be stacked above a beacon to shift its beam color.
+        lore: |
+            Stained glass panes and blocks come in all sixteen dye colors, letting builders mix
+            transparency with color across an entire structure.
+    faq:
+        - question: How is Gray Stained Glass crafted?
+          answer: |
+              Combine four Glass blocks with one Gray Dye in a crafting grid to produce eight
+              Gray Stained Glass blocks.
+        - question: Do I need Silk Touch to collect it?
+          answer: |
+              Yes. Gray Stained Glass only drops as an item when mined with a Silk Touch tool;
+              otherwise it breaks without dropping anything.
+        - question: Can mobs spawn on Gray Stained Glass?
+          answer: |
+              No, mobs generally cannot spawn on stained glass, though zombie reinforcements are
+              an exception.
+        - question: Can it change a beacon's beam color?
+          answer: |
+              Yes. Placing stained glass blocks above an active beacon tints its light beam,
+              blending colors if multiple different colors are stacked.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

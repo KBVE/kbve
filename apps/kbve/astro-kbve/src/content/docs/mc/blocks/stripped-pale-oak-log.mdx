@@ -1,5 +1,6 @@
 ---
 title: Stripped Pale Oak Log
+template: splash
 description: |
     Minecraft Stripped Pale Oak Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 67
     ref: stripped_pale_oak_log
     slug: stripped-pale-oak-log
+    content_rev: 1
     display_name: Stripped Pale Oak Log
     material: wood
     hardness: 2
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_pale_oak_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Pale Oak Log is the bark-free variant of the Pale
+            Oak Log, produced by using an axe on a placed log. It shows
+            the log's pale, bleached-wood ring texture on its top and
+            bottom faces.
+        lore: |
+            Pale Oak arrived with the 1.21.4 Garden Awakens update as
+            part of the Pale Garden biome, adding a ghostly, desaturated
+            wood type alongside the existing overworld tree species.
+    uses:
+        - title: Pale Oak Planks
+          ref: pale_oak_planks
+          detail: |
+              Crafts into 4 Pale Oak Planks per log, the base ingredient
+              for pale oak furniture, doors, boats, and signs.
+        - title: Stripped Pale Oak Wood
+          ref: stripped_pale_oak_wood
+          detail: |
+              Combine 4 Stripped Pale Oak Logs in a square to craft 3
+              Stripped Pale Oak Wood, the all-sides bark-free block.
+    found_in:
+        - location: Pale Garden biome
+          detail: Pale Oak trees generate in the eerie Pale Garden biome; their logs can be stripped after felling.
+        - location: Player-stripped Pale Oak Log
+          detail: Right-click a placed Pale Oak Log with any axe to strip it directly.
+    faq:
+        - question: How do I strip a Pale Oak Log?
+          answer: |
+              Right-click (use) an axe on a placed Pale Oak Log. This
+              costs a small amount of axe durability and converts the
+              block in place.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool or bare hands work; an axe simply breaks it
+              fastest. There is no minimum tool tier for it to drop.
+        - question: Is Stripped Pale Oak Log flammable?
+          answer: |
+              Yes, it burns like other overworld wood blocks, so avoid
+              placing it near lava or fire.
+        - question: Where do Pale Oak trees generate?
+          answer: |
+              They generate naturally only in the Pale Garden biome,
+              introduced alongside the Trial Chambers-era 1.21 updates.
     data_version: "1.21.5"
 ---
 

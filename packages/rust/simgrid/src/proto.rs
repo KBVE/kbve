@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 15;
+pub const PROTOCOL_VERSION: u32 = 16;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const POS_SCALE: i32 = 32;
@@ -49,6 +49,10 @@ pub const EPHEMERAL_CORPSE: u16 = 16;
 pub const EPHEMERAL_PET_ROSTER: u16 = 17;
 pub const EPHEMERAL_PET_BATTLE_LOG: u16 = 18;
 pub const EPHEMERAL_PET_BATTLE_STATE: u16 = 19;
+pub const EPHEMERAL_UDP_OFFER: u16 = 20;
+pub const EPHEMERAL_DUEL_PROMPT: u16 = 21;
+
+pub const UDP_MAX_DATAGRAM: usize = 1200;
 
 // `Input::PetTurn.action` — what the player commits for an interactive battle turn.
 // `arg` is the move slot (PET_ACT_MOVE) or the reserve index to send out (PET_ACT_SWAP).
@@ -273,6 +277,24 @@ pub enum Input {
         action: u8,
         arg: u8,
     },
+    /// Challenge a world trainer NPC to a pet duel. The server validates range and
+    /// that the trainer is not already dueling. Appended last so serde variant
+    /// indices of the existing inputs are unchanged.
+    ChallengeNpc {
+        npc: EntityId,
+    },
+    /// Challenge another player to a pet duel. Server validates range and that
+    /// neither side is busy. Appended last so serde variant indices of the
+    /// existing inputs are unchanged.
+    DuelChallenge {
+        target: PlayerSlot,
+    },
+    /// Accept or decline the pending duel challenge addressed to this player.
+    /// Appended last so serde variant indices of the existing inputs are
+    /// unchanged.
+    DuelRespond {
+        accept: bool,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -346,6 +368,20 @@ pub struct EntityDelta {
     /// ship — so others see who is flying it. Appended last (postcard is positional).
     #[serde(default)]
     pub piloting: u32,
+    /// Nameplate pools. All-zero when the entity has no such pool. Appended after
+    /// `piloting` for the same positional-wire reason.
+    #[serde(default)]
+    pub mp: i32,
+    #[serde(default)]
+    pub max_mp: i32,
+    #[serde(default)]
+    pub energy: i32,
+    #[serde(default)]
+    pub max_energy: i32,
+    #[serde(default)]
+    pub stamina: i32,
+    #[serde(default)]
+    pub max_stamina: i32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -677,6 +713,26 @@ pub struct PetBattleState {
     pub outcome: String,
     pub awaiting: bool,
     pub can_run: bool,
+    pub phase: String,
+    pub deadline_ms: u32,
+    pub opponent: String,
+}
+
+pub const DUEL_PROMPT_OFFER: u8 = 0;
+pub const DUEL_PROMPT_DECLINED: u8 = 1;
+pub const DUEL_PROMPT_EXPIRED: u8 = 2;
+pub const DUEL_PROMPT_ACCEPTED: u8 = 3;
+pub const DUEL_PROMPT_SENT: u8 = 4;
+
+/// A pet duel challenge notice: `status` is a `DUEL_PROMPT_*` constant. Sent to
+/// the target as the offer (with the challenger's name + time to respond) and
+/// back to the challenger when the offer is declined, expires, or is accepted.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DuelPrompt {
+    pub status: u8,
+    pub other_slot: u16,
+    pub other_name: String,
+    pub deadline_ms: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -696,6 +752,57 @@ pub enum ServerEvent {
     Reject {
         reason: String,
     },
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum UdpPacket {
+    Hello { protocol: u32, token: [u8; 16] },
+    HelloAck,
+    Frame(ClientFrame),
+    Snapshot(Snapshot),
+}
+
+#[derive(Serialize)]
+pub struct SnapshotRef<'a> {
+    pub tick: u32,
+    pub server_time_ms: u32,
+    pub input_ack: u32,
+    pub players: &'a [PlayerView],
+    pub entities: Vec<&'a EntityDelta>,
+    pub keyframe: bool,
+}
+
+#[derive(Serialize)]
+pub enum ServerEventRef<'a> {
+    Welcome {
+        protocol: u32,
+        your_slot: PlayerSlot,
+        seed: u64,
+        registry: Vec<KindEntry>,
+    },
+    Snapshot(SnapshotRef<'a>),
+    Ephemeral {
+        kind: u16,
+        to: PlayerSlot,
+        payload: Vec<u8>,
+    },
+    Reject {
+        reason: String,
+    },
+}
+
+#[derive(Serialize)]
+pub enum UdpPacketRef<'a> {
+    Hello { protocol: u32, token: [u8; 16] },
+    HelloAck,
+    Frame(ClientFrame),
+    Snapshot(&'a SnapshotRef<'a>),
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct UdpOffer {
+    pub token: [u8; 16],
+    pub port: u16,
 }
 
 pub fn encode<T: Serialize>(value: &T) -> Result<Vec<u8>, postcard::Error> {
@@ -742,6 +849,67 @@ mod tests {
             }
             _ => panic!("wrong variant"),
         }
+    }
+
+    #[test]
+    fn snapshot_ref_matches_owned_wire() {
+        let snap = Snapshot {
+            tick: 42,
+            server_time_ms: 1000,
+            input_ack: 7,
+            players: vec![PlayerView {
+                slot: PlayerSlot(1),
+                kbve_username: "hero".into(),
+                connected: true,
+            }],
+            entities: vec![EntityDelta {
+                eid: EntityId(9),
+                kind: 3,
+                owner: PlayerSlot(1),
+                tile: Tile::new(5, 6),
+                facing: Facing::Up,
+                sub: 0,
+                qx: 1,
+                qy: 2,
+                qvx: 0,
+                qvy: 0,
+                input_ack: 7,
+                hp: 80,
+                max_hp: 100,
+                destroyed: false,
+                z: -2,
+                effects: vec![StatusView {
+                    kind: StatusKind::Burn,
+                    remaining: 30,
+                }],
+                piloting: 0,
+                mp: 0,
+                max_mp: 0,
+                energy: 0,
+                max_energy: 0,
+                stamina: 0,
+                max_stamina: 0,
+            }],
+            keyframe: true,
+        };
+        let view = SnapshotRef {
+            tick: snap.tick,
+            server_time_ms: snap.server_time_ms,
+            input_ack: snap.input_ack,
+            players: &snap.players,
+            entities: snap.entities.iter().collect(),
+            keyframe: snap.keyframe,
+        };
+        assert_eq!(
+            encode_inner(&UdpPacket::Snapshot(snap.clone())).unwrap(),
+            encode_inner(&UdpPacketRef::Snapshot(&view)).unwrap(),
+            "UdpPacketRef must be byte-identical to owned UdpPacket"
+        );
+        assert_eq!(
+            encode(&ServerEvent::Snapshot(snap.clone())).unwrap(),
+            encode(&ServerEventRef::Snapshot(view)).unwrap(),
+            "ServerEventRef must be byte-identical to owned ServerEvent"
+        );
     }
 
     #[test]
@@ -862,6 +1030,12 @@ mod tests {
                     remaining: 5,
                 }],
                 piloting: 0,
+                mp: 20,
+                max_mp: 100,
+                energy: 0,
+                max_energy: 0,
+                stamina: 0,
+                max_stamina: 0,
             }],
             keyframe: true,
         });
@@ -878,7 +1052,7 @@ mod tests {
         );
         assert_eq!(
             h(&snap),
-            "040109640109010207ffff030a050881c002bf01180d033c500501010305020100"
+            "040109640109010207ffff030a050881c002bf01180d033c5005010103050428c801010101020100"
         );
     }
 
@@ -931,6 +1105,53 @@ mod tests {
         let back: PickupEvent = decode_inner(&bytes).expect("decode");
         assert_eq!(back.item_ref, "arrow");
         assert_eq!(back.count, 3);
+    }
+
+    #[test]
+    fn challenge_npc_input_roundtrips() {
+        let input = Input::ChallengeNpc { npc: EntityId(42) };
+        let bytes = encode_inner(&input).expect("encode");
+        assert_eq!(bytes[0], 33);
+        let decoded: Input = decode_inner(&bytes).expect("decode");
+        assert!(matches!(decoded, Input::ChallengeNpc { npc: EntityId(42) }));
+    }
+
+    #[test]
+    fn duel_challenge_input_roundtrips() {
+        let input = Input::DuelChallenge {
+            target: PlayerSlot(7),
+        };
+        let bytes = encode_inner(&input).expect("encode");
+        assert_eq!(bytes[0], 34);
+        let decoded: Input = decode_inner(&bytes).expect("decode");
+        assert!(matches!(
+            decoded,
+            Input::DuelChallenge {
+                target: PlayerSlot(7)
+            }
+        ));
+    }
+
+    #[test]
+    fn duel_respond_input_roundtrips() {
+        let input = Input::DuelRespond { accept: true };
+        let bytes = encode_inner(&input).expect("encode");
+        assert_eq!(bytes[0], 35);
+        let decoded: Input = decode_inner(&bytes).expect("decode");
+        assert!(matches!(decoded, Input::DuelRespond { accept: true }));
+    }
+
+    #[test]
+    fn duel_prompt_roundtrips() {
+        let p = DuelPrompt {
+            status: DUEL_PROMPT_OFFER,
+            other_slot: 3,
+            other_name: "ann".into(),
+            deadline_ms: 20_000,
+        };
+        let bytes = encode_inner(&p).expect("encode");
+        let decoded: DuelPrompt = decode_inner(&bytes).expect("decode");
+        assert_eq!(decoded, p);
     }
 
     // Cross-language wire lock for the pet-battle replay: the TS decodePetBattleReplay
@@ -1044,6 +1265,9 @@ mod tests {
             outcome: "Ongoing".into(),
             awaiting: true,
             can_run: true,
+            phase: "Active".into(),
+            deadline_ms: 20_000,
+            opponent: "ann".into(),
         };
         let bytes = encode_inner(&state).expect("encode");
         assert_eq!(hex(&bytes), PET_STATE_HEX);
@@ -1051,7 +1275,7 @@ mod tests {
         assert_eq!(back, state);
     }
 
-    const PET_STATE_HEX: &str = "01016d03526578053c5001016d03466f650550500000010005737061726b094c696768746e696e670150640f0f010101143c0003686974074f6e676f696e670101";
+    const PET_STATE_HEX: &str = "01016d03526578053c5001016d03466f650550500000010005737061726b094c696768746e696e670150640f0f010101143c0003686974074f6e676f696e67010106416374697665a09c0103616e6e";
 
     #[test]
     fn combat_event_fixture_is_stable() {
@@ -1261,6 +1485,12 @@ mod tests {
             z: 0,
             effects: vec![],
             piloting: 0,
+            mp: 0,
+            max_mp: 0,
+            energy: 0,
+            max_energy: 0,
+            stamina: 0,
+            max_stamina: 0,
         };
         let full = EntityDelta {
             eid: EntityId(2),
@@ -1283,6 +1513,12 @@ mod tests {
                 remaining: 5,
             }],
             piloting: 7,
+            mp: 55,
+            max_mp: 100,
+            energy: 80,
+            max_energy: 100,
+            stamina: 25,
+            max_stamina: 100,
         };
         let evt = ServerEvent::Snapshot(Snapshot {
             tick: 9,
@@ -1307,5 +1543,92 @@ mod tests {
             }
             _ => panic!("wrong variant"),
         }
+    }
+
+    #[test]
+    fn udp_packet_round_trips() {
+        let hello = UdpPacket::Hello {
+            protocol: PROTOCOL_VERSION,
+            token: [7u8; 16],
+        };
+        let bytes = encode_inner(&hello).expect("encode");
+        match decode_inner::<UdpPacket>(&bytes).expect("decode") {
+            UdpPacket::Hello { protocol, token } => {
+                assert_eq!(protocol, PROTOCOL_VERSION);
+                assert_eq!(token, [7u8; 16]);
+            }
+            _ => panic!("wrong variant"),
+        }
+
+        let frame = UdpPacket::Frame(ClientFrame {
+            client_tick: 9,
+            inputs: vec![Input::Move {
+                seq: 3,
+                mx: 1,
+                my: -1,
+                run: false,
+                tick: 9,
+            }],
+        });
+        let bytes = encode_inner(&frame).expect("encode");
+        assert!(matches!(
+            decode_inner::<UdpPacket>(&bytes).expect("decode"),
+            UdpPacket::Frame(f) if f.client_tick == 9
+        ));
+
+        let ack = encode_inner(&UdpPacket::HelloAck).expect("encode");
+        assert!(matches!(
+            decode_inner::<UdpPacket>(&ack).expect("decode"),
+            UdpPacket::HelloAck
+        ));
+    }
+
+    #[test]
+    fn udp_offer_round_trips() {
+        let offer = UdpOffer {
+            token: [0xAB; 16],
+            port: 7977,
+        };
+        let bytes = encode_inner(&offer).expect("encode");
+        let back: UdpOffer = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.token, [0xAB; 16]);
+        assert_eq!(back.port, 7977);
+    }
+
+    #[test]
+    fn udp_hello_fixture_is_stable() {
+        let hello = UdpPacket::Hello {
+            protocol: 16,
+            token: [
+                0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
+                0x0e, 0x0f,
+            ],
+        };
+        let hex: String = encode_inner(&hello)
+            .expect("encode")
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        assert_eq!(hex, "0010000102030405060708090a0b0c0d0e0f");
+    }
+
+    #[test]
+    fn udp_frame_fixture_is_stable() {
+        let frame = UdpPacket::Frame(ClientFrame {
+            client_tick: 42,
+            inputs: vec![Input::Move {
+                seq: 5,
+                mx: 1,
+                my: -1,
+                run: true,
+                tick: 42,
+            }],
+        });
+        let hex: String = encode_inner(&frame)
+            .expect("encode")
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        assert_eq!(hex, "022a01010501ff012a");
     }
 }

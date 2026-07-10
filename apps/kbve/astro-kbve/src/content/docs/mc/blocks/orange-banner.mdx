@@ -1,5 +1,6 @@
 ---
 title: Orange Banner
+template: splash
 description: |
     Minecraft Orange Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 532
     ref: orange_banner
     slug: orange-banner
+    content_rev: 1
     display_name: Orange Banner
     material: wood
     hardness: 1
@@ -26,8 +28,63 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Orange Banner is a tall decorative block crafted from
+            orange wool and a stick. It can be customized with up to six
+            pattern layers applied at a loom and displayed on walls,
+            floors, or item frames.
+        lore: |
+            Banners have existed since the Combat Update (1.9) as a way
+            for players and villages to mark territory with colored,
+            patterned standards.
+    uses:
+        - title: Loom Patterns
+          ref: banner_pattern
+          detail: |
+              Apply dye and a banner pattern item at a loom to add up to
+              six layered designs to an orange banner.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combine a patterned banner with a shield at a crafting table
+              to transfer its design onto the shield.
+        - title: Map Marker
+          ref: map
+          detail: |
+              Place a banner and right-click a held map near it to add a
+              permanent location marker, visible even after the banner is removed.
+    found_in:
+        - location: Savanna villages
+          detail: Generates naturally as decoration in some savanna village structures.
+        - location: Crafting table
+          detail: Crafted from six orange wool and one stick in a banner pattern.
+    faq:
+        - question: What tool do I need to mine an Orange Banner?
+          answer: |
+              None required — it drops itself with any tool, though an axe
+              is fastest.
+        - question: Is the banner solid?
+          answer: |
+              No. Despite standing up to two blocks tall, banners are
+              entirely non-solid and entities pass through them freely.
+        - question: Can I add patterns to it?
+          answer: |
+              Yes — up to six pattern layers can be added at a loom using
+              dye and banner pattern items, and the result can be copied to a shield.
+        - question: Does it burn?
+          answer: |
+              No, banners are not flammable, though fire on an adjacent
+              block can still spread around them.
     data_version: "1.21.5"
 ---
 

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: October 23rd.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 23,'
+    accent: every year.
+    lede: 'The October 23rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 22'
+          href: /journal/10-22/
+        - label: 'Oct 24 →'
+          href: /journal/10-24/
+    related:
+        - title: 'Previous · Oct 22'
+          copy: 'Step back a day to the October 22nd log.'
+          href: /journal/10-22/
+          icon: calendar
+        - title: 'Next · Oct 24'
+          copy: 'Jump ahead to the October 24th log.'
+          href: /journal/10-24/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### HexMap for AFK
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     I found a great collection for us to use, the problem will be if we have the time to get it all out before the gamejam ends.
     This is a tough mission and the time that I have is getting smaller and smaller. 
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Optimization**
 
@@ -66,3 +115,7 @@ I am test casing the new sheets on the login page for expo-lcagents but while I 
 There is a part of me that is thinking that the react 301 bug might be something completely different but I am really hoping that it will be just from this mount issue.
 It could have been from the way we were importing the Scroll view, instead of calling it from tamagui, we were calling it directly from react native. 
 Hmm, regardless, we have 23 more components to build out and convert to BBQ templates.
+
+</BentoProse>
+
+</BentoDoc>

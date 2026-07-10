@@ -1,5 +1,6 @@
 ---
 title: Mossy Stone Bricks
+template: splash
 description: |
     Minecraft Mossy Stone Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 312
     ref: mossy_stone_bricks
     slug: mossy-stone-bricks
+    content_rev: 1
     display_name: Mossy Stone Bricks
     material: stone
     hardness: 1.5
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mossy_stone_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Mossy Stone Bricks are a weathered variant of stone bricks,
+            covered in moss and used purely for decoration since they carry
+            no mechanical advantage over regular stone bricks.
+        lore: |
+            They appear throughout ancient, moisture-exposed structures like
+            strongholds and ocean ruins, suggesting long ages of neglect.
+    uses:
+        - title: Mossy Stone Brick Stairs, Slab, and Wall
+          ref: mossy_stone_brick_wall
+          detail: |
+              Craft or stonecut Mossy Stone Bricks into matching stairs,
+              slabs, and walls for consistent moss-themed builds.
+    found_in:
+        - location: Strongholds
+          detail: Forms walls, ceilings, and floors throughout stronghold structures.
+        - location: Igloo basements, ocean ruins, and ruined portals
+          detail: Also generates in these smaller structures across the Overworld.
+        - location: Crafted from Stone Bricks
+          detail: Combine Stone Bricks with a Vine or Moss Block to create Mossy Stone Bricks.
+    faq:
+        - question: What tool do I need to mine Mossy Stone Bricks?
+          answer: |
+              Any pickaxe, wooden tier or higher. Without a pickaxe, the
+              block breaks but drops nothing.
+        - question: How do I craft Mossy Stone Bricks?
+          answer: |
+              Combine a Stone Brick with a Vine or a Moss Block in a
+              crafting grid to convert it into a Mossy Stone Brick.
+        - question: Where do Mossy Stone Bricks generate naturally?
+          answer: |
+              In strongholds, igloo basements, ocean ruins, and ruined
+              portals — structures themed around age and weathering.
+        - question: Is there any gameplay benefit over regular Stone Bricks?
+          answer: |
+              No. The moss texture is purely decorative; hardness, blast
+              resistance, and drops are identical to normal Stone Bricks.
     data_version: "1.21.5"
 ---
 

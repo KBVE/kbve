@@ -1,5 +1,6 @@
 ---
 title: Blue Terracotta
+template: splash
 description: |
     Minecraft Blue Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 463
     ref: blue_terracotta
     slug: blue-terracotta
+    content_rev: 1
     display_name: Blue Terracotta
     material: stone
     hardness: 1.25
@@ -24,10 +26,62 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Blue Terracotta is one of sixteen dyed variants of terracotta,
+            made by combining plain terracotta with blue dye. It keeps
+            terracotta's hardened-clay texture and stone-like toughness while
+            adding a saturated color for building and banded patterns.
+        lore: |
+            Stained terracotta was added in the Trials & Tribulations update
+            (1.12) alongside the dye-crafting recipes that let players color
+            it in all sixteen palette shades.
+    uses:
+        - title: Blue Glazed Terracotta
+          ref: blue_glazed_terracotta
+          detail: |
+              Smelting Blue Terracotta in a furnace produces Blue Glazed
+              Terracotta, a shinier block with a fixed directional pattern
+              popular for pixel-art builds.
+        - title: Building and Decoration
+          ref: blue_terracotta
+          detail: |
+              Used as a durable, blast-resistant colored building block,
+              often paired with other terracotta colors to recreate the
+              banded strata seen in badlands biomes.
+    found_in:
+        - location: Badlands biomes
+          detail: Generates naturally in the layered terracotta strata of badlands and eroded badlands.
+        - location: Mason villager trades
+          detail: Expert-level mason villagers sell dyed terracotta variants for emeralds, making it renewable.
+    faq:
+        - question: What tool do I need to mine Blue Terracotta?
+          answer: |
+              Any pickaxe, even wooden, breaks it and drops the block itself.
+        - question: Can I change the color of Blue Terracotta later?
+          answer: |
+              No. Dyeing terracotta is a one-way crafting recipe — the color
+              cannot be removed or changed once applied.
+        - question: Does Blue Terracotta occur naturally?
+          answer: |
+              Yes, in badlands biomes as part of the naturally generated
+              colored terracotta strata, and in trail ruins.
+        - question: What does Blue Terracotta smelt into?
+          answer: |
+              Furnace smelting turns it into Blue Glazed Terracotta.
     data_version: "1.21.5"
 ---
 

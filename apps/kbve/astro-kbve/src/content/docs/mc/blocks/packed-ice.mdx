@@ -1,5 +1,6 @@
 ---
 title: Packed Ice
+template: splash
 description: |
     Minecraft Packed Ice — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 524
     ref: packed_ice
     slug: packed-ice
+    content_rev: 1
     display_name: Packed Ice
     material: ice
     hardness: 0.5
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: packed_ice
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Packed Ice is a dense, opaque form of ice that never melts near
+            light sources and does not turn to water when broken. It only
+            drops itself when mined with a Silk Touch tool, and is slippery
+            enough to send boats and other entities sliding at high speed.
+        lore: |
+            Added in Java Edition 1.7, Packed Ice was originally a
+            decoration exclusive to ice spikes biomes before becoming
+            craftable.
+    uses:
+        - title: Blue Ice
+          ref: blue_ice
+          detail: |
+              Craft 9 Packed Ice together to make Blue Ice, an even more
+              slippery block popular for high-speed boat and minecart
+              tracks.
+    found_in:
+        - location: Ice Spikes and Frozen Biomes
+          detail: Generates naturally in ice spikes biomes, frozen oceans, frozen peaks, and other icy terrain.
+        - location: Trial Chambers and Ancient Cities
+          detail: Also appears as a decoration block in these newer structures.
+        - location: Wandering Trader
+          detail: Purchasable for 1 emerald per block.
+    faq:
+        - question: Do I need Silk Touch to mine Packed Ice?
+          answer: |
+              Yes. Without Silk Touch, Packed Ice breaks and drops nothing
+              at all.
+        - question: Does Packed Ice melt?
+          answer: |
+              No, unlike regular ice it never melts from nearby light or
+              heat sources.
+        - question: What happens when I break it without Silk Touch?
+          answer: |
+              It disappears completely rather than turning into water like
+              regular ice does.
+        - question: What is Packed Ice used for?
+          answer: |
+              Mainly decoration and crafting Blue Ice for fast boat and
+              minecart transportation.
     data_version: "1.21.5"
 ---
 

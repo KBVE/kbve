@@ -1,5 +1,6 @@
 ---
 title: Structure Block
+template: splash
 description: |
     Minecraft Structure Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 864
     ref: structure_block
     slug: structure-block
+    content_rev: 1
     display_name: Structure Block
     material: stone
     hardness: -1
     blast_resistance: 3600000
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 15
@@ -27,7 +28,55 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - dragon_immune
+        - wither_immune
+        - unbreakable
+    about:
+        description: |
+            The Structure Block is a technical, indestructible block used
+            to save, load, and manipulate structures — the same system
+            that generates villages, strongholds, and other vanilla
+            structures. It is only obtainable in Creative mode via the
+            `/give` command and cannot be broken in Survival.
+        lore: |
+            Added in Java Edition 1.9 (snapshot 15w31a) as an internal
+            developer tool, it was exposed to players in 1.10 with a
+            redesigned texture meant to look "mysterious."
+    uses:
+        - title: Save mode
+          ref: structure_block
+          detail: |
+              Captures a region of the world (up to 48x48x48 by default,
+              32x32x32 in Bedrock) into a `.nbt` structure file for reuse
+              or datapack distribution.
+        - title: Load mode
+          ref: structure_block
+          detail: |
+              Places a previously saved structure back into the world,
+              with options to rotate, mirror, and randomize integrity for
+              a weathered look.
+    found_in:
+        - location: Creative inventory / commands only
+          detail: Obtained with `/give @s structure_block`, `/setblock`, or `/fill`; not available in Survival.
+    faq:
+        - question: Can I mine a Structure Block in Survival?
+          answer: |
+              No. It has a hardness of -1, making it unbreakable without
+              creative mode or commands.
+        - question: What does a Structure Block drop?
+          answer: |
+              Nothing — it cannot be broken normally, so it has no item
+              drop.
+        - question: What are the Structure Block's modes?
+          answer: |
+              Save, Load, Corner, Data, and (in Bedrock) Export/Import
+              3D-print, each controlling a different structure operation.
+        - question: Is it affected by explosions?
+          answer: |
+              No, its blast resistance of 3,600,000 makes it effectively
+              immune to TNT, creepers, wither skulls, and the Ender
+              Dragon.
     data_version: "1.21.5"
 ---
 

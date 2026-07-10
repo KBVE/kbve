@@ -1,5 +1,6 @@
 ---
 title: Cut Copper Stairs
+template: splash
 description: |
     Minecraft Cut Copper Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,73 @@ mc_block:
     id: 987
     ref: cut_copper_stairs
     slug: cut-copper-stairs
+    content_rev: 1
     display_name: Cut Copper Stairs
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cut_copper_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Cut Copper Stairs are a decorative stair variant crafted from
+            cut copper blocks, letting builders make sloped copper roofs
+            and trim. Unwaxed stairs oxidize over time just like other
+            copper blocks.
+        lore: |
+            Added in Java Edition 1.17 alongside the rest of the copper
+            block family, and later found generating naturally as of the
+            1.21 Trial Chambers update.
+    uses:
+        - title: Copper roofing and trim
+          ref: cut_copper
+          detail: |
+              Used decoratively to build sloped roofs, awnings, and
+              staircases that match copper-block builds.
+        - title: Waxed Cut Copper Stairs
+          ref: waxed_cut_copper_stairs
+          detail: |
+              Applying honeycomb waxes the stairs, freezing their
+              oxidation stage permanently.
+    found_in:
+        - location: Trial Chambers
+          detail: The waxed, oxidized variant generates naturally within trial chamber vaults and corridors.
+        - location: Crafting or stonecutting
+          detail: Made from 6 Cut Copper blocks (4 stairs) or via the stonecutter from a Block of Copper.
+    faq:
+        - question: What tool do I need to mine Cut Copper Stairs?
+          answer: |
+              A stone pickaxe or better; weaker tools break the block
+              without a drop.
+        - question: Do Cut Copper Stairs oxidize?
+          answer: |
+              Yes, if unwaxed, they weather through the same four stages
+              as other copper blocks, from bright orange to green patina.
+        - question: Can I reverse oxidation on the stairs?
+          answer: |
+              Yes. Scraping with an axe removes one oxidation stage, and
+              waxing with honeycomb prevents further oxidation.
+        - question: Are Cut Copper Stairs affected by Fortune?
+          answer: |
+              No, they always drop themselves as a single item regardless
+              of Fortune enchantment.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Polished Blackstone Brick Stairs
+template: splash
 description: |
     Minecraft Polished Blackstone Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 892
     ref: polished_blackstone_brick_stairs
     slug: polished-blackstone-brick-stairs
+    content_rev: 1
     display_name: Polished Blackstone Brick Stairs
     material: nether
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_blackstone_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Polished Blackstone Brick Stairs give the polished blackstone
+            brick family a sloped, climbable form, usable in any of the
+            four horizontal orientations plus upside-down placement.
+        lore: |
+            Introduced in Java Edition 20w15a with the rest of the
+            polished blackstone brick set, it started generating naturally
+            in bastion remnants and ruined portals shortly after.
+    uses: []
+    found_in:
+        - location: Bastion remnants
+          detail: Forms staircases and sloped architecture inside bastion remnant structures.
+        - location: Ruined portals (Nether)
+          detail: Generates as scattered debris around Nether-side ruined portals.
+        - location: Crafted from Polished Blackstone Bricks
+          detail: Six bricks craft four stairs, or any blackstone-family block converts through a stonecutter.
+    faq:
+        - question: What tool do I need to mine these stairs?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              drops nothing.
+        - question: How do I craft Polished Blackstone Brick Stairs?
+          answer: |
+              Arrange six Polished Blackstone Bricks in a staircase pattern
+              in a crafting grid for four stairs, or cut Blackstone,
+              Polished Blackstone, or the bricks through a stonecutter.
+        - question: Can stairs be placed upside down?
+          answer: |
+              Yes. Placing against the upper half of a block face flips the
+              stair to an upside-down orientation, useful for ceilings.
+        - question: Is it renewable?
+          answer: |
+              Yes, since the underlying blackstone-family blocks are
+              renewable through piglin bartering.
     data_version: "1.21.5"
 ---
 

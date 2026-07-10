@@ -1,7 +1,7 @@
 ---
-title: Jedi
-description: |
-    Jedi crate for KBVE.
+title: Jedi — Juggernaut Electronic Data Interchange Crate
+description: Jedi is the Juggernaut Electronic Data Interchange (EDI) Rust crate — a data-exchange layer with entity models, JWT/JWKS, RCON, and a shared ClickHouse client.
+sem: 1
 sidebar:
     label: Jedi Crate
     order: 71
@@ -17,8 +17,84 @@ version_toml: packages/rust/jedi/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the Jedi crate?
+          answer: Jedi is the Juggernaut Electronic Data Interchange (EDI) package for KBVE. It provides a robust, scalable data-exchange layer in Rust, with entity models, builders, JWT/JWKS verification, an RCON module, and prost-generated proto types shared across KBVE services.
+        - question: What does the Jedi crate include?
+          answer: Its modules include builder, entity, jwks, jwt_cache, proto, rcon, state, and wrapper. It bundles axum, tokio, reqwest with rustls, dashmap, and optional Postgres and ClickHouse plumbing behind feature flags.
+        - question: Where is the Jedi crate used?
+          answer: Jedi is a shared KBVE crate reused across services — for example the metrics ingest service uses its ClickHouse client to batch telemetry inserts, and auth paths use its JWKS and JWT cache for token verification.
+bento:
+    badge: crates · rust
+    title: Data interchange for
+    accent: jedi
+    lede: >-
+        The Juggernaut Electronic Data Interchange (EDI) Rust crate — a
+        data-exchange layer with entity models, JWT/JWKS, RCON, and a shared
+        ClickHouse client.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/jedi
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: network
+        title: Shared data-exchange layer
+        body: >-
+            The Juggernaut EDI package, extended through
+            <a href="/project/holy-crate/">holy</a> and reused across KBVE
+            services for entity modeling, token verification, RCON, and database
+            access. Dry-run: <strong>./kbve.sh -nx jedi:dry --no-cloud</strong>.
+        points:
+            - <strong>Auth</strong> — jwks and jwt_cache for JWKS-based JWT verification.
+            - <strong>Telemetry</strong> — ClickHouse client batches metrics inserts.
+    stats:
+        - { label: Package, value: jedi, icon: package }
+        - { label: Edition, value: "2024", icon: rust }
+        - { label: Version, value: "0.2.2", icon: branch }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Entity + builder models
+          icon: database
+          body: entity, builder, and state modules for structured data exchange.
+        - title: Auth primitives
+          icon: key
+          body: jwks and jwt_cache modules for JWKS-based JWT verification with caching.
+        - title: RCON
+          icon: server
+          body: An rcon module for remote console command exchange.
+        - title: Proto types
+          icon: package
+          body: prost / tonic-generated proto module shared across services.
+        - title: Optional database plumbing
+          icon: database
+          body: Postgres (tokio-postgres, bb8) and a ClickHouse client behind feature flags, using rustls TLS throughout.
+        - title: Sanitization
+          icon: shield
+          body: ammonia for HTML/PII cleaning in the exchange path.
+    related:
+        - title: Metrics
+          href: /project/metrics/
+          copy: Observability service that reuses the Jedi ClickHouse client.
+          icon: activity
+        - title: API
+          href: /project/api/
+          copy: The axum-kbve API that builds on shared Rust crates.
+          icon: server
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-Jedi crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

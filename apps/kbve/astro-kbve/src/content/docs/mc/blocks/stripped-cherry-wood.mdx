@@ -1,7 +1,9 @@
 ---
 title: Stripped Cherry Wood
+template: splash
 description: |
-    Minecraft Stripped Cherry Wood — vanilla 1.21.5 block record (auto-generated).
+    Minecraft Stripped Cherry Wood — the bark-free, all-sides-barked variant
+    of Cherry Wood made by axing a Cherry Wood block. Uses, drops, and FAQ.
 sidebar:
     label: Stripped Cherry Wood
     hidden: true
@@ -13,6 +15,7 @@ mc_block:
     id: 84
     ref: stripped_cherry_wood
     slug: stripped-cherry-wood
+    content_rev: 1
     display_name: Stripped Cherry Wood
     material: wood
     hardness: 2
@@ -24,10 +27,65 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_cherry_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Cherry Wood is the bark-stripped form of Cherry Wood,
+            showing the plank-textured pattern on all six faces instead of
+            just the log ends. It is created by right-clicking a Cherry Wood
+            block with an axe, which permanently removes the bark texture.
+        lore: |
+            Cherry Wood and its stripped variant were added in the Trails &
+            Tales Update (1.20) alongside the Cherry Grove biome.
+    uses:
+        - title: Cherry Planks
+          ref: cherry_planks
+          detail: |
+              Craft into 4 Cherry Planks per block, or use directly as a
+              decorative bark-free building block for cherry-themed builds.
+        - title: Campfire / Smoker
+          ref: campfire
+          detail: |
+              Used as a crafting ingredient for campfires and smokers in
+              place of the plain stripped log.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns as fuel, smelting 1.5 items per block when used in a
+              furnace or smoker.
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: |
+              Does not generate naturally; obtained only by stripping Cherry
+              Wood with an axe, or by crafting 4 Stripped Cherry Logs into 3
+              Stripped Cherry Wood blocks.
+    faq:
+        - question: How do I get Stripped Cherry Wood?
+          answer: |
+              Use any axe on a Cherry Wood block placed in the world.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool works, including bare hands — it always drops itself.
+              An axe is fastest.
+        - question: Is Stripped Cherry Wood flammable?
+          answer: |
+              Yes, like other overworld wood variants it burns and can be
+              used as furnace fuel.
+        - question: Can I turn it back into Cherry Wood?
+          answer: |
+              No. Stripping bark is a one-way conversion; there is no way to
+              restore the bark texture.
     data_version: "1.21.5"
 ---
 

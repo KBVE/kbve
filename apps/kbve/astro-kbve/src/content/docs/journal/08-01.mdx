@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?crop=entropy&c
 description: August 1st. Singleton.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 1,'
+    accent: every year.
+    lede: 'The August 1st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 31'
+          href: /journal/07-31/
+        - label: 'Aug 2 →'
+          href: /journal/08-02/
+    related:
+        - title: 'Previous · Jul 31'
+          copy: 'Step back a day to the July 31st log.'
+          href: /journal/07-31/
+          icon: calendar
+        - title: 'Next · Aug 2'
+          copy: 'Jump ahead to the August 2nd log.'
+          href: /journal/08-02/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Supabase Cluster
 
@@ -27,7 +69,15 @@ import { Adsense } from '@/components/astropad';
     During our docker swarm era, we had a couple edge nodes that helped with processing via n8n.
     Getting this going would be a great side quest, if we get the talos networking out of the way.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Singleton**
 Working off of yesterday, I am thinking that we could migrate the serialization and deserialization from function to a global singleton, then setup an object pool?
@@ -86,20 +136,30 @@ The `UserSettings` will have the `textSpeed` as a new setting and then we can ju
 While doing some of the combat testing, I been doing some hardware emulation.
 The goal here is just to test the differnt ways to emulate USB equipment, mainly setting up the base drivers.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 4:34am - I got up super early and started to work on the svelte migration for the react components. I also wanted to see the pre-market but I am a bit off-put with the current situation, I believe we are in the perfect mixture of events that create a decent chunk of profits for the irons condor gangs.
 - 2:28pm - Doing a couple quick syncs within the public and private repos. 
 - 3:29pm - Okay got my mother back from the dentist, it has been like three trips so far but everything is good to go. She feels better and that is one less stress point that I have to deal with.
 - 3:34pm - I should look into setting up certain changes via github actions, going to map out two or three to build in the future.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > In friendship as well as love, ignorance very often contributes more to our happiness than knowledge.
 > — <cite>François de La Rochefoucauld</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

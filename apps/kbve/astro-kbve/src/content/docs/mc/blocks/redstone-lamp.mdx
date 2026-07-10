@@ -1,5 +1,6 @@
 ---
 title: Redstone Lamp
+template: splash
 description: |
     Minecraft Redstone Lamp — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 364
     ref: redstone_lamp
     slug: redstone-lamp
+    content_rev: 1
     display_name: Redstone Lamp
     material: redstone
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
+    best_tool: pickaxe
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: redstone_lamp
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Redstone Lamp is a light source that only shines at maximum
+            brightness while receiving redstone power. It switches on
+            instantly but has a short delay before switching off, making
+            it a common component in redstone-controlled lighting builds.
+        lore: |
+            Redstone Lamps were added in Java Edition 1.2.1 as the first
+            dedicated switchable light source.
+    uses:
+        - title: Switchable Lighting
+          ref: redstone
+          detail: |
+              Wire a lever, button, or other redstone signal to a
+              Redstone Lamp to build lights that switch on and off on
+              command.
+    found_in:
+        - location: Crafting
+          detail: Craft from 4 Redstone Dust and 1 Glowstone, with the Glowstone in the center of the grid.
+        - location: Ancient Cities
+          detail: Generates as part of redstone circuitry within ancient city structures.
+    faq:
+        - question: What tool do I need to mine a Redstone Lamp?
+          answer: |
+              Any pickaxe works and mines it quickly, though it can also
+              be broken by hand.
+        - question: Why won't my Redstone Lamp turn on?
+          answer: |
+              It only lights up while actively receiving a redstone
+              signal; without power it stays dark.
+        - question: How is a Redstone Lamp crafted?
+          answer: |
+              Combine 4 Redstone Dust and 1 Glowstone block, with the
+              Glowstone in the center slot and dust in the four
+              surrounding slots.
+        - question: Is there a delay when a Redstone Lamp turns off?
+          answer: |
+              Yes, it turns on instantly but takes a short delay (about 2
+              game ticks) before going dark once power is removed.
     data_version: "1.21.5"
 ---
 

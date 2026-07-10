@@ -1,5 +1,6 @@
 ---
 title: Gilded Blackstone
+template: splash
 description: |
     Minecraft Gilded Blackstone — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1295
     ref: gilded_blackstone
     slug: gilded-blackstone
+    content_rev: 1
     display_name: Gilded Blackstone
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Gilded blackstone is a decorative variant of blackstone found exclusively within
+            bastion remnants in the Nether. Mining it with a pickaxe drops either the block
+            itself or 2-5 gold nuggets at a 10% chance, a rate increased by the Fortune
+            enchantment.
+        lore: |
+            Gilded blackstone was named after Gilded Games, the studio behind the popular
+            Aether mod, as a nod from the Minecraft development team.
+    faq:
+        - question: Where can you find Gilded Blackstone?
+          answer: |
+              It generates naturally within bastion remnants in the Nether, and it also
+              appears in various bastion chests, most commonly treasure chests.
+        - question: Can Gilded Blackstone be smelted into gold ingots?
+          answer: |
+              No. Despite containing gold, it is not an ore block and cannot be smelted;
+              mining it only has a chance to drop gold nuggets.
+        - question: Does breaking Gilded Blackstone anger piglins?
+          answer: |
+              Yes. Piglins are attracted to dropped gilded blackstone and will inspect it
+              before collecting it, and breaking the block nearby makes piglins hostile.
+        - question: Is Gilded Blackstone renewable?
+          answer: |
+              No. It is considered non-renewable since bastion remnants do not regenerate
+              once generated in the world.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

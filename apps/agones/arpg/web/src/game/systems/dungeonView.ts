@@ -9,7 +9,12 @@ import {
 	DUNGEON_RADIUS,
 	USE_GROUND_SHADER,
 } from '../config';
-import { worldToScreen, tileDepth, type TileXY } from '../iso';
+import {
+	worldToScreen,
+	worldToScreenFlat,
+	tileDepth,
+	type TileXY,
+} from '../iso';
 import { DungeonField, chunkOf, CHUNK_SIZE, StairKind } from './dungeon';
 import { biomeKeyAt } from './biome';
 import {
@@ -230,7 +235,7 @@ function buildChunkGround(
 
 	const midX = cx * CHUNK_SIZE + CHUNK_SIZE / 2;
 	const midY = cy * CHUNK_SIZE + CHUNK_SIZE / 2;
-	const c = worldToScreen(midX, midY);
+	const c = worldToScreenFlat(midX, midY);
 
 	const ux = c.x;
 	const uy = c.y / 0.5;

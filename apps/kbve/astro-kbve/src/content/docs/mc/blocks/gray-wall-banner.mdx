@@ -1,5 +1,6 @@
 ---
 title: Gray Banner
+template: splash
 description: |
     Minecraft Gray Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 554
     ref: gray_wall_banner
     slug: gray-wall-banner
+    content_rev: 1
     display_name: Gray Banner
     material: wood
     hardness: 1
@@ -23,11 +25,55 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Gray Banner (wall variant) is the mounted form of the gray
+            banner, automatically placed when a banner is attached to the
+            side of a wall or similar surface instead of standing upright.
+        lore: |
+            Banners were added in Java Edition 1.8, letting players craft
+            and pattern their own heraldic flags in 16 base colors.
+    uses:
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combine a banner with a shield at a loom or in a crafting
+              grid to permanently apply its pattern and color to the shield.
+    found_in:
+        - location: Villages and Woodland Mansions
+          detail: Wall banners generate on the sides of structures in villages, mansions, and pillager outposts.
+        - location: Crafted and placed
+          detail: Any standing banner becomes a wall banner automatically when placed against a vertical surface.
+    faq:
+        - question: What tool do I need to mine a Gray Banner?
+          answer: |
+              None required — any tool breaks it, though an axe is fastest.
+              It always drops the banner item regardless of tool.
+        - question: Does the wall banner drop differently than the standing one?
+          answer: |
+              No, both forms drop the same gray banner item; the wall
+              placement is just a block state chosen based on where you place it.
+        - question: Can banners catch fire?
+          answer: |
+              They are not flammable themselves but do catch fire from
+              lava contact, and can be smelted as furnace fuel.
+        - question: Can I add patterns to a wall banner?
+          answer: |
+              Yes, take it down and apply patterns at a loom like any
+              standing banner, then place it back on a wall.
     data_version: "1.21.5"
 ---
 

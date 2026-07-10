@@ -1,5 +1,6 @@
 ---
 title: Tube Coral Block
+template: splash
 description: |
     Minecraft Tube Coral Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 624
     ref: tube_coral_block
     slug: tube-coral-block
+    content_rev: 1
     display_name: Tube Coral Block
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A solid blue coral block that generates naturally in coral reef structures within warm ocean biomes. It must be mined with a Silk Touch pickaxe to collect it as a living block; without Silk Touch it drops as its lifeless dead coral block variant instead.
+            Living tube coral block needs at least one adjacent water or waterlogged block to survive, and will turn into dead coral block within a few seconds if that water source is removed.
+        lore: |
+            Placing bone meal on a sea pickle sitting on a living tube coral block encourages the pickle cluster to grow, tying this coral into simple sea pickle farms.
+    faq:
+        - question: How do I collect a living Tube Coral Block?
+          answer: |
+              Mine it with a pickaxe enchanted with Silk Touch. Mining it without Silk Touch destroys the living block and drops dead coral block instead.
+        - question: Why did my Tube Coral Block turn gray?
+          answer: |
+              Coral blocks need at least one of the six adjacent blocks to be water or waterlogged. If that water is removed, the block dies and becomes dead coral block within roughly 3 to 5 seconds.
+        - question: Can I buy Tube Coral Block instead of mining it?
+          answer: |
+              Yes, wandering traders occasionally sell tube coral blocks for 3 emeralds each.
+        - question: What is Tube Coral Block used for?
+          answer: |
+              It is primarily a decorative building block for underwater builds and aquariums, and living coral blocks can also help sea pickles grow when fed bone meal.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

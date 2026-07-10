@@ -1,5 +1,6 @@
 ---
 title: Netherite Pickaxe
+template: splash
 description: |
     Minecraft Netherite Pickaxe — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 885
     ref: netherite_pickaxe
     slug: netherite-pickaxe
+    content_rev: 1
     display_name: Netherite Pickaxe
     category: tool
     rarity: common
@@ -35,6 +37,24 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Netherite Pickaxe is Minecraft's endgame mining tool, made by upgrading a diamond pickaxe at a smithing table with a netherite ingot and a netherite upgrade smithing template. It shares the diamond pickaxe's mining level, so it unlocks no new blocks, but it mines faster, deals more damage, and lasts far longer at 2031 uses. It can mine ancient debris, the raw resource used to make more netherite ingots, closing the loop for further upgrades.
+        lore: |
+            Reforged in the smithing fires of the Nether with ancient debris, the netherite pickaxe is the tool of choice for the deepest and most dangerous mining expeditions.
+    faq:
+        - question: How do I get a netherite pickaxe?
+          answer: |
+              Upgrade a diamond pickaxe at a smithing table using one netherite ingot and one netherite upgrade smithing template.
+        - question: Does the netherite pickaxe mine new blocks compared to diamond?
+          answer: |
+              No, its mining level is functionally identical to diamond; the gains are durability, mining speed, and attack damage, not new block access.
+        - question: Can a netherite pickaxe mine ancient debris?
+          answer: |
+              Yes, both diamond and netherite pickaxes can mine ancient debris, letting players keep producing netherite ingots.
+        - question: How is a netherite pickaxe repaired?
+          answer: |
+              Combine it with netherite ingots at an anvil, restoring 25% durability per ingot, or merge two damaged netherite pickaxes.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -379,7 +379,7 @@ fn push_branch_stub(
         [cx - hx + sx, cy + hy, cz + hz + sz],
     ]);
     nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[0]).take(4));
+    col.extend(std::iter::repeat_n(face_colors[0], 4));
 
     // -Y (bottom, anchored)
     pos.extend_from_slice(&[
@@ -389,7 +389,7 @@ fn push_branch_stub(
         [cx - hx, cy - hy, cz - hz],
     ]);
     nor.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[1]).take(4));
+    col.extend(std::iter::repeat_n(face_colors[1], 4));
 
     // +X
     pos.extend_from_slice(&[
@@ -399,7 +399,7 @@ fn push_branch_stub(
         [cx + hx + sx, cy + hy, cz - hz + sz],
     ]);
     nor.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[2]).take(4));
+    col.extend(std::iter::repeat_n(face_colors[2], 4));
 
     // -X
     pos.extend_from_slice(&[
@@ -409,7 +409,7 @@ fn push_branch_stub(
         [cx - hx + sx, cy + hy, cz + hz + sz],
     ]);
     nor.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[3]).take(4));
+    col.extend(std::iter::repeat_n(face_colors[3], 4));
 
     // +Z
     pos.extend_from_slice(&[
@@ -419,7 +419,7 @@ fn push_branch_stub(
         [cx + hx + sx, cy + hy, cz + hz + sz],
     ]);
     nor.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[4]).take(4));
+    col.extend(std::iter::repeat_n(face_colors[4], 4));
 
     // -Z
     pos.extend_from_slice(&[
@@ -429,7 +429,7 @@ fn push_branch_stub(
         [cx - hx + sx, cy + hy, cz - hz + sz],
     ]);
     nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
-    col.extend(std::iter::repeat(face_colors[5]).take(4));
+    col.extend(std::iter::repeat_n(face_colors[5], 4));
 
     for face in 0..6u32 {
         let f = base + face * 4;

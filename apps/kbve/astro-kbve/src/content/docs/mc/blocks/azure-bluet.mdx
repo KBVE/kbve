@@ -1,5 +1,6 @@
 ---
 title: Azure Bluet
+template: splash
 description: |
     Minecraft Azure Bluet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 162
     ref: azure_bluet
     slug: azure-bluet
+    content_rev: 1
     display_name: Azure Bluet
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: azure_bluet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Azure Bluet is a small white-and-yellow flower that grows on
+            grass and dirt in plains, sunflower plains, flower forests, and
+            meadow biomes. It breaks instantly when mined and drops itself
+            regardless of tool.
+        lore: |
+            Added in Java Edition 1.7.2 as part of the original flower
+            expansion, it has decorated plains biomes ever since.
+    uses:
+        - title: Light Gray Dye
+          ref: light_gray_dye
+          detail: |
+              Craft or smelt an Azure Bluet to obtain Light Gray Dye, used
+              for dyeing wool, terracotta, and other colorable blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combine with a mushroom and a bowl to brew Suspicious Stew,
+              which grants the Blindness effect when eaten.
+    found_in:
+        - location: Plains and Sunflower Plains
+          detail: Scattered across grass blocks alongside other flowers.
+        - location: Flower Forests
+          detail: One of the dominant flowers generated in this biome.
+        - location: Wandering Traders
+          detail: Sold for 1 emerald per flower.
+    faq:
+        - question: What tool do I need to mine Azure Bluet?
+          answer: |
+              None. Any tool, or even bare hands, breaks it instantly and
+              it always drops itself.
+        - question: What is Azure Bluet used for?
+          answer: |
+              Crafting Light Gray Dye and Suspicious Stew, and attracting
+              bees for nectar collection.
+        - question: Does Azure Bluet survive water or piston pushes?
+          answer: |
+              No. Flowing water or lava destroys it instantly, and removing
+              the block beneath it also breaks it.
+        - question: Is Azure Bluet flammable?
+          answer: |
+              Yes. Like most plants it can catch fire and burn away if
+              exposed to nearby flames.
     data_version: "1.21.5"
 ---
 

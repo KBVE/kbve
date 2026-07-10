@@ -1,5 +1,6 @@
 ---
 title: Blue Stained Glass Pane
+template: splash
 description: |
     Minecraft Blue Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 479
     ref: blue_stained_glass_pane
     slug: blue-stained-glass-pane
+    content_rev: 1
     display_name: Blue Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Blue Stained Glass Pane is a thin, colorable window block dyed
+            with Blue Dye. It has no assigned tool, breaks quickly with
+            anything, and only drops itself when mined with Silk Touch.
+        lore: |
+            Stained glass panes let builders fit much more window area into
+            the same footprint as full stained glass blocks.
+    uses:
+        - title: Efficient Windows
+          ref: blue_stained_glass_pane
+          detail: |
+              Windows built from panes can hold up to 267% more glass area
+              than the same space built with full stained glass blocks,
+              making panes the preferred choice for detailed builds.
+    found_in:
+        - location: Crafting from Stained Glass
+          detail: Six Blue Stained Glass blocks craft into 16 panes, the most material-efficient method.
+        - location: Crafting from Glass Panes and Dye
+          detail: Four Glass Panes plus one Blue Dye also produce 8 Blue Stained Glass Panes.
+        - location: Trail Ruins Suspicious Gravel
+          detail: Some colored panes can be found as loot in trail ruins suspicious gravel.
+    faq:
+        - question: What tool do I need to mine Blue Stained Glass Pane?
+          answer: |
+              Any tool works at the same speed, but a Silk Touch enchanted
+              tool is required to actually drop the pane; otherwise nothing drops.
+        - question: Can I craft it from regular glass panes?
+          answer: |
+              Yes, four Glass Panes plus one Blue Dye craft 8 Blue Stained
+              Glass Panes.
+        - question: Does it burn in fire or lava?
+          answer: |
+              No, stained glass and its panes never catch fire.
+        - question: Can panes be waterlogged?
+          answer: |
+              Yes, stained glass panes support waterlogging like other thin
+              blocks.
     data_version: "1.21.5"
 ---
 

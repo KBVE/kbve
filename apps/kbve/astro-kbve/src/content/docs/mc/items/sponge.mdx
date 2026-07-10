@@ -1,5 +1,6 @@
 ---
 title: Sponge
+template: splash
 description: |
     Minecraft Sponge — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 193
     ref: sponge
     slug: sponge
+    content_rev: 1
     display_name: Sponge
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A sponge absorbs nearby water blocks when placed, turning into a wet sponge and removing
+            up to 118 contiguous water blocks in the process. It is most commonly found in ocean
+            monument sponge rooms and is dropped by Elder Guardians, making it invaluable for draining
+            large flooded areas such as monuments or underwater builds.
+        lore: |
+            Originally added as a fix to stop infinite water flooding, later becoming a survival item.
+    faq:
+        - question: |
+              Where can I get a sponge?
+          answer: |
+              Sponges generate naturally in ocean monument sponge rooms, and Elder Guardians drop
+              one sponge each when defeated.
+        - question: |
+              How much water can a sponge absorb?
+          answer: |
+              A dry sponge can absorb up to 118 contiguous water source and flowing blocks within
+              its range before becoming a wet sponge.
+        - question: |
+              How do I reuse a wet sponge?
+          answer: |
+              Smelt it in a furnace or place it in the Nether to dry it back into a regular, reusable
+              sponge.
+        - question: |
+              Can sponges absorb water from the Nether or lava?
+          answer: |
+              No, sponges only absorb water; they have no effect on lava and other liquids.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

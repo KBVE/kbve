@@ -1,0 +1,10 @@
+---
+import type { ComponentProps } from 'react';
+import { ProcessSteps } from '@kbve/rn-astro';
+type Props = ComponentProps<typeof ProcessSteps>;
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<ProcessSteps client:only="react" {...props} />
+</div>

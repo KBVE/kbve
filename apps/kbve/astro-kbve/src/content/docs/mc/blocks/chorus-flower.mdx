@@ -1,5 +1,6 @@
 ---
 title: Chorus Flower
+template: splash
 description: |
     Minecraft Chorus Flower — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 625
     ref: chorus_flower
     slug: chorus-flower
+    content_rev: 1
     display_name: Chorus Flower
     material: plant
     hardness: 0.4
@@ -24,10 +26,65 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chorus_flower
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - the_end
+        - renewable
+    about:
+        description: |
+            The Chorus Flower is the growing tip of a Chorus Plant, the
+            alien flora that crowns Chorus Trees scattered across the
+            End's outer islands. It cycles through growth ages before
+            turning purple and halting once fully mature.
+        lore: |
+            Chorus Flowers and their trees were added with the End
+            expansion in Minecraft 1.9, giving the dimension its first
+            native plant life.
+    uses:
+        - title: Chorus Fruit Farming
+          ref: chorus_fruit
+          detail: |
+              Chorus Plants grown from flowers yield Chorus Fruit, which is
+              edible and randomly teleports the player a short distance
+              when eaten, and can be baked into Popped Chorus Fruit for
+              End Rod and Purpur crafting.
+        - title: Replanting
+          ref: chorus_flower
+          detail: |
+              Breaking a mature (purple) chorus flower and replanting it
+              lets the plant resume growing, useful for expanding a chorus
+              fruit farm.
+    found_in:
+        - location: The End (outer islands)
+          detail: Grows naturally atop Chorus Trees rooted in end stone.
+        - location: Player-built farms
+          detail: Can be planted and grown on end stone in any dimension, including the Overworld.
+    faq:
+        - question: What happens if I break a growing Chorus Flower?
+          answer: |
+              It drops itself as an item, which can be replanted on end
+              stone to start a new chorus plant.
+        - question: Does it drop anything if destroyed by a piston or water?
+          answer: |
+              No. Chorus Flowers only drop themselves when broken directly
+              or shot with a projectile; pistons, flowing water, and losing
+              their supporting block destroy them with no drop.
+        - question: Can I grow Chorus Flowers outside The End?
+          answer: |
+              Yes. Bring end stone and a chorus flower to any dimension —
+              it grows the same way as long as it's planted on end stone
+              with air above.
+        - question: What tool should I use to harvest it?
+          answer: |
+              Any tool works, though an axe breaks it fastest; it has no
+              minimum tool requirement to drop.
     data_version: "1.21.5"
 ---
 

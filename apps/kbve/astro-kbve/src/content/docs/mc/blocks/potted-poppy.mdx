@@ -1,5 +1,6 @@
 ---
 title: Potted Poppy
+template: splash
 description: |
     Minecraft Potted Poppy — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 393
     ref: potted_poppy
     slug: potted-poppy
+    content_rev: 1
     display_name: Potted Poppy
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
     best_tool: hand
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: poppy
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Poppy is a decorative variant created by placing a Poppy
+            into a Flower Pot. It breaks instantly with any tool or by
+            hand, and returns both the pot and the flower as separate
+            items.
+        lore: |
+            The Poppy is one of Minecraft's original flowers, present
+            since the earliest survival releases as a source of red dye.
+    found_in:
+        - location: Village houses
+          detail: Potted poppies occasionally appear as decoration in generated village houses.
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with a Poppy places it inside.
+    faq:
+        - question: What does breaking Potted Poppy drop?
+          answer: |
+              Both the Flower Pot and the Poppy item, recoverable instantly
+              with any tool or bare hands.
+        - question: Where do Poppies grow naturally?
+          answer: |
+              Poppies grow in plains, forests, flower forests, and several
+              other grassy overworld biomes.
+        - question: Does it require a specific tool to mine?
+          answer: |
+              No. It has 0 hardness and breaks instantly with anything,
+              including bare hands.
+        - question: What is Poppy used for besides decoration?
+          answer: |
+              It smelts or crafts into red dye, and it can be used to
+              brew a Suspicious Stew that grants Night Vision.
     data_version: "1.21.5"
 ---
 

@@ -9,12 +9,52 @@ description: |
    May 15th - The Daily Journal. The MixTape.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 15,'
+    accent: every year.
+    lede: 'The May 15th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 14'
+          href: /journal/05-14/
+        - label: 'May 16 →'
+          href: /journal/05-16/
+    related:
+        - title: 'Previous · May 14'
+          copy: 'Step back a day to the May 14th log.'
+          href: /journal/05-14/
+          icon: calendar
+        - title: 'Next · May 16'
+          copy: 'Jump ahead to the May 16th log.'
+          href: /journal/05-16/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1715647252838-a92275b3234d?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Nvidia 2026 Q2 Earnings
 
@@ -24,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     I should have played that 225 to 230, but it was too late, I was way too tired.
     Anyhow, I am looking at those 225 for monday, we shall see how bad it gets before I am hit with that.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Journal Migration
 
@@ -33,8 +81,9 @@ import { Adsense } from '@/components/astropad';
     Moving the journals over to the new website, hopefully we can make some changes that make it easier to see the journal entries too!
     This should not be too hard to do, just a bit of pain because we want to make sure it builds without any issues.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **CSS Buttons**
 
@@ -63,8 +112,9 @@ I am just typing this up as I think it through, we will continue to add more com
 
 Time to do some late night python coding before I go to sleep.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 10:00am - Ah! I was assigned to a put call over the weekend and did not realize that I was forced to purchase SPY for $415.00 a share. There might have been in a mistake in the automated hedgefund or a bug because of the timezone change since I came back from India. This means that I will have to go back and go through the codebase to see where I made the mistake. I believe that I might have hardcoded the timezone change, rather than making it a function. I suppose one of the solutions would be to grab the program's IP address, figure out the location from that information and then convert the said location to the right timezone. In addition, have a default config variable for the timezone where the application is running, incase it is under a VPN. 
 - 12:00pm - Sent most of the morning doing basic chores and fixing up the MDX files. I think we also spent a couple hours playing a bit too much league but the binge of One Piece totally made up for everything. Luffy is da King!
@@ -72,16 +122,24 @@ Time to do some late night python coding before I go to sleep.
 - 4:00pm - Finally got the Obsidian package to work on Windows again. It seems that I have not opened the application in such a long time that the whole vault crashes during the cache period. The solution to the problem was to create a secondary vault, next close the broken cache* vault, then delete the broken cache* vault and finally create a new vault from the location of the broken cache*. I am not too sure if this is a common bug to address, but if it happens again then I guess I will have to make a tutorial about it.
 - 5:00pm - Going through the `Manga` notes right now and there are some issues that I already see on rendering them within Flutter and Astro. Going forward I might have to combine the md and mdx files, however it feels so backwards to do so.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Once we accept our limits, we go beyond them.
 > — <cite>Albert Einstein</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Sync Obsidian on Windows with the Github Vault.
 - [x] Improve the UX/UI on the MDX files that are being rendered by Astro.
 
 ---
+
+</BentoProse>
+
+</BentoDoc>

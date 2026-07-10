@@ -27,4 +27,5 @@ private:
 	FKBVEEventHandle ItemConsumedHandle;
 	FKBVEEventHandle AuthStatusHandle;
 	FKBVEEventHandle AuthErrorHandle;
+	FKBVEEventHandle ToastHandle;
 };

@@ -1,5 +1,6 @@
 ---
 title: Bogged Spawn Egg
+template: splash
 description: |
     Minecraft Bogged Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 1074
     ref: bogged_spawn_egg
     slug: bogged-spawn-egg
+    content_rev: 1
     display_name: Bogged Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Bogged Spawn Egg is an inventory item that summons a Bogged, a
+            mushroom-covered skeleton variant found in swamps, when used on a block.
+            It behaves like other spawn eggs and is intended primarily for creative
+            mode and commands.
+        lore: |
+            The Bogged was introduced alongside the Trial Chambers update as a swamp-dwelling skeleton variant with a poisonous ranged attack.
+    faq:
+        - question: What mob does this spawn egg create?
+          answer: |
+              Using the Bogged Spawn Egg summons a Bogged, an undead hostile mob that
+              fires tipped arrows and is themed around swamp and mangrove swamp biomes.
+        - question: Where does the Bogged normally spawn without the egg?
+          answer: |
+              Bogged naturally spawn in swamp and mangrove swamp biomes, replacing
+              about 30% of skeleton spawns there, and they can also appear from trial
+              spawners inside Trial Chambers.
+        - question: How does the Bogged fight differently from a regular skeleton?
+          answer: |
+              Bogged fire more slowly with longer attack cooldowns, but their arrows
+              inflict Poison for several seconds on hit, and they take damage from
+              powder snow instead of turning into a Stray.
+        - question: How is the spawn egg typically obtained?
+          answer: |
+              Like all spawn eggs, the Bogged Spawn Egg is not available through
+              survival gameplay drops; it is obtained from the creative inventory or
+              given via commands.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

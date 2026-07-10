@@ -1,5 +1,6 @@
 ---
 title: Bamboo Hanging Sign
+template: splash
 description: |
     Minecraft Bamboo Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 232
     ref: bamboo_hanging_sign
     slug: bamboo-hanging-sign
+    content_rev: 1
     display_name: Bamboo Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Bamboo Hanging Signs are decorative text blocks made from
+            stripped bamboo that suspend from above using iron chains
+            instead of standing upright. Like other signs, they can be
+            dyed, lit with glow ink sacs, and waxed to lock in edits.
+        lore: |
+            Hanging signs were added in the 1.20 Trails & Tales update,
+            expanding sign placement beyond walls and floors.
+    uses:
+        - title: Bamboo Hanging Wall Sign
+          ref: bamboo_hanging_sign
+          detail: |
+              Placed against a wall or under a ceiling block, hanging
+              signs display two lines of custom text and can be edited
+              again after placement unless waxed.
+    found_in:
+        - location: Player crafting
+          detail: Crafted from 2 iron chains and 6 stripped bamboo blocks; not naturally placed.
+        - location: Trial Chambers and Trail Ruins
+          detail: Occasionally found pre-placed as loot-room signage.
+    faq:
+        - question: What tool do I need to mine a Bamboo Hanging Sign?
+          answer: |
+              None — it can be broken by hand or any tool, though an axe
+              is fastest. It always drops itself.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, unless the sign has been waxed with a honeycomb, which
+              locks the text permanently.
+        - question: Does it burn in fire?
+          answer: |
+              No, hanging signs are non-flammable in the Overworld, unlike
+              many other bamboo-based blocks.
+        - question: How is it different from a regular Bamboo Sign?
+          answer: |
+              Hanging signs mount below a ledge on chains and support two
+              lines of text with a different layout, while standing signs
+              are placed upright on the ground.
     data_version: "1.21.5"
 ---
 

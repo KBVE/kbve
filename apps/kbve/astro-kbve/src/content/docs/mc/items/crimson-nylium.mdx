@@ -1,5 +1,6 @@
 ---
 title: Crimson Nylium
+template: splash
 description: |
     Minecraft Crimson Nylium — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 33
     ref: crimson_nylium
     slug: crimson-nylium
+    content_rev: 1
     display_name: Crimson Nylium
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Crimson nylium is a Nether variant of netherrack that generates naturally in
+            crimson forest biomes, acting as fertile ground much like grass blocks do in
+            the Overworld. Mining it with a Silk Touch pickaxe drops the nylium itself,
+            while a normal pickaxe yields netherrack instead.
+        lore: |
+            Its name fuses "Nether" with "mycelium," nodding to the fungal roots that carpet
+            the crimson forest.
+    faq:
+        - question: How do you get crimson nylium to drop itself?
+          answer: |
+              Mine it with a pickaxe enchanted with Silk Touch; without Silk Touch it
+              always drops netherrack instead.
+        - question: Where does crimson nylium generate naturally?
+          answer: |
+              It generates throughout crimson forest biomes in the Nether and can also be
+              found stored in Bastion Remnant hoglin stable chests.
+        - question: Can you spread crimson nylium onto netherrack?
+          answer: |
+              In Bedrock Edition, applying bone meal to netherrack adjacent to crimson
+              nylium converts it, and bone meal on nylium itself grows crimson flora in a
+              5x5 area.
+        - question: Does crimson nylium decay like grass blocks?
+          answer: |
+              It does not decay when submerged in water or lava, but it will decay if
+              covered by snow.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Creeper Spawn Egg
+template: splash
 description: |
     Minecraft Creeper Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 1082
     ref: creeper_spawn_egg
     slug: creeper-spawn-egg
+    content_rev: 1
     display_name: Creeper Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Creeper Spawn Egg summons a creeper, the classic hostile mob that silently stalks players before hissing and detonating in a destructive explosion. Creepers spawn naturally in the Overworld in dark areas, deal difficulty-scaled damage, and drop gunpowder on death.
+            The spawn egg lets players place creepers on demand for testing, farms, or custom builds without waiting on natural spawns.
+        lore: |
+            "That's a very nice base you've got there... it'd be a shame if anything were to happen to it."
+    faq:
+        - question: How do I get a Creeper Spawn Egg?
+          answer: |
+              It is available through Creative mode inventory or by using a command such as /give @s creeper_spawn_egg.
+        - question: How do I stop a creeper from exploding?
+          answer: |
+              Break line of sight or move roughly 7 or more blocks away before it finishes its 1.5-second fuse, or kill it before detonation.
+        - question: What is a charged creeper?
+          answer: |
+              A creeper struck by lightning becomes charged, gaining a blue aura and doubling its explosion power from 3 to 6.
+        - question: What do creepers drop when killed?
+          answer: |
+              They drop 0-2 gunpowder normally, a random music disc if killed by a skeleton's arrow, and a creeper head if killed by a charged creeper.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

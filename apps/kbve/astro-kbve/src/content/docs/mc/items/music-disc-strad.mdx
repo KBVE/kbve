@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1241
     ref: music_disc_strad
     slug: music-disc-strad
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc (Strad) is a music disc composed by C418, playing a 3 minute 8 second
+            ambient track when inserted into a jukebox. It drops when a creeper is killed by
+            a skeleton or stray, making it one of the harder-to-obtain "mob combo" discs,
+            though it can also be found in loot chests inside ancient cities and woodland
+            mansions.
+        lore: |
+            A melancholic, atmospheric recording that hints at Minecraft's quieter, more
+            reflective side.
+    faq:
+        - question: How do I get Music Disc (Strad)?
+          answer: |
+              Have a skeleton or stray kill a creeper so it drops the disc, or search loot
+              chests in ancient cities and woodland mansions.
+        - question: What does Music Disc (Strad) do?
+          answer: |
+              Placing it in a jukebox plays its 3:08 ambient track composed by C418 until it
+              finishes or the disc is removed.
+        - question: Can I stack Music Disc (Strad) with other discs?
+          answer: |
+              No, music discs have a stack size of 1 and cannot be combined with other discs
+              or copies of themselves.
+        - question: Does Music Disc (Strad) have any redstone use?
+          answer: |
+              Yes, a jukebox playing this disc emits a unique comparator signal strength that
+              can be read by redstone circuitry.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

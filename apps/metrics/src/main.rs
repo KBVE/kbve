@@ -18,19 +18,34 @@ use crate::auth::StaffAuth;
 use crate::config::Config;
 use crate::state::{AppState, spawn_flusher};
 
+fn origin_allowed(allowed: &[String], origin: &str) -> bool {
+    allowed.iter().any(|entry| {
+        if let Some((scheme, host_pat)) = entry.split_once("://") {
+            if let Some(suffix) = host_pat.strip_prefix("*.") {
+                return origin
+                    .strip_prefix(scheme)
+                    .and_then(|rest| rest.strip_prefix("://"))
+                    .is_some_and(|host| {
+                        host.strip_suffix(suffix)
+                            .is_some_and(|lead| lead.ends_with('.') && lead.len() > 1)
+                    });
+            }
+        }
+        entry == origin
+    })
+}
+
 fn cors_layer(cfg: &Config) -> CorsLayer {
-    let origins: Vec<HeaderValue> = cfg
-        .allowed_origins
-        .iter()
-        .filter_map(|o| o.parse().ok())
-        .collect();
-    let allow = if origins.is_empty() {
+    let allow = if cfg.allowed_origins.is_empty() {
         tracing::warn!(
             "METRICS_ALLOWED_ORIGINS unset — CORS allows any origin; set it in production"
         );
         AllowOrigin::any()
     } else {
-        AllowOrigin::list(origins)
+        let allowed = cfg.allowed_origins.clone();
+        AllowOrigin::predicate(move |origin: &HeaderValue, _| {
+            origin.to_str().is_ok_and(|o| origin_allowed(&allowed, o))
+        })
     };
     CorsLayer::new()
         .allow_origin(allow)
@@ -115,5 +130,37 @@ async fn shutdown_signal() {
     tokio::select! {
         _ = ctrl_c => {}
         _ = terminate => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::origin_allowed;
+
+    #[test]
+    fn exact_match() {
+        let allowed = vec!["https://arpg.kbve.com".to_string()];
+        assert!(origin_allowed(&allowed, "https://arpg.kbve.com"));
+        assert!(!origin_allowed(&allowed, "https://evil.kbve.com"));
+    }
+
+    #[test]
+    fn wildcard_subdomain() {
+        let allowed = vec!["https://*.discordsays.com".to_string()];
+        assert!(origin_allowed(&allowed, "https://12345.discordsays.com"));
+        assert!(!origin_allowed(&allowed, "https://evildiscordsays.com"));
+        assert!(!origin_allowed(&allowed, "http://12345.discordsays.com"));
+        assert!(!origin_allowed(&allowed, "https://discordsays.com"));
+    }
+
+    #[test]
+    fn mixed_list() {
+        let allowed = vec![
+            "https://kbve.com".to_string(),
+            "https://*.discordsays.com".to_string(),
+        ];
+        assert!(origin_allowed(&allowed, "https://kbve.com"));
+        assert!(origin_allowed(&allowed, "https://x.discordsays.com"));
+        assert!(!origin_allowed(&allowed, "https://jobs.kbve.com"));
     }
 }

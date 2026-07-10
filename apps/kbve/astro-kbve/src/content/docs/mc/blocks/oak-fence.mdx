@@ -1,5 +1,6 @@
 ---
 title: Oak Fence
+template: splash
 description: |
     Minecraft Oak Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 271
     ref: oak_fence
     slug: oak-fence
+    content_rev: 1
     display_name: Oak Fence
     material: wood
     hardness: 2
@@ -21,13 +23,62 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Oak Fence is a decorative wooden barrier crafted from oak
+            planks and sticks. It connects visually to adjacent fences of
+            the same type and prevents most mobs and players from jumping
+            over it.
+        lore: |
+            Wooden fences date back to Java Edition Alpha v1.0.17, long
+            before the wood-type system split them into distinct variants.
+    uses:
+        - title: Perimeter Building
+          ref: oak_fence_gate
+          detail: |
+              Pairs with an Oak Fence Gate to create an openable section
+              in an enclosure, commonly used for animal pens and village
+              boundaries.
+    found_in:
+        - location: Crafted from planks and sticks
+          detail: Four oak planks plus two sticks craft three oak fences.
+        - location: Villages, mineshafts, and strongholds
+          detail: |
+              Naturally generates in several structures, including village
+              farms, woodland mansions, and shipwrecks.
+    faq:
+        - question: What tool do I need to mine an Oak Fence?
+          answer: |
+              None — it breaks with any tool or by hand, though an axe is
+              the fastest option.
+        - question: Can players jump over an Oak Fence?
+          answer: |
+              No — fences are 1.5 blocks tall, which is enough to block
+              normal jumps, though a fence gate can be opened for passage.
+        - question: Is the Oak Fence flammable?
+          answer: |
+              Yes — like most Overworld wood blocks it can catch fire,
+              while crimson and warped fences from the Nether cannot.
+        - question: Does the Oak Fence connect to all fence types?
+          answer: |
+              It connects visually to other oak fences and fence gates,
+              but not to fences made from a different wood type or to
+              nether brick fences.
     data_version: "1.21.5"
 ---
 

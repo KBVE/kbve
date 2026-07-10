@@ -1,7 +1,15 @@
+pub mod auth;
+pub mod pty;
+pub mod terminal;
 mod views;
 
+use auth::{
+    auth_authorize_url, auth_complete, auth_refresh, auth_restore, auth_session, auth_sign_out,
+};
 use std::sync::Arc;
 use tauri::{Manager, State};
+use terminal::{terminal_close, terminal_open, terminal_resize, terminal_write};
+use tokio::sync::mpsc;
 use views::{ViewCommand, ViewError, ViewManager, ViewSnapshot, ViewStatus};
 
 #[tauri::command]
@@ -55,8 +63,15 @@ fn view_list(manager: State<'_, Arc<ViewManager>>) -> Vec<(String, ViewStatus)> 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            if let Some(w) = app.get_webview_window("main") {
+                let _ = w.set_focus();
+            }
+        }))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        .manage(auth::init())
         .setup(|app| {
             let handle = app.handle().clone();
             let manager = Arc::new(ViewManager::new(handle));
@@ -66,6 +81,11 @@ pub fn run() {
             tauri::async_runtime::spawn(async move {
                 views::register_all(&manager);
             });
+
+            let (tx, rx) = mpsc::channel(256);
+            let pty_manager = Arc::new(pty::PtyManager::new(tx));
+            app.manage(pty_manager);
+            terminal::spawn_event_pump(app.handle().clone(), rx);
 
             Ok(())
         })
@@ -77,6 +97,16 @@ pub fn run() {
             view_snapshot,
             view_update_config,
             view_list,
+            terminal_open,
+            terminal_write,
+            terminal_resize,
+            terminal_close,
+            auth_authorize_url,
+            auth_complete,
+            auth_session,
+            auth_restore,
+            auth_refresh,
+            auth_sign_out,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

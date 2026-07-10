@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 22nd.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 22,'
+    accent: every year.
+    lede: 'The December 22nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Dec 21'
+          href: /journal/12-21/
+        - label: 'Dec 23 →'
+          href: /journal/12-23/
+    related:
+        - title: 'Previous · Dec 21'
+          copy: 'Step back a day to the December 21st log.'
+          href: /journal/12-21/
+          icon: calendar
+        - title: 'Next · Dec 23'
+          copy: 'Jump ahead to the December 23rd log.'
+          href: /journal/12-23/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Journal Mismatch
 
@@ -41,7 +82,15 @@ import { Adsense, Tasks } from '@/components/astropad';
 
     
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   02:00AM
 
@@ -71,3 +120,7 @@ import { Adsense, Tasks } from '@/components/astropad';
     Now to build out the pipeline for the docker build and deploying it all using helm charts.
     Before building out the helm chart, I need to switch back around and make sure that the docker build is good to go.
     This way the hlem chart will deploy that docker image and we can have it sit under the ingress of `kanban.kbve.com`.
+
+</BentoProse>
+
+</BentoDoc>

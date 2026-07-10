@@ -1,5 +1,6 @@
 ---
 title: Weathered Cut Copper
+template: splash
 description: |
     Minecraft Weathered Cut Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 104
     ref: weathered_cut_copper
     slug: weathered-cut-copper
+    content_rev: 1
     display_name: Weathered Cut Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Weathered cut copper is a decorative building block cut from a weathered block of copper, giving it a neat, paneled look at the green-and-brown weathered oxidation stage. It can be crafted or stonecut into matching slabs and stairs, and it continues oxidizing toward the fully oxidized stage unless waxed with honeycomb. Axes can scrape it back a stage, and lightning strikes fully deoxidize it.
+        lore: |
+            First revealed at Minecraft Live 2020 and added in Java Edition 1.17, cut copper gave builders a tidier, blockier alternative to the raw copper block's texture.
+    faq:
+        - question: How do I craft weathered cut copper?
+          answer: |
+              Combine matching weathered blocks of copper in a crafting table, or stonecut a weathered copper block, to produce cut copper.
+        - question: Can I make slabs and stairs from it?
+          answer: |
+              Yes. Crafting or stonecutting weathered cut copper yields matching slabs and stairs at the same oxidation stage.
+        - question: How do I keep it from oxidizing further?
+          answer: |
+              Apply honeycomb to wax the block, which permanently halts oxidation at the weathered stage.
+        - question: Can I reverse the oxidation?
+          answer: |
+              Yes. An axe scrapes off one stage of oxidation at a time, and a lightning strike fully deoxidizes nearby unwaxed copper blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

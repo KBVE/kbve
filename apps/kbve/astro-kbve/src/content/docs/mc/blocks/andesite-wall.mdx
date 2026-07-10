@@ -1,5 +1,6 @@
 ---
 title: Andesite Wall
+template: splash
 description: |
     Minecraft Andesite Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 799
     ref: andesite_wall
     slug: andesite-wall
+    content_rev: 1
     display_name: Andesite Wall
     material: stone
     hardness: 1.5
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: andesite_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Andesite Wall is a decorative building block crafted from
+            andesite. It does not generate naturally and is used purely as
+            an aesthetic and functional barrier piece, connecting to
+            neighboring blocks with low or tall posts.
+        lore: |
+            Added in Java Edition 1.14 alongside the other stone wall
+            variants introduced with the Village & Pillage update.
+    uses:
+        - title: Building & Fencing
+          ref: andesite_wall
+          detail: |
+              Placed as a mob-blocking, one-block-high barrier that visually
+              matches andesite builds, and can be waterlogged.
+    found_in:
+        - location: Crafted, not generated
+          detail: Made from 6 Andesite blocks, or 1:1 via a stonecutter.
+    faq:
+        - question: Does Andesite Wall spawn naturally?
+          answer: |
+              No. It only exists as a crafted or stonecut block; it does not
+              generate anywhere in the world.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe. It drops itself with any tool tier, including
+              wooden pickaxes.
+        - question: Can I waterlog an Andesite Wall?
+          answer: |
+              Yes, like other walls it can hold water without the water
+              flowing out, useful for aquariums and canal designs.
+        - question: How much andesite do I need to craft it?
+          answer: |
+              Six Andesite blocks in a 3x2 crafting grid yield six Andesite
+              Walls, or use a stonecutter for a 1:1 conversion.
     data_version: "1.21.5"
 ---
 

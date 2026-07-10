@@ -1,5 +1,6 @@
 ---
 title: Light
+template: splash
 description: |
     Minecraft Light — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 493
     ref: light
     slug: light
+    content_rev: 1
     display_name: Light
     material: stone
     hardness: -1
     blast_resistance: 3600000.8
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 15
     light_opacity: 0
@@ -27,7 +28,45 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - blast_resistant
+    about:
+        description: |
+            The Light block is an invisible, non-solid block that only
+            emits light at a configurable level from 0 to 15. It has no
+            hitbox and cannot be mined or destroyed by conventional means.
+        lore: |
+            Added in Java Edition 1.17 and Bedrock Edition 1.13.0 for map
+            makers who needed precise, invisible lighting control.
+    uses:
+        - title: Custom Map Lighting
+          ref: light
+          detail: |
+              Place light blocks to illuminate an area without a visible
+              light source, or combine with water for underwater lighting
+              since it is waterloggable.
+    found_in:
+        - location: Creative Inventory
+          detail: Available in the Creative menu (Java Edition) with cheats enabled, or via /give commands.
+        - location: Commands
+          detail: "Obtain with /give @s minecraft:light[block_state={level:\"15\"}] on Java, or /give @s light_block 1 15 on Bedrock."
+    faq:
+        - question: Can I mine a Light block?
+          answer: |
+              No. It has no drop and cannot be broken like normal blocks;
+              it is removed only by placing another block in its space.
+        - question: Is the Light block available in Survival?
+          answer: |
+              No, it is a technical block obtainable only through the
+              Creative inventory (with cheats enabled) or commands.
+        - question: Can withers or the ender dragon destroy it?
+          answer: |
+              No, its extremely high blast resistance makes it immune to
+              explosions, including wither and dragon attacks.
+        - question: Does it stop water from flowing?
+          answer: |
+              It can be waterlogged, allowing water to occupy the same
+              space while the light still emits normally.
     data_version: "1.21.5"
 ---
 

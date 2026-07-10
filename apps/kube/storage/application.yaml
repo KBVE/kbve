@@ -13,6 +13,7 @@ metadata:
         kbve.com/schema-version: v1
         kbve.com/category: infrastructure
         kbve.com/stack: supabase
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
     project: default
     sources:

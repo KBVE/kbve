@@ -1,5 +1,6 @@
 ---
 title: Infested Mossy Stone Bricks
+template: splash
 description: |
     Minecraft Infested Mossy Stone Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 320
     ref: infested_mossy_stone_bricks
     slug: infested-mossy-stone-bricks
+    content_rev: 1
     display_name: Infested Mossy Stone Bricks
     material: stone
     hardness: 0.75
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mossy_stone_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Infested Mossy Stone Bricks disguise a hostile silverfish
+            inside the vine-covered stone brick variant found in
+            stronghold ruins. Breaking one without Silk Touch drops
+            nothing and releases the silverfish to attack.
+        lore: |
+            The moss overgrowth ties this variant thematically to the
+            long-abandoned stronghold ruins, where nature has begun to
+            reclaim the stonework.
+    uses:
+        - title: Silk Touch Harvesting
+          ref: mossy_stone_bricks
+          detail: |
+              Mining with Silk Touch yields ordinary mossy stone bricks,
+              safe to reuse for overgrown ruin-style decoration.
+    found_in:
+        - location: Strongholds
+          detail: Generates mixed into mossy stone brick sections of stronghold corridors, libraries, and portal rooms.
+    faq:
+        - question: What happens if I mine it without Silk Touch?
+          answer: |
+              The block breaks, drops nothing, and spawns an aggressive
+              silverfish that attacks immediately.
+        - question: Can regular mossy stone bricks become infested?
+          answer: |
+              No, silverfish cannot convert existing blocks into infested
+              ones; this variant only appears from world generation.
+        - question: Is Infested Mossy Cobblestone also a thing?
+          answer: |
+              No. Silverfish infest mossy stone bricks, but curiously not
+              mossy cobblestone, despite infesting the non-mossy
+              cobblestone variant.
+        - question: What tool mines it fastest?
+          answer: |
+              Any pickaxe. No minimum tool tier is required, and it
+              breaks in about half the time of a normal stone brick.
     data_version: "1.21.5"
 ---
 

@@ -1,7 +1,9 @@
 ---
 title: Stripped Jungle Log
+template: splash
 description: |
-    Minecraft Stripped Jungle Log — vanilla 1.21.5 block record (auto-generated).
+    Minecraft Stripped Jungle Log — the bark-free variant of Jungle Log,
+    also the required surface for growing Cocoa Beans. Uses and FAQ.
 sidebar:
     label: Stripped Jungle Log
     hidden: true
@@ -13,6 +15,7 @@ mc_block:
     id: 63
     ref: stripped_jungle_log
     slug: stripped-jungle-log
+    content_rev: 1
     display_name: Stripped Jungle Log
     material: wood
     hardness: 2
@@ -24,10 +27,66 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_jungle_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Jungle Log is the bark-free form of Jungle Log, keeping
+            the ringed end texture on top and bottom while showing plank-like
+            grain on the sides. It is created by right-clicking a placed
+            Jungle Log with an axe.
+        lore: |
+            Jungle wood was added in the Jungle Update (1.2.1); stripped log
+            variants for all wood types followed in the World of Color
+            Update (1.13).
+    uses:
+        - title: Stripped Jungle Wood
+          ref: stripped_jungle_wood
+          detail: |
+              Craft 4 Stripped Jungle Logs into 3 Stripped Jungle Wood
+              blocks, which show the ringed texture on all six faces.
+        - title: Cocoa Beans
+          ref: cocoa_beans
+          detail: |
+              Cocoa Beans can be planted directly on the sides of Stripped
+              Jungle Log (and regular Jungle Log) blocks and grown for
+              harvest.
+        - title: Jungle Planks
+          ref: jungle_planks
+          detail: |
+              Craft into 4 Jungle Planks per block, or burn as furnace fuel
+              (1.5 items smelted per block).
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: |
+              Does not generate naturally; obtained by stripping a placed
+              Jungle Log with an axe.
+    faq:
+        - question: How do I get Stripped Jungle Log?
+          answer: |
+              Use any axe on a Jungle Log placed in the world.
+        - question: Can Cocoa Beans grow on Stripped Jungle Log?
+          answer: |
+              Yes. Both regular and stripped Jungle Log accept Cocoa Beans
+              planted on their sides.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool, including bare hands, drops the block; an axe is
+              fastest.
+        - question: Is Stripped Jungle Log flammable?
+          answer: |
+              Yes, it burns like other overworld logs and can be used as
+              furnace fuel.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Log
+template: splash
 description: |
     Minecraft Pale Oak Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 56
     ref: pale_oak_log
     slug: pale-oak-log
+    content_rev: 1
     display_name: Pale Oak Log
     material: wood
     hardness: 2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Oak Log is the trunk block of the pale oak tree, native to
+            the Pale Garden biome. It can be stripped with an axe to reveal
+            a lighter, bark-free variant like every other log type.
+        lore: |
+            Pale oak was introduced with the Pale Garden biome, giving
+            builders a bone-white wood to pair with the biome's muted,
+            foggy aesthetic.
+    uses:
+        - title: Pale Oak Planks
+          ref: pale_oak_planks
+          detail: |
+              Craft one log into four Pale Oak Planks, the base material
+              for the entire pale oak building set.
+        - title: Furnace fuel
+          ref: pale_oak_planks
+          detail: |
+              Like other logs, it can be burned as furnace fuel or
+              converted to charcoal.
+    found_in:
+        - location: Pale Garden biome
+          detail: Generates as the trunk of pale oak trees throughout the biome.
+    faq:
+        - question: What tool mines Pale Oak Log fastest?
+          answer: |
+              An axe. No minimum tool tier is required — it can even be
+              broken by hand.
+        - question: Can Pale Oak Log be stripped?
+          answer: |
+              Yes, right-clicking it with an axe produces Stripped Pale
+              Oak Log, purely a cosmetic change.
+        - question: Is Pale Oak Log flammable?
+          answer: |
+              Yes, like all overworld logs it can catch fire and burn when
+              exposed to lava or nearby flames.
+        - question: Where does Pale Oak Log come from?
+          answer: |
+              It only generates naturally in the Pale Garden biome, as
+              part of pale oak trees.
     data_version: "1.21.5"
 ---
 

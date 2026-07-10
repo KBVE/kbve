@@ -1,5 +1,6 @@
 ---
 title: Green Banner
+template: splash
 description: |
     Minecraft Green Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 560
     ref: green_wall_banner
     slug: green-wall-banner
+    content_rev: 1
     display_name: Green Banner
     material: wood
     hardness: 1
@@ -24,10 +26,60 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Green Banner (wall-mounted form) is a tall, dyed decorative
+            block that can carry up to six layered patterns applied at a
+            loom. It hangs flush against a wall rather than standing on
+            the ground.
+        lore: |
+            Banners let players display up to six custom pattern layers,
+            a system deep enough that community-designed emblems became a
+            notable part of Minecraft culture.
+    uses:
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              A patterned banner can be combined with a shield in a
+              crafting table to transfer its design onto the shield.
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Apply dyes and banner pattern items at a loom to add up to
+              six layers of custom designs to the banner.
+    found_in:
+        - location: Woodland Mansions
+          detail: Green banners generate in certain woodland mansion rooms.
+        - location: Shepherd villager trades
+          detail: Expert-level Shepherd villagers trade for banners of various colors, including green.
+    faq:
+        - question: What tool do I need to mine a Green Banner?
+          answer: |
+              Any tool works and it always drops itself; an axe breaks it
+              fastest but there is no minimum tier requirement.
+        - question: How do I craft a Green Banner?
+          answer: |
+              Craft 6 Green Wool with 1 Stick in a pattern resembling a
+              sign shape to get one Green Banner.
+        - question: Can I put a design on my banner?
+          answer: |
+              Yes. Use a loom with dyes and banner pattern items to add up
+              to six stacked pattern layers.
+        - question: Can a banner's pattern go on a shield?
+          answer: |
+              Yes. Combine a patterned banner with a shield in a crafting
+              table to copy the design onto the shield.
     data_version: "1.21.5"
 ---
 

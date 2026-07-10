@@ -40,6 +40,36 @@ export {
 	attachCameraZoom,
 } from './lib/phaser/entity-fx';
 export type { CameraZoomOptions } from './lib/phaser/entity-fx';
+export {
+	createGpuSpriteLayer,
+	populateGpuSpriteLayer,
+} from './lib/phaser/gpu-sprite-layer';
+export type {
+	GpuSpriteLayerOptions,
+	GpuSpriteLayerHandle,
+} from './lib/phaser/gpu-sprite-layer';
+export {
+	createDustMoteLayer,
+	createWorldDustLayer,
+	dustMemberAt,
+} from './lib/phaser/ambient-dust';
+export type {
+	DustMoteOptions,
+	WorldDustHandle,
+	WorldDustOptions,
+} from './lib/phaser/ambient-dust';
+export { GameObjectPool } from './lib/phaser/object-pool';
+export { setupKeyboardMap } from './lib/phaser/keyboard-map';
+export type { KeyboardMap } from './lib/phaser/keyboard-map';
+export {
+	createArrowPool,
+	animateArrowProjectile,
+} from './lib/phaser/arrow-projectile';
+export type {
+	ArrowPool,
+	ArrowPoolOptions,
+	ArrowShot,
+} from './lib/phaser/arrow-projectile';
 
 // Tile prediction — BFS pathing that mirrors the server grid
 export { findTilePath } from './lib/tile/path';
@@ -96,6 +126,13 @@ export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
 
 // Determinism — RNG primitives mirrored byte-for-byte by simgrid rng.rs
 export { Domain, mix32, mulberry32, stream, rollPct } from './lib/determ';
+export {
+	heightAt,
+	makeHeightSampler,
+	seedFromWorld,
+	HEIGHT_AMPLITUDE,
+	type HeightSampler,
+} from './lib/determ/heightfield';
 
 // Combat — attack geometry mirrored byte-for-byte by simgrid combat.rs
 export {
@@ -149,6 +186,12 @@ export {
 	EPHEMERAL_TRADE,
 	EPHEMERAL_SHOP,
 	EPHEMERAL_BLACKJACK,
+	EPHEMERAL_DUEL_PROMPT,
+	DUEL_PROMPT_OFFER,
+	DUEL_PROMPT_DECLINED,
+	DUEL_PROMPT_EXPIRED,
+	DUEL_PROMPT_ACCEPTED,
+	DUEL_PROMPT_SENT,
 	PB_USED,
 	PB_DAMAGE,
 	PB_MISS,
@@ -204,6 +247,7 @@ export type {
 	PetBattleReplay,
 	PetMoveOption,
 	PetBattleState,
+	DuelPrompt,
 	ShopResult,
 	CombatEvent,
 	ProjectileEvent,

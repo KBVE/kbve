@@ -1,5 +1,6 @@
 ---
 title: Enchanted Book
+template: splash
 description: |
     Minecraft Enchanted Book — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1176
     ref: enchanted_book
     slug: enchanted-book
+    content_rev: 1
     display_name: Enchanted Book
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            An Enchanted Book stores one or more enchantments that can be
+            applied to a compatible item using an anvil. Players obtain them
+            from loot, fishing, librarian trades, or by enchanting a plain
+            book at an enchantment table.
+        lore: |
+            A tome inked with arcane knowledge, waiting to lend its power to
+            the right blade or tool.
+    faq:
+        - question: How do you apply an Enchanted Book to an item?
+          answer: |
+              Combine the book with a compatible item in an anvil; the book is
+              consumed and its enchantments transfer to the item.
+        - question: Where can you find Enchanted Books?
+          answer: |
+              They appear in structure loot chests such as strongholds and
+              ancient cities, as rare fishing treasure, and for sale from
+              librarian villagers.
+        - question: Can Enchanted Books grant enchantments unavailable elsewhere?
+          answer: |
+              Yes, some combinations, such as Unbreaking on a shield, can only
+              be obtained by applying an enchanted book via an anvil.
+        - question: Can piglins trade Enchanted Books?
+          answer: |
+              Yes, piglins can barter Soul Speed enchanted books in exchange
+              for gold ingots, though the chance is low.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

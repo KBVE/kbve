@@ -1,5 +1,6 @@
 ---
 title: Nether Brick
+template: splash
 description: |
     Minecraft Nether Brick — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 1177
     ref: nether_brick
     slug: nether-brick
+    content_rev: 1
     display_name: Nether Brick
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Nether Brick is an item smelted from netherrack in a furnace, used mainly as a
+            crafting ingredient for Nether Brick blocks, fences, and red Nether bricks. It is a
+            renewable resource, obtainable either through smelting or by bartering gold ingots
+            with piglins.
+        lore: |
+            Added in Java Edition 1.5, Nether Brick was the first step toward giving builders a
+            reddish, fireproof material forged from the Nether's own bedrock-like stone.
+    faq:
+        - question: How do you get Nether Brick?
+          answer: |
+              Smelt netherrack in a furnace, smoker, or blast furnace with any fuel source to get
+              one Nether Brick per netherrack, or barter gold ingots with piglins for a chance at
+              2-8 bricks at a time.
+        - question: What is Nether Brick used for?
+          answer: |
+              It is primarily a crafting ingredient, combined in a 2x2 pattern to make Nether
+              Bricks blocks, or paired with Nether wart to make red Nether bricks, and used to
+              craft Nether brick fences.
+        - question: Is Nether Brick renewable?
+          answer: |
+              Yes. Besides smelting netherrack, piglins occasionally give Nether Bricks in
+              exchange for gold ingots, making it a fully renewable item.
+        - question: Can Nether Brick be used as a building block on its own?
+          answer: |
+              No, the Nether Brick item cannot be placed directly; it must first be crafted into
+              the Nether Bricks block, fence, or red Nether bricks to use in construction.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

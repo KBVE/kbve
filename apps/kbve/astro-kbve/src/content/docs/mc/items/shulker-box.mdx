@@ -1,5 +1,6 @@
 ---
 title: Shulker Box
+template: splash
 description: |
     Minecraft Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 552
     ref: shulker_box
     slug: shulker-box
+    content_rev: 1
     display_name: Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Shulker Box is a portable storage container crafted from a chest and two shulker
+            shells, offering 27 inventory slots just like a chest. Its unique trait is that it
+            keeps its contents in item form when broken or picked up, letting players carry entire
+            stocked containers in their inventory. It can be dyed into any of sixteen colors, or
+            undyed again using a cauldron of water.
+        lore: |
+            Fashioned from the shells of the End's guardian cubes, these boxes carry a piece of
+            their otherworldly resilience into every adventurer's pack.
+    faq:
+        - question: How do you craft a Shulker Box?
+          answer: |
+              Combine a chest with two shulker shells at a crafting table to make an undyed
+              Shulker Box.
+        - question: Does a Shulker Box lose its items when broken?
+          answer: |
+              No, unlike other storage blocks, a Shulker Box keeps its contents stored inside the
+              item itself when mined, so nothing spills out.
+        - question: Can Shulker Boxes be dyed?
+          answer: |
+              Yes, combining a Shulker Box with any dye at a crafting table produces one of 16
+              colored variants, and a cauldron filled with water can remove the dye again.
+        - question: Can you store a Shulker Box inside another Shulker Box?
+          answer: |
+              No, Shulker Boxes cannot be placed inside other Shulker Boxes or bundles, though they
+              can go in chests, barrels, and most other containers.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

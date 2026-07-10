@@ -1,5 +1,6 @@
 ---
 title: Miner Pottery Sherd
+template: splash
 description: |
     Minecraft Miner Pottery Sherd — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1366
     ref: miner_pottery_sherd
     slug: miner-pottery-sherd
+    content_rev: 1
     display_name: Miner Pottery Sherd
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Miner Pottery Sherd depicts a pickaxe and is used to decorate pots crafted at a crafting
+            table. It is a non-renewable item obtained by brushing suspicious sand blocks in desert
+            pyramids, or by breaking apart an existing decorated pot to recover its component sherds.
+        lore: |
+            These ancient fragments whisper of miners from civilizations long buried beneath the desert sands.
+    faq:
+        - question: Where do I find a Miner Pottery Sherd?
+          answer: |
+              Brush suspicious sand blocks found inside desert pyramids using a brush; each attempt has
+              roughly a 1-in-8 chance of yielding this sherd.
+        - question: Can I craft this sherd directly?
+          answer: |
+              No, it cannot be crafted from scratch. It can only be brushed from suspicious sand or
+              recovered by breaking a decorated pot that already contains it.
+        - question: How many sherds do I need to make a decorated pot?
+          answer: |
+              A decorated pot requires 4 items total in the crafting grid, using any combination of
+              pottery sherds and regular bricks.
+        - question: Does this item stack?
+          answer: |
+              Yes, Miner Pottery Sherds can stack up to 64 per slot.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

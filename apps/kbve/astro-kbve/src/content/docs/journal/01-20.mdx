@@ -8,15 +8,52 @@ img: https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?crop=entropy&c
 description: Daily Log for January 20th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 20,'
+    accent: every year.
+    lede: 'The January 20th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jan 19'
+          href: /journal/01-19/
+        - label: 'Jan 21 →'
+          href: /journal/01-21/
+    related:
+        - title: 'Previous · Jan 19'
+          copy: 'Step back a day to the January 19th log.'
+          href: /journal/01-19/
+          icon: calendar
+        - title: 'Next · Jan 21'
+          copy: 'Jump ahead to the January 21st log.'
+          href: /journal/01-21/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 -   **President**
 
@@ -72,3 +109,13 @@ import { Adsense } from '@/components/astropad';
         #### Sleep
 
             There was not much major progress today, it felt more like a break from the normal research and coding sessions, thus I will keep this entry short and sweet.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

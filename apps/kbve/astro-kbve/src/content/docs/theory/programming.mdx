@@ -2,25 +2,131 @@
 title: Programming
 description: |
     Programming Notes and Resources
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Programming
     order: 1
 unsplash: 1476370648495-3533f64427a2
 img: https://images.unsplash.com/photo-1476370648495-3533f64427a2?fit=crop&w=1400&h=700&q=75
 tags:
-  - technology
-  - software
+    - technology
+    - software
+bento:
+    badge: theory · notes · software
+    title: 'Learn to build,'
+    accent: Programming.
+    lede: >-
+        A living set of notes and resources for getting into software —
+        curated free books, a beginner-friendly path from first account to
+        first job, and a place to collect the videos and references worth
+        keeping.
+    ctas:
+        - label: Free books
+          href: '#books'
+          primary: true
+        - label: Tutorials
+          href: '#tutorials'
+        - label: Notes
+          href: '#notes'
+    aside:
+        icon: book
+        title: Start where you are
+        body: >-
+            There is no single right language or path. Pick the track that
+            matches the work you want to do, then practice with focus and
+            determination until the tools become second nature.
+        points:
+            - <strong>Books</strong> — free, open collections to learn from.
+            - <strong>Tutorials</strong> — a step-by-step path for beginners.
+            - <strong>References</strong> — notes and videos worth keeping.
+    stats:
+        - { label: Cost, value: Free, icon: book }
+        - { label: Focus, value: Beginners, icon: check }
+        - { label: Tracks, value: '6+', icon: route }
+        - { label: Type, value: Notes, icon: code }
+    features:
+        - title: Free programming books
+          icon: book
+          href: '#books'
+          body: A curated link to the open Free Programming Books collection covering every major language and topic.
+        - title: Ziggy's tutorial path
+          icon: route
+          href: '#tutorials'
+          body: A four-step beginner roadmap from creating a GitHub account to choosing a language track and landing the job.
+        - title: Notes
+          icon: code
+          href: '#notes'
+          body: A running scratchpad for programming references and lessons worth revisiting.
+        - title: Videos
+          icon: video
+          href: '#videos'
+          body: A place to collect the walkthroughs and talks that are worth watching more than once.
+    related:
+        - title: Automation
+          href: /theory/automation/
+          copy: Where programming meets scripting, pipelines, and hands-off workflows.
+          icon: gears
+        - title: Emulation
+          href: /theory/emulation/
+          copy: Understand the machines and runtimes your code eventually targets.
+          icon: server
+        - title: Applications
+          href: /application/
+          copy: The concrete languages and tools referenced across these tracks.
+          icon: package
+    features_eyebrow: On this page
+    features_heading: What these notes cover
+    related_eyebrow: Keep exploring
+    related_heading: Related theory
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - { name: Home, path: / }
+        - { name: Theory, path: /theory/ }
+        - { name: Programming, path: /theory/programming/ }
+    faq:
+        - question: What programming language should a beginner learn first?
+          answer: >-
+            It depends on your goal. Learn Python for machine learning, data
+            science, or finance; JavaScript, HTML, and CSS for web apps and web
+            design; Bash and Python for server administration and automation; and
+            Batch or PowerShell for Windows server administration.
+        - question: Where can I find free resources to learn programming?
+          answer: >-
+            The Free Programming Books collection is an open, community-maintained
+            catalog of free books, courses, and resources spanning nearly every
+            language and topic — linked in the Books section on this page.
+        - question: How do I break into game development?
+          answer: >-
+            Install Unreal Engine and follow the tutorials on their site. Unreal
+            Engine 5 has become a strong choice for newcomers thanks to the
+            features it presents for modern game development.
 ---
 
-## Programming
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Books
+<BentoProse id="books" eyebrow="Start here" heading="Books">
 
 - Collection of [Free Programming Books](https://ebookfoundation.github.io/free-programming-books/)
 
+</BentoProse>
 
-## Tutorials
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="tutorials" eyebrow="Learning path" heading="Tutorials">
 
 ### Ziggys Tutorial
 
@@ -37,11 +143,14 @@ tags:
 
 	Some great advice that was dropped by @Ziggy9263
 
----
+</BentoProse>
 
-## Notes
+<BentoProse id="notes" eyebrow="Scratchpad" heading="Notes">
 
+</BentoProse>
 
----
+<BentoProse id="videos" eyebrow="Watch" heading="Videos">
 
-## Videos
+</BentoProse>
+
+</BentoDoc>

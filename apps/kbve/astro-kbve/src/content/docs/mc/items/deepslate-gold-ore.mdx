@@ -1,5 +1,6 @@
 ---
 title: Deepslate Gold Ore
+template: splash
 description: |
     Minecraft Deepslate Gold Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 71
     ref: deepslate_gold_ore
     slug: deepslate-gold-ore
+    content_rev: 1
     display_name: Deepslate Gold Ore
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Deepslate Gold Ore is the deepslate variant of gold ore, generating in the deeper
+            layers of the Overworld where stone gives way to deepslate. It requires an iron
+            pickaxe or better to mine, dropping raw gold that can be smelted into gold ingots.
+            Its higher hardness makes it slower to break than its stone counterpart.
+        lore: |
+            Prized by both miners and piglins alike, gold gleams beneath the deep dark stone,
+            promising wealth to those brave enough to dig for it.
+    faq:
+        - question: What tool do I need to mine deepslate gold ore?
+          answer: |
+              An iron pickaxe or better is required; wooden, stone, and golden pickaxes will not
+              break the block and drop nothing.
+        - question: Where does deepslate gold ore generate?
+          answer: |
+              It replaces regular gold ore below Y=0, most commonly found near Y=-16 and in the
+              deeper stretches of badlands biomes.
+        - question: Why does mining it aggravate piglins?
+          answer: |
+              Piglins become hostile whenever a player mines any gold ore variant nearby, even
+              while wearing golden armor.
+        - question: How is deepslate gold ore turned into gold ingots?
+          answer: |
+              Smelt the dropped raw gold in a furnace with any fuel source to produce gold
+              ingots along with a small amount of experience.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

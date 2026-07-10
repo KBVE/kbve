@@ -1,5 +1,6 @@
 ---
 title: Spruce Leaves
+template: splash
 description: |
     Minecraft Spruce Leaves — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 183
     ref: spruce_leaves
     slug: spruce-leaves
+    content_rev: 1
     display_name: Spruce Leaves
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Spruce Leaves are the transparent foliage blocks generated as part of spruce trees, and they can only be collected intact with shears or a Silk Touch tool. Breaking them without one instead has a chance to drop a spruce sapling or a stick.
+            Spruce Leaves decay when left disconnected from a spruce log beyond a set distance, and they can also be composted or smelted into leaf litter.
+        lore: |
+            Dense evergreen needles that blanket the taiga, these boughs shelter saplings waiting to take root.
+    faq:
+        - question: How do you collect Spruce Leaves without them breaking into drops?
+          answer: |
+              Use shears or a tool enchanted with Silk Touch to harvest Spruce Leaves as an intact block instead of getting saplings or sticks.
+        - question: Do Spruce Leaves drop apples like oak leaves?
+          answer: |
+              No, only oak and dark oak leaves have a chance to drop apples; Spruce Leaves do not.
+        - question: Why do Spruce Leaves sometimes disappear from a tree?
+          answer: |
+              Leaves decay when they become disconnected from the nearest log by more than 6 blocks in Java Edition or 4 blocks in Bedrock Edition, unless they were placed by a player.
+        - question: Can Spruce Leaves be composted?
+          answer: |
+              Yes, placing Spruce Leaves in a composter gives roughly a 30% chance to increase the compost level by one.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

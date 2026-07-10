@@ -1,5 +1,6 @@
 ---
 title: Potato
+template: splash
 description: |
     Minecraft Potato — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1160
     ref: potato
     slug: potato
+    content_rev: 1
     display_name: Potato
     category: food
     rarity: common
@@ -22,6 +24,35 @@ mc_item:
         saturation: 1.2
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A potato is a common food item harvested from potato crops, which can be found growing
+            in village farm plots or grown by planting a potato on farmland. It restores a small
+            amount of hunger when eaten raw, but can also be smelted into a baked potato for far
+            better nutrition and saturation.
+        lore: |
+            Potatoes have grown in Minecraft's soil since 2012, quietly feeding villagers and pigs
+            alike long before crafting tables ever noticed them.
+    faq:
+        - question: How do I get potatoes in Minecraft?
+          answer: |
+              Harvest fully grown potato crops for 1-5 potatoes per plant, loot them from village
+              farm chests, or occasionally collect them as a rare drop from zombies, husks, and
+              zombie villagers.
+        - question: Should I eat raw potatoes or bake them first?
+          answer: |
+              Baking is almost always better. A raw potato only restores 1 hunger point, while a
+              baked potato restores 5, making the smelting time well worth it.
+        - question: What can potatoes be used for besides eating?
+          answer: |
+              Potatoes can be replanted to grow more crops, traded to farmer villagers for
+              emeralds, used to breed pigs and make villagers willing to breed, and dropped into a
+              composter to produce bone meal.
+        - question: Can potatoes turn into anything unusual?
+          answer: |
+              Yes. There is a rare, small chance that a planted or dropped potato becomes a
+              poisonous potato instead, which looks similar but damages the player and cannot be
+              used in most recipes.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

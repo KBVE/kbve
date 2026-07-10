@@ -1,5 +1,6 @@
 ---
 title: Light Blue Carpet
+template: splash
 description: |
     Minecraft Light Blue Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 509
     ref: light_blue_carpet
     slug: light-blue-carpet
+    content_rev: 1
     display_name: Light Blue Carpet
     material: wool
     hardness: 0.1
     blast_resistance: 0.1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Light Blue Carpet is a thin, one-pixel-tall decorative block
+            crafted from wool or dyed from white carpet. Despite its wool
+            origin, it is a distinct block type that dampens vibrations
+            for sculk sensors and can be used as a llama saddle covering.
+        lore: |
+            Carpets were added in the Update Aquatic (1.13) as a
+            lightweight decorative alternative to full wool blocks.
+    uses:
+        - title: Decoration and Flooring
+          ref: light_blue_carpet
+          detail: |
+              Placed as thin flooring, table coverings, or stair-step
+              accents; its low profile keeps light sources hidden while
+              still transmitting some light.
+        - title: Llama Decoration
+          ref: light_blue_carpet
+          detail: |
+              Right-clicking a tamed llama with carpet equips it as a
+              decorative covering without affecting its stats.
+    found_in:
+        - location: Crafting table
+          detail: Two wool blocks of the same color craft into three carpet, or white carpet plus dye yields the colored version.
+        - location: Woodland mansions
+          detail: Various carpet colors generate naturally in mansion rooms (light blue is absent on Bedrock Edition).
+    faq:
+        - question: What tool do I need to mine Light Blue Carpet?
+          answer: |
+              None required — any tool or bare hands breaks it instantly
+              and it always drops itself.
+        - question: Can mobs spawn on carpet?
+          answer: |
+              No. Its thin profile still counts as a valid floor for
+              placement but prevents mob spawning on top of it.
+        - question: Does carpet dampen sculk sensor vibrations?
+          answer: |
+              Yes. Placing carpet on top of a sculk sensor or block
+              muffles the vibrations it detects.
+        - question: Can I dye carpet after crafting it?
+          answer: |
+              Yes. White carpet can be combined with any dye in a
+              shapeless recipe to produce the colored variant, including
+              light blue.
     data_version: "1.21.5"
 ---
 

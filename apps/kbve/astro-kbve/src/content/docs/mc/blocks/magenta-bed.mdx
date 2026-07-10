@@ -1,5 +1,6 @@
 ---
 title: Magenta Bed
+template: splash
 description: |
     Minecraft Magenta Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 112
     ref: magenta_bed
     slug: magenta-bed
+    content_rev: 1
     display_name: Magenta Bed
-    material: stone
+    material: wood
     hardness: 0.2
     blast_resistance: 0.2
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Magenta Bed is a dyeable furniture block used to sleep
+            through the night and set a respawn point. It occupies two
+            blocks and is crafted from wool and planks.
+        lore: |
+            Beds have let players skip the night since Java Edition 1.7 and
+            gained explosive behavior in the Nether and End with 1.16.
+    uses:
+        - title: Sleeping & Spawn Point
+          ref: magenta_bed
+          detail: |
+              Sleeping in the Overworld skips the night and sets the
+              player's respawn point to the bed's location.
+        - title: Nether/End Explosive
+          ref: tnt
+          detail: |
+              Using a bed in the Nether or the End detonates it with an
+              explosion power of 5, useful for mining or combat.
+    found_in:
+        - location: Villages
+          detail: Beds generate inside village houses, colored by the village's biome.
+        - location: Igloos
+          detail: A red bed generates in the basement of igloos.
+        - location: Crafting Table
+          detail: Crafted from 3 Magenta Wool on top and 3 Planks of any wood on bottom.
+    faq:
+        - question: What tool do I need to mine a Magenta Bed?
+          answer: |
+              None. No tool speeds up breaking a bed; it breaks at the same
+              rate regardless of tool.
+        - question: Does the Magenta Bed drop itself when broken?
+          answer: |
+              Yes, it always drops itself as an item.
+        - question: What happens if I sleep in a bed outside the Overworld?
+          answer: |
+              In the Nether or the End, using a bed causes it to explode
+              with power 5 instead of letting you sleep.
+        - question: Can a bed's color be changed after crafting?
+          answer: |
+              No, the wool color is fixed at crafting time; a differently
+              colored bed must be crafted from scratch.
     data_version: "1.21.5"
 ---
 

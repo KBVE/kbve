@@ -1,5 +1,6 @@
 ---
 title: Dead Horn Coral Block
+template: splash
 description: |
     Minecraft Dead Horn Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,60 @@ mc_block:
     id: 719
     ref: dead_horn_coral_block
     slug: dead-horn-coral-block
+    content_rev: 1
     display_name: Dead Horn Coral Block
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_horn_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - ocean
+    about:
+        description: |
+            Dead Horn Coral Block is the bleached, gray form of the horn
+            coral block, a solid decorative block found in ocean reefs. It
+            requires a wooden pickaxe or better and always drops itself,
+            unlike its living counterpart which needs Silk Touch.
+        lore: |
+            Coral blocks were introduced in the Update Aquatic (1.13) to
+            bring vibrant, later bleachable, reef terrain to warm oceans.
+    found_in:
+        - location: Bedrock Edition warm ocean reefs
+          detail: Naturally generates as part of coral reef structures, Bedrock Edition only.
+        - location: Mined live coral blocks
+          detail: Mining a live Horn Coral Block without Silk Touch drops this dead variant instead.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Does it require Silk Touch?
+          answer: |
+              No. Unlike the living Horn Coral Block, the dead block always
+              drops itself with a plain pickaxe.
+        - question: Can it support a sea pickle?
+          answer: |
+              No. Only living coral blocks can host growing sea pickles;
+              dead coral blocks cannot.
+        - question: Can it be reverted to living coral?
+          answer: |
+              No. Once bleached, a dead coral block stays dead permanently.
     data_version: "1.21.5"
 ---
 

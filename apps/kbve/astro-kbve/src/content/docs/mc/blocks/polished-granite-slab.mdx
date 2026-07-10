@@ -1,5 +1,6 @@
 ---
 title: Polished Granite Slab
+template: splash
 description: |
     Minecraft Polished Granite Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 778
     ref: polished_granite_slab
     slug: polished-granite-slab
+    content_rev: 1
     display_name: Polished Granite Slab
     material: stone
     hardness: 1.5
@@ -26,8 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_granite_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Polished Granite Slab is a half-height decorative slab cut from
+            Polished Granite, letting builders create thinner steps, floors,
+            and trim details. Two slabs stacked form a full Polished Granite
+            block.
+        lore: |
+            Added in Java Edition 1.14 (snapshot 18w43a) alongside the other
+            granite/diorite/andesite polished slab variants.
+    found_in:
+        - location: Crafted from Polished Granite
+          detail: 3 Polished Granite blocks craft into 6 slabs.
+        - location: Stonecutter
+          detail: Cut 1 Granite or Polished Granite into 2 slabs.
+    faq:
+        - question: What tool do I need to mine Polished Granite Slab?
+          answer: |
+              Any wooden pickaxe or better. Mining without one drops
+              nothing.
+        - question: Does this slab generate naturally?
+          answer: |
+              No. It must be crafted from Polished Granite or produced with
+              a stonecutter; it has no natural world generation.
+        - question: Can Polished Granite Slabs be waterlogged?
+          answer: |
+              Yes, placing a slab in water lets it hold water, which is
+              useful for underwater or half-submerged builds.
+        - question: How many slabs come from one crafting operation?
+          answer: |
+              Crafting 3 Polished Granite blocks yields 6 slabs; the
+              stonecutter converts Granite or Polished Granite at a 1:2 ratio.
     data_version: "1.21.5"
 ---
 

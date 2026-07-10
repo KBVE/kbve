@@ -14,13 +14,20 @@ tags:
     - openapi
 ---
 
+import BentoShell from '@/components/hero/BentoShell.astro';
 import AstroApiDashboard from '@/components/dashboard/AstroApiDashboard.astro';
 
-<AstroApiDashboard
-    title="KBVE Dashboard APIs"
-    sources={[
-        { slug: 'kbve', title: 'KBVE Public API', url: '/api/openapi.json', default: true },
-        { slug: 'firecracker', title: 'Firecracker Control', url: '/api/firecracker/openapi.json' },
-        { slug: 'rows', title: 'ROWS (ChuckRPG)', url: '/api/rows/openapi.json' },
-    ]}
-/>
+<BentoShell
+    id="api-reference"
+    eyebrow="Dashboard"
+    heading="API Reference — live OpenAPI specs."
+>
+    <AstroApiDashboard
+        title="KBVE Dashboard APIs"
+        sources={[
+            { slug: 'kbve', title: 'KBVE Public API', url: '/api/openapi.json', default: true },
+            { slug: 'firecracker', title: 'Firecracker Control', url: '/api/firecracker/openapi.json' },
+            { slug: 'rows', title: 'ROWS (ChuckRPG)', url: '/api/rows/openapi.json' },
+        ]}
+    />
+</BentoShell>

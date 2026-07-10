@@ -10,22 +10,64 @@ description: |
     The evil floor of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 13,'
+    accent: every year.
+    lede: 'The March 13th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#tasks'
+          primary: true
+        - label: '← Mar 12'
+          href: /journal/03-12/
+        - label: 'Mar 14 →'
+          href: /journal/03-14/
+    related:
+        - title: 'Previous · Mar 12'
+          copy: 'Step back a day to the March 12th log.'
+          href: /journal/03-12/
+          icon: calendar
+        - title: 'Next · Mar 14'
+          copy: 'Jump ahead to the March 14th log.'
+          href: /journal/03-14/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1619597455322-4fbbd820250a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-
-## Tasks
+<BentoProse id="tasks" heading="Tasks">
 
 [X] - Finish Preparing Fish&Chip Pipeline
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Kilobase v15.8.10
 
@@ -64,7 +106,9 @@ import { Adsense } from '@/components/astropad';
     I think the next step will be to setup the external worker that will be able to handle the requests from the postgres extension.
     This will be a bit of a challenge but I think we can get it done.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### FishChip
 
@@ -141,3 +185,6 @@ Damn, I can already see a small game becoming born within the end of the year!
 Caught up to episode 4 of the series, I am loving the cinematics and the character development so far!
 I will try not to include any spoilers but FX is hitting it out the park with some of their new series, whoever is greenlighting them is doing a great job.
 
+</BentoProse>
+
+</BentoDoc>

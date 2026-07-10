@@ -1,5 +1,6 @@
 ---
 title: Budding Amethyst
+template: splash
 description: |
     Minecraft Budding Amethyst — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 89
     ref: budding_amethyst
     slug: budding-amethyst
+    content_rev: 1
     display_name: Budding Amethyst
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Budding amethyst is a fragile block found only within naturally generated amethyst geodes, where it serves as the source that grows amethyst clusters. It cannot be obtained in Survival mode by any means, including Silk Touch, and drops nothing when mined. The block spawns amethyst buds that progress through four growth stages before becoming harvestable amethyst clusters.
+        lore: |
+            Developer Cory Scheviak has said budding amethyst was inspired by atium, the self-renewing crystal resource from Brandon Sanderson's Mistborn novels.
+    faq:
+        - question: How do I obtain budding amethyst in Survival mode?
+          answer: |
+              You cannot. Budding amethyst is deliberately unobtainable in survival gameplay, even with Silk Touch, to encourage players to repeatedly revisit and farm the same geode rather than relocating it.
+        - question: How long does it take for amethyst clusters to fully grow?
+          answer: |
+              On average, about 2 hours 16 minutes of in-game time (roughly 6.8 in-game days) for a bud to progress through all four growth stages into a harvestable cluster.
+        - question: Can pistons move budding amethyst?
+          answer: |
+              No. Budding amethyst is destroyed when pushed by a piston and cannot be pulled by sticky pistons, slime blocks, or honey blocks, so it stays permanently fixed in place.
+        - question: What tool should I use to mine budding amethyst?
+          answer: |
+              A pickaxe is required; using any other tool greatly increases breaking time and still yields nothing, since the block never drops an item.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

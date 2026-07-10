@@ -1,5 +1,6 @@
 ---
 title: Flint
+template: splash
 description: |
     Minecraft Flint — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 920
     ref: flint
     slug: flint
+    content_rev: 1
     display_name: Flint
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Flint is a sharp mineral fragment obtained mostly by mining gravel, with a small
+            chance of dropping instead of the gravel block itself. It is a key crafting
+            ingredient for arrows, fletching tables, and flint and steel.
+        lore: |
+            A sharp stone fragment that has served as a survival tool since ancient times.
+    faq:
+        - question: What's the easiest way to get flint early game?
+          answer: |
+              Mine gravel blocks near water or in riverbeds and you will eventually receive
+              flint drops, or trade gravel to a Fletcher villager for guaranteed flint.
+        - question: Does Silk Touch prevent flint from dropping?
+          answer: |
+              Yes, gravel mined with a Silk Touch tool never produces flint, so use a
+              regular pickaxe if you want flint drops.
+        - question: Can flint be a renewable resource?
+          answer: |
+              Yes, trading gravel to Fletcher villagers for flint makes it renewable
+              despite the random drop chance from mining.
+        - question: What is flint mainly used for?
+          answer: |
+              Crafting arrows for combat is its most common use, while flint and steel
+              remains essential for igniting nether portals and other fires.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

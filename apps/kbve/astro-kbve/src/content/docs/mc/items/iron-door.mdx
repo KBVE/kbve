@@ -1,5 +1,6 @@
 ---
 title: Iron Door
+template: splash
 description: |
     Minecraft Iron Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 742
     ref: iron_door
     slug: iron-door
+    content_rev: 1
     display_name: Iron Door
     category: decoration
     rarity: common
@@ -20,6 +22,36 @@ mc_item:
     tier: iron
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The iron door is a secure, redstone-activated entrance block crafted from six iron
+            ingots. Unlike wooden doors, it cannot be opened by hand and is immune to zombie
+            attacks, making it the go-to choice for high-security bases and vaults. It only
+            opens or closes in response to a redstone signal.
+        lore: |
+            Iron doors have guarded strongholds and woodland mansion prisons since the earliest
+            days of Minecraft, standing for security that only mechanisms, not hands, can unlock.
+    faq:
+        - question: |
+              Can zombies break down an iron door?
+          answer: |
+              No. Iron doors are completely immune to mob attacks, unlike wooden doors which
+              zombies can smash through on hard difficulty.
+        - question: |
+              How do I open an iron door without redstone?
+          answer: |
+              You can't — iron doors cannot be opened by hand or by wind charges. They respond
+              only to a redstone signal from a lever, button, pressure plate, or circuit.
+        - question: |
+              Where do iron doors generate naturally?
+          answer: |
+              They appear in stronghold corridors paired with stone buttons, and in woodland
+              mansion prison rooms.
+        - question: |
+              Can a piston move an iron door?
+          answer: |
+              No. A regular piston destroys the door when it tries to push it, and sticky
+              pistons cannot pull it either.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

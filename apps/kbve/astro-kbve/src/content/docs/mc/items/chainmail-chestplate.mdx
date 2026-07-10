@@ -1,5 +1,6 @@
 ---
 title: Chainmail Chestplate
+template: splash
 description: |
     Minecraft Chainmail Chestplate — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 901
     ref: chainmail_chestplate
     slug: chainmail-chestplate
+    content_rev: 1
     display_name: Chainmail Chestplate
     category: armor
     rarity: common
@@ -37,6 +39,33 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Chainmail chestplates are an uncommon, uncraftable chest-slot armor piece giving 5
+            armor points, the same as a golden chestplate but with much higher durability. They
+            drop from armored zombies, husks, skeletons, strays, and bogged mobs, are sold by
+            Journeyman-level armorer villagers for 4 emeralds, and can appear in woodland
+            mansion loot chests.
+        lore: |
+            Chainmail armor's look and name come from one of Notch's earlier games, and its
+            crafting recipe using fire items was removed in Java Edition 1.8.
+    faq:
+        - question: Why can't I craft a chainmail chestplate?
+          answer: |
+              Chainmail armor has had no crafting recipe since Java Edition 1.8, when the
+              fire item used in the old recipe was removed from the game.
+        - question: How does chainmail compare to golden armor?
+          answer: |
+              It shares the same 5 armor points as a golden chestplate but has noticeably
+              higher durability, making it the better early-game choice of the two.
+        - question: Can chainmail armor be repaired?
+          answer: |
+              Yes, repair it on an anvil with iron ingots for 25% durability per ingot, or
+              combine two damaged chestplates for a repaired one with a small bonus.
+        - question: What enchantments work on a chainmail chestplate?
+          answer: |
+              Standard chestplate enchantments apply, including Protection, Fire Protection,
+              Blast Protection, Projectile Protection, Thorns, Unbreaking, and Mending.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

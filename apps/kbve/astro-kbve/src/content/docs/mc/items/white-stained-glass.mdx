@@ -1,5 +1,6 @@
 ---
 title: White Stained Glass
+template: splash
 description: |
     Minecraft White Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 501
     ref: white_stained_glass
     slug: white-stained-glass
+    content_rev: 1
     display_name: White Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            White Stained Glass is a transparent, dyed variant of regular glass, crafted by
+            combining glass blocks with white dye. It serves both decorative purposes and
+            practical ones, such as tinting light or beacon beams while still letting light
+            pass through.
+        lore: |
+            Stained glass blocks of the same color become invisible when viewed through an
+            identical pane, letting builders create seamless colored windows.
+    faq:
+        - question: |
+              How do I craft White Stained Glass?
+          answer: |
+              Combine 4 glass blocks with 1 White Dye in a crafting grid to produce 8 White
+              Stained Glass blocks.
+        - question: |
+              Does White Stained Glass generate naturally anywhere?
+          answer: |
+              Yes, white stained glass can generate in trial chambers alongside black and
+              light gray variants.
+        - question: |
+              Can mobs spawn on or see through White Stained Glass?
+          answer: |
+              Mobs cannot normally spawn on stained glass blocks, and they treat it as fully
+              opaque for spawning purposes even though players can see through it.
+        - question: |
+              What else can White Stained Glass be used for besides decoration?
+          answer: |
+              Placing it above a beacon tints the beacon beam, so stacking White Stained
+              Glass in the beam changes or maintains its color as it travels upward.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

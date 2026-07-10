@@ -1,5 +1,6 @@
 ---
 title: Dead Bubble Coral Block
+template: splash
 description: |
     Minecraft Dead Bubble Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 717
     ref: dead_bubble_coral_block
     slug: dead-bubble-coral-block
+    content_rev: 1
     display_name: Dead Bubble Coral Block
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,9 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: dead_bubble_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Dead Bubble Coral Block is the lifeless, grayscale form of Bubble
+            Coral Block, produced when the living block is placed outside of
+            water or its adjacent water source disappears. Unlike its living
+            counterpart it cannot bubble-lift entities or players and, unlike
+            other dead coral blocks, it drops itself when mined with any
+            pickaxe — no Silk Touch required.
+        lore: |
+            Coral blocks were added in Java Edition 1.13, and their dead
+            variants let ocean builders recreate the bleached reefs seen in
+            real-world warm oceans affected by coral death.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as dead coral blocks in Bedrock Edition warm ocean reef structures.
+        - location: Converted from Bubble Coral Block
+          detail: Placing a live bubble coral block outside of water causes it to die and turn into this block after a few seconds.
+    faq:
+        - question: Do I need Silk Touch to mine Dead Bubble Coral Block?
+          answer: |
+              No. Any pickaxe, wooden or better, mines it and it always drops
+              itself — unlike dead coral fans, which need Silk Touch.
+        - question: Can I turn it back into living coral?
+          answer: |
+              No. Once bubble coral dies and becomes this block, it cannot be
+              restored to its living state.
+        - question: Does it still lift entities like living bubble coral?
+          answer: |
+              No. The current-generating bubble effect only works on the
+              living bubble coral block; the dead variant is purely
+              decorative.
+        - question: Can it be used to farm sea pickles?
+          answer: |
+              No. Only living coral blocks (not dead ones) can host and grow
+              sea pickles.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

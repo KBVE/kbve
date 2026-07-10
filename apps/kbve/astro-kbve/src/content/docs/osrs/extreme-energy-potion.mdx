@@ -1,0 +1,125 @@
+---
+title: Extreme energy potion | OSRS Price Data
+description: "Extreme energy potion(4) restores 40% run energy per dose for members. High alch: 150 GP."
+osrs:
+  id: 31614
+  name: Extreme energy potion
+  slug: extreme-energy-potion
+  examine: 4 doses of extreme energy potion.
+  members: true
+  icon: Extreme energy potion(4).png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: null
+  potion:
+    doses: 4
+    effects:
+      - description: Restores 40% of the player's run energy per dose.
+  recipes:
+    - skill: Herblore
+      level: 66
+      xp: 84
+      output_quantity: 1
+      materials:
+        - item_name: Super energy potion(4)
+          quantity: 1
+        - item_name: Yellow fin
+          quantity: 4
+  related_items:
+    - item_id: 31616
+      item_name: Extreme energy potion(3)
+      slug: extreme-energy-potion-3
+      relationship: variant
+      description: 3-dose variant
+    - item_id: 31618
+      item_name: Extreme energy potion(2)
+      slug: extreme-energy-potion-2
+      relationship: variant
+      description: 2-dose variant
+    - item_id: 31620
+      item_name: Extreme energy potion(1)
+      slug: extreme-energy-potion-1
+      relationship: variant
+      description: 1-dose variant
+    - item_id: 3018
+      item_name: Super energy potion(4)
+      slug: super-energy-potion-4
+      relationship: component
+      description: Base potion before brewing
+  about: "Extreme energy potion(4) is a members Herblore potion brewed at level 66 from a super energy potion and yellow fins; each dose restores 40% run energy and cannot be used to make stamina potions."
+  history:
+    - date: "2025-11-19"
+      update: Sailing is OUT TODAY!
+      description: Extreme energy potion released alongside the Sailing skill launch.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  family_ref:
+    family_slug: extreme-energy-potion
+    role: base
+  family:
+    slug: extreme-energy-potion
+    name: Extreme energy potion
+    type: dose
+    canonical_id: 31614
+    members:
+    - id: 31614
+      slug: extreme-energy-potion
+      name: Extreme energy potion
+      icon: Extreme energy potion(4).png
+      role: base
+      dose: null
+      value: 250
+      lowalch: 100
+      highalch: 150
+    - id: 31623
+      slug: extreme-energy-potion-1
+      name: Extreme energy potion(1)
+      icon: Extreme energy potion(1).png
+      role: dose
+      dose: 1
+      value: 40
+      lowalch: 16
+      highalch: 24
+    - id: 31620
+      slug: extreme-energy-potion-2
+      name: Extreme energy potion(2)
+      icon: Extreme energy potion(2).png
+      role: dose
+      dose: 2
+      value: 90
+      lowalch: 36
+      highalch: 54
+    - id: 31617
+      slug: extreme-energy-potion-3
+      name: Extreme energy potion(3)
+      icon: Extreme energy potion(3).png
+      role: dose
+      dose: 3
+      value: 170
+      lowalch: 68
+      highalch: 102
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

@@ -454,6 +454,12 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+osrs = [
+    { name = "pyyaml" },
+]
+seo = [
+    { name = "pyyaml" },
+]
 sprite = [
     { name = "numpy" },
     { name = "pillow" },
@@ -482,9 +488,11 @@ requires-dist = [
     { name = "protobuf", specifier = ">=4.25,<6.0" },
     { name = "pydantic", specifier = ">=1.10,<3.0" },
     { name = "pyyaml", specifier = ">=6.0,<7.0" },
+    { name = "pyyaml", marker = "extra == 'osrs'", specifier = ">=6.0,<7.0" },
+    { name = "pyyaml", marker = "extra == 'seo'", specifier = ">=6.0,<7.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32,<1.0" },
 ]
-provides-extras = ["sprite"]
+provides-extras = ["sprite", "osrs", "seo"]
 
 [package.metadata.requires-dev]
 dev = [

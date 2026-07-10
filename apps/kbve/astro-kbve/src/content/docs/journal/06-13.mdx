@@ -9,12 +9,52 @@ description: |
   June 13th. MeFourGPT. Cleaning up the pipes, everyone has to do it.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 13,'
+    accent: every year.
+    lede: 'The June 13th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 12'
+          href: /journal/06-12/
+        - label: 'Jun 14 →'
+          href: /journal/06-14/
+    related:
+        - title: 'Previous · Jun 12'
+          copy: 'Step back a day to the June 12th log.'
+          href: /journal/06-12/
+          icon: calendar
+        - title: 'Next · Jun 14'
+          copy: 'Jump ahead to the June 14th log.'
+          href: /journal/06-14/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1559510981-10719ce4266a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Unity DevLog
 
@@ -25,7 +65,15 @@ import { Adsense } from '@/components/astropad';
     I never felt like wanting to go on vacation until I finished up fixing that vite issue.
     V is vite, vengence and vacation.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Cafe**
 
@@ -80,7 +128,9 @@ Oh nevermind, I forgot that codesee was acquired and that means I will have to f
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:00am - Today's market is going to be interesting, I really hope to see a dip but it could go any direction based off of what the feds say!
 - 10:00am - I started to watch the apple tv show, Silo and damn it is giving me some interesting game development vibes and concepts. The show is really well written so far and I am enjoying all the characters so far! I blew through the first couple episodes without even realizing it.
@@ -90,13 +140,21 @@ Oh nevermind, I forgot that codesee was acquired and that means I will have to f
 - 5:00pm - Going to get a bit deeper into the development cycle of RogueJester, but I am definitely feeling a bit of project overload already. I might have to switch up my work station and maybe migrate over to a coffee shop or café. A part of me is thinking of just driving to the beach and working from a boardwalk for a couple hours. 
 - 5:30pm - Appwrite Integration has replaced the Strapi Integration! Now I am going to test case some basic examples and see if I can play. One of the issues that I am currently facing is the Coroutine / Asynchronous problem but there are enough reference points to resolve it. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Truth is powerful and it prevails.
 > — <cite>Sojourner Truth</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

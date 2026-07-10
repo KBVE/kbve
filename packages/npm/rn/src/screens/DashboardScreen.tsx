@@ -1,5 +1,4 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
 import { Screen } from '../ui/primitives/Screen';
 import { Text } from '../ui/primitives/Text';
 import { Badge } from '../ui/primitives/Badge';
@@ -14,8 +13,9 @@ import { useAuth, useAuthActions } from '../auth/useAuth';
 import { useApi } from '../auth/useApi';
 import { usePersistentResource } from '../store';
 import { useStaff } from '../auth/useStaff';
+import { openExternal } from '../platform/openExternal';
 
-const open = (url: string) => void WebBrowser.openBrowserAsync(url);
+const open = (url: string) => openExternal(url);
 
 function Stat({ label, value }: { label: string; value?: number }) {
 	return (

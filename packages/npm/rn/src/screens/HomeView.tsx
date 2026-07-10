@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as WebBrowser from 'expo-web-browser';
 import { Gradient } from '../ui/primitives/Gradient';
 import { Text } from '../ui/primitives/Text';
 import { Badge } from '../ui/primitives/Badge';
@@ -15,8 +14,9 @@ import { PluginHost } from '../plugin/host';
 import { defaultHostApi } from '../sandbox/hostApis';
 import { createWgpuPlugin } from '../examples/wgpuPlugin';
 import { createIsometricPlugin } from '../examples/isometricPlugin';
+import { openExternal } from '../platform/openExternal';
 
-const open = (url: string) => void WebBrowser.openBrowserAsync(url);
+const open = (url: string) => openExternal(url);
 
 const ACTIONS = [
 	{

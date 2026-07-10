@@ -1,5 +1,6 @@
 ---
 title: Pink Concrete
+template: splash
 description: |
     Minecraft Pink Concrete — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 591
     ref: pink_concrete
     slug: pink-concrete
+    content_rev: 1
     display_name: Pink Concrete
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Pink Concrete is a solid decorative building block formed when Pink Concrete Powder touches water, offering a bright, fade-resistant color that many builders prefer over wool or terracotta. It has moderate hardness of 1.8, requires a pickaxe to mine, and unlike wool it does not burn.
+            Its blast resistance is much lower than its real-world concrete counterpart, so it is best suited for decoration rather than explosion-proof construction.
+        lore: |
+            Concrete became fully renewable in Java Edition 1.16 once piglins began trading gravel, letting builders produce vivid, permanent colored blocks like this pink variant without exhausting a finite resource.
+    faq:
+        - question: |
+              How do I make Pink Concrete?
+          answer: |
+              Craft Pink Concrete Powder from pink dye, sand, and gravel, then let it touch a water source, flowing water, or a waterlogged block to instantly harden into solid Pink Concrete.
+        - question: |
+              Does Pink Concrete burn like wool?
+          answer: |
+              No, concrete blocks including the pink variant are fireproof and will not catch fire or burn away, unlike wool.
+        - question: |
+              What tool do I need to mine Pink Concrete?
+          answer: |
+              A pickaxe is required to mine it efficiently; without one it drops nothing, and higher-tier pickaxes break it faster due to its hardness of 1.8.
+        - question: |
+              Is Pink Concrete good for blast-resistant builds?
+          answer: |
+              Not particularly. Despite being harder than stone, concrete has significantly lower blast resistance, making it a poor choice for structures meant to survive explosions.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

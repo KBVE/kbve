@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Door
+template: splash
 description: |
     Minecraft Dark Oak Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 749
     ref: dark_oak_door
     slug: dark-oak-door
+    content_rev: 1
     display_name: Dark Oak Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Dark Oak Door is a wooden door variant crafted from dark oak planks that players can open and close by interacting with it or by using redstone signals. It blocks mob passage while letting light pass through, and can be operated automatically by villagers and piglins.
+            Doors are among the earliest features in Minecraft, first appearing in Infdev in June 2010, with wood-specific plank variants such as this one introduced in version 1.8.
+        lore: |
+            A tall wooden gateway hewn from the twisted, dark-hearted timber of the roofed forest, sturdy enough to keep the dark out and just as easily thrown wide.
+    faq:
+        - question: How do you craft a Dark Oak Door?
+          answer: |
+              Dark Oak Doors are crafted using six dark oak planks arranged in two columns of three within a crafting grid, yielding three doors per craft.
+        - question: Can zombies break the Dark Oak Door?
+          answer: |
+              On Hard difficulty, some zombies are able to break wooden doors, including the Dark Oak Door, so players relying on it for defense should reinforce entrances or play on lower difficulties.
+        - question: Can the Dark Oak Door be used as furnace fuel?
+          answer: |
+              Yes, like other Overworld wooden doors, the Dark Oak Door can be smelted as furnace fuel, burning long enough to smelt one item.
+        - question: Does the Dark Oak Door work underwater?
+          answer: |
+              In Java Edition, doors cannot be waterlogged, which lets a placed Dark Oak Door create an air pocket usable for underwater breathing.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

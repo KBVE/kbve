@@ -1,5 +1,6 @@
 ---
 title: Prismarine
+template: splash
 description: |
     Minecraft Prismarine — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,75 @@ mc_block:
     id: 495
     ref: prismarine
     slug: prismarine
+    content_rev: 1
     display_name: Prismarine
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: prismarine
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Prismarine is a bluish stone-like block that forms the bulk of
+            ocean monument structures. Its texture slowly cycles through
+            light blue, green, purple, and dark blue over roughly five and
+            a half minutes, giving submerged monuments a shimmering look.
+        lore: |
+            The name fuses "prism" and "marine," nodding to both its
+            shifting hues and its deep-sea origin.
+    uses:
+        - title: Prismarine Bricks
+          ref: prismarine_bricks
+          detail: |
+              Craft or stonecut prismarine into Prismarine Bricks for a
+              smoother-looking building variant with the same animated
+              shimmer.
+        - title: Prismarine Stairs and Walls
+          ref: prismarine_stairs
+          detail: |
+              Craft six prismarine into four stairs, or six into six walls,
+              to shape monument-style builds; a stonecutter converts one
+              prismarine into one of either at a time.
+    found_in:
+        - location: Ocean Monuments
+          detail: Generates in large quantities as the primary structural block of every ocean monument.
+        - location: Cold Ocean Ruins
+          detail: Appears in smaller quantities inside underwater ruin structures.
+    faq:
+        - question: What tool do I need to mine prismarine?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe destroys
+              the block with no drop.
+        - question: Does prismarine emit light?
+          answer: |
+              No. It has no light emission of its own; the glow often seen
+              near monuments comes from nearby Sea Lanterns, not the
+              prismarine itself.
+        - question: Where can I find prismarine?
+          answer: |
+              Ocean monuments, guarded by guardians and an elder guardian,
+              and in smaller amounts inside cold ocean ruins.
+        - question: What can prismarine be crafted into?
+          answer: |
+              Prismarine Bricks, Dark Prismarine, and their respective
+              stairs, slabs, and walls, all obtainable via crafting or a
+              stonecutter.
     data_version: "1.21.5"
 ---
 

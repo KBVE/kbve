@@ -214,6 +214,85 @@ message ExternalPublish {
   repeated FactorioMod factorio_mods = 62;
 }
 
+// ── Bento splash-doc presentation model ─────────────────────────────
+// Data for the bento splash rendering of a project doc page, consumed by
+// BentoDoc.astro. Presentation-only: ignored by CI dispatch tooling.
+// Icon fields hold a named key (resolved to an SVG path by the component's
+// icon map) or a raw SVG path string beginning with "M".
+message BentoDoc {
+  optional string badge = 1;                // Hero eyebrow pill text
+  string title = 2;                         // Hero heading lead-in
+  string accent = 3;                        // Gradient accent word/phrase
+  optional string lede = 4;                 // Hero sub-paragraph (defaults to page description)
+  repeated BentoCta ctas = 5;               // Hero CTA buttons
+  optional BentoAside aside = 6;            // Optional hero highlight card
+  repeated BentoStat stats = 7;             // Key-fact stat tiles
+  repeated BentoFeature features = 8;       // Feature cards
+  repeated BentoRelated related = 9;        // Cross-link cards
+  optional BentoUsage usage = 10;           // Optional code panel
+  repeated BentoFaq faqs = 11;              // FAQ cards (defaults to page jsonld.faq)
+  optional BentoTheme theme = 12;           // Per-page accent retint knobs
+  optional string features_eyebrow = 13;
+  optional string features_heading = 14;
+  optional string related_eyebrow = 15;
+  optional string related_heading = 16;
+  optional string usage_eyebrow = 17;
+  optional string usage_heading = 18;
+}
+
+message BentoCta {
+  string label = 1;
+  string href = 2;
+  optional bool primary = 3;
+  optional bool external = 4;
+}
+
+message BentoAside {
+  optional string icon = 1;
+  optional string title = 2;
+  optional string body = 3;                 // May contain inline HTML
+  repeated string points = 4;               // Each may contain inline HTML
+}
+
+message BentoStat {
+  string label = 1;
+  string value = 2;
+  string icon = 3;
+}
+
+message BentoFeature {
+  string title = 1;
+  string body = 2;                          // May contain inline HTML
+  string icon = 3;
+}
+
+message BentoRelated {
+  string href = 1;
+  string title = 2;
+  string copy = 3;
+  string icon = 4;
+  optional bool external = 5;
+}
+
+message BentoUsage {
+  optional string label = 1;                // Filename-style label, e.g. "main.rs"
+  string lang = 2;                          // Highlight language
+  string code = 3;                          // Source to render
+}
+
+message BentoFaq {
+  string question = 1;
+  string answer = 2;
+}
+
+message BentoTheme {
+  optional string accent = 1;
+  optional string accent2 = 2;
+  optional string btn_fg = 3;
+  optional string live = 4;
+  optional string hero_bg = 5;
+}
+
 // A tracked item in the CI dispatch registry.
 // Each entry corresponds to one fan-out dispatch from ci-main.yml.
 message CiProject {
@@ -286,6 +365,11 @@ message CiProject {
   // Consumed by manifest generation tooling and graph visualization.
   // All fields optional; downstream tools can infer defaults from other fields.
   optional KubeMetadata kube = 37;
+
+  // --- Bento splash-doc presentation (Astro rendering only) -------------
+  // Consumed by BentoDoc.astro to render the project page as a bento
+  // splash. Ignored by CI dispatch tooling.
+  optional BentoDoc bento = 38;
 }
 
 // The full registry — a flat list of all tracked items.

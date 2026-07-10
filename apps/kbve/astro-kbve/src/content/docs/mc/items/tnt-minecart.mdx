@@ -1,5 +1,6 @@
 ---
 title: Minecart with TNT
+template: splash
 description: |
     Minecraft Minecart with TNT — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,45 @@ mc_item:
     id: 804
     ref: tnt_minecart
     slug: tnt-minecart
+    content_rev: 1
     display_name: Minecart with TNT
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A minecart with TNT is a specialized minecart variant carrying explosive
+            TNT, crafted shapelessly from one regular minecart and one TNT block.
+            Unlike raw TNT, it detonates instantly under certain conditions such as
+            high-speed impacts or contact with fire, and its explosion power scales
+            with the minecart's velocity, making it a popular tool for controlled
+            demolition on rails.
+        lore: |
+            Introduced in Java Edition 1.5 as a safer alternative to raw TNT for
+            construction projects, it lets builders clear terrain without destroying
+            their own rails.
+    faq:
+        - question: What triggers an instant explosion?
+          answer: |
+              It detonates instantly if it hits the ground with a downward velocity
+              from falling more than three blocks, unless landing on rail, or if hit by
+              a flaming projectile. High-speed turns can also cause instant detonation.
+        - question: How much damage does it deal?
+          answer: |
+              The blast has a base power of 4, the same as regular TNT, with
+              velocity-dependent bonuses up to 1.5x the minecart's speed, capped at 7.5
+              additional power for speeds of 5+ blocks per second.
+        - question: Does it destroy rails when it explodes?
+          answer: |
+              When triggered by an activator rail in Java Edition, it does not destroy
+              its own rail or the blocks the rail sits on, though other nearby
+              minecarts can still damage these structures.
+        - question: Can multiple minecarts with TNT occupy one block?
+          answer: |
+              Yes, more than one minecart can be placed on the same rail block,
+              allowing many of them to be packed into a single space.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

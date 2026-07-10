@@ -1,5 +1,6 @@
 ---
 title: Cave Vines Plant
+template: splash
 description: |
     Minecraft Cave Vines Plant — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 1044
     ref: cave_vines_plant
     slug: cave-vines-plant
+    content_rev: 1
     display_name: Cave Vines Plant
     material: plant
     hardness: 0
     blast_resistance: 0
     best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 14
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: glow_berries
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - climbable
+        - bee_growable
+        - overworld
+    about:
+        description: |
+            Cave Vines Plant is the hanging body segment of a cave vine,
+            forming the middle and lower links of a chain that grows down
+            from a Cave Vines head block. Any segment can bear Glow
+            Berries, which light up and can be harvested by hand without
+            destroying the vine.
+        lore: |
+            Cave vines were added in the Caves & Cliffs update to dress
+            out the new lush cave biome with a renewable, climbable light
+            source.
+    uses:
+        - title: Glow Berries
+          ref: glow_berries
+          detail: |
+              Right-clicking a berry-bearing segment harvests the berries
+              in place; breaking the block instead drops them and removes
+              the segment. Glow Berries can be eaten or replanted.
+    found_in:
+        - location: Lush Caves
+          detail: Hangs from the ceiling of lush cave biomes, generated in long chains.
+        - location: Grown from Cave Vines
+          detail: Extends downward from a Cave Vines head block via random ticks or bone meal, up to 26 blocks long.
+    faq:
+        - question: What tool do I need to break Cave Vines Plant?
+          answer: |
+              None — it breaks instantly with any tool or bare hands,
+              though it is technically classified as axe-mineable.
+        - question: Does breaking it always drop Glow Berries?
+          answer: |
+              No. It only drops Glow Berries if that particular segment
+              currently bears them; bare vine segments drop nothing.
+        - question: Can I harvest berries without destroying the vine?
+          answer: |
+              Yes. Right-clicking (use) a segment with berries picks the
+              berries without removing the vine block itself.
+        - question: Does Cave Vines Plant give off light?
+          answer: |
+              Only the segments currently bearing Glow Berries emit
+              light, at light level 14 — bare vine segments emit none.
     data_version: "1.21.5"
 ---
 

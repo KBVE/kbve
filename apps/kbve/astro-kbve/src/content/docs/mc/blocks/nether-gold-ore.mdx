@@ -1,5 +1,6 @@
 ---
 title: Nether Gold Ore
+template: splash
 description: |
     Minecraft Nether Gold Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 48
     ref: nether_gold_ore
     slug: nether-gold-ore
+    content_rev: 1
     display_name: Nether Gold Ore
     material: nether
     hardness: 3
     blast_resistance: 3
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gold_nugget
+          qty_min: 2
+          qty_max: 6
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: nether_gold_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - ore
+    about:
+        description: |
+            Nether Gold Ore is the Nether's variant of gold ore, generating
+            abundantly in blobs throughout every Nether biome, especially
+            basalt deltas. Mining it drops gold nuggets instead of raw gold.
+        lore: |
+            Added in Java Edition 1.16 with the Nether Update, giving
+            players a renewable Nether-side source of gold.
+    found_in:
+        - location: The Nether (Y 10–117)
+          detail: Generates in blobs of up to 16 blocks, 10 attempts per chunk in most biomes and 20 in basalt deltas.
+    faq:
+        - question: What does Nether Gold Ore drop?
+          answer: |
+              2–6 gold nuggets per block, multiplied further by Fortune.
+              Silk Touch harvests the ore block itself instead.
+        - question: Does mining it anger piglins?
+          answer: |
+              Yes. Piglins become hostile when they see a player mine
+              Nether Gold Ore, similar to mining other gold blocks near
+              them.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, including wood. Mining without a pickaxe drops
+              nothing.
+        - question: Is Nether Gold Ore affected by Fortune?
+          answer: |
+              Yes. Fortune increases the gold nugget drop count, with
+              Fortune III averaging close to 8.8 nuggets per block.
     data_version: "1.21.5"
 ---
 

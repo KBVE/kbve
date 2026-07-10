@@ -1,5 +1,6 @@
 ---
 title: Calcite
+template: splash
 description: |
     Minecraft Calcite — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 957
     ref: calcite
     slug: calcite
+    content_rev: 1
     display_name: Calcite
     material: stone
     hardness: 0.75
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: calcite
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Calcite is a pale, decorative stone block found lining amethyst
+            geodes and streaking through the stony peaks biome. It requires
+            only a wooden pickaxe to mine and always drops itself.
+        lore: |
+            Added in Java Edition 20w45a alongside the 1.17 Caves & Cliffs
+            update, calcite modeled the real mineral of the same name — the
+            most stable form of calcium carbonate.
+    uses:
+        - title: Decoration
+          ref: calcite
+          detail: |
+              Its pale, smooth look makes it a popular building accent, though
+              its low hardness and blast resistance mean it offers little
+              structural protection.
+    found_in:
+        - location: Amethyst geodes
+          detail: Forms a shell layer between the smooth basalt exterior and the amethyst blocks inside every geode.
+        - location: Stony Peaks biome
+          detail: Generates in horizontal strips throughout the terrain.
+    faq:
+        - question: What tool do I need to mine Calcite?
+          answer: |
+              Any pickaxe, wooden or better. Mining it without a pickaxe
+              drops nothing.
+        - question: Does Silk Touch change what Calcite drops?
+          answer: |
+              No. A pickaxe of any tier always drops the block itself.
+        - question: Where do I find Calcite naturally?
+          answer: |
+              Inside amethyst geodes and as layered strips in the stony
+              peaks biome.
+        - question: Is Calcite good for building fortified structures?
+          answer: |
+              Not really — its hardness and blast resistance are lower than
+              most stone-type blocks, so it's best used decoratively.
     data_version: "1.21.5"
 ---
 

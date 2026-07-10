@@ -1,5 +1,6 @@
 ---
 title: Anvil
+template: splash
 description: |
     Minecraft Anvil — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 435
     ref: anvil
     slug: anvil
+    content_rev: 1
     display_name: Anvil
     material: metal
     hardness: 5
     blast_resistance: 1200
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: anvil
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - utility
+        - gravity_affected
+    about:
+        description: |
+            The Anvil is a utility block used to repair items, rename them,
+            and combine enchantments. It is affected by gravity like sand and
+            gravel, degrades with use, and deals damage if it falls on an
+            entity.
+        lore: |
+            Added in Java Edition 1.4.2 (snapshot 12w41a) as part of the
+            enchanting overhaul. Its three visual stages — normal, chipped,
+            and damaged — reflect accumulated wear.
+    uses:
+        - title: Repair Items
+          detail: |
+              Combine two similar damaged items or repair with raw materials
+              (iron ingots for iron tools, diamonds for diamond tools) to
+              restore durability while preserving enchantments.
+        - title: Rename and Combine Enchantments
+          detail: |
+              Rename any item for one experience level, and transfer or merge
+              enchantments from books or sacrificed items onto a target.
+    found_in:
+        - location: Crafting
+          detail: Three iron blocks across the top and four iron ingots (one center, three along the bottom) — 31 iron ingots total.
+        - location: Woodland Mansions
+          detail: Occasionally generates as decoration in woodland mansion rooms.
+    faq:
+        - question: What tool do I need to break an anvil?
+          answer: |
+              A pickaxe of any tier (wooden or better). Without a pickaxe it
+              drops nothing and breaks slowly.
+        - question: Why did my anvil break?
+          answer: |
+              Each use has a 12% chance to degrade the anvil one stage; it
+              lasts about 25 uses on average. Falling more than one block can
+              also damage or destroy it.
+        - question: Do falling anvils hurt?
+          answer: |
+              Yes. A falling anvil deals 2 HP per block fallen after the
+              first, capped at 40 HP. A helmet reduces the damage by 25% but
+              takes double durability loss.
     data_version: "1.21.5"
 ---
 

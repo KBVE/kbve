@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1690228835779-8482c60093bf?crop=entropy&c
 description: August 14th. Loot and Work.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 14,'
+    accent: every year.
+    lede: 'The August 14th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 13'
+          href: /journal/08-13/
+        - label: 'Aug 15 →'
+          href: /journal/08-15/
+    related:
+        - title: 'Previous · Aug 13'
+          copy: 'Step back a day to the August 13th log.'
+          href: /journal/08-13/
+          icon: calendar
+        - title: 'Next · Aug 15'
+          copy: 'Jump ahead to the August 15th log.'
+          href: /journal/08-15/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1690228835779-8482c60093bf?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Deranged Realtime
 
@@ -27,7 +69,15 @@ import { Adsense } from '@/components/astropad';
     Taking a late break from from the regular programming session and working on the MTG deck.
     I think I have an interesting idea for a cloud deck, one that will be extremely broken to use in a game.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Lootables**
 The lootables or loot-table is the first game mechanic within our CT and I been thinking through exactly how I want to handle it.
@@ -119,7 +169,10 @@ Example: page: z.number().optional()
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 5:00am - SSS. Honestly, I might 
 - 6:30am - Going to prepare my notes for a quick meeting for work and I really need to make sure that I get some of the Appwrite functions ready for the hackathon later this weekend.
 - 8:00am - A bit of a brutal start for the pre-market, I am surprised that TSLA has slipped so low, it will make for an interesting end of the year, will it hold the $230+ line or will it slip all the way down to the lower bounds of $200? Only time will tell, but there has been a ton of random memes and conspiracy theories floating around. My favorite so far is the one that Elon will buy $X , because he wants the ticker symbol! However, that could really be market manipulation.
@@ -127,13 +180,22 @@ Example: page: z.number().optional()
 - 2:42pm - It was definitely not the best talk to attend, I felt like it was a bit all over the place, honestly it did give me a couple cool concepts/ideas for a future concept. 
 - 3:45pm - Spending most of the day going over the flowchart and outlining a complete CI/CD deployment of Appwrite functions from a Github repo. 
 - 10:20pm - Finished a quick league session! Oh earlier in the day, I had a 1v1 match with Fudster, the record is 0-1, with me losing! However I know that I did not pick the best runes for the 1v1 and my itemization was not really the best, if I can make wave clearing a bit easier for me then I could easily win the next round. 
-## Quote
+
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Absence makes the heart grow fonder.
 > — <cite>Thomas Haynes Bayly</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

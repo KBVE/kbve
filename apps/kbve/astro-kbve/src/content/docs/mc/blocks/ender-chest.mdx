@@ -1,5 +1,6 @@
 ---
 title: Ender Chest
+template: splash
 description: |
     Minecraft Ender Chest — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 369
     ref: ender_chest
     slug: ender-chest
+    content_rev: 1
     display_name: Ender Chest
     material: stone
     hardness: 22.5
     blast_resistance: 600
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 7
     light_opacity: 0
     transparent: false
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: obsidian
+          qty_min: 8
+          qty_max: 8
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: ender_chest
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - storage
+        - light_source
+    about:
+        description: |
+            The Ender Chest is a storage block whose contents are shared
+            across every ender chest a player uses, in any dimension. The
+            27-slot inventory is private to each player and survives death.
+        lore: |
+            Crafted from obsidian around an Eye of Ender, the ender chest
+            taps into a personal pocket of the End's storage, glowing faintly
+            with a light level of 7.
+    uses:
+        - title: Cross-Dimensional Storage
+          ref: ender_chest
+          detail: |
+              Every ender chest links to the same personal 27-slot inventory,
+              so items placed in one are accessible from any other.
+        - title: Death-Proof Vault
+          ref: ender_chest
+          detail: |
+              Contents persist after death and cannot be accessed by other
+              players, making it ideal for safeguarding valuables.
+    found_in:
+        - location: End Cities
+          detail: Generate naturally in treasure rooms alongside regular chests.
+        - location: Crafting
+          detail: Made from eight obsidian surrounding one Eye of Ender.
+    faq:
+        - question: What tool do I need to mine an Ender Chest?
+          answer: |
+              A pickaxe of any tier. A wooden pickaxe works but takes the
+              longest mining time of any correctly-toolled block.
+        - question: What does it drop?
+          answer: |
+              Eight obsidian when mined normally, or the ender chest itself
+              when mined with a Silk Touch pickaxe.
+        - question: Is the storage shared between players?
+          answer: |
+              No. Each player has their own private ender chest inventory,
+              even when using the same physical block.
+        - question: Can ender chests form a double chest?
+          answer: |
+              No. Unlike regular chests, two adjacent ender chests stay
+              separate single blocks.
     data_version: "1.21.5"
 ---
 

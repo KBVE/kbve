@@ -1,5 +1,6 @@
 ---
 title: Weathered Cut Copper
+template: splash
 description: |
     Minecraft Weathered Cut Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 973
     ref: weathered_cut_copper
     slug: weathered-cut-copper
+    content_rev: 1
     display_name: Weathered Cut Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weathered_cut_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Weathered Cut Copper is a decorative, machine-cut copper block
+            in the Weathered oxidation stage, giving building blocks the
+            same deep green patina as Weathered Copper.
+        lore: |
+            Cut copper was revealed at Minecraft Live 2020 and added in
+            Java Edition 1.17 as a decorative counterpart to plain copper
+            blocks.
+    uses:
+        - title: Weathered Cut Copper Slab
+          ref: weathered_cut_copper_slab
+          detail: Craft 3 Weathered Cut Copper for 6 slabs, or cut a single block for 2 via the stonecutter.
+        - title: Weathered Cut Copper Stairs
+          ref: weathered_cut_copper_stairs
+          detail: Craft 6 Weathered Cut Copper for 4 stairs, or cut a single block for 1 via the stonecutter.
+        - title: Chiseled Copper
+          ref: chiseled_copper
+          detail: Stonecut into Chiseled Copper in the matching oxidation stage for extra decorative detail.
+    found_in:
+        - location: Trial Chambers
+          detail: Weathered and oxidized cut copper generate as part of trial chamber decoration and vault rooms.
+        - location: Crafting table or stonecutter
+          detail: |
+              Crafted from 4 Weathered Copper blocks (yields 4), or cut
+              from a single Weathered Copper block via the stonecutter
+              (yields 1).
+    faq:
+        - question: What tool do I need to mine it?
+          answer: A stone pickaxe or better; weaker tools break it without a drop.
+        - question: Does it keep oxidizing over time?
+          answer: |
+              Yes, unless waxed with honeycomb, it eventually becomes fully
+              Oxidized Cut Copper.
+        - question: What can I craft from it?
+          answer: |
+              It can be turned into slabs, stairs, or chiseled copper in
+              the same Weathered oxidation stage.
+        - question: Is it renewable?
+          answer: |
+              Yes, since copper is obtained renewably from drowned mob
+              drops and traded villagers, cut copper is indirectly
+              renewable.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Gray Shulker Box
+template: splash
 description: |
     Minecraft Gray Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 653
     ref: gray_shulker_box
     slug: gray-shulker-box
+    content_rev: 1
     display_name: Gray Shulker Box
     material: stone
     hardness: 2
@@ -24,10 +26,59 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Gray Shulker Box is a portable storage container dyed gray from
+            the base shulker box. It holds 27 inventory slots, and its
+            contents survive being mined and picked back up, unlike a chest.
+        lore: |
+            Added in Java Edition 1.11, shulker boxes are crafted from
+            shulker shells dropped by shulkers found in end cities.
+    uses:
+        - title: Portable Storage
+          ref: gray_shulker_box
+          detail: |
+              Carries 27 slots of items that remain intact when the box is
+              broken and picked up, making it ideal for transporting large
+              or valuable inventories.
+        - title: Redstone Comparator Input
+          ref: comparator
+          detail: |
+              A comparator placed against a shulker box reads its fill
+              level as a redstone signal strength.
+    found_in:
+        - location: Crafting
+          detail: Craft from 1 chest and 2 shulker shells, then dye any color including gray.
+        - location: End cities
+          detail: Base (purple) shulker boxes generate in end city ship rooms and can be looted directly.
+    faq:
+        - question: What tool do I need to mine Gray Shulker Box?
+          answer: |
+              Any tool works, though a pickaxe is fastest; mining with
+              anything still yields the box and its contents.
+        - question: Do I lose the items inside when I mine it?
+          answer: |
+              No, the shulker box retains its full inventory as an item
+              when broken and picked up, unlike a chest.
+        - question: Is Gray Shulker Box affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops exactly one box with its contents intact
+              regardless of enchantments.
+        - question: Is it safe to open near Piglins?
+          answer: |
+              No, piglins become hostile if you open or mine a shulker box
+              while they can see you.
     data_version: "1.21.5"
 ---
 

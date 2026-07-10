@@ -36,7 +36,7 @@ void UKBVECombatDotProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 		return;
 	}
 
-	EntityQuery.ParallelForEachEntityChunk(EntityManager, Context,
+	EntityQuery.ParallelForEachEntityChunk(Context,
 		[DeltaSeconds, Batch](FMassExecutionContext& Chunk)
 		{
 			const TArrayView<FKBVECombatDotFragment> DotViews = Chunk.GetMutableFragmentView<FKBVECombatDotFragment>();

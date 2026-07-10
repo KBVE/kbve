@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1505236732171-72a5b19c4981?crop=entropy&c
 description: July 23rd. Renewals
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 23,'
+    accent: every year.
+    lede: 'The July 23rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 22'
+          href: /journal/07-22/
+        - label: 'Jul 24 →'
+          href: /journal/07-24/
+    related:
+        - title: 'Previous · Jul 22'
+          copy: 'Step back a day to the July 22nd log.'
+          href: /journal/07-22/
+          icon: calendar
+        - title: 'Next · Jul 24'
+          copy: 'Jump ahead to the July 24th log.'
+          href: /journal/07-24/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1505236732171-72a5b19c4981?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Godot Clicks!
 
@@ -23,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     Also things like quad trees and a star, well they are just inside of godot already, so I dont need to go out of my way to do them.
     wowowow! This is going to make future godot games even more enjoyable.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Renewals**
 A bunch of domains were about to expire, had to do a mass renewal, ugh.
@@ -81,19 +130,30 @@ We will circle back around to this on another date.
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 9:00am - I need a haircut but I also need hair! The density of my hairline is getting rough, I am looking at losing it all within the next couple years, womp womp. Maybe that gym grind needs to really pump up, should I do the duel daily flow? 
 - 10:39am - Looking over the sweep ai and mapping out what I should be doing this Sunday Funday. Okay mapped out what I needed and going to quickly grab some coffee and get my day started. 
 - 11:58am - Going to take a look at [issue 183](https://github.com/KBVE/kbve.com/issues/183) and see if I can make any quick edits. I think throwing up a couple quick UX/UI elements would be the best course of action for the time being.
 - 3:16pm - Going through the CI/CD and I am looking at adding a couple tools and rebuilding the pipeline to be a bit more friendly to bots. I am currently looking at how to add codesee maps into the patchs as well as sweep.ai into the mixture. These tools can help a lot down the line, when we get a bit more creative and flexible with our pipeline. The current area that I am looking into would be the rebase of the existing branches. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > If it turns out that there is a God, I don't think that he's evil. But the worst that you can say about him is that basically he's an underachiever.
 > — <cite>Woody Allen</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Dead Brain Coral Block
+template: splash
 description: |
     Minecraft Dead Brain Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 716
     ref: dead_brain_coral_block
     slug: dead-brain-coral-block
+    content_rev: 1
     display_name: Dead Brain Coral Block
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_brain_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Dead Brain Coral Block is the lifeless form of Brain Coral
+            Block, a full solid block that decorates ocean monument
+            surroundings and coral reefs. Unlike its living counterpart,
+            it drops itself directly when mined.
+        lore: |
+            Introduced with the Update Aquatic (1.13), dead coral blocks
+            give builders a bleached, weathered palette for reef and
+            shipwreck scenery.
+    uses:
+        - title: Reef Decoration
+          ref: dead_brain_coral_block
+          detail: |
+              Used as a straightforward decorative building block for
+              recreating bleached coral reefs or shipwreck aesthetics
+              without needing to keep it near water.
+    found_in:
+        - location: Warm Ocean Biomes
+          detail: Generates naturally in coral reef formations within warm oceans.
+        - location: Dying Live Coral
+          detail: A live Brain Coral Block converts to this dead form after 3–4.95 seconds without adjacent water.
+    faq:
+        - question: What tool do I need to mine Dead Brain Coral Block?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without a pickaxe
+              drops nothing.
+        - question: Do I need Silk Touch to get the block?
+          answer: |
+              No. Unlike live coral blocks, the dead variant drops itself
+              with a normal pickaxe — no Silk Touch required.
+        - question: Can a dead coral block be revived?
+          answer: |
+              No. Once a coral block dies it stays dead permanently; bone
+              meal has no effect on it.
+        - question: How do I get a live coral block if I only have dead ones?
+          answer: |
+              You must mine a living Brain Coral Block with Silk Touch and
+              keep it submerged in water to prevent it from dying again.
     data_version: "1.21.5"
 ---
 

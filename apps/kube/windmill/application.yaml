@@ -1,0 +1,103 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: windmill
+    namespace: argocd
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    annotations:
+        kbve.com/source-path: kube/windmill
+        kbve.com/manifest-path: apps/kube/windmill/manifest
+        kbve.com/application-file: kube/windmill/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
+spec:
+    project: default
+    sources:
+        - chart: windmill
+          repoURL: https://windmill-labs.github.io/windmill-helm-charts
+          targetRevision: 4.0.200
+          helm:
+              valuesObject:
+                  postgresql:
+                      enabled: false
+                  minio:
+                      enabled: false
+                  ingress:
+                      enabled: false
+                  windmill:
+                      baseDomain: windmill.kbve.com
+                      baseProtocol: https
+                      appReplicas: 1
+                      databaseUrlSecretName: windmill-database-url
+                      databaseUrlSecretKey: url
+                      app:
+                          extraEnv:
+                              - name: PG_SCHEMA
+                                value: windmill
+                          resources:
+                              requests:
+                                  memory: 512Mi
+                                  cpu: 250m
+                              limits:
+                                  memory: 2Gi
+                                  cpu: 1000m
+                      workerGroups:
+                          - name: default
+                            controller: Deployment
+                            replicas: 1
+                            privileged: false
+                            terminationGracePeriodSeconds: 600
+                            extraEnv:
+                                - name: PG_SCHEMA
+                                  value: windmill
+                            resources:
+                                requests:
+                                    memory: 512Mi
+                                    cpu: 250m
+                                limits:
+                                    memory: 2Gi
+                                    cpu: 1000m
+                          - name: native
+                            controller: Deployment
+                            replicas: 1
+                            privileged: false
+                            terminationGracePeriodSeconds: 600
+                            extraEnv:
+                                - name: PG_SCHEMA
+                                  value: windmill
+                                - name: NATIVE_MODE
+                                  value: 'true'
+                                - name: SLEEP_QUEUE
+                                  value: '200'
+                            resources:
+                                requests:
+                                    memory: 256Mi
+                                    cpu: 100m
+                                limits:
+                                    memory: 1Gi
+                                    cpu: 500m
+        - repoURL: https://github.com/KBVE/kbve.git
+          targetRevision: main
+          path: apps/kube/windmill/manifest
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: windmill
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+            allowEmpty: false
+        syncOptions:
+            - CreateNamespace=true
+            - PrunePropagationPolicy=foreground
+            - PruneLast=true
+        retry:
+            limit: 5
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
+    revisionHistoryLimit: 3

@@ -1,7 +1,7 @@
 ---
-title: KBVEPerf
-description: |
-    Runtime-toggleable performance instrumentation for UE5 — scoped timers, counters, log + overlay sinks, and a live HTTP /perf JSON readout.
+title: KBVEPerf — Runtime Performance Instrumentation for UE5
+description: KBVEPerf is runtime-toggleable UE5 performance instrumentation with scoped timers, counters, log and overlay sinks, and a live HTTP /perf JSON readout.
+sem: 1
 sidebar:
     label: KBVEPerf
     order: 89
@@ -23,15 +23,85 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVEPerf plugin?
+          answer: KBVEPerf is a lightweight, runtime-toggleable performance instrumentation layer for UE5. Scoped timers and counters feed per-name aggregates that drain to three sinks — the log, an on-screen overlay, and a live HTTP /perf JSON readout — so any KBVE plugin can be profiled by flipping a CVar.
+        - question: What is the runtime cost of KBVEPerf?
+          answer: It compiles out of Shipping builds via KBVEPERF_ENABLED=0. When compiled in but disabled at runtime it costs a single atomic load plus a branch per scope, and it can be toggled live with the kbve.perf CVar.
+        - question: How do you read KBVEPerf results externally?
+          answer: Set kbve.perf 1 to enable collection and the HTTP endpoint, then curl http://localhost:8099/perf for a JSON readout of per-op timings (count, last, max, avg, p95) and counter gauges, instead of relaying stat unit numbers by hand.
+bento:
+    badge: unreal · profiling
+    title: Runtime perf instrumentation
+    accent: KBVEPerf
+    lede: >-
+        A lightweight, runtime-toggleable performance layer for UE5. Scoped
+        timers and counters feed per-name aggregates that drain to three sinks
+        — the log, an on-screen overlay, and a live HTTP /perf JSON readout —
+        so any KBVE plugin can be profiled by flipping a CVar.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEPerf
+          primary: true
+          external: true
+        - label: Macros
+          href: "#macros"
+        - label: CVars
+          href: "#cvars"
+    aside:
+        icon: zap
+        title: Near-zero when disabled
+        body: >-
+            It compiles out of Shipping builds via <code>KBVEPERF_ENABLED=0</code>.
+            When compiled in but disabled at runtime it costs a single atomic
+            load plus a branch per scope, and can be toggled live with the
+            <code>kbve.perf</code> CVar.
+        points:
+            - <strong>Timers</strong> — RAII scoped <code>KBVEPERF_SCOPE</code>.
+            - <strong>Counters</strong> — gauge samples via <code>KBVEPERF_COUNT</code>.
+    stats:
+        - { label: Plugin, value: KBVEPerf, icon: activity }
+        - { label: Min engine, value: UE 5.4, icon: gears }
+        - { label: HTTP port, value: "8099", icon: server }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Scoped timers & counters
+          icon: clock
+          body: RAII scoped timers and counter gauges feed per-name aggregates, categorized by the name prefix before the first dot.
+        - title: Three drain sinks
+          icon: chart
+          body: Aggregates drain to the log, an on-screen overlay, and a live HTTP /perf JSON readout of per-op timings.
+        - title: Live HTTP readout
+          icon: server
+          body: Enable with kbve.perf 1 and curl localhost:8099/perf for count, last, max, avg, and p95 per op plus counter gauges.
+        - title: Compiles out of Shipping
+          icon: zap
+          body: KBVEPERF_ENABLED=0 removes it from Shipping builds; disabled at runtime it is one atomic load plus a branch per scope.
+    related:
+        - title: KBVEWorld
+          href: /project/kbveworld/
+          copy: The terrain and grass subsystem that is KBVEPerf's first consumer.
+          icon: map
+        - title: KBVEPostShader
+          href: /project/kbvepostshader/
+          copy: Sibling UE5 rendering plugin in the KBVE stack.
+          icon: render
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-`KBVEPerf` is a lightweight, runtime-toggleable performance instrumentation layer. Scoped timers and counters feed per-name aggregates that drain to three sinks — the log, an on-screen overlay, and a live HTTP `/perf` JSON readout — so any KBVE plugin can be profiled by flipping a CVar, and the results read live by external tooling instead of relaying `stat unit` numbers by hand.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-It compiles out of Shipping builds (`KBVEPERF_ENABLED=0`); when compiled in but disabled at runtime it costs a single atomic load + branch per scope.
-
-## Macros
+<BentoProse id="macros" eyebrow="Instrument" heading="Macros">
 
 ```cpp
 #include "KBVEPerf.h"
@@ -45,7 +115,9 @@ void UMyThing::HotPath()
 
 The name prefix before the first `.` is the **category** (`Grass.AddChunk` → `Grass`). Add `KBVEPerf` to your module's `PrivateDependencyModuleNames` and the plugin to your `.uplugin` `Plugins` list.
 
-## CVars
+</BentoProse>
+
+<BentoProse id="cvars" eyebrow="Runtime toggles" heading="CVars & HTTP readout">
 
 | CVar | Default | Purpose |
 |------|---------|---------|
@@ -54,8 +126,6 @@ The name prefix before the first `.` is the **category** (`Grass.AddChunk` → `
 | `kbve.perf.port` | `8099` | Port for the HTTP `/perf` endpoint. |
 | `kbve.perf.overlay` | `0` | On-screen overlay of the worst ops this frame. |
 | `kbve.perf.threshold` | `3.0` | Log-sink threshold (ms). |
-
-## HTTP readout
 
 ```bash
 kbve.perf 1
@@ -77,6 +147,12 @@ curl http://localhost:8099/perf
 }
 ```
 
-## Integration
+</BentoProse>
+
+<BentoProse id="integration" eyebrow="First consumer" heading="Integration">
 
 `KBVEWorld` (terrain chunks + grass render subsystem) is the first consumer: the bespoke `FKBVEHitchLog` scoped timers were replaced with `KBVEPERF_SCOPE`, and the grass subsystem publishes `KBVEPERF_COUNT` gauges for resident chunks, registered chunks, HISM count, and total instances.
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Smooth Stone Slab
+template: splash
 description: |
     Minecraft Smooth Stone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 579
     ref: smooth_stone_slab
     slug: smooth-stone-slab
+    content_rev: 1
     display_name: Smooth Stone Slab
     material: stone
     hardness: 2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_stone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Smooth Stone Slab is a half-height decorative building block
+            cut from smooth stone. It does not generate naturally in most
+            structures except strongholds, villages, and ruined portals,
+            and is normally obtained by crafting or stonecutting.
+        lore: |
+            Smooth Stone Slab was reworked in Java Edition 1.14 to require
+            smooth stone instead of plain stone, separating it from the
+            original "Stone Slab" of earlier versions.
+    uses:
+        - title: Armor Stand
+          ref: armor_stand
+          detail: |
+              A Smooth Stone Slab plus a stick crafts an armor stand,
+              making the slab a key ingredient outside of building.
+    found_in:
+        - location: Crafting table
+          detail: Three smooth stone blocks craft six slabs.
+        - location: Stonecutter
+          detail: One smooth stone converts into two slabs at a better ratio than crafting.
+    faq:
+        - question: What tool do I need to mine Smooth Stone Slab?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields
+              no drop.
+        - question: Does Smooth Stone Slab generate naturally?
+          answer: |
+              Rarely. It appears in strongholds, villages, woodland
+              mansions, ruined portals, and trail ruins, but most players
+              craft or stonecut it from smooth stone.
+        - question: Can I combine two slabs into a full block?
+          answer: |
+              Yes. Placing a slab on top of another half-slab of the same
+              type combines them into a full smooth stone slab block.
+        - question: What is Smooth Stone Slab used for besides building?
+          answer: |
+              It is a required ingredient for crafting an armor stand,
+              alongside a stick.
     data_version: "1.21.5"
 ---
 

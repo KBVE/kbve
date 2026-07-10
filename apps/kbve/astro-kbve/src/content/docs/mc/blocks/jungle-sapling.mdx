@@ -1,5 +1,6 @@
 ---
 title: Jungle Sapling
+template: splash
 description: |
     Minecraft Jungle Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 28
     ref: jungle_sapling
     slug: jungle-sapling
+    content_rev: 1
     display_name: Jungle Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Jungle Sapling is the growth stage of a jungle tree, obtained
+            mostly by breaking jungle leaves. Unlike other saplings it
+            requires a 2x2 planting pattern and needs more space to grow
+            into its tall, vine-draped tree form.
+        lore: |
+            Jungle wood and its sapling were added in the Jungle Update
+            (Java Edition 1.2.1), introducing the jungle biome.
+    uses:
+        - title: Jungle Tree
+          ref: jungle_log
+          detail: |
+              Planted on dirt, grass, or moss with light level 9 or higher,
+              four saplings placed in a 2x2 square grow into a full jungle
+              tree with logs, leaves, and vines.
+    found_in:
+        - location: Jungle Leaves
+          detail: Drops from jungle leaves at a 2.5% chance per leaf block broken.
+        - location: Village and Wandering Trader
+          detail: Found in jungle village chests, bonus chests, and sold by wandering traders for 5 emeralds.
+    faq:
+        - question: What tool do I need to mine a jungle sapling?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Why won't my jungle sapling grow?
+          answer: |
+              Jungle trees need a 2x2 sapling arrangement to grow into the
+              large variant; a single sapling can still grow into a small
+              jungle tree if there is enough vertical space and light.
+        - question: Can bone meal speed up growth?
+          answer: |
+              Yes. Applying bone meal to a jungle sapling has a chance to
+              instantly grow it into a tree, bypassing the light requirement.
+        - question: Is jungle sapling renewable?
+          answer: |
+              Yes. It drops from jungle leaves, which regrow from jungle
+              trees, and it can also be purchased from wandering traders.
     data_version: "1.21.5"
 ---
 

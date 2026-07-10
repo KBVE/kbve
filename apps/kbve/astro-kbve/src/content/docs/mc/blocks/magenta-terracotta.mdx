@@ -1,5 +1,6 @@
 ---
 title: Magenta Terracotta
+template: splash
 description: |
     Minecraft Magenta Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 454
     ref: magenta_terracotta
     slug: magenta-terracotta
+    content_rev: 1
     display_name: Magenta Terracotta
     material: stone
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Magenta Terracotta is a dyed variant of terracotta, made by
+            firing terracotta with magenta dye. It is a hard, blast-resistant
+            decorative block that does not fade or burn.
+        lore: |
+            Terracotta was originally called hardened clay before being
+            renamed in 1.12, and dyeing it opened up an entire palette of
+            colored building stone.
+    uses:
+        - title: Magenta Glazed Terracotta
+          ref: magenta_glazed_terracotta
+          detail: |
+              Smelting Magenta Terracotta in a furnace produces Magenta
+              Glazed Terracotta, a glossy patterned block popular for pixel
+              art and roofing.
+    found_in:
+        - location: Crafted
+          detail: Made by combining 8 Terracotta with 1 Magenta Dye in a crafting grid.
+        - location: Badlands & Desert Structures
+          detail: Colored terracotta naturally generates in badlands biomes, desert villages, desert pyramids, and trail ruins.
+    faq:
+        - question: What tool do I need to mine Magenta Terracotta?
+          answer: |
+              At least a wooden pickaxe. Mining it without a pickaxe drops
+              nothing.
+        - question: Does Magenta Terracotta burn?
+          answer: |
+              No, it is not flammable and will not catch fire from lava or
+              nearby flames.
+        - question: Can I get all 16 colors without dyeing them myself?
+          answer: |
+              Yes, Mason villagers at expert level trade for all 16 colors
+              of terracotta.
+        - question: What's the difference between terracotta and glazed terracotta?
+          answer: |
+              Terracotta is a plain colored stone block; smelting it in a
+              furnace turns it into glazed terracotta, which has a fixed
+              directional pattern texture.
     data_version: "1.21.5"
 ---
 

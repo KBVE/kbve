@@ -1,5 +1,6 @@
 ---
 title: Pumpkin Pie
+template: splash
 description: |
     Minecraft Pumpkin Pie — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1173
     ref: pumpkin_pie
     slug: pumpkin-pie
+    content_rev: 1
     display_name: Pumpkin Pie
     category: food
     rarity: common
@@ -22,6 +24,36 @@ mc_item:
         saturation: 76.8
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Pumpkin pie is a craftable food item made from a pumpkin, sugar, and an egg. Eating a
+            slice restores 8 hunger points and a solid amount of saturation, making it a reliable
+            mid-tier food for survival play. It cannot be crafted in bulk from a single recipe, but
+            farmer villagers will trade it and taiga village chests occasionally hold a slice.
+        lore: |
+            First teased by developer Jeb on Twitter in September 2012, pumpkin pie arrived in
+            Minecraft 1.4.2 as one of the earliest pumpkin-based recipes.
+    faq:
+        - question: |
+              Can I eat pumpkin pie if my hunger bar is already full?
+          answer: |
+              No. Pumpkin pie is not an "always consumable" item, so you need at least one
+              missing hunger point before you can eat it.
+        - question: |
+              How do I craft pumpkin pie?
+          answer: |
+              Combine one pumpkin, one sugar, and one egg (regular, blue, or brown) in a crafting
+              grid to produce a single pumpkin pie.
+        - question: |
+              Where can I find pumpkin pie without crafting it?
+          answer: |
+              Taiga village house chests have roughly a 10% chance to contain one, and farmer
+              villagers sell four pumpkin pies for one emerald.
+        - question: |
+              Does eating pumpkin pie help with any advancements?
+          answer: |
+              Yes, it counts toward the "A Balanced Diet" advancement, which requires eating 40
+              different food items.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

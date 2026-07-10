@@ -1,5 +1,6 @@
 ---
 title: Oxidized Copper Grate
+template: splash
 description: |
     Minecraft Oxidized Copper Grate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1027
     ref: oxidized_copper_grate
     slug: oxidized-copper-grate
+    content_rev: 1
     display_name: Oxidized Copper Grate
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oxidized_copper_grate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Oxidized Copper Grate is the fully weathered stage of the
+            copper grate, a transparent, waterloggable, chain-link-style
+            block that blocks mob spawning and does not conduct redstone.
+        lore: |
+            Added in the Trial Chambers update, the copper grate's
+            oxidation stages let its color fade from bright orange-pink to
+            a dulled teal, matching aged trial chamber architecture.
+    uses:
+        - title: Mob-Proof Flooring
+          ref: oxidized_copper_grate
+          detail: |
+              Placed as flooring or catwalks, it prevents hostile mob
+              spawning while remaining see-through, and can be waterlogged
+              for underwater builds.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally at the oxidized stage in some trial chamber structures.
+        - location: Weathering
+          detail: An unwaxed Copper Grate left exposed long enough progresses through Exposed and Weathered before reaching Oxidized.
+    faq:
+        - question: What tool do I need to mine an Oxidized Copper Grate?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks it with no
+              drop.
+        - question: Does an Oxidized Copper Grate conduct redstone?
+          answer: |
+              No. It does not transmit redstone power, the same as every
+              other oxidation stage of the grate.
+        - question: Can it be waterlogged?
+          answer: |
+              Yes, it can hold water like other waterloggable blocks, which
+              is useful for underwater builds.
+        - question: What happens when two Oxidized Copper Grates are adjacent?
+          answer: |
+              Grates sharing the same oxidation stage become invisible
+              through each other, creating a seamless see-through look.
     data_version: "1.21.5"
 ---
 

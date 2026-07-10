@@ -3,6 +3,7 @@ name = "agones-factorio-relay"
 authors = ["kbve", "h0lybyte"]
 version = "0.0.1"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 
 [dependencies]

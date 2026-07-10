@@ -1,5 +1,6 @@
 ---
 title: Gray Concrete
+template: splash
 description: |
     Minecraft Gray Concrete — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 592
     ref: gray_concrete
     slug: gray-concrete
+    content_rev: 1
     display_name: Gray Concrete
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Gray concrete is a solid decorative building block that forms when gray concrete powder comes into contact with water. Unlike its powder form, it is not affected by gravity, has a hardness of 1.8, and offers relatively low blast resistance, making it well suited to aesthetic builds rather than defensive structures.
+        lore: |
+            Concrete favors vibrant, reliable customization over raw durability, prioritizing looks over toughness in construction.
+    faq:
+        - question: How do I make gray concrete?
+          answer: |
+              Craft gray concrete powder and place it adjacent to any water source, flowing, still, or waterlogged; the powder instantly hardens into solid gray concrete on contact.
+        - question: What tool do I need to mine gray concrete?
+          answer: |
+              A pickaxe is required. Mining gray concrete without a pickaxe drops nothing, and even a wooden pickaxe is sufficient.
+        - question: Can gray concrete be used in redstone builds?
+          answer: |
+              Yes. Because it is solid and unaffected by gravity, unlike concrete powder, it works well as a stable structural base for redstone contraptions.
+        - question: Is gray concrete renewable?
+          answer: |
+              Technically yes, since all the ingredients of concrete powder are renewable, though obtaining sand renewably in practice requires trading with a wandering trader.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

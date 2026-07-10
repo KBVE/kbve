@@ -1,5 +1,6 @@
 ---
 title: Clay
+template: splash
 description: |
     Minecraft Clay — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 268
     ref: clay
     slug: clay
+    content_rev: 1
     display_name: Clay
     material: dirt
     hardness: 0.6
@@ -26,8 +28,66 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: clay_ball
+          qty_min: 4
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: clay
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Clay is a gravity-immune dirt-type block that generates as
+            underwater disks in rivers and lakes, and on the floor of lush
+            cave ponds. Mining it without Silk Touch yields four clay balls;
+            with Silk Touch it drops the block itself.
+        lore: |
+            Clay has been in the game since Minecraft's earliest versions,
+            originally serving mainly as a crafting ingredient for bricks.
+    uses:
+        - title: Terracotta
+          ref: terracotta
+          detail: |
+              Smelting a clay block in a furnace produces terracotta, which
+              can be dyed into any of the sixteen colored terracotta
+              variants.
+        - title: Bricks
+          ref: brick
+          detail: |
+              The four clay balls dropped when mining clay can each be
+              smelted into a brick, used to craft brick blocks and
+              flower pots.
+    found_in:
+        - location: Rivers and lakes
+          detail: Generates as shallow underwater disks near beaches and riverbanks.
+        - location: Lush cave ponds
+          detail: Forms on the floor of the small pools scattered through lush caves.
+        - location: Village mason houses
+          detail: Small clay deposits spawn as part of mason house and fisher cottage structures.
+    faq:
+        - question: Does mining Clay require a specific tool?
+          answer: |
+              No minimum tier is required — any tool or bare hands can break
+              it, though a shovel is fastest.
+        - question: What does Clay drop normally?
+          answer: |
+              Four clay balls per block. Mining with Silk Touch instead
+              yields the clay block itself.
+        - question: Is Clay affected by Fortune?
+          answer: |
+              No. The four-clay-ball drop is fixed and does not scale with
+              Fortune.
+        - question: Can Mud turn into Clay?
+          answer: |
+              Yes. Placing pointed dripstone above a mud block converts the
+              mud into clay over time.
     data_version: "1.21.5"
 ---
 

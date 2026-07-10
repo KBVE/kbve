@@ -1,0 +1,116 @@
+---
+title: Extended stamina potion | OSRS Price Data
+description: "Extended stamina potion(4): 4 doses of extended stamina potion.. High alch: 150 GP."
+osrs:
+  id: 31638
+  name: Extended stamina potion
+  slug: extended-stamina-potion
+  examine: 4 doses of extended stamina potion.
+  members: true
+  icon: Extended stamina potion(4).png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: null
+  family_ref:
+    family_slug: extended-stamina-potion
+    role: base
+  family:
+    slug: extended-stamina-potion
+    name: Extended stamina potion
+    type: dose
+    canonical_id: 31638
+    members:
+    - id: 31638
+      slug: extended-stamina-potion
+      name: Extended stamina potion
+      icon: Extended stamina potion(4).png
+      role: base
+      dose: null
+      value: 250
+      lowalch: 100
+      highalch: 150
+    - id: 31647
+      slug: extended-stamina-potion-1
+      name: Extended stamina potion(1)
+      icon: Extended stamina potion(1).png
+      role: dose
+      dose: 1
+      value: 40
+      lowalch: 16
+      highalch: 24
+    - id: 31644
+      slug: extended-stamina-potion-2
+      name: Extended stamina potion(2)
+      icon: Extended stamina potion(2).png
+      role: dose
+      dose: 2
+      value: 90
+      lowalch: 36
+      highalch: 54
+    - id: 31641
+      slug: extended-stamina-potion-3
+      name: Extended stamina potion(3)
+      icon: Extended stamina potion(3).png
+      role: dose
+      dose: 3
+      value: 170
+      lowalch: 68
+      highalch: 102
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 40% run energy on consumption"
+        duration: 0
+      - description: "Reduces run energy depletion by 70% for the duration; effects do not stack — additional doses reset the timer"
+        duration: 240
+  recipes:
+    - skill: herblore
+      level: 85
+      xp: 110
+      materials:
+        - item_name: Stamina potion(4)
+          quantity: 1
+        - item_name: Marlin scales
+          quantity: 4
+      tools: []
+      output_quantity: 1
+  about: "Extended stamina potion(4) provides four doses of a stronger Stamina potion. Each dose grants 40% run energy and a 70% run-depletion reduction for four minutes; effects reset rather than stack."
+  market_strategy:
+    notes:
+      - "Doses brew from Stamina potion(1) + Marlin scales at 85 Herblore"
+      - "Recently released — expect price volatility while supply ramps"
+  trading_tips:
+    - No Grand Exchange buy limit listed yet
+    - Decant or split doses to match buyer preferences
+  history:
+    - date: "2025-11-19"
+      description: "Released with the late 2025 game update"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

@@ -1,5 +1,6 @@
 ---
 title: Dead Tube Coral Wall Fan
+template: splash
 description: |
     Minecraft Dead Tube Coral Wall Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 745
     ref: dead_tube_coral_wall_fan
     slug: dead-tube-coral-wall-fan
+    content_rev: 1
     display_name: Dead Tube Coral Wall Fan
     material: stone
     hardness: 0
@@ -26,8 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_tube_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Dead Tube Coral Wall Fan is the technical block form used when a
+            Dead Tube Coral Fan is attached to the side of another block. It
+            is placed automatically by the game and drops the ordinary Dead
+            Tube Coral Fan item when broken with Silk Touch.
+        lore: |
+            Wall fan variants exist as an engine-level counterpart to the
+            placeable coral fan item, introduced with coral in the Update
+            Aquatic (1.13).
+    found_in:
+        - location: Warm ocean biomes (Bedrock Edition)
+          detail: Appears wherever dead coral fans generate against a vertical block face in coral reef structures.
+        - location: Player-placed
+          detail: Automatically used by the game whenever a Dead Tube Coral Fan item is placed against the side of a block.
+    faq:
+        - question: How is this block different from Dead Tube Coral Fan?
+          answer: |
+              It is the same item, just the block state used when the fan is
+              attached to a wall (a vertical face) instead of a floor or
+              ceiling.
+        - question: What does mining it drop?
+          answer: |
+              A Dead Tube Coral Fan item, but only when mined with a Silk
+              Touch tool; otherwise it breaks with no drop.
+        - question: Can I place this block directly from the inventory?
+          answer: |
+              No. There is no wall fan item — placing a Dead Tube Coral Fan
+              against a wall automatically becomes this block state.
+        - question: Is it affected by Fortune?
+          answer: |
+              No. Fortune has no effect on coral fan drops.
     data_version: "1.21.5"
 ---
 

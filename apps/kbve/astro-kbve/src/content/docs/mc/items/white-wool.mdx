@@ -1,5 +1,6 @@
 ---
 title: White Wool
+template: splash
 description: |
     Minecraft White Wool — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 213
     ref: white_wool
     slug: white-wool
+    content_rev: 1
     display_name: White Wool
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            White Wool is the undyed form of wool, a soft block obtained primarily from sheep. It is used to craft
+            beds, banners, and carpets, and can also be burned as furnace fuel or placed to block sound propagation.
+        lore: |
+            Wool takes its color directly from the sheep it comes from, and a rare sheep named "jeb_" cycles through
+            every color in the rainbow as a nod to a Mojang developer.
+    faq:
+        - question: How do you obtain white wool?
+          answer: |
+              Shear an adult white sheep with shears for 1-3 wool, or collect the single wool block dropped when a
+              white sheep dies. It can also be found in woodland mansions, villages, pillager outposts, and ancient
+              cities, or crafted from 4 string.
+        - question: What is white wool used for?
+          answer: |
+              It crafts into beds, banners, and carpets, can be burned as furnace fuel, and blocks vibrations from
+              reaching sculk sensors and wardens.
+        - question: Can white wool be dyed into other colors?
+          answer: |
+              Yes, since it is the undyed variant, it can be dyed into any of the sixteen wool colors.
+        - question: Does white wool have any special interactions with redstone?
+          answer: |
+              Wool blocks sound, including note block noise from reaching allays, and can dampen vibrations near
+              sculk sensors, which is useful for avoiding wardens in ancient cities.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

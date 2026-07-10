@@ -1,5 +1,6 @@
 ---
 title: Iron Golem Spawn Egg
+template: splash
 description: |
     Minecraft Iron Golem Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1100
     ref: iron_golem_spawn_egg
     slug: iron-golem-spawn-egg
+    content_rev: 1
     display_name: Iron Golem Spawn Egg
     category: spawn_egg
     rarity: common
@@ -20,6 +22,36 @@ mc_item:
     tier: iron
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The iron golem spawn egg summons an iron golem, a large neutral construct that
+            protects villages by attacking hostile mobs with powerful arm swings. Golems remain
+            passive toward players under all circumstances, but they fight zombies, skeletons,
+            and other threats on the village's behalf.
+        lore: |
+            Reimagined from ancient robot lore into gentle guardians, iron golems are said to
+            offer flowers to villagers as a quiet gesture of peace.
+    faq:
+        - question: |
+              How much health does an iron golem have?
+          answer: |
+              An iron golem has 100 HP, and its texture visibly cracks as it takes damage at
+              75%, 50%, and 25% remaining health.
+        - question: |
+              Can I heal a damaged iron golem?
+          answer: |
+              Yes. Using an iron ingot on a golem removes one crack level, restoring 25 HP
+              per ingot used.
+        - question: |
+              Will an iron golem attack me?
+          answer: |
+              No, player-built or spawn-egg summoned golems remain passive toward players
+              regardless of circumstances, unless provoked by attacking them directly.
+        - question: |
+              Does the golem leave the village?
+          answer: |
+              No. Like villagers, iron golems do not wander away from a village regardless of
+              how they were spawned.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

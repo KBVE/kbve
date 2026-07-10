@@ -1,12 +1,7 @@
 ---
 title: Asset Marketplace
-description: |
-    Asset Marketplace — an open storefront where creators sell game assets (3D, 2D, audio, VFX,
-    tools, complete projects). Strictly game assets. Lead-gen catalog in v1; on-platform checkout
-    with per-sale commission and royalty-free Standard/Extended licensing in a later phase.
-    Decoupled Rust/Axum API with first-party auth, served to a separate frontend. Reuses the
-    existing KBVE protos and adds a new `assetstore` package. References: Fab, itch.io, CraftPix,
-    GameDevMarket.
+description: Open marketplace for game assets — 3D, 2D, audio, VFX, tools, and complete projects — on a decoupled Rust/Axum API sharing KBVE identity with the Job Board.
+sem: 1
 sidebar:
     label: Asset Marketplace
     order: 51
@@ -21,12 +16,77 @@ tags:
     - rust
     - proto
     - assets
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: gamedev · gaming · rust · proto · assets
+    title: Open catalog for game
+    accent: Assets
+    lede: >-
+        An open marketplace for game assets — think Fab / itch.io / CraftPix /
+        GameDevMarket, scoped strictly to game assets: 3D models, 2D art, audio,
+        VFX, shaders, tools/plugins, and complete projects. A decoupled Rust/Axum
+        API sharing KBVE identity, media, transport, and vocabulary with the Job
+        Board.
+    ctas:
+        - label: Architecture
+          href: "#architecture"
+          primary: true
+        - label: Licensing
+          href: "#licensing"
+        - label: Preview gating
+          href: "#preview-gating"
+        - label: Protobuf
+          href: "#protobuf"
+    aside:
+        icon: shield
+        title: Private source, public previews
+        body: >-
+            The buyer never sees or receives the real asset before they're
+            entitled to it. Listings show derived, watermarked, degraded previews
+            generated server-side; source files stay private and grant-gated.
+        points:
+            - <strong>Game-native</strong> — engine/format facets, not generic categories.
+            - <strong>Shared identity</strong> — one KBVE account across both products.
+    stats:
+        - { label: Status, value: Spec / arch, icon: book }
+        - { label: Stack, value: Rust + Axum, icon: rust }
+        - { label: Storage, value: Cloudflare R2, icon: database }
+        - { label: Wire, value: protobuf, icon: network }
+    features:
+        - title: Game-native catalog
+          icon: box
+          body: Categories and facets speak game dev — engine version, render pipeline, tris/verts, humanoid rig, atlas size, sample rate — not generic graphics/audio.
+        - title: Open supply, curated trust
+          icon: shield
+          body: Anyone can list (volume), but verification badges, ratings, and moderation surface quality. Trust is earned and displayed, not gatekept at the door.
+        - title: Shared ecosystem
+          icon: expand
+          body: One KBVE account, one identity, one engine/tool vocabulary across the Job Board and the Asset Marketplace — a freelancer can take gigs and sell assets.
+        - title: Preview protection
+          icon: lock
+          body: Source files live in private R2 with no public URL, served only via short-lived signed URLs gated on a LicenseGrant; the public only ever sees watermarked derivatives.
+    related:
+        - title: Job Board
+          href: /project/jobboard/
+          copy: The sibling product that sells services — shares identity, media, transport, and vocabulary.
+          icon: server
+    related_heading: Related
 ---
 
-## Asset Marketplace
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Status & positioning" heading="Asset Marketplace">
 
 > Status: **Spec / architecture** — no app code yet. This is the document to review/edit before building.
-> Sibling product to the [Job Board](/docs/project/jobboard) — the Job Board sells *services*, the Asset Marketplace sells *digital goods*. They share identity, media, transport, and technical vocabulary.
+> Sibling product to the [Job Board](/project/jobboard/) — the Job Board sells *services*, the Asset Marketplace sells *digital goods*. They share identity, media, transport, and technical vocabulary.
 
 An **open marketplace for game assets** — think Fab / itch.io / CraftPix / GameDevMarket, scoped strictly to **game assets**: 3D models, 2D art, audio, VFX, shaders, tools/plugins, and complete projects. Creators list assets; buyers discover them. v1 is a **lead-gen catalog** (browse, storefronts, license terms, wishlists, external buy links); on-platform **checkout with per-sale commission** and downloadable delivery ships in a later phase.
 
@@ -39,9 +99,9 @@ An **open marketplace for game assets** — think Fab / itch.io / CraftPix / Gam
 - **Open supply, curated trust.** Anyone can list (volume), but verification badges, ratings, and moderation surface quality. Trust is earned and displayed, not gatekept at the door.
 - **Shared ecosystem.** One KBVE account, one identity, one engine/tool vocabulary across the Job Board and the Asset Marketplace — a freelancer can both take gigs *and* sell assets.
 
-* * *
+</BentoProse>
 
-## Personas & roles
+<BentoProse id="personas" eyebrow="Who's on it" heading="Personas & roles">
 
 | Persona | What they do | Gating |
 |---|---|---|
@@ -52,9 +112,9 @@ An **open marketplace for game assets** — think Fab / itch.io / CraftPix / Gam
 - One account can be both **seller** and **buyer**, and is the *same* KBVE account used on the Job Board (capabilities tracked as a bitmask on the existing `User.role`).
 - **Open marketplace:** no pre-approval to list. Quality is managed post-hoc via moderation, reports, ratings, and an optional **verified seller** badge.
 
-* * *
+</BentoProse>
 
-## Asset taxonomy
+<BentoProse id="taxonomy" eyebrow="Vocabulary" heading="Asset taxonomy">
 
 Two facets, both controlled (no free text) so filtering works:
 
@@ -76,9 +136,9 @@ Unity, Unreal, Godot, GameMaker, Bevy; Blender, Maya, ZBrush, Substance, Photosh
 
 > Categories live in a new hierarchical `AssetCategory`; engine/tool/format tags reuse the shared `Taxonomy` (see protobuf section).
 
-* * *
+</BentoProse>
 
-## Core flows
+<BentoProse id="flows" eyebrow="How it works" heading="Core flows">
 
 ### A. Seller onboarding (open)
 1. Sign up (first-party auth — shared KBVE account).
@@ -108,9 +168,9 @@ Unity, Unreal, Godot, GameMaker, Bevy; Blender, Maya, ZBrush, Substance, Photosh
 - Seller payouts via Stripe Connect (checkout phase).
 - Admin: category management, listing moderation, **DMCA/abuse** workflow, malware-scan review, AI-disclosure enforcement, audit log.
 
-* * *
+</BentoProse>
 
-## Licensing
+<BentoProse id="licensing" eyebrow="Terms" heading="Licensing">
 
 > **Default model: royalty-free Standard + Extended tiers** (industry norm — Fab, GameDevMarket, Unity Asset Store). Marked as the one open decision; collapsing to a single tier later is trivial, the reverse is a migration.
 
@@ -119,15 +179,15 @@ Unity, Unreal, Godot, GameMaker, Bevy; Blender, Maya, ZBrush, Substance, Photosh
 
 Licenses are modeled as platform-provided **`LicenseTemplate`** rows (tier + human-readable terms + machine-readable caps), and each asset attaches one or more **`LicenseOffering`** (template + price). In **lead-gen v1**, licensing is *terms display + metadata*; enforcement (receipts, `LicenseGrant`, download tokens) activates with checkout. Alternatives considered: single royalty-free license (simpler, less upsell) and seller-defined licenses (flexible, fragmenting) — see Decisions.
 
-* * *
+</BentoProse>
 
-## Revenue
+<BentoProse id="revenue" eyebrow="Model" heading="Revenue">
 
 **Commission per sale.** The platform takes a percentage of each transaction; the seller keeps the remainder. Because v1 is lead-gen (no on-platform checkout), **commission activates in the checkout phase** — v1 builds the catalog, storefronts, and demand. The percentage and any verified-seller rate breaks live in reused `Setting`/`Global` so they're tunable without a migration. (Subscription-library access, à la CraftPix, can be layered later via the same hooks.)
 
-* * *
+</BentoProse>
 
-## Preview protection & download gating
+<BentoProse id="preview-gating" eyebrow="The invariant" heading="Preview protection & download gating">
 
 **The buyer never sees or receives the real asset before they're entitled to it.** What a listing shows is a **derived, watermarked, intentionally-degraded preview generated server-side from the source** — never the deliverable file. Downloads of the source are gated on a `LicenseGrant` (paid) or the asset being free.
 
@@ -152,9 +212,9 @@ Licenses are modeled as platform-provided **`LicenseTemplate`** rows (tier + hum
 
 > Invariant: a `LicenseGrant` (or `is_free`) is the **only** key to a source file, and the only thing the public ever sees is a watermarked derivative.
 
-* * *
+</BentoProse>
 
-## Data model (Postgres)
+<BentoProse id="data-model" eyebrow="Postgres" heading="Data model">
 
 Accessed via **`sqlx`** (async, compile-time-checked; migrations via `sqlx migrate`). Each table maps to a protobuf message; reused entities map to existing protos, new ones to the `assetstore` package.
 
@@ -179,9 +239,9 @@ Accessed via **`sqlx`** (async, compile-time-checked; migrations via `sqlx migra
 | `reports`, `dmca_claims`, `audit_log` | new (admin / trust & safety) |
 | `settings`, `globals` (commission %, flags) | **reuse** `Setting`, `Global` (kbveproto) |
 
-* * *
+</BentoProse>
 
-## Tech architecture (decoupled)
+<BentoProse id="architecture" eyebrow="Decoupled" heading="Tech architecture">
 
 ### Backend — Rust API service
 | Concern | Choice | Why |
@@ -207,9 +267,9 @@ Accessed via **`sqlx`** (async, compile-time-checked; migrations via `sqlx migra
 
 **Authorization model:** Axum middleware authenticates session/token; route guards check the `Capability` bitmask on `User.role`; ownership checks for storefront/asset edits; **download routes verify a `LicenseGrant`** before issuing a signed URL.
 
-* * *
+</BentoProse>
 
-## REST API surface (Axum)
+<BentoProse id="api" eyebrow="Axum" heading="REST API surface">
 
 All mutations go through the API; the frontend is a pure client. Auth via session cookie or `Authorization: Bearer`. Versioned under `/api/v1`.
 
@@ -261,9 +321,9 @@ POST   /dmca                             submit a DMCA/copyright claim
 GET    /admin/reports | /admin/dmca | /admin/moderation   [admin]
 ```
 
-* * *
+</BentoProse>
 
-## Protocol Buffers
+<BentoProse id="protobuf" eyebrow="Wire contract" heading="Protocol Buffers">
 
 Reuses the existing KBVE proto collection (`packages/rust/jedi/proto/*`, `packages/kbve/src/kbveproto.proto`) **and the Job Board's shared vocabulary**. **Rule: reuse first, extend second, add last.** We add one new file — `assetstore.proto` (package `assetstore`).
 
@@ -585,9 +645,9 @@ service AssetStoreRpc {
 - **New domain only:** storefronts, hierarchical categories, licensing (templates/offerings/grants), versions/files, reviews/collections, payouts, DMCA.
 - **No new `MessageKind` values** — existing routing bits suffice.
 
-* * *
+</BentoProse>
 
-## Trust & safety
+<BentoProse id="trust" eyebrow="Safety" heading="Trust & safety">
 
 Open supply makes moderation load-bearing:
 - **DMCA / copyright** — formal claim → review → suspend workflow (`DmcaClaim`). Stolen assets are the #1 risk for open asset marketplaces.
@@ -595,12 +655,12 @@ Open supply makes moderation load-bearing:
 - **AI-content disclosure** — required `AiDisclosure` per asset; surfaced on listings; misdeclaration is a takedown reason.
 - **Quality / asset-flip moderation** — reports + ratings + optional verified-seller badge.
 - **Refunds & chargebacks** (checkout phase) — policy for digital goods; fraud monitoring.
-- **Private source, watermarked previews** — source files live in private R2 with no public URL, served only via short-lived signed URLs gated on a `LicenseGrant` (or `is_free`). The public ever only sees **derived, watermarked, degraded** previews — never the deliverable. See [Preview protection & download gating](#preview-protection--download-gating).
+- **Private source, watermarked previews** — source files live in private R2 with no public URL, served only via short-lived signed URLs gated on a `LicenseGrant` (or `is_free`). The public ever only sees **derived, watermarked, degraded** previews — never the deliverable. See [Preview protection & download gating](#preview-gating).
 - Audit log for all admin actions.
 
-* * *
+</BentoProse>
 
-## Key risks / open questions
+<BentoProse id="risks" eyebrow="Open questions" heading="Key risks / open questions">
 
 1. **Stolen / pirated assets** — open listing invites IP theft. Needs the DMCA workflow + possibly perceptual-hash/duplicate detection on upload. How aggressive at launch?
 2. **AI-content policy** — disclosure is modeled, but the *policy* (allowed? labeled-only? banned in some categories?) is a product decision.
@@ -610,9 +670,9 @@ Open supply makes moderation load-bearing:
 6. **Shared `Taxonomy` coupling** — reusing `jobboard.Taxonomy` couples this package to `jobboard`. Cleaner long-term: promote `Taxonomy` (+ `MediaAttachment`) into a shared `common.proto`. Decide now vs later.
 7. **Relationship to Job Board** — confirm single shared identity/account across both products (assumed), and whether storefront + talent profile are unified surfaces.
 
-* * *
+</BentoProse>
 
-## Phased build plan
+<BentoProse id="roadmap" eyebrow="Plan" heading="Phased build plan">
 
 | Phase | Scope | Outcome |
 |---|---|---|
@@ -627,9 +687,9 @@ Open supply makes moderation load-bearing:
 | **8 — Frontend client** | Choose framework (SEO-critical → SSR); build UI | Usable product |
 | **9 — Discovery polish & monetization** | Meilisearch, recommendations, featured listings, optional subscription library | Scale + revenue surface |
 
-* * *
+</BentoProse>
 
-## Decisions
+<BentoProse id="decisions" eyebrow="Locked & open" heading="Decisions">
 
 **Locked:** strictly game assets · **open marketplace** (anyone lists; post-hoc moderation) · **lead-gen catalog v1**, on-platform checkout later · **commission per sale** (activates at checkout) · decoupled architecture · Rust/Axum API · first-party auth (shared KBVE identity, no auth SaaS) · `sqlx` + Postgres · R2 with signed downloads · **previews are server-generated, watermarked, degraded derivatives (never the source); source files are private + grant-gated; free assets auto-issue a grant** · protobuf reuses KBVE protos + `jobboard.Taxonomy` + one new `assetstore` package.
 
@@ -642,3 +702,7 @@ Open supply makes moderation load-bearing:
 - **Shared `Taxonomy`/`MediaAttachment`** — keep coupling to `jobboard` vs promote to `common.proto`.
 - **Preview-generation stack** — which renderer/encoder per type (e.g. headless Blender/Three.js for 3D turntables + decimation, ffmpeg for audio/video, image pipeline for watermarking), and the fidelity-vs-leak-resistance tradeoff (how degraded/watermarked).
 - Seller storage limits/tiers; refund policy; subscription-library tier (later).
+
+</BentoProse>
+
+</BentoDoc>

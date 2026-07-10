@@ -1,5 +1,6 @@
 ---
 title: Lilac
+template: splash
 description: |
     Minecraft Lilac — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 526
     ref: lilac
     slug: lilac
+    content_rev: 1
     display_name: Lilac
     material: stone
     hardness: 0
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lilac
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Lilac is a tall, two-block flower that grows naturally in
+            forest biomes. Both halves must be broken to fully collect it,
+            and it yields magenta dye when crafted.
+        lore: |
+            Introduced in Java Edition 1.7.2 (2013) after developer Jeb
+            teased it alongside sunflowers on social media; its name
+            references the real-world lilac genus, Syringa.
+    uses:
+        - title: Magenta Dye
+          ref: magenta_dye
+          detail: |
+              Crafting one lilac yields 2 magenta dye, useful for dyeing
+              wool, terracotta, and other colorable blocks.
+    found_in:
+        - location: Forest Biomes
+          detail: Generates naturally in forest, flower forest, birch forest, old growth birch forest, and dark forest biomes.
+        - location: Bone Meal
+          detail: Applying bone meal to grass in a flower forest can spawn additional lilacs.
+    faq:
+        - question: What tool do I need to mine Lilac?
+          answer: |
+              None; it breaks instantly with any tool or bare hands, though
+              breaking the bottom half without the top drops nothing.
+        - question: Can I put Lilac in a flower pot?
+          answer: |
+              No. Unlike single-block flowers, tall flowers like lilac
+              cannot be placed in flower pots.
+        - question: Does Lilac attract bees?
+          answer: |
+              Yes, bees can pollinate it, and nearby trees have a small
+              chance to generate with a bee nest.
+        - question: Can Lilac be used in a composter?
+          answer: |
+              Yes, it has a 65% chance to raise the compost level each time
+              it is added.
     data_version: "1.21.5"
 ---
 

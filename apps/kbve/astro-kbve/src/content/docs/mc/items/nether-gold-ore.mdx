@@ -1,5 +1,6 @@
 ---
 title: Nether Gold Ore
+template: splash
 description: |
     Minecraft Nether Gold Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 80
     ref: nether_gold_ore
     slug: nether-gold-ore
+    content_rev: 1
     display_name: Nether Gold Ore
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Nether Gold Ore is a gold-bearing block that generates exclusively in the Nether,
+            dropping gold nuggets when mined with any pickaxe. Breaking it angers nearby piglins,
+            making it a riskier alternative to regular gold ore for players exploring the Nether.
+        lore: |
+            Added in Java Edition 1.16 after long-standing community requests, Nether Gold Ore
+            gave the Nether its own native source of gold tied to the piglins that guard it.
+    faq:
+        - question: Where does Nether Gold Ore generate?
+          answer: |
+              It generates in blobs of 0-16 blocks between Y-levels 10 and 117 in all Nether
+              biomes, appearing more frequently in basalt deltas.
+        - question: What does mining Nether Gold Ore drop?
+          answer: |
+              It drops 2-6 gold nuggets by default, with Fortune increasing the yield up to 24
+              nuggets, or the block itself with Silk Touch.
+        - question: Does breaking Nether Gold Ore have any consequences?
+          answer: |
+              Yes, breaking it angers any nearby piglins, similar to how mining gold ore near
+              piglins provokes them.
+        - question: What tool is needed to mine Nether Gold Ore?
+          answer: |
+              Any pickaxe works, including a wooden pickaxe, unlike some other Nether ores that
+              require higher tiers.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

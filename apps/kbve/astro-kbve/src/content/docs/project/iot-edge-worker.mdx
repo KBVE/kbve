@@ -1,7 +1,7 @@
 ---
-title: KBVE IoT Edge Worker
-description: |
-    Cloud-init template + bootstrap helper for joining a local dev machine (OrbStack, Lima, UTM) to the main KBVE Talos cluster as a remote worker over WireGuard.
+title: KBVE IoT Edge Worker — WireGuard k8s Node
+description: Cloud-init template and bootstrap helper to join a local dev VM (OrbStack, Lima, UTM) to the KBVE Talos cluster as a remote worker over WireGuard.
+sem: 1
 sidebar:
     label: IoT Edge Worker
     order: 56
@@ -24,7 +24,74 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: beta
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is iot-edge-worker?
+          answer: A cloud-init template plus shell helper that joins a local dev machine (OrbStack, Lima, or UTM VM) to the main KBVE Talos cluster as a remote worker over WireGuard.
+        - question: Does it ship as a binary or Docker image?
+          answer: No. The artifact is the cloud-init template itself, rendered per-laptop and consumed by the VM host at first boot — there is no runtime binary.
+        - question: How are edge workloads kept off normal nodes?
+          answer: The worker is tainted edge=true:NoSchedule and labeled role=edge, so only pods that explicitly tolerate the taint and target the label schedule onto it.
+bento:
+    badge: iot · kubernetes · wireguard · edge · talos
+    title: WireGuard cluster node for
+    accent: IoT Edge
+    lede: >-
+        A cloud-init template and bootstrap helper that joins a local dev VM
+        (OrbStack, Lima, UTM) to the KBVE Talos cluster as a remote worker over
+        WireGuard — no inbound ports, no full Talos install, a real kubelet.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/vm/iot/edge-worker
+          primary: true
+          external: true
+        - label: Overview
+          href: "#overview"
+        - label: Workflow
+          href: "#workflow"
+    aside:
+        icon: info
+        title: A template, not a binary
+        body: >-
+            <code>iot-edge-worker</code> does <strong>not</strong> ship as a
+            runtime binary or Docker image — the artifact is the cloud-init
+            template itself, rendered per-laptop and consumed by the VM host at
+            first boot.
+        points:
+            - <strong>Taint</strong> — edge=true:NoSchedule, labeled role=edge.
+            - <strong>Scope v1</strong> — amd64, container workloads only.
+    stats:
+        - { label: App, value: iot-edge-worker, icon: server }
+        - { label: Artifact, value: cloud-init, icon: settings }
+        - { label: Network, value: WireGuard, icon: network }
+        - { label: Cluster, value: Talos, icon: box }
+    features:
+        - title: Cloud-init template
+          icon: settings
+          body: A cloud-init.yaml.tmpl with WireGuard config, kubeadm install, and systemd units rendered per-laptop by bootstrap.sh.
+        - title: WireGuard tunnel
+          icon: network
+          body: The laptop dials out to a fixed endpoint — no inbound ports on the home network, and no full Talos OS install.
+        - title: Real kubelet via kubeadm
+          icon: box
+          body: A plain kubeadm join on a minimal Alpine/Ubuntu VM gives the Talos control plane a normal worker node.
+        - title: Edge-only scheduling
+          icon: lock
+          body: The worker is tainted edge=true:NoSchedule and labeled role=edge, so only pods that tolerate the taint and target the label land there.
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="What & why" heading="Overview, why & architecture">
 
 ## Overview
 
@@ -60,6 +127,10 @@ Talos cluster (Hetzner)
 ```
 
 The worker is tainted `edge=true:NoSchedule` and labeled `role=edge`, so existing workloads don't accidentally schedule to it — only pods that explicitly tolerate the taint and target the label.
+
+</BentoProse>
+
+<BentoProse id="workflow" eyebrow="Operate & deploy" heading="Files & operator workflow">
 
 ## Files
 
@@ -147,3 +218,7 @@ spec:
 - Rust CLI (`kbve-edge-bootstrap`) that pulls credentials from Vault/ESO and handles the whole workflow
 - Reconciler on the Talos side that auto-removes stale edge nodes + revokes their wireguard peers
 - Nested-virt Firecracker support (separate project, M3+ only)
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Hanging Sign
+template: splash
 description: |
     Minecraft Dark Oak Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 239
     ref: dark_oak_wall_hanging_sign
     slug: dark-oak-wall-hanging-sign
+    content_rev: 1
     display_name: Dark Oak Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Dark Oak Hanging Sign mounts against a wall bracket and
+            displays customizable text on a chain-suspended board. It
+            can be edited with a dye and made to glow with a glow ink
+            sac, and waxed with honeycomb to lock the text permanently.
+        lore: |
+            Hanging signs were added in the 1.20 "Trails & Tales" update
+            as a wall- and ceiling-mountable counterpart to standard
+            signs.
+    uses:
+        - title: Wayfinding & Labels
+          ref: dark_oak_hanging_sign
+          detail: |
+              Placed on walls or fences to label rooms, shops, and
+              storage systems with editable text, similar to standard
+              signs but suited to hanging storefront-style displays.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 2 chains and 6 stripped dark oak logs, yielding 6 hanging signs.
+        - location: Village Structures
+          detail: Occasionally found as decoration on shop and market stalls in some village generation.
+    faq:
+        - question: What tool do I need to mine a Dark Oak Hanging Sign?
+          answer: |
+              None required — it breaks with any tool or bare hands and
+              always drops itself.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, right-click with an empty hand to open the sign
+              editor, unless it has been waxed with a honeycomb.
+        - question: Does it need support to stay placed?
+          answer: |
+              Yes, a wall-mounted hanging sign requires the wall block
+              behind it; breaking that block also breaks the sign.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No, it always drops exactly one hanging sign regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

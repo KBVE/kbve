@@ -1,10 +1,16 @@
+import { useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ViewHost } from './engine';
 import { Slot } from './engine';
 import { useAppStore } from './stores/app';
 import { getView } from './engine';
+import { useAuthStore } from './stores/auth';
 
 export default function App() {
+	useEffect(() => {
+		void useAuthStore.getState().init();
+	}, []);
+
 	return (
 		<div className="flex h-screen w-screen">
 			<Sidebar />
@@ -19,7 +25,7 @@ export default function App() {
 function Header() {
 	return (
 		<header
-			className="flex items-center border-b px-8 py-6"
+			className="flex items-center border-b px-10 py-6"
 			style={{
 				backgroundColor: 'var(--color-surface)',
 				borderColor: 'var(--color-border)',

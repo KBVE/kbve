@@ -1,21 +1,93 @@
 ---
-title: KBVEHexWorld
-description: |
-    Hex-grid world topology — deterministic seeds, noise terrain, PCG streaming foundation.
+title: KBVEHexWorld — Hex-Grid World Topology Module for Unreal
+description: KBVEHexWorld is the hex-grid topology module of the KBVEWorld Unreal plugin, providing deterministic seeds, noise terrain, and a Blueprint hex cell registry.
+sem: 1
 sidebar:
     label: KBVEHexWorld
     order: 88
 tags:
     - unreal
     - gameplay
+source_path: packages/unreal/KBVEWorld/Source/KBVEHexWorld
 version: "0.1.0"
 author: h0lybyte
 license: KBVE
 status: active
 min_engine_version: "5.4"
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is KBVEHexWorld?
+          answer: KBVEHexWorld is the hex-grid world topology module of the KBVEWorld Unreal plugin. It provides deterministic world seeds, noise-driven terrain, and a foundation for PCG streaming, exposing a Blueprint-callable master map of hex cells.
+        - question: Is KBVEHexWorld a standalone plugin?
+          answer: No. It is now a module inside the KBVEWorld plugin rather than a standalone plugin. Enable KBVEWorld to get both the square-chunk world module and the hex topology module together.
+        - question: How do you query the hex world?
+          answer: The UHexWorldSubsystem is a GameInstanceSubsystem that maintains a master hex map. It exposes Blueprint-callable functions to register and unregister cells by FHexCoord, look up a cell record, list all coordinates, and query a cell's neighbors.
+bento:
+    badge: unreal · gameplay
+    title: Hex-grid topology for
+    accent: Unreal
+    lede: >-
+        The hex-grid world topology module of the KBVEWorld Unreal plugin —
+        deterministic world seeds, noise-driven terrain, and a foundation for PCG
+        streaming, all behind a Blueprint-callable master map of hex cells.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEWorld/Source/KBVEHexWorld
+          primary: true
+          external: true
+        - label: Key facts
+          href: "#key-facts"
+    aside:
+        icon: info
+        title: A module, not a standalone plugin
+        body: >-
+            KBVEHexWorld now ships inside the <strong>KBVEWorld</strong> plugin.
+            Enable KBVEWorld to get both the square-chunk world module and the hex
+            topology module together.
+        points:
+            - <strong>Square chunks</strong> — the base KBVEWorld world module.
+            - <strong>Hex topology</strong> — this module, layered on top.
+    stats:
+        - { label: Module, value: KBVEHexWorld, icon: box }
+        - { label: Version, value: '0.1.0', icon: branch }
+        - { label: Engine, value: UE 5.4+, icon: gears }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Hex topology
+          icon: map
+          body: Hex-grid coordinates (FHexCoord) and cell records (FHexCellRecord) with neighbor queries.
+        - title: Deterministic seeds
+          icon: key
+          body: HexWorldSeedSubsystem gives reproducible world generation from a fixed seed.
+        - title: Noise terrain
+          icon: render
+          body: HexNoiseSubsystem and HexEnvironmentSubsystem drive procedural terrain and environment.
+        - title: Blueprint-callable map
+          icon: code
+          body: UHexWorldSubsystem (a GameInstanceSubsystem) registers, unregisters, looks up, and enumerates hex cells.
+    related:
+        - title: KBVEROWS
+          href: /project/kbverows/
+          copy: Sibling KBVE Unreal backend integration plugin.
+          icon: package
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="key-facts" eyebrow="Module facts" heading="Key facts">
 
 <Aside type="note">
 KBVEHexWorld is now a module of the **KBVEWorld** plugin, not a standalone
@@ -23,6 +95,15 @@ plugin. Enable `KBVEWorld` to get both the square-chunk world and the hex
 topology modules.
 </Aside>
 
-## Overview
+| | |
+|---|---|
+| **Module** | `KBVEHexWorld` (in `KBVEWorld` plugin) |
+| **Version** | 0.1.0 |
+| **Engine** | Unreal Engine 5.4+ |
+| **License** | KBVE |
+| **Source** | [`packages/unreal/KBVEWorld/Source/KBVEHexWorld`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEWorld/Source/KBVEHexWorld) |
+| **Depends on** | MassGameplay, KBVESQLite, ProceduralMeshComponent, KBVEPerf |
 
-Hex-grid world topology — deterministic seeds, noise terrain, PCG streaming foundation.
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Red Wool
+template: splash
 description: |
     Minecraft Red Wool — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 227
     ref: red_wool
     slug: red-wool
+    content_rev: 1
     display_name: Red Wool
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Red Wool is a dyed variant of wool obtained by shearing or killing a red sheep, or by
+            dyeing white wool with red dye. It is a soft, easily-mined building block that also acts
+            as a base for beds, banners, and carpets, and it muffles vibrations so nearby sculk
+            sensors will not trigger.
+        lore: |
+            Soft, red-dyed fleece prized by builders for warm accents and by sneaks for its silence.
+    faq:
+        - question: How do you get Red Wool?
+          answer: |
+              Shear a red sheep for one to three wool, or dye any white or colored wool with red dye
+              in a crafting grid to convert it to red wool.
+        - question: What can Red Wool be crafted into?
+          answer: |
+              It can be combined with sticks to make a banner, with planks to make a bed, or with
+              more wool to make carpet, in addition to use as a plain building block.
+        - question: Does Red Wool block sculk sensors?
+          answer: |
+              Yes. Wool of any color absorbs vibrations, so standing or moving on red wool prevents
+              nearby sculk sensors and sculk shriekers from detecting the noise.
+        - question: Is Red Wool flammable?
+          answer: |
+              Yes, wool is highly flammable and will catch fire from nearby flames or lava, so it is
+              risky to use near heat sources without fire protection.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

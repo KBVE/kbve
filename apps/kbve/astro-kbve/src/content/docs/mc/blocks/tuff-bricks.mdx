@@ -1,5 +1,6 @@
 ---
 title: Tuff Bricks
+template: splash
 description: |
     Minecraft Tuff Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 952
     ref: tuff_bricks
     slug: tuff-bricks
+    content_rev: 1
     display_name: Tuff Bricks
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tuff_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Tuff Bricks are a polished, gray masonry block cut from Tuff and
+            found abundantly lining the walls and ceilings of trial chambers.
+            They double as a crafting ingredient for slabs, stairs, walls,
+            and chiseled variants.
+        lore: |
+            Introduced in the Tricky Trials update, Tuff Bricks gave the
+            long-underused Tuff block a full building-block family.
+    uses:
+        - title: Tuff Brick Slab
+          ref: tuff_brick_slab
+          detail: |
+              Stonecut or crafted into slabs for low, stackable detailing.
+        - title: Tuff Brick Stairs
+          ref: tuff_brick_stairs
+          detail: |
+              Crafted into stairs for sloped surfaces and roofing.
+        - title: Chiseled Tuff Bricks
+          ref: chiseled_tuff_bricks
+          detail: |
+              Stonecut into a more detailed, chiseled brick pattern.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates abundantly as the primary wall and ceiling material of trial chamber structures.
+        - location: Crafting table / Stonecutter
+          detail: Crafted from 4 Polished Tuff in a 2x2 pattern, or cut directly from Tuff or Polished Tuff.
+    faq:
+        - question: Where do Tuff Bricks generate naturally?
+          answer: |
+              In trial chambers, where they form most of the surrounding
+              walls and ceilings.
+        - question: What tool do I need to mine Tuff Bricks?
+          answer: |
+              Any pickaxe, starting from wooden. Mining without a pickaxe
+              drops nothing.
+        - question: How are Tuff Bricks crafted?
+          answer: |
+              From 4 Polished Tuff blocks in a 2x2 grid, or by cutting Tuff
+              or Polished Tuff with a stonecutter.
+        - question: What can Tuff Bricks be turned into?
+          answer: |
+              Slabs, stairs, walls, and chiseled tuff bricks, all obtainable
+              via crafting or the stonecutter.
     data_version: "1.21.5"
 ---
 

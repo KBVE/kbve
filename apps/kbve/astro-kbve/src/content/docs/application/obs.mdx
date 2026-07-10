@@ -1,7 +1,15 @@
 ---
-title: OBS
+title: OBS Studio
 description: |
-    Open Broadcast System - an open source screencasting and streaming application.
+    OBS Studio (Open Broadcaster Software) is a free, open-source application for screen recording and live
+    streaming to Twitch, YouTube, and beyond. This guide covers scenes and sources, encoder settings, streaming
+    setup, and extending OBS with plugins.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: OBS
     order: 1100
@@ -9,29 +17,177 @@ unsplash: 1572511443032-a3cfe6823872
 img: https://images.unsplash.com/photo-1572511443032-a3cfe6823872?fit=crop&w=1400&h=700&q=75
 tags:
     - media
+    - streaming
+    - video
+sem: 1
+ogTitle: OBS Studio Guide — Screen Recording, Live Streaming & Plugins
+ogDescription: Get started with OBS Studio, the free open-source broadcaster — understand scenes and sources, configure encoder and bitrate settings, stream to Twitch or YouTube, and extend OBS with plugins.
+jsonld:
+    type: Article
+    keywords:
+        - obs studio
+        - open broadcaster software
+        - screen recording
+        - live streaming
+        - twitch streaming
+        - obs plugins
+    faq:
+        - question: What is OBS Studio?
+          answer: OBS Studio (Open Broadcaster Software) is a free, open-source application for screen recording and live streaming. It composites multiple sources — screen captures, webcams, images, and audio — into scenes and encodes them for local recording or streaming to platforms like Twitch and YouTube.
+        - question: Is OBS Studio free?
+          answer: Yes. OBS Studio is completely free and open source under the GPLv2 license, with no watermarks, time limits, or paid tiers. It runs on Windows, macOS, and Linux.
+        - question: What is the difference between a scene and a source in OBS?
+          answer: A source is a single input such as a display capture, webcam, image, or audio device. A scene is a named arrangement of one or more sources with their positions and sizes. You switch between scenes live to change your layout during a stream or recording.
+        - question: What bitrate should I use for streaming in OBS?
+          answer: For 1080p60 streaming, 6000 kbps with the x264 or NVENC encoder is a common baseline for Twitch, and higher for YouTube. Match your bitrate to your upload bandwidth — leave headroom so network spikes do not drop frames. Use CBR for streaming and a quality-based rate control for local recording.
+        - question: How do I add plugins to OBS?
+          answer: Download a plugin compatible with your OBS version and operating system, then place its files in the OBS plugins directory (or run its installer). Restart OBS, and the plugin's filters, sources, or docks appear in the relevant menus.
+bento:
+    badge: application · media · streaming
+    title: 'The open broadcaster,'
+    accent: OBS Studio.
+    lede: >-
+        The free, open-source application for screen recording and live
+        streaming. OBS composites display captures, webcams, and audio into
+        scenes, encodes them in real time, and streams to Twitch, YouTube, or
+        any RTMP endpoint — no watermarks, no time limits.
+    ctas:
+        - label: Core concepts
+          href: '#concepts'
+          primary: true
+        - label: Streaming setup
+          href: '#streaming'
+        - label: Plugins
+          href: '#plugins'
+    aside:
+        icon: video
+        title: Scenes, sources, and encoders
+        body: >-
+            Build a scene for every layout you need — Starting Soon, Gameplay,
+            Just Chatting — then switch between them live while OBS encodes
+            your composite for the stream or a local recording.
+        points:
+            - <strong>Sources</strong> — captures, webcams, browsers, and audio.
+            - <strong>Encoders</strong> — NVENC on the GPU or x264 on the CPU.
+            - <strong>Plugins</strong> — extra filters, transitions, and remote control.
+    stats:
+        - { label: License, value: GPLv2, icon: license }
+        - { label: Platforms, value: Win / macOS / Linux, icon: server }
+        - { label: 1080p60 baseline, value: 6000 kbps, icon: activity }
+        - { label: Rate control, value: CBR, icon: chart }
+    features:
+        - title: Concepts
+          icon: book
+          href: '#concepts'
+          body: Sources, scenes, scene collections, filters, and profiles — the vocabulary of every OBS layout.
+        - title: Streaming
+          icon: twitch
+          href: '#streaming'
+          body: Stream key, encoder choice, bitrate, resolution, and FPS — the four steps from blank canvas to live.
+        - title: Plugins
+          icon: package
+          href: '#plugins'
+          body: Extend OBS with StreamFX, Move Transition, and obs-websocket for automation and stream decks.
+        - title: Bandwidth first
+          icon: alert
+          body: Streaming bitrate is capped by upload, not download — stay well under your ceiling or frames drop.
+    related:
+        - title: Linux
+          href: /application/linux/
+          copy: One of the three platforms OBS runs on, watermark-free.
+          icon: server
+        - title: Blender
+          href: /application/blender/
+          copy: Open-source 3D creation for overlays, renders, and assets.
+          icon: render
+        - title: JavaScript
+          href: /application/javascript/
+          copy: Drive obs-websocket automations and browser-source overlays.
+          icon: code
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1572511443032-a3cfe6823872?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
-## Information
+**OBS Studio** (Open Broadcaster Software) is a free, open-source tool for **screen recording** and **live streaming**. It composites multiple inputs — display captures, webcams, images, browser sources, and audio — into **scenes**, encodes them in real time, and either records locally or streams to Twitch, YouTube, and any RTMP endpoint.
 
+It runs on Windows, macOS, and Linux under the GPLv2 license — no watermarks, no time limits.
 
-<Adsense />
+This guide covers [core concepts](#concepts), [streaming setup](#streaming), and [plugins](#plugins).
 
-## Plugins
+</BentoProse>
 
-Information and guides on additional plugins for OBS.
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-#### Banana
+<BentoProse id="concepts" eyebrow="Core vocabulary" heading="Concepts">
 
-#### Potato
+| Term | Meaning |
+| ---- | ------- |
+| **Source** | A single input — display capture, webcam, image, browser, audio device |
+| **Scene** | A named arrangement of sources with their positions and sizes |
+| **Scene collection** | A saved set of scenes you can switch between |
+| **Filter** | A per-source effect — chroma key, noise gate, color correction |
+| **Profile** | A saved bundle of encoder and streaming settings |
+
+You build scenes for each layout you need (Starting Soon, Gameplay, Just Chatting) and switch between them live.
+
+<Aside type="tip">
+Right-click any source to add **filters** — a Chroma Key filter removes a green-screen background, and a Noise Suppression filter on your mic cleans up background hum.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="streaming" eyebrow="Go live" heading="Streaming">
+
+<Steps>
+
+1. **Set your stream key**
+   In **Settings → Stream**, pick your service (Twitch, YouTube, Custom) and paste the stream key from that platform's dashboard.
+
+2. **Configure the encoder**
+   In **Settings → Output**, choose an encoder — `NVENC` (NVIDIA GPU) or `x264` (CPU). Set rate control to **CBR** and a bitrate matched to your upload speed (≈6000 kbps for 1080p60 on Twitch).
+
+3. **Set resolution and FPS**
+   In **Settings → Video**, set the base (canvas) and output (scaled) resolution and a frame rate of 30 or 60.
+
+4. **Build a scene and go live**
+   Add your sources, arrange them, then click **Start Streaming** (or **Start Recording** for local capture).
+
+</Steps>
+
+<Aside type="caution">
+Streaming bitrate is capped by your **upload** bandwidth, not download. Run a speed test and stay well under your upload ceiling — sustained over-subscription drops frames and stutters the stream.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="plugins" eyebrow="Extend OBS" heading="Plugins">
+
+Plugins extend OBS with extra sources, filters, and docks. Install by dropping the plugin files into the OBS plugins directory (or running its installer), then restart OBS. Popular examples:
+
+- **StreamFX** — advanced filters, shaders, and 3D transforms.
+- **Move Transition** — animate sources between scenes.
+- **obs-websocket** — remote-control OBS over WebSocket for automation and stream decks.
+
+</BentoProse>
+
+</BentoDoc>

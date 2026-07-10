@@ -1,5 +1,6 @@
 ---
 title: Gray Terracotta
+template: splash
 description: |
     Minecraft Gray Terracotta — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 464
     ref: gray_terracotta
     slug: gray-terracotta
+    content_rev: 1
     display_name: Gray Terracotta
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Gray Terracotta is a dyed variant of terracotta made by crafting plain terracotta
+            with Gray Dye. It keeps terracotta's earthy, matte look while adding color, and once
+            dyed it cannot be re-dyed to a different color.
+        lore: |
+            Terracotta forms naturally in badlands biomes, where layered bands of its dyed
+            colors create the distinctive striped mesa cliffs.
+    faq:
+        - question: How do I craft Gray Terracotta?
+          answer: |
+              Combine plain Terracotta with Gray Dye in a crafting grid; the recipe yields
+              eight Gray Terracotta blocks per craft.
+        - question: Can I change Gray Terracotta back to another color?
+          answer: |
+              No. Dyeing terracotta is irreversible, so Gray Terracotta cannot be converted to
+              a different colored terracotta.
+        - question: What does Gray Terracotta become when smelted?
+          answer: |
+              Smelting Gray Terracotta in a furnace turns it into Gray Glazed Terracotta, a
+              glossier decorative block with a rotating texture.
+        - question: What tool do I need to mine it?
+          answer: |
+              A wooden pickaxe or better is required; mining it without a pickaxe yields
+              nothing.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

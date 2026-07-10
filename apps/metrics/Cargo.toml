@@ -1,8 +1,9 @@
 [package]
 name = "met"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 description = "Metrics — in-house client telemetry ingest (errors/perf/events) to ClickHouse"
 
@@ -10,7 +11,7 @@ description = "Metrics — in-house client telemetry ingest (errors/perf/events)
 tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
 axum = { version = "0.8.5", features = ["macros"] }
 tower = { version = "0.5.3", features = ["util"] }
-tower-http = { version = "0.6.8", features = ["compression-full", "limit", "trace", "cors", "timeout"] }
+tower-http = { version = "0.7.0", features = ["compression-full", "limit", "trace", "cors", "timeout"] }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

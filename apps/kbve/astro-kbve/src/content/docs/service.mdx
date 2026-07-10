@@ -1,73 +1,108 @@
 ---
 title: Services
-description: KBVE services — software, automation, and managed game-server hosting.
+description: KBVE services — software engineering, AI tooling, game DevOps, automation, and managed game-server hosting. Fixed-price scoping, demos every two weeks, no lock-in.
+ogTitle: "KBVE Services — Software, Automation & Managed Game Servers"
+ogDescription: "Seven lanes of build work — bespoke software, AI tooling, game DevOps, BizOps, automation pipelines, managed game servers, and open-source sponsorship. Fixed-price, no lock-in."
+template: splash
 editUrl: false
 lastUpdated: false
 next: false
+prev: false
+tableOfContents: false
 sidebar:
     label: Services
     order: 3
+jsonld:
+    type: WebPage
+    faq:
+        - question: How does a KBVE engagement start?
+          answer: Every engagement opens with a short paid discovery phase — a scoping document that defines the milestones, cost, and deliverables. You keep the document whether or not you continue to the build phase.
+        - question: How is pricing structured?
+          answer: Work is delivered as fixed-price milestones agreed up front during discovery, with a demo every two weeks so you can track progress against the scope.
+        - question: Do I get the source code and infrastructure?
+          answer: Yes. Handoff includes the full source, infrastructure-as-code, and runbooks. There is no vendor lock-in — you own everything that ships.
+        - question: What kinds of work does KBVE take on?
+          answer: Software engineering, AI and LLM tooling, game development with CI/CD, business-operations tooling, automation pipelines, managed game-server hosting, and open-source sponsorship.
+bento:
+    badge: kbve services · build with us
+    title: Software, automation,
+    accent: shipped with you.
+    lede: >-
+        KBVE delivers software engineering, AI tooling, game development, and
+        business operations — fixed-price scoping, a demo every two weeks, and
+        full source at handoff. No lock-in, ever.
+    theme:
+        accent: "#06b6d4"
+        accent2: "#22d3ee"
+        hero_bg: https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2400&auto=format&fit=crop
+    ctas:
+        - label: Start a project
+          href: "mailto:hello@kbve.com?subject=Project%20enquiry"
+          primary: true
+        - label: Ways we work
+          href: "#lanes"
+        - label: Join Discord
+          href: /discord/
+    aside:
+        icon: route
+        title: How we work
+        body: >-
+            Three steps, no surprises — you always know the scope, the cost, and
+            what lands next.
+        points:
+            - <strong>Discovery</strong> — a short paid scoping doc you keep either way.
+            - <strong>Build</strong> — fixed-price milestones, a demo every two weeks.
+            - <strong>Handoff</strong> — full source, IaC, and runbooks. No lock-in.
+    stats:
+        - { label: Service lanes, value: Seven, icon: route }
+        - { label: Demo cadence, value: 2 weeks, icon: calendar }
+        - { label: Pricing, value: Fixed, icon: check }
+        - { label: Lock-in, value: None, icon: check }
+    features_eyebrow: Seven lanes, one team
+    features_heading: What we build
+    features:
+        - title: Software Engineering
+          icon: code
+          body: Bespoke web, mobile, and backend builds — TypeScript, Rust, Python, Astro, React, and Bevy.
+        - title: AI Tooling
+          icon: bolt
+          body: ML and LLM integration — agents, RAG pipelines, model evals, and AI-powered features wired into your product.
+        - title: Game DevOps
+          icon: deploy
+          body: Game development with full CI/CD — Unreal, Unity, and Bevy build farms, packaging, and release automation.
+        - title: BizOps
+          icon: chart
+          body: Business-operations tooling — internal dashboards, workflow automation, and data-driven process design.
+        - title: Automation Pipelines
+          icon: gears
+          body: CI/CD, build orchestration, data ETL, and event-driven workflows on Kubernetes.
+        - title: Game Servers
+          icon: server
+          body: Managed Minecraft, Unreal, and Bevy world hosting with auto-scaling and observability.
+        - title: Open-Source Sponsorship
+          icon: github
+          body: Backing for the libraries you depend on — sponsor a maintainer, fund a release.
+    related_eyebrow: Next steps
+    related_heading: Talk to us
+    related:
+        - title: Email the team
+          href: "mailto:hello@kbve.com"
+          copy: Send a note to hello@kbve.com with what you're building — we'll scope it.
+          icon: message
+        - title: Join the Discord
+          href: /discord/
+          copy: Open a thread, share context, and chat with the crew in real time.
+          icon: discord
+        - title: Browse the projects
+          href: /projects/
+          copy: See what KBVE already ships across the monorepo before you reach out.
+          icon: box
+        - title: Read the features
+          href: /feature/
+          copy: The platform capabilities behind every service lane.
+          icon: expand
 ---
 
-import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
-import AdsterraAds from '@/components/kbve/AdsterraAds.astro';
-import RingShipGrid from '@kbve/astro/components/hero/ring/RingShipGrid.astro';
-import RingShipCard from '@kbve/astro/components/hero/ring/RingShipCard.astro';
-import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-<div class="ring-page kbve-dashboard-page relative min-h-screen w-full bg-transparent">
-
-# Services
-
-KBVE delivers software, automation, and managed game-server hosting. Pick a lane:
-
-<RingShipGrid tagline="Four lanes — fixed-price scoping, demos every two weeks, no lock-in.">
-    <RingShipCard
-        title="Custom Software"
-        description="Bespoke web, mobile, and backend builds — TypeScript, Rust, Python, Astro, React, Bevy."
-        href="mailto:hello@kbve.com?subject=Custom%20software%20enquiry"
-        icon="rocket"
-        accent="#06b6d4"
-    />
-    <RingShipCard
-        title="Automation Pipelines"
-        description="CI/CD, build orchestration, data ETL, and event-driven workflows on Kubernetes."
-        href="mailto:hello@kbve.com?subject=Automation%20pipeline%20enquiry"
-        icon="cog"
-        accent="#f59e0b"
-    />
-    <RingShipCard
-        title="Game Servers"
-        description="Managed Minecraft, Unreal, and Bevy world hosting with auto-scaling and observability."
-        href="mailto:hello@kbve.com?subject=Game-server%20hosting%20enquiry"
-        icon="server"
-        accent="#22c55e"
-    />
-    <RingShipCard
-        title="Open-Source Sponsorship"
-        description="Backing for libraries you depend on — sponsor a maintainer, fund a release."
-        href="https://github.com/sponsors/kbve"
-        icon="heart"
-        accent="#ef4444"
-    />
-</RingShipGrid>
-
-<AdsterraAds label="Sponsored" />
-
-## How we work
-
-Three-step engagement:
-
-1. **Discovery** — short paid scoping doc; you keep it either way.
-2. **Build** — fixed-price milestones, demo every two weeks.
-3. **Handoff** — full source, IaC, runbooks. No lock-in.
-
-<DeferredAdsense label="Sponsored" />
-
-## Talk to us
-
-Email [hello@kbve.com](mailto:hello@kbve.com) or open a thread in [Discord](/discord/).
-
-</div>
-
-<ScrollRing prev="/" next="/feature/" prevLabel="Home" nextLabel="Features" threshold={220} />
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

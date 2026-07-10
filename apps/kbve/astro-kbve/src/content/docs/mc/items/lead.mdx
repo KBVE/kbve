@@ -1,5 +1,6 @@
 ---
 title: Lead
+template: splash
 description: |
     Minecraft Lead — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1191
     ref: lead
     slug: lead
+    content_rev: 1
     display_name: Lead
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A lead is a utility item used to leash and lead mobs around the world. Once
+            attached, a mob can be walked by holding the other end of the lead, or tied
+            off to a fence post so it stays put. Leads can stretch up to 12 blocks (16
+            for a happy ghast) before snapping and dropping as an item.
+        lore: |
+            A length of string strong enough to keep even the most stubborn livestock
+            in line.
+    faq:
+        - question: How do I craft a lead?
+          answer: |
+              Combine 4 string with 1 slimeball in a crafting grid to make 2 leads.
+        - question: What happens if I stretch a lead too far?
+          answer: |
+              Leads break once the distance between the two ends exceeds 12 blocks (16
+              for a happy ghast), dropping the lead as an item on the ground.
+        - question: Can I attach a lead to more than one mob?
+          answer: |
+              Yes, leads can be chained between multiple mobs, or attached to a fence
+              post, letting you tether several animals together or to a fixed point.
+        - question: Can leads be used underwater or in the Nether?
+          answer: |
+              Leads work in any dimension and can leash aquatic mobs as well as
+              land-based ones, as long as the distance limit is respected.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

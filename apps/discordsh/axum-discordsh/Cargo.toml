@@ -3,6 +3,7 @@ name = "axum-discordsh"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.44"
 edition = "2024"
+rust-version.workspace = true
 publish = false
 
 [dependencies]
@@ -11,7 +12,7 @@ thiserror = "2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { version = "0.6.8", features = [
+tower-http = { version = "0.7.0", features = [
     "compression-full",
     "limit",
     "trace",
@@ -36,7 +37,7 @@ kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-ge
 jedi = { path = "../../../packages/rust/jedi", features = ["postgres"] }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.6", optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
 
 [dev-dependencies]
 http-body-util = "0.1"

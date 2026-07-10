@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Hanging Sign
+template: splash
 description: |
     Minecraft Dark Oak Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 227
     ref: dark_oak_hanging_sign
     slug: dark-oak-hanging-sign
+    content_rev: 1
     display_name: Dark Oak Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,48 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Dark Oak Hanging Sign is a decorative text block that
+            suspends from chains below a solid block or mounts to a wall via
+            self-supporting brackets. Its text can be dyed, made to glow
+            with glow ink sac, and locked in place with honeycomb.
+        lore: |
+            Hanging signs were added in Java Edition 1.20, conceived by
+            developer Agnes Larsson and first announced at Minecraft Live
+            2022.
+    uses:
+        - title: Labeling and wayfinding
+          ref: dark_oak_hanging_sign
+          detail: |
+              Commonly used to label storage rooms, mark locations, or
+              display messages to other players, especially where a
+              narrower sign profile is preferred over a standard sign.
+    found_in:
+        - location: Crafted from Dark Oak Stripped Logs and Chains
+          detail: Two chains plus six stripped dark oak logs craft six hanging signs.
+    faq:
+        - question: What tool do I need to break a Dark Oak Hanging Sign?
+          answer: |
+              None required — any tool works, with an axe being fastest.
+        - question: Can I edit the text after placing a Dark Oak Hanging Sign?
+          answer: |
+              Yes, until it is waxed with honeycomb, after which the text
+              becomes permanently locked.
+        - question: Does a Dark Oak Hanging Sign need a chain to be placed?
+          answer: |
+              Only when hung from the underside of a block. Placing it
+              against the side of a block instead creates a wall-mounted
+              bracket version with no visible chain.
     data_version: "1.21.5"
 ---
 

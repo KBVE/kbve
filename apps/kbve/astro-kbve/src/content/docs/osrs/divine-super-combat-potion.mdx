@@ -1,0 +1,141 @@
+---
+title: Divine super combat potion | OSRS Price Data
+description: "Divine super combat potion(4): 4 doses of divine super combat potion.. High alch: 150 GP, GE limit: 2,000."
+osrs:
+  id: 23685
+  name: Divine super combat potion
+  slug: divine-super-combat-potion
+  examine: 4 doses of divine super combat potion.
+  members: true
+  icon: Divine super combat potion(4).png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 2000
+  family_ref:
+    family_slug: divine-super-combat-potion
+    role: base
+  family:
+    slug: divine-super-combat-potion
+    name: Divine super combat potion
+    type: dose
+    canonical_id: 23685
+    members:
+    - id: 23685
+      slug: divine-super-combat-potion
+      name: Divine super combat potion
+      icon: Divine super combat potion(4).png
+      role: base
+      dose: null
+      value: 250
+      lowalch: 100
+      highalch: 150
+    - id: 23694
+      slug: divine-super-combat-potion-1
+      name: Divine super combat potion(1)
+      icon: Divine super combat potion(1).png
+      role: dose
+      dose: 1
+      value: 40
+      lowalch: 16
+      highalch: 24
+    - id: 23691
+      slug: divine-super-combat-potion-2
+      name: Divine super combat potion(2)
+      icon: Divine super combat potion(2).png
+      role: dose
+      dose: 2
+      value: 90
+      lowalch: 36
+      highalch: 54
+    - id: 23688
+      slug: divine-super-combat-potion-3
+      name: Divine super combat potion(3)
+      icon: Divine super combat potion(3).png
+      role: dose
+      dose: 3
+      value: 170
+      lowalch: 68
+      highalch: 102
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "25 July 2019"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options: ["Drink", "Empty", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Boosts Attack by 5 + 15% of current level for 5 minutes."
+        duration: 300
+      - description: "Boosts Strength by 5 + 15% of current level for 5 minutes."
+        duration: 300
+      - description: "Boosts Defence by 5 + 15% of current level for 5 minutes."
+        duration: 300
+      - description: "While active, boosted Attack, Strength, and Defence levels do not naturally drain."
+        duration: 300
+      - description: "Deals 10 damage on consumption — requires more than 10 Hitpoints to drink."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 97
+      xp: 2
+      materials:
+        - item_name: Super combat potion(4)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 4
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: component
+      description: Base potion that is upgraded with crystal dust.
+    - item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: Crushed crystal shards from the Gauntlet, used to divine-charge the potion.
+    - item_name: Divine ranging potion(4)
+      slug: divine-ranging-potion-4
+      relationship: alternative
+      description: Ranged-focused divine variant of the same recipe pattern.
+    - item_name: Divine magic potion(4)
+      slug: divine-magic-potion-4
+      relationship: alternative
+      description: Magic-focused divine variant.
+  about: |-
+    Divine super combat potion(4) is the highest-tier melee boost potion in Old School RuneScape. It applies a +5 + 15% boost to Attack, Strength, and Defence for five minutes, and the boosted levels do not naturally drain while the timer is active — making it the meta choice for bossing sustain. Each sip deals 10 damage, so the drinker must have more than 10 Hitpoints. Crafted at level 97 Herblore using a super combat potion(4) and crystal dust harvested from Crystalline shards inside the Gauntlet.
+  market_strategy:
+    notes:
+      - "Demand is driven by PvM and inferno/CoX setups; supply is gated by Gauntlet completions."
+      - "Crystal dust acts as the bottleneck — track Crystalline shard prices for signal."
+      - "GE buy limit of 2,000 per 4 hours allows healthy flipping volume."
+  trading_tips:
+    - "Track crystal shard prices: they set the floor on divine potion economics."
+    - "Buy in the early-week PvM lull and sell into raid-event weekends."
+    - "Decant overlaps with regular super combats — list (4)-doses to catch bossers."
+  history:
+    - date: "25 July 2019"
+      description: "Released alongside the Song of the Elves quest and the Gauntlet."
+    - date: "2 July 2020"
+      description: "Graphical update to match the look of normal potions."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

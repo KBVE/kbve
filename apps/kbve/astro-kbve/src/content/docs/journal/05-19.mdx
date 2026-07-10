@@ -9,13 +9,52 @@ description: |
    May 19th - The Daily Journal. VNC is my soul.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 19,'
+    accent: every year.
+    lede: 'The May 19th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 18'
+          href: /journal/05-18/
+        - label: 'May 20 →'
+          href: /journal/05-20/
+    related:
+        - title: 'Previous · May 18'
+          copy: 'Step back a day to the May 18th log.'
+          href: /journal/05-18/
+          icon: calendar
+        - title: 'Next · May 20'
+          copy: 'Jump ahead to the May 20th log.'
+          href: /journal/05-20/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1715997894621-e8eebc4e9278?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Isometric
 
@@ -26,7 +65,15 @@ import { Adsense } from '@/components/astropad';
     If we can get the rareicon demo out before the end of this month, then we can take all of june and july to prepare for the isometric release.
     This then gives us some time to also prepare for the chuck release, if everything goes as planned, we can have three solid demos out before the end of the year.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### VContainer PCG Maps
 
@@ -74,7 +121,9 @@ import { Adsense } from '@/components/astropad';
     All the files are migrated and now we can look through any issues that we might have!
     After loading and updating the script based off what we have, then we can move forward with the bake migration.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **VNC**
 
@@ -85,7 +134,7 @@ We did a couple moch images earlier this morning but I am ready to build it all 
 Furthermore, I think we should update the notes from just `rustdesk` to something more along the realm of either `vnc` or `RDP`.
 Creating a new application document to keep track of everything would make sense and it should be a habit that I need to practice more often.
 
-```Dockerfile
+```dockerfile
 FROM lscr.io/linuxserver/chromium:latest
 
 RUN apt-get update && \
@@ -152,3 +201,7 @@ Here is a quick chain command:
 ```shell
 docker build . -t myapp && docker stop myapp_container && docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
 ```
+
+</BentoProse>
+
+</BentoDoc>

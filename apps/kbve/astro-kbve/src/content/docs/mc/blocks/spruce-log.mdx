@@ -1,5 +1,6 @@
 ---
 title: Spruce Log
+template: splash
 description: |
     Minecraft Spruce Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 50
     ref: spruce_log
     slug: spruce-log
+    content_rev: 1
     display_name: Spruce Log
     material: wood
     hardness: 2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Spruce Log is the harvested trunk of a spruce tree, generating
+            in taiga and snowy taiga biomes. It is a core early-game wood
+            resource used for crafting planks and as furnace fuel.
+        lore: |
+            The beating heart of every forest awaits the woodcutter's blade.
+    uses:
+        - title: Spruce Planks
+          ref: spruce_planks
+          detail: |
+              Crafting one spruce log yields four spruce planks, the base
+              material for most wood-based crafting recipes.
+        - title: Stripped Spruce Log
+          ref: stripped_spruce_log
+          detail: |
+              Right-clicking with an axe strips the bark, producing the
+              stripped variant used for detailed builds and hanging signs.
+    found_in:
+        - location: Taiga and Snowy Taiga biomes
+          detail: Generates as the trunks of naturally spawning spruce and pine trees.
+        - location: Trading and villages
+          detail: Occasionally obtainable from wandering traders or taiga village chests.
+    faq:
+        - question: What tool mines spruce logs fastest?
+          answer: |
+              An axe. No minimum tier is required — any tool, or bare
+              hands, will still yield the log.
+        - question: Can spruce logs burn?
+          answer: |
+              Yes, like all overworld logs they are flammable and can be
+              used as furnace fuel.
+        - question: Can I stack spruce logs with other wood types?
+          answer: |
+              No, each wood type is a distinct item and stacks separately.
+        - question: What is the difference between a log and stripped log?
+          answer: |
+              Stripping with an axe removes the bark texture on the sides,
+              giving a cleaner look purely for aesthetics; the block
+              properties stay the same.
     data_version: "1.21.5"
 ---
 

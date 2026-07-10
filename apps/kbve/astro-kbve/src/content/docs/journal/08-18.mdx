@@ -20,11 +20,52 @@ tasks:
       - update
     assignee: 'Self'
   
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 18,'
+    accent: every year.
+    lede: 'The August 18th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 17'
+          href: /journal/08-17/
+        - label: 'Aug 19 →'
+          href: /journal/08-19/
+    related:
+        - title: 'Previous · Aug 17'
+          copy: 'Step back a day to the August 17th log.'
+          href: /journal/08-17/
+          icon: calendar
+        - title: 'Next · Aug 19'
+          copy: 'Jump ahead to the August 19th log.'
+          href: /journal/08-19/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1689890076926-afb4add0bc86?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Late Entries
 
@@ -58,7 +99,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Going to end the night watching this banger of a movie!
     I plan to just pass out while watching it, I been super tired.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Supabase**
 One of the most boring aspects of development is going through the point of a rewrite and we might be doing it again.
@@ -88,19 +137,27 @@ This will make the air flight so much more interesting and I am a excited for th
 I spent way too much time trying to figure out the best clothes to grab, my phat is getting a bit too much.
 I need to speed up my WoW grind setup.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 4:00pm - The race is on! Another 2 hours before we start to hand out tasks and individual goals for people! Hackathon mode activated.
 
+</BentoProse>
 
-## Quote
+<BentoProse id="quote" heading="Quote">
 
 > Judge nothing, you will be happy. Forgive everything, you will be happier. Love everything, you will be happiest.
 > — <cite>Sri Chinmoy</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

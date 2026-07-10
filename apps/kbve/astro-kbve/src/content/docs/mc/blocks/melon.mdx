@@ -1,5 +1,6 @@
 ---
 title: Melon
+template: splash
 description: |
     Minecraft Melon — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 330
     ref: melon
     slug: melon
+    content_rev: 1
     display_name: Melon
     material: plant
     hardness: 1
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: melon_slice
+          qty_min: 3
+          qty_max: 7
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Melon is a fruit block that grows from a fully-matured melon
+            stem, resembling a square watermelon. Breaking it yields
+            several melon slices rather than the block itself.
+        lore: |
+            Melon blocks have existed since the early days of Minecraft as
+            a jungle biome food source, later expanded with glistering
+            melon for brewing.
+    uses:
+        - title: Glistering Melon
+          ref: glistering_melon
+          detail: |
+              Melon slices combine with gold nuggets to craft glistering
+              melon, a brewing ingredient for Potions of Healing.
+        - title: Melon Block (reassembly)
+          ref: melon
+          detail: |
+              Nine melon slices craft back into one melon block for
+              compact storage or transport.
+    found_in:
+        - location: Jungle Biomes
+          detail: Generates naturally scattered across jungle and bamboo jungle terrain.
+        - location: Village & Mansion Farms
+          detail: Found growing in savanna village farms and woodland mansion tillage rooms.
+    faq:
+        - question: What does a Melon drop when mined?
+          answer: |
+              3 to 7 melon slices, with Fortune increasing the average
+              yield up to a cap of 9 slices.
+        - question: Does Melon drop itself with Silk Touch?
+          answer: |
+              Yes, a Silk Touch tool causes the block itself to drop instead
+              of melon slices.
+        - question: What's the fastest way to break a Melon?
+          answer: |
+              An axe is the quickest tool, though any tool or bare hands
+              can still break it since no minimum tier is required.
+        - question: How do I get a Melon block back from slices?
+          answer: |
+              Craft 9 melon slices together in a crafting grid to reform
+              one melon block.
     data_version: "1.21.5"
 ---
 

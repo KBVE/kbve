@@ -1,5 +1,6 @@
 ---
 title: Stripped Pale Oak Wood
+template: splash
 description: |
     Minecraft Stripped Pale Oak Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 86
     ref: stripped_pale_oak_wood
     slug: stripped-pale-oak-wood
+    content_rev: 1
     display_name: Stripped Pale Oak Wood
     material: wood
     hardness: 2
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_pale_oak_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Stripped Pale Oak Wood is the bark-free interior of Pale Oak
+            Wood, produced by right-clicking a Pale Oak Wood block with an
+            axe. Like the rest of the Pale Garden's wood set, it has a
+            washed-out, ghostly grain that sets it apart from every other
+            overworld wood block.
+        lore: |
+            Pale Oak was added in the Winter Drop (Java Edition 1.21.2) as
+            the signature tree of the eerie Pale Garden biome.
+    uses:
+        - title: Pale Oak Planks
+          ref: pale_oak_planks
+          detail: |
+              Crafts into 4 Pale Oak Planks per block, used for building,
+              furniture-style decoration, and as a fuel source in furnaces.
+    found_in:
+        - location: Pale Garden biome
+          detail: Stripped by hand from naturally generating Pale Oak trees using any axe.
+        - location: Crafting table
+          detail: Also obtainable by combining four Stripped Pale Oak Logs into one block.
+    faq:
+        - question: Does Stripped Pale Oak Wood burn?
+          answer: |
+              Yes, like other overworld wood it is flammable and can be
+              destroyed by fire unless surrounded by non-flammable blocks.
+        - question: What tool do I need to break it?
+          answer: |
+              Any tool or bare hands work; an axe is simply the fastest way
+              to mine it.
+        - question: Does Silk Touch or Fortune change the drop?
+          answer: |
+              No. It always drops exactly one of itself regardless of
+              enchantments.
+        - question: How is it different from Stripped Pale Oak Log?
+          answer: |
+              Wood blocks show the stripped texture on all six faces, while
+              logs only show it on the side faces, keeping bark rings on
+              the top and bottom.
     data_version: "1.21.5"
 ---
 

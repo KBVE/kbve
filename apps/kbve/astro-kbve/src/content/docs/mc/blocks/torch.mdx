@@ -1,5 +1,6 @@
 ---
 title: Torch
+template: splash
 description: |
     Minecraft Torch — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 181
     ref: torch
     slug: torch
+    content_rev: 1
     display_name: Torch
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 14
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: torch
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+        - end
+        - non_solid
+    about:
+        description: |
+            The Torch is a simple, non-solid light source crafted from
+            coal or charcoal and a stick. It emits a light level of 14 and
+            can be attached to the top or side of most solid blocks,
+            making it the most common early-game lighting solution.
+        lore: |
+            First suggested by Notch on May 16, 2009, torches were among
+            the earliest blocks added during Minecraft's Indev period.
+    uses:
+        - title: Jack o'Lantern
+          ref: jack_o_lantern
+          detail: |
+              Combine a torch with a carved pumpkin to craft a jack
+              o'lantern light source.
+        - title: Lantern
+          ref: lantern
+          detail: |
+              Combine a torch with 8 iron nuggets to craft a lantern,
+              a brighter hanging or standable light source.
+    found_in:
+        - location: Crafting table
+          detail: Craft 1 coal or charcoal with 1 stick to produce 4 torches.
+        - location: Generated structures
+          detail: Found in mineshafts (65.7% chance), villages, strongholds, igloos, woodland mansions, pillager outposts, and ancient cities.
+    faq:
+        - question: What tool do I need to mine a Torch?
+          answer: |
+              None. Torches have zero hardness and instantly break with
+              any tool or bare hands, always dropping themselves.
+        - question: What happens if the block a Torch is attached to is removed?
+          answer: |
+              The torch breaks and drops as an item, since it needs a
+              solid attachment block to stay placed.
+        - question: Does a Torch melt snow and ice nearby?
+          answer: |
+              Yes. It melts snow within 2 blocks and ice within 3 blocks,
+              measured by taxicab distance.
+        - question: Can gravity-affected blocks fall onto a Torch?
+          answer: |
+              No. Sand, gravel, and other falling blocks will not fall if
+              a torch occupies the space directly below them.
     data_version: "1.21.5"
 ---
 

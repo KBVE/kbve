@@ -9,15 +9,64 @@ description: |
     6th of April.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 6,'
+    accent: every year.
+    lede: 'The April 6th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Apr 5'
+          href: /journal/04-05/
+        - label: 'Apr 7 →'
+          href: /journal/04-07/
+    related:
+        - title: 'Previous · Apr 5'
+          copy: 'Step back a day to the April 5th log.'
+          href: /journal/04-05/
+          icon: calendar
+        - title: 'Next · Apr 7'
+          copy: 'Jump ahead to the April 7th log.'
+          href: /journal/04-07/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1603855873822-0931a843ee3a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
+<BentoProse id="notes" heading="Notes">
 
 Prepare the side account for the IRS bill.
 
-## 2026
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2026" heading="2026">
 
 ### Isometric
 
@@ -25,8 +74,9 @@ Majority of the day was spent working on a bevy game that uses wgpu!
 We aded some ambient creatures and worked on the general and casual vibe for the game.
 A large amount of the time was spent trying to get the pixel shader to be operational and not look like trash xD.
 
+</BentoProse>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Fred BB8
 
@@ -60,8 +110,9 @@ A large amount of the time was spent trying to get the pixel shader to be operat
     Season 2 of the Wheel of Time is turning out to be even better!
     This series better not go the way towards of Game of Thrones.
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### DreamBound
 
@@ -85,3 +136,7 @@ The best meal that I had today was a classic maggi soup made by my aunt!
 The taste of India hit all the notes that I was look for, savory, sweet, spicy, ect... there could be a food truck that only sold this meal and it would make thousands a week.
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

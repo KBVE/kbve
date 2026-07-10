@@ -1,5 +1,6 @@
 ---
 title: Red Nether Brick Wall
+template: splash
 description: |
     Minecraft Red Nether Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 800
     ref: red_nether_brick_wall
     slug: red-nether-brick-wall
+    content_rev: 1
     display_name: Red Nether Brick Wall
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,44 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_nether_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Red Nether Brick Wall is a decorative wall variant of Red
+            Nether Bricks that connects to adjacent blocks and posts, used
+            to build fences and barriers around Nether-themed structures.
+        lore: |
+            Added in Java Edition 1.14, part of the Village & Pillage
+            update's expansion of wall variants for building blocks.
+    found_in:
+        - location: Crafted from Red Nether Bricks
+          detail: 6 Red Nether Bricks craft 6 walls; a stonecutter converts 1 brick into 1 wall at a 1:1 ratio.
+    faq:
+        - question: Does Red Nether Brick Wall generate naturally?
+          answer: |
+              No. It is only obtained by crafting or stonecutting Red
+              Nether Bricks; it never appears in natural generation.
+        - question: What tool do I need to mine it?
+          answer: |
+              A wooden pickaxe or better. Without a pickaxe it drops
+              nothing.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Red Nether Brick Wall
+              regardless of enchantments.
+        - question: Can I see through it like a fence?
+          answer: |
+              Yes. Red Nether Brick Wall is a partial block that connects
+              visually to neighboring walls and fence posts, leaving gaps
+              a player can see and shoot through.
     data_version: "1.21.5"
 ---
 

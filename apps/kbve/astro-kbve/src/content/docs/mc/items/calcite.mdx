@@ -1,5 +1,6 @@
 ---
 title: Calcite
+template: splash
 description: |
     Minecraft Calcite — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 11
     ref: calcite
     slug: calcite
+    content_rev: 1
     display_name: Calcite
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Calcite is a light, whitish-tan stone block found naturally inside amethyst geodes and
+            across stony peaks biomes. It requires a wooden pickaxe or better to mine and drops
+            nothing without the right tool. With a hardness of only 0.75, it is used mainly as a
+            decorative building material rather than for structural strength.
+        lore: |
+            Real-world calcite is the most stable form of calcium carbonate and one of the most
+            common minerals found in nature.
+    faq:
+        - question: When was calcite added to Minecraft?
+          answer: |
+              Calcite was announced at Minecraft Live 2020 and added in Java Edition snapshot
+              20w45a as part of the Caves & Cliffs update, version 1.17.
+        - question: Where can I find calcite?
+          answer: |
+              Look inside amethyst geodes, where it forms a layer between the outer smooth basalt
+              shell and the inner amethyst blocks, or search stony peaks biomes where it generates
+              in visible surface strips.
+        - question: What tool mines calcite fastest?
+          answer: |
+              A golden pickaxe breaks calcite in about 0.1 seconds thanks to gold's high mining
+              speed, though any pickaxe of wood tier or better will successfully harvest it.
+        - question: Does calcite burn or resist explosions well?
+          answer: |
+              No. Calcite is non-flammable but has lower blast resistance and hardness than most
+              other stone-related blocks, so it offers little protection against explosions.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

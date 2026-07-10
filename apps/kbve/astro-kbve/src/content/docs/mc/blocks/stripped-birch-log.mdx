@@ -1,5 +1,6 @@
 ---
 title: Stripped Birch Log
+template: splash
 description: |
     Minecraft Stripped Birch Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 62
     ref: stripped_birch_log
     slug: stripped-birch-log
+    content_rev: 1
     display_name: Stripped Birch Log
     material: wood
     hardness: 2
@@ -24,10 +26,62 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_birch_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Birch Log is the bark-free form of a Birch Log, made
+            by using an axe on it. It keeps birch's pale, light-cream ring
+            pattern on its top and bottom faces.
+        lore: |
+            Stripped variants of every log type were added so builders
+            could get a clean plank-toned log without needing to source
+            it from a different tree.
+    uses:
+        - title: Stripped Birch Wood
+          ref: stripped_birch_wood
+          detail: |
+              Craft four Stripped Birch Logs in a 2x2 pattern to make three
+              Stripped Birch Wood blocks, showing the ring texture on all
+              six faces.
+        - title: Birch Planks
+          ref: birch_planks
+          detail: |
+              Crafts into Birch Planks and is used for campfires, smokers,
+              hanging signs, shelves, and note block bass sounds.
+    found_in:
+        - location: Any Birch Log
+          detail: |
+              Not naturally generated — obtained by using an axe on a
+              placed Birch Log. Stripped oak and spruce logs can generate
+              naturally in some villages, but birch does not.
+    faq:
+        - question: How do I get Stripped Birch Log?
+          answer: |
+              Use any axe on a placed Birch Log. The strip is instant and
+              permanent.
+        - question: Does the tool tier matter?
+          answer: |
+              No — any tool, including your bare hand, will break it and
+              drop the log. An axe simply breaks it faster.
+        - question: Is Stripped Birch Log renewable?
+          answer: |
+              Yes, since birch trees regrow from saplings, giving an
+              unlimited supply of logs to strip.
+        - question: What instrument does it play in a note block?
+          answer: |
+              Like other logs, placing a note block on a stripped log
+              produces a bass instrument sound.
     data_version: "1.21.5"
 ---
 

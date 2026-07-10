@@ -1,5 +1,6 @@
 ---
 title: Soul Soil
+template: splash
 description: |
     Minecraft Soul Soil — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 274
     ref: soul_soil
     slug: soul-soil
+    content_rev: 1
     display_name: Soul Soil
     material: sand
     hardness: 0.5
@@ -24,10 +26,69 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: soul_soil
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - nether
+    about:
+        description: |
+            Soul Soil looks like soul sand but does not slow entity
+            movement or generate bubble columns underwater. It activates
+            the Soul Speed enchantment on boots and supports soul fire when
+            ignited.
+        lore: |
+            Added alongside soul sand valleys, it gives builders a
+            non-slowing alternative for the same ghostly texture and
+            soul-fire compatibility.
+    uses:
+        - title: Soul Campfire
+          ref: soul_campfire
+          detail: |
+              A campfire built with soul soil (instead of the usual dirt or
+              similar) burns with soul fire, dealing extra damage and
+              repelling piglins.
+        - title: Basalt Generation
+          ref: basalt
+          detail: |
+              Combining soul soil, blue ice, and lava in the right
+              arrangement generates basalt via a Nether "basalt delta"
+              style reaction.
+        - title: Wither Construction
+          ref: wither_skeleton_skull
+          detail: |
+              Can substitute for soul sand in the Wither's 4-block base
+              along with 3 wither skeleton skulls.
+    found_in:
+        - location: Soul Sand Valley
+          detail: Generates abundantly throughout the biome alongside soul sand.
+        - location: Renewable via Soul Campfire
+          detail: |
+              Breaking a soul campfire without Silk Touch drops soul soil,
+              making it renewable.
+    faq:
+        - question: How is Soul Soil different from Soul Sand?
+          answer: |
+              Soul Soil does not slow entity movement and does not create
+              bubble columns underwater, unlike Soul Sand.
+        - question: What tool mines Soul Soil fastest?
+          answer: |
+              A shovel, though it can be broken with any tool or by hand
+              and always drops itself.
+        - question: Does Soul Soil activate Soul Speed boots?
+          answer: |
+              Yes, walking on Soul Soil activates the Soul Speed
+              enchantment just like Soul Sand does.
+        - question: Is Soul Soil renewable?
+          answer: |
+              Yes, soul campfires drop soul soil when broken without Silk
+              Touch.
     data_version: "1.21.5"
 ---
 

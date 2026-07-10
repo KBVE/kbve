@@ -1,5 +1,6 @@
 ---
 title: Mangrove Button
+template: splash
 description: |
     Minecraft Mangrove Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 419
     ref: mangrove_button
     slug: mangrove-button
+    content_rev: 1
     display_name: Mangrove Button
     material: redstone
     hardness: 0.5
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+    about:
+        description: |
+            Mangrove Button is a monostable redstone component crafted from
+            Mangrove Planks. It can be placed on any face of a solid block
+            and emits a brief redstone pulse when pressed by a player, mob,
+            or projectile.
+        lore: |
+            Wooden buttons were first introduced in Java Edition 1.4.2, and
+            the mangrove variant arrived with the Mangrove Swamp update
+            (1.19).
+    uses:
+        - title: Redstone Pulse Source
+          ref: mangrove_button
+          detail: |
+              Manual activation keeps the button powered for 1.5 seconds
+              (15 redstone ticks), making it useful for short-duration
+              circuits like door openers or dispensers.
+        - title: Arrow/Trident Trigger
+          ref: mangrove_button
+          detail: |
+              Buttons can also be struck by arrows or tridents to activate
+              remotely, staying powered longer than a manual press.
+    found_in:
+        - location: Crafted from Mangrove Planks
+          detail: One plank crafts one button at a crafting table.
+    faq:
+        - question: What tool do I need to mine a Mangrove Button?
+          answer: |
+              None — it can be broken by hand instantly, though an axe is
+              the fastest tool.
+        - question: Does a Mangrove Button burn?
+          answer: |
+              Yes, being a wooden block it is flammable and can be destroyed
+              by fire.
+        - question: How long does a Mangrove Button stay powered?
+          answer: |
+              1.5 seconds when pressed by a player or mob; longer if
+              triggered by an arrow or trident.
+        - question: Can I place a Mangrove Button on any surface?
+          answer: |
+              Yes, it can be attached to the top, bottom, or side of any
+              solid block.
     data_version: "1.21.5"
 ---
 

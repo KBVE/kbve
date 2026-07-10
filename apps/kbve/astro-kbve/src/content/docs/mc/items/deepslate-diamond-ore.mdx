@@ -1,5 +1,6 @@
 ---
 title: Deepslate Diamond Ore
+template: splash
 description: |
     Minecraft Deepslate Diamond Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 79
     ref: deepslate_diamond_ore
     slug: deepslate-diamond-ore
+    content_rev: 1
     display_name: Deepslate Diamond Ore
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Deepslate Diamond Ore is the deep variant of Diamond Ore, generating from
+            Y=16 down to Y=-63 and most commonly around Y=-58 to Y=-59. It requires
+            an iron pickaxe or better to mine and drops a single diamond, making it a
+            key target for deep-cave mining expeditions.
+        lore: |
+            Buried at the coldest, deepest reaches of the world, these gems formed
+            under pressures that only deepslate could contain.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              An iron pickaxe or better is required; lesser tools yield nothing when
+              the block is broken.
+        - question: What does it drop?
+          answer: |
+              It drops one Diamond per block plus 3-7 experience, or the block itself
+              with Silk Touch. Fortune increases the average yield.
+        - question: Where does it generate?
+          answer: |
+              It generates most commonly at Y=-58 and Y=-59, ranging from Y=16 down to
+              Y=-63, and also appears within fossils below Y=0.
+        - question: Is it more common than regular Diamond Ore?
+          answer: |
+              Yes, deepslate diamond ore is actually more common overall since
+              diamonds are more likely to generate at the lower altitudes where
+              deepslate forms.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

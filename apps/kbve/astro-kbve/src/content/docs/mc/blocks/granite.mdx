@@ -1,5 +1,6 @@
 ---
 title: Granite
+template: splash
 description: |
     Minecraft Granite — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 2
     ref: granite
     slug: granite
+    content_rev: 1
     display_name: Granite
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: granite
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Granite is an igneous stone variety found in large underground
+            pockets across the Overworld. It shares stone's blast
+            resistance, making it a durable and decorative alternative for
+            building.
+        lore: |
+            Granite forms from cooled magma chambers deep underground, and
+            its pinkish hue comes from alkali feldspar minerals.
+    uses:
+        - title: Polished Granite
+          ref: polished_granite
+          detail: |
+              Craft four granite into polished granite, or cut it at a
+              stonecutter into slabs, stairs, and walls for building.
+    found_in:
+        - location: The Overworld
+          detail: |
+              Generates as large blob-shaped deposits underground in most
+              biomes, and rarely at the surface in mountainous terrain.
+    faq:
+        - question: What tool do I need to mine granite?
+          answer: |
+              Any pickaxe, but at least a wooden pickaxe — mining it by hand
+              or with the wrong tool yields no drop.
+        - question: Does granite drop itself when mined?
+          answer: |
+              Yes. Granite always drops itself, with or without Silk Touch,
+              since it has no separate "ore" form.
+        - question: What is granite used for?
+          answer: |
+              Mostly building and decoration — it crafts into polished
+              granite, slabs, stairs, and walls, and can be traded to mason
+              villagers for emeralds.
+        - question: Is granite renewable?
+          answer: |
+              Not directly, but Bedrock/Java stonecutter recipes and
+              villager trades make its polished and cut forms effectively
+              unlimited once a supply is found.
     data_version: "1.21.5"
 ---
 

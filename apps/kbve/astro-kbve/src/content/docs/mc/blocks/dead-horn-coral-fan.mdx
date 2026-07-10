@@ -1,5 +1,6 @@
 ---
 title: Dead Horn Coral Fan
+template: splash
 description: |
     Minecraft Dead Horn Coral Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,59 @@ mc_block:
     id: 739
     ref: dead_horn_coral_fan
     slug: dead-horn-coral-fan
+    content_rev: 1
     display_name: Dead Horn Coral Fan
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: pickaxe
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_horn_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - ocean
+    about:
+        description: |
+            Dead Horn Coral Fan is the bleached, gray form of the horn coral
+            fan, a branching decoration placed on top of or against a block.
+            It breaks instantly with any tool but only drops itself when
+            mined with Silk Touch.
+        lore: |
+            Coral fans were added in the Update Aquatic (1.13), giving warm
+            ocean biomes reef decorations that could later bleach and die.
+    found_in:
+        - location: Bedrock Edition coral reef structures
+          detail: Generates naturally as part of underwater reef decoration, Bedrock Edition only.
+        - location: Bleached live coral fans
+          detail: Placing a live horn coral fan outside of water causes it to die and convert into this block.
+    faq:
+        - question: Does Dead Horn Coral Fan drop anything when mined normally?
+          answer: |
+              No. Without Silk Touch it drops nothing; only a Silk Touch
+              enchanted tool yields the block itself.
+        - question: Can it be turned back into a living coral fan?
+          answer: |
+              No. Once a coral fan dies it cannot be reverted to its living
+              variant by any means.
+        - question: Does it need water to survive?
+          answer: |
+              No — dead coral fans do not require adjacent water and will
+              not die any further once bleached.
+        - question: What tool tier is needed to mine it?
+          answer: |
+              None. Any tool, or bare hands, breaks it instantly; only Silk
+              Touch is required to keep the drop.
     data_version: "1.21.5"
 ---
 

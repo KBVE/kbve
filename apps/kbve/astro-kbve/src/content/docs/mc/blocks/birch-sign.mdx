@@ -1,5 +1,6 @@
 ---
 title: Birch Sign
+template: splash
 description: |
     Minecraft Birch Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 199
     ref: birch_sign
     slug: birch-sign
+    content_rev: 1
     display_name: Birch Sign
     material: wood
     hardness: 1
@@ -24,10 +26,62 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - renewable
+    about:
+        description: |
+            The Birch Sign is a decorative wood block that displays up to
+            four lines of custom text, either standing on the ground or
+            mounted on a wall. Text can be dyed for color or waxed with
+            honeycomb to prevent further edits.
+        lore: |
+            Signs date back to Java Edition Infdev, and gained full wood
+            variant support alongside expanded text customization in
+            update 1.14.
+    uses:
+        - title: Labeling & Wayfinding
+          ref: birch_planks
+          detail: |
+              Written and placed to mark storage rooms, farms, or
+              directions; dye and glow ink sacs allow colored or glowing
+              text.
+        - title: Hanging Sign
+          ref: birch_hanging_sign
+          detail: |
+              Combined with chains, Birch Signs share crafting ingredients
+              with Birch Hanging Signs for suspended text displays.
+    found_in:
+        - location: Igloo basements
+          detail: Oak signs generate in igloo basement chests; other wood variants are player-crafted.
+        - location: Crafted from Birch Planks
+          detail: Six Birch Planks plus one Stick craft three Birch Signs.
+    faq:
+        - question: What tool do I need to mine a Birch Sign?
+          answer: |
+              None required — any tool works, though an axe is fastest.
+        - question: Can I change the text on a Birch Sign after placing it?
+          answer: |
+              Yes, by right-clicking it, unless it has been waxed with a
+              honeycomb, which locks the text permanently.
+        - question: Can Birch Signs glow in the dark?
+          answer: |
+              Applying a glow ink sac to the text gives it a light outline
+              that makes it easier to read in dark areas.
+        - question: How many signs does one crafting batch make?
+          answer: |
+              Six matching planks and one stick craft three signs of that
+              wood type.
     data_version: "1.21.5"
 ---
 

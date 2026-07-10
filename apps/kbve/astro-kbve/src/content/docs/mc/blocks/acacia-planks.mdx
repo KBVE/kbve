@@ -1,5 +1,6 @@
 ---
 title: Acacia Planks
+template: splash
 description: |
     Minecraft Acacia Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 17
     ref: acacia_planks
     slug: acacia-planks
+    content_rev: 1
     display_name: Acacia Planks
     material: wood
     hardness: 2
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Acacia Planks are the general-purpose building block crafted
+            from acacia logs. They form the base for acacia stairs, slabs,
+            fences, doors, and furniture.
+        lore: |
+            Every wood type produces its own colored plank; acacia's
+            orange-brown tone matches the savanna trees it comes from.
+    uses:
+        - title: Acacia Stairs
+          ref: acacia_stairs
+          detail: |
+              Six acacia planks craft into six acacia stairs, used for
+              sloped building details.
+        - title: Crafting Table
+          ref: crafting_table
+          detail: |
+              Four planks of any wood type craft a crafting table, one of
+              the earliest tools built in survival.
+    found_in:
+        - location: Crafted from Acacia Log
+          detail: One acacia log crafts into four acacia planks.
+        - location: Savanna villages and structures
+          detail: Generates as part of savanna village buildings and some shipwrecks.
+    faq:
+        - question: What is the best tool to mine Acacia Planks?
+          answer: |
+              An axe is fastest, though any tool — or bare hands — will
+              still break and drop the block.
+        - question: Is a specific tool tier required?
+          answer: |
+              No. Acacia Planks drop regardless of the tool used.
+        - question: Can Acacia Planks burn?
+          answer: |
+              Yes, they are flammable and can be used as furnace fuel.
+        - question: What are Acacia Planks used for?
+          answer: |
+              Building blocks, and crafting stairs, slabs, doors, fences,
+              and furniture such as crafting tables and bookshelves.
     data_version: "1.21.5"
 ---
 

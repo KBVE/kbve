@@ -1,5 +1,6 @@
 ---
 title: Exposed Chiseled Copper
+template: splash
 description: |
     Minecraft Exposed Chiseled Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 978
     ref: exposed_chiseled_copper
     slug: exposed-chiseled-copper
+    content_rev: 1
     display_name: Exposed Chiseled Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: exposed_chiseled_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+    about:
+        description: |
+            Exposed Chiseled Copper is the first oxidation stage of
+            Chiseled Copper, showing faint green discoloration as the
+            metal begins to weather. It is a purely decorative block
+            with an ornamental chiseled pattern.
+        lore: |
+            First shown at Minecraft Live 2023 as part of the Trial
+            Chambers, added in Java Edition 1.21 (23w43a).
+    uses:
+        - title: Waxed Exposed Chiseled Copper
+          ref: waxed_exposed_chiseled_copper
+          detail: |
+              Apply Honeycomb to halt oxidation at this stage,
+              preventing it from weathering further.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates as part of Trial Chamber decoration, including pre-waxed variants.
+        - location: Natural weathering
+          detail: Forms over time when an unwaxed Chiseled Copper block placed near other oxidized copper progresses to this stage.
+    faq:
+        - question: What tool do I need to mine Exposed Chiseled Copper?
+          answer: |
+              A stone pickaxe or better. Mining with a wooden pickaxe or
+              by hand drops nothing.
+        - question: How do I stop it from oxidizing further?
+          answer: |
+              Apply Honeycomb to wax the block, which locks it at the
+              Exposed stage permanently.
+        - question: Can I reverse the oxidation?
+          answer: |
+              Yes. Scraping it with an axe removes one oxidation stage,
+              turning it back into plain Chiseled Copper.
+        - question: Does lightning affect it?
+          answer: |
+              Yes. A lightning strike nearby instantly de-oxidizes
+              copper blocks, including this one, by one stage.
     data_version: "1.21.5"
 ---
 

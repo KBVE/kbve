@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 18th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 18,'
+    accent: every year.
+    lede: 'The December 18th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Dec 17'
+          href: /journal/12-17/
+        - label: 'Dec 19 →'
+          href: /journal/12-19/
+    related:
+        - title: 'Previous · Dec 17'
+          copy: 'Step back a day to the December 17th log.'
+          href: /journal/12-17/
+          icon: calendar
+        - title: 'Next · Dec 19'
+          copy: 'Jump ahead to the December 19th log.'
+          href: /journal/12-19/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   02:54AM
 
@@ -35,3 +76,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     The operator is up and running, now we need to focus on building the first container image.
     There are a couple things that I need to figure out, like the `Registgration Endpoint` crate and a couple other things.
     The new folder for the configurations will be in the `_os` folder under `/migrations/kube/_os`.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

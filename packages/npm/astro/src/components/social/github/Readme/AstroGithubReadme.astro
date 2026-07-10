@@ -1,0 +1,63 @@
+---
+/**
+ * AstroGithubReadme - Build-time fetch of a raw GitHub markdown file
+ * (e.g. a repo README), rendered to HTML. Strips YAML frontmatter and
+ * emits `<pre class="mermaid">` for mermaid fences so astro-mermaid renders them.
+ */
+import { Marked } from 'marked';
+
+interface Props {
+	url: string;
+}
+
+const { url } = Astro.props;
+
+const escapeHtml = (s: string) =>
+	s
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+
+const stripFrontmatter = (md: string) =>
+	md.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+
+const marked = new Marked({ gfm: true, breaks: false });
+marked.use({
+	renderer: {
+		code({ text, lang }) {
+			if ((lang ?? '').trim().toLowerCase() === 'mermaid') {
+				return `<pre class="mermaid">${escapeHtml(text)}</pre>`;
+			}
+			return false;
+		},
+	},
+});
+
+let html = '';
+let failed = false;
+
+try {
+	const res = await fetch(url);
+	if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+	const raw = await res.text();
+	html = await marked.parse(stripFrontmatter(raw));
+} catch {
+	failed = true;
+}
+---
+
+{
+	failed ? (
+		<p>
+			Could not load the README at build time.{' '}
+			<a href={url} target="_blank" rel="noopener noreferrer">
+				View it on GitHub
+			</a>
+			.
+		</p>
+	) : (
+		<div class="github-readme" set:html={html} />
+	)
+}

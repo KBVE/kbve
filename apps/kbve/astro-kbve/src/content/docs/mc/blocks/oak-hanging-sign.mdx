@@ -1,5 +1,6 @@
 ---
 title: Oak Hanging Sign
+template: splash
 description: |
     Minecraft Oak Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 221
     ref: oak_hanging_sign
     slug: oak-hanging-sign
+    content_rev: 1
     display_name: Oak Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Oak Hanging Sign is a decorative text-display block that
+            suspends beneath a block or mounts on a bracket. Its text can
+            be dyed, made to glow, and locked with honeycomb to prevent
+            further edits.
+        lore: |
+            Hanging signs were revealed at Minecraft Live 2022, conceived
+            by designer Agnes Larsson with input from her daughter.
+    uses:
+        - title: Custom Signage
+          ref: chain
+          detail: |
+              Crafted from two chains and six stripped oak logs to yield
+              six hanging signs, commonly used for shop and building
+              labels that hang from ceilings or beams.
+    found_in:
+        - location: Crafted from stripped logs and chains
+          detail: Two chains plus six stripped oak logs craft six oak hanging signs.
+        - location: Trial Chambers and Trail Ruins
+          detail: Found as loot or structural decoration in these generated structures.
+    faq:
+        - question: What tool do I need to mine an Oak Hanging Sign?
+          answer: |
+              None — it breaks with any tool or bare hands, though an axe
+              is fastest.
+        - question: How is an Oak Hanging Sign different from a regular sign?
+          answer: |
+              It attaches beneath blocks or on brackets rather than
+              standing on top of a block, and requires chains to craft.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, unless the sign has been locked with honeycomb, which
+              prevents any further text changes.
+        - question: Does the Oak Hanging Sign work as furnace fuel?
+          answer: |
+              Yes — being made of Overworld wood, it can smelt items in a
+              furnace, unlike hanging signs made from Nether wood.
     data_version: "1.21.5"
 ---
 

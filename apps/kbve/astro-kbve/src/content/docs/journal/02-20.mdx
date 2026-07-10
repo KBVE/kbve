@@ -8,19 +8,66 @@ img: https://images.unsplash.com/photo-1537963447914-dbc04b81de27?crop=entropy&c
 description: Daily Log for February 20th for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 20,'
+    accent: every year.
+    lede: 'The February 20th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Feb 19'
+          href: /journal/02-19/
+        - label: 'Feb 21 →'
+          href: /journal/02-21/
+    related:
+        - title: 'Previous · Feb 19'
+          copy: 'Step back a day to the February 19th log.'
+          href: /journal/02-19/
+          icon: calendar
+        - title: 'Next · Feb 21'
+          copy: 'Jump ahead to the February 21st log.'
+          href: /journal/02-21/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1537963447914-dbc04b81de27?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
+<BentoProse id="notes" heading="Notes">
 
 Testing out the journal entries for 2024!
 
 I will have to make this section a bit more unique later on but for now it seems great.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Post Office
 
@@ -44,9 +91,9 @@ I will have to make this section a bit more unique later on but for now it seems
     -   Replacing the spaceship sprite.
     -   Fixing the asteroid splitting and replacing those assets with better ones.
 
+</BentoProse>
 
-
-## 2024
+<BentoProse id="2024" heading="2024">
 
 ### NX
 
@@ -86,14 +133,19 @@ Running the Rust WASM is currently with this command:
 
 I already updated the ReadMe with the command, incase I forget in the future!
 
+</BentoProse>
 
-## Quote
+<BentoProse id="quote" heading="Quote">
 
 > Love does not consist of gazing at each other, but in looking together in the same direction.
 > — <cite>Antoine de Saint-Exupéry</cite>
 
+</BentoProse>
 
-
-## Tasks
+<BentoProse id="tasks" heading="Tasks">
 
 - [X] Application MDX Migration
+
+</BentoProse>
+
+</BentoDoc>

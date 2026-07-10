@@ -1,5 +1,6 @@
 ---
 title: Bricks
+template: splash
 description: |
     Minecraft Bricks — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 304
     ref: bricks
     slug: bricks
+    content_rev: 1
     display_name: Bricks
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Bricks are a decorative red building block crafted by combining four brick
+            items in a 2x2 pattern. They are immune to fire and lava, making them a safe
+            choice for builds near heat sources.
+        lore: |
+            A classic masonry block that has been part of Minecraft's construction
+            palette since the earliest days of the game.
+    faq:
+        - question: How do you craft Bricks?
+          answer: |
+              Combine 4 brick items (made by smelting clay balls) in a 2x2 crafting
+              grid to produce one Bricks block.
+        - question: Are Bricks flammable?
+          answer: |
+              No, Bricks cannot burn and are unaffected by lava, making them a safe
+              building material near fire.
+        - question: Where can Bricks be found without crafting?
+          answer: |
+              Bricks generate naturally in ocean ruins, plains village armorer houses,
+              and trail ruins, and can be bought from mason villagers.
+        - question: What can Bricks be crafted into?
+          answer: |
+              Bricks can be turned into brick slabs, brick stairs, brick walls, and used
+              alongside paper for field masoned banner patterns.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

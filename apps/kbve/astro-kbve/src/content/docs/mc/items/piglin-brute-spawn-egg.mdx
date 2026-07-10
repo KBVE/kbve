@@ -1,5 +1,6 @@
 ---
 title: Piglin Brute Spawn Egg
+template: splash
 description: |
     Minecraft Piglin Brute Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 1111
     ref: piglin_brute_spawn_egg
     slug: piglin-brute-spawn-egg
+    content_rev: 1
     display_name: Piglin Brute Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Piglin Brute Spawn Egg is a Creative-mode and command-only item that instantly
+            summons a piglin brute when used on a surface. It is not obtainable through normal
+            Survival gameplay; players get it via the Creative inventory or by using pick block on
+            an existing piglin brute.
+        lore: |
+            A single-minded bastion guardian, ready to charge the instant this egg meets the
+            ground.
+    faq:
+        - question: |
+              Can I obtain a Piglin Brute Spawn Egg in Survival mode?
+          answer: |
+              No. Spawn eggs are obtainable only in Creative mode or via commands, not through
+              normal Survival gameplay.
+        - question: |
+              What happens when the egg is used?
+          answer: |
+              A piglin brute spawns adjacent to the surface used, immediately playing its ambient
+              sound, and it always spawns permanently hostile toward players.
+        - question: |
+              Is a piglin brute spawned this way immune to Peaceful-difficulty deletion?
+          answer: |
+              No. Like most hostile mobs, a piglin brute spawned on Peaceful difficulty is created
+              and immediately removed from the world.
+        - question: |
+              Can spawn eggs be used with dispensers or monster spawners?
+          answer: |
+              Yes. A dispenser can use the egg to spawn the mob directly in front of it, and any
+              spawn egg can change the mob type produced by a monster spawner.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

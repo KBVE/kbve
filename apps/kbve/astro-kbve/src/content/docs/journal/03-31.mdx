@@ -9,13 +9,52 @@ description: |
     31st of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 31,'
+    accent: every year.
+    lede: 'The March 31st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 30'
+          href: /journal/03-30/
+        - label: 'Apr 1 →'
+          href: /journal/04-01/
+    related:
+        - title: 'Previous · Mar 30'
+          copy: 'Step back a day to the March 30th log.'
+          href: /journal/03-30/
+          icon: calendar
+        - title: 'Next · Apr 1'
+          copy: 'Jump ahead to the April 1st log.'
+          href: /journal/04-01/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1582647790126-0fd37ff34f98?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Github API
 
@@ -24,8 +63,15 @@ import { Adsense } from '@/components/astropad';
   Burning through all my github api tokens because of keda, I will have to find another way to handle the github actions and maybe avoid polling.
   We will have to make a keda-friendly way in the future to handle this situation because we really do not want the windows server or mac server to be just running.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Adsense Routing
 
@@ -87,7 +133,9 @@ import { Adsense } from '@/components/astropad';
     Before we make that change, I need to update the jedi crate to v0.2.
     Ugh, I will have to also loop back around and look at updating the holy crate too.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### KBVE
 
@@ -122,3 +170,7 @@ There are three really cool and amazing codepens that I found!
 All of the three were amazing! I am thinking of taking them apart and adding them into the Astro VE library as a reference for future projects.
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

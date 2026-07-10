@@ -1,5 +1,6 @@
 ---
 title: Short Grass
+template: splash
 description: |
     Minecraft Short Grass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 202
     ref: short_grass
     slug: short-grass
+    content_rev: 1
     display_name: Short Grass
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Short Grass is a common non-solid plant block that grows in patches on grassy soil
+            across most Overworld biomes. It can be harvested with shears, has a small chance to
+            drop wheat seeds when broken by hand, and can be grown into tall grass with bone meal.
+        lore: |
+            A humble blade of grass swaying in the fields, feeding sheep and seeding new growth.
+    faq:
+        - question: Where does Short Grass generate?
+          answer: |
+              It generates in random patches on grass blocks in most grassy biomes, appearing most
+              densely in plains, savannas, jungles, meadows, and swamps.
+        - question: How do you collect Short Grass?
+          answer: |
+              Breaking it with shears yields the block itself; breaking it any other way destroys
+              it, with a 12.5% chance of dropping wheat seeds instead.
+        - question: What is Short Grass used for?
+          answer: |
+              Besides decoration, it can be placed in a composter for a 30% chance to raise the
+              compost level, and sheep eat it to regrow wool after shearing.
+        - question: Can Short Grass be turned into Tall Grass?
+          answer: |
+              Yes, applying bone meal to Short Grass grows it into Tall Grass, which yields two
+              Short Grass blocks when sheared.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

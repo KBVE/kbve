@@ -1,5 +1,6 @@
 ---
 title: Tall Grass
+template: splash
 description: |
     Minecraft Tall Grass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,81 @@ mc_block:
     id: 529
     ref: tall_grass
     slug: tall-grass
+    content_rev: 1
     display_name: Tall Grass
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: wheat_seeds
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: short_grass
+          qty_min: 2
+          qty_max: 2
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - shears_mineable
+        - flammable
+        - overworld
+        - plant
+    about:
+        description: |
+            Tall grass is the two-block-tall variant of short grass, adding
+            texture and cover to plains, savannas, and other grassy
+            biomes. Its color shifts with each biome's temperature and
+            rainfall, blending naturally into the surrounding landscape.
+        lore: |
+            Introduced as "Double Tallgrass" in Java Edition 13w36a
+            (1.7.2), it was renamed to Tall Grass in 1.13.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Has a 50% chance to raise a composter's level by one, making
+              it a solid renewable bone meal source.
+        - title: Wheat Seed Farming
+          ref: wheat_seeds
+          detail: |
+              Breaking it without shears has a 12.5% chance to drop a wheat
+              seed, boosted by Fortune to as many as 7 with Fortune III.
+    found_in:
+        - location: Plains, savannas, meadows, cherry groves
+          detail: Generates naturally across temperate and grassy biomes, including pale gardens and lush caves.
+        - location: Bone meal on short grass
+          detail: Applying bone meal to short grass has a chance to grow it into tall grass if there is space above.
+    faq:
+        - question: What is the difference between shearing and punching Tall Grass?
+          answer: |
+              Shears (or Silk Touch) drop 2 short grass and never seeds;
+              breaking it any other way may drop a single wheat seed
+              instead.
+        - question: Does Fortune affect Tall Grass drops?
+          answer: |
+              Yes, Fortune increases the chance and count of wheat seeds
+              dropped when breaking it without shears.
+        - question: Can I get Tall Grass itself as an item?
+          answer: |
+              Not directly — shearing it yields short grass, not tall
+              grass. Tall grass items only appear in certain savanna
+              village house chests.
+        - question: Is Tall Grass flammable?
+          answer: |
+              Yes, it burns and spreads fire quickly, so avoid placing
+              torches or lava nearby if you want to keep a field intact.
     data_version: "1.21.5"
 ---
 

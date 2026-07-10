@@ -1,5 +1,6 @@
 ---
 title: Pink Concrete
+template: splash
 description: |
     Minecraft Pink Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 684
     ref: pink_concrete
     slug: pink-concrete
+    content_rev: 1
     display_name: Pink Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Pink Concrete is a bright, non-flammable building block formed
+            when Pink Concrete Powder contacts water. It requires a
+            pickaxe to mine and drops itself.
+        lore: |
+            Concrete released in Java Edition 1.12 (snapshot 17w06a, 2017),
+            giving builders a set of 16 solid, saturated colors as an
+            alternative to stained terracotta.
+    uses:
+        - title: Building Material
+          ref: pink_concrete
+          detail: |
+              Used purely for construction; its solid color and higher
+              hardness than wool or terracotta make it popular for large,
+              flat-colored builds.
+    found_in:
+        - location: Water contact
+          detail: Forms automatically when pink concrete powder touches any water source, flowing water, or is waterlogged.
+        - location: Trial chamber murals
+          detail: Small amounts of concrete, including pink, generate naturally as decorative murals in trial chambers.
+    faq:
+        - question: What tool do I need to mine Pink Concrete?
+          answer: |
+              At least a wooden pickaxe. Mining with anything weaker or
+              with no pickaxe at all destroys it without a drop.
+        - question: How is Pink Concrete made?
+          answer: |
+              It is not crafted directly — place or drop Pink Concrete
+              Powder where it touches water and it instantly hardens into
+              concrete.
+        - question: Is Pink Concrete blast resistant?
+          answer: |
+              Not especially. Its blast resistance of 1.8 is only slightly
+              above stone, so it offers little protection against
+              explosions.
+        - question: Can Pink Concrete burn?
+          answer: |
+              No. Like all concrete colors, it is non-flammable and safe
+              to place next to fire or lava.
     data_version: "1.21.5"
 ---
 

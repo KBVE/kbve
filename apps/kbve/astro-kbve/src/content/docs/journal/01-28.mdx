@@ -8,12 +8,52 @@ img: https://images.unsplash.com/photo-1737798388229-2524c7777c60?crop=entropy&c
 description: Daily Log for January 28th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 28,'
+    accent: every year.
+    lede: 'The January 28th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Jan 27'
+          href: /journal/01-27/
+        - label: 'Jan 29 →'
+          href: /journal/01-29/
+    related:
+        - title: 'Previous · Jan 27'
+          copy: 'Step back a day to the January 27th log.'
+          href: /journal/01-27/
+          icon: calendar
+        - title: 'Next · Jan 29'
+          copy: 'Jump ahead to the January 29th log.'
+          href: /journal/01-29/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1737798388229-2524c7777c60?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="notes" heading="Notes">
 
     ### Unreal
 
@@ -21,7 +61,15 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
-## 2026
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2026" heading="2026">
 
 ### OSRS Items
 
@@ -29,7 +77,9 @@ import { Adsense } from '@/components/astropad';
 
     Making changes to the OSRS items and hopefuly we some really good graph design
 
-## 2025
+</BentoProse>
+
+<BentoProse id="2025" heading="2025">
 
 -   **Godot**
 
@@ -74,7 +124,9 @@ import { Adsense } from '@/components/astropad';
         The menu system will be expanded later today to include some custom shaders.
         
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
     -   9:53am  -   `Refactor`
 
@@ -137,3 +189,7 @@ import { Adsense } from '@/components/astropad';
                 ```
 
             Both of the routes are working fine without any issues at the local point, I will save the progress at this route.
+
+</BentoProse>
+
+</BentoDoc>

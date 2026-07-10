@@ -1,13 +1,14 @@
 ---
-title: KBVEULID
-description: |
-    ULID generator for Unreal — 128-bit lexicographically sortable identifiers.
+title: "KBVEULID — ULID Generator Plugin for Unreal Engine 5"
+description: KBVEULID is an Unreal Engine 5 plugin that generates 128-bit ULIDs — lexicographically sortable Crockford Base32 identifiers for DB, save, and event IDs.
+sem: 1
 sidebar:
     label: KBVEULID
     order: 83
 tags:
     - unreal
     - utility
+    - ulid
 key: ue_kbveulid
 pipeline: unreal
 plugin_name: KBVEULID
@@ -23,8 +24,84 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the KBVEULID plugin do?
+          answer: KBVEULID is an Unreal Engine 5 runtime plugin that generates ULIDs — 128-bit Universally Lexicographically Sortable Identifiers encoded as 26-character Crockford Base32 strings, suitable for database IDs, replicated event IDs, save records, and marketplace lots.
+        - question: How is a KBVEULID identifier structured?
+          answer: Each ULID is 128 bits — a 48-bit millisecond timestamp plus 80 bits of FGuid-derived entropy — stored as 16 bytes in FKBVEUlid and encoded to a 26-character Crockford Base32 string. The timestamp prefix keeps IDs lexicographically sortable by creation time.
+        - question: Which engine versions and platforms does KBVEULID support?
+          answer: KBVEULID targets Unreal Engine 5.4 and newer and builds for Win64, Linux, and Mac. It ships as a Runtime module loaded in the Default phase.
+bento:
+    badge: unreal · utility · ulid
+    title: ULID generator for
+    accent: KBVEULID
+    lede: >-
+        An Unreal Engine 5 runtime plugin that generates ULIDs — Universally
+        Lexicographically Sortable Identifiers. Each ID is 128 bits (a 48-bit
+        millisecond timestamp plus 80 bits of FGuid-derived entropy) encoded as
+        a 26-character Crockford Base32 string.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEULID
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Usage
+          href: "#usage"
+    aside:
+        icon: clock
+        title: Sorts by creation time
+        body: >-
+            Because the timestamp leads, ULIDs sort by creation time — well
+            suited to <strong>database IDs</strong>, replicated event IDs, save
+            records, and marketplace lots.
+        points:
+            - <strong>Runtime module</strong> — Default phase, no content deps.
+            - <strong>Platforms</strong> — Win64, Linux, Mac.
+    stats:
+        - { label: ULID, value: 128-bit, icon: key }
+        - { label: Encoding, value: Base32, icon: code }
+        - { label: Min engine, value: UE 5.4, icon: box }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: 128-bit ULIDs
+          icon: key
+          body: 48-bit millisecond timestamp + 80-bit <code>FGuid</code> entropy.
+        - title: Crockford Base32
+          icon: code
+          body: 26-character string encoding via <code>FKBVEUlid::ToString()</code>.
+        - title: Lexicographic sortability
+          icon: clock
+          body: The timestamp prefix orders IDs by creation time.
+        - title: Lean runtime module
+          icon: gears
+          body: A single <code>FKBVEUlid</code> struct plus <code>KBVEULID::Generate()</code>, loaded in the Default phase with no content dependencies.
+    usage:
+        label: KBVEULID.h
+        lang: cpp
+        code: |
+            #include "KBVEULID.h"
+
+            FKBVEUlid Id = FKBVEUlid::New();
+            FString IdStr = Id.ToString();
+
+            FString Quick = KBVEULID::Generate();
+    related:
+        - title: KBVENet
+          href: /project/kbvenet/
+          copy: KBVE's Unreal networking plugin, which can carry ULID-keyed event IDs.
+          icon: network
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-ULID generator for Unreal — 128-bit lexicographically sortable identifiers.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

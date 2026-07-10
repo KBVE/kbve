@@ -8,17 +8,64 @@ img: https://images.unsplash.com/photo-1737405555489-78b3755eaa81?crop=entropy&c
 description: Daily Log for January 24th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 24,'
+    accent: every year.
+    lede: 'The January 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Jan 23'
+          href: /journal/01-23/
+        - label: 'Jan 25 →'
+          href: /journal/01-25/
+    related:
+        - title: 'Previous · Jan 23'
+          copy: 'Step back a day to the January 23rd log.'
+          href: /journal/01-23/
+          icon: calendar
+        - title: 'Next · Jan 25'
+          copy: 'Jump ahead to the January 25th log.'
+          href: /journal/01-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1737405555489-78b3755eaa81?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
 
+<BentoProse id="notes" heading="Notes">
 
 <Adsense />
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   **Email**
 
@@ -35,8 +82,9 @@ import { Adsense } from '@/components/astropad';
 
         Next project for the gamejam will be to build out the gridmap, hmm I am thinking that we just use bevy_ecs for it.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
     -   8:24am  -   `Erust`
 
@@ -124,3 +172,7 @@ import { Adsense } from '@/components/astropad';
 
             This will make sure that we have a timestamp to keep track of the creation within the file itself.
             We can also expand this in the future to include the pull request number, as a reference for the build.
+
+</BentoProse>
+
+</BentoDoc>

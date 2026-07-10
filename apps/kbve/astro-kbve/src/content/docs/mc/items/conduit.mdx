@@ -1,5 +1,6 @@
 ---
 title: Conduit
+template: splash
 description: |
     Minecraft Conduit — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,45 @@ mc_item:
     id: 650
     ref: conduit
     slug: conduit
+    content_rev: 1
     display_name: Conduit
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A conduit is an underwater block crafted from 8 nautilus shells and a heart of the sea. When
+            placed at the center of a frame built from at least 16 prismarine, dark prismarine, prismarine
+            bricks, or sea lantern blocks submerged in a 3x3x3 or larger water volume, it activates and
+            projects Conduit Power onto nearby players.
+        lore: |
+            Conduit Power grants water breathing, night vision, and haste to players in the water or rain,
+            while a fully framed conduit also strikes hostile aquatic mobs with periodic magic damage.
+    faq:
+        - question: |
+              How do you craft a conduit?
+          answer: |
+              Combine 8 nautilus shells around the edges of a crafting grid with 1 heart of the sea in the
+              center slot.
+        - question: |
+              How do you activate a conduit?
+          answer: |
+              Place the conduit in the middle of a water source at least 3x3x3, then surround it with a
+              frame of prismarine, dark prismarine, prismarine bricks, or sea lanterns — a minimum of 16
+              frame blocks triggers activation, up to 42 for the full 96-block effect range.
+        - question: |
+              What does Conduit Power do?
+          answer: |
+              It gives nearby players water breathing, night vision, and haste while they are in water or
+              rain, and a fully powered conduit also deals periodic magic damage to wet hostile mobs within
+              range.
+        - question: |
+              Where do nautilus shells come from?
+          answer: |
+              Nautilus shells mainly drop from drowned, and can also be found in ocean ruin chests or
+              traded from wandering traders.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

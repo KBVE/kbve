@@ -1,5 +1,6 @@
 ---
 title: Empty Map
+template: splash
 description: |
     Minecraft Empty Map — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 1163
     ref: map
     slug: map
+    content_rev: 1
     display_name: Empty Map
     category: map
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            An empty map is crafted from paper and a compass and serves as the blank starting point for Minecraft's mapping system. Once activated, it begins recording the surrounding terrain from a top-down view, covering roughly 64 blocks in the Overworld or End and 32 blocks in the Nether.
+            Empty maps stack up to 64, can be duplicated at a cartography table to keep multiple synced copies, and can be zoomed out up to four times to cover a much wider area.
+        lore: |
+            Introduced in the Beta 1.6 test builds, maps originally came pre-drawn on crafting until the 1.4.2 update changed crafted maps to start blank, matching how they still work today.
+    faq:
+        - question: How do you craft an empty map?
+          answer: |
+              Combine one compass and eight sheets of paper in a crafting grid; in Bedrock Edition, paper alone at a cartography table also works.
+        - question: What happens when you use an empty map?
+          answer: |
+              It becomes an activated map centered on your current position and begins drawing the terrain around you as you explore.
+        - question: Can empty maps be duplicated?
+          answer: |
+              Yes, an activated map can be cloned at a cartography table using extra paper, producing a copy that updates in sync with the original.
+        - question: How do you get a wider view on a map?
+          answer: |
+              Use a cartography table with extra paper to zoom the map out, up to four times, trading detail for a larger covered area.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

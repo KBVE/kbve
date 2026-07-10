@@ -1,5 +1,6 @@
 ---
 title: Skeleton Spawn Egg
+template: splash
 description: |
     Minecraft Skeleton Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1121
     ref: skeleton_spawn_egg
     slug: skeleton-spawn-egg
+    content_rev: 1
     display_name: Skeleton Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Skeleton Spawn Egg is a creative-mode item that instantly spawns a
+            skeleton when used on a block. Skeletons may spawn holding an enchanted
+            bow and wearing armor, making even artificially summoned ones capable
+            ranged opponents.
+        lore: |
+            An undead archer that stalks dark places, loosing arrows at any player
+            who strays too close.
+    faq:
+        - question: Do skeletons from spawn eggs differ from natural spawns?
+          answer: |
+              No, spawn eggs create standard skeletons only. Natural spawning can
+              occasionally produce variants like skeleton jockeys or wither
+              skeletons, which the egg does not.
+        - question: What makes skeleton combat dangerous?
+          answer: |
+              Their ranged bow attacks, sometimes enchanted, let them damage
+              players from a distance rather than relying on melee like zombies.
+        - question: What do skeletons drop when defeated?
+          answer: |
+              They drop bones and arrows, plus any bow or armor they were
+              spawned holding.
+        - question: How does peaceful difficulty affect spawned skeletons?
+          answer: |
+              All hostile mobs, including skeletons, are removed immediately on
+              peaceful difficulty, so a spawned skeleton vanishes right away.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

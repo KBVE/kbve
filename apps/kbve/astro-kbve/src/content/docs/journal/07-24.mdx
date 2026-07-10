@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1505236732171-72a5b19c4981?crop=entropy&c
 description: July 24th. LootTable
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 24,'
+    accent: every year.
+    lede: 'The July 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 23'
+          href: /journal/07-23/
+        - label: 'Jul 25 →'
+          href: /journal/07-25/
+    related:
+        - title: 'Previous · Jul 23'
+          copy: 'Step back a day to the July 23rd log.'
+          href: /journal/07-23/
+          icon: calendar
+        - title: 'Next · Jul 25'
+          copy: 'Jump ahead to the July 25th log.'
+          href: /journal/07-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1505236732171-72a5b19c4981?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Hulk
 
@@ -30,7 +71,15 @@ import { Adsense } from '@/components/astropad';
     For now, I want the dragons and the navy ships to have constant battles, then I will start to introduce ground troops like goblins and navy guards afterwards. 
     These units will move from tile to tile, setting up tents and engaging in long standing wars, with the player being able to either fly over and help or if flying too close, take damage.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **LootTable**
 
@@ -55,7 +104,10 @@ One way to handle this would be to take the rolls value and convert it over to a
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 5:45am - The morning was a bit too hot for my blood, I made the mistake of not running the AC over night at a set temp, but I woke up in a pool of sodium-fused run off. The goal for today will be to keep things simple and hit a couple minor tasks.
 - 7:00am - The bald spot has been increasing, I can no longer deny it, after getting out of the shower, I nearly saw my future bald self, I will have to... I am sorry, I must get stronger. The difference in self confidence will be depend on my ability to morph into the Rock or become a hermit buddha. 
 - 12:00pm - Roll my weekly option contracts and then take the credits! I will have a bit of a slow week, I am only looking at around $500~ in profits, as I am slowly diminishing my cash reserves a bit too fast. Ideally I would want to slow it down, but there are only so many cuts that I can make and the generation of income has also been growing too slow. I made notes of this earlier but need to get back on the grind.
@@ -64,13 +116,21 @@ One way to handle this would be to take the rolls value and convert it over to a
 - 8:15pm - Mini Charles aka Charlie needs to come back online as well. I started to plug some of the base components within the older StormTrooper PC Tower, the good news is that it turns on but the neutral news is that we are not too sure how well it can run and there are way too many spider webs. If any PC gamer saw what I have done to this machine, dear lord.
 - 8:32pm - Updating my daily journal and then going to push through the addition of codesee to the patch workflow action, let us see if that was worth wild. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Technology is anything that wasn't around when you were born.
 > — <cite>Man Ray</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] R&D The Pipeline
+
+</BentoProse>
+
+</BentoDoc>

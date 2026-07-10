@@ -36,6 +36,10 @@
 			"types": "./src/ui/index.ts",
 			"import": "./src/ui/index.ts"
 		},
+		"./ui/*": {
+			"types": "./src/ui/*.tsx",
+			"import": "./src/ui/*.tsx"
+		},
 		"./store": {
 			"types": "./src/store/index.ts",
 			"import": "./src/store/index.ts"
@@ -88,16 +92,5 @@
 	},
 	"publishConfig": {
 		"access": "public"
-	},
-	"scripts": {
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage"
-	},
-	"devDependencies": {
-		"@types/react": "^18.3.18",
-		"@types/react-native": "^0.76.0",
-		"vitest": "^3.0.2",
-		"@vitest/coverage-v8": "^3.0.2"
 	}
 }

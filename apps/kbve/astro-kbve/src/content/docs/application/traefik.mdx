@@ -1,38 +1,205 @@
 ---
 title: Traefik
 description: |
-    A cloud native application proxy that utilizes a modern HTTP reverse-proxy and load balancer.
+    Traefik is a cloud-native reverse proxy and load balancer with automatic service discovery and Let's Encrypt TLS.
+    This guide covers running Traefik with Docker Compose, patching and installing it on a Kubernetes (k3s) cluster,
+    wiring BasicAuth middleware, and automating Cloudflare DNS challenges for ACME certificates.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Traefik
     order: 1040
 unsplash: 1524419986249-348e8fa6ad4a
 img: https://images.unsplash.com/photo-1524419986249-348e8fa6ad4a?fit=crop&w=1400&h=700&q=75
+tags:
+    - network
+    - reverse-proxy
+    - kubernetes
+sem: 1
+ogTitle: Traefik Guide — Docker, Kubernetes CRDs, Middleware & Cloudflare TLS
+ogDescription: Configure Traefik as a cloud-native reverse proxy — Docker Compose setup, k3s patching, Custom Resource Definitions, BasicAuth middleware, and automated Cloudflare ACME certificates.
+jsonld:
+    type: Article
+    keywords:
+        - traefik
+        - reverse proxy
+        - kubernetes ingress
+        - middleware
+        - cloudflare acme
+    faq:
+        - question: What is Traefik?
+          answer: Traefik is a cloud-native reverse proxy and load balancer that automatically discovers services from providers like Docker and Kubernetes, and provisions Let's Encrypt TLS certificates without manual configuration.
+        - question: How is Traefik different from Nginx?
+          answer: Traefik discovers routes dynamically from labels and CRDs, so it reconfigures itself as containers start and stop. Nginx uses static config files that require a reload. Traefik also ships automatic ACME TLS, whereas Nginx needs an external tool like certbot.
+        - question: What is a Traefik middleware?
+          answer: Middleware modifies requests or responses as they pass through a router — for example BasicAuth, rate limiting, or header rewrites. On Kubernetes it is a Middleware CRD referenced from an Ingress or IngressRoute by namespace-qualified name.
+        - question: How does Traefik get TLS certificates from Cloudflare?
+          answer: Traefik uses the ACME DNS-01 challenge with Cloudflare's API. You supply a scoped API token (DNS:Edit and Zone:Read) via environment variables, and Traefik creates the required DNS TXT record automatically to prove domain ownership.
+        - question: What is the difference between Ingress and IngressRoute in Traefik?
+          answer: Ingress is the standard Kubernetes resource that Traefik supports via annotations. IngressRoute is Traefik's own CRD that exposes middleware chains, TLS resolvers, and expressive match rules directly, without relying on annotations.
+        - question: How do I secure the Traefik dashboard?
+          answer: Enable it with --api.dashboard=true, then attach a BasicAuth middleware referencing api@internal and never expose it publicly without authentication. In Docker Compose, escape dollar signs in the htpasswd hash as double dollar signs.
+        - question: Why does my Traefik htpasswd password break in Docker Compose?
+          answer: Compose treats a single dollar sign as variable substitution. Escape every dollar sign in the BasicAuth hash as a double dollar sign so the literal htpasswd value is passed through to Traefik.
+        - question: How does Traefik discover services automatically?
+          answer: Traefik watches a provider — the Docker socket, Kubernetes CRDs, or a config file — and builds routers from labels or resources as containers start and stop. This is why it needs no manual reload when your services change.
+bento:
+    badge: application · reverse-proxy · network
+    title: 'Routes that find themselves,'
+    accent: Traefik.
+    lede: >-
+        A cloud-native reverse proxy that discovers services dynamically from
+        Docker labels, Kubernetes CRDs, or file config — and provisions Let's
+        Encrypt TLS automatically. This guide moves from local to production:
+        Docker Compose, k3s patching, BasicAuth middleware, and Cloudflare
+        DNS-01 challenges for ACME certificates.
+    ctas:
+        - label: Docker Compose
+          href: '#docker'
+          primary: true
+        - label: Kubernetes
+          href: '#kubernetes'
+        - label: Config
+          href: '#config'
+        - label: Cloudflare ACME
+          href: '#cloudflare'
+    aside:
+        icon: route
+        title: No reloads, no config drift
+        body: >-
+            Traefik watches a provider — the Docker socket, Kubernetes CRDs,
+            or a config file — and rebuilds its routers as containers start
+            and stop. Certificates renew themselves through ACME, so routing
+            stays hands-off.
+        points:
+            - <strong>Discovery</strong> — routers built from labels and CRDs.
+            - <strong>Middleware</strong> — BasicAuth, rate limits, rewrites.
+            - <strong>TLS</strong> — automatic ACME via Cloudflare DNS-01.
+    stats:
+        - { label: TLS issuer, value: "Let's Encrypt", icon: lock }
+        - { label: ACME challenge, value: DNS-01, icon: key }
+        - { label: Providers, value: Docker · k8s, icon: network }
+        - { label: Dashboard port, value: ':8080', icon: chart }
+    features:
+        - title: Docker Compose
+          icon: package
+          href: '#docker'
+          body: Stand up Traefik locally with the socket mounted read-only, label-driven routing, and a whoami test service.
+        - title: Kubernetes & CRDs
+          icon: deploy
+          href: '#kubernetes'
+          body: Patch the k3s service, add the Helm repo, and wire Middleware resources into Ingress annotations.
+        - title: Config & IngressRoute
+          icon: gears
+          href: '#config'
+          body: Static vs dynamic configuration, the chmod 600 acme.json store, and Traefik's native IngressRoute CRD.
+        - title: Cloudflare ACME
+          icon: lock
+          href: '#cloudflare'
+          body: Scoped DNS:Edit and Zone:Read API tokens so Traefik solves the DNS-01 challenge automatically.
+    related:
+        - title: Nginx
+          href: /application/nginx/
+          copy: The static-config alternative — reloads, certbot, and classic proxying.
+          icon: server
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: The cluster Traefik fronts — k3s, Talos, and operations.
+          icon: deploy
+        - title: Docker
+          href: /application/docker/
+          copy: Containers, labels, and Compose — the provider Traefik watches.
+          icon: package
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1524419986249-348e8fa6ad4a?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
-Traefik is a cloud-hybrid reverse proxy and load balancer that makes deploying, configuring and integrating infrastructure components easy and automatic.
+Traefik is a cloud-native reverse proxy and load balancer that makes deploying, configuring, and integrating infrastructure components easy and automatic. Unlike a static proxy, Traefik discovers services dynamically from providers — Docker labels, Kubernetes CRDs, or file config — and reconfigures its routes as containers start and stop. It also provisions Let's Encrypt TLS certificates automatically.
 
----
+This guide moves from local to production: run Traefik with Docker Compose, patch and install it on a k3s Kubernetes cluster, attach BasicAuth middleware, and automate Cloudflare DNS challenges for ACME certificates.
 
-<Adsense />
+<Steps>
 
-## Docker
+1. **Docker** — Stand up Traefik locally with Compose and an `acme.json` for certificates.
+
+2. **Kubernetes** — Install the CRDs and RBAC, then patch the service and add Helm.
+
+3. **Middleware** — Isolate concerns like auth into `Middleware` resources referenced by Ingress.
+
+4. **Cloudflare** — Wire scoped API tokens so Traefik solves the ACME DNS-01 challenge automatically.
+
+</Steps>
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="docker" eyebrow="Local first" heading="Docker">
 
 Docker Compose - There should be an acme.json file that you create and pass through the docker with the permission of chmod 600. - Furthermore, there are two more files that you will have to configure and pass through before launching the traefik container. We provided them in the #config section below.
 
-## Kubernetes
+A complete `docker-compose.yml` that runs Traefik, mounts the Docker socket for auto-discovery, and routes to a `whoami` test service:
+
+```yaml
+services:
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--api.dashboard=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./acme.json:/acme.json"
+    restart: unless-stopped
+
+  whoami:
+    image: traefik/whoami
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+```
+
+Traefik reads the `traefik.*` labels on each container and builds routers automatically — no separate config file needed for basic routing. Mounting the Docker socket read-only (`:ro`) lets Traefik watch for containers starting and stopping.
+
+<Aside type="caution">
+Mounting `/var/run/docker.sock` gives Traefik root-equivalent access to the host. Keep it read-only and never expose the Traefik API/dashboard publicly without authentication.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="kubernetes" eyebrow="Cluster ingress" heading="Kubernetes">
 
 -   Patching Traefik on k3s cluster
 
@@ -40,7 +207,7 @@ Docker Compose - There should be an acme.json file that you create and pass thro
     -   Patch
 
         -   ```shell
-            sudo kubectl patch svc traefik -n kube-system -p '{"spec":{"externalTrafficPolicy":"Cluster"}}'`
+            sudo kubectl patch svc traefik -n kube-system -p '{"spec":{"externalTrafficPolicy":"Cluster"}}'
             ```
 
     -   std output should be `service/traefik patched`
@@ -122,17 +289,46 @@ Docker Compose - There should be an acme.json file that you create and pass thro
 
                         Its important to note the namespace of the middleware, `longhorn-system` , before calling the middleware's name. This is to let the crd know where the middleware is located.
 
----
+</BentoProse>
 
-## Config
+<BentoProse id="config" eyebrow="Static & dynamic" heading="Config">
 
-TODO: Need to migrate the Github Embeds.
+Traefik reads two kinds of configuration: **static** (`traefik.yml`, entrypoints and providers, loaded once at startup) and **dynamic** (routers, services, middleware, hot-reloaded at runtime). For Docker deployments, create the ACME store first so Traefik can persist issued certificates:
 
+```shell
+touch acme.json
+chmod 600 acme.json
+```
 
----
+<Aside type="caution">
+`acme.json` must be `chmod 600`. Traefik refuses to start if the permissions are too open, since the file holds private keys.
+</Aside>
 
+A minimal static `traefik.yml` enabling the Docker provider and a Let's Encrypt resolver:
 
-## Notes
+```yaml
+entryPoints:
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@kbve.com
+      storage: acme.json
+      dnsChallenge:
+        provider: cloudflare
+```
+
+Mount `acme.json` and `traefik.yml` into the container and pass the Cloudflare token (see [Cloudflare](#cloudflare) below) so the `dnsChallenge` resolver can complete.
+
+</BentoProse>
+
+<BentoProse id="notes" eyebrow="CRDs & IngressRoute" heading="Notes">
 
 [According to the notes on Traefik & Kubernetes](https://doc.traefik.io/traefik/providers/kubernetes-crd/)
 we first need to install the Resource Definitions and RBAC into `kubectl` by running the following commands:
@@ -162,11 +358,55 @@ This plugin (which is what we tried to reference before with the `auth@file` lin
 This will require setting up an IngressRoute (which is a specific Kubernetes resource added by the Traefik Resource Definitions) with settings to specify
 what the middlewares are. [Find more info on the Traefik Middlewares Here](https://doc.traefik.io/traefik/middlewares/overview/)
 
+### IngressRoute Example
 
----
+`IngressRoute` is Traefik's native alternative to the standard Kubernetes `Ingress`. It exposes Traefik-specific features — middleware chains, TLS resolvers, and match rules — directly, without annotation soup. This route attaches the `longhorn-auth` middleware from the previous example:
 
+```yaml
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: longhorn-route
+  namespace: longhorn-system
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`x.kbve.com`)
+      kind: Rule
+      middlewares:
+        - name: longhorn-auth
+      services:
+        - name: longhorn-service-provider
+          port: 8000
+  tls:
+    certResolver: letsencrypt
+```
 
-## Cloudflare
+The `match` rule uses Traefik's expression syntax — combine with `&&`, `||`, and `PathPrefix(...)` for fine-grained routing. `certResolver: letsencrypt` triggers automatic ACME certificate issuance for the host.
+
+</BentoProse>
+
+<BentoProse id="dashboard" eyebrow="See every route" heading="Dashboard">
+
+Traefik ships a web dashboard that visualizes every router, service, and middleware it has discovered — invaluable for debugging why a route isn't matching. Enable it with `--api.dashboard=true` (see the Compose example above), then secure it behind BasicAuth:
+
+```yaml
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.dashboard.rule=Host(`traefik.kbve.com`)"
+  - "traefik.http.routers.dashboard.service=api@internal"
+  - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
+  - "traefik.http.middlewares.dashboard-auth.basicauth.users=admin:$$apr1$$..."
+```
+
+<Aside type="caution">
+In Docker Compose, `$` must be escaped as `$$` inside label values, or Compose interprets it as variable substitution and your htpasswd hash breaks.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="cloudflare" eyebrow="Automated TLS" heading="Cloudflare">
 
 These are notes on integrating `Cloudflare` with `Traefik`, including automating some of the actions so that you may not have to repeat them.
 
@@ -182,3 +422,11 @@ Common environmental variable names and their purpose:
 -   `CF_API_KEY` - The Cloudflare API key.
 -   `CF_DNS_API_TOKEN` - The API token with `DNS:Edit` permission.
 -   `CF_ZONE_API_TOKEN` - The API token with `Zone:Read` permission.
+
+<Aside type="tip">
+Prefer the scoped `CF_DNS_API_TOKEN` + `CF_ZONE_API_TOKEN` pair over the legacy global `CF_API_KEY`. A scoped token limits blast radius if leaked, and Cloudflare recommends it for ACME DNS challenges.
+</Aside>
+
+</BentoProse>
+
+</BentoDoc>

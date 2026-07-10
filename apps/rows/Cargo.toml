@@ -1,8 +1,9 @@
 [package]
 name = "rows"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.36"
+version = "0.1.37"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 description = "Rust OWS — single-binary game backend (REST + gRPC)"
 
@@ -22,7 +23,7 @@ prost-types = "0.14"
 
 # Tower (shared middleware layer for axum + tonic multiplexing)
 tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit", "steer"] }
-tower-http = { version = "0.6.8", features = ["compression-full", "limit", "trace", "cors", "set-header", "timeout"] }
+tower-http = { version = "0.7.0", features = ["compression-full", "limit", "trace", "cors", "set-header", "timeout"] }
 hyper = { version = "1", features = ["full"] }
 hyper-util = { version = "0.1", features = ["tokio", "server-auto", "http1", "http2"] }
 http = "1"
@@ -76,7 +77,7 @@ kbve = { path = "../../packages/rust/kbve" }
 tonic-prost-build = "0.14.5"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.6", optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
 
 [features]
 default = []

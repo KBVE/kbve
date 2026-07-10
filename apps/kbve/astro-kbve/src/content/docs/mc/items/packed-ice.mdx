@@ -1,5 +1,6 @@
 ---
 title: Packed Ice
+template: splash
 description: |
     Minecraft Packed Ice — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 493
     ref: packed_ice
     slug: packed-ice
+    content_rev: 1
     display_name: Packed Ice
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Packed ice is a solid, opaque variant of ice that never melts, even near light
+            sources. It can be mined only with a Silk Touch tool, but is fully renewable
+            since nine ice blocks can be crafted together to make one packed ice block.
+        lore: |
+            An unmelting frozen block prized by builders and racers for its extreme
+            slipperiness, which lets boats and entities slide across it at high speed.
+    faq:
+        - question: |
+              How do you get packed ice in Minecraft?
+          answer: |
+              Mine it with a Silk Touch pickaxe, craft it from 9 ice blocks, buy it from a
+              wandering trader for one emerald, or find it naturally in ice spikes, frozen
+              oceans, frozen peaks, and snowy villages.
+        - question: |
+              Does packed ice melt?
+          answer: |
+              No. Unlike regular ice, packed ice never melts, even when placed near torches
+              or other light sources.
+        - question: |
+              What is packed ice used for?
+          answer: |
+              It is mainly used for fast boat and mob sliding tracks, decorative icy builds,
+              and as a crafting ingredient for blue ice, which is even more slippery.
+        - question: |
+              Can you turn packed ice into blue ice?
+          answer: |
+              Yes, combining 9 packed ice blocks in a crafting grid produces 1 block of blue
+              ice, which has an even lower friction value.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

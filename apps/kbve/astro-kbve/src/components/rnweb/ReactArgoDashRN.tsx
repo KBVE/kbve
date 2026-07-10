@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { StreamView, createArgoStream, createArgoLens } from '@kbve/rn/dash';
 import { initSupa, getSupa } from '@/lib/supa';
+import { DASH_PROXY_BASE } from './dashProxyBase';
 
 async function getToken(): Promise<string | null> {
 	try {
@@ -19,8 +20,14 @@ async function getToken(): Promise<string | null> {
  * web via react-native-web — the same source + lens a future Expo screen mounts.
  */
 export default function ReactArgoDashRN() {
-	const store = useMemo(() => createArgoStream({ getToken }), []);
-	const lens = useMemo(() => createArgoLens({ getToken }), []);
+	const store = useMemo(
+		() => createArgoStream({ getToken, baseUrl: DASH_PROXY_BASE }),
+		[],
+	);
+	const lens = useMemo(
+		() => createArgoLens({ getToken, baseUrl: DASH_PROXY_BASE }),
+		[],
+	);
 	return (
 		<StreamView
 			store={store}

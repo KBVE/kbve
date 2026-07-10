@@ -1,5 +1,6 @@
 ---
 title: Mangrove Roots
+template: splash
 description: |
     Minecraft Mangrove Roots — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 58
     ref: mangrove_roots
     slug: mangrove-roots
+    content_rev: 1
     display_name: Mangrove Roots
     material: plant
     hardness: 0.7
@@ -20,14 +22,61 @@ mc_block:
     best_tool: axe
     required_tool_tier: 0
     light_emission: 0
-    light_opacity: 1
+    light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_roots
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Mangrove Roots form the tangled, waterloggable root systems
+            that support mangrove trees above swamp water. Uniquely among
+            transparent blocks, they conduct redstone power while letting
+            players and mobs walk through without suffocating.
+        lore: |
+            Mangrove Roots were announced at Minecraft Live 2021 and added
+            in Java Edition 1.19 with the mangrove swamp biome.
+    uses:
+        - title: Muddy Mangrove Roots
+          ref: muddy_mangrove_roots
+          detail: Combine with Mud in a crafting grid to craft Muddy Mangrove Roots.
+        - title: Redstone Conductor
+          ref: redstone
+          detail: |
+              Transmits redstone signals through the block despite being
+              transparent and non-solid to entities.
+    found_in:
+        - location: Mangrove Swamp
+          detail: Generates naturally as the root systems beneath mangrove trees.
+        - location: Trial Chamber
+          detail: Appears in some trial chamber entrance rooms.
+    faq:
+        - question: What is the best tool to mine Mangrove Roots?
+          answer: |
+              An axe is fastest, though any tool or bare hands work since
+              there is no tool tier requirement.
+        - question: Do Mangrove Roots stop entities from moving through them?
+          answer: |
+              No, entities pass through them freely without suffocating,
+              despite the block appearing solid.
+        - question: Can redstone travel through Mangrove Roots?
+          answer: |
+              Yes, they are one of the few transparent, non-solid blocks
+              that still conduct redstone power.
+        - question: What can Mangrove Roots be crafted into?
+          answer: |
+              Combining them with Mud produces Muddy Mangrove Roots.
     data_version: "1.21.5"
 ---
 

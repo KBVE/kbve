@@ -1,5 +1,6 @@
 ---
 title: Lime Shulker Box
+template: splash
 description: |
     Minecraft Lime Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 558
     ref: lime_shulker_box
     slug: lime-shulker-box
+    content_rev: 1
     display_name: Lime Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Lime Shulker Box is a portable storage block that keeps its 27 item slots intact even when broken and picked back up. It is crafted from a chest and two shulker shells, then dyed lime, letting players carry and organize large amounts of loot safely.
+        lore: |
+            A lime-tinted shell of an End creature, hollowed out to hold whatever a wandering adventurer dares to stash inside.
+    faq:
+        - question: How do I make a Lime Shulker Box?
+          answer: |
+              Craft a plain shulker box from a chest and two shulker shells, then combine it with lime dye in a crafting grid to recolor it, or craft it directly with lime dye included.
+        - question: Does breaking a Lime Shulker Box destroy its contents?
+          answer: |
+              No, mining a shulker box with any tool preserves its inventory; the box drops as an item still containing everything that was stored inside.
+        - question: How many items can a Lime Shulker Box hold?
+          answer: |
+              It holds 27 item stacks, the same capacity as a standard chest, and multiple boxes can be nested inside a player's inventory or ender chest for massive portable storage.
+        - question: Can I change the color of a Lime Shulker Box later?
+          answer: |
+              Yes, dye it again with a different color to recolor it, or wash it in a cauldron with water to remove the dye and return it to its undyed purple-shelled state.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

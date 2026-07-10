@@ -84,8 +84,6 @@
 			"types": "./components/social/twitch/ServiceTwitch.d.ts"
 		},
 		"./components/social/discord/DiscordEmbed.astro": "./components/social/discord/DiscordEmbed.astro",
-		"./components/social/discord/DiscordCalendar.astro": "./components/social/discord/DiscordCalendar.astro",
-		"./components/social/discord/DiscordRule.astro": "./components/social/discord/DiscordRule.astro",
 		"./components/social/discord/ReactDiscordEmbed": {
 			"import": "./components/social/discord/ReactDiscordEmbed.js",
 			"types": "./components/social/discord/ReactDiscordEmbed.d.ts"
@@ -105,6 +103,7 @@
 		"./components/social/github/Activity/AstroGithubActivity.astro": "./components/social/github/Activity/AstroGithubActivity.astro",
 		"./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro": "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro",
 		"./components/social/github/Contribute/AstroGithubContribute.astro": "./components/social/github/Contribute/AstroGithubContribute.astro",
+		"./components/social/github/Readme/AstroGithubReadme.astro": "./components/social/github/Readme/AstroGithubReadme.astro",
 		"./components/utility/DeferredSection.astro": "./components/utility/DeferredSection.astro",
 		"./components/social/icons/SocialIcon.astro": "./components/social/icons/SocialIcon.astro",
 		"./components/social/comic/KBVEComicSocials.astro": "./components/social/comic/KBVEComicSocials.astro",

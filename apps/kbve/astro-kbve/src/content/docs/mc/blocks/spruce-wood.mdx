@@ -1,5 +1,6 @@
 ---
 title: Spruce Wood
+template: splash
 description: |
     Minecraft Spruce Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 72
     ref: spruce_wood
     slug: spruce-wood
+    content_rev: 1
     display_name: Spruce Wood
     material: wood
     hardness: 2
@@ -24,10 +26,63 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Spruce Wood is the all-bark block form of spruce logs, made by
+            placing four spruce logs in a 2x2 crafting grid. It behaves like
+            any log for fuel and building purposes but shows bark texture on
+            every face instead of rings on the ends.
+        lore: |
+            Wood blocks exist mainly as a compact, all-sides-bark building
+            option and a way to convert spare logs into more planks.
+    uses:
+        - title: Spruce Planks
+          ref: spruce_planks
+          detail: |
+              Each Spruce Wood block crafts into 4 Spruce Planks, the same
+              yield as a spruce log, making it a space-efficient plank
+              source.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns in a furnace or smoker for 15 seconds per block, the
+              same as a log.
+    found_in:
+        - location: Crafted, not found naturally
+          detail: |
+              Made from 4 Spruce Logs in a 2x2 crafting grid; Silk Touch on
+              a log does not produce it.
+    faq:
+        - question: What tool do I need to break Spruce Wood?
+          answer: |
+              None — it can be broken by hand, though an axe is fastest and
+              always drops the block regardless of tool.
+        - question: Does Spruce Wood burn?
+          answer: |
+              Yes, it is flammable and catches fire from lava or nearby
+              flames like other log and wood blocks.
+        - question: How is Spruce Wood different from a Spruce Log?
+          answer: |
+              Spruce Wood shows bark on all six faces, while a Spruce Log
+              shows rings on the top and bottom. Both give the same planks
+              and fuel value.
+        - question: Can I get Spruce Wood with Silk Touch?
+          answer: |
+              No. Silk Touch on a placed log yields the log's stripped or
+              unstripped wood counterpart only if it was already a wood
+              block; logs themselves always drop as logs.
     data_version: "1.21.5"
 ---
 

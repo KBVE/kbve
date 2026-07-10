@@ -1,5 +1,6 @@
 ---
 title: Polished Andesite
+template: splash
 description: |
     Minecraft Polished Andesite — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,73 @@ mc_block:
     id: 7
     ref: polished_andesite
     slug: polished-andesite
+    content_rev: 1
     display_name: Polished Andesite
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_andesite
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Polished Andesite is the smooth, gray-flecked building variant of
+            andesite, produced by crafting or stonecutting the raw stone. It
+            shares andesite's hardness and blast resistance but reads as a
+            cleaner, more uniform surface for construction.
+        lore: |
+            It became a renewable block in Java Edition 1.14 when mason
+            villagers began selling it in exchange for emeralds.
+    uses:
+        - title: Polished Andesite Slab
+          ref: polished_andesite_slab
+          detail: |
+              Three Polished Andesite blocks craft six slabs, useful for
+              half-height detailing on stairs and floors.
+        - title: Polished Andesite Stairs
+          ref: polished_andesite_stairs
+          detail: |
+              Six Polished Andesite blocks craft four stairs for sloped
+              rooflines and steps.
+    found_in:
+        - location: Igloo basement
+          detail: A single Polished Andesite block spawns in the hidden basement room beneath some igloos.
+        - location: Woodland mansion and trial chambers
+          detail: Appears as decorative flooring and wall trim in mansion rooms and near trial chamber supply chests.
+        - location: Mason villager trades
+          detail: Journeyman-level mason villagers sell four Polished Andesite for one emerald.
+    faq:
+        - question: What tool do I need to mine Polished Andesite?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe drops
+              nothing.
+        - question: How do I craft Polished Andesite?
+          answer: |
+              Combine four Andesite blocks in a crafting grid, or cut one
+              Andesite through a stonecutter for a 1:1 conversion.
+        - question: Is Polished Andesite renewable?
+          answer: |
+              Yes. Mason villagers sell it, and andesite itself is
+              effectively unlimited underground, so the supply never runs out.
+        - question: Does Fortune increase Polished Andesite drops?
+          answer: |
+              No. It always drops exactly one block regardless of Fortune or
+              Silk Touch.
     data_version: "1.21.5"
 ---
 

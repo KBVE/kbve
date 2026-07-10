@@ -1,5 +1,6 @@
 ---
 title: Pale Hanging Moss
+template: splash
 description: |
     Minecraft Pale Hanging Moss — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 1098
     ref: pale_hanging_moss
     slug: pale-hanging-moss
+    content_rev: 1
     display_name: Pale Hanging Moss
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
+    solid: false
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_hanging_moss
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Hanging Moss is a decorative, non-solid vine that dangles
+            from pale oak logs and leaves in the pale garden biome. It only
+            drops itself when broken with shears or a Silk Touch tool, and
+            unlike regular hanging moss it is flammable.
+        lore: |
+            Added with the Garden Awakens update alongside pale oak and the
+            pale garden biome, its drooping strands were inspired by
+            real-world Spanish moss.
+    uses:
+        - title: Composting
+          ref: compost
+          detail: |
+              Place in a composter for a 30% chance to raise the compost
+              level, useful for bone meal farming.
+    found_in:
+        - location: Pale Garden
+          detail: Generates naturally hanging beneath pale oak logs and leaves throughout the biome.
+        - location: Wandering Trader
+          detail: Sold in stacks of 3 for 1 emerald at a 7% chance.
+    faq:
+        - question: What tool do I need to harvest Pale Hanging Moss?
+          answer: |
+              Shears or any tool with Silk Touch. Breaking it any other way
+              destroys it with no drop.
+        - question: Does Pale Hanging Moss spread on its own?
+          answer: |
+              No, it does not grow naturally after being placed, but bone
+              meal on the block above extends it one block downward.
+        - question: Is Pale Hanging Moss flammable?
+          answer: |
+              Yes, unlike ordinary moss it catches fire from lava and
+              nearby flames.
+        - question: Where does Pale Hanging Moss generate?
+          answer: |
+              Only in the pale garden biome, including its pale variant of
+              abandoned camps.
     data_version: "1.21.5"
 ---
 

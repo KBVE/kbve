@@ -7,6 +7,7 @@ metadata:
     namespace: argocd
     annotations:
         argocd.argoproj.io/sync-wave: '3'
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
     finalizers:
         - resources-finalizer.argocd.argoproj.io
 spec:
@@ -18,6 +19,11 @@ spec:
     destination:
         server: https://kubernetes.default.svc
         namespace: angelscript
+    ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+              - /spec/replicas
     syncPolicy:
         automated:
             prune: true
@@ -25,6 +31,7 @@ spec:
         syncOptions:
             - CreateNamespace=true
             - ServerSideApply=true
+            - RespectIgnoreDifferences=true
         retry:
             limit: 3
             backoff:

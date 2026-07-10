@@ -81,3 +81,21 @@ apps/agones/arpg/web/public/assets/arcade/arpg/**/*.webp filter=lfs diff=lfs mer
 # the repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the endpoint.
 apps/cryptothrone/astro-cryptothrone/public/assets/**/*.png  filter=lfs diff=lfs merge=lfs -text
 apps/cryptothrone/astro-cryptothrone/public/assets/**/*.webp filter=lfs diff=lfs merge=lfs -text
+
+# Herbmail — apps/herbmail/herbmail-game PSX-style vite game art (textures + models + audio)
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/herbmail.git
+# (see apps/herbmail/herbmail-game/public/.lfsconfig). Push/pull the blobs to the
+# herbmail endpoint with `./kbve.sh -lfs herbmail <push|pull|register|...>`; the
+# repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the endpoint.
+apps/herbmail/herbmail-game/public/**/*.png  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.webp filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.jpg  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.glb  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.gltf filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.fbx  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.mp3  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.ogg  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.wav  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/art/**/*.blend   filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/art/**/*.fbx     filter=lfs diff=lfs merge=lfs -text

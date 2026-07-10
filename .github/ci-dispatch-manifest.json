@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.218",
+			"version": "1.0.229",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -83,7 +83,7 @@
 		{
 			"key": "arpg_server",
 			"app_name": "arpg-server",
-			"version": "0.1.20",
+			"version": "0.1.26",
 			"version_toml": "apps/agones/arpg/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
 			"version_target": "apps/agones/arpg/server/Cargo.toml",
@@ -96,7 +96,7 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.20",
+			"version": "0.1.26",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
 			"version_target": "apps/agones/arpg/web/version.toml",
@@ -125,7 +125,7 @@
 		{
 			"key": "chisel_ubuntu_axum",
 			"app_name": "chisel-ubuntu-axum",
-			"version": "24.04.7",
+			"version": "24.04.10",
 			"version_toml": "packages/docker/chisel-ubuntu-axum/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chisel.mdx",
 			"source_path": "packages/docker/chisel-ubuntu-axum",
@@ -205,7 +205,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.45",
+			"version": "0.1.46",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -316,7 +316,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.27",
+			"version": "0.1.28",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -356,7 +356,7 @@
 		{
 			"key": "kbve_gate",
 			"app_name": "kbve-gate",
-			"version": "0.1.6",
+			"version": "0.1.8",
 			"version_toml": "apps/kbve/kbve-gate/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-gate.mdx",
 			"version_target": "apps/kbve/kbve-gate/Cargo.toml",
@@ -369,7 +369,8 @@
 				"apps/kube/argocd/manifests/argocd-gate-deployment.yaml",
 				"apps/kube/storage/manifests/longhorn-gate-deployment.yaml",
 				"apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml",
-				"apps/kube/studio/manifests/studio-gate-deployment.yaml"
+				"apps/kube/studio/manifests/studio-gate-deployment.yaml",
+				"apps/kube/windmill/manifest/windmill-gate-deployment.yaml"
 			],
 			"has_test": false
 		},
@@ -414,7 +415,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.58",
+			"version": "1.0.65",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -425,10 +426,11 @@
 			"has_test": true,
 			"external_publish": {
 				"modrinth_mod_id": "QoFCg0tO",
-				"modrinth_pack_id": "GktWTywL",
+				"modrinth_pack_id": "86Wqkiak",
 				"modrinth_version_type": "release",
 				"modrinth_game_versions": "[\"1.21.11\"]",
-				"modrinth_loaders": "[\"fabric\"]"
+				"modrinth_loaders": "[\"fabric\"]",
+				"modrinth_server_address": "mc.kbve.com"
 			}
 		},
 		{
@@ -474,7 +476,7 @@
 		{
 			"key": "metrics",
 			"app_name": "metrics",
-			"version": "0.1.4",
+			"version": "0.1.5",
 			"version_toml": "apps/metrics/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/metrics.mdx",
 			"version_target": "apps/metrics/Cargo.toml",
@@ -503,7 +505,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.32",
+			"version": "0.1.37",
 			"version_toml": "apps/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/rows/Cargo.toml",
@@ -532,7 +534,7 @@
 		{
 			"key": "devops",
 			"package_name": "devops",
-			"version": "0.0.19",
+			"version": "0.0.22",
 			"version_toml": "packages/npm/devops/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/devops.mdx",
 			"version_target": "packages/npm/devops/package.json"
@@ -556,7 +558,7 @@
 		{
 			"key": "laser",
 			"package_name": "laser",
-			"version": "0.1.4",
+			"version": "0.1.5",
 			"version_toml": "packages/npm/laser/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/laser.mdx",
 			"version_target": "packages/npm/laser/package.json"
@@ -898,6 +900,7 @@
 			"key": "ue_kbvenet",
 			"plugin_name": "KBVENet",
 			"plugin_path": "packages/unreal/KBVENet",
+			"dependency_plugins": "packages/unreal/KBVESupabase packages/unreal/KBVEWorld packages/unreal/KBVEGameplay packages/unreal/KBVEYYJson packages/unreal/KBVENPCDB",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
@@ -1212,7 +1215,7 @@
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.44",
+			"version": "0.3.45",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
 			"runner": "arc-runner-ue",
@@ -1256,6 +1259,38 @@
 			}
 		},
 		{
+			"key": "unreal_deathslayer",
+			"app_name": "deathslayer",
+			"engine": {
+				"version": "5.8.0",
+				"project_path": "deathslayer",
+				"build_targets": [
+					"Win64",
+					"Linux",
+					"Mac"
+				],
+				"external_repo_url": "https://github.com/KBVE/deathslayer",
+				"server_target": "deathslayerServer",
+				"server_config": "Shipping",
+				"client_config": "Shipping",
+				"maps": [
+					"/Game/Menus/L_MainMenu",
+					"/Game/Maps/L_DeathSlayerWorld"
+				],
+				"game_mode": "/Script/DeathSlayer.DeathSlayerGameMode"
+			},
+			"source_path": "apps/deathslayer/unreal-deathslayer",
+			"shell_path": "apps/deathslayer/unreal-deathslayer",
+			"version": "0.1.0",
+			"version_toml": "apps/deathslayer/unreal-deathslayer/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-deathslayer.mdx",
+			"runner": "arc-runner-ue",
+			"external_publish": {
+				"itch_user": "kbve",
+				"itch_game": "deathslayer"
+			}
+		},
+		{
 			"key": "unreal_rentearth",
 			"app_name": "rentearth",
 			"engine": {
@@ -1287,8 +1322,8 @@
 		"ue5_server": 1,
 		"unity": 1,
 		"godot": 0,
-		"unreal_game": 3,
+		"unreal_game": 4,
 		"bevy_game": 0,
-		"total": 98
+		"total": 99
 	}
 }

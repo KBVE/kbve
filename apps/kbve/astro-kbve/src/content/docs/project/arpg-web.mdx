@@ -1,7 +1,7 @@
 ---
-title: ARPG Web
-description: |
-    Standalone Vite client for the ARPG — a third play surface (alongside kbve.com/arcade/arpg and the Discord embed) served as static files at arpg.kbve.com.
+title: ARPG Web — Standalone Vite Game Client and CDN
+description: Standalone Vite + React ARPG client served as static files at arpg.kbve.com, the single source of truth feeding the arcade page and Discord Activity embed.
+sem: 1
 sidebar:
     label: ARPG Web
     order: 60
@@ -13,12 +13,9 @@ tags:
 key: arpg_web
 pipeline: docker
 app_name: arpg-web
-version: "0.1.22"
+version: "0.1.27"
 source_path: apps/agones/arpg
 version_toml: apps/agones/arpg/web/version.toml
-# Pre-build sync: CI writes this MDX `version` into version_target BEFORE the docker
-# build so the baked bundle (PUBLIC_ARPG_VERSION) matches the image tag instead of
-# lagging a publish cycle (version.toml is otherwise only bumped post-publish).
 version_source: apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx
 version_target: apps/agones/arpg/web/version.toml
 runner: arc-runner-set
@@ -37,9 +34,84 @@ kube:
     tier: web
     owner: h0lybyte
     criticality: low
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is arpg-web?
+          answer: arpg-web is a standalone Vite + React client for the ARPG, served as static files behind nginx at arpg.kbve.com. It is the single source of truth for the game, with source under apps/agones/arpg/web/src/game/.
+        - question: How do the three ARPG play surfaces share one build?
+          answer: The Vite source builds three modes — the standalone app for arpg.kbve.com, an embed IIFE bundle loaded cross-origin by kbve.com/arcade/arpg, and a Discord Activity bundle. arpg.kbve.com acts as the CDN that serves all of them plus the Git-LFS sprite art.
+        - question: Does arpg-web support guest play?
+          answer: No. The client runs a real Supabase login and the resulting session JWT is verified by arpg-server against Supabase GoTrue. An empty or invalid token is denied — there is no guest path.
+bento:
+    badge: game-client · vite · arpg
+    title: Standalone game client
+    accent: ARPG Web
+    lede: >-
+        A standalone Vite + React client for the ARPG, served as static files
+        behind nginx at arpg.kbve.com. It is the single source of truth for the
+        game — and the CDN that feeds the arcade page and Discord Activity embed.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/agones/arpg/web
+          primary: true
+          external: true
+        - label: Build
+          href: "#build"
+        - label: Testing
+          href: "#testing"
+    aside:
+        icon: box
+        title: One source, three surfaces
+        body: >-
+            The game source, embed entries, and sprite art all live under
+            <code>apps/agones/arpg/web/</code>. Three build modes share it — the
+            standalone app, an embed IIFE for <a href="/project/api/">kbve.com/arcade</a>,
+            and a Discord Activity bundle.
+        points:
+            - <strong>CDN</strong> — arpg.kbve.com serves app, embed, Activity + LFS art.
+            - <strong>No guest path</strong> — real Supabase login, verified by arpg-server.
+    stats:
+        - { label: App, value: arpg-web, icon: box }
+        - { label: Client, value: Vite + React, icon: code }
+        - { label: Image, value: kbve/arpg-web, icon: package }
+        - { label: Status, value: beta, icon: activity }
+    features:
+        - title: Single source of truth
+          icon: box
+          body: The game source lives at <code>apps/agones/arpg/web/src/game/</code>; the arcade page and Discord embed consume a built bundle, not the source.
+        - title: Three build modes
+          icon: expand
+          body: <code>vite build</code> emits the standalone app, an <code>--mode embed</code> IIFE bundle, and an <code>--mode discord</code> Activity bundle from one source.
+        - title: CDN origin
+          icon: network
+          body: 'arpg.kbve.com serves the app, embed bundle, Discord Activity, and the Git-LFS sprite art cross-origin with <code>Access-Control-Allow-Origin: *</code>.'
+        - title: Real Supabase auth
+          icon: key
+          body: The client runs a real Supabase login; the session JWT is verified by arpg-server against GoTrue. Empty or invalid tokens are denied — no guest path.
+    related:
+        - title: ARPG Server
+          href: /project/arpg-server/
+          copy: The game server this client connects to over /ws.
+          icon: server
+        - title: ROWS
+          href: /project/rows/
+          copy: The shared Rust game backend used across KBVE games.
+          icon: database
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Why it exists" heading="Overview">
 
 `arpg-web` is a standalone [Vite](https://vite.dev) + React client for the **ARPG**, served as static files behind nginx. It **is** the single source of truth for the game — the source lives at `apps/agones/arpg/web/src/game/`. The two other play surfaces (the Astro page at `kbve.com/arcade/arpg/` and the Discord Activity embed) consume a built **bundle** emitted from this app rather than the game source, so all three surfaces run one build.
 
@@ -57,7 +129,9 @@ The game source, embed entries, and sprite art all live under `apps/agones/arpg/
 
 `arpg.kbve.com` is the CDN: it serves the app, the embed bundle (`/arpg-embed.js`), the Discord Activity (`/discord/arpg/`), and the Git-LFS-tracked sprite art (`public/assets/arcade/arpg/`, blobs on `git.kbve.com/KBVE/arpg.git`). The other surfaces load the bundle, Activity page, and art cross-origin from it (nginx sends `Access-Control-Allow-Origin: *` on `/assets/` and `/arpg-embed.js`). Nothing arpg-specific ships into the astro site.
 
-## Build
+</BentoProse>
+
+<BentoProse id="build" eyebrow="Pipeline" heading="Build, container & deploy">
 
 ```bash
 nx run arpg:web-build           # app + embed bundle -> dist/ (arpg.kbve.com serves both)
@@ -65,9 +139,7 @@ nx run arpg:web-build-embed     # embed bundle only -> dist/arpg-embed.js
 nx run arpg:web-build-discord   # Discord bundle -> dist/discord/arpg/arpg.js
 ```
 
-`web-build` runs `vite build && vite build --mode embed && vite build --mode discord`, so `apps/agones/arpg/web/dist` holds the standalone app (`index.html`), the embed bundle (`arpg-embed.js`), and the Discord Activity bundle (`discord/arpg/arpg.js`). The container bakes all of it behind nginx, so **arpg.kbve.com is the CDN** — `kbve.com/arcade/arpg` loads `arpg.kbve.com/arpg-embed.js` cross-origin (like the art), the Discord Activity loads from `arpg.kbve.com/discord/arpg/`, and nothing arpg-specific is bundled into the astro site.
-
-## Container
+`web-build` runs `vite build && vite build --mode embed && vite build --mode discord`, so `apps/agones/arpg/web/dist` holds the standalone app (`index.html`), the embed bundle (`arpg-embed.js`), and the Discord Activity bundle (`discord/arpg/arpg.js`). The container bakes all of it behind nginx, so **arpg.kbve.com is the CDN**.
 
 ```bash
 nx run arpg:container-web
@@ -75,15 +147,13 @@ nx run arpg:container-web
 
 Multi-stage: a Node stage runs the Vite build with prod endpoints baked in (`PUBLIC_ARPG_GAME_WS=wss://arpg.kbve.com/ws`, `PUBLIC_SUPABASE_URL=https://supabase.kbve.com`), then an `nginx:alpine` stage serves the static `dist` on `:5402` with an SPA fallback. CI publishes `kbve/arpg-web`.
 
-## Auth
+**Deploy** — `arpg.kbve.com` routes split: `/ws` (and the WebSocket upgrade) → the `arpg-server` game pods on `:7979`; everything else → this static app on `:5402`. See `apps/kube/agones/arpg/manifests/web-deployment.yaml` and `game-httproute.yaml`.
 
-The client runs the real Supabase login (`buildNetConfig` → `src/lib/auth.ts`, a web-local Supabase session bridge); the resulting session JWT is verified by `arpg-server` against Supabase GoTrue (shared `jedi` JWT cache). An empty/invalid token is denied — there is no guest path.
+**Auth** — the client runs the real Supabase login (`buildNetConfig` → `src/lib/auth.ts`, a web-local Supabase session bridge); the resulting session JWT is verified by `arpg-server` against Supabase GoTrue (shared `jedi` JWT cache). An empty/invalid token is denied — there is no guest path.
 
-## Deploy
+</BentoProse>
 
-`arpg.kbve.com` routes split: `/ws` (and the WebSocket upgrade) → the `arpg-server` game pods on `:7979`; everything else → this static app on `:5402`. See `apps/kube/agones/arpg/manifests/web-deployment.yaml` and `game-httproute.yaml`.
-
-## Testing
+<BentoProse id="testing" eyebrow="Quality" heading="Testing">
 
 Playwright e2e for the whole stack lives in `apps/agones/arpg/arpg-e2e` (Nx project `arpg-e2e`):
 
@@ -98,6 +168,8 @@ nx run arpg-e2e:e2e:cdn      # the built nginx image — CORS, embed + Discord b
 - **Web** — boots the Vite dev server with the prod Supabase URL injected and asserts the app shell loads, mounts its root, serves the SPA fallback, and boots with no uncaught console error.
 - **CDN** (`e2e:cdn`) — runs the built `kbve/arpg-web` nginx image (needs Docker, so it's the container tier like `irc-e2e:e2e:docker`) and asserts the real CDN headers the other surfaces depend on: `Access-Control-Allow-Origin: *` on `/arpg-embed.js` and `/assets/`, the Discord Activity page + bundle under `/discord/arpg/`, and the SPA fallback. Build the image first (`nx run arpg:container-web`).
 
-### Status
-
 Beta — local dev runs the full stack via `nx run arpg:dev`; production `arpg.kbve.com` serves this client once the image is baked and the HTTPRoute split lands.
+
+</BentoProse>
+
+</BentoDoc>

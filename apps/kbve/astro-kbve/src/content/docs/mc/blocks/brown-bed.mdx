@@ -1,5 +1,6 @@
 ---
 title: Brown Bed
+template: splash
 description: |
     Minecraft Brown Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,74 @@ mc_block:
     id: 122
     ref: brown_bed
     slug: brown-bed
+    content_rev: 1
     display_name: Brown Bed
     material: stone
     hardness: 0.2
     blast_resistance: 0.2
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Brown Bed is a two-block sleeping furniture item dyed brown.
+            It breaks instantly with any tool and always drops itself, and
+            it sets the player's respawn point when slept in within the
+            Overworld.
+        lore: |
+            Colored beds were added in Java Edition 1.12 alongside dyed
+            wool and carpet, letting builders match beds to any color
+            scheme.
+    uses:
+        - title: Sleeping / Respawn Point
+          ref: brown_bed
+          detail: |
+              Sleeping in a bed at night sets the player's spawn point and,
+              if all players in the dimension sleep, skips to morning.
+        - title: Bed Explosive
+          ref: brown_bed
+          detail: |
+              Using a bed in the Nether or the End detonates it with an
+              explosion power of 5, useful for clearing terrain such as
+              Ancient Debris deposits.
+    found_in:
+        - location: Savanna Villages
+          detail: Generates in savanna village houses alongside orange and yellow beds.
+        - location: Crafting or dyeing
+          detail: Craft with brown wool and any planks, or dye an existing bed brown.
+        - location: Shepherd trades
+          detail: Shepherd villagers sell beds for 3 emeralds.
+    faq:
+        - question: What tool do I need to mine Brown Bed?
+          answer: |
+              None. It breaks almost instantly with any tool or bare
+              hands.
+        - question: Does Brown Bed explode in the Nether?
+          answer: |
+              Yes. Attempting to sleep in or use any bed outside the
+              Overworld causes it to explode with power 5.
+        - question: How do I get a Brown Bed?
+          answer: |
+              Craft it from brown wool and planks, dye an existing bed
+              brown, find one in a savanna village, or buy one from a
+              Shepherd villager.
+        - question: Can Brown Bed be picked up and moved?
+          answer: |
+              Yes. Breaking it with any tool drops the bed item, which can
+              be replaced anywhere with enough space.
     data_version: "1.21.5"
 ---
 

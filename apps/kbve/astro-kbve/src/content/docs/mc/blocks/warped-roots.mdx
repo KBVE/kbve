@@ -1,5 +1,6 @@
 ---
 title: Warped Roots
+template: splash
 description: |
     Minecraft Warped Roots — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 828
     ref: warped_roots
     slug: warped-roots
+    content_rev: 1
     display_name: Warped Roots
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_roots
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - nether
+        - instant_break
+        - compostable
+    about:
+        description: |
+            Warped Roots is a thin, decorative plant that sprouts on Warped
+            Nylium and Soul Soil throughout the Warped Forest. It breaks
+            instantly with any tool and can be placed in flower pots.
+        lore: |
+            Added alongside the Nether Update's Warped Forest, its tangled
+            teal fronds give the biome its alien, fungal look.
+    uses:
+        - title: Decoration and Flower Pots
+          ref: flower_pot
+          detail: |
+              Place in a flower pot for a compact decorative accent, or
+              plant directly on Warped Nylium or Soul Soil for ground cover.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Adding Warped Roots to a composter has a 65% chance to raise
+              its level by one, producing Bone Meal.
+    found_in:
+        - location: Warped Forest biome
+          detail: Grows naturally on Warped Nylium and Soul Soil across the biome.
+        - location: Bone-mealed Warped Nylium
+          detail: Applying bone meal to Warped Nylium can spawn additional Warped Roots.
+    faq:
+        - question: What tool do I need to harvest Warped Roots?
+          answer: |
+              None. It breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Can I use Warped Roots in a composter?
+          answer: |
+              Yes, it has a 65% chance per item to increase the composter's
+              level, yielding bone meal when full.
+        - question: Where does Warped Roots grow naturally?
+          answer: |
+              On Warped Nylium and Soul Soil within the Warped Forest biome
+              of the Nether.
+        - question: Is Warped Roots flammable?
+          answer: |
+              No, it does not burn from fire spreading onto it, though it
+              can still be destroyed by direct contact with lava.
     data_version: "1.21.5"
 ---
 

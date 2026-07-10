@@ -1,5 +1,6 @@
 ---
 title: Potatoes
+template: splash
 description: |
     Minecraft Potatoes — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 410
     ref: potatoes
     slug: potatoes
+    content_rev: 1
     display_name: Potatoes
     material: plant
     hardness: 0
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: potato
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: poisonous_potato
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - crops
+    about:
+        description: |
+            Potatoes is the fully-grown crop stage of a potato planted on
+            farmland. It has eight growth stages and, when harvested at the
+            final stage, drops multiple potatoes plus a small chance of a
+            poisonous potato.
+        lore: |
+            Added in Java Edition 1.4.2, potatoes were originally obtainable
+            only as a rare zombie drop before becoming a fully farmable
+            crop.
+    uses:
+        - title: Baked Potato
+          ref: baked_potato
+          detail: |
+              Smelting a raw potato in a furnace, smoker, or campfire
+              produces a baked potato, a more efficient food source.
+        - title: Pig Breeding
+          ref: potato
+          detail: |
+              Raw potatoes can be used to lead and breed pigs, and villagers
+              accept them as farmer job-site trade goods.
+    found_in:
+        - location: Farmland
+          detail: Planted on tilled farmland and grown with light level 9 or higher.
+        - location: Villages
+          detail: Found growing in village farm plots, most commonly in snowy, plains, and taiga villages.
+    faq:
+        - question: What tool do I need to harvest potatoes?
+          answer: |
+              None. The crop breaks instantly by hand or any tool; a hoe is
+              not required to harvest, only to till the farmland.
+        - question: How many potatoes do I get per harvest?
+          answer: |
+              A fully grown crop drops 1 to 4 potatoes, with Fortune
+              increasing the average yield.
+        - question: Can I get a poisonous potato from farming?
+          answer: |
+              Yes, there is roughly a 2% chance of an extra poisonous potato
+              dropping alongside the regular harvest.
+        - question: Do potatoes need a hoe to plant?
+          answer: |
+              A hoe is used to till dirt into farmland first; the potato
+              itself is then simply placed on the farmland to start
+              growing.
     data_version: "1.21.5"
 ---
 

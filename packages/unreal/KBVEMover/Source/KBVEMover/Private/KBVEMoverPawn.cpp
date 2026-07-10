@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
 

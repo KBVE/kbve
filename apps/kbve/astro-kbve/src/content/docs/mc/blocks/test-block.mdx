@@ -1,5 +1,6 @@
 ---
 title: Test Block
+template: splash
 description: |
     Minecraft Test Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 866
     ref: test_block
     slug: test-block
+    content_rev: 1
     display_name: Test Block
     material: stone
     hardness: -1
     blast_resistance: 3600000
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 15
@@ -27,7 +28,48 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - technical
+        - unbreakable
+        - operator_only
+        - blast_resistant
+    about:
+        description: |
+            The test block is a technical block used by developers and
+            data pack creators to build automated game tests. It has four
+            modes — start, log, fail, and accept — each reacting to
+            redstone signals differently to drive a test's flow.
+        lore: |
+            Added in Java Edition 1.21.5 (snapshot 25w03a) to support the
+            new vanilla game test framework.
+    uses:
+        - title: Automated Game Testing
+          ref: test_instance_block
+          detail: |
+              Paired with a test instance block to define the bounds of a
+              test structure, using start, log, fail, and accept modes to
+              control and report test outcomes.
+    found_in:
+        - location: Creative inventory (Operator Utilities tab)
+          detail: Available only in Creative mode with operator permission level 2 or higher, or via /give, /setblock, and /fill.
+    faq:
+        - question: Can I mine a Test Block in Survival?
+          answer: |
+              No, its hardness of -1 makes it unbreakable by any tool in
+              Survival mode.
+        - question: What are the four Test Block modes?
+          answer: |
+              Start begins a test, log records a checkpoint, fail marks
+              the test as failed, and accept marks it as passed.
+        - question: How do I get a Test Block?
+          answer: |
+              It is only available via the Creative inventory's Operator
+              Utilities tab or through commands like /give, and requires
+              operator permission level 2 or higher.
+        - question: Does the Test Block appear naturally in worlds?
+          answer: |
+              No, it is a purely technical block for developers and never
+              generates naturally.
     data_version: "1.21.5"
 ---
 

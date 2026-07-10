@@ -1,5 +1,6 @@
 ---
 title: Splash Potion
+template: splash
 description: |
     Minecraft Splash Potion — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1221
     ref: splash_potion
     slug: splash-potion
+    content_rev: 1
     display_name: Splash Potion
     category: brewing
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A splash potion is a throwable variant of a regular potion, brewed by adding gunpowder to
+            a matching potion at a brewing stand. When thrown, it shatters on impact and applies its
+            status effect to every entity within roughly an 8-block radius, with effect potency
+            fading the farther a target is from the point of impact.
+        lore: |
+            The gunpowder that arms a splash potion turns any brew into an area-effect weapon or tool.
+    faq:
+        - question: |
+              How do I make a splash potion?
+          answer: |
+              Add gunpowder to any regular potion in a brewing stand to convert it into its splash
+              form.
+        - question: |
+              What happens when a splash potion is thrown?
+          answer: |
+              It shatters on impact and applies its effect to all nearby entities, with the strongest
+              effect on whatever it directly hits.
+        - question: |
+              Can splash potions be used for good, not just combat?
+          answer: |
+              Yes, a splash potion of Weakness combined with a golden apple can cure a zombie
+              villager, and splash water bottles can extinguish fire or create mud.
+        - question: |
+              Are splash potions consumed on use?
+          answer: |
+              Yes, the bottle breaks and is used up as soon as it is thrown, unlike a drinkable
+              potion which can be sipped from repeatedly until empty.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

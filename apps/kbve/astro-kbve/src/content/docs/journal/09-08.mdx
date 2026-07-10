@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1691183336426-10e4a01f19ec?crop=entropy&c
 description: September 8th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 8,'
+    accent: every year.
+    lede: 'The September 8th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 7'
+          href: /journal/09-07/
+        - label: 'Sep 9 →'
+          href: /journal/09-09/
+    related:
+        - title: 'Previous · Sep 7'
+          copy: 'Step back a day to the September 7th log.'
+          href: /journal/09-07/
+          icon: calendar
+        - title: 'Next · Sep 9'
+          copy: 'Jump ahead to the September 9th log.'
+          href: /journal/09-09/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1691183336426-10e4a01f19ec?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity IRC
 
@@ -24,7 +65,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Think about a streamer playing RareIcon and having their whole chat become zombies in the game that spawn up and start attacking you!
     We can be very creative with how we want to structure this in the future.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Secrets** 
 
@@ -42,19 +91,30 @@ After deploying the sealed secrets installer, we need to run the `brew install k
 
 The league burn out is starting to hit hard, I am getting really tired of the games and might need to switch the pace up a bit.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 6:03am - Currently going through the process of setting up the decentralized file storage but I am not too sure how I should go about handling the meta data engine. I am debating if I should just use the cloudflare egress or maybe switch over to another type of meta storage. 
 - 11:15am - I am thinking that it might make sense to create a global redis instance that we could call from any point? There are a couple different ways that I wanted to approach this concept, one being a bit similar to how I was planning to handle the Rust+Redis build / layout. Okay so we could have two instances in this structure, one being the meta and the other just being a general redis? Hmm, I suppose one would be `meta.kbve.com`, the next being `engine.kbve.com` and finally `redis.kbve.com`? This would be the first move before building out the decentralized hybrid swarm. 
 - 11:27am - Pushed through some minor updates to the general KBVE repo, now I am currently looking over the appwrite upgrade to v1.4.2, including setting up the clustering! There should not be any major issues that I should face as of right now, but this is going to be an interesting experiment, none the less. Let me see if I could update the existing documentation as well. 
 - 11:38am - I believe the first engine that I want to deploy would be the meta, which can then be used by a meta-engine for the storage of the general key-values that will be then used by the scaling redis clusters. The meta engine will be like an index that will reference different data blobs spread across all our containers, virtual machines and emulators! The best option for this engine would be to use the Amazon Elastic Redis instance, yet I am not too sure if we would need to do that as of right now, since one of the goals would be to keep the cost bases as low as possible?  
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Adversity causes some men to break, others to break records.
 > — <cite>William Arthur Ward</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

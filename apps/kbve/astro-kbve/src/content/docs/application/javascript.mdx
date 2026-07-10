@@ -2,6 +2,12 @@
 title: Javascript
 description: |
     JS is a scripting language that enables dynamic content from client and server side.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Javascript
     order: 401
@@ -12,6 +18,80 @@ tags:
     - nodejs
     - software
     - js
+bento:
+    badge: application · js · nodejs
+    title: 'The king of the web,'
+    accent: JavaScript.
+    lede: >-
+        The scripting language that powers dynamic content on both client and
+        server. This guide tours the KBVE JavaScript stack — design patterns,
+        the NodeJS and Bun runtimes, frameworks like React, Svelte, and Astro,
+        plus the bundlers, testers, and tooling that keep it all shipping.
+    ctas:
+        - label: Design patterns
+          href: '#design'
+          primary: true
+        - label: NodeJS
+          href: '#nodejs'
+        - label: Bun
+          href: '#bun'
+        - label: Tools
+          href: '#tools'
+    aside:
+        icon: code
+        title: One language, every layer
+        body: >-
+            From browser interactivity to server-side APIs and mobile apps
+            with Expo, JavaScript runs the full stack — a single language
+            across client, server, and tooling.
+        points:
+            - <strong>Patterns</strong> — creational, structural, and behavioral designs.
+            - <strong>Runtimes</strong> — NodeJS and the batteries-included Bun.
+            - <strong>Tooling</strong> — Cypress, Playwright, Biome, and ESBuild.
+    stats:
+        - { label: First released, value: 1995, icon: clock }
+        - { label: Node engine, value: V8, icon: bolt }
+        - { label: Package registry, value: npm, icon: package }
+        - { label: Standard, value: ECMAScript, icon: book }
+    features:
+        - title: Design patterns
+          icon: gears
+          href: '#design'
+          body: Creational, structural, and behavioral patterns — factories, builders, singletons, and adapters in plain JavaScript.
+        - title: NodeJS and Bun
+          icon: server
+          href: '#nodejs'
+          body: Install Node with nvm on Ubuntu, Windows, or MacOS — then meet Bun, the fast all-in-one runtime, bundler, and package manager.
+        - title: Frameworks and UI
+          icon: code
+          href: '#react'
+          body: React, Svelte with Threlte, Astro islands, MUI components, and Lottie animations for the front end.
+        - title: Testing and tooling
+          icon: check
+          href: '#tools'
+          body: Cypress and Playwright for end-to-end tests, Biome for linting and formatting, Size Limit for bundle budgets.
+    related:
+        - title: CSS
+          href: /application/css/
+          copy: TailwindCSS setup, the button gallery, forms, and modern CSS features.
+          icon: zap
+        - title: React Native
+          href: /application/rn/
+          copy: JavaScript on mobile — the KBVE React Native and Expo stack.
+          icon: package
+        - title: Git
+          href: /application/git/
+          copy: Version control and the CI/CD pipelines behind every JS project.
+          icon: branch
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1581276879432-15e50529f34b?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
 import {
@@ -19,15 +99,16 @@ Aside,
 Steps,
 Card,
 CardGrid,
-Code,
 FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense, DevCode } from '@/components/astropad';
+import { Giscus, Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
     If you are a web developer or a web enthusiast, you have probably heard of JavaScript! Or why else would you be here?.
     But what exactly is JavaScript?!, and why is it so dominant in web and application development?!
@@ -40,8 +121,6 @@ import { Giscus, Adsense, DevCode } from '@/components/astropad';
     Prepare to unleash the power of JavaScript with this mdx documentation.
     You will learn everything you need to create dynamic and interactive web applications from scratch.
     Whether you are a beginner or a seasoned coder, this guide will take your skills to the next level.
-
-<Adsense />
 
 <Aside>
 	This document is designed to serve as a scholarly compendium on the vast
@@ -57,7 +136,15 @@ import { Giscus, Adsense, DevCode } from '@/components/astropad';
 	collectively enhance and refine the art of programming.
 </Aside>
 
-## Design
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="design" eyebrow="Patterns and structure" heading="Design">
 
     Would you like to learn how to write JavaScript code that is clean, clear, and consistent?
     Do you have a passion and desire to solve common problems in software design with ease and elegance?
@@ -545,9 +632,9 @@ Examples of Behavioral Design Patterns include the Observer pattern, which allow
 &emsp; &emsp; Implementing these patterns can lead to more dynamic and adaptable software, with components that are easier to understand, extend, or modify.
 Behavioral Design Patterns are indispensable for developers aiming to create interactive systems that are robust, scalable, and maintainable.
 
----
+</BentoProse>
 
-## NodeJS
+<BentoProse id="nodejs" eyebrow="Server-side runtime" heading="NodeJS">
 
 Node.js is a dynamic open-source runtime environment that brings JavaScript to the server side.
 Running on Google's powerful V8 engine, it allows for both client and server-side application development using JavaScript.
@@ -672,9 +759,9 @@ Option B: Brew Install Node (directly)
 
 </Steps>
 
----
+</BentoProse>
 
-## Bun
+<BentoProse id="bun" eyebrow="All-in-one runtime" heading="Bun">
 
 <Aside>
 	**Bun** is a batteries-included runtime engine that bundles, transpiles,
@@ -856,9 +943,9 @@ Whether you're installing packages, running scripts, or setting up projects, thi
 | --no-git     | Don’t initialize a git repository      |
 | --open       | Start & open in-browser after finish   |
 
----
+</BentoProse>
 
-## React
+<BentoProse id="react" eyebrow="UI library" heading="React">
 
     ### React Three Fiber
         React Three Fiber (R3F) is a React renderer for Three.js, a popular 3D library.
@@ -906,9 +993,9 @@ Whether you're installing packages, running scripts, or setting up projects, thi
 
             - You can replace the variable of kbveapp with the app name of your finished webgl build.
 
----
+</BentoProse>
 
-## Svelte
+<BentoProse id="svelte" eyebrow="Compiler framework" heading="Svelte">
 
     ### Threlte
 
@@ -922,9 +1009,9 @@ Whether you're installing packages, running scripts, or setting up projects, thi
         3. `@threlte/extras` - Additional components, helpers, hooks and more that extend the core functionality of Threlte.
         4. `@threlte/rapier` - Rapier physics engine integration through components and hooks within Threlte.
 
----
+</BentoProse>
 
-## Astro
+<BentoProse id="astro" eyebrow="Islands architecture" heading="Astro">
 
     ### Astro Svelte
 
@@ -942,9 +1029,9 @@ Whether you're installing packages, running scripts, or setting up projects, thi
         <object client:only="svelte" />
         ```
 
----
+</BentoProse>
 
-## MDX
+<BentoProse id="mdx" eyebrow="Markdown plus JSX" heading="MDX">
 
 ### MDX Cheatsheet
 
@@ -954,15 +1041,15 @@ For indenting within a markdown file, we can use this code to produce a tab.
     &emsp;
 ```
 
----
+</BentoProse>
 
-## TailwindCSS
+<BentoProse id="tailwindcss" eyebrow="Utility-first CSS" heading="TailwindCSS">
 
 TailwindCSS now has its own home. Setup, the full button gallery, forms, animations and custom components moved to the dedicated [CSS reference](/application/css/), alongside modern CSS features and text effects.
 
----
+</BentoProse>
 
-## MUI
+<BentoProse id="mui" eyebrow="Material Design" heading="MUI">
 
 MUI, formerly known as Material-UI, stands as a prominent React UI framework that brings Google's Material Design principles to life.
 Offering an extensive collection of React components and CSS-in-JS styling solutions, MUI enables developers to create responsive and visually consistent web applications with ease.
@@ -1257,9 +1344,9 @@ With its standardized design components and patterns, MUI ensures cohesive and p
 
 </Aside>
 
----
+</BentoProse>
 
-## Lottie
+<BentoProse id="lottie" eyebrow="JSON animations" heading="Lottie">
 
 Lottie is a dynamic and innovative library developed by Airbnb that bridges the gap between designers and developers by allowing the incorporation of rich, high-quality animations into applications with ease.
 Built to interpret and render animations exported as JSON data from Adobe After Effects, Lottie facilitates the use of intricate animations without the overhead of traditional image or video files.
@@ -1395,9 +1482,9 @@ Try to pick the one that best fits your website or application!
 
 </Steps>
 
----
+</BentoProse>
 
-## SWUP
+<BentoProse id="swup" eyebrow="Page transitions" heading="SWUP">
 
 SWUP is a JavaScript library that brings a smooth, app-like feel to websites.
 Instead of traditional page reloads, SWUP provides seamless transitions with customizable animations, making browsing more enjoyable and engaging.
@@ -1572,9 +1659,15 @@ SWUP is perfect for creating dynamic and responsive web applications that delive
                 yarn add @swup/scripts-plugin @swup/a11y-plugin @swup/head-plugin @swup/slide-theme @swup/scroll-plugin @swup/preload-plugin @swup/body-class-plugin @swup/debug-plugin
             ```
 
----
+</BentoProse>
 
-## ESBuild
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="esbuild" eyebrow="Fast bundling" heading="ESBuild">
 
 ESBuild is a fast JavaScript bundler and minifier that has gained popularity due to its remarkable speed and efficiency.
 Designed with performance in mind, ESBuild leverages Go's concurrency model to provide lightning-fast build times, often outperforming other popular tools like Webpack and Rollup.
@@ -1808,9 +1901,9 @@ Explanation of Key Options:
 | `charset`            | Controls the character set used in the output (default is `utf8`).                    | `'ascii'`                                    |
 | `legalComments`      | Controls how legal comments are handled (`none`, `inline`, `eof`, `linked`).          | `'eof'`                                      |
 
----
+</BentoProse>
 
-## Shiki
+<BentoProse id="shiki" eyebrow="Syntax highlighting" heading="Shiki">
 
 Shiki is a syntax highlighter based on the same syntax definitions as Visual Studio Code, ensuring accurate and visually consistent code highlighting.
 When integrated with MDX, a format that combines Markdown and JSX, Shiki can provide syntax highlighting for code blocks within MDX content.
@@ -1858,9 +1951,9 @@ export type Theme =
 	| 'vitesse-light';
 ```
 
----
+</BentoProse>
 
-## Signature Pad
+<BentoProse id="signature-pad" eyebrow="Canvas signatures" heading="Signature Pad">
 
 [Signature Pad](https://github.com/szimek/signature_pad) is a JavaScript library that utilizes HTML5 canvas technology to facilitate smooth signature drawing on web pages.
 It's designed to function seamlessly across all modern desktop and mobile browsers without the need for any external libraries.
@@ -1952,9 +2045,9 @@ For developers looking to implement detailed canvas-based interactions, Signatur
 
 </Steps>
 
----
+</BentoProse>
 
-## Tools
+<BentoProse id="tools" eyebrow="Testing and quality" heading="Tools">
 
 This section provides an overview of essential JavaScript tools that can significantly enhance your project's development and maintenance processes.
 From code editors and linters that ensure code quality and consistency, to frameworks and libraries that expedite development with ready-made functions and components, these tools cover a broad spectrum of functionalities.
@@ -2444,9 +2537,9 @@ Regularly update and review your tools to keep up with new features and improvem
 
 </Aside>
 
----
+</BentoProse>
 
-## Expo
+<BentoProse id="expo" eyebrow="React Native platform" heading="Expo">
 
 Expo is a powerful open-source platform that supercharges React Native development, letting developers craft universal apps for Android, iOS, and the web with JavaScript, all while streamlining workflows and minimizing native code hassles.
 With the release of Expo SDK 52, it embraces React Native 0.76 and introduces the New Architecture by default for new projects, boosting performance by replacing the old bridge with a faster, more efficient system—think of it as upgrading from a rickety rope bridge to a sleek steel highway.
@@ -2614,6 +2707,12 @@ module.exports = createConfig();
 
 Work in Progress Notes
 
----
+</BentoProse>
 
-<Giscus />
+</BentoDoc>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

@@ -1,5 +1,6 @@
 ---
 title: Ender Dragon Spawn Egg
+template: splash
 description: |
     Minecraft Ender Dragon Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1087
     ref: ender_dragon_spawn_egg
     slug: ender-dragon-spawn-egg
+    content_rev: 1
     display_name: Ender Dragon Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Ender Dragon Spawn Egg instantly spawns the Ender Dragon, a 200-health boss mob that circles obsidian pillars, breathes damaging clouds, and charges at players in the End. It is only obtainable through commands, since letting players place it freely risks destroying Creative builds when the dragon rampages.
+        lore: |
+            The dragon is the guardian of the End and, on its first defeat, awards the player twelve thousand experience along with the game's ending credits.
+    faq:
+        - question: How do I get an Ender Dragon Spawn Egg?
+          answer: |
+              It cannot be obtained through normal survival gameplay or creative inventory searching in the usual way; it requires a /give command targeting the ender_dragon_spawn_egg item.
+        - question: Why isn't this spawn egg in the Creative inventory?
+          answer: |
+              Mojang restricts it via commands only, to prevent players from accidentally spawning a boss mob that can destroy their builds with its area attacks.
+        - question: How much health does the Ender Dragon have?
+          answer: |
+              The Ender Dragon has 200 health points (100 hearts), making it one of the toughest mobs in the game.
+        - question: Does killing a spawned dragon give the same rewards as the boss fight?
+          answer: |
+              Only the first dragon defeated in a world drops the full experience reward and dragon egg; dragons resummoned or spawned afterward drop far less experience.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

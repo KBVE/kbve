@@ -1,5 +1,6 @@
 ---
 title: Zombie Head
+template: splash
 description: |
     Minecraft Zombie Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 425
     ref: zombie_head
     slug: zombie-head
+    content_rev: 1
     display_name: Zombie Head
     material: stone
     hardness: 1
     blast_resistance: 1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: zombie_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+    about:
+        description: |
+            Zombie Head is a decorative block modeled after a zombie's head
+            that can be placed on the floor or mounted on a wall. It is one
+            of the rarer mob heads, obtainable only through a specific
+            environmental interaction rather than ordinary combat.
+        lore: |
+            Added alongside charged creeper explosions, it turned an already
+            rare event — a lightning-struck creeper killing a zombie — into
+            a collectible trophy block.
+    uses:
+        - title: Wearable Disguise
+          ref: zombie_head
+          detail: |
+              Worn in the helmet slot, it halves the detection range of
+              nearby zombies, letting a player sneak past them more easily.
+        - title: Decoration
+          ref: zombie_head
+          detail: |
+              Placeable on floors in 16 rotations or on walls, and plays a
+              zombie moan when placed above a note block.
+    found_in:
+        - location: Charged Creeper Explosions
+          detail: |
+              Dropped when a zombie is killed by the explosion of a
+              charged (lightning-struck) creeper — the only way to obtain it.
+    faq:
+        - question: How do I get a Zombie Head?
+          answer: |
+              A creeper must be struck by lightning to become charged, then
+              its explosion must kill a zombie. The zombie always drops its
+              head.
+        - question: What tool do I need to mine it?
+          answer: |
+              None. It breaks with any tool, or by hand, and always drops
+              itself.
+        - question: Does Looting increase the drop chance?
+          answer: |
+              No. The head always drops when a charged creeper's blast kills
+              a zombie; Looting has no effect on this mechanic.
+        - question: Can I wear a Zombie Head?
+          answer: |
+              Yes. Equip it in the helmet armor slot to reduce how far
+              nearby zombies can detect you.
     data_version: "1.21.5"
 ---
 

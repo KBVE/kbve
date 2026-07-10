@@ -1,5 +1,6 @@
 ---
 title: Packed Mud
+template: splash
 description: |
     Minecraft Packed Mud — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 315
     ref: packed_mud
     slug: packed-mud
+    content_rev: 1
     display_name: Packed Mud
     material: dirt
     hardness: 1
@@ -24,10 +26,54 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: packed_mud
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Packed Mud is a sturdy intermediate block made by combining Mud
+            with Wheat, drying it into a firmer material. It mines fine by
+            hand but breaks faster with a pickaxe, and always drops itself.
+        lore: |
+            Introduced alongside the Trails & Tales update, its recipe
+            mirrors the real technique of mixing straw into mud bricks, a
+            construction method thousands of years old.
+    uses:
+        - title: Mud Bricks
+          ref: mud_bricks
+          detail: |
+              Smelt or craft into Mud Bricks, a warm terracotta-colored
+              building block used throughout trail ruins and archaeology
+              sites.
+    found_in:
+        - location: Trail Ruins
+          detail: Generates naturally as part of the Trail Ruins archaeology structure.
+        - location: Crafted
+          detail: Made by combining Mud and Wheat in a crafting grid.
+    faq:
+        - question: What tool do I need to mine Packed Mud?
+          answer: |
+              None required; it can be broken by hand, though a pickaxe
+              speeds up the process.
+        - question: How is Packed Mud made?
+          answer: |
+              Combine a block of Mud with Wheat in a crafting grid.
+        - question: What is Packed Mud used for?
+          answer: |
+              It is mainly a stepping stone toward crafting Mud Bricks for
+              building.
+        - question: Where can I find Packed Mud naturally?
+          answer: |
+              It generates as part of Trail Ruins structures found buried
+              underground in several overworld biomes.
     data_version: "1.21.5"
 ---
 

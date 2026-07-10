@@ -1,5 +1,6 @@
 ---
 title: Lime Shulker Box
+template: splash
 description: |
     Minecraft Lime Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 651
     ref: lime_shulker_box
     slug: lime-shulker-box
+    content_rev: 1
     display_name: Lime Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - end
+    about:
+        description: |
+            Lime Shulker Box is a portable 27-slot container dyed lime.
+            Unlike a chest, its contents travel with the dropped item when
+            broken, so a full box can be mined and carried without losing
+            anything inside.
+        lore: |
+            Shulker boxes arrived in Java Edition 1.11 (2016), letting
+            players transport a fully stocked inventory container for the
+            first time in vanilla survival.
+    uses:
+        - title: Portable Storage
+          ref: lime_shulker_box
+          detail: |
+              Place it to access 27 storage slots; break it and the block
+              keeps every item inside, making it ideal for hauling loot
+              between bases or through the Nether.
+    found_in:
+        - location: Crafted from Shulker Shells
+          detail: Combine a Shulker Shell with a Chest, then dye the resulting Shulker Box lime with Lime Dye.
+        - location: End Cities
+          detail: Undyed Shulker Boxes and the Shulkers that drop shells are found in End City ships and towers.
+    faq:
+        - question: What tool do I need to mine a Lime Shulker Box?
+          answer: |
+              None strictly required — it can be mined by hand — but a
+              pickaxe is the fastest tool.
+        - question: Does breaking it lose the items inside?
+          answer: |
+              No. Unlike chests, a shulker box keeps its full inventory
+              when broken and picked back up as an item.
+        - question: How do I get an undyed Shulker Box?
+          answer: |
+              Kill a Shulker in an End City for a Shulker Shell, then craft
+              the shell with a chest.
+        - question: Can I change its color later?
+          answer: |
+              Yes. Combine an existing Shulker Box with a dye in a crafting
+              grid to recolor it without losing its contents.
     data_version: "1.21.5"
 ---
 

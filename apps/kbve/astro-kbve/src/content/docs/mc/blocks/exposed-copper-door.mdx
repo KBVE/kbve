@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper Door
+template: splash
 description: |
     Minecraft Exposed Copper Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1009
     ref: exposed_copper_door
     slug: exposed-copper-door
+    content_rev: 1
     display_name: Exposed Copper Door
     material: metal
     hardness: 3
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: exposed_copper_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Exposed Copper Door is the first weathering stage of the copper
+            door, taking on a duller, spotted patina after time or a
+            lightning strike moves it past its original bright orange-brown
+            look. It still functions as a normal door for players, mobs,
+            and redstone.
+        lore: |
+            Introduced with the copper door in the Trial Chambers update,
+            the exposed stage marks copper's living-metal aesthetic
+            starting to age instead of staying static like other doors.
+    uses:
+        - title: Weathering Door
+          ref: exposed_copper_door
+          detail: |
+              Opens and closes like any door — for players, redstone,
+              villagers, piglins, and copper golems — while continuing to
+              weather toward the weathered and oxidized stages unless waxed.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally at this oxidation stage within trial chamber vaults and rooms.
+        - location: Natural weathering or lightning
+          detail: An unoxidized copper door reaches this stage over time, or instantly if struck by lightning.
+    faq:
+        - question: What tool do I need to mine an Exposed Copper Door?
+          answer: |
+              Any tool works — a pickaxe is fastest, but it always drops
+              itself regardless of the tool used.
+        - question: How do I get an Exposed Copper Door?
+          answer: |
+              Let an unoxidized copper door weather naturally, strike it
+              with lightning, or scrape a more-oxidized door back a stage
+              with an axe.
+        - question: Can I stop it from oxidizing further?
+          answer: |
+              Yes, apply honeycomb to wax it and lock it at the exposed
+              stage permanently.
+        - question: Does it still work the same as a normal door?
+          answer: |
+              Yes. Oxidation only changes its appearance — it opens,
+              closes, and interacts with redstone and mobs identically.
     data_version: "1.21.5"
 ---
 

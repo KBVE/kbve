@@ -1,5 +1,6 @@
 ---
 title: Melon Stem
+template: splash
 description: |
     Minecraft Melon Stem — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 334
     ref: melon_stem
     slug: melon-stem
+    content_rev: 1
     display_name: Melon Stem
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: melon_seeds
+          qty_min: 0
+          qty_max: 3
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - plant
+    about:
+        description: |
+            Melon Stem is the crop planted on farmland that grows through
+            eight visible stages before becoming fully mature. Once mature
+            it periodically produces a melon block on an adjacent
+            dirt-like surface instead of growing further itself.
+        lore: |
+            Melon farming was added early in Minecraft's history alongside
+            pumpkins, giving players a renewable food and crafting resource.
+    uses:
+        - title: Melon Seeds
+          ref: melon_seeds
+          detail: |
+              Breaking a stem drops 0-3 melon seeds, with better odds at
+              higher growth stages, letting players replant and expand
+              their melon farm.
+    found_in:
+        - location: Farmland
+          detail: Grown by planting melon seeds on tilled farmland near water.
+        - location: Village & Mansion Farms
+          detail: Occasionally found growing in villager and woodland mansion farm plots.
+    faq:
+        - question: What does breaking a Melon Stem drop?
+          answer: |
+              0 to 3 melon seeds; the chance of getting seeds increases as
+              the stem's growth stage advances.
+        - question: Does a Melon Stem need a specific tool?
+          answer: |
+              No, it breaks instantly with any tool or by hand since its
+              hardness is 0.
+        - question: How does a Melon Stem produce melons?
+          answer: |
+              Once fully grown, it randomly generates a melon block on an
+              adjacent dirt, grass, mud, or moss block rather than growing
+              further itself.
+        - question: Can one stem grow multiple melons?
+          answer: |
+              Yes, a single fully-grown stem can keep producing new melon
+              blocks indefinitely as long as there is open space beside it.
     data_version: "1.21.5"
 ---
 

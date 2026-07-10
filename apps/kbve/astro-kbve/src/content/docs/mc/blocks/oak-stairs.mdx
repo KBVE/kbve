@@ -1,5 +1,6 @@
 ---
 title: Oak Stairs
+template: splash
 description: |
     Minecraft Oak Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 187
     ref: oak_stairs
     slug: oak-stairs
+    content_rev: 1
     display_name: Oak Stairs
     material: wood
     hardness: 2
@@ -24,10 +26,63 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Oak Stairs are a directional building block crafted from oak
+            planks that let players and mobs walk up in half-block
+            increments. They can face any of four directions and be
+            placed upside down, making them flexible for roofs and
+            staircases alike.
+        lore: |
+            Stairs were among the earliest decorative blocks added to
+            Minecraft, giving builders a way to slope terrain and
+            rooftops without resorting to half-slabs alone.
+    uses:
+        - title: Building & Roofing
+          ref: oak_planks
+          detail: |
+              Used to build sloped rooftops, staircases, and decorative
+              trim on wooden structures, since they visually blend with
+              oak planks and logs.
+        - title: Furnace Fuel
+          ref: oak_planks
+          detail: |
+              Each oak stairs block smelts as 1.5 items worth of fuel in
+              a furnace, similar to planks.
+    found_in:
+        - location: Crafted from Oak Planks
+          detail: Six oak planks arranged in a staircase pattern craft four oak stairs.
+        - location: Villages & Generated Structures
+          detail: Naturally found in villages, woodland mansions, shipwrecks, and igloos.
+    faq:
+        - question: What tool do I need to mine Oak Stairs?
+          answer: |
+              None required — any tool or bare hands will break it and
+              drop the block, though an axe is fastest.
+        - question: Do Oak Stairs burn?
+          answer: |
+              Yes. Like most overworld wood blocks, they can catch fire
+              from nearby flames or lava and burn away.
+        - question: Are Oak Stairs renewable?
+          answer: |
+              Yes. They are crafted directly from oak planks, which come
+              from renewable oak logs.
+        - question: Can Oak Stairs be placed upside down?
+          answer: |
+              Yes. Placing them against the upper half of a block face
+              flips them to form ceilings or upside-down slopes.
     data_version: "1.21.5"
 ---
 

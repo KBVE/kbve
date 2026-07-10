@@ -1,5 +1,6 @@
 ---
 title: Dead Fire Coral Block
+template: splash
 description: |
     Minecraft Dead Fire Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 718
     ref: dead_fire_coral_block
     slug: dead-fire-coral-block
+    content_rev: 1
     display_name: Dead Fire Coral Block
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,9 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: dead_fire_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Dead Fire Coral Block is the lifeless, grayscale form of Fire
+            Coral Block, produced when the living block is placed outside of
+            water or loses its adjacent water source. It drops itself when
+            mined with any pickaxe — no Silk Touch required, unlike dead
+            coral fans and coral plants.
+        lore: |
+            Coral blocks were added in Java Edition 1.13; the fire coral
+            variant's bright red hue turns to a dull gray-brown once it
+            dies, matching the bleaching seen in real dying reefs.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as dead coral blocks in Bedrock Edition warm ocean reef structures.
+        - location: Converted from Fire Coral Block
+          detail: Placing a live fire coral block outside of water causes it to die and turn into this block after a few seconds.
+    faq:
+        - question: Do I need Silk Touch to mine Dead Fire Coral Block?
+          answer: |
+              No. Any pickaxe, wooden or better, mines it and it always
+              drops itself.
+        - question: Can it be turned back into living coral?
+          answer: |
+              No. Once fire coral dies and becomes this block, it cannot be
+              restored to its living state.
+        - question: Does it still deal fire damage like living fire coral?
+          answer: |
+              No. The damaging touch effect only applies to the living fire
+              coral block; the dead variant is purely decorative.
+        - question: What tool breaks it fastest?
+          answer: |
+              A higher-tier pickaxe reduces breaking time significantly, from
+              about 7.5 seconds by hand down to roughly 0.2–0.25 seconds with
+              a golden or netherite pickaxe.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

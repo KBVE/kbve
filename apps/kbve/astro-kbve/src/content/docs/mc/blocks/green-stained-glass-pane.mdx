@@ -1,5 +1,6 @@
 ---
 title: Green Stained Glass Pane
+template: splash
 description: |
     Minecraft Green Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,65 @@ mc_block:
     id: 481
     ref: green_stained_glass_pane
     slug: green-stained-glass-pane
+    content_rev: 1
     display_name: Green Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - end
+    about:
+        description: |
+            Green Stained Glass Pane is a thin, transparent window block
+            that tints light green and connects seamlessly to adjacent
+            panes and glass blocks. It uses far less material than full
+            glass blocks for the same window area.
+        lore: |
+            Panes were added so builders could make large glass windows
+            without wasting whole glass blocks per space.
+    uses:
+        - title: Window Building
+          ref: green_stained_glass_pane
+          detail: |
+              Six matching stained glass blocks craft into 16 panes, or
+              four glass panes plus green dye craft into 8 green panes,
+              letting a single frame cover more window area than solid
+              glass blocks.
+    found_in:
+        - location: Crafting only
+          detail: Not found naturally; crafted from stained glass or glass panes plus green dye.
+    faq:
+        - question: What tool do I need to mine Green Stained Glass Pane?
+          answer: |
+              Any tool works at the same speed; there is no minimum tier
+              requirement to break it.
+        - question: Does it drop itself when mined?
+          answer: |
+              Only with a Silk Touch enchanted tool. Mining it any other
+              way destroys it with no drop.
+        - question: How is it crafted?
+          answer: |
+              Craft six matching stained glass blocks into 16 panes, or
+              four glass panes with one green dye into 8 green panes.
+        - question: Can it be waterlogged?
+          answer: |
+              Yes, like other panes it can hold water when placed in a
+              water source, useful for underwater viewing windows.
     data_version: "1.21.5"
 ---
 

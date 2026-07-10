@@ -1,5 +1,6 @@
 ---
 title: Nether Wart Block
+template: splash
 description: |
     Minecraft Nether Wart Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 547
     ref: nether_wart_block
     slug: nether-wart-block
+    content_rev: 1
     display_name: Nether Wart Block
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Nether Wart Block is a decorative block found naturally in crimson forests as part of
+            huge crimson fungi, and can also be crafted from nine Nether wart items. It cannot be
+            crafted back into individual Nether wart, preserving the value of finding it inside
+            Nether fortresses.
+        lore: |
+            Designer Jeb intentionally made this block a one-way crafting recipe so that Nether
+            fortresses would remain important for obtaining Nether wart to brew potions.
+    faq:
+        - question: How do you craft a Nether Wart Block?
+          answer: |
+              Place nine Nether wart items in a full 3x3 crafting grid to produce one Nether Wart
+              Block.
+        - question: Where does Nether Wart Block generate naturally?
+          answer: |
+              It generates as part of huge crimson fungi structures in crimson forest biomes in
+              the Nether.
+        - question: Can you turn a Nether Wart Block back into Nether wart?
+          answer: |
+              No, this conversion is intentionally blocked to keep Nether fortresses relevant for
+              gathering Nether wart for potion brewing.
+        - question: Does Nether Wart Block have any special mob interactions?
+          answer: |
+              Yes, piglins, zombified piglins, and hoglins cannot spawn on top of Nether Wart
+              Blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

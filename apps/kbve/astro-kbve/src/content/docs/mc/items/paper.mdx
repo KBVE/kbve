@@ -1,5 +1,6 @@
 ---
 title: Paper
+template: splash
 description: |
     Minecraft Paper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 966
     ref: paper
     slug: paper
+    content_rev: 1
     display_name: Paper
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Paper is crafted from sugar cane and is a key ingredient for books, maps,
+            cartography tables, firework rockets, name tags, and banner patterns. It
+            can also be found as loot in shipwrecks, stronghold libraries, and village
+            cartographer houses.
+        lore: |
+            According to Mojang's "Taking Inventory" article, paper's crafting recipe
+            was inspired by real-world papyrus production.
+    faq:
+        - question: How do I craft Paper?
+          answer: |
+              Place 3 sugar cane in a row in a crafting grid to get 3 paper.
+        - question: What can I craft with Paper?
+          answer: |
+              Paper is used to craft books, maps, cartography tables, firework
+              rockets, name tags, and several banner patterns.
+        - question: Where can I find Paper without crafting it?
+          answer: |
+              It generates as loot in shipwreck chests, stronghold libraries, and
+              village cartographer houses.
+        - question: Can I trade for Paper?
+          answer: |
+              Yes, librarian and cartographer villagers buy 24 paper for 1 emerald.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

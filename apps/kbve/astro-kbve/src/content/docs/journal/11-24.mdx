@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1541320779116-ec4a3d4692bc?crop=entropy&c
 description: November 24th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 24,'
+    accent: every year.
+    lede: 'The November 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Nov 23'
+          href: /journal/11-23/
+        - label: 'Nov 25 →'
+          href: /journal/11-25/
+    related:
+        - title: 'Previous · Nov 23'
+          copy: 'Step back a day to the November 23rd log.'
+          href: /journal/11-23/
+          icon: calendar
+        - title: 'Next · Nov 25'
+          copy: 'Jump ahead to the November 25th log.'
+          href: /journal/11-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1541320779116-ec4a3d4692bc?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   12:41AM
 
@@ -55,3 +96,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     The last part of learning will be focused upon the lifetime scopes.
     I am starting to get a better picture of how all of this would connect and I believe that I can make it work a bit better.
     Granted that making the optimizations before finishing up the game is always risky, but I think it will actually make it easier to maintain the whole game.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

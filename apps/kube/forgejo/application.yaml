@@ -43,7 +43,7 @@ spec:
                       accessModes:
                           - ReadWriteOnce
                   podAnnotations:
-                      kbve.com/config-revision: 2026-06-21-gc-lfs-cron
+                      kbve.com/config-revision: 2026-06-29-restricted-default-no-org
                   gitea:
                       admin:
                           existingSecret: forgejo-admin
@@ -72,6 +72,15 @@ spec:
                               REQUIRE_SIGNIN_VIEW: true
                               ALLOW_ONLY_EXTERNAL_REGISTRATION: true
                               SHOW_REGISTRATION_BUTTON: false
+                              # New accounts (incl. OAuth auto-registrations) are
+                              # restricted by default: they can only interact with
+                              # repos/orgs where they are explicitly added as a
+                              # collaborator, and cannot access public repos on
+                              # this instance.
+                              DEFAULT_USER_IS_RESTRICTED: true
+                              # New users cannot create organizations by default
+                              # (org creation must be granted per-user by an admin).
+                              DEFAULT_ALLOW_CREATE_ORGANIZATION: false
                           openid:
                               ENABLE_OPENID_SIGNIN: true
                               ENABLE_OPENID_SIGNUP: true

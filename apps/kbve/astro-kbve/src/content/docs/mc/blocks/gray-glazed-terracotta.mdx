@@ -1,5 +1,6 @@
 ---
 title: Gray Glazed Terracotta
+template: splash
 description: |
     Minecraft Gray Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 669
     ref: gray_glazed_terracotta
     slug: gray-glazed-terracotta
+    content_rev: 1
     display_name: Gray Glazed Terracotta
     material: stone
     hardness: 1.4
     blast_resistance: 1.4
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Gray Glazed Terracotta is a hard, glossy decorative block made
+            by smelting gray stained terracotta. Its patterned texture
+            rotates with placement direction, letting builders form
+            repeating 2×2 tile designs.
+        lore: |
+            Designer Jens Bergensten based the glazed terracotta textures
+            on Moroccan-style tiles seen in a California hotel bathroom.
+    uses:
+        - title: Patterned Building
+          ref: gray_glazed_terracotta
+          detail: |
+              Arrange four blocks in a 2×2 grid to form a complete
+              directional pattern, popular for floors, roofs, and pixel art.
+    found_in:
+        - location: Smelting
+          detail: Smelt gray stained terracotta in a furnace with any fuel.
+        - location: Villager trading
+          detail: Expert-level mason villagers trade glazed terracotta for emeralds.
+        - location: Generated structures
+          detail: Appears in ocean ruins, villages, trail ruins, and trial chambers.
+    faq:
+        - question: What tool do I need to mine Gray Glazed Terracotta?
+          answer: |
+              At least a wooden pickaxe; without one it drops nothing.
+        - question: Can pistons move Gray Glazed Terracotta?
+          answer: |
+              Regular pistons can push it, but sticky pistons cannot pull
+              it back, and it will not stick to slime or honey blocks.
+        - question: How do I orient the pattern correctly?
+          answer: |
+              Place each block facing the direction you want the pattern's
+              arrow or design to point; a 2×2 cluster forms a complete tile.
+        - question: How do I get Gray Glazed Terracotta?
+          answer: |
+              Smelt gray stained terracotta in a furnace, trade with a
+              mason villager, or find it in generated structures.
     data_version: "1.21.5"
 ---
 

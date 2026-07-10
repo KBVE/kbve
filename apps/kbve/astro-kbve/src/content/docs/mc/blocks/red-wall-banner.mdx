@@ -1,5 +1,6 @@
 ---
 title: Red Banner
+template: splash
 description: |
     Minecraft Red Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 561
     ref: red_wall_banner
     slug: red-wall-banner
+    content_rev: 1
     display_name: Red Banner
     material: wood
     hardness: 1
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Red Wall Banner is the wall-mounted placement form of the Red
+            Banner, automatically used when a banner item is placed
+            against the side of a block instead of on top of one. It
+            displays the same solid red field and pattern layers as its
+            standing counterpart.
+        lore: |
+            Banners were added in Java Edition 1.8 as a decorative,
+            customizable alternative to plain wool walls.
+    uses:
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Combine a banner with dye and an optional pattern item at a
+              loom to add up to six stacked design layers before placing
+              it on a wall.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combine a patterned banner with a shield in a crafting grid
+              to transfer the banner's design onto the shield.
+    found_in:
+        - location: Placement
+          detail: Automatically used instead of the standing Red Banner whenever the item is placed on the side of a block.
+        - location: Crafting
+          detail: Craft from six red wool and a stick, arranged sign-style, to produce a red banner item.
+    faq:
+        - question: How do I place a wall banner instead of a standing one?
+          answer: |
+              Place the banner item against the side of a block rather
+              than on top of it; Minecraft automatically uses the wall
+              variant.
+        - question: What tool breaks a wall banner fastest?
+          answer: |
+              An axe. Banners can still be broken instantly by hand or
+              any tool since they have very low hardness.
+        - question: Does breaking a wall banner drop it as an item?
+          answer: |
+              Yes, along with any pattern layers applied at a loom.
+        - question: Is a wall banner solid or does it block movement?
+          answer: |
+              No. It is a thin, non-solid decoration with no collision.
     data_version: "1.21.5"
 ---
 

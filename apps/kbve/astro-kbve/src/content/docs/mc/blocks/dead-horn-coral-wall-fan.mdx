@@ -1,5 +1,6 @@
 ---
 title: Dead Horn Coral Wall Fan
+template: splash
 description: |
     Minecraft Dead Horn Coral Wall Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,59 @@ mc_block:
     id: 749
     ref: dead_horn_coral_wall_fan
     slug: dead-horn-coral-wall-fan
+    content_rev: 1
     display_name: Dead Horn Coral Wall Fan
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: pickaxe
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_horn_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - ocean
+    about:
+        description: |
+            Dead Horn Coral Wall Fan is the wall-mounted placement state of
+            the dead horn coral fan, automatically used by the game when a
+            fan is attached to the side of a block. It is not obtainable as
+            an item; players place the regular fan item against a wall.
+        lore: |
+            Wall fan block states exist purely as an engine mechanism for
+            directional placement, mirroring how wall torches and wall signs
+            work relative to their standing counterparts.
+    found_in:
+        - location: Bedrock Edition coral reef structures
+          detail: Appears wherever generated reefs place fans against the side of a block, Bedrock Edition only.
+        - location: Manual wall placement
+          detail: Placing a Dead Horn Coral Fan item against the side of a block creates this wall variant automatically.
+    faq:
+        - question: Can I obtain Dead Horn Coral Wall Fan as an item?
+          answer: |
+              No. It is only a block state; breaking it with Silk Touch drops
+              the regular Dead Horn Coral Fan item instead.
+        - question: How is it different from the regular fan?
+          answer: |
+              It is functionally identical, just rendered attached to a wall
+              rather than resting on top of a block.
+        - question: Does it require Silk Touch to keep?
+          answer: |
+              Yes. Mining it without Silk Touch drops nothing at all.
+        - question: Is it flammable?
+          answer: |
+              No. Like all coral blocks, it does not burn and does not catch
+              fire from lava.
     data_version: "1.21.5"
 ---
 

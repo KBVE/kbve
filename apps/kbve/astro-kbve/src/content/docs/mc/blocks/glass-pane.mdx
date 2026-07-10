@@ -1,5 +1,6 @@
 ---
 title: Glass Pane
+template: splash
 description: |
     Minecraft Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 328
     ref: glass_pane
     slug: glass-pane
+    content_rev: 1
     display_name: Glass Pane
     material: glass
     hardness: 0.3
@@ -24,10 +26,63 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Glass Pane is a thin, transparent building block crafted from
+            glass, designed to fit snugly against adjacent blocks and other
+            panes without the bulk of a full glass block. It can be
+            waterlogged, allowing it to sit inside water without
+            displacing it.
+        lore: |
+            Added early in Minecraft's development as a lightweight
+            alternative to glass, it became a staple for windows, cages,
+            and decorative lattices.
+    uses:
+        - title: Windows and Lattices
+          ref: glass
+          detail: |
+              Six glass blocks craft into sixteen glass panes, making them
+              a more material-efficient choice for large window and
+              display builds.
+        - title: Cartography Table Map Locking
+          ref: cartography_table
+          detail: Used in a cartography table to lock a map, preventing further zoom-out.
+        - title: Villager Trading
+          ref: emerald
+          detail: Cartographer villagers buy glass panes, trading 11 panes for 1 emerald.
+    found_in:
+        - location: Villages
+          detail: Generates as window fittings in various village house structures.
+        - location: Woodland Mansions and Ancient Cities
+          detail: Found as decorative window and furnishing elements within these generated structures.
+    faq:
+        - question: What tool do I need to mine Glass Pane?
+          answer: |
+              None required — any tool or bare hands breaks it instantly,
+              but Silk Touch is needed to recover the pane itself.
+        - question: What happens if I break Glass Pane without Silk Touch?
+          answer: |
+              It shatters and drops nothing, just like regular glass.
+        - question: Why use Glass Panes instead of Glass blocks?
+          answer: |
+              They use less material (six glass makes sixteen panes), look
+              thinner, and connect visually to neighboring blocks and
+              panes for tidier builds.
+        - question: Can Glass Panes be waterlogged?
+          answer: |
+              Yes. They can hold a water source inside them, letting
+              players build underwater window walls that still let water
+              flow through gaps.
     data_version: "1.21.5"
 ---
 

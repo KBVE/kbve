@@ -1,9 +1,8 @@
-use askama::Template;
 use axum::{
     Router,
     extract::{Path, State},
     http::StatusCode,
-    response::{Html, IntoResponse, Json, Redirect, Response},
+    response::{Html, IntoResponse, Json, Redirect},
     routing::get,
 };
 use jedi::entity::error::JediError;
@@ -39,35 +38,6 @@ impl DownloadState {
     }
 }
 
-#[derive(Template)]
-#[template(path = "askama/downloads.html")]
-struct DownloadsTemplate {
-    game: String,
-    clients: Vec<ClientRow>,
-}
-
-struct ClientRow {
-    platform: String,
-    slug: String,
-    version: String,
-    state: String,
-    live: bool,
-    updated: String,
-}
-
-impl From<&ClientVersion> for ClientRow {
-    fn from(c: &ClientVersion) -> Self {
-        Self {
-            platform: c.platform.name().to_string(),
-            slug: c.platform.slug().to_string(),
-            version: c.user_version.clone().unwrap_or_else(|| "—".to_string()),
-            state: c.state.clone().unwrap_or_else(|| "unknown".to_string()),
-            live: c.live,
-            updated: c.updated_at.clone().unwrap_or_default(),
-        }
-    }
-}
-
 fn health_body(clients: Value) -> Json<Value> {
     Json(json!({
         "status": "ok",
@@ -83,22 +53,6 @@ async fn health(State(state): State<Arc<DownloadState>>) -> Json<Value> {
 
 async fn health_basic() -> Json<Value> {
     health_body(Value::Null)
-}
-
-async fn downloads_page(State(state): State<Arc<DownloadState>>) -> Response {
-    let snapshot = state.snapshot.read().await;
-    let clients = snapshot.iter().map(ClientRow::from).collect();
-    let tpl = DownloadsTemplate {
-        game: "RentEarth".to_string(),
-        clients,
-    };
-    match tpl.render() {
-        Ok(html) => Html(html).into_response(),
-        Err(e) => {
-            tracing::error!("downloads template render failed: {e}");
-            (StatusCode::INTERNAL_SERVER_ERROR, "render error").into_response()
-        }
-    }
 }
 
 async fn downloads_json(State(state): State<Arc<DownloadState>>) -> Json<Vec<ClientVersion>> {
@@ -181,7 +135,6 @@ async fn main() {
             Router::new()
                 .route("/health", get(health))
                 .route("/api/health", get(health))
-                .route("/downloads", get(downloads_page))
                 .route("/api/downloads", get(downloads_json))
                 .route("/downloads/{platform}", get(download))
                 .with_state(state)

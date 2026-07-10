@@ -1,5 +1,6 @@
 ---
 title: Waxed Oxidized Copper Bulb
+template: splash
 description: |
     Minecraft Waxed Oxidized Copper Bulb — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 1039
     ref: waxed_oxidized_copper_bulb
     slug: waxed-oxidized-copper-bulb
+    content_rev: 1
     display_name: Waxed Oxidized Copper Bulb
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
-    light_emission: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
+    light_emission: 4
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_oxidized_copper_bulb
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Oxidized Copper Bulb is a redstone-toggled light source
+            locked at the dim, fully-oxidized stage by a honeycomb coating.
+            A redstone pulse flips it on or off and it stays in that state
+            without continuous power, unlike a lamp.
+        lore: |
+            Copper Bulbs were revealed at Minecraft Live 2023 for the
+            Tricky Trials update, adding a toggle-latching light source to
+            the redstone builder's toolkit.
+    uses:
+        - title: Redstone Toggle Lighting
+          ref: waxed_oxidized_copper_bulb
+          detail: |
+              Wired into redstone circuits as a latching light: one pulse
+              turns it on, the next turns it off, useful for switches and
+              compact T flip-flop designs that a comparator can read.
+    found_in:
+        - location: Crafted with Blaze Rod and Redstone
+          detail: Craft from a matching block of copper, a blaze rod, and redstone dust, then wax with honeycomb.
+        - location: Trial Chambers
+          detail: Waxed, lit copper bulbs in random oxidation stages generate naturally inside trial chambers.
+    faq:
+        - question: Does it need continuous redstone power to stay lit?
+          answer: |
+              No. A single pulse toggles it on or off, and it holds that
+              state until the next pulse — no constant power required.
+        - question: How bright is the oxidized bulb?
+          answer: |
+              Light level 4, the dimmest of the four oxidation stages
+              (normal is 15, exposed 12, weathered 8, oxidized 4).
+        - question: Will waxing change how bright it is?
+          answer: |
+              No, waxing only prevents further oxidation; it does not
+              change the current light level.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better; mining by hand yields no drop.
     data_version: "1.21.5"
 ---
 

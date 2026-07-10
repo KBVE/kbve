@@ -1,5 +1,6 @@
 ---
 title: Bamboo Slab
+template: splash
 description: |
     Minecraft Bamboo Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 576
     ref: bamboo_slab
     slug: bamboo-slab
+    content_rev: 1
     display_name: Bamboo Slab
     material: wood
     hardness: 2
@@ -24,10 +26,53 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            A bamboo slab is a half-height wood block crafted from bamboo
+            planks, used for detailed building and half-block leveling. Two
+            slabs stacked together form a full, solid bamboo planks block.
+        lore: |
+            Bamboo slabs let builders soften rooflines and stairs long
+            before bamboo could grow into full stalks in the wild.
+    uses:
+        - title: Bamboo Slab
+          ref: bamboo_slab
+          detail: |
+              Three bamboo planks in a horizontal row craft six slabs.
+              Slabs are also crafting ingredients for barrels, chiseled
+              bookshelves, daylight detectors, and composters.
+    found_in:
+        - location: Crafted by the player
+          detail: Made from three bamboo planks at a crafting table.
+        - location: Generated structures
+          detail: Occasionally found in villages, mansions, shipwrecks, and trial chambers.
+    faq:
+        - question: What tool do I need to mine a bamboo slab?
+          answer: |
+              None required — any tool works, though an axe is fastest.
+        - question: Does a bamboo slab burn?
+          answer: |
+              Yes, like most wood, it is flammable and can be destroyed by
+              fire or lava.
+        - question: Can bamboo slabs be waterlogged?
+          answer: |
+              Yes, placing a slab in water lets it hold the water source,
+              creating a waterlogged block.
+        - question: What happens if I place two bamboo slabs together?
+          answer: |
+              They combine into a single full bamboo planks block.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper Grate
+template: splash
 description: |
     Minecraft Exposed Copper Grate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1025
     ref: exposed_copper_grate
     slug: exposed-copper-grate
+    content_rev: 1
     display_name: Exposed Copper Grate
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: exposed_copper_grate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Exposed Copper Grate is the first weathering stage of the
+            copper grate, a transparent, waterloggable block that blocks
+            mob spawning while letting light and sight pass through. Its
+            surface has begun dulling into a spotted patina compared to the
+            bright unoxidized grate.
+        lore: |
+            Added alongside the copper grate in the Trial Chambers update,
+            the exposed stage lets builders match a grate's weathering to
+            the rest of an aging copper structure.
+    uses:
+        - title: Mob-Proof Flooring
+          ref: exposed_copper_grate
+          detail: |
+              Placed as flooring or catwalks, it prevents hostile mob
+              spawning while remaining see-through, and can be waterlogged
+              for underwater builds.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally at this oxidation stage within trial chamber structures.
+        - location: Natural weathering or lightning
+          detail: An unoxidized copper grate reaches this stage over time, or instantly if struck by lightning.
+    faq:
+        - question: What tool do I need to mine an Exposed Copper Grate?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks it with no
+              drop.
+        - question: How do I get an Exposed Copper Grate?
+          answer: |
+              Craft it from Exposed Copper (or Exposed Cut Copper) in a 2x2
+              pattern for 4 grates, stonecut it 1:1, or let an unoxidized
+              grate weather naturally.
+        - question: Does an Exposed Copper Grate conduct redstone?
+          answer: |
+              No. Like other copper grates, it does not transmit redstone
+              power.
+        - question: Can I stop it from oxidizing further?
+          answer: |
+              Yes, apply honeycomb to wax it and lock it at the exposed
+              stage permanently.
     data_version: "1.21.5"
 ---
 

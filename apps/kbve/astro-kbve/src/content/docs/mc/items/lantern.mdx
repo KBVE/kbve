@@ -1,5 +1,6 @@
 ---
 title: Lantern
+template: splash
 description: |
     Minecraft Lantern — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1278
     ref: lantern
     slug: lantern
+    content_rev: 1
     display_name: Lantern
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The lantern is a decorative light source crafted from iron nuggets and a
+            torch, emitting a light level of 15. It can be placed on top of or hung
+            beneath solid blocks and also spawns naturally in snowy villages and
+            bastion remnants.
+        lore: |
+            An iron-caged flame built to survive wind, rain, and long nights spent
+            far from home.
+    faq:
+        - question: How do you craft a lantern?
+          answer: |
+              Surround 1 torch with 8 iron nuggets in a crafting grid to produce
+              1 lantern.
+        - question: How bright is a lantern?
+          answer: |
+              A lantern emits a light level of 15, making it one of the brightest
+              light sources in the game.
+        - question: Can a lantern hang from a ceiling?
+          answer: |
+              Yes, lanterns can be suspended from the underside of solid blocks
+              in addition to standing on top of them.
+        - question: Is there a variant of the lantern?
+          answer: |
+              Yes, the soul lantern gives off a blue flame and slightly dimmer
+              light, and a copper lantern variant also exists.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

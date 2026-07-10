@@ -1,5 +1,6 @@
 ---
 title: Bone Meal
+template: splash
 description: |
     Minecraft Bone Meal — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1020
     ref: bone_meal
     slug: bone-meal
+    content_rev: 1
     display_name: Bone Meal
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Bone Meal is a common item that acts as a fertilizer, causing many plants
+            and plant-like blocks to instantly grow when used on them. It is also a
+            crafting ingredient for white dye and bone blocks.
+        lore: |
+            Bone meal has been the primary instant-growth fertilizer since farming mechanics were expanded early in Minecraft's history.
+    faq:
+        - question: How do you obtain Bone Meal?
+          answer: |
+              Bone Meal can be crafted from bones (one bone yields three bone meal),
+              obtained by breaking down a bone block into nine bone meal, produced by
+              filling a composter with plant items, or rarely dropped by fished mobs
+              like pufferfish and salmon.
+        - question: What does Bone Meal do to crops?
+          answer: |
+              Applying bone meal to crops like wheat and carrots advances their growth
+              stage instantly, sometimes skipping multiple stages at once, though some
+              plants such as cactus and nether wart are unaffected.
+        - question: Does Bone Meal work on saplings and mushrooms?
+          answer: |
+              Yes. Saplings have roughly a 45% chance per use to grow into trees, and
+              mushrooms have about a 40% chance to grow into huge mushrooms when bone
+              meal is applied on suitable ground.
+        - question: What else can Bone Meal be used for?
+          answer: |
+              Bone Meal is also a crafting ingredient for white dye and can be
+              compressed into bone blocks, and in some editions it is used to color
+              beds, banners, and other dyed blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

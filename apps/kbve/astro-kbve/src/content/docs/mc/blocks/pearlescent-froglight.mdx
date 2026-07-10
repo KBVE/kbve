@@ -1,5 +1,6 @@
 ---
 title: Pearlescent Froglight
+template: splash
 description: |
     Minecraft Pearlescent Froglight — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1088
     ref: pearlescent_froglight
     slug: pearlescent-froglight
+    content_rev: 1
     display_name: Pearlescent Froglight
     material: stone
     hardness: 0.3
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pearlescent_froglight
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+        - light_source
+    about:
+        description: |
+            Pearlescent Froglight is a light-emitting block produced when a
+            warm frog eats a tiny magma cube. It shines at the maximum light
+            level of 15 and, unlike most blocks, breaks at the same speed
+            regardless of the tool used.
+        lore: |
+            Introduced in the Wild Update (1.19) alongside frogs, its name is
+            a reference to the Minecraft content creator PearlescentMoon.
+    uses:
+        - title: Light Source
+          ref: pearlescent_froglight
+          detail: |
+              Placed as a compact, mob-spawn-proof light source that also
+              melts nearby snow layers and ice, useful for base lighting and
+              builds needing an off-white glow.
+    found_in:
+        - location: Frog and magma cube farms
+          detail: |
+              Not naturally generated; obtained by luring a warm (white)
+              frog to eat a tiny magma cube, which it then spits back out
+              as this block.
+    faq:
+        - question: How do I get Pearlescent Froglight?
+          answer: |
+              Get a warm (white) frog to eat a tiny magma cube. The frog
+              spits out a Froglight instead of digesting it. Warm frogs
+              always produce the pearlescent variant.
+        - question: What tool mines it fastest?
+          answer: |
+              None — Froglight breaks at a fixed speed no matter what tool
+              or hand is used.
+        - question: Does it melt snow and ice?
+          answer: |
+              Yes. Like other light sources of level 15, it melts snow
+              layers within 3 blocks and ice within 4 blocks.
+        - question: Can I get a different color?
+          answer: |
+              Yes. Temperate frogs produce Ochre Froglight and cold frogs
+              produce Verdant Froglight from the same magma-cube process.
     data_version: "1.21.5"
 ---
 

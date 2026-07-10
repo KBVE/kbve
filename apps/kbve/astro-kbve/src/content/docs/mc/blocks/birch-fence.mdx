@@ -1,5 +1,6 @@
 ---
 title: Birch Fence
+template: splash
 description: |
     Minecraft Birch Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 606
     ref: birch_fence
     slug: birch-fence
+    content_rev: 1
     display_name: Birch Fence
     material: wood
     hardness: 2
@@ -26,9 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: birch_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The Birch Fence is a decorative wooden barrier that visually
+            connects to neighboring fences and fence gates, forming a
+            1.5-block-high line that blocks most mobs from crossing.
+        lore: |
+            Fences have marked animal pens and property lines in Minecraft
+            builds since their introduction, well before fence gates existed.
+    uses:
+        - title: Animal Pen / Enclosure
+          ref: birch_fence
+          detail: |
+              A ring of fence blocks keeps most passive and hostile mobs
+              contained without needing a full wall, since fences are taller
+              than a single block for jump purposes.
+        - title: Furnace Fuel
+          ref: birch_fence
+          detail: |
+              Overworld wooden fences can be burned as furnace fuel,
+              smelting 1.5 items per fence.
+    found_in:
+        - location: Crafted from Birch Planks and Sticks
+          detail: Four matching planks and two sticks craft three fences at a crafting table.
+        - location: Villages, mineshafts, and woodland mansions
+          detail: Generates as part of farm plots, bridges, and other wood-matched structures.
+    faq:
+        - question: Can mobs jump over a Birch Fence?
+          answer: |
+              No. Fences are taller than their model suggests for collision
+              purposes, so most mobs cannot jump over them.
+        - question: What tool is fastest on a Birch Fence?
+          answer: |
+              An axe, though it drops itself with any tool including bare
+              hands.
+        - question: Does a Birch Fence connect to other wood-type fences?
+          answer: |
+              Yes. Fences of any wood type visually and functionally connect
+              to each other and to fence gates.
+        - question: Is Birch Fence flammable?
+          answer: |
+              Yes, like other overworld wood fences it will catch fire from
+              nearby flames or lava.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Smooth Quartz Block
+template: splash
 description: |
     Minecraft Smooth Quartz Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 594
     ref: smooth_quartz
     slug: smooth-quartz
+    content_rev: 1
     display_name: Smooth Quartz Block
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_quartz
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Smooth Quartz Block is a plain, unpatterned variant of quartz
+            block made by smelting Block of Quartz. Its blast resistance of
+            6 is notably higher than a regular quartz block, a side effect
+            of inheriting its stats from the slab it was derived from.
+        lore: |
+            Added in Java Edition 18w43a to give the quartz building set a
+            smooth, seamless surface option alongside the pillar and
+            chiseled variants.
+    uses:
+        - title: Building & Decoration
+          ref: quartz_slab
+          detail: |
+              Serves as a clean white building block and is the base
+              crafting ingredient for Smooth Quartz Slabs and Smooth Quartz
+              Stairs, each also obtainable via stonecutter.
+    found_in:
+        - location: Furnace (smelted)
+          detail: Smelt a Block of Quartz with any fuel to produce Smooth Quartz Block.
+        - location: Bastion remnant bridges
+          detail: Two Smooth Quartz Blocks generate naturally per bridge in bastion remnants.
+    faq:
+        - question: What tool do I need to mine Smooth Quartz Block?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields
+              nothing.
+        - question: How do I get Smooth Quartz Block?
+          answer: |
+              Smelt a regular Block of Quartz in a furnace, blast furnace,
+              or campfire with any fuel source.
+        - question: Why does it have higher blast resistance than a Quartz Block?
+          answer: |
+              It inherits its blast resistance from slab-derived stats
+              rather than the base quartz block, giving it 6 instead of
+              0.8 — likely a historical quirk rather than intentional
+              design.
+        - question: Does Fortune affect the drop?
+          answer: |
+              No. It always drops exactly one Smooth Quartz Block
+              regardless of enchantments.
     data_version: "1.21.5"
 ---
 

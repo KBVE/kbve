@@ -1,5 +1,6 @@
 ---
 title: Magenta Carpet
+template: splash
 description: |
     Minecraft Magenta Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 508
     ref: magenta_carpet
     slug: magenta-carpet
+    content_rev: 1
     display_name: Magenta Carpet
     material: wool
     hardness: 0.1
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Magenta Carpet is a thin, decorative floor covering crafted
+            from wool. It can be placed on almost any surface, dampens
+            sculk sensor vibrations, and hides light sources placed
+            beneath it.
+        lore: |
+            Carpets were added in Java Edition 1.8 as a low-profile
+            decorative alternative to full wool blocks.
+    uses:
+        - title: Llama Decoration
+          ref: magenta_carpet
+          detail: |
+              Place carpet in a llama's inventory slot to give it a
+              matching decorative pattern on its back.
+    found_in:
+        - location: Crafted
+          detail: Two wool blocks craft three carpets, or dye an existing white carpet magenta.
+        - location: Igloos, woodland mansions, villages, and ancient cities
+          detail: Carpet of various colors generates naturally as decoration in these structures.
+    faq:
+        - question: What tool do I need to mine Magenta Carpet?
+          answer: |
+              None. It breaks instantly with any tool or bare hands due to
+              its 0.1 hardness.
+        - question: Is Magenta Carpet flammable?
+          answer: |
+              Yes. Like wool, carpet can catch fire and burn away if
+              exposed to flames.
+        - question: Does carpet stop mobs from spawning?
+          answer: |
+              Yes. Its thin profile still counts as an opaque surface for
+              spawning rules, preventing hostile mobs from spawning on it.
+        - question: Can I place Magenta Carpet on any block?
+          answer: |
+              Yes. Carpet can be placed on top of any block, including
+              non-solid ones, as long as it is not air.
     data_version: "1.21.5"
 ---
 

@@ -1,0 +1,248 @@
+---
+import { getCollection } from 'astro:content';
+
+interface DirRow {
+	href: string;
+	title: string;
+	description: string;
+	meta?: string;
+}
+
+const pipelineMeta: Record<string, { label: string; accent: string }> = {
+	docker: { label: 'Services & Containers', accent: '#4f8fdd' },
+	crates: { label: 'Rust Crates', accent: '#e57448' },
+	unreal: { label: 'Unreal Plugins', accent: '#8a63d2' },
+	unreal_game: { label: 'Unreal Games', accent: '#8a63d2' },
+	ue5_server: { label: 'Unreal Servers', accent: '#8a63d2' },
+	unity: { label: 'Unity', accent: '#4fc08d' },
+	npm: { label: 'NPM Packages', accent: '#cb3837' },
+	python: { label: 'Python Packages', accent: '#3776ab' },
+	other: { label: 'Other Projects', accent: '#c9a56a' },
+};
+
+const pipelineOrder = [
+	'docker',
+	'crates',
+	'unreal',
+	'unreal_game',
+	'ue5_server',
+	'unity',
+	'npm',
+	'python',
+	'other',
+];
+
+function firstSentence(text: string): string {
+	const clean = text.replace(/\s+/g, ' ').trim();
+	const match = clean.match(/^.*?[.!?](\s|$)/);
+	return (match ? match[0] : clean).trim();
+}
+
+const applicationEntries = (await getCollection('application'))
+	.filter((entry) => !entry.id.endsWith('index') && entry.data.title)
+	.map((entry): DirRow => {
+		const data = entry.data as Record<string, unknown>;
+		return {
+			href: `/application/${entry.id.replace(/\.mdx?$/, '')}/`,
+			title: String(data.title ?? entry.id),
+			description: firstSentence(String(data.description ?? '')),
+		};
+	})
+	.sort((a, b) => a.title.localeCompare(b.title));
+
+const projectEntries = (await getCollection('project')).filter(
+	(entry) => !entry.id.endsWith('index') && entry.data.title,
+);
+
+const projectBuckets = new Map<string, DirRow[]>();
+
+for (const entry of projectEntries) {
+	const data = entry.data as Record<string, unknown>;
+	const pipeline = String(data.pipeline ?? 'other');
+	const key = pipeline in pipelineMeta ? pipeline : 'other';
+	const rows = projectBuckets.get(key) ?? [];
+	rows.push({
+		href: `/project/${entry.id.replace(/\.mdx?$/, '')}/`,
+		title: String(data.title ?? entry.id),
+		description: firstSentence(String(data.description ?? '')),
+		meta: data.version ? `v${data.version}` : undefined,
+	});
+	projectBuckets.set(key, rows);
+}
+
+for (const rows of projectBuckets.values()) {
+	rows.sort((a, b) => a.title.localeCompare(b.title));
+}
+
+const orderedPipelines = pipelineOrder.filter((k) => projectBuckets.has(k));
+---
+
+<section class="docsdir not-content">
+	<div
+		id="applications"
+		class="docsdir__section"
+		style="--dir-accent: #c9a56a;">
+		<div class="docsdir__head">
+			<h2 class="docsdir__heading">Applications</h2>
+			<span class="docsdir__count">
+				{applicationEntries.length} references
+			</span>
+		</div>
+		<p class="docsdir__blurb">
+			Reference guides for the tools, services, and platforms used across
+			the monorepo — from Docker and Kubernetes to Blender and Unreal.
+		</p>
+		<div class="docsdir__grid">
+			{
+				applicationEntries.map((row) => (
+					<a
+						href={row.href}
+						class="docsdir__card"
+						data-astro-prefetch>
+						<span class="docsdir__name">{row.title}</span>
+						{row.description && (
+							<span class="docsdir__desc">{row.description}</span>
+						)}
+					</a>
+				))
+			}
+		</div>
+	</div>
+	{
+		orderedPipelines.map((pipeline) => (
+			<div
+				class="docsdir__section"
+				style={`--dir-accent: ${pipelineMeta[pipeline].accent};`}>
+				<div class="docsdir__head">
+					<h2 class="docsdir__heading">
+						{pipelineMeta[pipeline].label}
+					</h2>
+					<span class="docsdir__count">
+						{projectBuckets.get(pipeline)!.length} projects
+					</span>
+				</div>
+				<div class="docsdir__grid">
+					{projectBuckets.get(pipeline)!.map((row) => (
+						<a
+							href={row.href}
+							class="docsdir__card"
+							data-astro-prefetch>
+							<span class="docsdir__main">
+								<span class="docsdir__name">{row.title}</span>
+								{row.meta && (
+									<span class="docsdir__version">
+										{row.meta}
+									</span>
+								)}
+							</span>
+							{row.description && (
+								<span class="docsdir__desc">
+									{row.description}
+								</span>
+							)}
+						</a>
+					))}
+				</div>
+			</div>
+		))
+	}
+</section>
+
+<style>
+	.docsdir {
+		display: flex;
+		flex-direction: column;
+		gap: 2.5rem;
+		margin: 2.5rem 0;
+	}
+
+	.docsdir__section {
+		--dir-accent: var(--sl-color-text-accent, #c9a56a);
+	}
+
+	.docsdir__head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-bottom: 0.6rem;
+		margin-bottom: 1rem;
+		border-bottom: 1px solid
+			color-mix(in oklab, var(--dir-accent) 30%, transparent);
+	}
+
+	.docsdir__heading {
+		margin: 0;
+		font-size: 1.15rem;
+		font-weight: 700;
+		color: var(--dir-accent);
+	}
+
+	.docsdir__count {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	.docsdir__blurb {
+		margin: 0 0 1rem;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	.docsdir__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+		gap: 0.6rem;
+	}
+
+	.docsdir__card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding: 0.85rem 1rem;
+		border-radius: 10px;
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		background: var(--sl-color-bg-nav, #111);
+		text-decoration: none;
+		transition:
+			border-color 180ms ease,
+			transform 180ms ease;
+	}
+
+	.docsdir__card:hover {
+		border-color: color-mix(in oklab, var(--dir-accent) 55%, transparent);
+		transform: translateY(-2px);
+	}
+
+	.docsdir__main {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
+		justify-content: space-between;
+	}
+
+	.docsdir__name {
+		font-size: 0.9rem;
+		font-weight: 700;
+		color: var(--sl-color-white, #fff);
+	}
+
+	.docsdir__version {
+		font-size: 0.72rem;
+		color: var(--sl-color-gray-3, #8b949e);
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	}
+
+	.docsdir__desc {
+		font-size: 0.78rem;
+		line-height: 1.4;
+		color: var(--sl-color-gray-3, #8b949e);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+</style>

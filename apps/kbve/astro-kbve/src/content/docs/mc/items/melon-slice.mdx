@@ -1,5 +1,6 @@
 ---
 title: Melon Slice
+template: splash
 description: |
     Minecraft Melon Slice — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1044
     ref: melon_slice
     slug: melon-slice
+    content_rev: 1
     display_name: Melon Slice
     category: food
     rarity: common
@@ -22,6 +24,25 @@ mc_item:
         saturation: 4.8
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A melon slice is a food item obtained by breaking a melon block, which typically drops between three and seven slices, boosted further by Fortune. Eating one restores hunger and saturation, and slices can also be crafted back into a full melon block or combined with a gold nugget to make a glistering melon slice.
+            Melon slices can additionally be added to a composter for a chance at raising its compost level.
+        lore: |
+            The item was simply called "Melon" until Java Edition 1.13 renamed it "Melon Slice" for consistency with the wider naming scheme.
+    faq:
+        - question: How do you get melon slices?
+          answer: |
+              Break a mature melon block with any tool or your bare hand; it drops 3 to 7 slices, with Fortune increasing the yield.
+        - question: What can melon slices be crafted into?
+          answer: |
+              Nine melon slices craft back into a whole melon block, and a single slice combined with a gold nugget produces a glistering melon slice.
+        - question: Are melon slices good for composting?
+          answer: |
+              Yes, adding a melon slice to a composter has a 50% chance to raise the compost level by one.
+        - question: Why was Melon renamed to Melon Slice?
+          answer: |
+              Java Edition 1.13 renamed the item from "Melon" to "Melon Slice" to keep naming consistent with other sliced or partial food items.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

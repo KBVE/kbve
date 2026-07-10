@@ -27,7 +27,7 @@ type OSRSItem = {
 	icon: string;
 };
 
-type Kind = 'mc' | 'rareicon' | 'osrs';
+type Kind = 'mc' | 'rareicon' | 'osrs' | 'docs';
 
 type SearchResult = {
 	kind: Kind;
@@ -55,6 +55,18 @@ const KIND_LABELS: Record<Kind, string> = {
 	mc: 'Minecraft',
 	rareicon: 'Rareicon',
 	osrs: 'OSRS',
+	docs: 'Pages',
+};
+
+const PAGEFIND_MAX = 8;
+
+// Search priority: docs/pages lead (handled separately), then itemdb, then
+// the lower-tier game catalogs (Minecraft, OSRS).
+const KIND_TIER: Record<Kind, number> = {
+	docs: 0,
+	rareicon: 1,
+	mc: 2,
+	osrs: 2,
 };
 
 function readCache<T>(key: string): T[] | null {
@@ -134,6 +146,44 @@ function osrsResult(item: OSRSItem): SearchResult {
 	};
 }
 
+type PagefindData = {
+	url: string;
+	excerpt?: string;
+	meta?: { title?: string; image?: string };
+};
+
+type PagefindModule = {
+	init?: () => Promise<void>;
+	options?: (opts: Record<string, unknown>) => Promise<void>;
+	debouncedSearch: (q: string) => Promise<{
+		results: Array<{ data: () => Promise<PagefindData> }>;
+	} | null>;
+};
+
+function stripHtml(s: string): string {
+	let sanitized = s;
+	let previous: string;
+	do {
+		previous = sanitized;
+		sanitized = sanitized.replace(/<[^>]*>/g, '');
+	} while (sanitized !== previous);
+	return sanitized.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function docsResult(d: PagefindData): SearchResult {
+	const url = d.url.replace(/\.html$/, '');
+	const title = d.meta?.title || url;
+	return {
+		kind: 'docs',
+		ref: url,
+		name: title,
+		href: url,
+		thumb: d.meta?.image || null,
+		thumbFallback: null,
+		sub: d.excerpt ? stripHtml(d.excerpt).slice(0, 120) : null,
+	};
+}
+
 function rankScore(name: string, ref: string, q: string): number {
 	const n = name.toLowerCase();
 	const r = ref.toLowerCase();
@@ -168,9 +218,31 @@ export function KbveSearchPalette() {
 		items: null,
 		failed: false,
 	});
+	const [docsResults, setDocsResults] = useState<SearchResult[]>([]);
 	const inputRef = useRef<HTMLInputElement | null>(null);
 	const listRef = useRef<HTMLDivElement | null>(null);
 	const loadedRef = useRef(false);
+	const pagefindRef = useRef<PagefindModule | null>(null);
+	const pagefindFailedRef = useRef(false);
+
+	const loadPagefind =
+		useCallback(async (): Promise<PagefindModule | null> => {
+			if (pagefindRef.current) return pagefindRef.current;
+			if (pagefindFailedRef.current) return null;
+			try {
+				const base = import.meta.env.BASE_URL || '/';
+				const url = `${base.replace(/\/$/, '')}/pagefind/pagefind.js`;
+				const mod = (await import(
+					/* @vite-ignore */ url
+				)) as PagefindModule;
+				await mod.init?.();
+				pagefindRef.current = mod;
+				return mod;
+			} catch {
+				pagefindFailedRef.current = true;
+				return null;
+			}
+		}, []);
 
 	const loadManifests = useCallback(() => {
 		if (loadedRef.current) return;
@@ -321,7 +393,7 @@ export function KbveSearchPalette() {
 				.sort((x, y) => x.name.localeCompare(y.name))
 				.slice(0, TOP_PER_KIND)
 				.map(osrsResult);
-			return [...a, ...b, ...c];
+			return [...b, ...a, ...c];
 		}
 
 		type Scored = { score: number; result: SearchResult };
@@ -341,12 +413,43 @@ export function KbveSearchPalette() {
 		}
 
 		scored.sort((a, b) => {
+			const ta = KIND_TIER[a.result.kind];
+			const tb = KIND_TIER[b.result.kind];
+			if (ta !== tb) return ta - tb;
 			if (a.score !== b.score) return a.score - b.score;
 			return a.result.name.localeCompare(b.result.name);
 		});
 
 		return scored.slice(0, MAX_RESULTS).map((s) => s.result);
 	}, [query, mc.items, rareicon.items, osrs.items]);
+
+	useEffect(() => {
+		const q = query.trim();
+		if (!open || q.length < 2) {
+			setDocsResults([]);
+			return;
+		}
+		let cancelled = false;
+		void (async () => {
+			const pf = await loadPagefind();
+			if (!pf || cancelled) return;
+			const search = await pf.debouncedSearch(q);
+			if (!search || cancelled) return;
+			const top = await Promise.all(
+				search.results.slice(0, PAGEFIND_MAX).map((r) => r.data()),
+			);
+			if (cancelled) return;
+			setDocsResults(top.map(docsResult));
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [query, open, loadPagefind]);
+
+	const allResults = useMemo<SearchResult[]>(
+		() => [...docsResults, ...results],
+		[results, docsResults],
+	);
 
 	useEffect(() => {
 		setSelected(0);
@@ -360,20 +463,20 @@ export function KbveSearchPalette() {
 			`[data-row-index="${selected}"]`,
 		);
 		if (row) row.scrollIntoView({ block: 'nearest' });
-	}, [selected, open, results.length]);
+	}, [selected, open, allResults.length]);
 
 	const onKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
 		if (e.key === 'ArrowDown') {
 			e.preventDefault();
 			setSelected((s) =>
-				Math.min(s + 1, Math.max(0, results.length - 1)),
+				Math.min(s + 1, Math.max(0, allResults.length - 1)),
 			);
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
 			setSelected((s) => Math.max(s - 1, 0));
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
-			const r = results[selected];
+			const r = allResults[selected];
 			if (r) {
 				closePalette();
 				window.location.assign(r.href);
@@ -400,8 +503,8 @@ export function KbveSearchPalette() {
 	const rendered: ReactNode[] = [];
 	{
 		let lastGroup: Kind | null = null;
-		results.forEach((r, i) => {
-			if (showGroups && r.kind !== lastGroup) {
+		allResults.forEach((r, i) => {
+			if ((showGroups || r.kind === 'docs') && r.kind !== lastGroup) {
 				rendered.push(
 					<div key={`h-${r.kind}`} className="kbve-search__group">
 						{KIND_LABELS[r.kind]}
@@ -504,7 +607,7 @@ export function KbveSearchPalette() {
 						ref={inputRef}
 						className="kbve-search__input"
 						type="text"
-						placeholder="Search MC, Rareicon, OSRS…"
+						placeholder="Search pages, MC, Rareicon, OSRS…"
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 						onKeyDown={onKeyDown}
@@ -512,6 +615,25 @@ export function KbveSearchPalette() {
 						spellCheck={false}
 					/>
 					<kbd className="kbve-search__esc">Esc</kbd>
+					<button
+						type="button"
+						className="kbve-search__close"
+						onClick={closePalette}
+						aria-label="Close search">
+						<svg
+							viewBox="0 0 24 24"
+							width="20"
+							height="20"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							aria-hidden="true">
+							<line x1="18" y1="6" x2="6" y2="18" />
+							<line x1="6" y1="6" x2="18" y2="18" />
+						</svg>
+					</button>
 				</div>
 				<div ref={listRef} className="kbve-search__list" role="listbox">
 					{loading && (
@@ -519,7 +641,7 @@ export function KbveSearchPalette() {
 							Loading indexes…
 						</div>
 					)}
-					{!loading && results.length === 0 && (
+					{!loading && allResults.length === 0 && (
 						<div className="kbve-search__empty">
 							{query.trim()
 								? `No matches for "${query.trim()}"`
@@ -529,15 +651,20 @@ export function KbveSearchPalette() {
 					{rendered}
 				</div>
 				<footer className="kbve-search__footer">
-					<span>
-						<kbd>↑</kbd>
-						<kbd>↓</kbd> navigate
+					<span className="kbve-search__kbdhints">
+						<span>
+							<kbd>↑</kbd>
+							<kbd>↓</kbd> navigate
+						</span>
+						<span>
+							<kbd>Enter</kbd> open
+						</span>
+						<span>
+							<kbd>Esc</kbd> close
+						</span>
 					</span>
-					<span>
-						<kbd>Enter</kbd> open
-					</span>
-					<span>
-						<kbd>Esc</kbd> close
+					<span className="kbve-search__touchhint">
+						Tap a result to open
 					</span>
 					{failureNotes.length > 0 && (
 						<span className="kbve-search__warn">

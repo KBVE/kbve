@@ -1,5 +1,6 @@
 ---
 title: Block of Coal
+template: splash
 description: |
     Minecraft Block of Coal — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 523
     ref: coal_block
     slug: coal-block
+    content_rev: 1
     display_name: Block of Coal
     material: stone
     hardness: 5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: coal_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Block of Coal is a storage block equivalent to nine coal,
+            compacted for compact stacking or use as furnace fuel. It
+            requires at least a wooden pickaxe to mine and drops itself.
+        lore: |
+            Added in the Update Aquatic (1.13), the block gave coal a
+            long-awaited storage form to match iron, gold, and other
+            resources.
+    uses:
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Smelts 80 items over 800 seconds when used as furnace fuel,
+              about 11% more efficient than burning nine loose coal.
+        - title: Coal (crafting)
+          ref: coal
+          detail: |
+              Craft a Block of Coal back into 9 individual coal for
+              portable use in torches, campfires, or fuel.
+    found_in:
+        - location: Trail Ruins
+          detail: Generates as part of trail ruins archaeology structures.
+        - location: Crafted from coal
+          detail: Most commonly obtained by crafting 9 coal into a block for compact storage.
+    faq:
+        - question: What tool do I need to mine a Block of Coal?
+          answer: |
+              At minimum a wooden pickaxe; mining without a pickaxe drops
+              nothing.
+        - question: Is a Block of Coal renewable?
+          answer: |
+              Yes. Coal itself is obtainable from mining, smelting, and
+              other renewable sources, so blocks crafted from it are
+              renewable too.
+        - question: Can a Block of Coal power a furnace minecart?
+          answer: |
+              No. Furnace minecarts cannot be fueled with coal blocks.
+        - question: How much smelting time does one block provide?
+          answer: |
+              800 seconds — enough to smelt 80 items, more efficient than
+              nine separate coal due to reduced fuel-swap overhead.
     data_version: "1.21.5"
 ---
 

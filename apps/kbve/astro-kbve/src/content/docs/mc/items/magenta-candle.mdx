@@ -1,5 +1,6 @@
 ---
 title: Magenta Candle
+template: splash
 description: |
     Minecraft Magenta Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 1308
     ref: magenta_candle
     slug: magenta-candle
+    content_rev: 1
     display_name: Magenta Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Magenta Candle is a dyeable, light-emitting decoration block
+            crafted from string and honeycomb, then colored with magenta
+            dye. Up to four can be placed in a single block space, and each
+            lit candle contributes 3 light levels for a maximum of 12.
+        lore: |
+            Candles were first revealed at Minecraft Live 2020 as part of
+            the deep dark concept before becoming functional decorative
+            lighting in version 1.17.
+        faq:
+            - question: How many Magenta Candles can occupy one block space?
+              answer: |
+                  Up to four candles of the same color can share a single
+                  block, progressively raising the light level from 3 to a
+                  maximum of 12 when all four are lit.
+            - question: Can I place a Magenta Candle on a cake?
+              answer: |
+                  Yes, placing a single candle on an uneaten cake creates a
+                  candle cake that is both decorative and lights like a
+                  normal candle.
+            - question: How do I light and put out a Magenta Candle?
+              answer: |
+                  Light it with flint and steel, a fire charge, or a
+                  flaming projectile, and extinguish it with water or by
+                  clicking the lit candle.
+            - question: Can a Magenta Candle's color be changed later?
+              answer: |
+                  No, once a candle is dyed magenta the color is permanent
+                  and cannot be changed to another shade afterward.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

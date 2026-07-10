@@ -1,5 +1,6 @@
 ---
 title: Dirt
+template: splash
 description: |
     Minecraft Dirt — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 28
     ref: dirt
     slug: dirt
+    content_rev: 1
     display_name: Dirt
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Dirt is one of the most abundant blocks in the Overworld, found beneath grass in
+            plains, forests, and most other biomes. It can be tilled into farmland with a hoe,
+            used as cheap building material, or combined with gravel to make coarse dirt.
+        lore: |
+            The humble foundation of nearly every biome, quietly holding the world together
+            beneath a thin layer of grass.
+    faq:
+        - question: How do you get dirt in Minecraft?
+          answer: |
+              Break it with any tool (a shovel is fastest) — dirt generates abundantly under
+              grass blocks in most biomes, and also drops from farmland, dirt paths, grass
+              blocks, mycelium, and podzol when broken.
+        - question: Does dirt turn into grass?
+          answer: |
+              Yes, dirt adjacent to a grass block at a light level of 4 or higher has a chance
+              each game tick to spread and convert into grass itself.
+        - question: What is dirt used for?
+          answer: |
+              It can be tilled into farmland for crops, used as basic building and scaffolding
+              material, or crafted with gravel into coarse dirt.
+        - question: Can dirt be turned into mud?
+          answer: |
+              Yes, using a water bottle on a dirt block converts it into mud, which can then be
+              used to grow mangrove roots.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

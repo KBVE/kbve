@@ -1,5 +1,6 @@
 ---
 title: Cherry Pressure Plate
+template: splash
 description: |
     Minecraft Cherry Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 253
     ref: cherry_pressure_plate
     slug: cherry-pressure-plate
+    content_rev: 1
     display_name: Cherry Pressure Plate
     material: redstone
     hardness: 0.5
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Cherry Pressure Plate is a redstone component crafted from
+            Cherry Planks that emits a full-strength redstone signal when
+            any entity — player, mob, item, or arrow — rests on it.
+        lore: |
+            Wooden pressure plates predate cherry wood by many versions;
+            the cherry variant arrived with the 1.20 "Trails & Tales" update.
+    uses:
+        - title: Redstone Trigger
+          ref: redstone
+          detail: |
+              Wired into doors, dispensers, and trapdoors to open them when
+              stepped on, since wooden plates react to virtually any entity
+              including dropped items and arrows.
+    found_in:
+        - location: Crafting table
+          detail: Two Cherry Planks arranged vertically craft one pressure plate.
+    faq:
+        - question: What does Cherry Pressure Plate drop when broken?
+          answer: |
+              It drops itself as an item, breakable with any tool.
+        - question: Is Cherry Pressure Plate flammable?
+          answer: |
+              No, wooden pressure plates are non-flammable, though Overworld
+              wood variants can still be burned as furnace fuel.
+        - question: Does it react to mobs and items, not just players?
+          answer: |
+              Yes. Wooden pressure plates activate for any entity, including
+              mobs, dropped items, and arrows, unlike stone plates which only
+              respond to players and mobs.
+        - question: What redstone signal strength does it output?
+          answer: |
+              A signal strength of 15 while an entity is on it.
     data_version: "1.21.5"
 ---
 

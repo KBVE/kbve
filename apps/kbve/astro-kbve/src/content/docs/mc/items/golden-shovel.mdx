@@ -1,5 +1,6 @@
 ---
 title: Golden Shovel
+template: splash
 description: |
     Minecraft Golden Shovel — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 869
     ref: golden_shovel
     slug: golden-shovel
+    content_rev: 1
     display_name: Golden Shovel
     category: tool
     rarity: common
@@ -35,6 +37,24 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The golden shovel excels at breaking dirt, sand, gravel, and related blocks, sharing the highest mining efficiency of any shovel tier. Crafted from 3 gold ingots and 2 sticks, it can also turn grass blocks into dirt paths and extinguish campfires, but its 32-use durability is the lowest among all tool tiers.
+        lore: |
+            A precious but fragile tool that prioritizes speed over longevity, prized by piglins for its glimmering gold composition.
+    faq:
+        - question: What blocks does a golden shovel dig fastest?
+          answer: |
+              Dirt, sand, gravel, clay, and similar soil-type blocks, all broken with the highest mining efficiency of any shovel.
+        - question: Why would anyone use such a weak tool?
+          answer: |
+              Its exceptional mining efficiency and high enchantability of 22 make it ideal for quickly excavating soft terrain, especially when enchanted with Efficiency.
+        - question: Can a golden shovel be repaired?
+          answer: |
+              Yes, by combining two damaged shovels in an anvil or crafting grid, or by adding gold ingots in an anvil, each restoring 25% durability while preserving enchantments.
+        - question: Is the golden shovel useful in combat?
+          answer: |
+              Not really. It deals only 2.5 HP of damage with a full second between swings, making it impractical as a weapon.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

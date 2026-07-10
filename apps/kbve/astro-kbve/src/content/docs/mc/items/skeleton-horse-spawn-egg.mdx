@@ -1,5 +1,6 @@
 ---
 title: Skeleton Horse Spawn Egg
+template: splash
 description: |
     Minecraft Skeleton Horse Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1122
     ref: skeleton_horse_spawn_egg
     slug: skeleton-horse-spawn-egg
+    content_rev: 1
     display_name: Skeleton Horse Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Skeleton Horse Spawn Egg is a creative-mode item that instantly spawns
+            a skeleton horse when used on a block. Skeleton horses have a 20% chance
+            to spawn as a baby and, unlike naturally occurring skeleton traps, never
+            spawn with a skeletal rider.
+        lore: |
+            An undead, ghostly variant of the ordinary horse, retaining the ability
+            to be tamed and ridden despite its bony, otherworldly appearance.
+    faq:
+        - question: Can skeleton horses be tamed like regular horses?
+          answer: |
+              Yes. They spawn untamed and must be tamed using the same process as
+              a normal horse before they can be ridden.
+        - question: What is a skeleton trap?
+          answer: |
+              A naturally occurring event where lightning strikes during a
+              thunderstorm, spawning a group of skeleton horses with skeletal
+              riders. The spawn egg never produces this trap, only a plain horse.
+        - question: Why use the spawn egg instead of finding one naturally?
+          answer: |
+              It lets creative-mode players obtain a skeleton horse instantly for
+              building or testing, without waiting for a thunderstorm or exploring.
+        - question: Can a baby skeleton horse spawn from the egg?
+          answer: |
+              Yes, there is a 20% chance the spawned skeleton horse will be a baby.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

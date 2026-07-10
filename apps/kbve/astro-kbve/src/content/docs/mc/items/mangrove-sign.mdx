@@ -1,5 +1,6 @@
 ---
 title: Mangrove Sign
+template: splash
 description: |
     Minecraft Mangrove Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 934
     ref: mangrove_sign
     slug: mangrove-sign
+    content_rev: 1
     display_name: Mangrove Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A mangrove sign is a decorative, non-solid block crafted from mangrove planks and sticks, yielding three signs per craft. It can be placed as a standing sign on top of blocks or as a wall sign, and displays up to four lines of customizable text.
+            Text on a sign can be recolored with dyes and made to glow with a glow ink sac, and applying a honeycomb waxes the sign, permanently locking its text against further edits.
+        lore: |
+            Mangrove signs joined the sign family alongside the mangrove swamp biome, and unlike Nether wood signs they can still be burned as furnace fuel.
+    faq:
+        - question: How do you craft a mangrove sign?
+          answer: |
+              Combine six mangrove planks with one stick in a crafting grid to produce three mangrove signs at once.
+        - question: Can you change the text color on a mangrove sign?
+          answer: |
+              Yes, right-clicking the sign with a dye recolors the text, and a glow ink sac makes the text glow even in darkness.
+        - question: How do you lock the text on a mangrove sign?
+          answer: |
+              Use a honeycomb on the placed sign to wax it, which permanently prevents any further text edits.
+        - question: Can mangrove signs be used as furnace fuel?
+          answer: |
+              Yes, since mangrove signs are made of wood they can be burned in a furnace, unlike signs crafted from Nether wood types.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

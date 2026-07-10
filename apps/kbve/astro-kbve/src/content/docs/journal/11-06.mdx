@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: November 6th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'November 6,'
+    accent: every year.
+    lede: 'The November 6th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Nov 5'
+          href: /journal/11-05/
+        - label: 'Nov 7 →'
+          href: /journal/11-07/
+    related:
+        - title: 'Previous · Nov 5'
+          copy: 'Step back a day to the November 5th log.'
+          href: /journal/11-05/
+          icon: calendar
+        - title: 'Next · Nov 7'
+          copy: 'Jump ahead to the November 7th log.'
+          href: /journal/11-07/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### CityVote Docker Image
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
 	The website should be built the same way that we did the other ones, using astro and axum would make the most sense.
 	`astro-cityvote` and then have it build into `cityvote-deployment` or something of that nature, and finally setup the kube deployment.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -	03:38AM
 
@@ -66,3 +115,7 @@ import { Adsense, Tasks } from '@/components/astropad';
 
 	Time for a quick league match, while I am playing brighter shores on the side.
 	The new aram map looks amazing, they did a great job with it!
+
+</BentoProse>
+
+</BentoDoc>

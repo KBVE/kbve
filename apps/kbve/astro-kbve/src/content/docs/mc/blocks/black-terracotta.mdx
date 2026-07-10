@@ -1,5 +1,6 @@
 ---
 title: Black Terracotta
+template: splash
 description: |
     Minecraft Black Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,77 @@ mc_block:
     id: 467
     ref: black_terracotta
     slug: black-terracotta
+    content_rev: 1
     display_name: Black Terracotta
     material: stone
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: black_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Black Terracotta is a dyed variant of terracotta, a hardened
+            clay block prized for its deep, matte black color that does not
+            fade or wash out, unlike concrete powder or wool.
+        lore: |
+            Terracotta was originally called "hardened clay" until it was
+            renamed in Java Edition 1.12, and its blocky reddish look was
+            inspired by Pueblo-style adobe architecture.
+    uses:
+        - title: Glazed Terracotta
+          ref: black_glazed_terracotta
+          detail: |
+              Smelting Black Terracotta in a furnace produces Black Glazed
+              Terracotta, a glossy patterned block often used in
+              redstone-driven pixel art.
+        - title: Armor Trim Base
+          ref: netherite_upgrade_smithing_template
+          detail: |
+              Terracotta blocks are required ingredients for several
+              smithing template duplication recipes at a crafter table.
+    found_in:
+        - location: Badlands biome
+          detail: |
+              All colors of terracotta generate abundantly in badlands and
+              eroded badlands, forming their signature striped mesa cliffs.
+        - location: Smelted from Terracotta
+          detail: |
+              Black Terracotta itself is crafted by dyeing plain Terracotta
+              with an Ink Sac; plain Terracotta comes from smelting Clay.
+    faq:
+        - question: What is the minimum tool to mine Black Terracotta?
+          answer: |
+              A wooden or golden pickaxe or better; mining without a
+              pickaxe at all yields no drop.
+        - question: Does Black Terracotta fade in sunlight like concrete powder?
+          answer: |
+              No. Unlike concrete powder, terracotta color is permanent and
+              will not change or fade over time.
+        - question: Can Black Terracotta be smelted into something else?
+          answer: |
+              Yes, smelting it in a furnace produces Black Glazed
+              Terracotta with a distinct glossy directional pattern.
+        - question: Is Black Terracotta affected by Fortune?
+          answer: |
+              No, it always drops exactly one block regardless of Fortune,
+              since Fortune only affects specific ore-like blocks.
     data_version: "1.21.5"
 ---
 

@@ -1,0 +1,392 @@
+---
+import {
+	DASHBOARD_NAV,
+	DASHBOARD_ROOT,
+	isActiveIn,
+	isGroup,
+} from './dashboardNav';
+import type { DashboardNavEntry } from './dashboardNav';
+
+interface Props {
+	pathname: string;
+	entries?: DashboardNavEntry[];
+	rootHref?: string;
+	menuLabel?: string;
+	navLabel?: string;
+	/** Render groups as <details>; only the active group starts open. */
+	collapsible?: boolean;
+	/** Inject the current page's section list under the active row. */
+	withToc?: boolean;
+}
+
+const {
+	pathname,
+	entries = DASHBOARD_NAV,
+	rootHref = DASHBOARD_ROOT.href,
+	menuLabel = 'Dashboard menu',
+	navLabel = 'Dashboard',
+	collapsible = false,
+	withToc = false,
+} = Astro.props;
+
+const isActive = (path: string, href: string) =>
+	isActiveIn(rootHref, path, href);
+
+const groupHasActive = (items: { href: string }[]) =>
+	items.some((i) => isActive(pathname, i.href));
+---
+
+<aside class="dash-rail print:hidden" aria-label={`${navLabel} navigation`}>
+	<div class="facet-panel">
+		<button
+			type="button"
+			class="facet-toggle"
+			aria-expanded="false"
+			data-dash-toggle>
+			<span>{menuLabel}</span>
+			<svg
+				class="facet-toggle__chevron"
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true">
+				<polyline points="6 9 12 15 18 9"></polyline>
+			</svg>
+		</button>
+		<div class="facet-groups" data-dash-groups>
+			<nav class="facet-group__list" aria-label={`${navLabel} sections`}>
+				{
+					entries.map((entry) =>
+						isGroup(entry) ? (
+							(() => {
+								const GroupTag = collapsible
+									? 'details'
+									: 'div';
+								const LabelTag = collapsible ? 'summary' : 'p';
+								return (
+									<GroupTag
+										class:list={[
+											'facet-group',
+											collapsible &&
+												'facet-group--collapsible',
+										]}
+										data-auth-visibility={entry.visibility}
+										open={
+											collapsible
+												? groupHasActive(entry.items)
+												: undefined
+										}>
+										<LabelTag class="facet-group__label">
+											<span>{entry.label}</span>
+											{collapsible && (
+												<svg
+													class="facet-group__chevron"
+													width="14"
+													height="14"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													aria-hidden="true">
+													<polyline points="6 9 12 15 18 9" />
+												</svg>
+											)}
+										</LabelTag>
+										<div class="facet-group__list">
+											{entry.items.map((item) => {
+												const active = isActive(
+													pathname,
+													item.href,
+												);
+												return (
+													<>
+														<a
+															href={item.href}
+															class:list={[
+																'facet-row',
+																active &&
+																	'facet-row--active',
+															]}
+															aria-current={
+																active
+																	? 'page'
+																	: undefined
+															}>
+															{item.icon && (
+																<svg
+																	class="dash-rail__icon"
+																	viewBox="0 0 24 24"
+																	fill="none"
+																	stroke="currentColor"
+																	stroke-width="2"
+																	stroke-linecap="round"
+																	stroke-linejoin="round"
+																	aria-hidden="true">
+																	<path
+																		d={
+																			item.icon
+																		}
+																	/>
+																</svg>
+															)}
+															<span>
+																{item.label}
+															</span>
+														</a>
+														{active && withToc && (
+															<div
+																class="dash-rail-toc"
+																data-dash-toc
+																hidden
+															/>
+														)}
+													</>
+												);
+											})}
+										</div>
+									</GroupTag>
+								);
+							})()
+						) : (
+							<a
+								href={entry.href}
+								data-auth-visibility={entry.visibility}
+								class:list={[
+									'facet-row',
+									isActive(pathname, entry.href) &&
+										'facet-row--active',
+								]}
+								aria-current={
+									isActive(pathname, entry.href)
+										? 'page'
+										: undefined
+								}>
+								<span>{entry.label}</span>
+							</a>
+						),
+					)
+				}
+			</nav>
+		</div>
+	</div>
+</aside>
+
+<style>
+	.dash-rail {
+		width: 100%;
+	}
+
+	@media (min-width: 1024px) {
+		.dash-rail {
+			position: sticky;
+			top: calc(var(--sl-nav-height, 3.5rem) + 1rem);
+			/* Fixed height (not max-height) so staff groups resolving in
+			   client-side fill reserved space instead of growing the rail —
+			   no layout shift. Empty space below is for future user options. */
+			height: calc(100vh - var(--sl-nav-height, 3.5rem) - 2rem);
+			overflow-y: auto;
+			scrollbar-width: thin;
+		}
+	}
+
+	/* Staff-gate whole groups (global CSS only auto-gates a/details/li, so
+	   the group wrapper + its label need this). Individual top-level links
+	   are <a data-auth-visibility> and gate via global.css. */
+	.facet-group[data-auth-visibility] {
+		display: none;
+	}
+
+	:global(html[data-auth-tone='staff'])
+		.facet-group[data-auth-visibility='staff'],
+	:global(html[data-auth-tone='auth'])
+		.facet-group[data-auth-visibility='auth'] {
+		display: block;
+	}
+
+	/* Flush grid cell — no floating card chrome. The parent grid's
+	   hairline seam divides rail from content; padding only. */
+	.dash-rail .facet-panel {
+		padding: 1rem;
+		background-color: transparent;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+	}
+
+	/* Icon + label sit together on the left (facet-row defaults to
+	   space-between for a trailing count we don't use here). */
+	.dash-rail .facet-row {
+		justify-content: flex-start;
+		gap: 0.6rem;
+	}
+
+	.dash-rail__icon {
+		width: 1rem;
+		height: 1rem;
+		flex-shrink: 0;
+		opacity: 0.8;
+	}
+
+	.facet-group--collapsible > .facet-group__label {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		cursor: pointer;
+		list-style: none;
+		user-select: none;
+	}
+
+	.facet-group--collapsible > .facet-group__label::-webkit-details-marker {
+		display: none;
+	}
+
+	.facet-group__chevron {
+		flex-shrink: 0;
+		opacity: 0.7;
+		transition: transform 200ms ease;
+	}
+
+	.facet-group--collapsible[open]
+		> .facet-group__label
+		.facet-group__chevron {
+		transform: rotate(180deg);
+	}
+
+	/* Per-page section list injected under the active row (client-side; the
+	   headings live in rendered bento sections, not the nav data). */
+	.dash-rail-toc {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		margin: 0.125rem 0 0.375rem 0.85rem;
+		padding-left: 0.6rem;
+		border-left: 1px solid var(--bento-hairline-strong);
+	}
+
+	.dash-rail-toc :global(a) {
+		display: block;
+		padding: 0.25rem 0.5rem;
+		border-radius: 6px;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+		text-decoration: none;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		transition:
+			color 160ms ease,
+			background-color 160ms ease;
+	}
+
+	.dash-rail-toc :global(a:hover) {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+	}
+
+	.dash-rail-toc :global(a[aria-current='true']) {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 18%,
+			transparent
+		);
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	onMount(() => {
+		const toc = document.querySelector<HTMLElement>('[data-dash-toc]');
+		if (toc) {
+			let links = Array.from(
+				document.querySelectorAll<HTMLElement>(
+					'.dash-main section.bento-section[id]',
+				),
+			).map((s) => ({
+				id: s.id,
+				label:
+					s.querySelector('.bento-heading')?.textContent?.trim() ||
+					s.id,
+			}));
+			if (!links.length) {
+				links = Array.from(
+					document.querySelectorAll<HTMLElement>(
+						'.dash-main .sl-markdown-content h2[id]',
+					),
+				).map((h) => ({
+					id: h.id,
+					label: h.textContent?.trim() || h.id,
+				}));
+			}
+			if (links.length) {
+				const anchors = new Map<string, HTMLAnchorElement>();
+				for (const l of links) {
+					const a = document.createElement('a');
+					a.href = `#${l.id}`;
+					a.textContent = l.label;
+					toc.appendChild(a);
+					anchors.set(l.id, a);
+				}
+				toc.hidden = false;
+
+				let current: HTMLAnchorElement | undefined;
+				const setActive = (id: string) => {
+					const a = anchors.get(id);
+					if (!a || a === current) return;
+					current?.removeAttribute('aria-current');
+					a.setAttribute('aria-current', 'true');
+					current = a;
+				};
+
+				const spy = new IntersectionObserver(
+					(entries) => {
+						for (const entry of entries) {
+							if (entry.isIntersecting) {
+								setActive(entry.target.id);
+							}
+						}
+					},
+					{ rootMargin: '-15% 0px -70% 0px' },
+				);
+				for (const l of links) {
+					const section = document.getElementById(l.id);
+					if (section) spy.observe(section);
+				}
+				window.addEventListener('pagehide', () => spy.disconnect(), {
+					once: true,
+				});
+			}
+		}
+
+		const toggle =
+			document.querySelector<HTMLButtonElement>('[data-dash-toggle]');
+		const groups =
+			document.querySelector<HTMLElement>('[data-dash-groups]');
+		const chevron = toggle?.querySelector<SVGElement>(
+			'.facet-toggle__chevron',
+		);
+		if (!toggle || !groups) return;
+
+		const onClick = () => {
+			const open = groups.classList.toggle('facet-groups--open');
+			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+			chevron?.classList.toggle('facet-toggle__chevron--open', open);
+		};
+
+		toggle.addEventListener('click', onClick);
+		return () => toggle.removeEventListener('click', onClick);
+	});
+</script>

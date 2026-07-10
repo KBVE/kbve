@@ -1,5 +1,6 @@
 ---
 title: Light Blue Concrete Powder
+template: splash
 description: |
     Minecraft Light Blue Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 604
     ref: light_blue_concrete_powder
     slug: light-blue-concrete-powder
+    content_rev: 1
     display_name: Light Blue Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Light Blue Concrete Powder is a gravity-affected block crafted from 4 sand,
+            4 gravel, and 1 light blue dye. It behaves like sand while falling, and
+            permanently hardens into solid Light Blue Concrete the moment it touches
+            any water source, flowing water, or a waterlogged block.
+        lore: |
+            A loose pastel-blue powder that hardens to solid stone the instant it
+            meets water, prized by builders for crisp, saturated color blocks.
+    faq:
+        - question: How do you craft Light Blue Concrete Powder?
+          answer: |
+              Combine 4 sand, 4 gravel, and 1 light blue dye in a shapeless
+              crafting recipe; regular sand is required, red sand does not work.
+        - question: How does Light Blue Concrete Powder turn into concrete?
+          answer: |
+              It solidifies into Light Blue Concrete on contact with flowing
+              water, a water source block, or a waterlogged block, but rain and
+              splash potions do not trigger the conversion.
+        - question: Does it fall like sand or gravel?
+          answer: |
+              Yes, it is gravity-affected and drops straight down when the
+              block beneath it is removed, just like sand and gravel.
+        - question: What is the fastest way to mine it?
+          answer: |
+              Any shovel is the correct tool, and diamond or netherite shovels
+              can break it in about 0.1 seconds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

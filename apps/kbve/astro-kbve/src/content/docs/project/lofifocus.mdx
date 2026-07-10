@@ -1,7 +1,7 @@
 ---
-title: LofiFocus
-description: |
-    Lofi Focus is a chrome extension that automatically generates lo-fi music when browsing the internet!
+title: LofiFocus — AI Lo-Fi Music Generator Chrome Extension
+description: LofiFocus is a Chrome extension that auto-generates AI lo-fi music from the page you are reading, using a MusicGen model, an N8N workflow, and a Flask API.
+sem: 1
 sidebar:
     label: LofiFocus
     order: 15
@@ -9,11 +9,83 @@ unsplash: 1602089266537-57cb22e5235b
 img: https://images.unsplash.com/photo-1602089266537-57cb22e5235b?fit=crop&w=1400&h=700&q=75
 tags:
     - design
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is LofiFocus?
+          answer: LofiFocus is a Chrome extension that automatically generates lo-fi music while you browse articles, blogs, and other sites, creating an ambient atmosphere to help you focus while reading.
+        - question: How does LofiFocus generate music?
+          answer: The extension sends the current URL to an N8N workflow that extracts page metadata, uses ChatGPT to build music prompts, then calls a custom AudioCraft MusicGen model via a Python Flask API on an RTX 4090 GPU; the resulting track is stored in S3 and played back in the browser.
+        - question: Does LofiFocus use a custom model?
+          answer: Yes. The team fine-tuned Facebook's MusicGen small model on a dataset of non-copyright lo-fi clips paired with descriptive text prompts, training for 100 epochs to specialize it for generating lo-fi hip-hop from text.
+bento:
+    badge: design
+    title: AI lo-fi that follows
+    accent: your reading
+    lede: >-
+        A Chrome extension that auto-generates lo-fi music from whatever page you
+        are reading — page metadata to ChatGPT prompts to a custom-trained MusicGen
+        model, streamed back as an ambient track to help you focus.
+    ctas:
+        - label: Live demo
+          href: 'https://lofifocus.kbve.com/#'
+          primary: true
+          external: true
+        - label: Chrome extension repo
+          href: https://github.com/KBVE/lofifocus-chrome-extension
+          external: true
+        - label: Overview
+          href: "#overview"
+    aside:
+        icon: activity
+        title: Custom-trained MusicGen
+        body: >-
+            The team fine-tuned Facebook's MusicGen small model on non-copyright
+            lo-fi clips paired with descriptive text prompts — 100 epochs at a
+            1e-5 learning rate on an RTX 4090.
+        points:
+            - <strong>Dataset</strong> — 30s clips paired with mood/instrument prompts.
+            - <strong>Pipeline</strong> — N8N + ChatGPT prompts to a Flask MusicGen API.
+    stats:
+        - { label: Model, value: MusicGen, icon: activity }
+        - { label: Training, value: 100 epochs, icon: chart }
+        - { label: GPU, value: RTX 4090, icon: server }
+        - { label: Extension, value: Chrome, icon: package }
+    features:
+        - title: Reads the page
+          icon: eye
+          body: Content scripts analyze the current webpage and hand its metadata to the generation pipeline.
+        - title: AI-generated lo-fi
+          icon: activity
+          body: A unique, customized lo-fi track is generated per page via AudioCraft's MusicGen model.
+        - title: N8N + Flask pipeline
+          icon: gears
+          body: An N8N workflow orchestrates ChatGPT prompts and a Python Flask REST API that drives generation on GPU.
+        - title: In-browser controls
+          icon: settings
+          body: Adjust volume, pause, start, play, and re-generate the lo-fi music from a polished popup UI.
+    related:
+        - title: Charles
+          href: /project/charles/
+          copy: The KBVE GPU machine-learning build behind model training.
+          icon: server
+    features_eyebrow: What it does
+    features_heading: Features
+    related_heading: Related
 ---
 
 import AdsterraAds from '@/components/kbve/AdsterraAds.astro';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
----
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="resources" eyebrow="Links, model & samples" heading="Demo & downloads">
 
 Demo: https://lofifocus.kbve.com/#
 
@@ -46,6 +118,10 @@ https://storageapi.webenclave.com/hackathon/1693446441558.wav
 Youtube video: https://www.youtube.com/embed/szN4w4cd02s?si=cd0fz-zlLhpL_sYR
 
 ---
+
+</BentoProse>
+
+<BentoProse id="overview" eyebrow="How it works" heading="Overview">
 
 # Lofi Focus
 
@@ -207,7 +283,9 @@ After training finished, we saved the best performing model checkpoint. We now h
 
 - [x] Lofi Focus plays the generated track
 
-# API Documentation
+</BentoProse>
+
+<BentoProse id="api" eyebrow="Endpoints" heading="API Documentation">
 
 ## Flask API
 
@@ -239,6 +317,10 @@ POST - `https://.../generate-music`
   "duration": 15 /* optional */
 }
 ```
+
+</BentoProse>
+
+<BentoProse id="credits" eyebrow="Team & references" heading="Contributions & citations">
 
 # Contributions
 
@@ -279,3 +361,7 @@ https://ojs.stanford.edu/ojs/index.php/theword/article/view/1705/1326
       journal={arXiv preprint arXiv:2306.05284},
 }
 ```
+
+</BentoProse>
+
+</BentoDoc>

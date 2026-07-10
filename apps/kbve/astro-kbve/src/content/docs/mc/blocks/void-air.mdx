@@ -1,5 +1,6 @@
 ---
 title: Void Air
+template: splash
 description: |
     Minecraft Void Air — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,58 @@ mc_block:
     id: 761
     ref: void_air
     slug: void-air
+    content_rev: 1
     display_name: Void Air
     material: air
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
-    placeable: true
-    solid: true
+    placeable: false
+    solid: false
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - overworld
+        - nether
+        - non_solid
+    about:
+        description: |
+            Void Air is an internal air variant that fills space outside the
+            world's buildable height limits and in unloaded chunks. It behaves
+            exactly like ordinary air but marks regions the game engine
+            treats as beyond the playable boundary.
+        lore: |
+            Introduced in Java Edition 1.13 alongside cave air, void air was
+            added when Mojang split the single air block into distinct
+            internal variants for engine bookkeeping.
+    found_in:
+        - location: Above/below world height limits
+          detail: Fills space above Y=319 and below Y=-64 in the Overworld (and equivalent bounds in the Nether/End).
+        - location: Unloaded chunks
+          detail: Also used to represent air in chunks that have not been generated or loaded yet.
+    faq:
+        - question: Can I mine or place Void Air?
+          answer: |
+              No. It cannot be obtained, placed, or interacted with through
+              normal survival gameplay.
+        - question: Is Void Air different from regular air?
+          answer: |
+              Functionally no — it behaves identically to normal air. It only
+              differs internally as a marker for out-of-bounds space.
+        - question: Can I see Void Air in-game?
+          answer: |
+              Not normally. It only becomes visible as small blue-edged cubes
+              when using a structure block with "Show Invisible Blocks"
+              enabled.
+        - question: Why does Void Air exist separately from Air?
+          answer: |
+              Mojang split air into regular air, cave air, and void air in
+              1.13 to let the engine distinguish surface air from
+              cave-generated or out-of-bounds air internally.
     data_version: "1.21.5"
 ---
 

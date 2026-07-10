@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721046583031-07296af14cc7?crop=entropy&c
 description: July 18th. Dialogue System.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 18,'
+    accent: every year.
+    lede: 'The July 18th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 17'
+          href: /journal/07-17/
+        - label: 'Jul 19 →'
+          href: /journal/07-19/
+    related:
+        - title: 'Previous · Jul 17'
+          copy: 'Step back a day to the July 17th log.'
+          href: /journal/07-17/
+          icon: calendar
+        - title: 'Next · Jul 19'
+          copy: 'Jump ahead to the July 19th log.'
+          href: /journal/07-19/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721046583031-07296af14cc7?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Atoms
 
@@ -23,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     The light mode just looks so bad, ugh, why do we need it? 
     I love the pagefind search that starlight provides but the current default light mode makes me want to visit god instead.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Once Human**
 
@@ -32,20 +81,30 @@ I wanted to play the game using a controller and it was a bit of a pain to get i
 The only major downside is that there are way too many combos and buttons to press, so playing the game on the side is a bit rough.
 In order to get the full controller support to work requires you to run Steam as an Admin and then enable the steam input support override.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 8:00am - Before I begin the pipeline for the Android build, I need to make sure that the keys are setup in the right way. The path that I will end up taking will be to utilize the Github Actions to build the APK, or I could go through with a private Gitlab instance? However I was planning to build multiple applications and I wanted to make sure some of the projects are open source for future programmers to look through.
 - 2:28pm - Double checking all my positions within the market and I am a bit sad that this feels closer to a bear trap. I wonder if the feds will keep increasing the rates and how it will impact the rest of 2023.
 - 3:48pm - At this current rate, even adding an additional 16 shares of WPC took around $1000 in capital. This means that I will have to start doing R&D and finding other ways to increase the amount of capital that I can generate. I might have to enter another realm of hustling, but I do miss those days lately, being behind this computer screen is slowly reaching some of its peak. I can sense the burnout coming down the line within the next couple months, hmm, I will have to figure out something short term, at least to generate another $4000 a month. 
 - 5:33pm - I think I will take a break from the PC really quick and do some chores. Laundry and mowing the lawn sound like they be great tasks to do really quick! 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > A true friend is someone who is there for you when he'd rather be anywhere else.
 > — <cite>Len Wein</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

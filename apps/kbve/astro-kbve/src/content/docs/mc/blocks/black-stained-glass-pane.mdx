@@ -1,5 +1,6 @@
 ---
 title: Black Stained Glass Pane
+template: splash
 description: |
     Minecraft Black Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,73 @@ mc_block:
     id: 483
     ref: black_stained_glass_pane
     slug: black-stained-glass-pane
+    content_rev: 1
     display_name: Black Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: black_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Black Stained Glass Pane is a thin, dyed glass barrier that fills
+            a slimmer profile than a full glass block, letting builders craft
+            windows using a fraction of the material. It lets light through
+            while tinting it black.
+        lore: |
+            Glass panes were added to give builders slim, non-blocky window
+            and fence-topper options; dyed variants followed the stained
+            glass introduced in Beta 1.8.
+    uses:
+        - title: Beacon Beam Tinting
+          ref: beacon
+          detail: |
+              Placed above a beacon, stained glass panes recolor its light
+              beam, letting builders chain multiple colors along a single
+              tall beam.
+        - title: Slim Windows
+          ref: black_stained_glass
+          detail: |
+              Six Black Stained Glass blocks craft into sixteen panes,
+              yielding far more coverage per block than building with solid
+              stained glass.
+    found_in:
+        - location: Crafted only
+          detail: |
+              Crafted from Black Stained Glass plus Glass Panes, or from
+              Glass Panes and an Ink Sac; not found naturally in the black
+              color.
+    faq:
+        - question: Do Black Stained Glass Panes need Silk Touch to drop?
+          answer: |
+              Yes. Without Silk Touch, mining the pane destroys it and
+              nothing drops.
+        - question: Can mobs see through a Black Stained Glass Pane?
+          answer: |
+              Most mobs cannot see or target through stained glass of any
+              color, unlike clear glass panes.
+        - question: Can I connect Black Stained Glass Panes to iron bars?
+          answer: |
+              No. Panes only visually connect to matching panes and blocks,
+              not to iron bars or fences.
+        - question: Does a Black Stained Glass Pane block redstone dust?
+          answer: |
+              Yes, like other glass panes it does not allow redstone dust to
+              be placed on top of it as a full block would.
     data_version: "1.21.5"
 ---
 

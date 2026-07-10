@@ -1,5 +1,6 @@
 ---
 title: Hoglin Spawn Egg
+template: splash
 description: |
     Minecraft Hoglin Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1097
     ref: hoglin_spawn_egg
     slug: hoglin-spawn-egg
+    content_rev: 1
     display_name: Hoglin Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Hoglin Spawn Egg is an inventory item that instantly spawns a hoglin, a hostile pig-like Nether mob that roams crimson forests and bastion remnants in groups. It is obtained only in Creative mode or via commands, and lets players place hoglins for breeding, farming, or testing without needing to locate one naturally.
+        lore: |
+            Despite being monsters, hoglins are one of Minecraft's few hostile mobs capable of breeding and forming family groups.
+    faq:
+        - question: Can I breed hoglins spawned from the egg?
+          answer: |
+              Yes, hoglins can be bred with crimson fungi, requiring five minutes between breeding attempts and about 20 minutes for babies to mature.
+        - question: What do hoglins drop?
+          answer: |
+              Adult hoglins drop 2 to 4 raw porkchops, leather, and experience when killed by a player.
+        - question: How do I protect myself from hoglins?
+          answer: |
+              Hoglins avoid being within 7 blocks of warped fungi, making it an effective natural repellent.
+        - question: How do I obtain the spawn egg itself?
+          answer: |
+              It is available in the Creative inventory or through a command such as /give @s hoglin_spawn_egg, since it cannot be found in survival loot.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

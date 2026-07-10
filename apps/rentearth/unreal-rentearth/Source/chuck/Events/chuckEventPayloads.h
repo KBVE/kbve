@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 #include "KBVEGameplayEvents.h"
 
 // Generic stat/combat payloads (Health / Mana / Stamina / DamageReceived /
@@ -35,6 +35,13 @@ struct FchuckItemConsumedPayload
 	float HealHP    = 0.f;
 	float RestoreMP = 0.f;
 	float RestoreEP = 0.f;
+};
+
+struct FchuckToastPayload
+{
+	FText  Title;
+	FText  Message;
+	uint8  Level = 0;
 };
 
 // Sim-domain payloads: enqueued from Mass workers, drained on the game thread.

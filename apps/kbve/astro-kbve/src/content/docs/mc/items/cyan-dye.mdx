@@ -1,5 +1,6 @@
 ---
 title: Cyan Dye
+template: splash
 description: |
     Minecraft Cyan Dye — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1013
     ref: cyan_dye
     slug: cyan-dye
+    content_rev: 1
     display_name: Cyan Dye
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cyan Dye is one of the sixteen standard dyes, produced by combining blue dye with green dye
+            (or lapis lazuli with green dye). It is used to color wool, terracotta, glass, beds, candles,
+            shulker boxes, banners, and sheep or tamed animals.
+        lore: |
+            As a secondary dye mixed from two primary colors, Cyan Dye fills the blue-green portion of
+            Minecraft's dyeing spectrum used throughout the game's decoration systems.
+    faq:
+        - question: How do I make Cyan Dye?
+          answer: |
+              Craft it by combining blue dye with green dye, or lapis lazuli with green dye. Wandering
+              traders also sell 3 cyan dye for an emerald.
+        - question: What can I dye with Cyan Dye?
+          answer: |
+              It can color wool, leather armor, beds, glass and stained glass panes, terracotta, shulker
+              boxes, candles, banners, and firework stars, and can be applied directly to sheep.
+        - question: Does dyeing a Shulker Box destroy its contents?
+          answer: |
+              No, dyeing a shulker box (even one already renamed) keeps its stored items intact.
+        - question: Is Cyan Dye renewable?
+          answer: |
+              Yes, since its ingredients (blue and green dye) are both renewable, and it can also be
+              purchased from wandering traders.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

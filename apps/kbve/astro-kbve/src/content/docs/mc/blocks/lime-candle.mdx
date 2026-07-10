@@ -1,5 +1,6 @@
 ---
 title: Lime Candle
+template: splash
 description: |
     Minecraft Lime Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,73 @@ mc_block:
     id: 909
     ref: lime_candle
     slug: lime-candle
+    content_rev: 1
     display_name: Lime Candle
-    material: stone
+    material: wood
     hardness: 0.1
     blast_resistance: 0.1
     best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - not_flammable
+        - waterloggable
+    about:
+        description: |
+            The lime candle is a small, dyed light-source block that can
+            be stacked up to four in one block space and placed on cakes.
+            Any tool breaks it instantly.
+        lore: |
+            Candles were revealed at Minecraft Live 2020 alongside the
+            deep dark concept and released in Java Edition 1.17.
+    uses:
+        - title: Ambient Lighting
+          ref: lime_candle
+          detail: |
+              Lit with flint and steel or a fire charge, each candle in the
+              stack adds a light level of 3, up to 12 with four candles.
+        - title: Candle Cake
+          ref: lime_candle_cake
+          detail: |
+              Using a lime candle on an uneaten cake creates a lime candle
+              cake, a combined decoration and light source.
+    found_in:
+        - location: Crafting
+          detail: Crafted from one string and one honeycomb, then dyed lime.
+        - location: Ancient Cities and Trial Chambers
+          detail: Naturally generated as decoration in these structures.
+        - location: Villager Trades
+          detail: Some candle colors are sold by librarian villagers for emeralds.
+    faq:
+        - question: How many candles can occupy one block space?
+          answer: |
+              Up to four candles of the same color can be placed together
+              in a single block.
+        - question: Does a lit candle catch fire from lava?
+          answer: |
+              No, candles are not flammable, so nearby lava will not ignite
+              them.
+        - question: Can candles be waterlogged?
+          answer: |
+              Yes, but a waterlogged candle cannot be lit until the water
+              is removed.
+        - question: What tool is needed to mine a candle?
+          answer: |
+              None; any tool or bare hands breaks it instantly due to its
+              very low hardness.
     data_version: "1.21.5"
 ---
 

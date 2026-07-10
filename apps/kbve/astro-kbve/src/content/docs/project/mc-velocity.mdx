@@ -1,7 +1,7 @@
 ---
-title: Minecraft Velocity Proxy
-description: |
-    Custom Velocity 3.4 proxy image with a Kotlin plugin providing cross-server teleport aliases, chat bridging, last-server persistence, and a Discord chat relay for the KBVE MC stack.
+title: Minecraft Velocity Proxy — Kotlin Plugins
+description: Custom Velocity 3.4 proxy image with Kotlin plugins for cross-server teleport aliases, chat bridging, last-server persistence, and a Discord chat relay.
+sem: 1
 sidebar:
     label: MC Velocity
     order: 452
@@ -27,11 +27,84 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVE Minecraft Velocity proxy?
+          answer: A custom Velocity 3.4 proxy image that replaces the generic itzg/bungeecord base and ships two pre-baked Kotlin plugins — kbve-velocity-commands and kbve-discord-relay — built from source.
+        - question: What do the two plugins do?
+          answer: kbve-velocity-commands adds teleport aliases, a cross-server chat bridge, and last-server persistence, while kbve-discord-relay bridges in-game chat to and from a Discord channel with role-gated console commands.
+        - question: Are the plugins coupled?
+          answer: No. They have separate @Plugin IDs, versions, and no source dependency, so they can be enabled, disabled, and rolled back independently even though they ship in the same image.
+bento:
+    badge: minecraft · velocity · proxy · kotlin
+    title: Velocity proxy with
+    accent: Kotlin plugins
+    lede: >-
+        A custom Velocity 3.4 proxy image that swaps the generic itzg/bungeecord
+        base for two source-built Kotlin plugins — teleport aliases, a
+        cross-server chat bridge, last-server persistence, and a Discord chat
+        relay.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/mc/velocity
+          primary: true
+          external: true
+        - label: Discord relay
+          href: "#relay"
+        - label: Build
+          href: "#build"
+    aside:
+        icon: package
+        title: Independently rollable
+        body: >-
+            The two plugins have separate <code>@Plugin</code> IDs, versions, and
+            no source dependency, so they can be enabled, disabled, and rolled
+            back independently even though they ship in one image.
+        points:
+            - <strong>Commands</strong> — teleport, chat bridge, last-server.
+            - <strong>Relay</strong> — MC ↔ Discord chat with staff commands.
+    stats:
+        - { label: App, value: mc-velocity, icon: server }
+        - { label: Proxy, value: 'Velocity 3.4', icon: network }
+        - { label: Plugins, value: '2 Kotlin', icon: package }
+        - { label: Runtime, value: 'JDK 21', icon: box }
+    features:
+        - title: Teleport command aliases
+          icon: route
+          body: Brigadier commands — /lobby, /hub route to the PaperMC lobby; /mc, /survival route to the Fabric survival backend.
+        - title: Cross-server chat bridge
+          icon: message
+          body: Per-player local/global chat mode in an in-memory map, toggled via /chat; global re-emits a server-tagged component to every backend.
+        - title: Last-server persistence
+          icon: clock
+          body: Tracks the last backend a player joined and restores it on reconnect, falling back to Velocity's normal try list.
+        - title: Discord chat relay
+          icon: discord
+          body: kbve-discord-relay bridges in-game chat to and from a Discord channel via a self-provisioned webhook, with role-gated console commands.
+    related:
+        - title: mc (Fabric survival backend)
+          href: /project/mc/
+          copy: The survival backend the /mc and /survival aliases connect to.
+          icon: box
+        - title: mc-lobby (PaperMC lobby)
+          href: /project/mc-lobby/
+          copy: The PaperMC lobby the /lobby and /hub aliases connect to.
+          icon: box
+    related_heading: Related
 ---
 
-## `kbve-velocity-commands`
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Overview
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Two plugins, one image" heading="Overview & command plugin">
 
 Custom Velocity proxy image that replaces the generic `itzg/bungeecord:latest` used previously. Same itzg runtime under the hood, but with two pre-baked Kotlin plugins built from source:
 
@@ -84,7 +157,9 @@ Tracks the last server a player was connected to via `ServerConnectedEvent` and 
 
 In-memory only for v1 — survives player disconnect/reconnect cycles within a single Velocity pod lifetime, not across pod restarts.
 
-## `kbve-discord-relay`
+</BentoProse>
+
+<BentoProse id="relay" eyebrow="Discord bridge" heading="kbve-discord-relay">
 
 Bridges in-game chat into a single Discord channel and routes Discord messages back into the network. Standalone Velocity plugin — no DiscordSRV, no source dependency on `kbve-velocity-commands`. JDA 5 is bundled directly into the plugin's fat jar.
 
@@ -114,7 +189,9 @@ Bridges in-game chat into a single Discord channel and routes Discord messages b
 
 If `DISCORD_BOT_TOKEN` is unset (e.g. the e2e container test) the plugin logs a single line and stays inert; `kbve-velocity-commands` continues working.
 
-## Build
+</BentoProse>
+
+<BentoProse id="build" eyebrow="Container" heading="Build">
 
 Multi-stage Dockerfile:
 
@@ -131,9 +208,6 @@ Stage 3: itzg/bungeecord:latest
 
 Both plugins use Velocity API 3.4.0-SNAPSHOT, Kotlin 2.0.21, KAPT for `@Plugin` annotation processing, and JDK 21.
 
-### Related
+</BentoProse>
 
-- [mc (Fabric survival backend)](/project/mc/)
-- [mc-lobby (PaperMC lobby)](/project/mc-lobby/)
-- [kbve-velocity-commands source](https://github.com/KBVE/kbve/tree/main/apps/mc/velocity/plugin)
-- [kbve-discord-relay source](https://github.com/KBVE/kbve/tree/main/apps/mc/velocity/plugin-discord)
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Infested Cobblestone
+template: splash
 description: |
     Minecraft Infested Cobblestone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 318
     ref: infested_cobblestone
     slug: infested-cobblestone
+    content_rev: 1
     display_name: Infested Cobblestone
     material: stone
     hardness: 1
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobblestone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Infested Cobblestone is disguised as ordinary cobblestone but
+            spawns a hostile silverfish when broken without Silk Touch. It
+            is the rarest infested variant, appearing only in one specific
+            structure feature.
+        lore: |
+            Unlike other stone types, cobblestone cannot naturally be
+            infested by a silverfish converting a block — it only appears
+            as pre-placed generation.
+    uses:
+        - title: Silk Touch Harvesting
+          ref: cobblestone
+          detail: |
+              Mining with Silk Touch converts it into normal cobblestone,
+              removing the silverfish hazard entirely.
+    found_in:
+        - location: Woodland Mansions
+          detail: Generates inside the rare "Fake End portal" room found in some woodland mansions.
+    faq:
+        - question: Where can I find Infested Cobblestone?
+          answer: |
+              Only in the rare fake End portal room hidden inside some
+              woodland mansions — it does not generate anywhere else.
+        - question: What happens if I mine it without Silk Touch?
+          answer: |
+              The block disappears, drops nothing, and a silverfish
+              spawns and attacks immediately.
+        - question: Can silverfish infest mossy cobblestone too?
+          answer: |
+              No. Silverfish can convert regular cobblestone and several
+              stone brick variants, but mossy cobblestone is immune.
+        - question: Is there any benefit to leaving it unmined?
+          answer: |
+              It functions as a normal solid block otherwise, so it can be
+              left in place safely as long as it is not disturbed.
     data_version: "1.21.5"
 ---
 

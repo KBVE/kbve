@@ -10,15 +10,52 @@ description: |
     The next couple steps 
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 4,'
+    accent: every year.
+    lede: 'The March 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Mar 3'
+          href: /journal/03-03/
+        - label: 'Mar 5 →'
+          href: /journal/03-05/
+    related:
+        - title: 'Previous · Mar 3'
+          copy: 'Step back a day to the March 3rd log.'
+          href: /journal/03-03/
+          icon: calendar
+        - title: 'Next · Mar 5'
+          copy: 'Jump ahead to the March 5th log.'
+          href: /journal/03-05/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### HashMap Pins
 
@@ -180,3 +217,13 @@ The `grid:bento:bento` is a referfence to the Astro VE `bento.astro` , the core 
 We are basically splitting the code to make it easier to reuse.
 
 <Adsense />
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

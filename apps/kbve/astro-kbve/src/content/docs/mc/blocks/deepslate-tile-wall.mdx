@@ -1,5 +1,6 @@
 ---
 title: Deepslate Tile Wall
+template: splash
 description: |
     Minecraft Deepslate Tile Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1071
     ref: deepslate_tile_wall
     slug: deepslate-tile-wall
+    content_rev: 1
     display_name: Deepslate Tile Wall
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: deepslate_tile_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Tile Wall is a wall variant of Deepslate Tiles that
+            generates naturally in ancient cities and is used for fencing
+            and decorative borders in deepslate-themed builds.
+        lore: |
+            Part of the deepslate tile family added for the Wild Update,
+            first appearing as "Grimstone Tile Wall" before its rename and
+            texture pass ahead of the Java 1.19 release.
+    uses:
+        - title: Ancient City Fencing
+          ref: deepslate_tile_wall
+          detail: |
+              Used to build barriers, pillars, and decorative borders that
+              connect to neighboring blocks with raised post corners.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as part of ancient city structures deep underground.
+        - location: Crafting/Stonecutting
+          detail: |
+              Crafted from 6 Deepslate Tiles into 6 walls, or cut from
+              Deepslate, Cobbled Deepslate, Polished Deepslate, Deepslate
+              Bricks, or Deepslate Tiles using a stonecutter.
+    faq:
+        - question: What tool do I need to mine Deepslate Tile Wall?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without one destroys
+              the block with no drop.
+        - question: How do I craft Deepslate Tile Wall?
+          answer: |
+              Arrange 6 Deepslate Tiles in a crafting grid to get 6 walls,
+              or cut Deepslate Tiles or related deepslate blocks with a
+              stonecutter.
+        - question: Does the wall block arrows and mob line of sight?
+          answer: |
+              Yes. Walls are taller than fences and block projectiles and
+              line of sight when raised, while still letting players see
+              over them in some configurations.
+        - question: Is it waterloggable?
+          answer: |
+              Yes. A Deepslate Tile Wall can hold water in its block space
+              like other wall blocks.
     data_version: "1.21.5"
 ---
 

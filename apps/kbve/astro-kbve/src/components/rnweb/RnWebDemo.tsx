@@ -34,7 +34,7 @@ export default function RnWebDemo() {
 						align="center"
 						justify="space-between">
 						<Text variant="title">@kbve/rn on the web</Text>
-						<Badge tone="success">react-native-web</Badge>
+						<Badge tone="success" label="react-native-web" />
 					</Stack>
 
 					<Text tone="muted">

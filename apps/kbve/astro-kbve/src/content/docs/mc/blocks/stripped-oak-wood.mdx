@@ -1,5 +1,6 @@
 ---
 title: Stripped Oak Wood
+template: splash
 description: |
     Minecraft Stripped Oak Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 79
     ref: stripped_oak_wood
     slug: stripped-oak-wood
+    content_rev: 1
     display_name: Stripped Oak Wood
     material: wood
     hardness: 2
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_oak_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Oak Wood is the all-sides bark-free variant of Oak
+            Wood, made by crafting 4 Stripped Oak Logs together. Every
+            face shows the log's ring pattern, unlike the plain bark
+            sides of a stripped log.
+        lore: |
+            The wood-block family (bark on all six sides) was added in
+            1.16 as a companion to the existing log blocks, and each
+            wood type immediately received a matching stripped variant.
+    uses:
+        - title: Oak Planks
+          ref: oak_planks
+          detail: |
+              Smelts or crafts into 4 Oak Planks per block, usable in any
+              oak-wood recipe.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns in a furnace like other wood blocks, smelting 1.5
+              items per block.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 4 Stripped Oak Logs in a 2x2 square, yielding 3 Stripped Oak Wood.
+        - location: Player-stripped Oak Wood
+          detail: Right-clicking a placed Oak Wood block with an axe strips it directly into this block.
+    faq:
+        - question: How do I get Stripped Oak Wood?
+          answer: |
+              Craft 4 Stripped Oak Logs in a square, or use an axe
+              directly on a placed Oak Wood block.
+        - question: Is Stripped Oak Wood flammable?
+          answer: |
+              Yes. Like all overworld wood blocks it burns, so keep it
+              away from lava and fire sources.
+        - question: What tool mines it fastest?
+          answer: |
+              An axe. It has no minimum tool tier, so any tool or bare
+              hands still break it and drop the block.
+        - question: How is Stripped Oak Wood different from the log?
+          answer: |
+              Wood shows the ringed texture on all six faces, while the
+              log only shows it on the top and bottom, with bark-free
+              sides on the log instead.
     data_version: "1.21.5"
 ---
 

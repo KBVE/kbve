@@ -1,18 +1,37 @@
 ---
 /**
- * KBVE Header override.
+ * KBVE Header override — formalized nav bar.
  *
- * Wrap in `transition:persist` so the navbar (auth icon, wallet badge,
- * profile dropdown, search button) survives ClientRouter swaps. Without
- * this, the entire top bar re-hydrates per nav — React islands
- * remount, the auth probe re-runs, wallet badge re-fetches, and the
- * navbar visibly flickers.
+ * Logo (left) + a 3-icon cluster and the Astro search trigger (right).
+ * Wrapped in `transition:persist` so the bar (and the mounted auth engine
+ * inside NavCluster) survives ClientRouter swaps without re-hydrating.
  */
-import Default from '@astrojs/starlight/components/Header.astro';
+import SiteTitle from '@/components/navigation/SiteTitle.astro';
+import NavCluster from '@/components/navigation/NavCluster.astro';
 import AstroKbveSearch from '../search/AstroKbveSearch.astro';
 ---
 
-<div transition:persist="kbve-header">
-	<Default />
+<div transition:persist="kbve-header" class="knav-bar">
+	<div class="knav-bar__title sl-flex">
+		<SiteTitle />
+	</div>
+	<NavCluster />
 	<AstroKbveSearch />
 </div>
+
+<style>
+	.knav-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sl-nav-gap);
+		height: 100%;
+	}
+
+	.knav-bar__title {
+		overflow: clip;
+		padding: 0.25rem;
+		margin: -0.25rem;
+		min-width: 0;
+	}
+</style>

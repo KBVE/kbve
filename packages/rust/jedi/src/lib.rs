@@ -11,6 +11,8 @@ mod tests {
 
 pub mod builder;
 pub mod entity;
+#[cfg(feature = "observ")]
+pub mod observ;
 pub mod jwks;
 pub mod jwt_cache;
 pub mod proto;

@@ -1,5 +1,6 @@
 ---
 title: Raw Copper
+template: splash
 description: |
     Minecraft Raw Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 852
     ref: raw_copper
     slug: raw-copper
+    content_rev: 1
     display_name: Raw Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Raw copper is a common crafting material obtained by mining copper ore or deepslate copper ore with a stone pickaxe or better. Each ore block yields 2-5 units of raw copper, with Fortune enchantments potentially increasing this to a maximum of 20 per block. Its primary use is smelting into copper ingots, though it can also be crafted into a block of raw copper for storage.
+        lore: |
+            Copper has been valued since ancient times as a versatile metal for tools, weapons, and decoration.
+    faq:
+        - question: How much raw copper drops from one ore block?
+          answer: |
+              Copper ore and deepslate copper ore mined with a stone pickaxe or better drops 2-5 units of raw copper, and Fortune III can push that up to 20 units per block.
+        - question: What's the main use for raw copper?
+          answer: |
+              The primary usage of raw copper is smelting it into copper ingots, which are then used for crafting various copper items and blocks.
+        - question: Can I store raw copper in a compact form?
+          answer: |
+              Yes. Nine raw copper can be crafted together into a block of raw copper for convenient storage and transport.
+        - question: Is raw copper renewable?
+          answer: |
+              No, raw copper is non-renewable, meaning it cannot be farmed or regenerated and only exists in limited quantities within the world.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

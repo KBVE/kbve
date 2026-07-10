@@ -47,9 +47,12 @@ public class chuck : ModuleRules
 			"KBVESQLite",
 			"KBVESupabase",
 			"KBVEWorld",
+			"KBVEWorldCore",
 			"KBVEWebSurface",
 			"ROWS",
 			"KBVENet",
+			"KBVESimgrid",
+			"KBVESimgridRender",
 			"KBVENPCDB",
 			"KBVENPCSprite",
 			"KBVECombat"
@@ -80,7 +83,8 @@ public class chuck : ModuleRules
 			"chuck/Variant_SideScrolling/Interfaces",
 			"chuck/Variant_SideScrolling/UI",
 			"chuck/NPC",
-			"chuck/Combat"
+			"chuck/Combat",
+			"chuck/Net"
 		});
 
 		if (Target.bBuildEditor)

@@ -1,0 +1,37 @@
+---
+title: Improved Landing Gear
+template: splash
+description: |
+    Immersive Aircraft Improved Landing Gear — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Improved Landing Gear
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900023
+    ref: immersive_aircraft:improved_landing_gear
+    slug: improved-landing-gear
+    content_rev: 0
+    display_name: Improved Landing Gear
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            Sturdier landing gear that cushions rough touchdowns and awkward landings.
+        lore: |
+            Walk away from every landing.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

@@ -1,7 +1,7 @@
 ---
-title: KBVE Kubectl
-description: |
-    Alpine + musl kubectl container image with Rust CLI extensions for KubeVirt VM lifecycle management.
+title: KBVE Kubectl — Alpine musl kubectl Image with Rust CLI
+description: Alpine + musl kubectl container image with Rust CLI extensions for KubeVirt VM lifecycle management and Agones GameServer rotation.
+sem: 1
 sidebar:
     label: Kubectl
     order: 55
@@ -11,6 +11,14 @@ tags:
     - kubernetes
     - kubevirt
 key: kubectl
+jsonld:
+    faq:
+        - question: What is the KBVE kubectl image?
+          answer: It is an Alpine-based kubectl image with a static musl Rust CLI wrapper for KubeVirt VM management. It replaces the distroless registry.k8s.io/kubectl image, which lacks /bin/sh and breaks Kubernetes Job scripts.
+        - question: What can the kbve-kubectl CLI do?
+          answer: The Rust CLI offers info to print versions and check tools, run to execute shell scripts, guest-exec to run commands inside a KubeVirt VM via the QEMU Guest Agent, and rotate-gameserver to roll an Agones GameServer when its desired image drifts from the running pod.
+        - question: How is the kubectl image kept in sync across manifests?
+          answer: The image tag is pinned across every manifest listed in the deployment_yamls frontmatter field, and all of them auto-bump on each publish via the post-publish version sync.
 pipeline: docker
 app_name: kbve-kubectl
 version: "0.1.5"
@@ -44,9 +52,78 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: critical
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: docker · rust · kubernetes · kubevirt
+    title: Alpine musl kubectl with a
+    accent: Rust CLI
+    lede: >-
+        An Alpine + musl kubectl container image with Rust CLI extensions for
+        KubeVirt VM lifecycle management and Agones GameServer rotation. Built
+        end-to-end on rust:alpine so the binary has zero glibc dependencies, it
+        replaces the distroless kubectl image that lacks /bin/sh.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/vm/kubectl
+          primary: true
+          external: true
+        - label: CLI
+          href: "#overview"
+        - label: Usage
+          href: "#usage"
+    aside:
+        icon: server
+        title: Shell-capable by design
+        body: >-
+            The distroless <code>registry.k8s.io/kubectl</code> image lacks
+            <code>/bin/sh</code> and breaks Kubernetes Job scripts. This image
+            ships Alpine ash plus a static musl Rust CLI, so Jobs can run shell
+            and drive KubeVirt VMs from one artifact.
+        points:
+            - <strong>guest-exec</strong> — run commands inside a KubeVirt VM.
+            - <strong>rotate-gameserver</strong> — roll a drifted Agones GameServer.
+    stats:
+        - { label: App, value: kbve-kubectl, icon: box }
+        - { label: Base, value: Alpine + musl, icon: package }
+        - { label: Image, value: kbve/kubectl, icon: box }
+        - { label: CLI, value: Rust, icon: rust }
+    features:
+        - title: Shell-capable image
+          icon: code
+          body: Ships /bin/sh (Alpine ash) so Kubernetes Job scripts run, unlike the distroless upstream.
+        - title: Static musl Rust CLI
+          icon: rust
+          body: kbve-kubectl is built on rust:alpine with zero glibc dependencies.
+        - title: guest-exec into VMs
+          icon: server
+          body: Runs commands inside a KubeVirt VM via the QEMU Guest Agent.
+        - title: rotate-gameserver
+          icon: gears
+          body: Rolls an Agones GameServer when its desired image drifts from the running pod (delete-only; ArgoCD recreates).
+        - title: Pinned across manifests
+          icon: deploy
+          body: One image tag is kept in sync across every manifest in the deployment_yamls field via the post-publish version sync.
+    related:
+        - title: Aria2 Proxy
+          href: /project/aria2-proxy/
+          copy: Download-proxy image used alongside kubectl in KubeVirt provisioning.
+          icon: box
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Reference" heading="CLI & bundled tools">
 
 Alpine-based kubectl image with a static musl Rust CLI wrapper for KubeVirt VM management. Replaces the distroless `registry.k8s.io/kubectl` image which lacks `/bin/sh` and breaks Kubernetes Job scripts. Built end-to-end on `rust:alpine` so the binary has zero glibc dependencies.
 
@@ -69,7 +146,9 @@ Alpine-based kubectl image with a static musl Rust CLI wrapper for KubeVirt VM m
 | `/bin/sh` | Shell script execution (Alpine ash) |
 | `kbve-kubectl` | Static musl Rust CLI |
 
-### Usage in Jobs
+</BentoProse>
+
+<BentoProse id="usage" eyebrow="Jobs" heading="Usage in Jobs">
 
 ```yaml
 containers:
@@ -114,3 +193,7 @@ containers:
           - --container=factorio
           - --delete-timeout=180
 ```
+
+</BentoProse>
+
+</BentoDoc>

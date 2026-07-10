@@ -1,5 +1,6 @@
 ---
 title: Flowering Azalea Leaves
+template: splash
 description: |
     Minecraft Flowering Azalea Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 98
     ref: flowering_azalea_leaves
     slug: flowering-azalea-leaves
+    content_rev: 1
     display_name: Flowering Azalea Leaves
     material: leaves
     hardness: 0.2
@@ -24,10 +26,66 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flowering_azalea_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - flammable
+        - leaves
+        - compostable
+    about:
+        description: |
+            Flowering Azalea Leaves are the pink-blossomed foliage of the
+            flowering azalea plant, generating above lush caves and as part
+            of azalea trees. Unlike most leaves, they must be harvested with
+            shears or a Silk Touch tool to be collected as a block.
+        lore: |
+            Introduced with the Caves & Cliffs update, flowering azalea
+            leaves helped bring color and life to the new lush caves biome.
+    uses:
+        - title: Bee Nest Growth
+          ref: bee_nest
+          detail: |
+              Trees grown with flowering azalea leaves can naturally
+              generate bee nests, similar to oak and birch trees with
+              flowers nearby.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing flowering azalea leaves in a composter has a 50%
+              chance of raising the compost level by one, higher than
+              ordinary leaves.
+    found_in:
+        - location: Lush caves
+          detail: Grows as the canopy of azalea trees rooted above lush cave biomes.
+        - location: Azalea trees
+          detail: Generates as part of full-size azalea trees that sprout from flowering azalea bushes.
+    faq:
+        - question: What tool do I need to collect Flowering Azalea Leaves?
+          answer: |
+              Shears or a Silk Touch enchanted tool. Breaking them any other
+              way destroys the block with no drop.
+        - question: Do Flowering Azalea Leaves drop saplings?
+          answer: |
+              No, azalea plants are not propagated with a separate sapling
+              item, so only the leaves block itself drops, and only with
+              shears or Silk Touch.
+        - question: Are Flowering Azalea Leaves flammable?
+          answer: |
+              Yes, like other leaves they can catch fire from lava and burn
+              away over time.
+        - question: What is the difference from regular Azalea Leaves?
+          answer: |
+              Flowering azalea leaves have pink blossoms, compost at a
+              higher chance, and can grow bee nests, while plain azalea
+              leaves are solid green with no flowers.
     data_version: "1.21.5"
 ---
 

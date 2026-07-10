@@ -1,0 +1,133 @@
+---
+title: Combat potion | OSRS Price Data
+description: "Combat potion(4): 4 doses of combat potion.. High alch: 129 GP, GE limit: 2,000."
+osrs:
+  id: 9739
+  name: Combat potion
+  slug: combat-potion
+  examine: 4 doses of combat potion.
+  members: true
+  icon: Combat potion(4).png
+  value: 215
+  lowalch: 86
+  highalch: 129
+  limit: 2000
+  family_ref:
+    family_slug: combat-potion
+    role: base
+  family:
+    slug: combat-potion
+    name: Combat potion
+    type: dose
+    canonical_id: 9739
+    members:
+    - id: 9739
+      slug: combat-potion
+      name: Combat potion
+      icon: Combat potion(4).png
+      role: base
+      dose: null
+      value: 215
+      lowalch: 86
+      highalch: 129
+    - id: 9745
+      slug: combat-potion-1
+      name: Combat potion(1)
+      icon: Combat potion(1).png
+      role: dose
+      dose: 1
+      value: 52
+      lowalch: 20
+      highalch: 31
+    - id: 9743
+      slug: combat-potion-2
+      name: Combat potion(2)
+      icon: Combat potion(2).png
+      role: dose
+      dose: 2
+      value: 105
+      lowalch: 42
+      highalch: 63
+    - id: 9741
+      slug: combat-potion-3
+      name: Combat potion(3)
+      icon: Combat potion(3).png
+      role: dose
+      dose: 3
+      value: 160
+      lowalch: 64
+      highalch: 96
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.08
+    options:
+      - "Drink"
+      - "Empty"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Boosts Attack by 10% of current level plus 3."
+        duration: 60
+      - description: "Boosts Strength by 10% of current level plus 3."
+        duration: 60
+  recipes:
+    - skill: herblore
+      level: 36
+      xp: 84
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Goat horn dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Combat potion(3)
+      slug: combat-potion-3
+      relationship: downgrade
+      description: Three-dose form, drops one charge after a sip
+    - item_name: Combat potion(2)
+      slug: combat-potion-2
+      relationship: downgrade
+      description: Two-dose form
+    - item_name: Combat potion(1)
+      slug: combat-potion-1
+      relationship: downgrade
+      description: Single dose, decants from any higher-dose vial
+    - item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: upgrade
+      description: Stronger PvM successor adding Defence and using torstol
+  about: "Combat potion(4) hands out four sips that each grant +3 plus 10 percent to Attack and Strength, decaying by one point per minute (or every 90 seconds under the Preserve prayer)."
+  market_strategy:
+    notes:
+      - "Herblore-loss item: ingredient cost typically exceeds the GE price."
+      - "Most demand comes from low-level slayer accounts skipping super combats."
+  trading_tips:
+    - "Decant calculators: check whether (4) vs (3) is the cheaper per-dose buy."
+    - "Quest-grinding accounts move these in bulk near Waterfall and Vampyre Slayer runs."
+  history:
+    - date: "2006-10-18"
+      description: Added with the original Harralander potion lineup.
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

@@ -1,5 +1,6 @@
 ---
 title: Mushroom Stem
+template: splash
 description: |
     Minecraft Mushroom Stem — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 376
     ref: mushroom_stem
     slug: mushroom-stem
+    content_rev: 1
     display_name: Mushroom Stem
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The mushroom stem is the pale, spore-covered block that forms the trunk of a huge mushroom, generating naturally
+            beneath brown or red mushroom caps in mushroom fields, dark forests, and abandoned camps. Mining it without
+            Silk Touch destroys the block outright and drops nothing, while a Silk Touch tool recovers the stem itself for
+            building. It can also be composted, with roughly a 65% chance of raising the compost level by one.
+        lore: |
+            A texture that predates huge mushrooms' official reveal, glimpsed and decoded by forum sleuths from a blurred
+            2011 development screenshot months before Mojang announced the feature.
+    faq:
+        - question: How do I get a mushroom stem block instead of destroying it?
+          answer: |
+              Mine it with a tool enchanted with Silk Touch; without Silk Touch the stem block breaks and drops nothing.
+        - question: Where do mushroom stems generate naturally?
+          answer: |
+              They form the trunks of huge mushrooms found in mushroom fields biomes, dark forests, and occasionally as
+              part of abandoned camp structures.
+        - question: Can mushroom stems be used for anything besides building?
+          answer: |
+              Yes, they can be placed in a composter, giving roughly a 65% chance per use of raising the compost level.
+        - question: Is the mushroom stem the same block as a mushroom cap?
+          answer: |
+              No, caps and stems are separate block variants with different textures; the stem is the plain, spotless
+              pale-tan trunk section of a huge mushroom.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

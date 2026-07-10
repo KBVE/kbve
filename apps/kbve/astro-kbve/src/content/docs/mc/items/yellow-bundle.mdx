@@ -1,5 +1,6 @@
 ---
 title: Yellow Bundle
+template: splash
 description: |
     Minecraft Yellow Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 979
     ref: yellow_bundle
     slug: yellow-bundle
+    content_rev: 1
     display_name: Yellow Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Yellow Bundle is a dyed storage item that packs a mixed stack of
+            different item types into a single inventory slot. Crafted from one
+            string and one leather, then dyed yellow, it holds items based on how
+            much space each stack takes up rather than a fixed item count.
+        lore: |
+            Inspired by ancient Roman coin purses, bundles let adventurers travel
+            lighter by consolidating loose odds and ends into one compact pouch.
+    faq:
+        - question: How do I craft a Yellow Bundle?
+          answer: |
+              Craft a plain bundle from one string and one leather, then combine
+              it with yellow dye to color it.
+        - question: How much can a Yellow Bundle hold?
+          answer: |
+              It holds up to a stack's worth of items total, with each item's
+              space cost scaled by its own max stack size — 64-stack items take
+              1/64 of the space, non-stackable items take the whole bundle.
+        - question: Can I put a bundle inside another bundle?
+          answer: |
+              Yes, bundles can nest inside other bundles, though shulker boxes
+              cannot be stored inside a bundle.
+        - question: Does dyeing change how the bundle functions?
+          answer: |
+              No, dye only changes the bundle's color for organization purposes;
+              once dyed, a bundle cannot be re-dyed to a different color.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

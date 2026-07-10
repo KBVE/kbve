@@ -566,8 +566,12 @@ fn router(state: AppState) -> Router {
         .route("/forum/c/{slug}", get(forum_c_redirect))
         .route("/forum/c/{slug}/", get(forum_c_redirect));
 
-    let public_router =
-        mount_permanent_redirects(public_router, PERMANENT_REDIRECTS).with_state(state.clone());
+    let public_router = mount_permanent_redirects(public_router, PERMANENT_REDIRECTS);
+    let public_router = mount_permanent_redirects(
+        public_router,
+        crate::transport::osrs_family_redirects::OSRS_FAMILY_REDIRECTS,
+    )
+    .with_state(state.clone());
 
     let main_app = static_router.merge(public_router).layer(middleware);
 
@@ -650,6 +654,22 @@ fn router(state: AppState) -> Router {
         .route(
             "/dashboard/factorio/proxy",
             any(super::proxy::factorio_proxy_handler),
+        )
+        .route(
+            "/dashboard/vibeshine/proxy/{*path}",
+            any(super::proxy::vibeshine_proxy_handler),
+        )
+        .route(
+            "/dashboard/vibeshine/proxy",
+            any(super::proxy::vibeshine_proxy_handler),
+        )
+        .route(
+            "/api/v1/vibeshine/status",
+            axum::routing::get(super::proxy::vibeshine_status_handler),
+        )
+        .route(
+            "/api/v1/vibeshine/webrtc/{*rest}",
+            any(super::proxy::vibeshine_webrtc_handler),
         )
         .route(
             "/dashboard/firecracker-net/proxy/{*path}",
@@ -3866,5 +3886,52 @@ mod tests {
             before,
             "PERMANENT_REDIRECTS source paths must be unique"
         );
+    }
+
+    #[tokio::test]
+    async fn osrs_family_redirects_are_unique_and_disjoint() {
+        use crate::transport::osrs_family_redirects::OSRS_FAMILY_REDIRECTS;
+        // Internal uniqueness — duplicate routes panic axum at startup.
+        let mut sources: Vec<_> = OSRS_FAMILY_REDIRECTS.iter().map(|(s, _)| *s).collect();
+        sources.sort_unstable();
+        let before = sources.len();
+        sources.dedup();
+        assert_eq!(
+            sources.len(),
+            before,
+            "OSRS_FAMILY_REDIRECTS source paths must be unique"
+        );
+        // Disjoint from the hand-written table — both get mounted.
+        let hand: std::collections::HashSet<_> =
+            PERMANENT_REDIRECTS.iter().map(|(s, _)| *s).collect();
+        for (src, _) in OSRS_FAMILY_REDIRECTS {
+            assert!(
+                !hand.contains(src),
+                "family redirect {src} collides with PERMANENT_REDIRECTS"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn osrs_family_redirect_fires_to_base() {
+        use crate::transport::osrs_family_redirects::OSRS_FAMILY_REDIRECTS;
+        let app = mount_permanent_redirects(Router::<()>::new(), OSRS_FAMILY_REDIRECTS);
+        for uri in [
+            "/osrs/dragon-dagger-p",
+            "/osrs/dragon-dagger-p/",
+            "/osrs/dragon-dagger-p-5698",
+            "/osrs/dragon-dagger-p-5698/",
+        ] {
+            let response = app
+                .clone()
+                .oneshot(Request::builder().uri(uri).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::PERMANENT_REDIRECT);
+            assert_eq!(
+                response.headers().get(header::LOCATION).unwrap(),
+                "/osrs/dragon-dagger/"
+            );
+        }
     }
 }

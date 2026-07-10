@@ -1,0 +1,114 @@
+---
+title: Stamina mix | OSRS Price Data
+description: "Stamina mix(2): Two doses of fishy stamina potion.. High alch: 96 GP, GE limit: 2,000."
+osrs:
+  id: 12633
+  name: Stamina mix
+  slug: stamina-mix
+  examine: Two doses of fishy stamina potion.
+  members: true
+  icon: Stamina mix(2).png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: 2000
+  family_ref:
+    family_slug: stamina-mix
+    role: base
+  family:
+    slug: stamina-mix
+    name: Stamina mix
+    type: dose
+    canonical_id: 12633
+    members:
+    - id: 12633
+      slug: stamina-mix
+      name: Stamina mix
+      icon: Stamina mix(2).png
+      role: base
+      dose: null
+      value: 160
+      lowalch: 64
+      highalch: 96
+    - id: 12635
+      slug: stamina-mix-1
+      name: Stamina mix(1)
+      icon: Stamina mix(1).png
+      role: dose
+      dose: 1
+      value: 90
+      lowalch: 36
+      highalch: 54
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2014-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 20% run energy."
+        duration: 0
+      - description: "Reduces run energy depletion rate by 70%."
+        duration: 120
+      - description: "Heals 6 Hitpoints on consumption."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 86
+      xp: 60
+      materials:
+        - item_name: Stamina potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Stamina potion(2)
+      slug: stamina-potion-2
+      relationship: component
+      description: Base potion mixed with caviar to create the fishy variant.
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Barbarian Herblore secondary used to create mixes.
+    - item_name: Stamina mix(1)
+      slug: stamina-mix-1
+      relationship: variant
+      description: One-dose version of the same Barbarian potion.
+  about: "Stamina mix(2) is the two-dose Barbarian Herblore variant of the stamina potion, adding a 6 HP heal on each drink while preserving the run energy restore and 70% energy drain reduction effect. Mixing at Seers' Village bank counts toward Elite Kandarin Diary."
+  market_strategy:
+    notes:
+      - "Provides the only universal stamina effect outside of regular stamina potions"
+      - "Mixing margin compresses when caviar restocks at fishing colonies dip"
+      - "Used by PvM/slayer accounts that want extra healing per inventory slot"
+  trading_tips:
+    - Watch caviar GE prices; mix profit follows them inversely
+    - Buy during weekday lulls and offload at weekend PvM peaks
+  history:
+    - date: "2014-07-03"
+      description: "Added when stamina potions joined the Barbarian Herblore mix list."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

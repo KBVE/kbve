@@ -1,5 +1,6 @@
 ---
 title: Birch Planks
+template: splash
 description: |
     Minecraft Birch Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 15
     ref: birch_planks
     slug: birch-planks
+    content_rev: 1
     display_name: Birch Planks
     material: wood
     hardness: 2
@@ -24,10 +26,66 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - renewable
+    about:
+        description: |
+            Birch Planks are a wood building block crafted from Birch Logs,
+            recognizable by their pale, near-white color. They are one of
+            the most common early-game materials, used as a base ingredient
+            for stairs, slabs, doors, fences, and many other wooden items.
+        lore: |
+            Birch wood and its planks were added in Beta 1.5 alongside
+            spruce, giving builders their first alternate wood palette
+            beyond oak.
+    uses:
+        - title: Birch Stairs
+          ref: birch_stairs
+          detail: |
+              Six Birch Planks arranged in a staircase pattern craft four
+              Birch Stairs.
+        - title: Birch Slab
+          ref: birch_slab
+          detail: |
+              Three Birch Planks arranged in a row craft six Birch Slabs.
+        - title: Crafting Table
+          ref: crafting_table
+          detail: |
+              Four planks of any wood type craft a Crafting Table, one of
+              the first blocks made in any new world.
+    found_in:
+        - location: Woodland structures
+          detail: Generates as part of any structure built from birch wood, such as woodland mansions.
+        - location: Crafted from Birch Logs
+          detail: Placing a Birch Log, stripped log, or wood block in a crafting grid yields four Birch Planks.
+    faq:
+        - question: What tool do I need to mine Birch Planks?
+          answer: |
+              None required — any tool works, though an axe is fastest.
+              It can even be broken by hand.
+        - question: Are Birch Planks renewable?
+          answer: |
+              Yes. Birch trees can be regrown from saplings indefinitely,
+              making planks a fully renewable resource.
+        - question: Do Birch Planks burn?
+          answer: |
+              Yes, like all plank blocks they are flammable and will catch
+              fire when exposed to flames or lava.
+        - question: How many planks come from one log?
+          answer: |
+              Each Birch Log, stripped log, or birch wood block yields four
+              Birch Planks when crafted.
     data_version: "1.21.5"
 ---
 

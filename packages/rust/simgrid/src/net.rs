@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 
 use axum::Router;
+use axum::body::Bytes;
 use axum::extract::State;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::response::IntoResponse;
@@ -112,11 +113,10 @@ impl Roster {
 
 /// A broadcast event encoded once per live wire format, shared across every
 /// recipient via `Arc` so a snapshot is serialized once per tick instead of
-/// once per client. axum 0.7's `Message` owns its buffer, so each writer still
-/// pays one flat memcpy to hand the socket an owned copy — but the expensive
-/// serialization + the deep `ServerEvent` clone happen a single time.
+/// once per client. `Bytes`-backed so handing each writer a `Message` is a
+/// refcount bump, not a buffer copy.
 struct EncodedFrame {
-    postcard: Vec<u8>,
+    postcard: Bytes,
 }
 
 impl EncodedFrame {
@@ -145,6 +145,7 @@ pub struct ServerState {
     conns: Arc<DashMap<Ulid, ConnHandle>>,
     slot2id: Arc<DashMap<proto::PlayerSlot, Ulid>>,
     kicks: Arc<Mutex<HashMap<u16, watch::Sender<bool>>>>,
+    pub udp: Option<Arc<crate::net_udp::UdpLane>>,
 }
 
 impl ServerState {
@@ -167,11 +168,17 @@ impl ServerState {
             conns: Arc::new(DashMap::new()),
             slot2id: Arc::new(DashMap::new()),
             kicks: Arc::new(Mutex::new(HashMap::new())),
+            udp: None,
         }
     }
 
     pub fn with_registry(mut self, registry: Vec<proto::KindEntry>) -> Self {
         self.registry = registry;
+        self
+    }
+
+    pub fn with_udp(mut self, lane: Arc<crate::net_udp::UdpLane>) -> Self {
+        self.udp = Some(lane);
         self
     }
 
@@ -191,9 +198,10 @@ impl ServerState {
         let conns = self.conns.clone();
         let slot2id = self.slot2id.clone();
         let roster = self.roster.clone();
+        let udp = self.udp.clone();
         tokio::spawn(async move {
             while let Some(evt) = out_rx.recv().await {
-                route_event(&conns, &slot2id, &roster, evt);
+                route_event(&conns, &slot2id, &roster, udp.as_ref(), evt);
             }
         });
     }
@@ -203,6 +211,7 @@ fn route_event(
     conns: &DashMap<Ulid, ConnHandle>,
     slot2id: &DashMap<proto::PlayerSlot, Ulid>,
     roster: &Arc<RwLock<Roster>>,
+    udp: Option<&Arc<crate::net_udp::UdpLane>>,
     evt: ServerEvent,
 ) {
     if let ServerEvent::Ephemeral { to, .. } = &evt
@@ -223,7 +232,7 @@ fn route_event(
     // each client's tracked set to what it can see — the scaling win.
     let evt = match evt {
         ServerEvent::Snapshot(snap) => {
-            route_snapshot_aoi(conns, roster, snap);
+            route_snapshot_aoi(conns, roster, snap, udp.map(|u| u.as_ref()));
             return;
         }
         other => other,
@@ -258,6 +267,7 @@ fn route_snapshot_aoi(
     conns: &DashMap<Ulid, ConnHandle>,
     roster: &Arc<RwLock<Roster>>,
     snap: proto::Snapshot,
+    udp: Option<&crate::net_udp::UdpLane>,
 ) {
     let players = roster.read().ok().map(|r| r.snapshot()).unwrap_or_default();
     for h in conns.iter() {
@@ -265,31 +275,36 @@ fn route_snapshot_aoi(
             .entities
             .iter()
             .find(|e| e.owner == h.slot && e.max_hp > 0);
-        let entities: Vec<proto::EntityDelta> = match me {
+        let entities: Vec<&proto::EntityDelta> = match me {
             Some(me) => snap
                 .entities
                 .iter()
                 .filter(|e| e.z == me.z && aoi_chebyshev(e.tile, me.tile) <= AOI_RADIUS)
-                .cloned()
                 .collect(),
-            None => snap.entities.clone(),
+            None => snap.entities.iter().collect(),
         };
-        let view = proto::Snapshot {
+        let view = proto::SnapshotRef {
             tick: snap.tick,
             server_time_ms: snap.server_time_ms,
             input_ack: snap.input_ack,
-            players: players.clone(),
+            players: &players,
             entities,
             keyframe: snap.keyframe,
         };
-        let frame = Arc::new(encode_frame(&ServerEvent::Snapshot(view)));
+        if let Some(lane) = udp
+            && let Some(addr) = lane.bound_addr(h.slot)
+            && lane.try_send_snapshot(addr, &view)
+        {
+            continue;
+        }
+        let frame = Arc::new(encode_frame(&proto::ServerEventRef::Snapshot(view)));
         deliver(h.value(), frame);
     }
 }
 
-fn encode_frame(evt: &ServerEvent) -> EncodedFrame {
+fn encode_frame<T: serde::Serialize>(evt: &T) -> EncodedFrame {
     EncodedFrame {
-        postcard: proto::encode(evt).unwrap_or_default(),
+        postcard: proto::encode(evt).unwrap_or_default().into(),
     }
 }
 
@@ -335,7 +350,7 @@ struct AdmittedPlayer {
 fn decode_client(msg: &Message) -> Option<ClientMessage> {
     match msg {
         Message::Binary(bytes) => {
-            let mut buf = bytes.clone();
+            let mut buf = bytes.to_vec();
             proto::decode::<ClientMessage>(&mut buf).ok()
         }
         _ => None,
@@ -343,7 +358,7 @@ fn decode_client(msg: &Message) -> Option<ClientMessage> {
 }
 
 fn encode_event(evt: &ServerEvent) -> Option<Message> {
-    proto::encode(evt).ok().map(Message::Binary)
+    proto::encode(evt).ok().map(|buf| Message::Binary(buf.into()))
 }
 
 pub fn router(state: ServerState) -> Router {
@@ -382,6 +397,22 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
         return;
     }
 
+    if let Some(lane) = &state.udp {
+        let offer = proto::UdpOffer {
+            token: lane.issue_token(slot),
+            port: lane.port(),
+        };
+        if let Ok(payload) = proto::encode_inner(&offer)
+            && let Some(msg) = encode_event(&ServerEvent::Ephemeral {
+                kind: proto::EPHEMERAL_UDP_OFFER,
+                to: slot,
+                payload,
+            })
+        {
+            let _ = socket.send(msg).await;
+        }
+    }
+
     let (sink, mut stream) = socket.split();
     let (conn_tx, conn_rx) = mpsc::channel::<Arc<EncodedFrame>>(CONN_CHANNEL_CAPACITY);
     state.conns.insert(ulid, ConnHandle { tx: conn_tx, slot });
@@ -415,6 +446,9 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
     state.conns.remove_if(&ulid, |_, h| h.slot == slot);
     state.slot2id.remove_if(&slot, |_, id| *id == ulid);
     cleanup_join(&state, slot);
+    if let Some(lane) = &state.udp {
+        lane.revoke(slot);
+    }
 }
 
 async fn run_writer(
@@ -693,6 +727,7 @@ mod tests {
             &conns,
             &slot2id,
             &roster,
+            None,
             ServerEvent::Ephemeral {
                 kind: 1,
                 to: proto::PlayerSlot(0),
@@ -734,6 +769,7 @@ mod tests {
             &conns,
             &slot2id,
             &roster,
+            None,
             ServerEvent::Ephemeral {
                 kind: 1,
                 to: proto::PLAYER_SLOT_NONE,
@@ -758,5 +794,76 @@ mod tests {
     fn guest_allowed_when_not_required() {
         assert_eq!(resolve_username(false, String::new()), Some("guest".into()));
         assert_eq!(resolve_username(false, "ann".into()), Some("ann".into()));
+    }
+
+    #[tokio::test]
+    async fn snapshot_diverts_to_udp_when_bound() {
+        let lane = crate::net_udp::UdpLane::bind("127.0.0.1:0".parse().unwrap())
+            .await
+            .unwrap();
+        let (itx, _irx) = mpsc::unbounded_channel();
+        lane.spawn_recv_loop(itx);
+        let slot = proto::PlayerSlot(0);
+        let token = lane.issue_token(slot);
+
+        let client = tokio::net::UdpSocket::bind("127.0.0.1:0").await.unwrap();
+        let server_addr = format!("127.0.0.1:{}", lane.port());
+        let hello = proto::encode_inner(&proto::UdpPacket::Hello {
+            protocol: proto::PROTOCOL_VERSION,
+            token,
+        })
+        .unwrap();
+        client.send_to(&hello, &server_addr).await.unwrap();
+        let mut buf = [0u8; 2048];
+        client.recv(&mut buf).await.unwrap();
+
+        let conns: DashMap<Ulid, ConnHandle> = DashMap::new();
+        let (wtx, mut wrx) = mpsc::channel(8);
+        conns.insert(ulid_from_identity("a"), ConnHandle { tx: wtx, slot });
+        let roster = Arc::new(RwLock::new(Roster::new(4)));
+
+        let snap = proto::Snapshot {
+            tick: 42,
+            server_time_ms: 0,
+            input_ack: 0,
+            players: Vec::new(),
+            entities: Vec::new(),
+            keyframe: false,
+        };
+        route_snapshot_aoi(&conns, &roster, snap, Some(&lane));
+
+        let n = tokio::time::timeout(std::time::Duration::from_secs(1), client.recv(&mut buf))
+            .await
+            .expect("udp snapshot timeout")
+            .unwrap();
+        assert!(matches!(
+            proto::decode_inner::<proto::UdpPacket>(&buf[..n]).unwrap(),
+            proto::UdpPacket::Snapshot(s) if s.tick == 42
+        ));
+        assert!(wrx.try_recv().is_err());
+    }
+
+    #[test]
+    fn snapshot_stays_on_ws_when_unbound() {
+        let conns: DashMap<Ulid, ConnHandle> = DashMap::new();
+        let (wtx, mut wrx) = mpsc::channel(8);
+        conns.insert(
+            ulid_from_identity("a"),
+            ConnHandle {
+                tx: wtx,
+                slot: proto::PlayerSlot(0),
+            },
+        );
+        let roster = Arc::new(RwLock::new(Roster::new(4)));
+        let snap = proto::Snapshot {
+            tick: 1,
+            server_time_ms: 0,
+            input_ack: 0,
+            players: Vec::new(),
+            entities: Vec::new(),
+            keyframe: false,
+        };
+        route_snapshot_aoi(&conns, &roster, snap, None);
+        assert!(wrx.try_recv().is_ok());
     }
 }

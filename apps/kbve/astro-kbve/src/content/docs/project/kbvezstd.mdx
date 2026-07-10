@@ -1,7 +1,7 @@
 ---
-title: KBVEZstd
-description: |
-    Zstandard compression plugin for Unreal Engine.
+title: KBVEZstd — Zstandard Compression Plugin for Unreal
+description: KBVEZstd is an Unreal Engine plugin wrapping Facebook's Zstandard (zstd) 1.5.7 library for fast, real-time lossless compression on Win64, Linux, and Mac.
+sem: 1
 sidebar:
     label: KBVEZstd
     order: 92
@@ -23,8 +23,76 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVEZstd plugin?
+          answer: KBVEZstd is an Unreal Engine runtime plugin that wraps Facebook's Zstandard (zstd) 1.5.7 compression library, exposing fast real-time lossless compression to Unreal projects on Win64, Linux, and Mac.
+        - question: Which Unreal Engine versions does KBVEZstd support?
+          answer: KBVEZstd targets a minimum engine version of 5.4 and ships for the Win64, Linux, and Mac platforms. It is a Runtime module loaded at the Default loading phase.
+        - question: Why use Zstandard in an Unreal project?
+          answer: Zstandard offers a strong compression-ratio to speed trade-off suited to real-time workloads, making it well matched to compressing save data, world chunks, and network payloads in a game.
+bento:
+    badge: unreal · compression
+    title: Zstandard compression for
+    accent: KBVEZstd
+    lede: >-
+        An Unreal Engine plugin wrapping Facebook's Zstandard (zstd) 1.5.7,
+        bringing fast real-time lossless compression into Unreal projects as a
+        Third Party runtime module that vendors a single zstd provider.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEZstd
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: package
+        title: One zstd provider
+        body: >-
+            The Facebook Zstandard amalgamation ships as a vendored Third Party
+            dependency, so projects link exactly one <code>zstd</code> provider.
+            The runtime module <code>FKBVEZstdModule</code> is opt-in, not enabled
+            by default.
+        points:
+            - <strong>Loading</strong> — loads at the Default phase.
+            - <strong>Fit</strong> — save data, world chunks, network payloads.
+    stats:
+        - { label: zstd, value: "1.5.7", icon: package }
+        - { label: Min engine, value: UE 5.4, icon: box }
+        - { label: Platforms, value: Win · Linux · Mac, icon: gears }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Vendored zstd 1.5.7
+          icon: package
+          body: The Facebook Zstandard amalgamation is included as a Third Party dependency, so projects link one zstd provider.
+        - title: Runtime module
+          icon: gears
+          body: <code>FKBVEZstdModule</code> loads at the Default phase; not enabled by default, opt in per project.
+        - title: Cross-platform
+          icon: expand
+          body: Builds for Win64, Linux, and Mac.
+        - title: Real-time friendly
+          icon: zap
+          body: Zstandard's ratio-to-speed trade-off suits save data, world chunks, and network payloads.
+    related:
+        - title: KBVESQLite
+          href: /project/kbvesqlite/
+          copy: Embedded SQLite database plugin that pairs with compression for persistence.
+          icon: database
+        - title: KBVEItemDB
+          href: /project/kbveitemdb/
+          copy: Item database plugin in the same Unreal plugin family.
+          icon: inventory
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-KBVEZstd wraps Facebook's Zstandard compression library for Unreal Engine.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

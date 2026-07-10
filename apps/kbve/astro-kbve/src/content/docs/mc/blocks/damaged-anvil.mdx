@@ -1,5 +1,6 @@
 ---
 title: Damaged Anvil
+template: splash
 description: |
     Minecraft Damaged Anvil — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 437
     ref: damaged_anvil
     slug: damaged-anvil
+    content_rev: 1
     display_name: Damaged Anvil
     material: metal
     hardness: 5
     blast_resistance: 1200
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: damaged_anvil
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            The Damaged Anvil is the third and final damage stage of the
+            anvil, showing a corroded, dented top texture. It functions
+            identically to an undamaged anvil for repairing, renaming,
+            and combining enchantments.
+        lore: |
+            Anvils were added in Java Edition 1.4.2 (2012) with a
+            three-stage damage system tied to repeated use.
+    uses:
+        - title: Anvil Interface
+          ref: enchanted_book
+          detail: |
+              Used exactly like any anvil to rename items, repair gear
+              with matching materials, or merge enchanted books, at the
+              cost of experience levels.
+    found_in:
+        - location: Woodland Mansions
+          detail: |
+              Damaged anvils generate in the forge/blacksmith rooms of
+              woodland mansions.
+        - location: Trail Ruins
+          detail: |
+              Also found embedded among the archaeology blocks of trail
+              ruins structures.
+    faq:
+        - question: Does a damaged anvil work worse than a normal one?
+          answer: |
+              No. Damage state only changes its appearance; repairing,
+              renaming, and enchanting work exactly the same.
+        - question: What tool do I need to mine it?
+          answer: |
+              A wooden pickaxe or better. Mining it by hand breaks the
+              block but yields no drop.
+        - question: Can it degrade further or break?
+          answer: |
+              Yes. Each use has roughly a 12% chance to degrade the anvil
+              one stage, and a damaged anvil that degrades again is
+              destroyed completely.
+        - question: Does falling damage an anvil?
+          answer: |
+              Yes. Falling more than one block gives roughly a 5% chance
+              per block to degrade or destroy the anvil on landing.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Fire Coral Block
+template: splash
 description: |
     Minecraft Fire Coral Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 627
     ref: fire_coral_block
     slug: fire-coral-block
+    content_rev: 1
     display_name: Fire Coral Block
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Fire coral block is a solid decorative block generated naturally in coral reef structures within
+            warm ocean biomes. It must be mined with a Silk Touch pickaxe to keep its living form, and it
+            requires an adjacent water or waterlogged block to stay alive.
+        lore: |
+            A vivid reef formation that blazes with color only so long as the tide keeps its embrace.
+    faq:
+        - question: Will my fire coral block die if I place it on land?
+          answer: |
+              Yes. At least one of the six directly adjacent blocks must be water or waterlogged, or it turns
+              into a dead coral block within a few seconds.
+        - question: How do I keep the living form when mining it?
+          answer: |
+              You must mine it with a pickaxe enchanted with Silk Touch; otherwise it drops as dead coral block
+              instead.
+        - question: Can I get fire coral blocks without exploring the ocean?
+          answer: |
+              Yes, wandering traders sell any coral block variant, including fire coral, for 3 emeralds.
+        - question: What is fire coral block used for?
+          answer: |
+              It is primarily a building and decoration block, and it can also serve as a planting surface for
+              sea pickles.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

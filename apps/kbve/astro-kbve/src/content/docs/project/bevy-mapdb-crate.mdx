@@ -1,7 +1,7 @@
 ---
-title: uevy mapdb
-description: |
-    uevy mapdb — Bevy game crate for the KBVE isometric engine.
+title: bevy_mapdb — Proto-Driven Map Registry Crate for Bevy
+description: Game-agnostic Bevy crate that compiles mapdb.proto into typed Rust structs and wraps them in a searchable MapDb resource for zones, regions, and world objects.
+sem: 1
 sidebar:
     label: uevy mapdb
 tags:
@@ -19,8 +19,87 @@ version_toml: packages/rust/bevy/bevy_mapdb/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the bevy_mapdb crate do?
+          answer: It compiles mapdb.proto into typed Rust structs via prost and wraps them in a searchable MapDb Bevy resource, so any game can query zones, regions, and world object definitions by slug, ULID, biome, or type.
+        - question: How do you load map data into bevy_mapdb?
+          answer: MapDb parses from three sources — MapDb::from_json for the mapdb JSON artifact, MapDb::from_bytes for a proto binary, and MapDb::from_proto for an in-memory MapRegistry. Insert the result as a Bevy resource during startup.
+        - question: Is bevy_mapdb tied to a specific game?
+          answer: No. It is game-agnostic. Any Bevy game can load the same shared proto map registry; BevyMapDbPlugin registers an empty MapDb that the game populates at startup.
+bento:
+    badge: crates · rust · bevy
+    title: Proto-driven map registry for
+    accent: bevy_mapdb
+    lede: >-
+        A game-agnostic Bevy crate that compiles mapdb.proto into typed Rust
+        structs and wraps them in a searchable MapDb resource for zones, regions,
+        and world objects.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_mapdb
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: database
+        title: One proto, every game
+        body: >-
+            It compiles mapdb.proto into typed Rust structs via prost and wraps them
+            in a searchable MapDb resource, so any game can query zones, regions, and
+            world object definitions by <strong>slug, ULID, biome, or type</strong>.
+    stats:
+        - { label: Language, value: Rust, icon: rust }
+        - { label: Version, value: "0.1.0", icon: package }
+        - { label: Schema, value: proto, icon: database }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Proto-driven schema
+          icon: database
+          body: "mapdb.proto compiles into typed Rust structs at build time via prost / prost-build."
+        - title: Searchable registry
+          icon: book
+          body: "MapDb looks up zones, regions, and world object defs by ProtoMapId, ref, or ULID, and filters zones by biome or type."
+        - title: Multiple load paths
+          icon: expand
+          body: "MapDb::from_json, MapDb::from_bytes (proto binary), and MapDb::from_proto (in-memory MapRegistry)."
+        - title: Game-agnostic
+          icon: box
+          body: "BevyMapDbPlugin registers an empty MapDb; games populate it at startup and insert it as a resource."
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy::prelude::*;
+            use bevy_mapdb::{BevyMapDbPlugin, MapDb};
+
+            fn load_maps(mut commands: Commands) {
+                let json = include_str!("path/to/mapdb.json");
+                let db = MapDb::from_json(json).expect("Failed to parse map JSON");
+                commands.insert_resource(db);
+            }
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Isometric camera plugin for the same engine.
+          icon: video
+        - title: Isometric
+          href: /project/isometric
+          copy: The KBVE isometric engine these crates power.
+          icon: crown
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-uevy mapdb Bevy crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

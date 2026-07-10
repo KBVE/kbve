@@ -1,5 +1,6 @@
 ---
 title: White Glazed Terracotta
+template: splash
 description: |
     Minecraft White Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 662
     ref: white_glazed_terracotta
     slug: white-glazed-terracotta
+    content_rev: 1
     display_name: White Glazed Terracotta
     material: stone
     hardness: 1.4
     blast_resistance: 1.4
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            White Glazed Terracotta is a decorative block made by smelting
+            White Stained Terracotta. Its glossy, directional texture faces
+            the player on placement and cannot be moved by pistons pushing
+            adjacent sticky blocks.
+        lore: |
+            Glazed terracotta's tile-like designs were inspired by Moroccan
+            bathroom tiling and were added in Java Edition 1.12.
+    uses:
+        - title: Building material / pattern tiling
+          ref: white_glazed_terracotta
+          detail: |
+              Placed in matching-color 2x2 or larger grids to form large
+              directional patterns, useful for banners, floors, and murals.
+    found_in:
+        - location: Furnace smelting
+          detail: Smelt White Stained Terracotta with any fuel to obtain White Glazed Terracotta.
+        - location: Village and ruin structures
+          detail: Certain colors generate naturally in village houses, ocean ruins, and trial chambers depending on color.
+    faq:
+        - question: What tool do I need to mine White Glazed Terracotta?
+          answer: |
+              A wooden pickaxe or better; without one it drops nothing.
+        - question: How is White Glazed Terracotta made?
+          answer: |
+              By smelting White Stained Terracotta in a furnace, blast
+              furnace, or with any valid fuel source.
+        - question: Can pistons move White Glazed Terracotta?
+          answer: |
+              Regular pistons can push it, but it cannot stick to slime or
+              honey blocks and resists being pulled by sticky pistons.
+        - question: Does the placement direction matter?
+          answer: |
+              Yes. Its texture is directional and faces the player when
+              placed, which matters for lining up multi-block patterns.
     data_version: "1.21.5"
 ---
 

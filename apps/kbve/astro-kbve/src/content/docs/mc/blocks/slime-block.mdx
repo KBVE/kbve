@@ -1,5 +1,6 @@
 ---
 title: Slime Block
+template: splash
 description: |
     Minecraft Slime Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 491
     ref: slime_block
     slug: slime-block
+    content_rev: 1
     display_name: Slime Block
     material: glass
     hardness: 0
@@ -24,10 +26,66 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: slime_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Slime Block is a bouncy, sticky building block crafted from
+            nine slimeballs. It cushions falls by bouncing entities back
+            up, slows movement across its surface, and sticks to any block
+            a piston pushes or pulls it into, minus honey blocks.
+        lore: |
+            First revealed in 2013 under the working name "Bouncy Block,"
+            it debuted in Java Edition 1.8 and became a cornerstone of
+            redstone flying-machine design.
+    uses:
+        - title: Piston Flying Machines
+          ref: piston
+          detail: |
+              Its stickiness lets pistons drag entire structures of
+              attached blocks, forming the basis of self-propelled
+              redstone contraptions.
+        - title: Fall-Damage Cushion
+          ref: slime_ball
+          detail: |
+              Landing on a slime block bounces the entity back up instead
+              of dealing fall damage, unless sneaking.
+        - title: Potion of Oozing
+          ref: potion
+          detail: |
+              Used as a brewing ingredient with an awkward potion to create
+              the Potion of Oozing.
+    found_in:
+        - location: Swamp Biomes
+          detail: Occasionally generated in swamp huts and slime chunks below Y=40.
+        - location: Crafted
+          detail: Made from 9 slimeballs, which drop from Slime mobs, in a 3×3 crafting grid.
+    faq:
+        - question: Does landing on a slime block hurt me?
+          answer: |
+              No, it negates fall damage entirely by bouncing you upward,
+              unless you are sneaking, which cancels the bounce.
+        - question: Can pistons move slime blocks and attached blocks?
+          answer: |
+              Yes, slime blocks are sticky on all sides and drag any
+              adjacent non-slime, non-honey blocks when pushed or pulled.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Does a slime block stick to a honey block?
+          answer: |
+              No, honey blocks and slime blocks never stick to each other,
+              which lets redstone builders create controlled separation
+              points in flying machines.
     data_version: "1.21.5"
 ---
 

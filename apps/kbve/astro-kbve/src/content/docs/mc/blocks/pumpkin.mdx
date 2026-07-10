@@ -1,5 +1,6 @@
 ---
 title: Pumpkin
+template: splash
 description: |
     Minecraft Pumpkin — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 329
     ref: pumpkin
     slug: pumpkin
+    content_rev: 1
     display_name: Pumpkin
     material: plant
     hardness: 1
@@ -24,10 +26,68 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pumpkin
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Pumpkin is a harvestable crop block that generates naturally
+            in grassy Overworld biomes and can also be farmed from
+            Pumpkin Seeds planted on farmland. It is prized for food,
+            decoration, and carving into a Jack o'Lantern.
+        lore: |
+            Pumpkins are rarer than diamond ore on a per-chunk basis,
+            each chunk having only a 1-in-32 chance to generate a patch.
+    uses:
+        - title: Carved Pumpkin
+          ref: carved_pumpkin
+          detail: |
+              Right-click with shears to carve a face, dropping Pumpkin
+              Seeds in the process; the carved block is required to build
+              Snow Golems and Iron Golems.
+        - title: Jack o'Lantern
+          ref: jack_o_lantern
+          detail: |
+              Combine a Carved Pumpkin with a Torch to craft a light
+              source suitable for outdoor decoration.
+        - title: Pumpkin Pie
+          ref: pumpkin_pie
+          detail: |
+              Craft with Sugar and an Egg to make a food item that
+              restores hunger and cannot be stacked.
+    found_in:
+        - location: Grassy Overworld Biomes
+          detail: Naturally generates in patches on grass blocks, roughly a 1-in-32 chance per chunk.
+        - location: Villages, Pillager Outposts, Woodland Mansions, Shipwrecks
+          detail: Found decorating farm plots and structures in these generated buildings.
+        - location: Farmland
+          detail: Grown from Pumpkin Seeds planted on tilled soil, maturing next to a Pumpkin Stem.
+    faq:
+        - question: What tool should I use to break a pumpkin?
+          answer: |
+              An axe is fastest, but any tool — or bare hands — will
+              eventually break it and drop the block.
+        - question: How do I get a Jack o'Lantern?
+          answer: |
+              Shear the pumpkin to carve it, then combine the Carved
+              Pumpkin with a Torch in a crafting grid.
+        - question: Are pumpkins renewable?
+          answer: |
+              Yes. Planting Pumpkin Seeds on farmland grows stems that
+              continually produce new pumpkins on adjacent open blocks.
+        - question: Can pumpkins be used for farm trading or composting?
+          answer: |
+              Farmer villagers buy pumpkins for emeralds, and pumpkins
+              have a good chance of raising the compost bin's level when
+              used as compost material.
     data_version: "1.21.5"
 ---
 

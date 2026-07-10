@@ -43,7 +43,7 @@ describe('ClickHouse Adapter', () => {
 				namespace: 'test-ns',
 			});
 
-			await stream.load();
+			await stream.refresh();
 
 			expect(mockFetch).toHaveBeenCalledWith(
 				expect.stringContaining('/dashboard/clickhouse/proxy'),
@@ -80,8 +80,8 @@ describe('ClickHouse Adapter', () => {
 				getToken: mockGetToken,
 			});
 
-			await stream.load();
-			const items = stream.items.get();
+			await stream.refresh();
+			const items = stream.get().items;
 
 			expect(items).toHaveLength(1);
 			expect(items[0]).toMatchObject({
@@ -105,9 +105,9 @@ describe('ClickHouse Adapter', () => {
 				getToken: mockGetToken,
 			});
 
-			await stream.load();
+			await stream.refresh();
 
-			expect(stream.error.get()).toMatch(/access restricted/i);
+			expect(stream.get().error).toMatch(/access restricted/i);
 		});
 	});
 

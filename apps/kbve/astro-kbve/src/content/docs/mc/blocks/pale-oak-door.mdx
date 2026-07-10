@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Door
+template: splash
 description: |
     Minecraft Pale Oak Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 620
     ref: pale_oak_door
     slug: pale-oak-door
+    content_rev: 1
     display_name: Pale Oak Door
     material: wood
     hardness: 3
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Pale Oak Door is a wooden door crafted from pale oak planks
+            that can be opened and closed by hand, redstone, or a
+            villager, matching the bleached grain of the pale garden's
+            wood set.
+        lore: |
+            It arrived with the pale oak wood family in the Garden
+            Awakens drop (Java Edition 1.21.4), rounding out pale oak's
+            building block set.
+    uses:
+        - title: Entryway
+          ref: pale_oak_door
+          detail: |
+              Placed as a two-block-tall barrier that opens and closes,
+              keeping out most mobs while letting villagers and players
+              pass through.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Can be smelted as fuel in a furnace, though it is rarely
+              used this way since doors are usually kept for building.
+    found_in:
+        - location: Crafting
+          detail: Six pale oak planks in a 2x3 grid craft three pale oak doors.
+        - location: Pale Garden Structures
+          detail: May appear on structures generated within or near the pale garden biome.
+    faq:
+        - question: What tool do I need to mine Pale Oak Door?
+          answer: |
+              None. It can be broken by hand, though an axe is fastest,
+              and it always drops itself.
+        - question: Can zombies break down a Pale Oak Door?
+          answer: |
+              No, unless playing on Hard difficulty, where zombies can
+              break down wooden doors like this one.
+        - question: Is Pale Oak Door flammable?
+          answer: |
+              No. Wooden doors do not catch fire from nearby flames the
+              way planks, fences, and fence gates can.
+        - question: Can villagers open Pale Oak Door?
+          answer: |
+              Yes. Villagers and most passive mobs can open and close
+              wooden doors on their own, unlike iron doors.
     data_version: "1.21.5"
 ---
 

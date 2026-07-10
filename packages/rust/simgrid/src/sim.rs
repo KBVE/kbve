@@ -20,6 +20,7 @@ use crate::grid::{
     FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairGrace, Stairs, WalkableMap,
 };
 use crate::net::Roster;
+use crate::pets::{PetBank, PetRoster, PetSnapshot};
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
 use crate::rng::hash3;
 use crate::shop::{PendingShop, ShopInput};
@@ -180,6 +181,19 @@ pub struct PendingPetBattles(pub Vec<proto::PlayerSlot>);
 #[derive(Resource, Default)]
 pub struct PendingPetTurns(pub Vec<(proto::PlayerSlot, u8, u8)>);
 
+/// Slots that challenged a world trainer NPC this frame: `(slot, npc)`. Drained
+/// by the game-server system that validates range and starts the pet duel.
+#[derive(Resource, Default)]
+pub struct PendingNpcChallenges(pub Vec<(proto::PlayerSlot, proto::EntityId)>);
+
+/// Duel challenge/response inputs queued this frame. Combined into one resource
+/// (rather than two) so `DeployQueues` stays under Bevy's 16-param ceiling.
+#[derive(Resource, Default)]
+pub struct PendingDuelOps {
+    pub challenges: Vec<(proto::PlayerSlot, proto::PlayerSlot)>,
+    pub responses: Vec<(proto::PlayerSlot, bool)>,
+}
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -192,6 +206,8 @@ pub struct DeployQueues<'w> {
     pilot_ops: ResMut<'w, PendingPilotOps>,
     pet_battles: ResMut<'w, PendingPetBattles>,
     pet_turns: ResMut<'w, PendingPetTurns>,
+    npc_challenges: ResMut<'w, PendingNpcChallenges>,
+    duel_ops: ResMut<'w, PendingDuelOps>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -253,6 +269,18 @@ pub struct SavedPlayer {
     /// mid-activity (e.g. drop their ship from orbit + auto-board) instead of a plain
     /// on-foot spawn. Set by the game layer via [`InSpaceFlag`]; consumed on respawn.
     pub in_space: bool,
+    pub mp: i32,
+    pub ep: i32,
+    pub sp: i32,
+    /// Last known tile + facing. `None` (or a tile no longer walkable on `floor`)
+    /// falls back to the configured spawn point.
+    pub pos: Option<(Tile, proto::Facing)>,
+    /// Floor the player was on; `None` = topside (z 0, no `Floor` component).
+    pub floor: Option<i32>,
+    /// Detached pet roster in slot order; re-materialised into pet entities on rejoin.
+    pub pets: Vec<PetSnapshot>,
+    /// Active pet index into `pets`.
+    pub pet_active: Option<usize>,
 }
 
 impl Default for SavedPlayer {
@@ -266,6 +294,13 @@ impl Default for SavedPlayer {
             xp: 0,
             kills: 0,
             in_space: false,
+            mp: PLAYER_MAX_MP,
+            ep: PLAYER_MAX_ENERGY,
+            sp: PLAYER_MAX_STAMINA,
+            pos: None,
+            floor: None,
+            pets: Vec::new(),
+            pet_active: None,
         }
     }
 }
@@ -285,6 +320,25 @@ pub struct ReturnedFromInstance;
 pub struct PlayerStore {
     by_username: HashMap<String, SavedPlayer>,
 }
+
+impl PlayerStore {
+    /// Pre-fill a player's save before their slot activates (the admit-time DB load).
+    /// A no-op when an entry already exists — live in-memory state is always fresher
+    /// than whatever the durable store returned.
+    pub fn seed(&mut self, username: impl Into<String>, saved: SavedPlayer) {
+        self.by_username.entry(username.into()).or_insert(saved);
+    }
+
+    pub fn contains(&self, username: &str) -> bool {
+        self.by_username.contains_key(username)
+    }
+}
+
+/// Optional sink the game wires to a durable store. Every save harvest (disconnect +
+/// periodic autosave) sends the username + detached snapshot; absent in tests /
+/// no-DB runs. Bounded: a full channel drops the send — the next autosave retries.
+#[derive(Resource, Default)]
+pub struct PlayerPersistSink(pub Option<mpsc::Sender<(String, SavedPlayer)>>);
 
 #[derive(Resource, Default, Clone)]
 pub struct ConsumableEffects(pub HashMap<String, i32>);
@@ -353,6 +407,10 @@ pub const TOWN_REGEN_AMOUNT: i32 = 6;
 pub const CRIT_CHANCE_PCT: u64 = 15;
 pub const PLAYER_MAX_MP: i32 = 100;
 pub const MANA_REGEN_AMOUNT: i32 = 5;
+pub const PLAYER_MAX_ENERGY: i32 = 100;
+pub const ENERGY_REGEN_AMOUNT: i32 = 4;
+pub const PLAYER_MAX_STAMINA: i32 = 100;
+pub const STAMINA_REGEN_AMOUNT: i32 = 6;
 
 #[derive(Clone, Copy)]
 pub struct StatusEffect {
@@ -461,6 +519,12 @@ pub struct RespawnOnDeath {
 #[derive(Component, Clone, Copy)]
 pub struct NpcLevel(pub i32);
 
+/// Marker: this entity ignores all damage — player attacks and hazard/status
+/// ticks skip it outright. For non-combat NPCs (e.g. duel trainers) that must
+/// persist for server lifetime.
+#[derive(Component, Clone, Copy)]
+pub struct Invulnerable;
+
 #[derive(Component, Clone, Copy)]
 pub struct PlayerSlotTag(pub proto::PlayerSlot);
 
@@ -482,6 +546,18 @@ pub struct CombatStats {
 pub struct Mana {
     pub mp: i32,
     pub max_mp: i32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct Energy {
+    pub ep: i32,
+    pub max_ep: i32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct Stamina {
+    pub sp: i32,
+    pub max_sp: i32,
 }
 
 #[derive(Resource, Default)]
@@ -980,7 +1056,7 @@ pub fn ground_item_bundle_stack(
     ))
 }
 
-pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
+pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) -> Entity {
     let mut e = commands.spawn((
         EntityKind(spec.kind),
         GridPos::at(spec.origin),
@@ -997,6 +1073,7 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
         Loot {
             item_ref: spec.loot.clone(),
         },
+        PosHistory::at(spec.origin),
     ));
     if let Some((radius, period)) = spec.wander {
         e.insert(Wander::new(spec.origin, radius, period));
@@ -1029,6 +1106,7 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     if spec.floor != 0 {
         e.insert(Floor(spec.floor));
     }
+    e.id()
 }
 
 /// A placed environment object (campfire, wall, …). `def_ref` is its itemdb ref
@@ -1352,12 +1430,15 @@ fn env_mana_aura(
 fn env_hazard_burn(
     clock: Res<SimClock>,
     hazards: Query<(&HazardZone, &GridPos, Option<&Floor>)>,
-    mut victims: Query<(
-        &mut Health,
-        &GridPos,
-        Option<&Floor>,
-        Option<&mut StatusEffects>,
-    )>,
+    mut victims: Query<
+        (
+            &mut Health,
+            &GridPos,
+            Option<&Floor>,
+            Option<&mut StatusEffects>,
+        ),
+        Without<Invulnerable>,
+    >,
 ) {
     let now = clock.tick;
     for (hz, hpos, hfloor) in hazards.iter() {
@@ -1407,6 +1488,8 @@ pub fn build_app(
         .insert_resource(crate::pets::PendingPets::default())
         .insert_resource(PendingPetBattles::default())
         .insert_resource(PendingPetTurns::default())
+        .insert_resource(PendingNpcChallenges::default())
+        .insert_resource(PendingDuelOps::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -1420,6 +1503,7 @@ pub fn build_app(
         .insert_resource(ItemPrices::default())
         .insert_resource(Tables::default())
         .insert_resource(PlayerStore::default())
+        .insert_resource(PlayerPersistSink::default())
         .insert_resource(ConsumableEffects::default())
         .insert_resource(BuffEffects::default())
         .insert_resource(EquipmentEffects::default())
@@ -1493,7 +1577,12 @@ pub fn build_app(
                 .chain()
                 .in_set(SimSet::Movement),
         )
-        .add_systems(Update, emit_snapshot.in_set(SimSet::Snapshot));
+        .add_systems(
+            Update,
+            (autosave_players, emit_snapshot)
+                .chain()
+                .in_set(SimSet::Snapshot),
+        );
     // Clear the per-frame just-spawned-item overlay after everything has run + the
     // commands that spawned them flush, so next frame those entities are real.
     app.add_systems(bevy::prelude::Last, clear_pending_items);
@@ -1520,14 +1609,11 @@ fn sync_roster(
     mut kill_counts: ResMut<KillCounts>,
     equipment: Res<EquipmentEffects>,
     registry: Res<KindRegistry>,
-    q_saved: Query<(
-        &Inventory,
-        &Health,
-        &Equipped,
-        &XpState,
-        Option<&InSpaceFlag>,
-    )>,
+    map: Res<WalkableMap>,
+    persist: Res<PlayerPersistSink>,
+    q_saved: Query<SavedQuery>,
     item_q: Query<(&ItemRef, &StackCount, &ItemId)>,
+    mut pet_bank: PetBank,
     mut commands: Commands,
 ) {
     // Read one item entity into its detached stack DTO (for persistence on save).
@@ -1575,6 +1661,27 @@ fn sync_roster(
             .min(max_hp);
         let weapon = saved.as_ref().and_then(|s| s.weapon.clone());
         let armor = saved.as_ref().and_then(|s| s.armor.clone());
+        let mp = saved
+            .as_ref()
+            .map(|s| s.mp.clamp(0, PLAYER_MAX_MP))
+            .unwrap_or(PLAYER_MAX_MP);
+        let ep = saved
+            .as_ref()
+            .map(|s| s.ep.clamp(0, PLAYER_MAX_ENERGY))
+            .unwrap_or(PLAYER_MAX_ENERGY);
+        let sp = saved
+            .as_ref()
+            .map(|s| s.sp.clamp(0, PLAYER_MAX_STAMINA))
+            .unwrap_or(PLAYER_MAX_STAMINA);
+        let saved_floor = saved.as_ref().and_then(|s| s.floor);
+        let (spawn_tile, spawn_facing, spawn_floor) = saved
+            .as_ref()
+            .and_then(|s| s.pos)
+            .filter(|(tile, _)| map.is_walkable_z(saved_floor.unwrap_or(0), *tile))
+            .map(|(tile, facing)| (tile, facing, saved_floor))
+            .unwrap_or((config.spawn, proto::Facing::Down, None));
+        let saved_pets = saved.as_ref().map(|s| s.pets.clone()).unwrap_or_default();
+        let pet_active = saved.as_ref().and_then(|s| s.pet_active);
         // Restore the saved instance stacks (ids + birth timestamps intact), or mint a
         // fresh starter kit on a first join.
         let mut slots = saved.map(|s| s.slots).unwrap_or_else(|| {
@@ -1648,20 +1755,40 @@ fn sync_roster(
             max_hp,
             attack,
             kills,
-            PLAYER_MAX_MP,
+            mp,
             PLAYER_MAX_MP,
         );
+        let mut pet_roster = PetRoster::default();
+        for snap in saved_pets {
+            pet_bank.add(&mut pet_roster, snap);
+        }
+        if !pet_roster.slots.is_empty() {
+            pet_roster.active = pet_active
+                .filter(|a| *a < pet_roster.slots.len())
+                .or(pet_roster.active);
+            let sync =
+                crate::pets::to_roster_sync(&pet_bank.snapshot(&pet_roster), pet_roster.active);
+            let payload = proto::encode_inner(&sync).unwrap_or_default();
+            let _ = bcast.tx.send(ServerEvent::Ephemeral {
+                kind: proto::EPHEMERAL_PET_ROSTER,
+                to: *slot,
+                payload,
+            });
+        }
         let entity = commands
             .spawn((
                 PlayerSlotTag(*slot),
                 EntityKind(config.player_kind),
-                GridPos::at(config.spawn),
+                GridPos {
+                    tile: spawn_tile,
+                    facing: spawn_facing,
+                },
                 MoveSpeed {
                     ticks_per_tile: config.ticks_per_tile,
                 },
                 Health { hp, max_hp },
                 Mana {
-                    mp: PLAYER_MAX_MP,
+                    mp,
                     max_mp: PLAYER_MAX_MP,
                 },
                 CombatStats { attack },
@@ -1675,11 +1802,25 @@ fn sync_roster(
                     armor_bonus,
                 },
                 StatusEffects::default(),
-                FloatMove::at(config.spawn),
+                FloatMove::at(spawn_tile),
                 IntentBuffer::default(),
             ))
             .insert(PosHistory::default())
+            .insert((
+                Energy {
+                    ep,
+                    max_ep: PLAYER_MAX_ENERGY,
+                },
+                Stamina {
+                    sp,
+                    max_sp: PLAYER_MAX_STAMINA,
+                },
+                pet_roster,
+            ))
             .id();
+        if let Some(f) = spawn_floor {
+            commands.entity(entity).insert(Floor(f));
+        }
         if was_in_space {
             commands.entity(entity).insert(ReturnedFromInstance);
         }
@@ -1696,26 +1837,21 @@ fn sync_roster(
         if let Some((entity, username)) = spawned.by_slot.remove(&k) {
             let kills = kill_counts.0.remove(&k).unwrap_or(0);
             if !username.is_empty()
-                && let Ok((inv, hp, equipped, xp, in_space)) = q_saved.get(entity)
+                && let Ok((inv, hp, equipped, xp, in_space, vitals, pos, roster)) =
+                    q_saved.get(entity)
             {
                 // Dematerialise the held + worn item entities into stack DTOs for the save,
                 // then despawn them (they re-materialise on the next join).
-                let slots: Vec<ItemStack> = inv.slots.iter().filter_map(|&e| dto(e)).collect();
-                let weapon = equipped.weapon.and_then(dto);
-                let armor = equipped.armor.and_then(dto);
-                store.by_username.insert(
-                    username,
-                    SavedPlayer {
-                        slots,
-                        hp: hp.hp,
-                        weapon,
-                        armor,
-                        level: xp.level,
-                        xp: xp.xp,
-                        kills,
-                        in_space: in_space.is_some(),
-                    },
+                let saved = harvest_saved(
+                    (inv, hp, equipped, xp, in_space, vitals, pos, roster),
+                    kills,
+                    &dto,
+                    &pet_bank,
                 );
+                if let Some(tx) = &persist.0 {
+                    let _ = tx.try_send((username.clone(), saved.clone()));
+                }
+                store.by_username.insert(username, saved);
                 for &e in &inv.slots {
                     commands.entity(e).despawn();
                 }
@@ -1725,8 +1861,102 @@ fn sync_roster(
                 if let Some(e) = equipped.armor {
                     commands.entity(e).despawn();
                 }
+                if let Some(r) = roster {
+                    for &e in &r.slots {
+                        commands.entity(e).despawn();
+                    }
+                }
             }
             commands.entity(entity).despawn();
+        }
+    }
+}
+
+type SavedQuery = (
+    &'static Inventory,
+    &'static Health,
+    &'static Equipped,
+    &'static XpState,
+    Option<&'static InSpaceFlag>,
+    (&'static Mana, &'static Energy, &'static Stamina),
+    (&'static GridPos, Option<&'static Floor>),
+    Option<&'static PetRoster>,
+);
+
+type SavedRow<'a> = (
+    &'a Inventory,
+    &'a Health,
+    &'a Equipped,
+    &'a XpState,
+    Option<&'a InSpaceFlag>,
+    (&'a Mana, &'a Energy, &'a Stamina),
+    (&'a GridPos, Option<&'a Floor>),
+    Option<&'a PetRoster>,
+);
+
+fn harvest_saved(
+    row: SavedRow<'_>,
+    kills: u32,
+    dto: &dyn Fn(Entity) -> Option<ItemStack>,
+    pet_bank: &PetBank,
+) -> SavedPlayer {
+    let (inv, hp, equipped, xp, in_space, (mana, energy, stamina), (grid, floor), roster) = row;
+    SavedPlayer {
+        slots: inv.slots.iter().filter_map(|&e| dto(e)).collect(),
+        hp: hp.hp,
+        weapon: equipped.weapon.and_then(dto),
+        armor: equipped.armor.and_then(dto),
+        level: xp.level,
+        xp: xp.xp,
+        kills,
+        in_space: in_space.is_some(),
+        mp: mana.mp,
+        ep: energy.ep,
+        sp: stamina.sp,
+        pos: Some((grid.tile, grid.facing)),
+        floor: floor.map(|f| f.0),
+        pets: roster.map(|r| pet_bank.snapshot(r)).unwrap_or_default(),
+        pet_active: roster.and_then(|r| r.active),
+    }
+}
+
+pub const AUTOSAVE_PERIOD_TICKS: u32 = SIM_TICK_HZ * 60;
+
+/// Periodic harvest of every online player into [`PlayerStore`], so a crash loses at
+/// most one period of progress instead of everything since the last clean disconnect.
+/// The future DB write-behind taps the store after this runs.
+#[allow(clippy::too_many_arguments)]
+fn autosave_players(
+    clock: Res<SimClock>,
+    spawned: Res<SpawnedSlots>,
+    mut store: ResMut<PlayerStore>,
+    kill_counts: Res<KillCounts>,
+    persist: Res<PlayerPersistSink>,
+    q_saved: Query<SavedQuery>,
+    item_q: Query<(&ItemRef, &StackCount, &ItemId)>,
+    pet_bank: PetBank,
+) {
+    if clock.tick == 0 || !clock.tick.is_multiple_of(AUTOSAVE_PERIOD_TICKS) {
+        return;
+    }
+    let dto = |e: Entity| -> Option<ItemStack> {
+        item_q.get(e).ok().map(|(r, c, id)| ItemStack {
+            id: id.0.clone(),
+            item_ref: r.0.clone(),
+            count: c.0,
+        })
+    };
+    for (slot, (entity, username)) in spawned.by_slot.iter() {
+        if username.is_empty() {
+            continue;
+        }
+        if let Ok(row) = q_saved.get(*entity) {
+            let kills = kill_counts.0.get(slot).copied().unwrap_or(0);
+            let saved = harvest_saved(row, kills, &dto, &pet_bank);
+            if let Some(tx) = &persist.0 {
+                let _ = tx.try_send((username.clone(), saved.clone()));
+            }
+            store.by_username.insert(username.clone(), saved);
         }
     }
 }
@@ -1757,10 +1987,12 @@ fn rebuild_index(
 /// intent is held a short grace then zeroed so a dropped tail still comes to rest.
 #[derive(Component, Default)]
 pub struct IntentBuffer {
-    pending: std::collections::VecDeque<(i8, i8, bool)>,
+    pending: std::collections::VecDeque<(u32, i8, i8, bool)>,
     last: (i8, i8, bool),
     primed: bool,
     starve_ticks: u32,
+    debt: u32,
+    consumed_seq: u32,
 }
 
 /// Recent server-tick positions per player, for lag-compensated PvP hit checks:
@@ -1790,6 +2022,14 @@ impl Default for PosHistory {
 }
 
 impl PosHistory {
+    /// History pre-filled at `tile`, so rewinds before the first recorded tick
+    /// resolve to the spawn position instead of a zeroed ring.
+    fn at(tile: Tile) -> Self {
+        let mut h = Self::default();
+        h.record(tile);
+        h
+    }
+
     /// Record this tick's tile in the most-recent slot.
     fn record(&mut self, tile: Tile) {
         if self.len == 0 {
@@ -1818,9 +2058,24 @@ const INPUT_JITTER_BUFFER: usize = 2;
 const INPUT_STARVE_GRACE: u32 = 2;
 
 impl IntentBuffer {
-    /// Queue one client-tick intent.
-    fn push(&mut self, mx: i8, my: i8, run: bool) {
-        self.pending.push_back((mx, my, run));
+    /// Queue one client-tick intent. Intents arriving while starve-hold debt is
+    /// outstanding were already played via the hold, so they retroactively become
+    /// the held intent instead of queueing — displacement is conserved and a late
+    /// stop takes effect on the next tick instead of replaying the burst.
+    fn push(&mut self, seq: u32, mx: i8, my: i8, run: bool) {
+        if self.debt > 0 {
+            self.debt -= 1;
+            self.last = (mx, my, run);
+            self.consumed_seq = seq;
+            return;
+        }
+        self.pending.push_back((seq, mx, my, run));
+    }
+
+    /// Seq of the last intent actually applied to the body — the ack clients
+    /// replay their unacked inputs against.
+    pub fn consumed_seq(&self) -> u32 {
+        self.consumed_seq
     }
 
     /// Drop all buffered motion and come to rest. Used when control is taken over
@@ -1830,22 +2085,37 @@ impl IntentBuffer {
         self.last = (0, 0, false);
         self.primed = false;
         self.starve_ticks = 0;
+        self.debt = 0;
     }
 
     /// Advance one server tick: return the intent to apply. Primes on the jitter
-    /// buffer, then pops one per tick; holds (then zeroes) the last on starvation.
+    /// buffer, then pops one per tick. On starvation the last moving intent is
+    /// held for a short grace (counted as debt repaid by `push`), then zeroed so
+    /// a dropped tail still comes to rest without over-travelling.
     fn next(&mut self) -> (i8, i8, bool) {
         if !self.primed && self.pending.len() >= INPUT_JITTER_BUFFER {
             self.primed = true;
         }
-        if self.primed {
-            if let Some(i) = self.pending.pop_front() {
-                self.last = i;
+        let popped = if self.primed {
+            self.pending.pop_front()
+        } else {
+            None
+        };
+        match popped {
+            Some((seq, mx, my, run)) => {
+                self.last = (mx, my, run);
+                self.consumed_seq = seq;
                 self.starve_ticks = 0;
-            } else {
-                self.starve_ticks += 1;
-                if self.starve_ticks > INPUT_STARVE_GRACE {
-                    self.last = (0, 0, self.last.2);
+            }
+            None => {
+                if self.last.0 != 0 || self.last.1 != 0 {
+                    self.starve_ticks += 1;
+                    if self.starve_ticks > INPUT_STARVE_GRACE {
+                        self.last = (0, 0, self.last.2);
+                        self.debt = 0;
+                    } else {
+                        self.debt += 1;
+                    }
                 }
                 self.primed = false;
             }
@@ -1932,6 +2202,9 @@ fn drain_inputs(
                 }
                 Input::SimPetBattle => deploy.pet_battles.0.push(slot),
                 Input::PetTurn { action, arg } => deploy.pet_turns.0.push((slot, action, arg)),
+                Input::ChallengeNpc { npc } => deploy.npc_challenges.0.push((slot, npc)),
+                Input::DuelChallenge { target } => deploy.duel_ops.challenges.push((slot, target)),
+                Input::DuelRespond { accept } => deploy.duel_ops.responses.push((slot, accept)),
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -1970,7 +2243,7 @@ fn drain_inputs(
                     // dedupes retransmits/reorders.
                     if *seq > fm.last_seq {
                         fm.last_seq = *seq;
-                        intents.push(*mx, *my, *run);
+                        intents.push(*seq, *mx, *my, *run);
                     }
                 }
                 Input::Face { facing } => {
@@ -2148,7 +2421,10 @@ fn drain_inputs(
                 | Input::BjAction { .. }
                 | Input::Insure { .. }
                 | Input::SimPetBattle
-                | Input::PetTurn { .. } => {}
+                | Input::PetTurn { .. }
+                | Input::ChallengeNpc { .. }
+                | Input::DuelChallenge { .. }
+                | Input::DuelRespond { .. } => {}
             }
         }
     }
@@ -2227,7 +2503,11 @@ pub(crate) type AttackMobQuery<'w, 's> = Query<
         Option<&'static NpcLevel>,
         &'static EntityKind,
     ),
-    (Without<PlayerSlotTag>, Without<GroundItem>),
+    (
+        Without<PlayerSlotTag>,
+        Without<GroundItem>,
+        Without<Invulnerable>,
+    ),
 >;
 
 /// Apply a confirmed hit from `player_entity` to `target_entity`: roll damage
@@ -2375,6 +2655,7 @@ fn apply_drops(
 pub struct ActionTargets<'w, 's> {
     items: Query<'w, 's, (&'static GridPos, &'static GroundItem)>,
     history: Query<'w, 's, &'static PosHistory>,
+    profiles: Query<'w, 's, &'static MoveProfile>,
     #[allow(clippy::type_complexity)]
     corpses: Query<
         'w,
@@ -2438,7 +2719,13 @@ fn apply_actions(
                 let az = a_floor.map(|f| f.0).unwrap_or(0);
                 // Mob target first; else a PvP player target (dungeon-floor only).
                 if let Ok((mob_pos, ..)) = q_mobs.get(target_entity) {
-                    if combat::in_range_adjacent(attacker_tile, mob_pos.tile, combat::MELEE_RANGE) {
+                    // Lag-comp: adjudicate against where the attacker SAW the mob.
+                    let target_tile = targets
+                        .history
+                        .get(target_entity)
+                        .map(|h| h.ago(LAG_COMP_TICKS))
+                        .unwrap_or(mob_pos.tile);
+                    if combat::in_range_adjacent(attacker_tile, target_tile, combat::MELEE_RANGE) {
                         resolve_attack_hit(
                             player_entity,
                             target_entity,
@@ -2508,15 +2795,20 @@ fn apply_actions(
                 }) else {
                     continue;
                 };
-                // Lag-comp a PvP target: fly + adjudicate the arrow against where the
-                // shooter SAW the target (rewound), not its live position.
-                if target_z.is_some()
-                    && let Ok(h) = targets.history.get(target_entity)
-                {
+                // Lag-comp any target with history (players and mobs): adjudicate the
+                // arrow against where the shooter SAW it, not its live position.
+                if let Ok(h) = targets.history.get(target_entity) {
                     target_tile = h.ago(LAG_COMP_TICKS);
                 }
+                // A flyer soars over ground obstacles, so ground walkability must
+                // not occlude the shot — only range gates it.
+                let target_flies = targets
+                    .profiles
+                    .get(target_entity)
+                    .map(|p| p.terrain == Terrain::Fly)
+                    .unwrap_or(false);
                 let path = combat::line_cast(attacker_tile, target_tile, combat::BOW_RANGE, |t| {
-                    !map.is_walkable(t)
+                    !target_flies && !map.is_walkable(t)
                 });
                 let impact = path.last().copied().unwrap_or(attacker_tile);
                 let los_clear = impact == target_tile;
@@ -3290,6 +3582,8 @@ fn regen_players(
         &PlayerSlotTag,
         &mut Health,
         &mut Mana,
+        Option<&mut Energy>,
+        Option<&mut Stamina>,
         &GridPos,
         &XpState,
         &CombatStats,
@@ -3298,7 +3592,15 @@ fn regen_players(
     if !clock.tick.is_multiple_of(REGEN_PERIOD_TICKS) {
         return;
     }
-    for (slot, mut hp, mut mana, pos, xp, stats) in q.iter_mut() {
+    for (slot, mut hp, mut mana, energy, stamina, pos, xp, stats) in q.iter_mut() {
+        if hp.hp > 0 {
+            if let Some(mut e) = energy {
+                e.ep = (e.ep + ENERGY_REGEN_AMOUNT).min(e.max_ep);
+            }
+            if let Some(mut s) = stamina {
+                s.sp = (s.sp + STAMINA_REGEN_AMOUNT).min(s.max_sp);
+            }
+        }
         if hp.hp > 0 && hp.hp < hp.max_hp {
             // The town fountain mends faster — return to the plaza to recover.
             let in_town =
@@ -3685,6 +3987,7 @@ fn advance_float(
         fm.intent_x = mx;
         fm.intent_y = my;
         fm.run = run;
+        fm.acked_seq = intents.consumed_seq();
         let (ix, iy) = crate::float_move::intent_from_axes(mx, my);
         let mut speed = if run {
             crate::float_move::RUN_SPEED
@@ -3811,10 +4114,10 @@ fn facing_from_vel(vx: f32, vy: f32) -> proto::Facing {
     }
 }
 
-/// Snapshot each player's tile into its `PosHistory` ring every tick (after the
-/// float advance), so lag-compensated hit checks can rewind a target to where the
-/// shooter saw it.
-fn record_pos_history(mut q: Query<(&GridPos, &mut PosHistory), With<PlayerSlotTag>>) {
+/// Snapshot each combatant's tile (players and mobs) into its `PosHistory` ring
+/// every tick (after the float advance), so lag-compensated hit checks can rewind
+/// a target to where the shooter saw it.
+fn record_pos_history(mut q: Query<(&GridPos, &mut PosHistory)>) {
     for (pos, mut h) in q.iter_mut() {
         h.record(pos.tile);
     }
@@ -3921,21 +4224,28 @@ fn emit_snapshot(
     clock: Res<SimClock>,
     bcast: Res<Outbound>,
     q: Query<(
-        Entity,
-        &EntityKind,
-        Option<&PlayerSlotTag>,
-        &GridPos,
-        Option<&MoveTarget>,
-        Option<&MoveSpeed>,
-        Option<&Health>,
-        Option<&StatusEffects>,
-        Option<&Floor>,
-        Option<&FloatMove>,
-        Option<&PlacedBy>,
-        Option<&TreeState>,
-        Option<&BushState>,
-        Option<&FurnitureRot>,
-        Option<&Piloting>,
+        (
+            Entity,
+            &EntityKind,
+            Option<&PlayerSlotTag>,
+            &GridPos,
+            Option<&MoveTarget>,
+            Option<&MoveSpeed>,
+            Option<&Health>,
+            Option<&StatusEffects>,
+            Option<&Floor>,
+            Option<&FloatMove>,
+        ),
+        (
+            Option<&PlacedBy>,
+            Option<&TreeState>,
+            Option<&BushState>,
+            Option<&FurnitureRot>,
+            Option<&Piloting>,
+            Option<&Mana>,
+            Option<&Energy>,
+            Option<&Stamina>,
+        ),
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -3947,21 +4257,8 @@ fn emit_snapshot(
         .iter()
         .map(
             |(
-                entity,
-                kind,
-                slot,
-                pos,
-                mv,
-                speed,
-                hp,
-                status,
-                floor,
-                fm,
-                placed,
-                tree,
-                bush,
-                furniture,
-                piloting,
+                (entity, kind, slot, pos, mv, speed, hp, status, floor, fm),
+                (placed, tree, bush, furniture, piloting, mana, energy, stamina),
             )| {
                 let sub = match (tree, bush, furniture) {
                     (Some(t), _, _) => t.sub(),
@@ -3996,7 +4293,7 @@ fn emit_snapshot(
                         proto::quantize_pos(f.body.y),
                         proto::quantize_vel(f.body.vx),
                         proto::quantize_vel(f.body.vy),
-                        f.last_seq,
+                        f.acked_seq,
                     ),
                     None => (
                         proto::quantize_pos(pos.tile.x as f32),
@@ -4030,6 +4327,12 @@ fn emit_snapshot(
                     // hides its body + floats its nameplate over the ship). Sourced from
                     // the `Piloting` link component.
                     piloting: piloting.map(|p| p.0.index_u32()).unwrap_or(0),
+                    mp: mana.map(|m| m.mp).unwrap_or(0),
+                    max_mp: mana.map(|m| m.max_mp).unwrap_or(0),
+                    energy: energy.map(|e| e.ep).unwrap_or(0),
+                    max_energy: energy.map(|e| e.max_ep).unwrap_or(0),
+                    stamina: stamina.map(|s| s.sp).unwrap_or(0),
+                    max_stamina: stamina.map(|s| s.max_sp).unwrap_or(0),
                 }
             },
         )
@@ -4201,6 +4504,61 @@ mod tests {
     use super::test_support::*;
     use super::*;
     use std::collections::HashSet;
+
+    #[test]
+    fn intent_buffer_starve_hold_does_not_replay_late_burst() {
+        let mut b = IntentBuffer::default();
+        b.push(1, 100, 0, true);
+        b.push(2, 100, 0, true);
+        let mut moving_ticks = 0;
+        for _ in 0..2 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        for _ in 0..2 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        b.push(3, 100, 0, true);
+        b.push(4, 100, 0, true);
+        b.push(5, 0, 0, true);
+        b.push(6, 0, 0, true);
+        for _ in 0..8 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        assert_eq!(
+            moving_ticks, 4,
+            "held starve ticks must repay the late burst, not double-play it"
+        );
+        assert_eq!(
+            b.consumed_seq(),
+            6,
+            "ack must cover every intent applied, including debt-adopted ones"
+        );
+    }
+
+    #[test]
+    fn intent_buffer_unprimed_hold_stops_after_grace() {
+        let mut b = IntentBuffer::default();
+        b.push(1, 100, 0, true);
+        b.push(2, 100, 0, true);
+        b.next();
+        b.next();
+        let mut moving_ticks = 0;
+        for _ in 0..10 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        assert!(
+            moving_ticks <= INPUT_STARVE_GRACE as i32,
+            "dead stream must come to rest within grace, kept moving {moving_ticks} ticks"
+        );
+    }
 
     #[test]
     fn drop_item_spawns_ground_loot_and_decrements_inventory() {
@@ -4966,6 +5324,64 @@ mod tests {
         assert!(!combat, "wall did not block the shot");
     }
 
+    #[test]
+    fn bow_hits_flying_target_over_blocking_terrain() {
+        let (mut app, mut rx, input_tx, roster) = harness(11);
+        let slot = join(&roster, "archer");
+        let dummy = app
+            .world()
+            .resource::<KindRegistry>()
+            .kind_of("training-dummy")
+            .unwrap();
+        let mob = spawn_bow_target(&mut app, dummy, Tile::new(8, 13));
+        app.world_mut()
+            .entity_mut(mob)
+            .insert(MoveProfile::flying());
+        app.world_mut()
+            .resource_mut::<WalkableMap>()
+            .set_blocked(Tile::new(8, 10), true);
+        run_shoot(&mut app, &input_tx, slot, mob);
+        let (proj, combat) = drain_shot(&mut rx);
+        assert!(proj, "no projectile emitted");
+        assert!(combat, "ground terrain wrongly occluded a flying target");
+    }
+
+    #[test]
+    fn bow_lag_comp_rewinds_moving_mob() {
+        let (mut app, mut rx, input_tx, roster) = harness(11);
+        let slot = join(&roster, "archer");
+        let dummy = app
+            .world()
+            .resource::<KindRegistry>()
+            .kind_of("training-dummy")
+            .unwrap();
+        let mob = spawn_bow_target(&mut app, dummy, Tile::new(8, 13));
+        app.world_mut()
+            .entity_mut(mob)
+            .insert(PosHistory::at(Tile::new(8, 13)));
+        for _ in 0..(LAG_COMP_TICKS + 4) {
+            app.update();
+        }
+        // Mob darts out of range THIS tick: live pos misses, rewound pos hits.
+        app.world_mut().get_mut::<GridPos>(mob).unwrap().tile = Tile::new(25, 25);
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_SHOOT,
+                    target: Some(proto::EntityId(mob.index_u32())),
+                },
+            ))
+            .unwrap();
+        app.update();
+        let (proj, combat) = drain_shot(&mut rx);
+        assert!(proj, "no projectile emitted");
+        assert!(
+            combat,
+            "lag-comp did not rewind the mob to the shooter's view"
+        );
+    }
+
     fn hostile_spec(kind: u16, origin: Tile) -> NpcSpec {
         NpcSpec {
             kind,
@@ -5500,6 +5916,240 @@ mod tests {
     }
 
     #[test]
+    fn vitals_and_position_persist_across_rejoin() {
+        let (mut app, _rx, _tx, roster) = harness(52);
+        let slot = join(&roster, "wanderer");
+        app.update();
+        let player = player_entity(&mut app);
+        {
+            let mut mana = app.world_mut().get_mut::<Mana>(player).unwrap();
+            mana.mp = 7;
+            let mut energy = app.world_mut().get_mut::<Energy>(player).unwrap();
+            energy.ep = 13;
+            let mut stamina = app.world_mut().get_mut::<Stamina>(player).unwrap();
+            stamina.sp = 21;
+            let mut gp = app.world_mut().get_mut::<GridPos>(player).unwrap();
+            gp.tile = Tile::new(14, 3);
+            gp.facing = proto::Facing::Left;
+        }
+        roster.write().unwrap().release(slot);
+        app.update();
+        let _slot2 = join(&roster, "wanderer");
+        for _ in 0..2 {
+            app.update();
+        }
+        let player2 = player_entity(&mut app);
+        assert_eq!(app.world().get::<Mana>(player2).unwrap().mp, 7);
+        assert_eq!(app.world().get::<Energy>(player2).unwrap().ep, 13);
+        assert_eq!(app.world().get::<Stamina>(player2).unwrap().sp, 21);
+        let gp = app.world().get::<GridPos>(player2).unwrap();
+        assert_eq!(gp.tile, Tile::new(14, 3), "position not restored");
+        assert_eq!(gp.facing, proto::Facing::Left, "facing not restored");
+    }
+
+    #[test]
+    fn unwalkable_saved_position_falls_back_to_spawn() {
+        let (mut app, _rx, _tx, roster) = harness(53);
+        let slot = join(&roster, "faller");
+        app.update();
+        let player = player_entity(&mut app);
+        {
+            let mut gp = app.world_mut().get_mut::<GridPos>(player).unwrap();
+            gp.tile = Tile::new(200, 200);
+        }
+        roster.write().unwrap().release(slot);
+        app.update();
+        let _slot2 = join(&roster, "faller");
+        for _ in 0..2 {
+            app.update();
+        }
+        let player2 = player_entity(&mut app);
+        let gp = app.world().get::<GridPos>(player2).unwrap();
+        assert_eq!(gp.tile, Tile::new(8, 8), "should fall back to spawn");
+    }
+
+    #[test]
+    fn pets_persist_across_rejoin() {
+        let (mut app, mut rx, _tx, roster) = harness(54);
+        let slot = join(&roster, "tamer");
+        app.update();
+        let player = player_entity(&mut app);
+        let snap = crate::pets::PetSnapshot {
+            id: crate::pets::mint_pet_id(),
+            species_ref: "mechamutt".into(),
+            nickname: "Bolt".into(),
+            level: 4,
+            xp: 12,
+            vitals: crate::pets::PetVitals {
+                hp: 30,
+                max_hp: 40,
+                attack: 9,
+                defense: 7,
+                sp_attack: 11,
+                sp_defense: 6,
+                speed: 10,
+            },
+            moves: vec![crate::pets::PetMoveSlot {
+                ability_id: "spark-bark".into(),
+                pp: 15,
+                max_pp: 20,
+            }],
+        };
+        let want = snap.clone();
+        {
+            let mut sys = bevy::ecs::system::SystemState::<(PetBank, Query<&mut PetRoster>)>::new(
+                app.world_mut(),
+            );
+            let (mut bank, mut rosters) = sys.get_mut(app.world_mut());
+            let mut r = rosters.get_mut(player).expect("player has a roster");
+            bank.add(&mut r, snap);
+            sys.apply(app.world_mut());
+        }
+        app.update();
+        roster.write().unwrap().release(slot);
+        app.update();
+        while rx.try_recv().is_ok() {}
+
+        let slot2 = join(&roster, "tamer");
+        for _ in 0..2 {
+            app.update();
+        }
+        let player2 = player_entity(&mut app);
+        let restored = app.world().get::<PetRoster>(player2).unwrap().clone();
+        assert_eq!(restored.slots.len(), 1, "pet not restored");
+        assert_eq!(restored.active, Some(0));
+        {
+            let mut sys = bevy::ecs::system::SystemState::<PetBank>::new(app.world_mut());
+            let bank = sys.get_mut(app.world_mut());
+            let snaps = bank.snapshot(&restored);
+            assert_eq!(snaps.len(), 1);
+            assert_eq!(snaps[0].id, want.id, "pet instance id must survive");
+            assert_eq!(snaps[0].nickname, want.nickname);
+            assert_eq!(snaps[0].level, want.level);
+            assert_eq!(snaps[0].vitals, want.vitals);
+            assert_eq!(snaps[0].moves, want.moves);
+        }
+        let mut saw_roster_sync = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, to, payload } = evt
+                && kind == proto::EPHEMERAL_PET_ROSTER
+            {
+                assert_eq!(to, slot2);
+                let sync: proto::PetRosterSync = proto::decode_inner(&payload).unwrap();
+                assert_eq!(sync.pets.len(), 1);
+                assert_eq!(sync.pets[0].id, want.id);
+                saw_roster_sync = true;
+            }
+        }
+        assert!(saw_roster_sync, "no pet roster sync on rejoin");
+    }
+
+    #[test]
+    fn autosave_harvests_online_players() {
+        let (mut app, _rx, _tx, roster) = harness(55);
+        let _slot = join(&roster, "camper");
+        app.update();
+        let player = player_entity(&mut app);
+        give_item(&mut app, player, "potion", 2);
+        {
+            let mut gp = app.world_mut().get_mut::<GridPos>(player).unwrap();
+            gp.tile = Tile::new(5, 6);
+            *app.world_mut().get_mut::<FloatMove>(player).unwrap() = FloatMove::at(Tile::new(5, 6));
+        }
+        {
+            let store = app.world().resource::<PlayerStore>();
+            assert!(
+                !store.by_username.contains_key("camper"),
+                "no save expected before the autosave period"
+            );
+        }
+        app.world_mut().resource_mut::<SimClock>().tick = AUTOSAVE_PERIOD_TICKS - 1;
+        app.update();
+        let store = app.world().resource::<PlayerStore>();
+        let saved = store
+            .by_username
+            .get("camper")
+            .expect("autosave should harvest online players");
+        assert_eq!(saved.pos, Some((Tile::new(5, 6), proto::Facing::Down)));
+        assert!(
+            saved
+                .slots
+                .iter()
+                .any(|s| s.item_ref == "potion" && s.count == 2)
+        );
+    }
+
+    #[test]
+    fn persist_sink_receives_disconnect_and_autosave() {
+        let (mut app, _rx, _tx, roster) = harness(56);
+        let (persist_tx, mut persist_rx) = mpsc::channel(8);
+        app.insert_resource(PlayerPersistSink(Some(persist_tx)));
+        let slot = join(&roster, "saver");
+        app.update();
+        let player = player_entity(&mut app);
+        give_item(&mut app, player, "potion", 4);
+
+        app.world_mut().resource_mut::<SimClock>().tick = AUTOSAVE_PERIOD_TICKS - 1;
+        app.update();
+        let (name, saved) = persist_rx.try_recv().expect("autosave should hit the sink");
+        assert_eq!(name, "saver");
+        assert!(
+            saved
+                .slots
+                .iter()
+                .any(|s| s.item_ref == "potion" && s.count == 4)
+        );
+
+        roster.write().unwrap().release(slot);
+        app.update();
+        let (name, saved) = persist_rx
+            .try_recv()
+            .expect("disconnect save should hit the sink");
+        assert_eq!(name, "saver");
+        assert!(
+            saved
+                .slots
+                .iter()
+                .any(|s| s.item_ref == "potion" && s.count == 4)
+        );
+    }
+
+    #[test]
+    fn seed_prefills_store_without_clobbering() {
+        let (mut app, _rx, _tx, roster) = harness(57);
+        let seeded = SavedPlayer {
+            level: 5,
+            xp: 30,
+            ..SavedPlayer::default()
+        };
+        app.world_mut()
+            .resource_mut::<PlayerStore>()
+            .seed("loaded", seeded);
+        let _slot = join(&roster, "loaded");
+        app.update();
+        let player = player_entity(&mut app);
+        let xp = app.world().get::<XpState>(player).unwrap();
+        assert_eq!(
+            (xp.level, xp.xp),
+            (5, 30),
+            "seeded save not applied on join"
+        );
+
+        let stale = SavedPlayer {
+            level: 1,
+            ..SavedPlayer::default()
+        };
+        let mut store = app.world_mut().resource_mut::<PlayerStore>();
+        store.seed("loaded", stale);
+        assert!(store.contains("loaded"));
+        assert_eq!(
+            store.by_username.get("loaded").unwrap().level,
+            5,
+            "seed must not overwrite an existing entry"
+        );
+    }
+
+    #[test]
     fn slain_npc_respawns_after_delay() {
         let (mut app, mut rx, input_tx, roster) = harness(31);
         let slot = join(&roster, "slayer");
@@ -5545,6 +6195,50 @@ mod tests {
             .query_filtered::<&EntityKind, Without<PlayerSlotTag>>();
         let alive = q.iter(app.world()).filter(|k| k.0 == kind).count();
         assert_eq!(alive, 1, "npc did not respawn");
+    }
+
+    #[test]
+    fn invulnerable_npc_ignores_attacks() {
+        let (mut app, mut rx, input_tx, roster) = harness(37);
+        let slot = join(&roster, "aggressor");
+        app.update();
+
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let kind = registry.kind_of("training-dummy").unwrap();
+        let mut spec = hostile_spec(kind, Tile::new(9, 8));
+        spec.aggro = None;
+        spec.max_hp = 1;
+        spec.respawn_ticks = 0;
+        let mob = {
+            let mut commands_queue = bevy::ecs::world::CommandQueue::default();
+            let mut commands = Commands::new(&mut commands_queue, app.world());
+            let e = spawn_npc_from_spec(&mut commands, &spec);
+            commands_queue.apply(app.world_mut());
+            e
+        };
+        app.world_mut().entity_mut(mob).insert(Invulnerable);
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(mob.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..12 {
+            app.update();
+        }
+        while rx.try_recv().is_ok() {}
+
+        let hp = app
+            .world()
+            .get::<Health>(mob)
+            .expect("invulnerable npc still exists")
+            .hp;
+        assert_eq!(hp, 1, "invulnerable npc took damage");
     }
 
     #[test]

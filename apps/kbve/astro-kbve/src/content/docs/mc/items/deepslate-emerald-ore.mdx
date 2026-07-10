@@ -1,5 +1,6 @@
 ---
 title: Deepslate Emerald Ore
+template: splash
 description: |
     Minecraft Deepslate Emerald Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 75
     ref: deepslate_emerald_ore
     slug: deepslate-emerald-ore
+    content_rev: 1
     display_name: Deepslate Emerald Ore
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Deepslate Emerald Ore is an extremely rare deep variant of Emerald Ore,
+            forming only in Mountains and Windswept Hills biomes between Y=-16 and
+            Y=8. It always generates as single blocks and requires an iron pickaxe
+            or better to mine, dropping one emerald when broken.
+        lore: |
+            A single glint of green buried where mountain roots meet deepslate, so
+            scarce that finding one feels like striking true luck.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              An iron pickaxe or better is required; a stone pickaxe will not break
+              it successfully.
+        - question: What does it drop?
+          answer: |
+              It drops one Emerald plus 3-7 experience, up to four with Fortune, or
+              the block itself with Silk Touch.
+        - question: Where does it generate?
+          answer: |
+              It generates only in Mountains and Windswept Hills biomes, between
+              Y=-16 and Y=8, always as single isolated blocks.
+        - question: What are Emeralds used for?
+          answer: |
+              Emeralds are the primary currency for trading with Villagers and
+              Wandering Traders.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper Grate
+template: splash
 description: |
     Minecraft Weathered Copper Grate — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1377
     ref: weathered_copper_grate
     slug: weathered-copper-grate
+    content_rev: 1
     display_name: Weathered Copper Grate
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The weathered copper grate is a decorative, chain-link-styled copper variant that has oxidized to a green-and-brown weathered finish. It does not conduct redstone and prevents mobs from spawning on top of it, while still allowing waterlogging. Grates of the same oxidation and wax state become invisible to each other when viewed edge-on, making them useful for subtle catwalks and vents.
+        lore: |
+            The perforated design was inspired by real-world chain link fencing, giving copper structures an industrial, see-through look as they age.
+    faq:
+        - question: How do I craft a weathered copper grate?
+          answer: |
+              Combine four matching weathered copper blocks in a crafting table to get four grates, or stonecut a single weathered copper block into four grates.
+        - question: Does the grate stop redstone signals?
+          answer: |
+              Yes. Copper grates do not transmit redstone power, so they can be used purely as a see-through structural or decorative element.
+        - question: Can mobs spawn on a copper grate?
+          answer: |
+              No. Mobs cannot spawn on top of copper grates regardless of light level.
+        - question: How do I keep it from oxidizing further?
+          answer: |
+              Apply honeycomb to wax the grate at its current weathered stage, or use an axe to scrape oxidation back toward fresh copper.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

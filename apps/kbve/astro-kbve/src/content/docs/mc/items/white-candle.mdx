@@ -1,5 +1,6 @@
 ---
 title: White Candle
+template: splash
 description: |
     Minecraft White Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 1306
     ref: white_candle
     slug: white-candle
+    content_rev: 1
     display_name: White Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            White candle is a dyeable light-emitting block crafted by combining a regular candle with white dye. Up to four white candles can be placed together in a single block, each adding 3 to the emitted light level for a maximum of 12 when lit.
+            It naturally generates in ancient cities and abandoned camps, and once dyed white, its color cannot be changed.
+        lore: |
+            A pale wax taper, ready to be lit and set among its fellows to banish the dark.
+    faq:
+        - question: How do I get a white candle?
+          answer: |
+              Craft a regular candle together with white dye, or find them naturally in chests and barrels within ancient cities and abandoned camps.
+        - question: How do I light a white candle?
+          answer: |
+              Use flint and steel or a fire charge on the placed candle; up to four in one block can be lit together for brighter light.
+        - question: How do I put out a lit white candle?
+          answer: |
+              Extinguish it with water, including a water bottle, with a wind charge, or by simply interacting with the lit candle.
+        - question: Can I change a white candle's color later?
+          answer: |
+              No, once a candle is dyed white the color is permanent and cannot be changed to another dye.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

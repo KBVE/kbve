@@ -20,7 +20,7 @@
 			"options": {
 				"cwd": "apps/kbve/astro-kbve",
 				"commands": [
-					"rm -rf .astro",
+					"rm -rf .astro node_modules/.vite node_modules/.astro ../../../node_modules/.vite",
 					"nx exec -- astro sync",
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro dev"
 				],
@@ -138,6 +138,30 @@
 			"options": {
 				"command": "node -e \"const fs=require('fs');const src='dist/apps/astro-kbve/api/ci-registry.json';const dst='.github/ci-dispatch-manifest.json';if(!fs.existsSync(src)){console.error('Build output not found — run astro-kbve:build first');process.exit(1);}const data=JSON.parse(fs.readFileSync(src,'utf8'));const{index,...manifest}=data;fs.writeFileSync(dst,JSON.stringify(manifest,null,'\\t')+'\\n');console.log('Wrote',dst,'—',manifest.summary.total,'tracked items');\"",
 				"cwd": "{workspaceRoot}"
+			}
+		},
+		"gen:ci-manifest": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/project/*.mdx",
+				"{projectRoot}/src/data/ci/manifest-builder.ts",
+				"{projectRoot}/src/data/ci/project-schema.ts",
+				"{projectRoot}/src/data/schema/ICiProjectSchema.ts",
+				"{projectRoot}/scripts/gen-ci-manifest.mts",
+				"{workspaceRoot}/packages/data/codegen/generated/ci_registry-schema.ts"
+			],
+			"outputs": ["{workspaceRoot}/.github/ci-dispatch-manifest.json"],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "npx tsx scripts/gen-ci-manifest.mts"
+			},
+			"cache": true
+		},
+		"gen:ci-manifest:check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "npx tsx scripts/gen-ci-manifest.mts --check"
 			}
 		},
 		"sync:unreal": {

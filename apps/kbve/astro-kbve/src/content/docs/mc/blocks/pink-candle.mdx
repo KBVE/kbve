@@ -1,5 +1,6 @@
 ---
 title: Pink Candle
+template: splash
 description: |
     Minecraft Pink Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 910
     ref: pink_candle
     slug: pink-candle
+    content_rev: 1
     display_name: Pink Candle
     material: stone
     hardness: 0.1
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Pink Candle is a decorative, dyeable light source crafted from
+            string and honeycomb. Up to four can be placed in a single
+            block space, stacking their light output when lit.
+        lore: |
+            Candles debuted alongside the deep dark biome concept revealed
+            at Minecraft Live 2020 and shipped in Java Edition 1.17.
+    uses:
+        - title: Stackable Light Source
+          ref: pink_candle
+          detail: |
+              Place up to four candles in one block; light them with flint
+              and steel, a fire charge, or a flaming arrow for light level
+              3 per candle, up to 12 at full stack.
+        - title: Cake Topper
+          ref: pink_candle_cake
+          detail: |
+              Placing a candle on a cake creates a birthday-cake
+              decoration that can still be eaten slice by slice.
+    found_in:
+        - location: Crafting
+          detail: Craft from 1 string and 1 honeycomb, then dye any candle pink for this color.
+        - location: Ancient cities and trial chambers
+          detail: Undyed and colored candles generate in ancient city and trial chamber loot and decor.
+    faq:
+        - question: What tool do I need to mine Pink Candle?
+          answer: |
+              None. It breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Is Pink Candle flammable?
+          answer: |
+              No. It does not catch fire from nearby flames or lava
+              contact, unlike many wooden decorations.
+        - question: How do I light a candle?
+          answer: |
+              Right-click it with flint and steel, a fire charge, or hit it
+              with a flaming projectile; water or right-clicking again
+              extinguishes it.
+        - question: Can candles be waterlogged?
+          answer: |
+              Yes. Candles can be placed in water source blocks, but a lit
+              candle placed in water is extinguished automatically.
     data_version: "1.21.5"
 ---
 

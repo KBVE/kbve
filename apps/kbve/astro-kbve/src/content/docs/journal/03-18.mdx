@@ -9,14 +9,52 @@ description: |
     18th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 18,'
+    accent: every year.
+    lede: 'The March 18th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 17'
+          href: /journal/03-17/
+        - label: 'Mar 19 →'
+          href: /journal/03-19/
+    related:
+        - title: 'Previous · Mar 17'
+          copy: 'Step back a day to the March 17th log.'
+          href: /journal/03-17/
+          icon: calendar
+        - title: 'Next · Mar 19'
+          copy: 'Jump ahead to the March 19th log.'
+          href: /journal/03-19/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Unreal Plugin Fanout
 
@@ -49,7 +87,15 @@ import { Adsense } from '@/components/astropad';
   - 10:11PM
     - Not the official name but I am going to clean up handy and look at making a more optimized build as a KBVE Application. But there could be some other improvements that I am thinking about having compared to the original handy application. The biggest improvement will be the way that we load and handle models.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Github Crate Matrix
 
@@ -72,8 +118,9 @@ import { Adsense } from '@/components/astropad';
 
     Provides us with the flexibility of an open source nature with the perks of private source integrations.
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### Multiplayer
 
@@ -113,3 +160,7 @@ I am thinking that it would make sense to first go through the `buildathon` and 
 
 I am going to write out the notes and think about how I should prepare and deploy the `Wumpus Wumbo party` an the first test case for the jam and using that as the test case. This includes loading any and all of the "abstractions".
 During this process, I noted that the pathing is not working as expected, but it seems that Discord uses a reverse proxy for the pathing of the assets.
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Enderman Spawn Egg
+template: splash
 description: |
     Minecraft Enderman Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1088
     ref: enderman_spawn_egg
     slug: enderman-spawn-egg
+    content_rev: 1
     display_name: Enderman Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Enderman Spawn Egg instantly summons an Enderman, the tall neutral mob known for teleporting, picking up blocks, and turning hostile if a player stares at its face for too long. Endermen drop ender pearls when killed, making them a key source for crafting eyes of ender and traveling between dimensions.
+        lore: |
+            Endermen's backward speech and unsettling silhouette were a deliberate nod by creator Notch to the Slenderman internet legend.
+    faq:
+        - question: How do I use an Enderman Spawn Egg?
+          answer: |
+              Right-click or use it on a block in Creative mode to instantly spawn an Enderman at that location.
+        - question: What makes Endermen turn hostile?
+          answer: |
+              They become aggressive if a player attacks them, stares directly at their face within 64 blocks for a few ticks, or if they see a nearby endermite.
+        - question: What drops from an Enderman?
+          answer: |
+              Killing one has a chance to drop an ender pearl and always drops 5 experience, plus whatever block it may be carrying.
+        - question: Can Endermen teleport away from danger?
+          answer: |
+              Yes, they teleport to avoid projectiles, water, and rain, often making them tricky to fight without a source of water nearby.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Test Instance Block
+template: splash
 description: |
     Minecraft Test Instance Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 833
     ref: test_instance_block
     slug: test-instance-block
+    content_rev: 1
     display_name: Test Instance Block
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Test Instance Block is a technical block exclusive to Java Edition,
+            designed for game testing purposes. It can only be obtained through commands
+            or the Creative inventory's Operator Utilities tab and cannot be broken in
+            Survival mode. When activated in Creative mode by a player with permission
+            level 2 or higher, it opens a GUI and displays a colored beacon-like beam
+            indicating the current test status.
+        lore: |
+            This block represents Minecraft's developer infrastructure, letting creators
+            validate custom game mechanics from within the game world itself.
+    faq:
+        - question: How do I get a Test Instance Block?
+          answer: |
+              Use commands like /setblock, /fill, /give, or /test, or find it in the
+              Creative inventory under the Operator Utilities tab.
+        - question: What do the different beam colors mean?
+          answer: |
+              The color is #808080 for a running test, #00ff00 for a successful test,
+              #ff0000 for a failed required test, and #ff8000 for a failed optional test.
+        - question: Can I use this block in Survival mode?
+          answer: |
+              No, Test Instance Blocks are unbreakable in Survival and cannot be placed
+              there — they are exclusively for Creative mode testing.
+        - question: When was this block added?
+          answer: |
+              It was introduced in Java Edition 1.21.5 snapshot 25w03a, with texture
+              changes in 25w10a and improvements to error preservation in version 1.21.9.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

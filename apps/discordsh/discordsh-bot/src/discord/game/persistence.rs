@@ -17,8 +17,8 @@ use tracing::{debug, error, warn};
 use kbve::SupabaseClient;
 
 use super::types::{
-    ClassType, GameInventory, GameOverReason, ItemStack, PlayerState, QuestJournal, SessionState,
-    inv_add_qty, inv_from_pairs, inv_to_legacy,
+    ClassType, GameInventory, GameOverReason, PlayerState, QuestJournal, SessionState, inv_add_qty,
+    inv_to_legacy,
 };
 
 const SCHEMA: &str = "discordsh";
@@ -637,20 +637,21 @@ pub fn apply_profile_to_player(
     }
 
     // Restore skill profile from JSONB (empty object = fresh profile)
-    if !profile.skills.is_null() && profile.skills != serde_json::json!({}) {
-        if let Ok(sp) = serde_json::from_value::<bevy_skills::SkillProfile>(profile.skills.clone())
-        {
-            player.skills = sp;
-        }
+    if !profile.skills.is_null()
+        && profile.skills != serde_json::json!({})
+        && let Ok(sp) = serde_json::from_value::<bevy_skills::SkillProfile>(profile.skills.clone())
+    {
+        player.skills = sp;
     }
 
     // Restore faction standing from JSONB
-    if !profile.faction_standing.is_null() && profile.faction_standing != serde_json::json!({}) {
-        if let Ok(factions) = serde_json::from_value::<std::collections::HashMap<String, i32>>(
+    if !profile.faction_standing.is_null()
+        && profile.faction_standing != serde_json::json!({})
+        && let Ok(factions) = serde_json::from_value::<std::collections::HashMap<String, i32>>(
             profile.faction_standing.clone(),
-        ) {
-            player.faction_standing = factions;
-        }
+        )
+    {
+        player.faction_standing = factions;
     }
 
     // Restore completed quests
@@ -869,6 +870,7 @@ fn inventory_to_json(inv: &GameInventory) -> serde_json::Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::discord::game::types::inv_from_pairs;
 
     #[test]
     fn class_round_trip() {

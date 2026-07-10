@@ -1,7 +1,7 @@
 ---
-title: DevOps
-description: |
-    DevOps utilities and proto-to-zod codegen library.
+title: "@kbve/devops — Proto-to-Zod Codegen and CI/CD Helper Library"
+description: "@kbve/devops is a DevOps helper library with proto-to-zod codegen, GitHub Actions helpers, sanitization, and CI registry management for the KBVE monorepo."
+sem: 1
 sidebar:
     label: DevOps
     order: 62
@@ -11,14 +11,80 @@ tags:
 key: devops
 pipeline: npm
 package_name: devops
-version: "0.0.19"
+version: "0.0.22"
 source_path: packages/npm/devops
 version_toml: packages/npm/devops/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the @kbve/devops library?
+          answer: It is a DevOps helper library published by the KBVE team that provides proto-to-zod code generation, GitHub Actions helpers, input sanitization, and CI registry management to streamline the monorepo's CI/CD pipelines.
+        - question: What does @kbve/devops use for schema generation?
+          answer: It generates Zod validation schemas from Protocol Buffer definitions using the @bufbuild/protobuf toolchain, and uses dompurify for HTML sanitization.
+        - question: Where is @kbve/devops used?
+          answer: It is used across the KBVE monorepo to power the CI dispatch manifest registry, automate GitHub Actions workflow tasks, and provide shared validation and sanitization utilities.
+bento:
+    badge: npm · devops
+    title: Proto-to-Zod codegen &
+    accent: "@kbve/devops"
+    lede: >-
+        A DevOps helper library that streamlines development and production tasks
+        across the monorepo — proto-to-zod code generation, GitHub Actions
+        helpers, input sanitization, and CI registry management so CI/CD
+        pipelines stay consistent and low-maintenance.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/npm/devops
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: gears
+        title: Powers the CI registry
+        body: >-
+            Drives the CI dispatch manifest registry used to build and publish
+            monorepo artifacts, and automates repetitive GitHub Actions workflow
+            tasks.
+        points:
+            - <strong>Codegen</strong> — Zod schemas from Protocol Buffers via <code>@bufbuild/protobuf</code>.
+            - <strong>Sanitize</strong> — HTML/input sanitization backed by <code>dompurify</code>.
+    stats:
+        - { label: Language, value: TypeScript, icon: code }
+        - { label: Codegen, value: proto→zod, icon: gears }
+        - { label: Sanitize, value: dompurify, icon: shield }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Proto-to-zod codegen
+          icon: gears
+          body: Generates Zod validation schemas from Protocol Buffer definitions via @bufbuild/protobuf.
+        - title: GitHub Actions helpers
+          icon: branch
+          body: Utilities that automate repetitive workflow tasks in KBVE's CI/CD pipelines.
+        - title: Sanitization
+          icon: shield
+          body: HTML/input sanitization backed by dompurify.
+        - title: CI registry management
+          icon: package
+          body: Powers the CI dispatch manifest registry used to build and publish monorepo artifacts.
+    related:
+        - title: KhashVault
+          href: /project/khashvault/
+          copy: A companion KBVE npm library for browser-side cryptography.
+          icon: lock
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-DevOps utilities library providing proto-to-zod code generation, GitHub Actions helpers, sanitization, and CI registry management.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

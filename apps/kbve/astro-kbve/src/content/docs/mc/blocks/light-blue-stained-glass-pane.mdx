@@ -1,5 +1,6 @@
 ---
 title: Light Blue Stained Glass Pane
+template: splash
 description: |
     Minecraft Light Blue Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 471
     ref: light_blue_stained_glass_pane
     slug: light-blue-stained-glass-pane
+    content_rev: 1
     display_name: Light Blue Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Light Blue Stained Glass Pane is a thin, colored glass barrier
+            crafted from panes and dye. It only drops when mined with Silk
+            Touch, making it a decorative rather than a farmable block.
+        lore: |
+            Panes were added alongside iron bars to give players a
+            material-efficient way to build windows without using full glass
+            blocks.
+    uses:
+        - title: Decorative windows
+          ref: light_blue_stained_glass_pane
+          detail: |
+              Connects visually to adjacent glass panes and blocks of the
+              same or different colors, letting builders create colored
+              window grids using less material than full glass blocks.
+    found_in:
+        - location: Crafting table
+          detail: |
+              8 Light Blue Stained Glass Panes from 6 Light Blue Stained
+              Glass blocks, or from clear glass panes plus light blue dye.
+        - location: Trail Ruins
+          detail: Generates as loot in various colors inside Trail Ruins structures.
+    faq:
+        - question: What does mining a Light Blue Stained Glass Pane drop?
+          answer: |
+              Nothing, unless mined with a Silk Touch tool — then it drops
+              itself. There is no minimum tool tier requirement otherwise.
+        - question: Does it burn in fire or lava?
+          answer: |
+              No. Stained glass panes are non-flammable and do not ignite
+              from lava contact.
+        - question: Can I craft it directly from glass panes?
+          answer: |
+              Yes. Combine clear glass panes with a matching dye to produce
+              stained glass panes of that color.
     data_version: "1.21.5"
 ---
 

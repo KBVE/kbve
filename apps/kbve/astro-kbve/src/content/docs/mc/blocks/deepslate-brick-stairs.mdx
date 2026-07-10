@@ -1,5 +1,6 @@
 ---
 title: Deepslate Brick Stairs
+template: splash
 description: |
     Minecraft Deepslate Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1073
     ref: deepslate_brick_stairs
     slug: deepslate-brick-stairs
+    content_rev: 1
     display_name: Deepslate Brick Stairs
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: deepslate_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Deepslate Brick Stairs let deepslate bricks follow sloped and
+            stepped layouts, matching the block's hardness and dark
+            palette for consistent ancient-city-style builds.
+        lore: |
+            Originally called Grimstone Brick Stairs during Caves & Cliffs
+            development, renamed to Deepslate Brick Stairs before release
+            and later made a native ancient city feature in 1.19.
+    uses:
+        - title: Deepslate Brick Stairs
+          ref: deepslate_brick_stairs
+          detail: |
+              Crafted from 6 deepslate bricks in a staircase pattern for 4
+              stairs, or produced via stonecutting from cobbled deepslate,
+              polished deepslate, or deepslate bricks.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as part of ancient city walkways and structures.
+        - location: Crafting table / Stonecutter
+          detail: Also obtained by crafting or stonecutting deepslate-family blocks.
+    faq:
+        - question: What tool do I need to mine Deepslate Brick Stairs?
+          answer: |
+              Any pickaxe, wood tier or higher. Without a pickaxe it drops
+              nothing.
+        - question: Are they flammable?
+          answer: |
+              No, they are non-flammable and unaffected by lava like other
+              deepslate blocks.
+        - question: Can I orient the stairs any direction?
+          answer: |
+              Yes. Stairs support four facings and can be placed upright or
+              upside-down depending on where you click.
+        - question: Where do these stairs generate naturally?
+          answer: |
+              Only inside ancient city structures; elsewhere they must be
+              crafted or stonecut.
     data_version: "1.21.5"
 ---
 

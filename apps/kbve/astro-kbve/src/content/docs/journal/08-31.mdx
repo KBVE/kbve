@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1690736159167-b00621eba9f6?crop=entropy&c
 description: August 31st. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 31,'
+    accent: every year.
+    lede: 'The August 31st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 30'
+          href: /journal/08-30/
+        - label: 'Sep 1 →'
+          href: /journal/09-01/
+    related:
+        - title: 'Previous · Aug 30'
+          copy: 'Step back a day to the August 30th log.'
+          href: /journal/08-30/
+          icon: calendar
+        - title: 'Next · Sep 1'
+          copy: 'Jump ahead to the September 1st log.'
+          href: /journal/09-01/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1690736159167-b00621eba9f6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Supabase Studio
 
@@ -20,7 +61,15 @@ The studio seems to be an issue, I am thinking that it might be another problem 
 All my WSL instance has been crashing, so I think I will have to either replace this laptop or find another solution, maybe just drop all of the windows operating system.
 I need to also update my homelab, proxmox v9 is looking pretty solid.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Firenze**
 The last couple hours of florence!
@@ -369,7 +418,9 @@ The global `pnpm` has to be updated to v9.9.0 but I want to make sure that there
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:00am - I been a bit behind this week at work so I should start to redo my schedule of actions and maybe block more time for work. I am also a bit behind on some of Amazon's newer cloud tech, they keep releasing new stacks and its a bit over kill at this point.
 
@@ -377,13 +428,21 @@ The global `pnpm` has to be updated to v9.9.0 but I want to make sure that there
 
 - 7:15pm - Our team did amazing for the Ai Agent hackathon! I am glad that we placed 3rd and I am really excited to see where we go from here, as this might open so many interesting doors that I am not yet ready to expect. On one hand, I do not want to over run myself with any form of ego, but I really think we have an amazing group of developers and the pressure that hackathons bring has a nice touch of anti-procrastination forced into it. Sometimes the competition brings a different level of human nature into the mixture, it creates a sort of excitement and the publicity that comes with it is also a great cherry on top.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > When a thing is done, it's done. Don't look back. Look forward to your next objective.
 > — <cite>George Marshall</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

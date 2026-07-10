@@ -1,5 +1,6 @@
 ---
 title: Wet Sponge
+template: splash
 description: |
     Minecraft Wet Sponge — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 100
     ref: wet_sponge
     slug: wet-sponge
+    content_rev: 1
     display_name: Wet Sponge
     material: plant
     hardness: 0.6
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: wet_sponge
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+    about:
+        description: |
+            Wet Sponge is the saturated form of Sponge, produced whenever a
+            dry sponge absorbs nearby water. It is the primary loot found in
+            the sponge rooms of ocean monuments, guarded by Elder Guardians.
+        lore: |
+            Sponges were added in Java Edition Beta 1.8 as an ocean monument
+            reward and remain the only reliable way to drain large bodies of
+            water.
+    uses:
+        - title: Drying to Sponge
+          ref: sponge
+          detail: |
+              Smelting a Wet Sponge in a furnace, or simply placing it in
+              the Nether, dries it back into a reusable dry Sponge.
+    found_in:
+        - location: Ocean Monument sponge rooms
+          detail: Each monument's sponge room contains roughly 30 wet sponges embedded in its walls.
+        - location: Elder Guardian drops
+          detail: Elder Guardians have a chance to drop a Wet Sponge when killed by a player.
+    faq:
+        - question: What tool is needed to mine Wet Sponge?
+          answer: |
+              None is required — any tool breaks it, though a hoe is
+              fastest.
+        - question: How do I turn Wet Sponge back into a dry Sponge?
+          answer: |
+              Smelt it in a furnace, or place it anywhere in the Nether;
+              both methods instantly dry it out.
+        - question: Does Wet Sponge absorb water when placed?
+          answer: |
+              No, once wet it is inert. Only a dry Sponge absorbs nearby
+              water blocks.
+        - question: Is Wet Sponge renewable?
+          answer: |
+              Yes, indirectly — ocean monuments regenerate sponge rooms
+              only on world creation, but Elder Guardians can drop
+              additional wet sponges.
     data_version: "1.21.5"
 ---
 

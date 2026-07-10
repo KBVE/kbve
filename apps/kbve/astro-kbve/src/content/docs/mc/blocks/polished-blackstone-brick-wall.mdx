@@ -1,5 +1,6 @@
 ---
 title: Polished Blackstone Brick Wall
+template: splash
 description: |
     Minecraft Polished Blackstone Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 893
     ref: polished_blackstone_brick_wall
     slug: polished-blackstone-brick-wall
+    content_rev: 1
     display_name: Polished Blackstone Brick Wall
     material: nether
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_blackstone_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Polished Blackstone Brick Wall is the fence-like variant of
+            polished blackstone bricks, rising a full block tall with a
+            raised center post and connecting to neighboring walls and
+            solid blocks.
+        lore: |
+            Added in Java Edition 20w15a with the rest of the polished
+            blackstone brick set, it began generating naturally in ruined
+            portals in the following snapshot, 20w16a.
+    uses: []
+    found_in:
+        - location: Ruined portals (Nether)
+          detail: Generates as part of the debris scattered around Nether-side ruined portals.
+        - location: Crafted from Polished Blackstone Bricks
+          detail: Six bricks craft six walls, or any blackstone-family block converts through a stonecutter.
+        - location: Piglin bartering
+          detail: Piglins have a small chance to trade away blackstone-family materials during bartering.
+    faq:
+        - question: What tool do I need to mine this wall?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              drops nothing.
+        - question: How do I craft Polished Blackstone Brick Walls?
+          answer: |
+              Arrange six Polished Blackstone Bricks in a 3x2 grid for six
+              walls, or cut Blackstone, Polished Blackstone, or the bricks
+              through a stonecutter.
+        - question: What is this wall mainly used for?
+          answer: |
+              It is a purely decorative and defensive block, used to build
+              fences and parapets in Nether-themed builds; it is not an
+              ingredient in any other recipe.
+        - question: Is it renewable?
+          answer: |
+              Yes, since the underlying blackstone-family blocks are
+              renewable through piglin bartering.
     data_version: "1.21.5"
 ---
 

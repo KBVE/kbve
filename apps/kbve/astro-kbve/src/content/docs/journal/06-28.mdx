@@ -9,11 +9,52 @@ description: |
   June 28th. Weekend Bash
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 28,'
+    accent: every year.
+    lede: 'The June 28th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 27'
+          href: /journal/06-27/
+        - label: 'Jun 29 →'
+          href: /journal/06-29/
+    related:
+        - title: 'Previous · Jun 27'
+          copy: 'Step back a day to the June 27th log.'
+          href: /journal/06-27/
+          icon: calendar
+        - title: 'Next · Jun 29'
+          copy: 'Jump ahead to the June 29th log.'
+          href: /journal/06-29/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1718871395011-32cafdd68d4b?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Session SSDB
 
@@ -22,9 +63,15 @@ import { Adsense } from '@/components/astropad';
     The SSDB needs to migrated into its own extension, so that we can resolve that webgl build.
     Having it isolated will be the best way.
 
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **Weekend**
 
@@ -45,21 +92,31 @@ The next stage in the herb mail will be after we get a couple more LLM examples 
 Afterwards we want to run the mailserver using stalwart, a rust based scalable all-in-one server.
 While I am moving forward with the LLM models, I think it would be wise to test case the deployment of stalwart.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 12:30pm - Looks like the Indian office approved my grandpa's visa extension! This is great news as it means I can plan my new trip to India a bit better and not have to worry about him being in India with an expired visa. This makes me wonder how my life will be when I am nearly at his age of 80? He is a true warrior, the man has done it all. 
 - 3:30pm - I need to start planning the construct and layout for RareIcon, with all these projects in the backlog, I may have to find a better way to manage my time within the scope of error handling? I should utilize more of the error / issues that we have and then target them each over time.  I will postpone anything major for RareIcon until we get RJ onto the Steam store.
 - 9:00pm - Finished organizing the notes and learned a bit more on how to use Mermaid! Moving forward, I will try to use mermaid for all our note taking, as it does make things a bit easier. 
 - 9:30pm - Region Save for Dwarf Fortress. I wonder if I could make a repo for the game and then have that saved for people to access and play.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The greatest good you can do for another is not just share your riches but reveal to them their own.
 > — <cite>Benjamin Disraeli</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Finish Up Profile Page
 - [ ] Organize Initial RJ Mangas
+
+</BentoProse>
+
+</BentoDoc>

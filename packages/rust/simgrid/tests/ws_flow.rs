@@ -248,12 +248,11 @@ async fn trade_offer_accept_completes_over_ws() {
         for _ in 0..200 {
             if let Some(ServerEvent::Ephemeral { kind, payload, .. }) = next_event(ws).await
                 && kind == proto::EPHEMERAL_TRADE
+                && let Ok(view) = proto::decode_inner::<proto::TradeStateView>(&payload)
+                && view.status == "completed"
             {
-                let body = String::from_utf8(payload).unwrap();
-                if body.contains("\"status\":\"completed\"") {
-                    done = true;
-                    break;
-                }
+                done = true;
+                break;
             }
         }
         assert!(done, "client never saw the trade complete");

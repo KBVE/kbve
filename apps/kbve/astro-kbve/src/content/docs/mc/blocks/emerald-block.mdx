@@ -1,5 +1,6 @@
 ---
 title: Block of Emerald
+template: splash
 description: |
     Minecraft Block of Emerald — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 372
     ref: emerald_block
     slug: emerald-block
+    content_rev: 1
     display_name: Block of Emerald
     material: metal
     hardness: 5
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: emerald_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - overworld
+        - beacon_base
+    about:
+        description: |
+            Block of Emerald is a compact storage block equivalent to nine
+            Emeralds. Beyond storage, it is one of the four valid materials
+            for building a beacon pyramid base.
+        lore: |
+            Introduced in Java Edition 1.3.1 (12w22a) to give the then-new
+            Emerald a storage-block form matching Iron, Gold, and Diamond.
+    uses:
+        - title: Beacon Pyramid
+          ref: beacon
+          detail: |
+              Used as one of the four valid base materials for beacon
+              pyramids, alongside Iron, Gold, and Diamond blocks.
+        - title: Emerald
+          ref: emerald
+          detail: |
+              Crafting it back in a crafting grid yields nine Emeralds for
+              trading with villagers.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from nine Emeralds.
+        - location: Trial Chambers
+          detail: Found in intersection chests, corridor pots, and ominous vaults.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              At least an iron pickaxe. Anything weaker drops nothing.
+        - question: What is it used for besides storage?
+          answer: |
+              It is one of the four accepted base materials for building a
+              beacon pyramid.
+        - question: Is it renewable?
+          answer: |
+              Yes, since Emeralds are renewable through villager trading and
+              trial chamber loot, blocks crafted from them are too.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Block of Emerald regardless
+              of enchantments.
     data_version: "1.21.5"
 ---
 

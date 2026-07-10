@@ -1,0 +1,10 @@
+---
+import type { ComponentProps } from 'react';
+import HeroIsland from './HeroIsland';
+type Props = ComponentProps<typeof HeroIsland>;
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<HeroIsland client:only="react" {...props} />
+</div>

@@ -1,5 +1,6 @@
 ---
 title: Stone Brick Stairs
+template: splash
 description: |
     Minecraft Stone Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 340
     ref: stone_brick_stairs
     slug: stone-brick-stairs
+    content_rev: 1
     display_name: Stone Brick Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wooden_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Stone Brick Stairs let players climb or descend in half-block
+            increments while keeping a stone-brick appearance, crafted from
+            six Stone Bricks or cut from stone at a stonecutter.
+        lore: |
+            Stairs blocks were added in Beta 1.8 Pre-release alongside the
+            first wave of stone-brick variants.
+    uses:
+        - title: Stronghold & Portal Building
+          ref: stone_bricks
+          detail: |
+              Used for ramps, roofs, and decorative edges in stone-brick
+              structures and builds.
+    found_in:
+        - location: Cold Ocean Ruin
+          detail: Generates as part of the ruin's stone structure.
+        - location: Stronghold
+          detail: Common on staircases and corridor transitions.
+        - location: Ruined Portal
+          detail: Scattered among the portal's stone brick rubble.
+        - location: Crafted or Stonecut
+          detail: |
+              6 Stone Bricks in a staircase pattern craft 4 stairs; stone or
+              stone bricks can also be cut at a stonecutter.
+    faq:
+        - question: What tool do I need to mine Stone Brick Stairs?
+          answer: |
+              At least a wooden pickaxe; mining without one drops nothing.
+        - question: How many stairs does one crafting recipe give?
+          answer: |
+              Six Stone Bricks arranged in the stair pattern yield 4 Stone
+              Brick Stairs.
+        - question: Are Stone Brick Stairs affected by explosions?
+          answer: |
+              They have a blast resistance of 6, so they survive most
+              creeper and TNT blasts better than plain stone.
+        - question: Can I get them without crafting?
+          answer: |
+              Yes — they generate naturally in strongholds, ruined portals,
+              and cold ocean ruins.
     data_version: "1.21.5"
 ---
 

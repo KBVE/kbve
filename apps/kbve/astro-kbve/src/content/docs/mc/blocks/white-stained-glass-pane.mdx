@@ -1,5 +1,6 @@
 ---
 title: White Stained Glass Pane
+template: splash
 description: |
     Minecraft White Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 468
     ref: white_stained_glass_pane
     slug: white-stained-glass-pane
+    content_rev: 1
     display_name: White Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - transparent
+        - not_flammable
+        - blast_resistant
+        - overworld
+    about:
+        description: |
+            White Stained Glass Pane is a dyed, thin variant of a glass
+            pane that fills a full block's window opening while using a
+            fraction of the material. It is fully transparent, blocks no
+            light, and only yields itself when broken with a Silk Touch
+            tool; otherwise it drops nothing.
+        lore: |
+            Panes were added alongside stained glass to give builders a
+            slimmer window option than full glass blocks.
+    uses:
+        - title: Window Framing
+          ref: white_stained_glass_pane
+          detail: |
+              Crafted from six White Stained Glass blocks into sixteen
+              panes, making panes far more material-efficient for
+              multi-block windows than full glass blocks.
+    found_in:
+        - location: Crafting Table
+          detail: Six White Stained Glass blocks craft into sixteen panes, or glass panes plus white dye craft eight.
+        - location: Trail Ruins and Village Structures
+          detail: Occasionally found as decorative windows in generated structure loot.
+    faq:
+        - question: What tool do I need to mine White Stained Glass Pane?
+          answer: |
+              Any tool works, but it only drops an item if you mine it
+              with Silk Touch — without it, the pane breaks and drops
+              nothing.
+        - question: Is White Stained Glass Pane flammable?
+          answer: |
+              No, unlike wool or wood it does not burn.
+        - question: Can I see through it?
+          answer: |
+              Yes, it is fully transparent, and identically colored
+              stained glass or panes placed next to each other hide their
+              shared edge.
+        - question: How many panes do I get from one craft?
+          answer: |
+              Six stained glass blocks yield sixteen panes, or four glass
+              panes plus one matching dye yield eight colored panes.
     data_version: "1.21.5"
 ---
 

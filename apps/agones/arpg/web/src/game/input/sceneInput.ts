@@ -40,6 +40,11 @@ export interface SceneInputDeps {
 	updatePlaceGhost(tile: TileXY): void;
 	fireBowAt(aim: TileXY, target?: number): void;
 	startMoveTo(tile: TileXY): void;
+	toggleLockTarget(cursorTile: TileXY): void;
+	cycleLockTarget(): void;
+	clearLockTarget(): void;
+	lockedTarget(): number | null;
+	lockTargetEid(serverEid: number): void;
 }
 
 export interface SceneInputRefs {
@@ -84,12 +89,22 @@ export function setupInput(
 				deps.rotatePlacement();
 			}
 		} else if (ev.key === 'Escape') {
-			if (deps.inv.placingRef) {
+			if (deps.lockedTarget() != null) {
+				deps.clearLockTarget();
+			} else if (deps.inv.placingRef) {
 				deps.exitPlacement();
 			} else if (deps.inv.open) {
 				deps.inv.open = false;
 				emitInventoryOpen(false);
 			}
+		} else if (ev.key === 'Tab') {
+			ev.preventDefault();
+			const p = scene.input.activePointer;
+			const aim = screenToWorldF(p.worldX, p.worldY);
+			deps.toggleLockTarget({
+				x: Math.round(aim.x),
+				y: Math.round(aim.y),
+			});
 		}
 	});
 
@@ -151,12 +166,47 @@ export function setupInput(
 			return;
 		}
 
+		// A trainer: challenge them to a pet duel from within range, else walk
+		// toward them so the next click lands in range.
+		const trainer = deps.store.at(tile.x, tile.y, deps.myEid());
+		if (
+			trainer &&
+			deps.kinds.ref(deps.store.kind(trainer.serverEid)) === 'trainer'
+		) {
+			const d = Math.max(
+				Math.abs(deps.move.predicted.x - tile.x),
+				Math.abs(deps.move.predicted.y - tile.y),
+			);
+			if (d <= 2) deps.client()?.challengeNpc(trainer.serverEid);
+			else deps.startMoveTo(tile);
+			return;
+		}
+
+		// Another player: challenge them to a pet duel from within range, else walk
+		// toward them so the next click lands in range.
+		const other = deps.store.at(tile.x, tile.y, deps.myEid());
+		if (
+			other &&
+			deps.kinds.cat(deps.store.kind(other.serverEid)) === Cat.Player &&
+			deps.store.owner(other.serverEid) !== deps.mySlot()
+		) {
+			const d = Math.max(
+				Math.abs(deps.move.predicted.x - tile.x),
+				Math.abs(deps.move.predicted.y - tile.y),
+			);
+			if (d <= 2) {
+				deps.client()?.duelChallenge(deps.store.owner(other.serverEid));
+			} else deps.startMoveTo(tile);
+			return;
+		}
+
 		if (deps.isBlocked(tile.x, tile.y)) return;
 		const hit = deps.store.at(tile.x, tile.y, deps.myEid());
 		if (hit && deps.isHostile(hit.serverEid)) {
 			// Fire at the clicked enemy. fireBowAt sends the single authoritative
 			// attack (targeting THIS enemy) — no separate action() call, or the
 			// server would see a double-fire.
+			deps.lockTargetEid(hit.serverEid);
 			deps.move.movePath = [];
 			deps.fireBowAt(aim, hit.serverEid);
 			return;

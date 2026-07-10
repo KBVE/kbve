@@ -1,5 +1,6 @@
 ---
 title: Block of Netherite
+template: splash
 description: |
     Minecraft Block of Netherite — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 874
     ref: netherite_block
     slug: netherite-block
+    content_rev: 1
     display_name: Block of Netherite
     material: metal
     hardness: 50
     blast_resistance: 1200
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 4
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: netherite_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_diamond_tool
+        - blast_resistant
+        - not_flammable
+    about:
+        description: |
+            Block of Netherite is a compact storage block crafted from nine
+            Netherite Ingots. It shares obsidian's blast resistance, floats
+            on lava, and never burns, making it a favored redstone and
+            beacon-base material.
+        lore: |
+            Added in Java Edition 1.16 alongside the Netherite tier, with
+            beacon-pyramid support added the following snapshot.
+    uses:
+        - title: Netherite Ingot Storage
+          ref: netherite_ingot
+          detail: |
+              Compresses 9 Netherite Ingots into one block for compact
+              storage, and can be crafted back into 9 ingots.
+        - title: Beacon Pyramid
+          ref: beacon
+          detail: |
+              Can substitute for iron, gold, diamond, or emerald blocks in a
+              beacon pyramid base.
+    found_in:
+        - location: Crafted only
+          detail: Made by combining 9 Netherite Ingots in a crafting grid; does not generate naturally.
+    faq:
+        - question: What tool is needed to mine a Block of Netherite?
+          answer: |
+              A diamond or netherite pickaxe. Anything weaker breaks the
+              block with no drop.
+        - question: Does the Block of Netherite burn in lava?
+          answer: |
+              No. Like ancient debris and netherite ingots, it is immune to
+              fire and floats on lava rather than sinking.
+        - question: Can pistons push a Block of Netherite?
+          answer: |
+              Yes, unlike obsidian or respawn anchors, making it the
+              hardest block that pistons can still move.
+        - question: Can I get my Netherite Ingots back from the block?
+          answer: |
+              Yes, crafting a Block of Netherite in a grid uncrafts it into
+              9 Netherite Ingots.
     data_version: "1.21.5"
 ---
 
