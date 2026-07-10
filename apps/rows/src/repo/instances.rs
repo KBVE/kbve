@@ -1297,6 +1297,27 @@ impl<'a> InstanceRepo<'a> {
         }
     }
 
+    /// Draining instances whose per-instance `draindeadline` has passed (aggressive fleet-restart
+    /// only stamps one). These are the force-deallocate targets for the deadline backstop.
+    /// `now` is UTC-naive to match the `DrainDeadline TIMESTAMP` column's UTC contract.
+    pub async fn list_overdue_draining_instances(
+        &self,
+        customer_guid: Uuid,
+        now: chrono::NaiveDateTime,
+    ) -> Result<Vec<i32>, RowsError> {
+        let rows: Vec<(i32,)> = sqlx::query_as(
+            "SELECT mapinstanceid FROM mapinstances
+             WHERE customerguid = $1 AND status > 0
+               AND drainstate IS NOT NULL AND draindeadline IS NOT NULL AND draindeadline < $2
+             ORDER BY mapinstanceid",
+        )
+        .bind(customer_guid)
+        .bind(now)
+        .fetch_all(self.0)
+        .await?;
+        Ok(rows.into_iter().map(|r| r.0).collect())
+    }
+
     /// Detects the silent-failure mode of `CREATE INDEX CONCURRENTLY`: a failed concurrent build
     /// leaves the index in an `INVALID` state that Postgres refuses to use, degrading the per-tick
     /// `list_drainable_instances` scan to a seq-scan on the hot `mapinstances` table with no error.

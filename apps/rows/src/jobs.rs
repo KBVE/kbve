@@ -55,6 +55,7 @@ pub fn spawn_all(svc: Arc<OWSService>) {
     tokio::spawn(zone_health_monitor(svc.clone()));
     tokio::spawn(stale_zone_cleanup(svc.clone()));
     tokio::spawn(empty_server_reaper(svc.clone()));
+    tokio::spawn(fleet_restart_reconcile(svc.clone()));
     tokio::spawn(spinup_lock_expiry(svc.clone()));
     tokio::spawn(session_cache_sweep(svc));
 }
@@ -572,6 +573,328 @@ async fn reap_one(svc: Arc<OWSService>, guid: uuid::Uuid, target: ReapTarget) {
             // Leave status>0 + tracking intact; next cycle re-evaluates and retries.
             warn!(error = %e, gs = %gs, instance_id, "Reaper: deallocate failed — will retry next cycle");
         }
+    }
+}
+
+/// Whole-fleet (`!stagger`) batch cap for the fleet-restart drain fan-out.
+const FLEET_DRAIN_CAP: i64 = 4096;
+
+/// DB-backed coordinated fleet restart: reconciles the tenant's `fleet_restart` control row every
+/// 30s. While a restart is `active` it fans `set_drain_state` across active instances (whole-fleet
+/// or staggered batches), holds the admission lockout (when `lockout`), and enforces the aggressive
+/// deadline / non-aggressive stall backstop. When the row is absent or `active=false` it lifts the
+/// lockout ONCE iff it owns it (`lockoutapplied`), then no-ops — the feature ships dark.
+///
+/// Lock/unlock pattern mirrors `empty_server_reaper` EXACTLY. The advisory lock is SESSION-level,
+/// so it MUST be taken and released on the same pinned connection — taking it on the pool would
+/// unlock on a different pooled connection (a no-op), leak the lock, and wedge the reconcile for
+/// this tenant until restart. The POOLER CONSTRAINT documented in `empty_server_reaper` applies
+/// verbatim: this must stay on the session-pinned direct RW endpoint, never the transaction-mode
+/// pooler. Single-flight per tenant, so >1 ROWS replica never double-fans `set_drain_state`.
+async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
+    // Convergence coupling, surfaced at job start: an instance only leaves `status>0` when the
+    // reaper tears it down (`set_drain_state` rejects state=0), so a fleet restart CANNOT converge
+    // with the reaper disabled — the stall backstop below turns that into a bounded, loud stall.
+    if !svc.state().config.reaper.enabled {
+        info!(
+            "fleet-restart: empty_server_reaper is DISABLED in the env baseline — a fleet restart \
+             cannot converge unless a per-tenant reaperconfig override enables it (stall backstop \
+             will surface this)"
+        );
+    }
+
+    let mut interval = tokio::time::interval(Duration::from_secs(30));
+    interval.tick().await;
+    loop {
+        interval.tick().await;
+        let guid = svc.state().config.customer_guid;
+
+        // Pin a dedicated connection for the session-level advisory lock (see doc comment).
+        let mut lock_conn = match svc.state().db.acquire().await {
+            Ok(c) => c,
+            Err(e) => {
+                warn!(error = %e, "fleet-restart: failed to acquire lock connection — skipping tick");
+                continue;
+            }
+        };
+        let locked = match sqlx::query_scalar::<_, bool>(
+            "SELECT pg_try_advisory_lock(hashtext('rows-fleet-restart'), hashtext($1))",
+        )
+        .bind(guid.to_string())
+        .fetch_one(&mut *lock_conn)
+        .await
+        {
+            Ok(v) => v,
+            Err(e) => {
+                warn!(error = %e, "fleet-restart: advisory-lock query failed — skipping tick");
+                continue; // no lock held; lock_conn returns to the pool normally
+            }
+        };
+        if !locked {
+            continue; // another replica owns this tenant's reconcile this tick
+        }
+
+        // Arm the RAII guard so the session lock is dropped even if the cycle panics.
+        let mut lock_guard = AdvisoryLockGuard::new(lock_conn);
+
+        // Run the cycle as a supervised task so a panic is caught at the JoinError boundary and
+        // the explicit unlock below ALWAYS runs (a leaked session lock would wedge this tenant).
+        if let Err(e) = tokio::spawn(run_fleet_restart_cycle(svc.clone(), guid)).await {
+            error!(error = %e, "fleet-restart: cycle panicked — releasing lock, loop continues");
+        }
+
+        // Release on the SAME pinned connection. On failure, detach+close so Postgres drops the
+        // session lock when the backend session ends, rather than leaking it on a pooled connection.
+        match sqlx::query("SELECT pg_advisory_unlock(hashtext('rows-fleet-restart'), hashtext($1))")
+            .bind(guid.to_string())
+            .execute(lock_guard.conn_mut())
+            .await
+        {
+            Ok(_) => lock_guard.disarm(),
+            Err(e) => {
+                warn!(error = %e, "fleet-restart: failed to release advisory lock — closing connection");
+                if let Err(e) = lock_guard.take().detach().close().await {
+                    warn!(error = %e, "fleet-restart: error closing detached lock connection");
+                }
+            }
+        }
+    }
+}
+
+/// The `deadline` stamped on each `set_drain_state`: aggressive restarts carry the row's
+/// `draindeadline` (UTC-naive per the column contract); non-aggressive ⇒ `None` (never forces).
+fn fr_deadline(fr: &crate::config::FleetRestart) -> Option<chrono::NaiveDateTime> {
+    fr.drain_deadline.map(|d| d.naive_utc())
+}
+
+/// One reconcile pass, run under the advisory lock held by the caller (mirrors `run_reap_cycle`).
+async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
+    let repo = InstanceRepo(&svc.state().db);
+
+    let fr = match repo.get_fleet_restart(guid).await {
+        Ok(Some(fr)) if fr.active => fr,
+        // No active restart (row present, active=false). Lift the lockout ONLY if THIS restart
+        // applied it (lockoutapplied) — never blindly NULL the shared admission_control row, which
+        // maintenance/abuse flows also write. One-shot + idempotent on cold-start resume.
+        Ok(Some(fr)) => {
+            if fr.lockout_applied {
+                if let Err(e) = repo.set_admission(guid, None).await {
+                    warn!(error = %e, "fleet-restart: failed to lift lockout");
+                    return; // leave lockoutapplied=true; retry next tick
+                }
+                if let Err(e) = repo.set_fleet_lockout_applied(guid, false).await {
+                    warn!(error = %e, "fleet-restart: failed to clear lockout-applied flag");
+                }
+                info!("fleet-restart: restart cleared — admission lockout lifted");
+            }
+            return;
+        }
+        Ok(None) => return, // inert: no row at all, nothing to do (and nothing we ever locked)
+        Err(e) => {
+            warn!(error = %e, "fleet-restart: read failed");
+            return;
+        }
+    };
+
+    // Hold the lockout while the restart runs (travel still allowed — the admission gate only
+    // blocks *new* joins). Record ownership so the inactive branch above lifts only what we set.
+    if fr.lockout {
+        if let Err(e) = repo.set_admission(guid, Some(false)).await {
+            warn!(error = %e, "fleet-restart: failed to set lockout");
+        } else if !fr.lockout_applied {
+            if let Err(e) = repo.set_fleet_lockout_applied(guid, true).await {
+                warn!(error = %e, "fleet-restart: failed to record lockout ownership");
+            }
+        }
+    }
+
+    // Batch source: instances not yet draining. Whole-fleet if !stagger.
+    let limit = if fr.stagger {
+        i64::from(fr.batch_size.max(1))
+    } else {
+        FLEET_DRAIN_CAP
+    };
+    let batch = match repo.list_drainable_instances(guid, limit).await {
+        Ok(b) => b,
+        Err(e) => {
+            warn!(error = %e, "fleet-restart: list failed");
+            return;
+        }
+    };
+
+    for id in &batch {
+        if let Err(e) = repo
+            .set_drain_state(
+                guid,
+                *id,
+                1, // draining
+                fr.urgency,
+                fr.drop_players,
+                &fr.reason,
+                fr.request_id,
+                fr_deadline(&fr),
+            )
+            .await
+        {
+            warn!(error = %e, instance_id = id, "fleet-restart: set_drain_state failed");
+        }
+    }
+
+    // Deadline + stall backstop: even the non-aggressive path bounds the join outage, so a
+    // stuck/disabled reaper (or a population that never leaves) surfaces as a loud, observable
+    // stall instead of an indefinitely-held lockout.
+    enforce_drain_deadline(&svc, &repo, guid, &fr).await;
+
+    let remaining = repo.count_active_instances(guid).await.unwrap_or(-1);
+    info!(
+        active = remaining,
+        staggered = fr.stagger,
+        batch = batch.len(),
+        "fleet-restart: reconcile tick"
+    );
+    // remaining == 0 is the DB all-drained signal (exposed via /fleet-restart/status). It only
+    // reaches 0 once instances hit status=0, which ONLY empty_server_reaper writes
+    // (set_drain_state rejects state=0) — so convergence depends on the reaper AND the backstop.
+}
+
+/// Two paths, two behaviours (safe-by-default is a hard invariant):
+///
+/// **Aggressive** (`drain_deadline` set and passed): force-deallocate the overdue instances
+/// per-GameServer — never a whole-Fleet scale-to-0, which would also kill instances still draining
+/// cleanly. Aggressive explicitly opts into save-then-disconnect at the deadline.
+///
+/// **Non-aggressive** (no deadline): never disconnect anyone, but bound the join outage in two
+/// escalating stages off `started_at`:
+///   1. past `fleet_restart_stall_secs`: loud warn + `stalled` surfaces on /fleet-restart/status.
+///   2. past 2×: auto-lift the join lockout while leaving the restart active (new players land on
+///      old-version instances — safe within a version line; the roll just takes longer).
+async fn enforce_drain_deadline(
+    svc: &Arc<OWSService>,
+    repo: &InstanceRepo<'_>,
+    guid: uuid::Uuid,
+    fr: &crate::config::FleetRestart,
+) {
+    if let Some(deadline) = fr.drain_deadline {
+        // Aggressive path: per-GameServer force-deallocate of overdue instances.
+        if chrono::Utc::now() < deadline {
+            return;
+        }
+        let overdue = match repo
+            .list_overdue_draining_instances(guid, chrono::Utc::now().naive_utc())
+            .await
+        {
+            Ok(v) => v,
+            Err(e) => {
+                warn!(error = %e, "fleet-restart: overdue-instance query failed");
+                return;
+            }
+        };
+        if overdue.is_empty() {
+            return;
+        }
+        let Some(ref agones) = svc.state().agones else {
+            warn!(
+                overdue = overdue.len(),
+                "fleet-restart: deadline passed but Agones unavailable — cannot force-deallocate"
+            );
+            return;
+        };
+        info!(
+            overdue = overdue.len(),
+            "fleet-restart: drain deadline passed — force-deallocating overdue instances"
+        );
+        // Resolve GameServer names: in-memory tracking first, one batched DB fallback for misses
+        // (mirrors the reaper's resolution; a resolve failure just retries next tick).
+        let mut named: Vec<(i32, String)> = Vec::new();
+        let mut misses: Vec<i32> = Vec::new();
+        for id in &overdue {
+            match svc.state().zone_servers.get(id) {
+                Some(v) => named.push((*id, v.value().clone())),
+                None => misses.push(*id),
+            }
+        }
+        if !misses.is_empty() {
+            match repo.get_gameserver_names(guid, &misses).await {
+                Ok(rows) => {
+                    for (id, gs) in rows {
+                        match gs {
+                            Some(gs) => named.push((id, gs)),
+                            None => warn!(
+                                instance_id = id,
+                                "fleet-restart: overdue instance has no resolvable GameServer name"
+                            ),
+                        }
+                    }
+                }
+                Err(e) => {
+                    warn!(error = %e, "fleet-restart: failed to resolve GameServer names — retrying next tick")
+                }
+            }
+        }
+        // Deallocate-first, serially (deadline batches are small; the reaper's concurrency budget
+        // reasoning applies — don't starve the hot path). A failure leaves the row for next tick.
+        for (id, gs) in named {
+            match agones.deallocate(&gs).await {
+                Ok(()) => {
+                    svc.state().zone_servers.remove(&id);
+                    if let Err(e) = repo.shut_down_server_instance(guid, id).await {
+                        warn!(error = %e, instance_id = id, "fleet-restart: deallocated but failed to set status=0");
+                    }
+                }
+                Err(e) => {
+                    warn!(error = %e, gs = %gs, instance_id = id, "fleet-restart: deallocate failed — will retry next tick");
+                }
+            }
+        }
+        return;
+    }
+
+    // Non-aggressive path: never disconnect; bound the join outage off started_at.
+    let stall_secs = svc.state().config.fleet_restart_stall_secs;
+    let stalled_secs = (chrono::Utc::now() - fr.started_at).num_seconds();
+    if stalled_secs <= stall_secs {
+        return;
+    }
+    let draining = match repo.count_active_instances(guid).await {
+        Ok(n) => n,
+        Err(e) => {
+            warn!(error = %e, "fleet-restart: active-count read failed during stall check");
+            return;
+        }
+    };
+    if draining == 0 {
+        return; // converged — nothing stalled
+    }
+    if stalled_secs > 2 * stall_secs {
+        // Stage 2: hard join-outage cap. Auto-lift the lockout while leaving the restart active,
+        // idempotently and in an order that won't re-apply next tick: lift admission, clear
+        // ownership, then lockout=false (so the active branch's `if fr.lockout` stops re-applying).
+        if fr.lockout || fr.lockout_applied {
+            if let Err(e) = repo.set_admission(guid, None).await {
+                warn!(error = %e, "fleet-restart: stall auto-lift failed to lift admission");
+                return; // retry next tick; flags untouched so we come back here
+            }
+            if let Err(e) = repo.set_fleet_lockout_applied(guid, false).await {
+                warn!(error = %e, "fleet-restart: stall auto-lift failed to clear ownership flag");
+            }
+            if let Err(e) = repo.set_fleet_lockout(guid, false).await {
+                warn!(error = %e, "fleet-restart: stall auto-lift failed to clear lockout flag");
+            }
+            error!(
+                stalled_secs,
+                draining,
+                "fleet-restart: join-outage cap hit — lockout auto-lifted, drain still pending; \
+                 escalate to aggressive (deadline) or clear the restart"
+            );
+        }
+    } else {
+        // Stage 1: stall SLA breached. Drain continues; lockout still held; /fleet-restart/status
+        // reports stalled=true off the same started_at clock.
+        warn!(
+            stalled_secs,
+            draining,
+            "fleet-restart: drain stalled — check empty_server_reaper is enabled and healthy"
+        );
     }
 }
 
