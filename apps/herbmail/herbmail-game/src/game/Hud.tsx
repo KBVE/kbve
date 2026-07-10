@@ -24,7 +24,13 @@ export function Hud({ kind, equippedId }: Props) {
 					justifyContent: 'center',
 					pointerEvents: 'none',
 				}}>
-				<div style={{ position: 'relative', width: 20, height: 20 }}>
+				<div
+					style={{
+						position: 'relative',
+						width: 20,
+						height: 20,
+						transform: 'translateY(-13vh)',
+					}}>
 					<div
 						style={{
 							...line,

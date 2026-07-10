@@ -1,15 +1,20 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { DungeonScene } from '../game/DungeonScene';
-import { FpsControls } from '../game/FpsControls';
 import { AimReticle } from '../game/AimReticle';
+import { WallTorches } from '../game/WallTorches';
+import { TorchPlacer } from '../game/TorchPlacer';
 import { Hud } from '../game/Hud';
 import { PSX_DEFAULTS } from '../game/config';
-import { Viewmodel } from '../game/viewmodel/Viewmodel';
+import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
 import { ViewmodelDebug } from '../game/viewmodel/ViewmodelDebug';
 import { REST, type ViewmodelRest } from '../game/viewmodel/config';
 import { LOADOUT } from '../game/viewmodel/equipment';
-import { setEquipped, useEquippedId } from '../game/viewmodel/store';
+import {
+	setEquipped,
+	setOffhand,
+	useEquippedId,
+} from '../game/viewmodel/store';
 
 export function App() {
 	const [psx] = useState({ ...PSX_DEFAULTS });
@@ -106,8 +111,14 @@ export function App() {
 				}
 			}
 
-			const n = Number(e.key);
-			if (n >= 1 && n <= LOADOUT.length) setEquipped(LOADOUT[n - 1].id);
+			const digit = e.code.match(/^Digit([1-9])$/);
+			if (digit) {
+				const idx = Number(digit[1]) - 1;
+				if (idx < LOADOUT.length) {
+					if (e.shiftKey) setOffhand(LOADOUT[idx].id);
+					else setEquipped(LOADOUT[idx].id);
+				}
+			}
 		};
 		window.addEventListener('keydown', onKey);
 		return () => window.removeEventListener('keydown', onKey);
@@ -128,19 +139,18 @@ export function App() {
 				}}
 				style={{ imageRendering: 'pixelated' }}>
 				<color attach="background" args={['#0a0a0e']} />
-				<hemisphereLight args={['#fff0e6', '#20202c', 2.2]} />
-				<ambientLight intensity={0.5} />
+				<hemisphereLight args={['#2a2434', '#0a0a10', 0.7]} />
+				<ambientLight intensity={0.18} />
 				<Suspense fallback={null}>
 					<DungeonScene snap={psx.snap} affine={psx.affine} />
 				</Suspense>
-				<FpsControls eye={psx.eye} fov={psx.fov} />
 				<Suspense fallback={null}>
-					<Viewmodel
-						equippedId={equippedId}
-						snap={psx.snap}
-						restOverride={rest}
-					/>
+					<ThirdPersonPlayer url="/models/m2m-character.glb" />
 				</Suspense>
+				<Suspense fallback={null}>
+					<WallTorches />
+				</Suspense>
+				<TorchPlacer />
 				<AimReticle onAim={setAim} />
 			</Canvas>
 			<Hud kind={aim} equippedId={equippedId} />
@@ -158,8 +168,8 @@ export function App() {
 					font: '13px monospace',
 					textShadow: '0 1px 2px #000',
 				}}>
-				click to look · WASD move · LMB use · RMB/E interact · R reload
-				· 1-3 equip · ` debug
+				click to look · WASD move · LMB mount torch · R reload · 1-3
+				equip · ` debug
 			</div>
 		</>
 	);
