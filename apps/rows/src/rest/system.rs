@@ -432,11 +432,23 @@ pub async fn report_build(
         return Json(serde_json::json!({ "success": false, "error": "version required" }));
     }
 
-    let mut current = hs.app.server_build_version.write().unwrap();
-    if current.as_deref() != Some(version) {
-        tracing::info!(version, "Gameserver reported loaded UE build version");
+    {
+        let mut current = hs.app.server_build_version.write().unwrap();
+        if current.as_deref() != Some(version) {
+            tracing::info!(version, "Gameserver reported loaded UE build version");
+        }
+        *current = Some(version.to_string());
     }
-    *current = Some(version.to_string());
+
+    // One-shot deploy_state seed (ON CONFLICT DO NOTHING): keeps /health.unreal_version non-null
+    // before the first orchestrated roll ever writes rolled=true. Never overwrites a real roll or
+    // a pending update; best-effort (a failure just leaves the in-memory fallback).
+    if let Err(e) = crate::repo::InstanceRepo(&hs.app.db)
+        .seed_deploy_state(hs.app.config.customer_guid, version)
+        .await
+    {
+        tracing::warn!(error = %e, "ReportBuild: deploy_state seed failed (non-fatal)");
+    }
 
     Json(serde_json::json!({ "success": true, "version": version }))
 }

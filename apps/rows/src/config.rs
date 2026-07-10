@@ -162,6 +162,18 @@ pub struct FleetRestart {
     pub request_id: uuid::Uuid,
 }
 
+/// The tenant's `ows.deploy_state` row: the authoritative rollout target (`target_version` is a
+/// PVC path version, not an image tag) plus rollout state. `rolled=true` ⇒ this version is the one
+/// being served (the launcher's download target); `rolled=false` ⇒ merged but not yet rolled
+/// (update pending). `health='unhealthy'` ⇒ a soak failed and a human must decide (no auto-rollback).
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct DeployState {
+    #[sqlx(rename = "targetversion")]
+    pub target_version: String,
+    pub rolled: bool,
+    pub health: String,
+}
+
 /// Per-scope admission override, read from the `ows.admission_control` table. `accept_new_joins`
 /// is `Option`: `None` (or no row) means "fall back to the env baseline" (`ROWS_ACCEPT_NEW_JOINS`).
 /// One of these is read per scope (tenant + global sentinel) and combined by

@@ -1318,6 +1318,95 @@ impl<'a> InstanceRepo<'a> {
         Ok(rows.into_iter().map(|r| r.0).collect())
     }
 
+    /// The tenant's `deploy_state` row (single row: the authoritative rollout target + health).
+    /// `rolled=true` ⇒ `target_version` is the served PVC version (the launcher's download
+    /// target); `rolled=false` ⇒ an update is pending. `None` on row-absent OR 42P01 (feature
+    /// dark) so `/health` and the pending gate degrade instead of erroring.
+    pub async fn get_deploy_state(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<Option<crate::config::DeployState>, RowsError> {
+        let result = sqlx::query_as::<_, crate::config::DeployState>(
+            "SELECT targetversion, rolled, health FROM deploy_state WHERE customerguid = $1",
+        )
+        .bind(customer_guid)
+        .fetch_optional(self.0)
+        .await;
+        match result {
+            Ok(row) => Ok(row),
+            Err(e) if is_undefined_table(&e) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// One-shot seed of the currently-served version (`rolled=true, health='healthy'`), called
+    /// from the ReportBuild path when a GameServer reports the build it loaded. `ON CONFLICT DO
+    /// NOTHING` so it never overwrites a real roll or a pending update; degrade on 42P01. This is
+    /// what keeps `/health.unreal_version` non-null before the first orchestrated roll.
+    pub async fn seed_deploy_state(
+        &self,
+        customer_guid: Uuid,
+        version: &str,
+    ) -> Result<(), RowsError> {
+        let result = sqlx::query(
+            "INSERT INTO deploy_state (customerguid, targetversion, rolled, health)
+             VALUES ($1, $2, true, 'healthy')
+             ON CONFLICT (customerguid) DO NOTHING",
+        )
+        .bind(customer_guid)
+        .bind(version)
+        .execute(self.0)
+        .await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) if is_undefined_table(&e) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Rollout-health upsert (the orchestrator's failed-soak / recovered signal). Marks the row's
+    /// `health`; when `failing_version` is given it also pins `targetversion` so `/health` reports
+    /// which build failed. Degrades on 42P01.
+    pub async fn set_deploy_health(
+        &self,
+        customer_guid: Uuid,
+        healthy: bool,
+        failing_version: Option<&str>,
+    ) -> Result<(), RowsError> {
+        let health = if healthy { "healthy" } else { "unhealthy" };
+        let result = match failing_version {
+            Some(v) => {
+                sqlx::query(
+                    "INSERT INTO deploy_state (customerguid, targetversion, rolled, health)
+                     VALUES ($1, $2, false, $3)
+                     ON CONFLICT (customerguid)
+                     DO UPDATE SET targetversion = EXCLUDED.targetversion,
+                                   health = EXCLUDED.health, updatedat = now()",
+                )
+                .bind(customer_guid)
+                .bind(v)
+                .bind(health)
+                .execute(self.0)
+                .await
+            }
+            None => {
+                sqlx::query(
+                    "UPDATE deploy_state SET health = $2, updatedat = now()
+                     WHERE customerguid = $1",
+                )
+                .bind(customer_guid)
+                .bind(health)
+                .execute(self.0)
+                .await
+            }
+        };
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) if is_undefined_table(&e) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
+    }
+
     /// Detects the silent-failure mode of `CREATE INDEX CONCURRENTLY`: a failed concurrent build
     /// leaves the index in an `INVALID` state that Postgres refuses to use, degrading the per-tick
     /// `list_drainable_instances` scan to a seq-scan on the hot `mapinstances` table with no error.
