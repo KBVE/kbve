@@ -97,7 +97,12 @@ marked 🕳️ are unpinned — see [ue-chuck-drain-contract](./2026-06-24-ue-ch
 |---|---|---|---|---|
 | `ROWS_DRAIN_GRACE_SECS` | u64 | `8` | **live** (`main.rs`, process shutdown grace) | lifecycle-spec |
 | `ROWS_ACCEPT_NEW_JOINS` | bool | — | proposed | [drain-core](./2026-06-24-rows-drain-core.md) |
-| `fleet_restart` control row (`active`/`reason`/`urgency`/`drop_players`/`stagger`/`batchsize`/`lockout`/`targetversion`/`requestid`) | DB table | safe-by-default (`urgency=0 when_able`, `dropplayers=false`) | proposed | [drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) |
+| `ROWS_FLEET_RESTART_STALL_SECS` | i64 | `1800` | **shipped (inert)** — non-aggressive stall SLA; `stalled=true` past it, lockout auto-lift past 2× | [drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) |
+| `ROWS_FLEET_RESTART_TOKEN` | string | unset (**fail closed**: trigger 401s) | **shipped** — gateway-held bearer token for `POST /fleet-restart/trigger`; GameServers must NOT hold it | [drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) |
+| `fleet_restart` control row (`active`/`reason`/`urgency`/`dropplayers`/`stagger`/`batchsize`/`lockout`/`lockoutapplied`/`startedat`/`draindeadline`/`targetversion`/`requestid`) | DB table (migration `20260629120000`) | safe-by-default, DB-enforced (`chk_safe_default`, `chk_deadline_aggr`) | **shipped (inert)** — clear with `active=false`, never DELETE | [drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) |
+| `deploy_state` (`targetversion`/`rolled`/`health`) | DB table (migration `20260629130000`) | seeded one-shot by ReportBuild | **shipped (inert)** — backs `/health` version + `/fleet-restart/pending` | [drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) |
+| `GET /fleet-restart/status` | REST (4322, cluster-internal) | — | **shipped** — `{active, draining, gameservers, all_drained, safe_to_roll, stalled}`; poll ≥5s (GS count cached ~5s); `gameservers:-1` = unknown, fail closed | lifecycle-spec runbook |
+| `GET /fleet-restart/pending` / `POST /fleet-restart/trigger` | REST (4322; trigger token-authed) | trigger grace default 300s | **shipped** — trigger 404s unless an update is pending; 409 while a restart is active | lifecycle-spec runbook |
 | drain request schema (`reason`/`urgency`/`drop_players`/`deadline`/`request_id`) | annotations | — | 🕳️ unpinned | [drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) |
 
 ### Restart triggers & version-parity gate (Phase 3 — proposed)
@@ -227,3 +232,7 @@ internal constants, design-stage `drain-*` knobs, and the bug ledger in this liv
 - 2026-06-24 — initial index at SHA `fdb3a44`. Catalogs reaper (PR #13200) + core/agones env, the
   `ows.reaper_config` override, Agones wire keys, and the `drain-*` proposed knobs. Recorded the
   pre-existing `ROWS_SPINUP_*` malformed-env-key bug (§5).
+- 2026-07-09 — Phase 3 (fleet-restart) shipped inert: `fleet_restart` + `deploy_state` tables,
+  `ROWS_FLEET_RESTART_STALL_SECS` / `ROWS_FLEET_RESTART_TOKEN`, `/fleet-restart/{status,pending,trigger}`
+  endpoints, `idx_mapinstances_drainable`. Operator runbook lives in the lifecycle spec
+  ("Fleet-restart — operator runbook").
