@@ -33,6 +33,103 @@ pub fn system_routes(hs: HandlerState) -> Router {
         .with_state(hs)
 }
 
+/// Fleet-restart routes. SECURITY POSTURE (HIGH-1): these are served on the same port (4322) every
+/// GameServer already reaches, and a NetworkPolicy filters by pod-selector + port, never HTTP path
+/// — so "cluster-internal" is NOT an access control here. The read routes (`status`, `pending`)
+/// are tolerable for any in-cluster caller; the mutating `trigger` route additionally requires the
+/// gateway-held bearer token (`ROWS_FLEET_RESTART_TOKEN`, from the ows sealed-secret set) that
+/// GameServers do NOT hold — see `require_fleet_restart_token`. Keep these off any public Ingress.
+pub fn fleet_restart_routes(hs: HandlerState) -> Router {
+    Router::new()
+        .route("/fleet-restart/status", get(fleet_restart_status))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
+        .with_state(hs)
+}
+
+/// TTL for the cached Agones GameServer count behind `/fleet-restart/status`. The DB counts are
+/// cheap; only the Agones LIST needs the cache (this cluster has a documented apiserver/etcd
+/// pressure history). Orchestrators should poll no faster than every 5s.
+const GS_COUNT_TTL: std::time::Duration = std::time::Duration::from_secs(5);
+
+/// Agones GameServer count, cached for `GS_COUNT_TTL` (shared across callers). `None` = Agones
+/// unavailable or the LIST failed — callers must FAIL CLOSED (report not-safe-to-roll), never
+/// treat unknown as zero.
+async fn cached_gameserver_count(hs: &HandlerState) -> Option<i64> {
+    if let Some((at, n)) = *hs.app.gs_count_cache.lock().unwrap() {
+        if at.elapsed() < GS_COUNT_TTL {
+            return Some(n);
+        }
+    }
+    let agones = hs.app.agones.as_ref()?;
+    match agones.count_gameservers().await {
+        Ok(n) => {
+            *hs.app.gs_count_cache.lock().unwrap() = Some((Instant::now(), n));
+            Some(n)
+        }
+        Err(e) => {
+            tracing::warn!(error = %e, "fleet-restart: gameserver count failed");
+            None
+        }
+    }
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct FleetRestartStatus {
+    /// A `fleet_restart` row is active for this tenant.
+    pub active: bool,
+    /// DB-level count of instances still `status > 0` (the *necessary* barrier level).
+    pub draining: i64,
+    /// Agones GameServer objects still present, any state (the *sufficient* barrier level).
+    /// `-1` = Agones unavailable/LIST failed — unknown, never treated as zero.
+    pub gameservers: i64,
+    /// `active && draining == 0` — the DB says every instance is gone; begin the cutover.
+    pub all_drained: bool,
+    /// `all_drained && gameservers == 0` — every old pod is actually gone; safe to roll.
+    pub safe_to_roll: bool,
+    /// Non-aggressive stall backstop: `active && draining > 0` past the stall SLA. The alertable
+    /// "drain not converging — check empty_server_reaper" signal.
+    pub stalled: bool,
+}
+
+#[utoipa::path(
+    get,
+    path = "/fleet-restart/status",
+    tag = "system",
+    summary = "Fleet-restart drain status + two-level safe-to-roll barrier",
+    description = "DB draining count (necessary) + Agones GameServer count (sufficient). safe_to_roll only when both hit 0 while a restart is active. Poll cadence >= 5s (the GS count is cached ~5s). Cluster-internal only.",
+    responses((status = 200, description = "Fleet-restart status", body = FleetRestartStatus)),
+)]
+pub async fn fleet_restart_status(
+    State(hs): State<HandlerState>,
+) -> Result<Json<FleetRestartStatus>, crate::error::RowsError> {
+    let guid = hs.app.config.customer_guid;
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    let fr = repo.get_fleet_restart(guid).await?;
+    let active = matches!(&fr, Some(fr) if fr.active);
+    let draining = repo.count_active_instances(guid).await?;
+    // Fail closed on an unknown GS count: -1 can never satisfy `== 0`.
+    let gameservers = cached_gameserver_count(&hs).await.unwrap_or(-1);
+    let all_drained = active && draining == 0;
+    let safe_to_roll = all_drained && gameservers == 0;
+    let stalled = fr.as_ref().is_some_and(|fr| {
+        fr.active
+            && draining > 0
+            && (chrono::Utc::now() - fr.started_at).num_seconds()
+                > hs.app.config.fleet_restart_stall_secs
+    });
+    Ok(Json(FleetRestartStatus {
+        active,
+        draining,
+        gameservers,
+        all_drained,
+        safe_to_roll,
+        stalled,
+    }))
+}
+
 #[utoipa::path(
     get,
     path = "/api/System/FleetStatus",

@@ -33,6 +33,10 @@ pub struct AppState {
     /// UE5 build version loaded off the `ows-server-build` PVC, reported by each gameserver on
     /// boot via `POST /api/System/ReportBuild`. `None` until a gameserver checks in.
     pub server_build_version: std::sync::RwLock<Option<String>>,
+    /// Short-TTL cache for the Agones GameServer count behind `/fleet-restart/status`
+    /// (`(fetched_at, count)`), shared across callers so an orchestrator polling the endpoint
+    /// doesn't turn into a kube-apiserver LIST per request.
+    pub gs_count_cache: std::sync::Mutex<Option<(Instant, i64)>>,
 }
 
 pub struct AppConfig {
@@ -153,6 +157,7 @@ impl AppStateBuilder {
             instance_log: crate::rest::system::InstanceEventLog::new(),
             started_at: Instant::now(),
             server_build_version: std::sync::RwLock::new(None),
+            gs_count_cache: std::sync::Mutex::new(None),
         }))
     }
 }

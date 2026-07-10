@@ -33,6 +33,7 @@ use crate::models::*;
         crate::rest::system::restart_game_server,
         crate::rest::system::restart_fleet,
         crate::rest::system::verify_deployment,
+        crate::rest::system::fleet_restart_status,
         crate::rest::auth::login,
         crate::rest::auth::external_login,
         crate::rest::auth::get_user_session,
@@ -104,6 +105,7 @@ use crate::models::*;
         PlayerGroupMembership,
         UserInfo,
         crate::rest::system::InstanceEvent,
+        crate::rest::system::FleetRestartStatus,
     )),
     tags(
         (name = "health", description = "Health and readiness probes"),

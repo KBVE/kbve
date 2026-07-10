@@ -64,6 +64,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
     let zones = zones::zones_routes(hs.clone());
     let management = management::management_routes(hs.clone());
     let system = system::system_routes(hs.clone());
+    let fleet_restart = system::fleet_restart_routes(hs.clone());
 
     Router::new()
         .route("/", get(root))
@@ -77,6 +78,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
         .merge(zones)
         .merge(management)
         .merge(system)
+        .merge(fleet_restart)
 }
 
 #[utoipa::path(get, path = "/", tag = "health",
