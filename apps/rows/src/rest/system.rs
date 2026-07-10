@@ -42,11 +42,42 @@ pub fn system_routes(hs: HandlerState) -> Router {
 pub fn fleet_restart_routes(hs: HandlerState) -> Router {
     Router::new()
         .route("/fleet-restart/status", get(fleet_restart_status))
+        .route("/fleet-restart/pending", get(fleet_restart_pending))
+        .route(
+            "/fleet-restart/trigger",
+            axum::routing::post(fleet_restart_trigger),
+        )
         .layer(middleware::from_fn_with_state(
             hs.clone(),
             require_customer_guid,
         ))
         .with_state(hs)
+}
+
+/// App-level auth for the MUTATING fleet-restart route (HIGH-1). The gateway holds
+/// `ROWS_FLEET_RESTART_TOKEN` (from the ows sealed-secret set); GameServers do NOT — a
+/// NetworkPolicy cannot keep them off this path (same port 4322, and policies can't filter by
+/// HTTP path). Fails closed: unset/empty env ⇒ every caller is rejected 401.
+fn fleet_restart_token_ok(headers: &HeaderMap) -> bool {
+    let Ok(expected) = std::env::var("ROWS_FLEET_RESTART_TOKEN") else {
+        return false;
+    };
+    if expected.is_empty() {
+        return false;
+    }
+    let presented = headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .unwrap_or("");
+    // Constant-time-ish compare: length check then byte fold, so a prefix match doesn't
+    // short-circuit early.
+    presented.len() == expected.len()
+        && presented
+            .bytes()
+            .zip(expected.bytes())
+            .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+            == 0
 }
 
 /// TTL for the cached Agones GameServer count behind `/fleet-restart/status`. The DB counts are
@@ -128,6 +159,166 @@ pub async fn fleet_restart_status(
         safe_to_roll,
         stalled,
     }))
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct FleetRestartPending {
+    /// A merged-but-not-rolled update exists (`deploy_state.rolled=false`).
+    pub pending: bool,
+    /// The pending version, when `pending=true`.
+    pub target_version: Option<String>,
+}
+
+#[utoipa::path(
+    get,
+    path = "/fleet-restart/pending",
+    tag = "system",
+    summary = "Is a version update pending?",
+    description = "pending=true when deploy_state has rolled=false. Gates the aggressive trigger (and the dashboard button). Cluster-internal only.",
+    responses((status = 200, description = "Pending-update state", body = FleetRestartPending)),
+)]
+pub async fn fleet_restart_pending(
+    State(hs): State<HandlerState>,
+) -> Result<Json<FleetRestartPending>, crate::error::RowsError> {
+    let ds = crate::repo::InstanceRepo(&hs.app.db)
+        .get_deploy_state(hs.app.config.customer_guid)
+        .await?;
+    let (pending, target_version) = match ds {
+        Some(ds) if !ds.rolled => (true, Some(ds.target_version)),
+        _ => (false, None),
+    };
+    Ok(Json(FleetRestartPending {
+        pending,
+        target_version,
+    }))
+}
+
+/// Default aggressive grace window (seconds) when the trigger body omits `grace_secs`.
+const FLEET_RESTART_DEFAULT_GRACE_SECS: i64 = 300;
+
+#[utoipa::path(
+    post,
+    path = "/fleet-restart/trigger",
+    tag = "system",
+    summary = "Trigger a coordinated fleet restart",
+    description = "Upserts the fleet_restart control row. aggressive: urgency=1, dropplayers=true, deadline=now()+grace_secs (default 300) — save-then-disconnect at the deadline; requires a pending update. non_aggressive: drain-to-natural-empty, never disconnects. Requires the gateway bearer token (ROWS_FLEET_RESTART_TOKEN); NOT public, NOT for GameServers.",
+    request_body(
+        description = "{ mode: \"aggressive\"|\"non_aggressive\", grace_secs?: i64 }",
+        content_type = "application/json"
+    ),
+    responses(
+        (status = 200, description = "Restart activated: { success, mode, drain_deadline? }"),
+        (status = 400, description = "Invalid mode / grace_secs"),
+        (status = 401, description = "Missing/invalid gateway token"),
+        (status = 404, description = "Aggressive mode with no pending update"),
+        (status = 409, description = "A restart is already active"),
+    ),
+)]
+pub async fn fleet_restart_trigger(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<serde_json::Value>,
+) -> axum::response::Response {
+    use axum::http::StatusCode;
+    use axum::response::IntoResponse;
+
+    if !fleet_restart_token_ok(&headers) {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "fleet-restart trigger requires the gateway bearer token",
+            })),
+        )
+            .into_response();
+    }
+
+    let mode = body.get("mode").and_then(|v| v.as_str()).unwrap_or("");
+    let aggressive = match mode {
+        "aggressive" => true,
+        "non_aggressive" => false,
+        _ => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": "mode must be \"aggressive\" or \"non_aggressive\"",
+                })),
+            )
+                .into_response();
+        }
+    };
+    let grace_secs = body
+        .get("grace_secs")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(FLEET_RESTART_DEFAULT_GRACE_SECS);
+    if aggressive && grace_secs <= 0 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "grace_secs must be > 0",
+            })),
+        )
+            .into_response();
+    }
+
+    let guid = hs.app.config.customer_guid;
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+
+    // One restart at a time: a re-trigger mid-drain would silently reset the stall clock and
+    // (aggressive) re-arm the deadline; make the operator clear or finish the active one first.
+    match repo.get_fleet_restart(guid).await {
+        Ok(Some(fr)) if fr.active => {
+            return (
+                StatusCode::CONFLICT,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": "a fleet restart is already active",
+                })),
+            )
+                .into_response();
+        }
+        Ok(_) => {}
+        Err(e) => return e.into_response(),
+    }
+
+    // The aggressive path exists to *deploy a pending update* — you can't restart-to-deploy with
+    // nothing to deploy (this narrows WHEN it fires; the token above controls WHO).
+    if aggressive {
+        match repo.get_deploy_state(guid).await {
+            Ok(Some(ds)) if !ds.rolled => {}
+            Ok(_) => {
+                return (
+                    StatusCode::NOT_FOUND,
+                    Json(serde_json::json!({
+                        "success": false,
+                        "error": "no pending update — aggressive restart refused",
+                    })),
+                )
+                    .into_response();
+            }
+            Err(e) => return e.into_response(),
+        }
+    }
+
+    let deadline = aggressive.then(|| chrono::Utc::now() + chrono::Duration::seconds(grace_secs));
+    let reason = if aggressive {
+        "fleet-restart:aggressive"
+    } else {
+        "fleet-restart:non_aggressive"
+    };
+    if let Err(e) = repo.set_fleet_restart(guid, aggressive, deadline, reason).await {
+        return e.into_response();
+    }
+
+    tracing::info!(mode, grace_secs = aggressive.then_some(grace_secs), "fleet-restart triggered via API");
+    Json(serde_json::json!({
+        "success": true,
+        "mode": mode,
+        "drain_deadline": deadline.map(|d| d.to_rfc3339()),
+    }))
+    .into_response()
 }
 
 #[utoipa::path(
