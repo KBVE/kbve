@@ -308,11 +308,18 @@ pub async fn fleet_restart_trigger(
     } else {
         "fleet-restart:non_aggressive"
     };
-    if let Err(e) = repo.set_fleet_restart(guid, aggressive, deadline, reason).await {
+    if let Err(e) = repo
+        .set_fleet_restart(guid, aggressive, deadline, reason)
+        .await
+    {
         return e.into_response();
     }
 
-    tracing::info!(mode, grace_secs = aggressive.then_some(grace_secs), "fleet-restart triggered via API");
+    tracing::info!(
+        mode,
+        grace_secs = aggressive.then_some(grace_secs),
+        "fleet-restart triggered via API"
+    );
     Json(serde_json::json!({
         "success": true,
         "mode": mode,

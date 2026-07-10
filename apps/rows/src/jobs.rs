@@ -765,6 +765,46 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
         }
     }
 
+    // Escalation re-stamp: when this restart is AGGRESSIVE (deadline set), instances already
+    // drained by an earlier non-aggressive pass carry `draindeadline = NULL` and would never match
+    // the overdue query below — the operator's "escalate to aggressive" (the primary stalled-drain
+    // recovery) would silently no-op. Re-stamp them with the aggressive params; `set_drain_state`'s
+    // monotonic guard permits the escalation (severity 1/1/true > 1/0/false) and refuses downgrades,
+    // so this is idempotent and can never relax a stricter in-flight drain.
+    if fr.drain_deadline.is_some() {
+        match repo
+            .list_deadline_restampable_instances(guid, FLEET_DRAIN_CAP)
+            .await
+        {
+            Ok(restamp) => {
+                if !restamp.is_empty() {
+                    info!(
+                        count = restamp.len(),
+                        "fleet-restart: escalating already-draining instances to the aggressive deadline"
+                    );
+                }
+                for id in &restamp {
+                    if let Err(e) = repo
+                        .set_drain_state(
+                            guid,
+                            *id,
+                            1, // draining
+                            fr.urgency,
+                            fr.drop_players,
+                            &fr.reason,
+                            fr.request_id,
+                            fr_deadline(&fr),
+                        )
+                        .await
+                    {
+                        warn!(error = %e, instance_id = id, "fleet-restart: escalation re-stamp failed");
+                    }
+                }
+            }
+            Err(e) => warn!(error = %e, "fleet-restart: escalation re-stamp list failed"),
+        }
+    }
+
     // Deadline + stall backstop: even the non-aggressive path bounds the join outage, so a
     // stuck/disabled reaper (or a population that never leaves) surfaces as a loud, observable
     // stall instead of an indefinitely-held lockout.

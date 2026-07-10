@@ -676,8 +676,13 @@ impl<'a> InstanceRepo<'a> {
     pub async fn get_admission_overrides(
         &self,
         tenant: Uuid,
-    ) -> Result<(crate::config::AdmissionOverride, crate::config::AdmissionOverride), RowsError>
-    {
+    ) -> Result<
+        (
+            crate::config::AdmissionOverride,
+            crate::config::AdmissionOverride,
+        ),
+        RowsError,
+    > {
         const GLOBAL: Uuid = Uuid::nil();
         let result = sqlx::query_as::<_, (Uuid, Option<bool>)>(
             "SELECT customerguid, acceptnewjoins FROM admission_control
@@ -1262,13 +1267,12 @@ impl<'a> InstanceRepo<'a> {
         customer_guid: Uuid,
         applied: bool,
     ) -> Result<(), RowsError> {
-        let result = sqlx::query(
-            "UPDATE fleet_restart SET lockoutapplied = $2 WHERE customerguid = $1",
-        )
-        .bind(customer_guid)
-        .bind(applied)
-        .execute(self.0)
-        .await;
+        let result =
+            sqlx::query("UPDATE fleet_restart SET lockoutapplied = $2 WHERE customerguid = $1")
+                .bind(customer_guid)
+                .bind(applied)
+                .execute(self.0)
+                .await;
         match result {
             Ok(_) => Ok(()),
             Err(e) if is_undefined_table(&e) => Ok(()), // feature dark — nothing to track
@@ -1283,13 +1287,11 @@ impl<'a> InstanceRepo<'a> {
         customer_guid: Uuid,
         lockout: bool,
     ) -> Result<(), RowsError> {
-        let result = sqlx::query(
-            "UPDATE fleet_restart SET lockout = $2 WHERE customerguid = $1",
-        )
-        .bind(customer_guid)
-        .bind(lockout)
-        .execute(self.0)
-        .await;
+        let result = sqlx::query("UPDATE fleet_restart SET lockout = $2 WHERE customerguid = $1")
+            .bind(customer_guid)
+            .bind(lockout)
+            .execute(self.0)
+            .await;
         match result {
             Ok(_) => Ok(()),
             Err(e) if is_undefined_table(&e) => Ok(()),
@@ -1313,6 +1315,30 @@ impl<'a> InstanceRepo<'a> {
         )
         .bind(customer_guid)
         .bind(now)
+        .fetch_all(self.0)
+        .await?;
+        Ok(rows.into_iter().map(|r| r.0).collect())
+    }
+
+    /// Draining (`drainstate = 1`) instances that carry NO per-instance deadline — i.e. rows
+    /// stamped by an earlier NON-aggressive drain. When an operator escalates a stalled restart to
+    /// aggressive, these must be re-stamped with the aggressive params + deadline or the deadline
+    /// backstop never matches them and the escalation silently no-ops (the primary runbook
+    /// recovery). `drainstate = 2` (saving) is excluded — those are already past drain.
+    pub async fn list_deadline_restampable_instances(
+        &self,
+        customer_guid: Uuid,
+        limit: i64,
+    ) -> Result<Vec<i32>, RowsError> {
+        let rows: Vec<(i32,)> = sqlx::query_as(
+            "SELECT mapinstanceid FROM mapinstances
+             WHERE customerguid = $1 AND status > 0
+               AND drainstate = 1 AND draindeadline IS NULL
+             ORDER BY mapinstanceid
+             LIMIT $2",
+        )
+        .bind(customer_guid)
+        .bind(limit)
         .fetch_all(self.0)
         .await?;
         Ok(rows.into_iter().map(|r| r.0).collect())
@@ -1534,7 +1560,9 @@ mod tests {
         let on_active = repo
             .is_character_on_active_instance(tenant, char_on_instance)
             .await;
-        let fresh = repo.is_character_on_active_instance(tenant, char_fresh).await;
+        let fresh = repo
+            .is_character_on_active_instance(tenant, char_fresh)
+            .await;
 
         // Clean up the synthetic tenant's seed BEFORE asserting, so a failed assert can't leak rows.
         let _ = sqlx::query("DELETE FROM ows.charonmapinstance WHERE customerguid = $1")
