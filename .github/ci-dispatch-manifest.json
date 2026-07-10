@@ -415,7 +415,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.64",
+			"version": "1.0.65",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",

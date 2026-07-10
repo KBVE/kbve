@@ -119,6 +119,13 @@ ENV VERSION=1.21.11
 ENV FABRIC_LOADER_VERSION=0.18.6
 ENV EULA=TRUE
 
+# Wipe /data/mods on the PVC before re-copying the image's /mods on every
+# boot. Without this, itzg leaves orphaned jars behind when a mod is bumped
+# or renamed (e.g. a stale grimac-fabric build sitting next to the current
+# one). Every mod on this server is image-sourced, so a clean re-copy is
+# always correct.
+ENV REMOVE_OLD_MODS=true
+
 ENV MEMORY=3G
 
 ENV ENABLE_RCON=true

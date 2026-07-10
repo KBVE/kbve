@@ -38,6 +38,11 @@ public class BehaviorStateTreeMod implements ModInitializer {
 
         StarterKit.register();
 
+        // Teach GrimAC's bundled PacketEvents about modded item/entity IDs at
+        // server start so it stops throwing on every inventory tick and
+        // freezing the server. Guarded no-op when PacketEvents is absent.
+        com.kbve.statetree.compat.PacketEventsRegistryBridge.register();
+
         com.kbve.statetree.wallet.WalletScreens.register();
 
         if (!NativeRuntime.isLoaded()) {
