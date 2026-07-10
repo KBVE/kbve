@@ -1458,13 +1458,15 @@ impl<'a> InstanceRepo<'a> {
         aggressive: bool,
         deadline: Option<chrono::DateTime<chrono::Utc>>,
         reason: &str,
+        stagger: bool,
+        batch_size: i32,
     ) -> Result<bool, RowsError> {
         let (urgency, drop_players): (i16, bool) = if aggressive { (1, true) } else { (0, false) };
         let result = sqlx::query(
             "INSERT INTO fleet_restart
                  (customerguid, active, reason, urgency, dropplayers, stagger, batchsize,
                   lockout, lockoutapplied, startedat, draindeadline, requestid)
-             VALUES ($1, true, $2, $3, $4, false, 1, true, false, now(), $5, gen_random_uuid())
+             VALUES ($1, true, $2, $3, $4, $6, $7, true, false, now(), $5, gen_random_uuid())
              ON CONFLICT (customerguid) DO UPDATE SET
                  active = true, reason = EXCLUDED.reason, urgency = EXCLUDED.urgency,
                  dropplayers = EXCLUDED.dropplayers, draindeadline = EXCLUDED.draindeadline,
@@ -1478,6 +1480,8 @@ impl<'a> InstanceRepo<'a> {
         .bind(urgency)
         .bind(drop_players)
         .bind(deadline)
+        .bind(stagger)
+        .bind(batch_size)
         .execute(self.0)
         .await?;
         Ok(result.rows_affected() > 0)

@@ -563,7 +563,9 @@ clearing the row.
 **Aggressive trigger API (`POST /fleet-restart/trigger`):** requires the gateway bearer token
 (`ROWS_FLEET_RESTART_TOKEN` — GameServers must NOT hold it; a NetworkPolicy can't keep them off the
 path since they share port 4322), and 404s unless `deploy_state` reports an update pending
-(`GET /fleet-restart/pending`).
+(`GET /fleet-restart/pending`). Optional pacing fields for batched rollouts: `stagger: true` +
+`batch_size: N` drains N instances per 30s tick instead of the whole fleet at once (batch-paced,
+NOT strict wave isolation — see the fleet-restart plan). Defaults (`false`/`1`) = whole-fleet.
 
 **Index health:** the drainable scan is backed by `idx_mapinstances_drainable` (built
 `CONCURRENTLY`). An interrupted build strands an INVALID index Postgres silently ignores; ROWS

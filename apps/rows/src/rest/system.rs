@@ -203,12 +203,12 @@ const FLEET_RESTART_DEFAULT_GRACE_SECS: i64 = 300;
     summary = "Trigger a coordinated fleet restart",
     description = "Upserts the fleet_restart control row. aggressive: urgency=1, dropplayers=true, deadline=now()+grace_secs (default 300) — save-then-disconnect at the deadline; requires a pending update. non_aggressive: drain-to-natural-empty, never disconnects. Requires the gateway bearer token (ROWS_FLEET_RESTART_TOKEN); NOT public, NOT for GameServers.",
     request_body(
-        description = "{ mode: \"aggressive\"|\"non_aggressive\", grace_secs?: i64 }",
+        description = "{ mode: \"aggressive\"|\"non_aggressive\", grace_secs?: i64, stagger?: bool (default false), batch_size?: i64 >= 1 (default 1) } — stagger paces the drain in batches of batch_size per 30s tick; it is NOT strict wave-by-wave isolation (the next batch starts when instances are still un-drained, not when the previous batch completes)",
         content_type = "application/json"
     ),
     responses(
         (status = 200, description = "Restart activated: { success, mode, drain_deadline? }"),
-        (status = 400, description = "Invalid mode / grace_secs"),
+        (status = 400, description = "Invalid mode / grace_secs / batch_size"),
         (status = 401, description = "Missing/invalid gateway token"),
         (status = 404, description = "Aggressive mode with no pending update"),
         (status = 409, description = "A restart is already active"),
@@ -262,6 +262,25 @@ pub async fn fleet_restart_trigger(
         )
             .into_response();
     }
+    // Batched rollout pacing. NOTE: stagger is batch-paced draining, NOT strict wave-by-wave
+    // isolation — the next batch is gated on instances still being un-drained, not on the previous
+    // batch completing. Defaults preserve the whole-fleet behavior. Validated here so the DB
+    // CHECK (BatchSize >= 1) surfaces as a 400, not a 500.
+    let stagger = body
+        .get("stagger")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let batch_size = body.get("batch_size").and_then(|v| v.as_i64()).unwrap_or(1);
+    if !(1..=i64::from(i32::MAX)).contains(&batch_size) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "batch_size must be >= 1",
+            })),
+        )
+            .into_response();
+    }
 
     let guid = hs.app.config.customer_guid;
     let repo = crate::repo::InstanceRepo(&hs.app.db);
@@ -296,7 +315,14 @@ pub async fn fleet_restart_trigger(
     // the deadline, and a check-then-write here would race two concurrent triggers. `false` =
     // another restart is active → 409; the operator clears or finishes it first.
     match repo
-        .set_fleet_restart(guid, aggressive, deadline, reason)
+        .set_fleet_restart(
+            guid,
+            aggressive,
+            deadline,
+            reason,
+            stagger,
+            batch_size as i32,
+        )
         .await
     {
         Ok(true) => {}
