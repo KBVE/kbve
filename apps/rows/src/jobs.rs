@@ -636,6 +636,30 @@ async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
          (rows-pdb is maxUnavailable:1; a single replica pauses orchestration on every node drain)"
     );
 
+    // Refuse to run at all if session-level advisory locks aren't actually session-pinned (i.e.
+    // the pool points at a transaction-mode pooler): behind one, lock and unlock land on different
+    // backends, both replicas "win" the tenant every tick, and the double fan-out / lockout races
+    // are silent. A comment can't enforce the endpoint choice — probe it. DB errors retry (the DB
+    // may just not be up yet); a definitive "not pinned" disables the job for this process.
+    loop {
+        match verify_session_pinned_locks(&svc.state().db).await {
+            Ok(true) => break,
+            Ok(false) => {
+                error!(
+                    "fleet-restart: advisory locks are NOT session-pinned (transaction-mode \
+                     pooler?) — reconcile DISABLED for this process. Point DATABASE_URL at the \
+                     direct RW endpoint (or a session-mode pooler) and restart. The reaper's \
+                     advisory lock has the same requirement."
+                );
+                return;
+            }
+            Err(e) => {
+                warn!(error = %e, "fleet-restart: session-pinning probe failed — retrying in 60s");
+                tokio::time::sleep(Duration::from_secs(60)).await;
+            }
+        }
+    }
+
     let mut interval = tokio::time::interval(Duration::from_secs(30));
     interval.tick().await;
     loop {
@@ -692,6 +716,28 @@ async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
             }
         }
     }
+}
+
+/// Probes whether statements on one pooled connection reach ONE backend session — the invariant
+/// every session-level advisory lock here depends on. Takes a probe advisory lock, then asks
+/// `pg_locks` whether the *current backend* holds an advisory lock: behind a transaction-mode
+/// pooler the two statements can land on different backends, so the lock is invisible to the
+/// second (`false`). Always releases via `pg_advisory_unlock_all()` on the same pinned connection.
+async fn verify_session_pinned_locks(db: &crate::db::DbPool) -> Result<bool, sqlx::Error> {
+    let mut conn = db.acquire().await?;
+    sqlx::query("SELECT pg_try_advisory_lock(hashtext('rows-pooler-probe'), 0)")
+        .execute(&mut *conn)
+        .await?;
+    let pinned: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM pg_locks
+         WHERE locktype = 'advisory' AND pid = pg_backend_pid())",
+    )
+    .fetch_one(&mut *conn)
+    .await?;
+    sqlx::query("SELECT pg_advisory_unlock_all()")
+        .execute(&mut *conn)
+        .await?;
+    Ok(pinned)
 }
 
 /// The `deadline` stamped on each `set_drain_state`: aggressive restarts carry the row's

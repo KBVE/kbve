@@ -20,9 +20,10 @@ CREATE TABLE IF NOT EXISTS fleet_restart
     StartedAt     TIMESTAMPTZ NOT NULL DEFAULT now(), -- when this restart went active; backs the stall backstop
     DrainDeadline TIMESTAMPTZ NULL,              -- aggressive only: force-deallocate overdue instances past this; NULL on the non-aggressive path (never forces)
     TargetVersion TEXT    NULL,                  -- reserved (version-selective drain; deferred)
-    RequestID     UUID    NOT NULL,
+    RequestID     UUID    NOT NULL DEFAULT gen_random_uuid(), -- defaulted so a hand-written operator INSERT can't fail the NOT NULL
     CONSTRAINT PK_FleetRestart PRIMARY KEY (CustomerGUID),
     CONSTRAINT chk_urgency CHECK (Urgency IN (0,1)),
+    CONSTRAINT chk_batchsize CHECK (BatchSize >= 1),
     -- Safe-by-default is a HARD invariant. Column defaults alone don't stop a hand-written /
     -- partial-upsert row like (urgency=0, dropplayers=true) from force-disconnecting on the
     -- "non-aggressive" path. Make it structural: force-disconnect and a deadline require aggressive.
@@ -38,9 +39,27 @@ ALTER TABLE fleet_restart FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON fleet_restart FROM anon, authenticated, PUBLIC;
 GRANT SELECT, INSERT, UPDATE, DELETE ON fleet_restart TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON fleet_restart TO ows;
-CREATE POLICY ows_access ON fleet_restart FOR ALL TO ows USING (true) WITH CHECK (true);
-CREATE POLICY service_role_access ON fleet_restart FOR ALL TO service_role USING (true) WITH CHECK (true);
+-- CREATE POLICY has no IF NOT EXISTS: guard it so this migration survives an environment
+-- bootstrapped from packages/data/sql/schema/ (where CREATE TABLE IF NOT EXISTS skips but a bare
+-- CREATE POLICY would error and wedge the whole migration run).
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'ows'
+                   AND tablename = 'fleet_restart' AND policyname = 'ows_access') THEN
+        CREATE POLICY ows_access ON fleet_restart FOR ALL TO ows USING (true) WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'ows'
+                   AND tablename = 'fleet_restart' AND policyname = 'service_role_access') THEN
+        CREATE POLICY service_role_access ON fleet_restart FOR ALL TO service_role USING (true) WITH CHECK (true);
+    END IF;
+END $$;
 
 -- migrate:down
 SET search_path TO ows;
+-- The reconcile's one-shot lockout lift needs a READABLE fleet_restart row (row-absent and 42P01
+-- both read as "inert — nothing we ever locked"). Dropping the table mid-restart would therefore
+-- strand admission_control.acceptnewjoins=false FOREVER (a permanent new-player join outage that
+-- nothing lifts). Lift any owned lockout before the table goes away.
+UPDATE admission_control SET acceptnewjoins = NULL
+WHERE customerguid IN (SELECT customerguid FROM fleet_restart WHERE lockoutapplied);
 DROP TABLE IF EXISTS fleet_restart;

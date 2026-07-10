@@ -1463,6 +1463,7 @@ impl<'a> InstanceRepo<'a> {
              ON CONFLICT (customerguid) DO UPDATE SET
                  active = true, reason = EXCLUDED.reason, urgency = EXCLUDED.urgency,
                  dropplayers = EXCLUDED.dropplayers, draindeadline = EXCLUDED.draindeadline,
+                 stagger = EXCLUDED.stagger, batchsize = EXCLUDED.batchsize,
                  lockout = true, lockoutapplied = false, startedat = now(),
                  requestid = gen_random_uuid()
              WHERE fleet_restart.active = false",

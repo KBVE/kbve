@@ -20,10 +20,11 @@ CREATE TABLE fleet_restart
     StartedAt     TIMESTAMPTZ NOT NULL DEFAULT now(), -- stall-backstop clock
     DrainDeadline TIMESTAMPTZ NULL,              -- aggressive only; NULL = never force
     TargetVersion TEXT    NULL,                  -- reserved (version-selective drain; deferred)
-    RequestID     UUID    NOT NULL,
+    RequestID     UUID    NOT NULL DEFAULT gen_random_uuid(),
     CONSTRAINT PK_FleetRestart
         PRIMARY KEY (CustomerGUID),
     CONSTRAINT chk_urgency CHECK (Urgency IN (0,1)),
+    CONSTRAINT chk_batchsize CHECK (BatchSize >= 1),
     -- Safe-by-default, structurally: force-disconnect and a deadline require aggressive.
     CONSTRAINT chk_safe_default   CHECK (Urgency = 1 OR DropPlayers = false),
     CONSTRAINT chk_deadline_aggr  CHECK (DrainDeadline IS NULL OR Urgency = 1)

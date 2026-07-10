@@ -574,6 +574,32 @@ ows.idx_mapinstances_drainable;` then re-run dbmate up.
 blocked on the chuck login-crash) sequences drain → barrier → scale-to-0 `maxSurge:0` cutover →
 migration → scale-up → soak → `deploy_state.rolled=true`. Until it exists, that sequence is manual.
 
+**Rollout checklist (one-time, per env — audit items F4/F5/F6):**
+
+1. **Pre-seed `deploy_state` right after the migration** so the launcher target can't be defined by
+   whichever pod reports first (ReportBuild's seed is `ON CONFLICT DO NOTHING`, so a manual seed
+   wins and the empty-table race window closes):
+
+    ```sql
+    SET search_path TO ows;
+    INSERT INTO deploy_state (customerguid, targetversion, rolled, health)
+    VALUES ('<tenant-guid>', '<currently-served-version>', true, 'healthy')
+    ON CONFLICT (customerguid) DO NOTHING;
+    ```
+
+2. **Verify the sealed `ROWS_FLEET_RESTART_TOKEN` is live in every rows namespace** (pod env set,
+   gateway holds the value). Until it is, legacy `RestartFleet` remains tenant-GUID-only
+   authenticated (deliberate break-glass compatibility); **once verified everywhere, make the
+   token unconditional on `RestartFleet`** (drop the "only when env set" gate in
+   `rest/system.rs::restart_fleet`) so both destructive endpoints fail closed.
+3. **Confirm `DATABASE_URL` is the direct RW endpoint** (or a session-mode pooler). The reconcile
+   probes this at startup (`verify_session_pinned_locks`) and disables itself with an `error!` if
+   advisory locks aren't session-pinned — if you see that log line, fix the connection string; do
+   not force the job on.
+4. **Down-migration note:** `20260629120000` `migrate:down` lifts any owned admission lockout
+   before dropping `fleet_restart` — but rolling back mid-restart still abandons the drain;
+   clear the restart (`active=false`) first when possible.
+
 ## Drain state representation
 
 Lean toward dedicated columns on `mapinstances` (keeps the existing `status` 0/1/2 semantics intact):
