@@ -11,6 +11,7 @@ import type {
 } from '@kbve/core';
 import { KBVE_API_URL } from '../config';
 import { mapSession } from './supabase';
+import { toastStore } from '../ui/state/toastStore';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -156,6 +157,39 @@ export function createSupabaseAuthExecutor(
 							});
 							return;
 						}
+						const { data: refreshed } =
+							await client.auth.refreshSession();
+						dispatch({
+							type: 'session_changed',
+							session: mapSession(refreshed.session),
+						});
+					})();
+					break;
+				case 'api.auto_claim_username':
+					void (async () => {
+						const { data } = await client.auth.getSession();
+						const token = data.session?.access_token;
+						if (!token) return;
+						const result = await request<{
+							claimed: boolean;
+							username: string | null;
+						}>(`${KBVE_API_URL}/api/v1/profile/username/auto`, {
+							method: 'POST',
+							headers: { Authorization: `Bearer ${token}` },
+							body: { provider: effect.provider ?? undefined },
+							timeoutMs: 10000,
+						});
+						if (
+							!result.ok ||
+							!result.data?.claimed ||
+							!result.data.username
+						) {
+							return;
+						}
+						toastStore.push(
+							`Welcome! Your username is @${result.data.username} — change it in settings.`,
+							'success',
+						);
 						const { data: refreshed } =
 							await client.auth.refreshSession();
 						dispatch({
