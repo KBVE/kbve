@@ -119,6 +119,13 @@ export function App() {
 				dpr={psx.dpr}
 				gl={{ antialias: true, powerPreference: 'high-performance' }}
 				camera={{ fov: psx.fov, near: 0.05, far: 100 }}
+				onCreated={({ camera, scene, gl }) => {
+					(window as unknown as Record<string, unknown>).__vm = {
+						camera,
+						scene,
+						gl,
+					};
+				}}
 				style={{ imageRendering: 'pixelated' }}>
 				<color attach="background" args={['#0a0a0e']} />
 				<hemisphereLight args={['#fff0e6', '#20202c', 2.2]} />
@@ -126,6 +133,7 @@ export function App() {
 				<Suspense fallback={null}>
 					<DungeonScene snap={psx.snap} affine={psx.affine} />
 				</Suspense>
+				<FpsControls eye={psx.eye} fov={psx.fov} />
 				<Suspense fallback={null}>
 					<Viewmodel
 						equippedId={equippedId}
@@ -133,7 +141,6 @@ export function App() {
 						restOverride={rest}
 					/>
 				</Suspense>
-				<FpsControls eye={psx.eye} fov={psx.fov} />
 				<AimReticle onAim={setAim} />
 			</Canvas>
 			<Hud kind={aim} equippedId={equippedId} />

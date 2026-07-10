@@ -21,15 +21,15 @@ export const REST: ViewmodelRest = {
 };
 
 export const MOTION = {
-	idleBobAmp: 0.006,
+	idleBobAmp: 0,
 	idleBobFreq: 1.4,
-	idleSwayAmp: 0.004,
-	walkBobAmp: 0.02,
-	walkBobFreq: 9,
-	walkLerp: 6,
-	swayPos: 0.05,
-	swayRot: 0.06,
-	swayLerp: 8,
+	idleSwayAmp: 0,
+	walkBobAmp: 0,
+	walkBobFreq: 7,
+	walkLerp: 5,
+	swayPos: 0,
+	swayRot: 0,
+	swayLerp: 6,
 	recoilBack: 0.09,
 	recoilKick: 0.16,
 	recoilRoll: 0.05,
@@ -38,3 +38,27 @@ export const MOTION = {
 } as const;
 
 export const SOCKET_BONE = 'socket.r';
+
+export const ARM_IK = {
+	enabled: true,
+	holdToReach: false,
+	bicep: 'bicep.r',
+	forearm: 'forearm.r',
+	wrist: 'wrist.r',
+	reachFactor: 0.9,
+	weightNear: 0.55,
+	engageLerp: 10,
+	releaseLerp: 2.5,
+	missGrace: 0.6,
+	targetLerp: 10,
+	engageFrac: 0.9,
+	releaseFrac: 1.05,
+	palmOut: 0.015,
+	poleSign: 1,
+	poleHint: [0, -1, 0.15] as [number, number, number],
+	wristAlign: true,
+	fingerLocal: [0, 1, 0] as [number, number, number],
+	palmLocal: [-1, 0, 0] as [number, number, number],
+	debugAxes: true,
+	debugLog: false,
+} as const;

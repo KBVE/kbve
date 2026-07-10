@@ -5,6 +5,7 @@ import { useAnimations, useGLTF } from '@react-three/drei';
 import { ARMS_URL, REST, type ViewmodelRest } from './config';
 import { makePsxViewmodelMaterial } from './psxSkinnedMaterial';
 import { useViewmodelMotion } from './useViewmodelMotion';
+import { useArmIk } from './useArmIk';
 
 useGLTF.preload(ARMS_URL);
 
@@ -19,9 +20,12 @@ export function Viewmodel({ snap, restOverride }: Props) {
 	const gltf = useGLTF(ARMS_URL);
 
 	const groupRef = useRef<THREE.Group>(null);
+	const clearedFrame = useRef(-1);
 	const restRef = useRef<ViewmodelRest>({ ...REST });
 	useViewmodelMotion(groupRef, restRef);
 	const { actions, mixer } = useAnimations(gltf.animations, groupRef);
+	const sceneRootRef = useRef<THREE.Object3D | null>(null);
+	useArmIk(groupRef, sceneRootRef);
 
 	const psx = useMemo(() => {
 		let map: THREE.Texture | null = null;
@@ -42,7 +46,14 @@ export function Viewmodel({ snap, restOverride }: Props) {
 				mesh.material = psx.material;
 				mesh.frustumCulled = false;
 				mesh.renderOrder = 999;
-				mesh.raycast = () => {};
+				mesh.raycast = () => undefined;
+				mesh.onBeforeRender = (renderer) => {
+					const f = renderer.info.render.frame;
+					if (f !== clearedFrame.current) {
+						clearedFrame.current = f;
+						renderer.clearDepth();
+					}
+				};
 			}
 		});
 	}, [gltf, psx]);

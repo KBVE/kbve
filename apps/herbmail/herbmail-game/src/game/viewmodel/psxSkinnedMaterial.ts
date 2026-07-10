@@ -28,7 +28,7 @@ export function makePsxViewmodelMaterial(
 
 	return {
 		material,
-		setSnap: () => {},
-		setRes: () => {},
+		setSnap: () => undefined,
+		setRes: () => undefined,
 	};
 }

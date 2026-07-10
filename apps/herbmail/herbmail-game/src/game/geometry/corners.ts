@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COLS, ROWS } from '../level';
-import { COVE_R, TILE, WALL_H, WALL_SEG } from '../config';
+import { COVE_R, TILE, WALL_H } from '../config';
 import { DIRS, isBay, isSolid } from './faces';
 
 const ARC_SEG = 6;
