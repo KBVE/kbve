@@ -550,14 +550,51 @@ pub async fn restart_game_server(
     ),
     responses(
         (status = 200, description = "{ success: bool, message?: string, error?: string }"),
+        (status = 409, description = "A cooperative fleet restart is active — refused (use the fleet-restart flow)"),
+        (status = 503, description = "Could not verify the fleet_restart control row — refused (fail closed)"),
     )
 )]
 pub async fn restart_fleet(
     State(hs): State<HandlerState>,
     Json(body): Json<serde_json::Value>,
-) -> Json<serde_json::Value> {
+) -> axum::response::Response {
+    use axum::response::IntoResponse;
+
     let customer_guid = hs.app.config.customer_guid;
     let desired_replicas = body.get("replicas").and_then(|v| v.as_i64()).unwrap_or(2) as i32;
+
+    // The cooperative fleet-restart flow supersedes this imperative scale-to-0: firing it during
+    // an in-flight drain would delete instances out from under the reconcile AND force-drop every
+    // player a non-aggressive drain promised not to touch. Refuse while a restart is active; this
+    // stays available as a break-glass once the restart row is cleared (active=false).
+    match crate::repo::InstanceRepo(&hs.app.db)
+        .get_fleet_restart(customer_guid)
+        .await
+    {
+        Ok(Some(fr)) if fr.active => {
+            return (
+                axum::http::StatusCode::CONFLICT,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": "A cooperative fleet restart is active — use the fleet-restart flow \
+                              (or clear it with active=false) instead of the legacy RestartFleet",
+                })),
+            )
+                .into_response();
+        }
+        Ok(_) => {}
+        Err(e) => {
+            // Fail closed: if we can't read the control row we can't prove no drain is in flight.
+            return (
+                axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": format!("Cannot verify no cooperative restart is active: {e}"),
+                })),
+            )
+                .into_response();
+        }
+    }
 
     if let Some(ref agones) = hs.app.agones {
         tracing::info!("RestartFleet: scaling to 0");
@@ -565,7 +602,8 @@ pub async fn restart_fleet(
             return Json(serde_json::json!({
                 "success": false,
                 "error": format!("Failed to scale fleet to 0: {e}")
-            }));
+            }))
+            .into_response();
         }
 
         tokio::time::sleep(std::time::Duration::from_secs(5)).await;
@@ -576,7 +614,8 @@ pub async fn restart_fleet(
         return Json(serde_json::json!({
             "success": false,
             "error": format!("Failed to clean DB: {e}")
-        }));
+        }))
+        .into_response();
     }
     if let Err(e) = repo.deactivate_all_world_servers(customer_guid).await {
         tracing::warn!(error = %e, "Failed to deactivate world servers");
@@ -591,7 +630,8 @@ pub async fn restart_fleet(
             return Json(serde_json::json!({
                 "success": false,
                 "error": format!("DB cleaned but failed to scale fleet back up: {e}. Manual scale needed.")
-            }));
+            }))
+            .into_response();
         }
     }
 
@@ -608,6 +648,7 @@ pub async fn restart_fleet(
         "success": true,
         "message": format!("Fleet restarted. Scaled 0 → {desired_replicas}. DB cleaned.")
     }))
+    .into_response()
 }
 
 #[utoipa::path(
