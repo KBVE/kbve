@@ -24,18 +24,6 @@ export function getEquippedId() {
 	return equippedId;
 }
 
-let offhandId = 'empty';
-
-export function setOffhand(id: string) {
-	if (id === offhandId) return;
-	offhandId = id;
-	emit();
-}
-
-export function getOffhand() {
-	return offhandId;
-}
-
 function subscribe(cb: () => void) {
 	listeners.add(cb);
 	return () => listeners.delete(cb);
@@ -43,8 +31,4 @@ function subscribe(cb: () => void) {
 
 export function useEquippedId() {
 	return useSyncExternalStore(subscribe, getEquippedId, getEquippedId);
-}
-
-export function useOffhand() {
-	return useSyncExternalStore(subscribe, getOffhand, getOffhand);
 }

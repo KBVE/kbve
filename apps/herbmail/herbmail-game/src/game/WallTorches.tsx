@@ -3,12 +3,11 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { useTorches, type Torch } from './torches';
-import { roomAt } from './level';
 import { Flame } from './Flame';
-
 const TORCH_URL = '/models/torch.glb';
 useGLTF.preload(TORCH_URL);
 
+const CULL_SQ = 12 * 12;
 const SCALE = 1.1;
 const HEAD_LOCAL = new THREE.Vector3(0, 0, 1);
 const FLAME_COLOR = 0xff8a3c;
@@ -71,7 +70,9 @@ function TorchInstance({
 		const r = ref.current;
 		if (!r.light) return;
 		const cam = state.camera;
-		const lit = roomAt(cam.position.x, cam.position.z) === torch.room;
+		const dx = headPos[0] - cam.position.x;
+		const dz = headPos[2] - cam.position.z;
+		const lit = dx * dx + dz * dz < CULL_SQ;
 		r.light.visible = lit;
 		if (!lit) return;
 		const t = state.clock.elapsedTime;
