@@ -1186,6 +1186,71 @@ impl<'a> InstanceRepo<'a> {
 
         Ok(row.0)
     }
+
+    /// The tenant's `fleet_restart` control row. `None` when no row exists AND when the table
+    /// doesn't exist yet (SQLSTATE 42P01) — the reconcile job treats both as "inert, nothing to
+    /// do", so a rows image shipping ahead of the migration runs dark instead of erroring every
+    /// tick. Other DB errors propagate.
+    pub async fn get_fleet_restart(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<Option<crate::config::FleetRestart>, RowsError> {
+        let result = sqlx::query_as::<_, crate::config::FleetRestart>(
+            "SELECT active, reason, urgency, dropplayers, stagger, batchsize, lockout,
+                    lockoutapplied, startedat, draindeadline, targetversion, requestid
+             FROM fleet_restart WHERE customerguid = $1",
+        )
+        .bind(customer_guid)
+        .fetch_optional(self.0)
+        .await;
+        match result {
+            Ok(row) => Ok(row),
+            Err(e) if is_undefined_table(&e) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Active (`status > 0`) instances not already draining (`drainstate IS NULL`), oldest first,
+    /// capped — the fleet-restart reconcile's batch source. Excluding already-draining rows means
+    /// the reconcile never re-drains; an instance leaves the "active" count only when the reaper /
+    /// lifecycle moves it to `status = 0`.
+    pub async fn list_drainable_instances(
+        &self,
+        customer_guid: Uuid,
+        limit: i64,
+    ) -> Result<Vec<i32>, RowsError> {
+        let rows: Vec<(i32,)> = sqlx::query_as(
+            "SELECT mapinstanceid FROM mapinstances
+             WHERE customerguid = $1 AND status > 0 AND drainstate IS NULL
+             ORDER BY mapinstanceid
+             LIMIT $2",
+        )
+        .bind(customer_guid)
+        .bind(limit)
+        .fetch_all(self.0)
+        .await?;
+        Ok(rows.into_iter().map(|r| r.0).collect())
+    }
+
+    /// Detects the silent-failure mode of `CREATE INDEX CONCURRENTLY`: a failed concurrent build
+    /// leaves the index in an `INVALID` state that Postgres refuses to use, degrading the per-tick
+    /// `list_drainable_instances` scan to a seq-scan on the hot `mapinstances` table with no error.
+    /// Called once at startup (see `jobs::spawn_all`); logs a `warn!` for alerting. Returns
+    /// `Ok(None)` when the index doesn't exist yet (migration not applied) — that is not invalid,
+    /// just absent. Recovery: `DROP INDEX idx_mapinstances_drainable;` then re-create CONCURRENTLY.
+    pub async fn check_drainable_index_valid(&self) -> Result<Option<bool>, RowsError> {
+        let result = sqlx::query_scalar::<_, bool>(
+            "SELECT i.indisvalid FROM pg_index i
+             JOIN pg_class c ON c.oid = i.indexrelid
+             WHERE c.relname = 'idx_mapinstances_drainable'",
+        )
+        .fetch_optional(self.0)
+        .await;
+        match result {
+            Ok(v) => Ok(v),
+            Err(e) => Err(e.into()),
+        }
+    }
 }
 
 #[cfg(test)]
