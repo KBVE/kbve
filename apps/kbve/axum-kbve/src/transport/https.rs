@@ -170,6 +170,12 @@ pub(crate) struct SetUsernameRequest {
     pub username: String,
 }
 
+#[derive(Debug, serde::Deserialize, ToSchema)]
+pub(crate) struct AutoClaimRequest {
+    #[serde(default)]
+    pub provider: Option<String>,
+}
+
 pub async fn serve(state: AppState) -> Result<()> {
     let host = std::env::var("HTTP_HOST").unwrap_or_else(|_| "0.0.0.0".into());
     let port: u16 = std::env::var("HTTP_PORT")
@@ -291,6 +297,10 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/osrs/{item_id}", get(osrs_api_handler))
         .route("/api/v1/profile/me", get(profile_me_handler))
         .route("/api/v1/profile/username", post(set_username_handler))
+        .route(
+            "/api/v1/profile/username/auto",
+            post(auto_claim_username_handler),
+        )
         // Discord Activity session bridge (arpg embed): OAuth code -> Discord
         // token -> linked KBVE profile -> Supabase HS256 JWT. The Activity itself
         // is served from arpg.kbve.com/discord/arpg/ (portal root); it reaches
@@ -2122,6 +2132,95 @@ pub(crate) async fn set_username_handler(
                 Json(json!({
                     "error": e
                 })),
+            )
+                .into_response()
+        }
+    }
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/v1/profile/username/auto",
+    tag = "profile",
+    request_body = AutoClaimRequest,
+    responses(
+        (status = 200, description = "Auto-claim attempted", body = serde_json::Value),
+        (status = 401, description = "Missing / invalid / expired token"),
+        (status = 503, description = "Auth or profile service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn auto_claim_username_handler(
+    headers: HeaderMap,
+    Json(body): Json<AutoClaimRequest>,
+) -> impl IntoResponse {
+    let token = match extract_request_token(&headers) {
+        Some(t) => t,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({ "error": "Missing authentication" })),
+            )
+                .into_response();
+        }
+    };
+    let token = token.as_str();
+
+    let jwt_cache = match get_jwt_cache() {
+        Some(cache) => cache,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "error": "Authentication service unavailable" })),
+            )
+                .into_response();
+        }
+    };
+
+    let token_info = match jwt_cache.verify_and_cache(token).await {
+        Ok(info) => info,
+        Err(_) => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({ "error": "Invalid token" })),
+            )
+                .into_response();
+        }
+    };
+
+    let profile_service = match get_profile_service() {
+        Some(s) => s,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "error": "Profile service unavailable" })),
+            )
+                .into_response();
+        }
+    };
+
+    let provider = body
+        .provider
+        .as_deref()
+        .filter(|p| matches!(*p, "discord" | "github" | "twitch"));
+
+    match profile_service
+        .auto_claim_username(&token_info.user_id, provider)
+        .await
+    {
+        Ok(result) => (
+            StatusCode::OK,
+            Json(json!({
+                "claimed": result.claimed,
+                "username": result.username,
+            })),
+        )
+            .into_response(),
+        Err(e) => {
+            tracing::warn!(user_id = %token_info.user_id, error = %e, "Auto-claim failed");
+            (
+                StatusCode::OK,
+                Json(json!({ "claimed": false, "username": null })),
             )
                 .into_response()
         }
