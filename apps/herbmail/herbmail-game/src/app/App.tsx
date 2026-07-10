@@ -121,6 +121,8 @@ export function App() {
 				camera={{ fov: psx.fov, near: 0.05, far: 100 }}
 				style={{ imageRendering: 'pixelated' }}>
 				<color attach="background" args={['#0a0a0e']} />
+				<hemisphereLight args={['#fff0e6', '#20202c', 2.2]} />
+				<ambientLight intensity={0.5} />
 				<Suspense fallback={null}>
 					<DungeonScene snap={psx.snap} affine={psx.affine} />
 				</Suspense>

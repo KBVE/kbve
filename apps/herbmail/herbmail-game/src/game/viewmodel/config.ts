@@ -12,8 +12,8 @@ export interface ViewmodelRest {
 
 export const REST: ViewmodelRest = {
 	px: 0,
-	py: -0.28,
-	pz: -0.54,
+	py: -0.06,
+	pz: -0.08,
 	rx: 0.1,
 	ry: 0,
 	rz: 0,

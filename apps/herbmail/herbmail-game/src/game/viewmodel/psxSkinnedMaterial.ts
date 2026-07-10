@@ -1,25 +1,14 @@
 import * as THREE from 'three';
 
 export interface PsxViewmodelMaterial {
-	material: THREE.MeshBasicMaterial;
+	material: THREE.Material;
 	setSnap: (v: number) => void;
 	setRes: (w: number, h: number) => void;
 }
 
-const SNAP_INJECT = /* glsl */ `
-	#include <project_vertex>
-	{
-		vec3 psxNdc = gl_Position.xyz / gl_Position.w;
-		float psxAspect = uRes.x / max(uRes.y, 1.0);
-		vec2 psxGrid = vec2(uSnap * psxAspect, uSnap);
-		psxNdc.xy = floor(psxNdc.xy * psxGrid + 0.5) / psxGrid;
-		gl_Position.xyz = psxNdc * gl_Position.w;
-	}
-`;
-
 export function makePsxViewmodelMaterial(
 	map: THREE.Texture | null,
-	snap: number,
+	_snap: number,
 ): PsxViewmodelMaterial {
 	if (map) {
 		map.magFilter = THREE.NearestFilter;
@@ -28,7 +17,7 @@ export function makePsxViewmodelMaterial(
 		map.needsUpdate = true;
 	}
 
-	const material = new THREE.MeshBasicMaterial({
+	const material = new THREE.MeshLambertMaterial({
 		map,
 		color: map ? 0xffffff : 0xff44aa,
 	});
@@ -37,14 +26,9 @@ export function makePsxViewmodelMaterial(
 	material.depthWrite = true;
 	material.side = THREE.FrontSide;
 
-	const uSnap = { value: snap };
-	const uRes = { value: new THREE.Vector2(1, 1) };
-
-	void SNAP_INJECT;
-
 	return {
 		material,
-		setSnap: (v) => (uSnap.value = v),
-		setRes: (w, h) => uRes.value.set(w, h),
+		setSnap: () => {},
+		setRes: () => {},
 	};
 }
