@@ -1,0 +1,37 @@
+---
+title: Industrial Gears
+template: splash
+description: |
+    Immersive Aircraft Industrial Gears — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Industrial Gears
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900017
+    ref: immersive_aircraft:industrial_gears
+    slug: industrial-gears
+    content_rev: 0
+    display_name: Industrial Gears
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            Heavy gearing that boosts an engine’s power output.
+        lore: |
+            Torque you can feel.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

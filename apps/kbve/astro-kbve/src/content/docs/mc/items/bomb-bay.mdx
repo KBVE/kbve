@@ -1,0 +1,37 @@
+---
+title: Bomb Bay
+template: splash
+description: |
+    Immersive Aircraft Bomb Bay — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Bomb Bay
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900025
+    ref: immersive_aircraft:bomb_bay
+    slug: bomb-bay
+    content_rev: 0
+    display_name: Bomb Bay
+    category: weapon
+    rarity: common
+    stack_size: 1
+    tags:
+        - immersive_aircraft
+        - weapon
+    about:
+        description: |
+            Drops TNT that does not destroy blocks but deals heavy damage to targets below.
+        lore: |
+            Open the doors and let go.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

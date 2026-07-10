@@ -1,4 +1,5 @@
 import { TILE } from './config';
+import { jitter } from './geometry/rng';
 
 export const WALL = 1;
 export const FLOOR = 0;
@@ -55,6 +56,41 @@ export function archTiles(): Arch[] {
 
 export function tileToWorld(col: number, row: number): [number, number] {
 	return [col * TILE + TILE / 2, row * TILE + TILE / 2];
+}
+
+interface Opening {
+	axis: ArchAxis;
+	openHW: number;
+}
+
+let openingMap: Map<number, Opening> | null = null;
+
+function openings(): Map<number, Opening> {
+	if (openingMap) return openingMap;
+	openingMap = new Map();
+	for (const a of archTiles()) {
+		openingMap.set(a.row * COLS + a.col, {
+			axis: a.axis,
+			openHW: jitter(a.col, a.row, 1, TILE * 0.28, TILE * 0.38),
+		});
+	}
+	return openingMap;
+}
+
+export function solidAt(x: number, z: number): boolean {
+	const col = Math.floor(x / TILE);
+	const row = Math.floor(z / TILE);
+	const t = tileAt(col, row);
+	if (t === WALL) return true;
+	if (t === ARCH) {
+		const o = openings().get(row * COLS + col);
+		if (!o) return true;
+		const cx = col * TILE + TILE / 2;
+		const cz = row * TILE + TILE / 2;
+		const off = o.axis === 'x' ? z - cz : x - cx;
+		return Math.abs(off) > o.openHW;
+	}
+	return false;
 }
 
 export function spawnPoint(): [number, number, number] {

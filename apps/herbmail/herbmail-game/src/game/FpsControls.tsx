@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
-import { COLS, isWall, ROWS, spawnPoint } from './level';
+import { COLS, ROWS, solidAt, spawnPoint } from './level';
 import { TILE } from './config';
 
 const SPEED = 3.2;
@@ -14,9 +14,7 @@ interface Props {
 }
 
 function blocked(x: number, z: number): boolean {
-	const col = Math.floor(x / TILE);
-	const row = Math.floor(z / TILE);
-	return isWall(col, row);
+	return solidAt(x, z);
 }
 
 function tryMove(pos: THREE.Vector3, dx: number, dz: number) {

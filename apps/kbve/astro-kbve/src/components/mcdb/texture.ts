@@ -50,7 +50,7 @@ const SPECIALS: Record<string, string> = {
 	rose_bush: 'rose_bush_bottom',
 	peony: 'peony_bottom',
 	sunflower: 'sunflower_bottom',
-	pitcher_plant: 'pitcher_plant_top',
+	pitcher_plant: 'pitcher_plant',
 	end_portal_frame: 'end_portal_frame_top',
 	end_portal: 'end_stone',
 	bell: 'bell_bottom',
@@ -170,6 +170,13 @@ const SPECIALS: Record<string, string> = {
 	suspicious_sand: 'sand',
 	test_block: 'barrier',
 	honey_block: 'honey_block_top',
+	skeleton_skull: 'bone_block_top',
+	wither_skeleton_skull: 'soul_sand',
+	dragon_head: 'dragon_egg',
+	zombie_head: 'rotten_flesh',
+	creeper_head: 'moss_block',
+	piglin_head: 'gold_block',
+	player_head: 'carved_pumpkin',
 };
 
 export function resolveBaseRef(ref: string): string | null {
@@ -284,6 +291,9 @@ export function resolveBaseRef(ref: string): string | null {
 	m = r.match(/^(.+?)_(wall_)?banner$/);
 	if (m) return `${m[1]}_wool`;
 
+	m = r.match(/^(.+?)_wall_(head|skull)$/);
+	if (m) return `${m[1]}_${m[2]}`;
+
 	if (Object.prototype.hasOwnProperty.call(SPECIALS, r)) return SPECIALS[r];
 
 	if (r.startsWith('potted_')) return 'flower_pot';
@@ -304,7 +314,7 @@ function resolveTerminal(ref: string): string {
 }
 
 export function mcTextureUrls(ref: string, category?: string | null): Pair {
-	const clean = ref.replace(/^minecraft:/, '').toLowerCase();
+	const clean = ref.replace(/^[a-z_]+:/, '').toLowerCase();
 	const effective = resolveTerminal(clean);
 	const isBlockish = category ? BLOCK_CATEGORIES.has(category) : false;
 	if (isBlockish) {
