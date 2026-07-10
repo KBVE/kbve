@@ -134,6 +134,52 @@ pub struct ReaperConfigOverride {
     pub empty_fresh_secs: Option<i64>,
 }
 
+/// Fleet-restart control row, read from the `ows.fleet_restart` table (operator/dashboard-written,
+/// one row per tenant). Drives the `fleet_restart_reconcile` job: `active=true` fans
+/// `set_drain_state` across active instances and (when `lockout`) holds the admission lockout.
+/// `lockout_applied` tracks lockout ownership so the reconcile only lifts a lockout it itself set
+/// (the `admission_control` table is shared with other writers). Absent row / `active=false` = inert.
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct FleetRestart {
+    pub active: bool,
+    pub reason: String,
+    pub urgency: i16,
+    #[sqlx(rename = "dropplayers")]
+    pub drop_players: bool,
+    pub stagger: bool,
+    #[sqlx(rename = "batchsize")]
+    pub batch_size: i32,
+    pub lockout: bool,
+    #[sqlx(rename = "lockoutapplied")]
+    pub lockout_applied: bool,
+    #[sqlx(rename = "startedat")]
+    pub started_at: chrono::DateTime<chrono::Utc>,
+    #[sqlx(rename = "draindeadline")]
+    pub drain_deadline: Option<chrono::DateTime<chrono::Utc>>,
+    /// Barrier latch: set once by the reconcile when `draining == 0 && gameservers == 0`. Past
+    /// this the drain fan-out STOPS — any instance created later belongs to the new fleet (the old
+    /// fleet was provably at 0) and must never be drained by this restart. `None` until converged;
+    /// reset to `None` on (re)activation.
+    #[sqlx(rename = "drainedat")]
+    pub drained_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[sqlx(rename = "targetversion")]
+    pub target_version: Option<String>,
+    #[sqlx(rename = "requestid")]
+    pub request_id: uuid::Uuid,
+}
+
+/// The tenant's `ows.deploy_state` row: the authoritative rollout target (`target_version` is a
+/// PVC path version, not an image tag) plus rollout state. `rolled=true` ⇒ this version is the one
+/// being served (the launcher's download target); `rolled=false` ⇒ merged but not yet rolled
+/// (update pending). `health='unhealthy'` ⇒ a soak failed and a human must decide (no auto-rollback).
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct DeployState {
+    #[sqlx(rename = "targetversion")]
+    pub target_version: String,
+    pub rolled: bool,
+    pub health: String,
+}
+
 /// Per-scope admission override, read from the `ows.admission_control` table. `accept_new_joins`
 /// is `Option`: `None` (or no row) means "fall back to the env baseline" (`ROWS_ACCEPT_NEW_JOINS`).
 /// One of these is read per scope (tenant + global sentinel) and combined by
@@ -224,6 +270,10 @@ pub struct RowsConfig {
     /// Env baseline for the new-join admission gate (`ROWS_ACCEPT_NEW_JOINS`, default `true`). Used
     /// when neither the tenant nor the global `admission_control` row overrides it.
     pub accept_new_joins: bool,
+    /// Non-aggressive stall SLA: seconds a restart may sit `active` with `draining > 0` before it is
+    /// declared stalled (surfaced on /fleet-restart/status and, at 2× this, auto-lifts the lockout).
+    /// Env: ROWS_FLEET_RESTART_STALL_SECS. Default 1800 (30 min).
+    pub fleet_restart_stall_secs: i64,
 }
 
 impl RowsConfig {
@@ -274,8 +324,11 @@ impl RowsConfig {
             "postgres://postgres:postgres@localhost:5432/ows",
             environment,
         )?;
-        let rabbitmq_url =
-            require_or_default("RABBITMQ_URL", "amqp://dev:test@localhost:5672", environment)?;
+        let rabbitmq_url = require_or_default(
+            "RABBITMQ_URL",
+            "amqp://dev:test@localhost:5672",
+            environment,
+        )?;
         let agones_namespace = require_or_default("AGONES_NAMESPACE", "ows", environment)?;
         let agones_fleet = require_or_default("AGONES_FLEET", "ows-hubworld", environment)?;
 
@@ -308,15 +361,14 @@ impl RowsConfig {
             stale_secs: env_i64("ROWS_EMPTY_REAP_STALE_SECS", 0),
             min_empty_secs: env_i64("ROWS_EMPTY_REAP_MIN_EMPTY_SECS", 300),
             empty_fresh_secs: env_i64("ROWS_EMPTY_REAP_FRESH_SECS", 180),
-            stamp_empty_shutdown_annotation: env_bool(
-                "ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION",
-                true,
-            ),
+            stamp_empty_shutdown_annotation: env_bool("ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION", true),
         };
 
         // Admission gate env baseline. Defaults `true` (accept new joins) so the gate ships inert —
         // a freeze requires either an env override or an `admission_control` DB row.
         let accept_new_joins = env_bool("ROWS_ACCEPT_NEW_JOINS", true);
+
+        let fleet_restart_stall_secs = env_i64("ROWS_FLEET_RESTART_STALL_SECS", 1800);
 
         Ok(Self {
             tenant: TenantConfig {
@@ -333,6 +385,7 @@ impl RowsConfig {
             docs_port,
             reaper,
             accept_new_joins,
+            fleet_restart_stall_secs,
         })
     }
 }
@@ -413,11 +466,13 @@ mod tests {
     // the annotation floor is ceil(min_empty_secs / 60), at least 1; 0 disables it.
     #[test]
     fn empty_shutdown_minutes_floor_ceils_and_clamps() {
-        let floor = |secs: i64| ReaperKnobs {
-            min_empty_secs: secs,
-            ..ReaperKnobs::default()
-        }
-        .empty_shutdown_minutes_floor();
+        let floor = |secs: i64| {
+            ReaperKnobs {
+                min_empty_secs: secs,
+                ..ReaperKnobs::default()
+            }
+            .empty_shutdown_minutes_floor()
+        };
         assert_eq!(floor(300), 5); // exact
         assert_eq!(floor(301), 6); // ceils up
         assert_eq!(floor(59), 1); // sub-minute clamps to 1

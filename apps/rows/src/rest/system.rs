@@ -33,6 +33,439 @@ pub fn system_routes(hs: HandlerState) -> Router {
         .with_state(hs)
 }
 
+/// Fleet-restart routes. SECURITY POSTURE (HIGH-1): these are served on the same port (4322) every
+/// GameServer already reaches, and a NetworkPolicy filters by pod-selector + port, never HTTP path
+/// — so "cluster-internal" is NOT an access control here. The read routes (`status`, `pending`)
+/// are tolerable for any in-cluster caller; the mutating `trigger` route additionally requires the
+/// gateway-held bearer token (`ROWS_FLEET_RESTART_TOKEN`, from the ows sealed-secret set) that
+/// GameServers do NOT hold — see `require_fleet_restart_token`. Keep these off any public Ingress.
+pub fn fleet_restart_routes(hs: HandlerState) -> Router {
+    Router::new()
+        .route("/fleet-restart/status", get(fleet_restart_status))
+        .route("/fleet-restart/pending", get(fleet_restart_pending))
+        .route(
+            "/fleet-restart/trigger",
+            axum::routing::post(fleet_restart_trigger),
+        )
+        .route(
+            "/fleet-restart/clear",
+            axum::routing::post(fleet_restart_clear),
+        )
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
+        .with_state(hs)
+}
+
+/// App-level auth for the MUTATING fleet-restart route (HIGH-1). The gateway holds
+/// `ROWS_FLEET_RESTART_TOKEN` (from the ows sealed-secret set); GameServers do NOT — a
+/// NetworkPolicy cannot keep them off this path (same port 4322, and policies can't filter by
+/// HTTP path). Fails closed: unset/empty env ⇒ every caller is rejected 401.
+fn fleet_restart_token_ok(headers: &HeaderMap) -> bool {
+    let expected = std::env::var("ROWS_FLEET_RESTART_TOKEN").unwrap_or_default();
+    fleet_restart_token_matches(&expected, headers)
+}
+
+/// Pure comparison half of [`fleet_restart_token_ok`] (env-free so it is unit-testable).
+/// Fails closed: empty expected token ⇒ every caller is rejected.
+fn fleet_restart_token_matches(expected: &str, headers: &HeaderMap) -> bool {
+    if expected.is_empty() {
+        return false;
+    }
+    let presented = headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .unwrap_or("");
+    // Constant-time-ish compare: length check then byte fold, so a prefix match doesn't
+    // short-circuit early.
+    presented.len() == expected.len()
+        && presented
+            .bytes()
+            .zip(expected.bytes())
+            .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+            == 0
+}
+
+/// TTL for the cached Agones GameServer count behind `/fleet-restart/status`. The DB counts are
+/// cheap; only the Agones LIST needs the cache (this cluster has a documented apiserver/etcd
+/// pressure history). Orchestrators should poll no faster than every 5s.
+const GS_COUNT_TTL: std::time::Duration = std::time::Duration::from_secs(5);
+
+/// Agones GameServer count, cached for `GS_COUNT_TTL` (shared across callers). `None` = Agones
+/// unavailable or the LIST failed — callers must FAIL CLOSED (report not-safe-to-roll), never
+/// treat unknown as zero.
+async fn cached_gameserver_count(hs: &HandlerState) -> Option<i64> {
+    if let Some((at, n)) = *hs.app.gs_count_cache.lock().unwrap() {
+        if at.elapsed() < GS_COUNT_TTL {
+            return Some(n);
+        }
+    }
+    let agones = hs.app.agones.as_ref()?;
+    match agones.count_gameservers().await {
+        Ok(n) => {
+            *hs.app.gs_count_cache.lock().unwrap() = Some((Instant::now(), n));
+            Some(n)
+        }
+        Err(e) => {
+            tracing::warn!(error = %e, "fleet-restart: gameserver count failed");
+            None
+        }
+    }
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct FleetRestartStatus {
+    /// A `fleet_restart` row is active for this tenant.
+    pub active: bool,
+    /// DB-level count of instances still `status > 0` (the *necessary* barrier level).
+    pub draining: i64,
+    /// Agones GameServer objects still present, any state (the *sufficient* barrier level).
+    /// `-1` = Agones unavailable/LIST failed — unknown, never treated as zero.
+    pub gameservers: i64,
+    /// `active && draining == 0` — the DB says every instance is gone; begin the cutover.
+    pub all_drained: bool,
+    /// Every old pod is actually gone; safe to roll. Exactly `drained_at != null`: stamped (by
+    /// this endpoint or the reconcile) at full convergence — 0 instances + 0 gameservers — and
+    /// DURABLE for the rest of the activation, so the cutover's scale-up (new gameservers while
+    /// the row is still active) does NOT flip it back to false. Stamping also stops the
+    /// reconcile's drain fan-out, so the new fleet is never drained by this restart.
+    pub safe_to_roll: bool,
+    /// RFC3339 timestamp of the convergence latch (`fleet_restart.drainedat`); `null` until the
+    /// two-level barrier first opened. Past this, the reconcile's drain fan-out is stopped.
+    pub drained_at: Option<String>,
+    /// Non-aggressive stall backstop: `active && draining > 0` past the stall SLA. The alertable
+    /// "drain not converging — check empty_server_reaper" signal.
+    pub stalled: bool,
+}
+
+#[utoipa::path(
+    get,
+    path = "/fleet-restart/status",
+    tag = "system",
+    summary = "Fleet-restart drain status + two-level safe-to-roll barrier",
+    description = "DB draining count (necessary) + Agones GameServer count (sufficient). safe_to_roll only when both hit 0 while a restart is active. Poll cadence >= 5s (the GS count is cached ~5s). Cluster-internal only.",
+    responses((status = 200, description = "Fleet-restart status", body = FleetRestartStatus)),
+)]
+pub async fn fleet_restart_status(
+    State(hs): State<HandlerState>,
+) -> Result<Json<FleetRestartStatus>, crate::error::RowsError> {
+    let guid = hs.app.config.customer_guid;
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+    let fr = repo.get_fleet_restart(guid).await?;
+    let active = matches!(&fr, Some(fr) if fr.active);
+    let draining = repo.count_active_instances(guid).await?;
+    // Fail closed on an unknown GS count: -1 can never satisfy `== 0`.
+    let gameservers = cached_gameserver_count(&hs).await.unwrap_or(-1);
+    let all_drained = active && draining == 0;
+    let mut drained_at = fr
+        .as_ref()
+        .filter(|fr| fr.active)
+        .and_then(|fr| fr.drained_at);
+    // Read-repair the convergence latch: THIS response is what tells the orchestrator "roll now",
+    // and the orchestrator's scale-up races the reconcile's next tick (up to 30s away). If the
+    // latch weren't stamped before we answer, the new fleet's gameservers would flip the barrier
+    // shut and the still-active row would drain them. Stamping here (idempotent, WHERE drainedat
+    // IS NULL) closes that window: fan-out is stopped no later than the first safe-to-roll answer.
+    // The reconcile stamps it too (backup for pollers that never call this endpoint).
+    if active && drained_at.is_none() && draining == 0 && gameservers == 0 {
+        match repo.set_fleet_drained_at(guid).await {
+            Ok(()) => drained_at = Some(chrono::Utc::now()),
+            Err(e) => {
+                tracing::warn!(error = %e, "fleet-restart: status read-repair of drained_at failed")
+            }
+        }
+    }
+    // safe_to_roll IS the latch — never reported true without drainedat durably stamped, so a
+    // failed stamp fails closed (this poll says false; the next one retries). Durable: once
+    // stamped, the cutover's own scale-up (new gameservers while the row is still active) must
+    // not flip safe_to_roll back to false.
+    let safe_to_roll = drained_at.is_some();
+    let stalled = fr.as_ref().is_some_and(|fr| {
+        fr.active
+            && draining > 0
+            && (chrono::Utc::now() - fr.started_at).num_seconds()
+                > hs.app.config.fleet_restart_stall_secs
+    });
+    Ok(Json(FleetRestartStatus {
+        active,
+        draining,
+        gameservers,
+        all_drained,
+        safe_to_roll,
+        drained_at: drained_at.map(|d| d.to_rfc3339()),
+        stalled,
+    }))
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct FleetRestartPending {
+    /// A merged-but-not-rolled update exists (`deploy_state.rolled=false`).
+    pub pending: bool,
+    /// The pending version, when `pending=true`.
+    pub target_version: Option<String>,
+}
+
+#[utoipa::path(
+    get,
+    path = "/fleet-restart/pending",
+    tag = "system",
+    summary = "Is a version update pending?",
+    description = "pending=true when deploy_state has rolled=false. Gates the aggressive trigger (and the dashboard button). Cluster-internal only.",
+    responses((status = 200, description = "Pending-update state", body = FleetRestartPending)),
+)]
+pub async fn fleet_restart_pending(
+    State(hs): State<HandlerState>,
+) -> Result<Json<FleetRestartPending>, crate::error::RowsError> {
+    let ds = crate::repo::InstanceRepo(&hs.app.db)
+        .get_deploy_state(hs.app.config.customer_guid)
+        .await?;
+    let (pending, target_version) = match ds {
+        Some(ds) if !ds.rolled => (true, Some(ds.target_version)),
+        _ => (false, None),
+    };
+    Ok(Json(FleetRestartPending {
+        pending,
+        target_version,
+    }))
+}
+
+/// Default aggressive grace window (seconds) when the trigger body omits `grace_secs`.
+const FLEET_RESTART_DEFAULT_GRACE_SECS: i64 = 300;
+
+#[utoipa::path(
+    post,
+    path = "/fleet-restart/trigger",
+    tag = "system",
+    summary = "Trigger a coordinated fleet restart",
+    description = "Upserts the fleet_restart control row. aggressive: urgency=1, dropplayers=true, deadline=now()+grace_secs (default 300) — save-then-disconnect at the deadline; requires a pending update. non_aggressive: drain-to-natural-empty, never disconnects. Requires the gateway bearer token (ROWS_FLEET_RESTART_TOKEN); NOT public, NOT for GameServers.",
+    request_body(
+        description = "{ mode: \"aggressive\"|\"non_aggressive\", grace_secs?: i64, stagger?: bool (default false), batch_size?: i64 >= 1 (default 1) } — stagger paces the drain in batches of batch_size per 30s tick; it is NOT strict wave-by-wave isolation (the next batch starts when instances are still un-drained, not when the previous batch completes)",
+        content_type = "application/json"
+    ),
+    responses(
+        (status = 200, description = "Restart activated: { success, mode, drain_deadline? }"),
+        (status = 400, description = "Invalid mode / grace_secs / batch_size"),
+        (status = 401, description = "Missing/invalid gateway token"),
+        (status = 409, description = "A restart is already active"),
+        (status = 412, description = "Precondition failed: empty_server_reaper is disabled for this tenant (the restart cannot converge; enable it first), or aggressive mode with no pending update"),
+    ),
+)]
+pub async fn fleet_restart_trigger(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<serde_json::Value>,
+) -> axum::response::Response {
+    use axum::http::StatusCode;
+    use axum::response::IntoResponse;
+
+    if !fleet_restart_token_ok(&headers) {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "fleet-restart trigger requires the gateway bearer token",
+            })),
+        )
+            .into_response();
+    }
+
+    let mode = body.get("mode").and_then(|v| v.as_str()).unwrap_or("");
+    let aggressive = match mode {
+        "aggressive" => true,
+        "non_aggressive" => false,
+        _ => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": "mode must be \"aggressive\" or \"non_aggressive\"",
+                })),
+            )
+                .into_response();
+        }
+    };
+    let grace_secs = body
+        .get("grace_secs")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(FLEET_RESTART_DEFAULT_GRACE_SECS);
+    if aggressive && grace_secs <= 0 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "grace_secs must be > 0",
+            })),
+        )
+            .into_response();
+    }
+    // Batched rollout pacing. NOTE: stagger is batch-paced draining, NOT strict wave-by-wave
+    // isolation — the next batch is gated on instances still being un-drained, not on the previous
+    // batch completing. Defaults preserve the whole-fleet behavior. Validated here so the DB
+    // CHECK (BatchSize >= 1) surfaces as a 400, not a 500.
+    let stagger = body
+        .get("stagger")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let batch_size = body.get("batch_size").and_then(|v| v.as_i64()).unwrap_or(1);
+    if !(1..=i64::from(i32::MAX)).contains(&batch_size) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "batch_size must be >= 1",
+            })),
+        )
+            .into_response();
+    }
+
+    let guid = hs.app.config.customer_guid;
+    let repo = crate::repo::InstanceRepo(&hs.app.db);
+
+    // Convergence precondition: only empty_server_reaper moves instances to status=0
+    // (set_drain_state rejects it), so a restart with the reaper disabled is a GUARANTEED stall —
+    // 30–60 min of join lockout ending in the stage-2 auto-lift, not a completed drain. Fail fast
+    // at the operator with the runbook pointer instead. Effective config = env baseline merged
+    // with the per-tenant reaperconfig override (the same read the reaper does each cycle).
+    // Deliberately NOT auto-enabled here: enabling the reaper is a hard-gated runbook step (UE
+    // heartbeats must be live first) and must never happen as a side effect of a restart click.
+    // The SQL trigger path stays ungated as the break-glass. Fail closed on a read error — we
+    // can't prove the restart can converge.
+    match repo.get_reaper_config_override(guid).await {
+        Ok(ov) => {
+            if !hs.app.config.reaper.merged_with(&ov).enabled {
+                return (
+                    StatusCode::PRECONDITION_FAILED,
+                    Json(serde_json::json!({
+                        "success": false,
+                        "error": "fleet restart cannot converge: empty_server_reaper is disabled \
+                                  for this tenant — enable it first (reaper runbook §2), or use \
+                                  the SQL trigger path deliberately",
+                    })),
+                )
+                    .into_response();
+            }
+        }
+        Err(e) => return e.into_response(),
+    }
+
+    // The aggressive path exists to *deploy a pending update* — you can't restart-to-deploy with
+    // nothing to deploy (this narrows WHEN it fires; the token above controls WHO). 412, not 404:
+    // the resource exists, a precondition doesn't hold (and 404 is ambiguous with a bad route).
+    if aggressive {
+        match repo.get_deploy_state(guid).await {
+            Ok(Some(ds)) if !ds.rolled => {}
+            Ok(_) => {
+                return (
+                    StatusCode::PRECONDITION_FAILED,
+                    Json(serde_json::json!({
+                        "success": false,
+                        "error": "no pending update — aggressive restart refused",
+                    })),
+                )
+                    .into_response();
+            }
+            Err(e) => return e.into_response(),
+        }
+    }
+
+    let deadline = aggressive.then(|| chrono::Utc::now() + chrono::Duration::seconds(grace_secs));
+    let reason = if aggressive {
+        "fleet-restart:aggressive"
+    } else {
+        "fleet-restart:non_aggressive"
+    };
+    // One restart at a time, enforced ATOMICALLY in the upsert (`WHERE fleet_restart.active =
+    // false`): a re-trigger mid-drain would silently reset the stall clock and (aggressive) re-arm
+    // the deadline, and a check-then-write here would race two concurrent triggers. `false` =
+    // another restart is active → 409; the operator clears or finishes it first.
+    match repo
+        .set_fleet_restart(
+            guid,
+            aggressive,
+            deadline,
+            reason,
+            stagger,
+            batch_size as i32,
+        )
+        .await
+    {
+        Ok(true) => {}
+        Ok(false) => {
+            return (
+                StatusCode::CONFLICT,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": "a fleet restart is already active",
+                })),
+            )
+                .into_response();
+        }
+        Err(e) => return e.into_response(),
+    }
+
+    tracing::info!(
+        mode,
+        grace_secs = aggressive.then_some(grace_secs),
+        "fleet-restart triggered via API"
+    );
+    Json(serde_json::json!({
+        "success": true,
+        "mode": mode,
+        "drain_deadline": deadline.map(|d| d.to_rfc3339()),
+    }))
+    .into_response()
+}
+
+#[utoipa::path(
+    post,
+    path = "/fleet-restart/clear",
+    tag = "system",
+    summary = "Clear (complete or cancel) the active fleet restart",
+    description = "Sets fleet_restart.active=false — the API counterpart of the SQL runbook step, so a restart started via /fleet-restart/trigger can be finished without a psql session. The reconcile's next tick lifts the admission lockout iff it owns it. cleared=false when nothing was active (idempotent). Requires the gateway bearer token.",
+    responses(
+        (status = 200, description = "{ success: true, cleared: bool }"),
+        (status = 401, description = "Missing/invalid gateway token"),
+    ),
+)]
+pub async fn fleet_restart_clear(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+) -> axum::response::Response {
+    use axum::http::StatusCode;
+    use axum::response::IntoResponse;
+
+    // Same gate as the trigger: clearing mid-drain re-opens joins and re-arms the legacy
+    // RestartFleet break-glass — as operator-privileged as starting one.
+    if !fleet_restart_token_ok(&headers) {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "fleet-restart clear requires the gateway bearer token",
+            })),
+        )
+            .into_response();
+    }
+
+    let guid = hs.app.config.customer_guid;
+    match crate::repo::InstanceRepo(&hs.app.db)
+        .clear_fleet_restart(guid)
+        .await
+    {
+        Ok(cleared) => {
+            if cleared {
+                tracing::info!(
+                    "fleet-restart cleared via API — reconcile lifts any owned lockout next tick"
+                );
+            }
+            Json(serde_json::json!({ "success": true, "cleared": cleared })).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
+}
+
 #[utoipa::path(
     get,
     path = "/api/System/FleetStatus",
@@ -323,6 +756,7 @@ pub async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json:
 )]
 pub async fn report_build(
     State(hs): State<HandlerState>,
+    headers: HeaderMap,
     Json(body): Json<serde_json::Value>,
 ) -> Json<serde_json::Value> {
     let version = body
@@ -331,17 +765,71 @@ pub async fn report_build(
         .unwrap_or("")
         .trim();
 
-    if version.is_empty() {
-        return Json(serde_json::json!({ "success": false, "error": "version required" }));
+    // ReportBuild is reachable by anything holding the tenant-GUID header (every GameServer / any
+    // in-cluster caller on 4322), and its first write permanently seeds the launcher's download
+    // target — so gate on plausibility before it touches any state. This bounds accidental (typo'd
+    // test pod, garbage payload) and casual-malicious poisoning; a real orchestrated roll
+    // overwrites the seed with the authoritative version anyway.
+    if !is_plausible_build_version(version) {
+        tracing::warn!(
+            version,
+            "ReportBuild: rejected implausible build version (charset/length/shape)"
+        );
+        return Json(serde_json::json!({
+            "success": false,
+            "error": "version must be 1-64 chars of [0-9A-Za-z._-] and contain a digit"
+        }));
     }
 
-    let mut current = hs.app.server_build_version.write().unwrap();
-    if current.as_deref() != Some(version) {
-        tracing::info!(version, "Gameserver reported loaded UE build version");
+    {
+        let mut current = hs.app.server_build_version.write().unwrap();
+        if current.as_deref() != Some(version) {
+            tracing::info!(version, "Gameserver reported loaded UE build version");
+        }
+        *current = Some(version.to_string());
     }
-    *current = Some(version.to_string());
+
+    // One-shot deploy_state seed (ON CONFLICT DO NOTHING): keeps /health.unreal_version non-null
+    // before the first orchestrated roll ever writes rolled=true. Never overwrites a real roll or
+    // a pending update; best-effort (a failure just leaves the in-memory fallback). Logged with
+    // the caller so a mis-seed is traceable (first-write-wins defines the launcher target).
+    let source = headers
+        .get("x-forwarded-for")
+        .or_else(|| headers.get("user-agent"))
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("unknown");
+    match crate::repo::InstanceRepo(&hs.app.db)
+        .seed_deploy_state(hs.app.config.customer_guid, version)
+        .await
+    {
+        Ok(seeded) if seeded => {
+            tracing::info!(
+                version,
+                source,
+                "ReportBuild: seeded deploy_state as the served version (first report wins; \
+                 verify against the PVC if unexpected)"
+            );
+        }
+        Ok(_) => {}
+        Err(e) => tracing::warn!(error = %e, "ReportBuild: deploy_state seed failed (non-fatal)"),
+    }
 
     Json(serde_json::json!({ "success": true, "version": version }))
+}
+
+/// Plausibility gate for GameServer-reported build versions: 1–64 chars of `[0-9A-Za-z._-]`, at
+/// least one digit. Deliberately loose (matches `0.3.46`, `0.3.46-rc1`, `dev.1`), but blocks
+/// empty/garbage/injection-shaped strings from becoming the launcher's download target.
+///
+/// NOT a path-safety guarantee: `..1` passes the charset. Never interpolate an accepted version
+/// into a filesystem path (e.g. a `/server/<version>/` lookup) without an additional
+/// no-leading-dot / exact-segment check at that call site.
+fn is_plausible_build_version(v: &str) -> bool {
+    !v.is_empty()
+        && v.len() <= 64
+        && v.bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-'))
+        && v.bytes().any(|b| b.is_ascii_digit())
 }
 
 #[utoipa::path(
@@ -441,14 +929,74 @@ pub async fn restart_game_server(
     ),
     responses(
         (status = 200, description = "{ success: bool, message?: string, error?: string }"),
+        (status = 401, description = "ROWS_FLEET_RESTART_TOKEN is configured and the bearer token is missing/invalid"),
+        (status = 409, description = "A cooperative fleet restart is active — refused (use the fleet-restart flow)"),
+        (status = 503, description = "Could not verify the fleet_restart control row — refused (fail closed)"),
     )
 )]
 pub async fn restart_fleet(
     State(hs): State<HandlerState>,
+    headers: HeaderMap,
     Json(body): Json<serde_json::Value>,
-) -> Json<serde_json::Value> {
+) -> axum::response::Response {
+    use axum::response::IntoResponse;
+
+    // This force-drops every player (scale-to-0 + delete_all_map_instances) — strictly more
+    // destructive than /fleet-restart/trigger, so it gets the same gateway-token gate. Conditional
+    // (only when ROWS_FLEET_RESTART_TOKEN is configured) rather than fail-closed: this endpoint
+    // pre-dates the token and is the documented break-glass; hard-401ing it before the sealed
+    // secret ships would brick the existing dashboard flow. Once the secret is deployed, every
+    // caller must present it.
+    if std::env::var("ROWS_FLEET_RESTART_TOKEN")
+        .map(|v| !v.is_empty())
+        .unwrap_or(false)
+        && !fleet_restart_token_ok(&headers)
+    {
+        return (
+            axum::http::StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "RestartFleet requires the gateway bearer token",
+            })),
+        )
+            .into_response();
+    }
+
     let customer_guid = hs.app.config.customer_guid;
     let desired_replicas = body.get("replicas").and_then(|v| v.as_i64()).unwrap_or(2) as i32;
+
+    // The cooperative fleet-restart flow supersedes this imperative scale-to-0: firing it during
+    // an in-flight drain would delete instances out from under the reconcile AND force-drop every
+    // player a non-aggressive drain promised not to touch. Refuse while a restart is active; this
+    // stays available as a break-glass once the restart row is cleared (active=false).
+    match crate::repo::InstanceRepo(&hs.app.db)
+        .get_fleet_restart(customer_guid)
+        .await
+    {
+        Ok(Some(fr)) if fr.active => {
+            return (
+                axum::http::StatusCode::CONFLICT,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": "A cooperative fleet restart is active — use the fleet-restart flow \
+                              (or clear it with active=false) instead of the legacy RestartFleet",
+                })),
+            )
+                .into_response();
+        }
+        Ok(_) => {}
+        Err(e) => {
+            // Fail closed: if we can't read the control row we can't prove no drain is in flight.
+            return (
+                axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": format!("Cannot verify no cooperative restart is active: {e}"),
+                })),
+            )
+                .into_response();
+        }
+    }
 
     if let Some(ref agones) = hs.app.agones {
         tracing::info!("RestartFleet: scaling to 0");
@@ -456,7 +1004,8 @@ pub async fn restart_fleet(
             return Json(serde_json::json!({
                 "success": false,
                 "error": format!("Failed to scale fleet to 0: {e}")
-            }));
+            }))
+            .into_response();
         }
 
         tokio::time::sleep(std::time::Duration::from_secs(5)).await;
@@ -467,7 +1016,8 @@ pub async fn restart_fleet(
         return Json(serde_json::json!({
             "success": false,
             "error": format!("Failed to clean DB: {e}")
-        }));
+        }))
+        .into_response();
     }
     if let Err(e) = repo.deactivate_all_world_servers(customer_guid).await {
         tracing::warn!(error = %e, "Failed to deactivate world servers");
@@ -482,7 +1032,8 @@ pub async fn restart_fleet(
             return Json(serde_json::json!({
                 "success": false,
                 "error": format!("DB cleaned but failed to scale fleet back up: {e}. Manual scale needed.")
-            }));
+            }))
+            .into_response();
         }
     }
 
@@ -499,6 +1050,7 @@ pub async fn restart_fleet(
         "success": true,
         "message": format!("Fleet restarted. Scaled 0 → {desired_replicas}. DB cleaned.")
     }))
+    .into_response()
 }
 
 #[utoipa::path(
@@ -684,4 +1236,85 @@ pub async fn verify_deployment(
             "One or more checks failed. See details.".to_string()
         }
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{fleet_restart_token_matches, is_plausible_build_version};
+    use axum::http::{HeaderMap, HeaderValue, header::AUTHORIZATION};
+
+    fn headers_with_bearer(token: &str) -> HeaderMap {
+        let mut h = HeaderMap::new();
+        h.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+        h
+    }
+
+    /// The gate guards the mutating fleet-restart routes AND (once configured) the destructive
+    /// legacy RestartFleet — it must fail closed on every malformed/absent input.
+    #[test]
+    fn token_gate_fails_closed() {
+        // No expected token configured ⇒ reject everyone, even an empty-for-empty "match".
+        assert!(!fleet_restart_token_matches("", &HeaderMap::new()));
+        assert!(!fleet_restart_token_matches("", &headers_with_bearer("")));
+        assert!(!fleet_restart_token_matches(
+            "",
+            &headers_with_bearer("anything")
+        ));
+        // Configured token, missing/malformed/wrong credentials.
+        assert!(!fleet_restart_token_matches("s3cret", &HeaderMap::new()));
+        assert!(!fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("")
+        ));
+        assert!(!fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("wrong!")
+        ));
+        assert!(!fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("s3cre")
+        )); // prefix
+        assert!(!fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("s3crets")
+        )); // superstring
+        let mut no_bearer = HeaderMap::new();
+        no_bearer.insert(AUTHORIZATION, HeaderValue::from_static("Basic s3cret"));
+        assert!(!fleet_restart_token_matches("s3cret", &no_bearer));
+    }
+
+    #[test]
+    fn token_gate_accepts_exact_match() {
+        assert!(fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("s3cret")
+        ));
+    }
+
+    // The seed defines the launcher's download target (first-write-wins), so the gate must pass
+    // real build shapes and block garbage/injection-shaped strings.
+    #[test]
+    fn plausible_build_versions_pass() {
+        for v in ["0.3.46", "0.3.46-rc1", "1.0.0_beta", "dev.1", "20260709"] {
+            assert!(is_plausible_build_version(v), "{v} should pass");
+        }
+    }
+
+    #[test]
+    fn implausible_build_versions_rejected() {
+        let too_long = "1".repeat(65);
+        for v in [
+            "",                   // empty
+            "latest",             // no digit — a mutable tag, not a version
+            "0.3.46; DROP TABLE", // spaces / injection charset
+            "../0.3.46",          // path traversal shape
+            "0.3.46\n",           // control chars
+            too_long.as_str(),    // over length cap
+        ] {
+            assert!(!is_plausible_build_version(v), "{v:?} should be rejected");
+        }
+    }
 }

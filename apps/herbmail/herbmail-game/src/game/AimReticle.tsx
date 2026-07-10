@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 
-const CENTER = new THREE.Vector2(0, 0);
+const CENTER = new THREE.Vector2(0, 0.26);
 
 interface Props {
 	onAim: (kind: string | null) => void;

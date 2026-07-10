@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
 import { useAnimations, useGLTF } from '@react-three/drei';
-import { ARMS_URL, REST, type ViewmodelRest } from './config';
+import { ARM_SIDES, ARMS_URL, REST, type ViewmodelRest } from './config';
 import { makePsxViewmodelMaterial } from './psxSkinnedMaterial';
 import { useViewmodelMotion } from './useViewmodelMotion';
 import { useArmIk } from './useArmIk';
+import { useHeldItem } from './useHeldItem';
+import { useOffhand } from './store';
 
 useGLTF.preload(ARMS_URL);
 
@@ -15,7 +17,7 @@ interface Props {
 	restOverride?: ViewmodelRest;
 }
 
-export function Viewmodel({ snap, restOverride }: Props) {
+export function Viewmodel({ equippedId, snap, restOverride }: Props) {
 	const size = useThree((s) => s.size);
 	const gltf = useGLTF(ARMS_URL);
 
@@ -25,7 +27,11 @@ export function Viewmodel({ snap, restOverride }: Props) {
 	useViewmodelMotion(groupRef, restRef);
 	const { actions, mixer } = useAnimations(gltf.animations, groupRef);
 	const sceneRootRef = useRef<THREE.Object3D | null>(null);
-	useArmIk(groupRef, sceneRootRef);
+	useArmIk(groupRef, sceneRootRef, ARM_SIDES.r);
+	useArmIk(groupRef, sceneRootRef, ARM_SIDES.l);
+	const offhandId = useOffhand();
+	useHeldItem(gltf, equippedId, snap, ARM_SIDES.r);
+	useHeldItem(gltf, offhandId, snap, ARM_SIDES.l);
 
 	const psx = useMemo(() => {
 		let map: THREE.Texture | null = null;
@@ -42,7 +48,7 @@ export function Viewmodel({ snap, restOverride }: Props) {
 	useEffect(() => {
 		gltf.scene.traverse((o) => {
 			const mesh = o as THREE.Mesh;
-			if (mesh.isMesh) {
+			if (mesh.isMesh && !mesh.userData.held) {
 				mesh.material = psx.material;
 				mesh.frustumCulled = false;
 				mesh.renderOrder = 999;

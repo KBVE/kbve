@@ -97,3 +97,44 @@ export function spawnPoint(): [number, number, number] {
 	const [x, z] = tileToWorld(2, 2);
 	return [x, TILE / 2, z];
 }
+
+let roomMap: Int16Array | null = null;
+
+function buildRooms(): Int16Array {
+	const ids = new Int16Array(ROWS * COLS).fill(-1);
+	let room = 0;
+	for (let r = 0; r < ROWS; r++) {
+		for (let c = 0; c < COLS; c++) {
+			if (tileAt(c, r) !== FLOOR || ids[r * COLS + c] !== -1) continue;
+			const stack: [number, number][] = [[c, r]];
+			ids[r * COLS + c] = room;
+			while (stack.length) {
+				const [cc, rr] = stack.pop() as [number, number];
+				for (const [dc, dr] of [
+					[0, -1],
+					[0, 1],
+					[-1, 0],
+					[1, 0],
+				]) {
+					const nc = cc + dc;
+					const nr = rr + dr;
+					if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) continue;
+					const k = nr * COLS + nc;
+					if (tileAt(nc, nr) !== FLOOR || ids[k] !== -1) continue;
+					ids[k] = room;
+					stack.push([nc, nr]);
+				}
+			}
+			room++;
+		}
+	}
+	return ids;
+}
+
+export function roomAt(x: number, z: number): number {
+	if (!roomMap) roomMap = buildRooms();
+	const col = Math.floor(x / TILE);
+	const row = Math.floor(z / TILE);
+	if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return -1;
+	return roomMap[row * COLS + col];
+}

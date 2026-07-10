@@ -33,6 +33,16 @@ pub struct AppState {
     /// UE5 build version loaded off the `ows-server-build` PVC, reported by each gameserver on
     /// boot via `POST /api/System/ReportBuild`. `None` until a gameserver checks in.
     pub server_build_version: std::sync::RwLock<Option<String>>,
+    /// Short-TTL cache for the Agones GameServer count behind `/fleet-restart/status`
+    /// (`(fetched_at, count)`), shared across callers so an orchestrator polling the endpoint
+    /// doesn't turn into a kube-apiserver LIST per request.
+    pub gs_count_cache: std::sync::Mutex<Option<(Instant, i64)>>,
+    /// In-memory snapshot of the tenant's `deploy_state` row, refreshed by a background job
+    /// (`jobs::deploy_state_refresh`, 30s). `/health` reads ONLY this — it is the liveness-probe
+    /// path (timeoutSeconds: 3), and a synchronous DB read there turns any Postgres latency spike
+    /// into a kubelet restart storm. `None` = no row / table dark. On a refresh error the last
+    /// snapshot is kept.
+    pub deploy_state_cache: std::sync::RwLock<Option<crate::config::DeployState>>,
 }
 
 pub struct AppConfig {
@@ -46,6 +56,9 @@ pub struct AppConfig {
     /// Env baseline for the new-join admission gate (`ROWS_ACCEPT_NEW_JOINS`, default `true`). The
     /// join path combines this with the per-scope `admission_control` overrides.
     pub accept_new_joins: bool,
+    /// Non-aggressive fleet-restart stall SLA in seconds (`ROWS_FLEET_RESTART_STALL_SECS`, default
+    /// 1800). Past this the restart is `stalled`; past 2× the reconcile auto-lifts the join lockout.
+    pub fleet_restart_stall_secs: i64,
 }
 
 impl AppState {
@@ -66,6 +79,7 @@ pub struct AppStateBuilder {
     agones: Option<AgonesClient>,
     reaper: Option<ReaperKnobs>,
     accept_new_joins: Option<bool>,
+    fleet_restart_stall_secs: Option<i64>,
 }
 
 impl AppStateBuilder {
@@ -115,6 +129,11 @@ impl AppStateBuilder {
         self
     }
 
+    pub fn fleet_restart_stall_secs(mut self, secs: i64) -> Self {
+        self.fleet_restart_stall_secs = Some(secs);
+        self
+    }
+
     pub fn build(self) -> anyhow::Result<Arc<AppState>> {
         let tenant = self
             .tenant
@@ -136,6 +155,7 @@ impl AppStateBuilder {
                 agones_fleet: self.agones_fleet.unwrap_or_else(|| "ows-hubworld".into()),
                 reaper: self.reaper.unwrap_or_default(),
                 accept_new_joins: self.accept_new_joins.unwrap_or(true),
+                fleet_restart_stall_secs: self.fleet_restart_stall_secs.unwrap_or(1800),
             },
             mq: self.mq,
             agones: self.agones,
@@ -143,6 +163,8 @@ impl AppStateBuilder {
             instance_log: crate::rest::system::InstanceEventLog::new(),
             started_at: Instant::now(),
             server_build_version: std::sync::RwLock::new(None),
+            gs_count_cache: std::sync::Mutex::new(None),
+            deploy_state_cache: std::sync::RwLock::new(None),
         }))
     }
 }

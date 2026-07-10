@@ -19,6 +19,14 @@ export interface Equipment {
 	primaryImpulse: Impulse;
 	secondaryImpulse: Impulse;
 	buildItem: () => THREE.Object3D | null;
+	modelUrl?: string;
+	grip?: {
+		pos: [number, number, number];
+		rot: [number, number, number];
+		scale: number;
+		aim?: [number, number, number];
+		roll?: number;
+	};
 }
 
 const NONE: Impulse = { back: 0, kick: 0, roll: 0, push: 0 };
@@ -51,29 +59,6 @@ function buildFlashlight(): THREE.Object3D {
 	return g;
 }
 
-function buildPistol(): THREE.Object3D {
-	const g = new THREE.Group();
-	const grip = new THREE.Mesh(
-		new THREE.BoxGeometry(0.22, 0.55, 0.28),
-		unlit(0x1c1c22),
-	);
-	grip.rotation.x = -0.35;
-	const slide = new THREE.Mesh(
-		new THREE.BoxGeometry(0.24, 0.26, 0.95),
-		unlit(0x33333a),
-	);
-	slide.position.set(0, 0.34, 0.35);
-	const barrel = new THREE.Mesh(
-		new THREE.CylinderGeometry(0.05, 0.05, 0.3, 6),
-		unlit(0x0a0a0c),
-	);
-	barrel.rotation.x = Math.PI / 2;
-	barrel.position.set(0, 0.34, 0.9);
-	g.add(grip, slide, barrel);
-	g.scale.setScalar(1.1);
-	return g;
-}
-
 export const LOADOUT: Equipment[] = [
 	{
 		id: 'empty',
@@ -87,26 +72,55 @@ export const LOADOUT: Equipment[] = [
 		buildItem: () => null,
 	},
 	{
-		id: 'flashlight',
+		id: 'torch',
 		kind: 'tool',
-		label: 'flashlight',
-		primary: 'toggle',
+		label: 'torch',
+		primary: 'mount',
 		secondary: 'grab',
 		reload: false,
 		primaryImpulse: USE,
 		secondaryImpulse: REACH,
-		buildItem: buildFlashlight,
+		buildItem: () => null,
+		modelUrl: '/models/torch.glb',
+		grip: {
+			pos: [0.02, -0.05, 0.06],
+			rot: [-1.4, 0.1, 0],
+			scale: 4.2,
+		},
 	},
 	{
-		id: 'pistol',
+		id: 'sword',
 		kind: 'weapon',
-		label: 'pistol',
-		primary: 'fire',
-		secondary: 'aim',
-		reload: true,
+		label: 'sword',
+		primary: 'swing',
+		secondary: 'guard',
+		reload: false,
 		primaryImpulse: FIRE,
 		secondaryImpulse: NONE,
-		buildItem: buildPistol,
+		buildItem: () => null,
+		modelUrl: '/models/sword.glb',
+		grip: {
+			pos: [0, 0, 0],
+			rot: [0, 0, 0],
+			scale: 8,
+		},
+	},
+	{
+		id: 'torch',
+		kind: 'tool',
+		label: 'torch',
+		primary: 'wave',
+		secondary: 'grab',
+		reload: false,
+		primaryImpulse: USE,
+		secondaryImpulse: REACH,
+		buildItem: () => null,
+		modelUrl: '/models/torch.glb',
+		grip: {
+			pos: [0.02, -0.05, 0.06],
+			rot: [-1.4, 0.1, 0],
+			scale: 4.2,
+		},
 	},
 ];
 
