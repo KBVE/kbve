@@ -10,16 +10,19 @@ import {
 	buildCoves,
 	buildFloor,
 	buildWalls,
+	type Grid,
 } from './geometry';
+import { levelGrid } from './level';
 import { useDungeonTextures } from './textures';
 import { TINT } from './config';
 
 interface Props {
 	snap: number;
 	affine: number;
+	grid?: Grid;
 }
 
-export function DungeonScene({ snap, affine }: Props) {
+export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 	const size = useThree((s) => s.size);
 	const res = useMemo(
 		() => new THREE.Vector2(size.width, size.height),
@@ -28,13 +31,13 @@ export function DungeonScene({ snap, affine }: Props) {
 
 	const tex = useDungeonTextures();
 
-	const wallGeo = useMemo(() => buildWalls(), []);
-	const floorGeo = useMemo(() => buildFloor(), []);
-	const ceilGeo = useMemo(() => buildCeiling(), []);
-	const archGeo = useMemo(() => buildArches(), []);
-	const coveGeo = useMemo(() => buildCoves(), []);
-	const cornerGeo = useMemo(() => buildCornerCoves(), []);
-	const bays = useMemo(() => buildBays(), []);
+	const wallGeo = useMemo(() => buildWalls(grid), [grid]);
+	const floorGeo = useMemo(() => buildFloor(grid), [grid]);
+	const ceilGeo = useMemo(() => buildCeiling(grid), [grid]);
+	const archGeo = useMemo(() => buildArches(grid), [grid]);
+	const coveGeo = useMemo(() => buildCoves(grid), [grid]);
+	const cornerGeo = useMemo(() => buildCornerCoves(grid), [grid]);
+	const bays = useMemo(() => buildBays(grid), [grid]);
 
 	const floorTint = useMemo(() => new THREE.Color(...TINT.floor), []);
 	const ceilTint = useMemo(() => new THREE.Color(...TINT.ceiling), []);

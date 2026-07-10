@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { COLS, ROWS } from '../level';
 import { COVE_R, TILE, WALL_H } from '../config';
-import { DIRS, isBay, isSolid } from './faces';
+import { DIRS, isBay } from './faces';
+import { gridSolid, type Grid } from './grid';
 
 const ARC_SEG = 6;
 const H_SEG = 4;
@@ -16,31 +16,31 @@ interface Corner {
 	sz: number;
 }
 
-function bayFace(col: number, row: number, di: number): boolean {
-	return isBay({ col, row, di, dir: DIRS[di] });
+function bayFace(grid: Grid, col: number, row: number, di: number): boolean {
+	return isBay(grid, { col, row, di, dir: DIRS[di] });
 }
 
-function cornersAt(col: number, row: number): Corner[] {
+function cornersAt(grid: Grid, col: number, row: number): Corner[] {
 	const out: Corner[] = [];
-	const n = isSolid(col, row - 1);
-	const s = isSolid(col, row + 1);
-	const w = isSolid(col - 1, row);
-	const e = isSolid(col + 1, row);
-	const x = col * TILE;
-	const z = row * TILE;
-	if (n && w && !bayFace(col, row, 0) && !bayFace(col, row, 2))
+	const n = gridSolid(grid, col, row - 1);
+	const s = gridSolid(grid, col, row + 1);
+	const w = gridSolid(grid, col - 1, row);
+	const e = gridSolid(grid, col + 1, row);
+	const x = (grid.originCol + col) * TILE;
+	const z = (grid.originRow + row) * TILE;
+	if (n && w && !bayFace(grid, col, row, 0) && !bayFace(grid, col, row, 2))
 		out.push({ x0: x, z0: z, sx: 1, sz: 1 });
-	if (n && e && !bayFace(col, row, 0) && !bayFace(col, row, 3))
+	if (n && e && !bayFace(grid, col, row, 0) && !bayFace(grid, col, row, 3))
 		out.push({ x0: x + TILE, z0: z, sx: -1, sz: 1 });
-	if (s && w && !bayFace(col, row, 1) && !bayFace(col, row, 2))
+	if (s && w && !bayFace(grid, col, row, 1) && !bayFace(grid, col, row, 2))
 		out.push({ x0: x, z0: z + TILE, sx: 1, sz: -1 });
-	if (s && e && !bayFace(col, row, 1) && !bayFace(col, row, 3))
+	if (s && e && !bayFace(grid, col, row, 1) && !bayFace(grid, col, row, 3))
 		out.push({ x0: x + TILE, z0: z + TILE, sx: -1, sz: -1 });
 	return out;
 }
 
 function keep(col: number, row: number, i: number): boolean {
-	return (col * 7 + row * 13 + i * 5) % 3 === 0;
+	return (((col * 7 + row * 13 + i * 5) % 3) + 3) % 3 === 0;
 }
 
 function fillet(c: Corner): THREE.BufferGeometry {
@@ -81,13 +81,15 @@ function fillet(c: Corner): THREE.BufferGeometry {
 	return g;
 }
 
-export function buildCornerCoves(): THREE.BufferGeometry {
+export function buildCornerCoves(grid: Grid): THREE.BufferGeometry {
 	const parts: THREE.BufferGeometry[] = [];
-	for (let row = 0; row < ROWS; row++) {
-		for (let col = 0; col < COLS; col++) {
-			if (isSolid(col, row)) continue;
-			cornersAt(col, row).forEach((c, i) => {
-				if (keep(col, row, i)) parts.push(fillet(c));
+	for (let row = 0; row < grid.rows; row++) {
+		for (let col = 0; col < grid.cols; col++) {
+			if (gridSolid(grid, col, row)) continue;
+			cornersAt(grid, col, row).forEach((c, i) => {
+				const wc = grid.originCol + col;
+				const wr = grid.originRow + row;
+				if (keep(wc, wr, i)) parts.push(fillet(c));
 			});
 		}
 	}

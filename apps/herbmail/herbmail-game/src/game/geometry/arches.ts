@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { archTiles } from '../level';
 import { TILE, WALL_H } from '../config';
+import { archTiles } from './faces';
+import type { Grid } from './grid';
 import { jitter } from './rng';
 import { scaleUV } from './uv';
 
@@ -25,8 +26,8 @@ function archShape(openHW: number, spring: number): THREE.Shape {
 	return s;
 }
 
-export function buildArches(): THREE.BufferGeometry {
-	const arches = archTiles();
+export function buildArches(grid: Grid): THREE.BufferGeometry {
+	const arches = archTiles(grid);
 	if (!arches.length) return new THREE.BufferGeometry();
 
 	const depth = TILE * 0.16;

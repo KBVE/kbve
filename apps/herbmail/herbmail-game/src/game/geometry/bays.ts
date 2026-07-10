@@ -1,7 +1,15 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COVE_R, TILE, WALL_H } from '../config';
-import { exposedFaces, faceMatrix, isBay, type Face } from './faces';
+import {
+	exposedFaces,
+	faceMatrix,
+	isBay,
+	worldCol,
+	worldRow,
+	type Face,
+} from './faces';
+import type { Grid } from './grid';
 import { jitter } from './rng';
 import { scaleUV } from './uv';
 
@@ -15,23 +23,13 @@ interface Niche {
 	recess: number;
 }
 
-function nicheOf(face: Face): Niche {
+function nicheOf(grid: Grid, face: Face): Niche {
+	const c = worldCol(grid, face);
+	const r = worldRow(grid, face);
 	return {
-		openHW: jitter(
-			face.col,
-			face.row,
-			face.di + 1,
-			TILE * 0.22,
-			TILE * 0.34,
-		),
-		spring: jitter(
-			face.col,
-			face.row,
-			face.di + 2,
-			CAP_H * 0.5,
-			CAP_H * 0.72,
-		),
-		recess: jitter(face.col, face.row, face.di + 3, 0.25, 0.45),
+		openHW: jitter(c, r, face.di + 1, TILE * 0.22, TILE * 0.34),
+		spring: jitter(c, r, face.di + 2, CAP_H * 0.5, CAP_H * 0.72),
+		recess: jitter(c, r, face.di + 3, 0.25, 0.45),
 	};
 }
 
@@ -67,8 +65,8 @@ export interface BayGeometry {
 	backs: THREE.BufferGeometry;
 }
 
-export function buildBays(): BayGeometry {
-	const faces = exposedFaces().filter(isBay);
+export function buildBays(grid: Grid): BayGeometry {
+	const faces = exposedFaces(grid).filter((f) => isBay(grid, f));
 	if (!faces.length) {
 		return {
 			frames: new THREE.BufferGeometry(),
@@ -79,8 +77,8 @@ export function buildBays(): BayGeometry {
 	const frameParts: THREE.BufferGeometry[] = [];
 	const backParts: THREE.BufferGeometry[] = [];
 	for (const face of faces) {
-		const n = nicheOf(face);
-		const m = faceMatrix(face, 0);
+		const n = nicheOf(grid, face);
+		const m = faceMatrix(grid, face, 0);
 
 		const frame = new THREE.ExtrudeGeometry(frameShape(n), {
 			depth: n.recess,

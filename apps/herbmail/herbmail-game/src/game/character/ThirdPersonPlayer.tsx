@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
-import { solidAt, spawnPoint } from '../level';
+import { solidAtWorld, dungeonSpawn } from '../dungeon/collision';
 import { Character, type CharacterHandle } from './Character';
 
 const RADIUS = 0.35;
@@ -10,8 +10,8 @@ const CAM_DIST = 2.2;
 const CAM_HEIGHT = 1.5;
 
 function tryMove(pos: THREE.Vector3, dx: number, dz: number): void {
-	if (!solidAt(pos.x + dx + Math.sign(dx) * RADIUS, pos.z)) pos.x += dx;
-	if (!solidAt(pos.x, pos.z + dz + Math.sign(dz) * RADIUS)) pos.z += dz;
+	if (!solidAtWorld(pos.x + dx + Math.sign(dx) * RADIUS, pos.z)) pos.x += dx;
+	if (!solidAtWorld(pos.x, pos.z + dz + Math.sign(dz) * RADIUS)) pos.z += dz;
 }
 
 interface Props {
@@ -27,7 +27,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	const right = useRef(new THREE.Vector3());
 	const dir = useRef(new THREE.Vector3());
 	const pivot = useRef(new THREE.Vector3());
-	const [sx, , sz] = spawnPoint();
+	const [sx, , sz] = dungeonSpawn();
 
 	useEffect(() => {
 		const down = (e: KeyboardEvent) => (keys.current[e.code] = true);

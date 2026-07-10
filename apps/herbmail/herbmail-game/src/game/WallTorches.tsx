@@ -2,8 +2,14 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { useTorches, type Torch } from './torches';
-import { roomAt } from './level';
+import { TILE } from './config';
+import {
+	usePlacedTorches,
+	torchTransform,
+	type Torch,
+} from './torches';
+import { cellAtWorld } from './dungeon/ecs';
+import { useActiveRooms } from './dungeon/store';
 import { Flame } from './Flame';
 
 const TORCH_URL = '/models/torch.glb';
@@ -71,7 +77,8 @@ function TorchInstance({
 		const r = ref.current;
 		if (!r.light) return;
 		const cam = state.camera;
-		const lit = roomAt(cam.position.x, cam.position.z) === torch.room;
+		const cell = cellAtWorld(cam.position.x, cam.position.z, TILE);
+		const lit = cell.cx === torch.cx && cell.cy === torch.cy;
 		r.light.visible = lit;
 		if (!lit) return;
 		const t = state.clock.elapsedTime;
@@ -103,13 +110,35 @@ function TorchInstance({
 }
 
 export function WallTorches() {
-	const torches = useTorches();
+	const rooms = useActiveRooms();
+	const placed = usePlacedTorches();
 	const gltf = useGLTF(TORCH_URL);
+
+	const decor = useMemo<Torch[]>(() => {
+		const out: Torch[] = [];
+		for (const r of rooms) {
+			for (const s of r.desc.torches) {
+				const wc = r.desc.originCol + s.col;
+				const wr = r.desc.originRow + s.row;
+				const { pos, dir } = torchTransform(wc, wr, s.di);
+				const id =
+					(Math.imul(wc, 73856093) ^
+						Math.imul(wr, 19349663) ^
+						Math.imul(s.di + 1, 2654435761)) >>>
+					0;
+				out.push({ id, pos, dir, cx: r.desc.cx, cy: r.desc.cy });
+			}
+		}
+		return out;
+	}, [rooms]);
 
 	return (
 		<group>
-			{torches.map((t) => (
-				<TorchInstance key={t.id} torch={t} base={gltf.scene} />
+			{decor.map((t) => (
+				<TorchInstance key={`d${t.cx}|${t.cy}|${t.id}`} torch={t} base={gltf.scene} />
+			))}
+			{placed.map((t) => (
+				<TorchInstance key={`p${t.id}`} torch={t} base={gltf.scene} />
 			))}
 		</group>
 	);

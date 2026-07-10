@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { DungeonScene } from '../game/DungeonScene';
+import { Dungeon } from '../game/Dungeon';
 import { AimReticle } from '../game/AimReticle';
 import { WallTorches } from '../game/WallTorches';
 import { TorchPlacer } from '../game/TorchPlacer';
@@ -142,7 +142,7 @@ export function App() {
 				<hemisphereLight args={['#2a2434', '#0a0a10', 0.7]} />
 				<ambientLight intensity={0.18} />
 				<Suspense fallback={null}>
-					<DungeonScene snap={psx.snap} affine={psx.affine} />
+					<Dungeon snap={psx.snap} affine={psx.affine} />
 				</Suspense>
 				<Suspense fallback={null}>
 					<ThirdPersonPlayer url="/models/m2m-character.glb" />
