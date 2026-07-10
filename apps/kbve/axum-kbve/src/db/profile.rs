@@ -6,23 +6,18 @@ use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 use utoipa::ToSchema;
 
-// Static regex for username validation
-// Rules: 3-24 characters, alphanumeric + underscore, must start with letter
 static USERNAME_REGEX: OnceLock<Regex> = OnceLock::new();
 
 fn get_username_regex() -> &'static Regex {
-    USERNAME_REGEX.get_or_init(|| {
-        Regex::new(r"^[a-zA-Z][a-zA-Z0-9_]{2,23}$").expect("Invalid username regex")
-    })
+    USERNAME_REGEX
+        .get_or_init(|| Regex::new(r"^[a-z0-9_-]{3,63}$").expect("Invalid username regex"))
 }
 
-/// Username validation error
 #[derive(Debug, Clone)]
 pub enum UsernameError {
     TooShort,
     TooLong,
     InvalidCharacters,
-    MustStartWithLetter,
     Empty,
 }
 
@@ -30,19 +25,16 @@ impl std::fmt::Display for UsernameError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             UsernameError::TooShort => write!(f, "Username must be at least 3 characters"),
-            UsernameError::TooLong => write!(f, "Username must be at most 24 characters"),
+            UsernameError::TooLong => write!(f, "Username must be at most 63 characters"),
             UsernameError::InvalidCharacters => write!(
                 f,
-                "Username can only contain letters, numbers, and underscores"
+                "Username can only contain lowercase letters, numbers, underscores, and hyphens"
             ),
-            UsernameError::MustStartWithLetter => write!(f, "Username must start with a letter"),
             UsernameError::Empty => write!(f, "Username cannot be empty"),
         }
     }
 }
 
-/// Validate a username before making any database calls
-/// Returns the sanitized (lowercased) username if valid
 pub fn validate_username(username: &str) -> Result<String, UsernameError> {
     let trimmed = username.trim();
 
@@ -50,30 +42,21 @@ pub fn validate_username(username: &str) -> Result<String, UsernameError> {
         return Err(UsernameError::Empty);
     }
 
-    if trimmed.len() < 3 {
+    let lowered = trimmed.to_lowercase();
+
+    if lowered.len() < 3 {
         return Err(UsernameError::TooShort);
     }
 
-    if trimmed.len() > 24 {
+    if lowered.len() > 63 {
         return Err(UsernameError::TooLong);
     }
 
-    // Check first character is a letter
-    if !trimmed
-        .chars()
-        .next()
-        .map(|c| c.is_ascii_alphabetic())
-        .unwrap_or(false)
-    {
-        return Err(UsernameError::MustStartWithLetter);
-    }
-
-    // Full regex validation
-    if !get_username_regex().is_match(trimmed) {
+    if !get_username_regex().is_match(&lowered) {
         return Err(UsernameError::InvalidCharacters);
     }
 
-    Ok(trimmed.to_lowercase())
+    Ok(lowered)
 }
 
 /// User provider information from get_user_all_providers RPC
@@ -694,4 +677,42 @@ pub fn init_profile_service() -> bool {
 /// Get the global profile service
 pub fn get_profile_service() -> Option<&'static ProfileService> {
     PROFILE_SERVICE.get().and_then(|s| s.as_ref())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{UsernameError, validate_username};
+
+    #[test]
+    fn accepts_hyphen_leading_digit_and_long_names() {
+        assert_eq!(validate_username("cool-dude").unwrap(), "cool-dude");
+        assert_eq!(validate_username("99bob").unwrap(), "99bob");
+        assert_eq!(validate_username("Cool-Dude_99").unwrap(), "cool-dude_99");
+        let long = "a".repeat(63);
+        assert_eq!(validate_username(&long).unwrap(), long);
+    }
+
+    #[test]
+    fn rejects_too_short_too_long_and_bad_chars() {
+        assert!(matches!(
+            validate_username("ab"),
+            Err(UsernameError::TooShort)
+        ));
+        assert!(matches!(
+            validate_username(&"a".repeat(64)),
+            Err(UsernameError::TooLong)
+        ));
+        assert!(matches!(
+            validate_username("bad name"),
+            Err(UsernameError::InvalidCharacters)
+        ));
+        assert!(matches!(
+            validate_username("bad.name"),
+            Err(UsernameError::InvalidCharacters)
+        ));
+        assert!(matches!(
+            validate_username("   "),
+            Err(UsernameError::Empty)
+        ));
+    }
 }
