@@ -34,6 +34,24 @@ pub fn spawn_all(svc: Arc<OWSService>) {
         );
     }
 
+    // One-shot startup check: a failed CREATE INDEX CONCURRENTLY leaves an INVALID
+    // idx_mapinstances_drainable that Postgres silently refuses to use — the fleet-restart
+    // reconcile's per-tick scan would seq-scan the hot mapinstances table with no error. Surface
+    // it loudly instead (recovery: DROP INDEX + re-create CONCURRENTLY; see the index migration).
+    {
+        let svc = svc.clone();
+        tokio::spawn(async move {
+            match InstanceRepo(&svc.state().db).check_drainable_index_valid().await {
+                Ok(Some(false)) => warn!(
+                    "idx_mapinstances_drainable is INVALID (failed CONCURRENTLY build) — \
+                     drainable scans are seq-scanning; DROP INDEX and re-create CONCURRENTLY"
+                ),
+                Ok(_) => {} // valid, or not created yet (migration not applied)
+                Err(e) => warn!(error = %e, "failed to check idx_mapinstances_drainable validity"),
+            }
+        });
+    }
+
     tokio::spawn(zone_health_monitor(svc.clone()));
     tokio::spawn(stale_zone_cleanup(svc.clone()));
     tokio::spawn(empty_server_reaper(svc.clone()));
