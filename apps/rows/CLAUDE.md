@@ -20,7 +20,10 @@ saved on logout/travel/periodic flush)? Never buffer authoritative saves in valk
 ## Docs
 
 Everything lives in [`docs/`](./docs/README.md) (moved from the repo-root `docs/` folder — do not
-put ROWS plans/specs back there). Start with the index; the two you'll need most:
+put ROWS plans/specs back there). **New brainstorm/design specs and implementation plans go under
+`apps/rows/docs/superpowers/` (`specs/` and `plans/` subdirs)** — this overrides the superpowers
+skills' default `docs/superpowers/…` location for ROWS work. Start with the index; the docs you'll
+need most:
 
 - [`docs/2026-06-24-rows-server-lifecycle-and-shutdown.md`](./docs/2026-06-24-rows-server-lifecycle-and-shutdown.md)
   — the umbrella design (drain/shutdown/fleet-restart, valkey-vs-DB tiering) + operator runbooks.
