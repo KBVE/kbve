@@ -33,9 +33,9 @@ export function makePsxViewmodelMaterial(
 		color: map ? 0xffffff : 0xff44aa,
 	});
 	material.toneMapped = false;
-	material.depthTest = false;
-	material.depthWrite = false;
-	material.side = THREE.DoubleSide;
+	material.depthTest = true;
+	material.depthWrite = true;
+	material.side = THREE.FrontSide;
 
 	const uSnap = { value: snap };
 	const uRes = { value: new THREE.Vector2(1, 1) };

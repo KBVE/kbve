@@ -32,7 +32,7 @@ export function App() {
 			const el = e.target as HTMLElement;
 			if (el?.tagName === 'INPUT') return;
 
-			if (debugRef.current) {
+			{
 				if (e.code === 'Backspace' || e.code === 'Digit0') {
 					e.preventDefault();
 					setRest({ ...REST });
@@ -41,21 +41,24 @@ export function App() {
 				}
 				const r = { ...restRef.current };
 				const P = 0.02;
-				const A = 0.05;
+				const A = 0.15;
 				const S = 0.005;
 				let hit = true;
 				switch (e.code) {
 					case 'ArrowUp':
-						r.py += P;
-						break;
-					case 'ArrowDown':
-						r.py -= P;
-						break;
-					case 'ArrowLeft':
 						r.pz -= P;
 						break;
-					case 'ArrowRight':
+					case 'ArrowDown':
 						r.pz += P;
+						break;
+					case 'ArrowLeft':
+						r.py -= P;
+						break;
+					case 'ArrowRight':
+						r.py += P;
+						break;
+					case 'KeyF':
+						r.ry += Math.PI;
 						break;
 					case 'KeyN':
 						r.px -= P;

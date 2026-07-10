@@ -52,11 +52,11 @@ export function ViewmodelDebug({ value, onChange }: Props) {
 					fontSize: 11,
 					lineHeight: 1.5,
 				}}>
-				keyboard (no mouse needed):
+				arrow keys (always on):
 				<br />
-				↑↓ y · ←→ z · N/M x · [ ] scale
+				↑ out · ↓ back · ← down · → up
 				<br />
-				I/K pitch · J/L yaw · U/O roll
+				N/M x · [ ] scale · I/K pitch · J/L yaw · U/O roll
 				<br />0 = reset · Enter = log
 			</div>
 			{rows.map((r) => (
