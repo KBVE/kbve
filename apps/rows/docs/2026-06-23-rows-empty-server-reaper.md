@@ -4,6 +4,7 @@
 > This reaper is built on PR #13200 (`apps/rows/src/agones/reaper.rs`, `jobs.rs`, `repo/instances.rs`,
 > `config.rs`). The shipped code has folded in three rounds of audit fixes that are **not** reflected
 > in the listings below — when auditing, read the source, not these snippets. Deltas vs the listings:
+>
 > - `ReapReason` has a third variant **`Stale`** (crashed-while-populated) + `stale_secs` knob.
 > - `update_number_of_players` uses **`GREATEST($3,0)`** + a `WHEN $3 < 0` CASE (negative-count guard).
 > - **`ows.reaper_config`** per-tenant override table ships (migration `20260627021802` + `merged_with`).
@@ -22,7 +23,7 @@
 
 **Goal:** Make ROWS automatically tear down empty/abandoned Agones zone servers, so allocated GameServers stop piling up for days.
 
-**Architecture:** ROWS gains a background reaper that decides — via a pure, unit-tested function — whether each active `mapinstances` row should be torn down, using player count + timestamps already in the DB. The reap *action* deallocates the GameServer (failure leaves the row reap-eligible so the next cycle retries). The heartbeat handler is extended to maintain the `LastServerEmptyDate` marker, and the allocation request gains an `empty-shutdown-minutes` annotation so the UE side (separate repo) can self-shutdown first.
+**Architecture:** ROWS gains a background reaper that decides — via a pure, unit-tested function — whether each active `mapinstances` row should be torn down, using player count + timestamps already in the DB. The reap _action_ deallocates the GameServer (failure leaves the row reap-eligible so the next cycle retries). The heartbeat handler is extended to maintain the `LastServerEmptyDate` marker, and the allocation request gains an `empty-shutdown-minutes` annotation so the UE side (separate repo) can self-shutdown first.
 
 **⚠️ Safety / sequencing (do not skip):** ROWS has **no real occupancy signal until heartbeats are live** — without them `numberofreportedplayers` is permanently `0` and `lastupdatefromserver` permanently `NULL` for every instance, so a full server is indistinguishable from a dead one (and `join_map` routes players onto the oldest, lowest-count instance — the first to cross any age threshold). Therefore: **the reaper ships gated OFF by default. The count-based (`Empty`) path is only meaningful once the heartbeat is live; the time-based (`NeverReported`) path is independently gated and must stay off until the heartbeat is confirmed live in the target env, or it will deallocate populated servers ~`boot_grace` after spawn.** Until then, stuck servers are cleared manually (`kubectl delete gs`). Phase 1 builds the machinery inert; Phase 2 + the UE heartbeat make it safe to enable.
 
@@ -59,11 +60,13 @@
 ### Task 1: Pure reap-decision function
 
 **Files:**
+
 - Create: `apps/rows/src/agones/reaper.rs`
 - Modify: `apps/rows/src/agones/mod.rs`
 - Test: inline `#[cfg(test)]` in `apps/rows/src/agones/reaper.rs`
 
 **Interfaces:**
+
 - Produces: `pub enum ReapReason { NeverReported, Empty }` and
   `pub fn reap_decision(player_count: i32, last_update_from_server: Option<NaiveDateTime>, last_server_empty_date: Option<NaiveDateTime>, create_date: Option<NaiveDateTime>, minutes_to_shutdown_after_empty: i32, boot_grace_secs: i64, empty_buffer_secs: i64, allow_never_reported: bool, now: NaiveDateTime) -> Option<ReapReason>`
 - `allow_never_reported` independently gates the time-based path (see safety note); pass `false` until the heartbeat is confirmed live.
@@ -230,14 +233,16 @@ git commit -m "feat(rows): pure reap-decision policy for empty/abandoned zone se
 ### Task 2: Reaper config knobs
 
 **Files:**
+
 - Modify: `apps/rows/src/config.rs`
 
 **Interfaces:**
+
 - Produces four fields on the app config:
-  - `empty_reaper_enabled: bool` (default **`false`** — master kill switch; the whole reaper loop no-ops when off)
-  - `reap_never_reported: bool` (default **`false`** — independently gates the time-based path; keep off until the heartbeat is confirmed live)
-  - `empty_reap_boot_grace_secs: i64` (default **`14400`** = 4h, not 10 min)
-  - `empty_reap_buffer_secs: i64` (default `30`)
+    - `empty_reaper_enabled: bool` (default **`false`** — master kill switch; the whole reaper loop no-ops when off)
+    - `reap_never_reported: bool` (default **`false`** — independently gates the time-based path; keep off until the heartbeat is confirmed live)
+    - `empty_reap_boot_grace_secs: i64` (default **`14400`** = 4h, not 10 min)
+    - `empty_reap_buffer_secs: i64` (default `30`)
 - Env: `ROWS_EMPTY_REAPER_ENABLED`, `ROWS_REAP_NEVER_REPORTED`, `ROWS_EMPTY_REAP_BOOT_GRACE_SECS`, `ROWS_EMPTY_REAP_BUFFER_SECS`.
 
 - [ ] **Step 1: Read the existing config struct and its env-parse site**
@@ -298,12 +303,14 @@ git commit -m "feat(rows): add empty-reaper boot-grace and buffer config knobs"
 > Rationale: `main.rs:138` already rehydrates `zone_servers` on startup via `reconcile_allocations()` (`sdk.rs:266`), but that maps GameServers back to instances using the `ows.kbve.com/zone-instance` **label** — which is written `0` at allocation and only patched by the best-effort `tag_gameserver` (the #13192 hardening gap). When that label is `0`/missing, reconcile can't recover the instance and the reaper's in-memory lookup misses. The persisted `gameservername` is the label-independent fallback the reaper consults (Task 5). It is **not** "the only restart-recovery" — it's the backstop for unreliable labels.
 
 **Files:**
+
 - Create: `packages/data/sql/dbmate/migrations/<ts>_ows_mapinstance_gameservername.sql`
 - Modify: `packages/data/sql/schema/ows/map_instances.sql`
 - Modify: `apps/rows/src/models.rs` (ZoneInstance) and `apps/rows/src/repo/instances.rs` (`spin_up_server_instance_ready`)
 - Modify: `apps/rows/src/agones/pipeline.rs` (`create_instance`)
 
 **Interfaces:**
+
 - Produces: `mapinstances.GameServerName VARCHAR(253) NULL`; `spin_up_server_instance_ready` gains a `game_server_name: &str` parameter and writes it; `ZoneInstance` gains `pub game_server_name: Option<String>`.
 
 - [ ] **Step 1: Write the migration**
@@ -410,12 +417,14 @@ git commit -m "feat(rows): persist gameservername on mapinstances for restart-sa
 ### Task 4: Reap-candidate query + gs-name deallocation fallback
 
 **Files:**
+
 - Modify: `apps/rows/src/repo/instances.rs`
 
 **Interfaces:**
+
 - Produces:
-  - `InstanceRepo::get_active_reap_candidates(&self, customer_guid: Uuid) -> Result<Vec<ZoneInstance>, RowsError>` — active (`status > 0`) instances with the `maps` join, capped at 500.
-  - `InstanceRepo::get_gameserver_name(&self, customer_guid: Uuid, map_instance_id: i32) -> Result<Option<String>, RowsError>` — DB fallback when the in-memory `zone_servers` map is missing the instance (e.g. `reconcile_allocations` couldn't rehydrate it because the `zone-instance` label was `0`/missing).
+    - `InstanceRepo::get_active_reap_candidates(&self, customer_guid: Uuid) -> Result<Vec<ZoneInstance>, RowsError>` — active (`status > 0`) instances with the `maps` join, capped at 500.
+    - `InstanceRepo::get_gameserver_name(&self, customer_guid: Uuid, map_instance_id: i32) -> Result<Option<String>, RowsError>` — DB fallback when the in-memory `zone_servers` map is missing the instance (e.g. `reconcile_allocations` couldn't rehydrate it because the `zone-instance` label was `0`/missing).
 
 - [ ] **Step 1: Add the candidate query**
 
@@ -481,9 +490,11 @@ git commit -m "feat(rows): reap-candidate query and gs-name deallocation fallbac
 ### Task 5: Wire the reaper job
 
 **Files:**
+
 - Modify: `apps/rows/src/jobs.rs`
 
 **Interfaces:**
+
 - Consumes: `reaper::reap_decision`, `InstanceRepo::get_active_reap_candidates`, `InstanceRepo::get_gameserver_name`, `InstanceRepo::shut_down_server_instance`, `AgonesClient::deallocate`, config `empty_reap_boot_grace_secs` / `empty_reap_buffer_secs`.
 
 - [ ] **Step 1: Add the reaper to `spawn_all`**
@@ -619,6 +630,7 @@ Expected: no new warnings in `jobs.rs`/`reaper.rs`.
 - [ ] **Step 5: Manual verification (no DB test harness)**
 
 Document in the PR, in a throwaway dev env only:
+
 1. **Default-off:** with no env set, the reaper loop no-ops — confirm no "Reaping…" logs even with an eligible row present.
 2. **Count-based (safe path):** set `ROWS_EMPTY_REAPER_ENABLED=true`; with a row at `numberofreportedplayers=0` and `lastserveremptydate` older than `minutes*60 + buffer`, after ≤60s the GameServer is deallocated, then the row goes `status=0`. A row with `numberofreportedplayers > 0` is untouched.
 3. **Deallocate-failure retry:** simulate a deallocate error (e.g. delete the GameServer out-of-band first) → the row stays `status>0` and is retried next cycle (no permanent orphan).
@@ -638,9 +650,11 @@ git commit -m "feat(rows): empty-server reaper job (count-based + never-reported
 ### Task 6: Maintain `LastServerEmptyDate` on player-count update
 
 **Files:**
+
 - Modify: `apps/rows/src/repo/instances.rs` (`update_number_of_players`)
 
 **Interfaces:**
+
 - Consumes: existing `update_number_of_players(customer_guid, zone_instance_id, number_of_players)` call sites (REST/gRPC `health_stream`) — signature unchanged.
 - Produces: side effect — `LastServerEmptyDate` stamped `NOW()` on the 0→still-0 transition (first time it's seen empty) and cleared when players > 0.
 
@@ -696,11 +710,13 @@ git commit -m "feat(rows): maintain LastServerEmptyDate on player-count heartbea
 ### Task 7: Stamp `empty-shutdown-minutes` annotation in the allocation request
 
 **Files:**
+
 - Modify: `apps/rows/src/agones/allocate.rs` (`allocate` / `try_allocate` signatures + request body)
 - Modify: `apps/rows/src/agones/pipeline.rs` (`allocate_via_agones` passes the value)
 - Modify: `apps/rows/src/service/instances.rs` (look up the per-map value and thread it in)
 
 **Interfaces:**
+
 - Consumes: per-map `minutes_to_shutdown_after_empty` (already on `ZoneInstance` from `get_zone_instances_for_zone`).
 - Produces: `allocate(map_name, zone_instance_id, empty_shutdown_minutes)`; the GameServerAllocation request includes `spec.metadata.annotations["ows.kbve.com/empty-shutdown-minutes"]`.
 
@@ -785,6 +801,7 @@ git commit -m "feat(rows): stamp empty-shutdown-minutes annotation on allocation
 ## Self-Review
 
 **Spec coverage (#13194 ROWS side):**
+
 - Heartbeat ingest maintains `LastServerEmptyDate` → Task 6. ✅
 - Count-based reap (layer 3) → Tasks 1 + 5, behind `empty_reaper_enabled`. ✅
 - Time-based net (layer 4) → Tasks 1 + 5, behind `reap_never_reported` (off until heartbeat live). ✅
@@ -794,6 +811,7 @@ git commit -m "feat(rows): stamp empty-shutdown-minutes annotation on allocation
 - Drop server-side `RegisterLauncher` → out of scope here (UE contract + #13192 removal). Noted.
 
 **Review fixes (PR #13200 audit) folded in:**
+
 - ⚠️ Mass-reap of populated servers pre-heartbeat → reaper gated OFF by default; `NeverReported` independently gated; `boot_grace` default 4h. (Tasks 1, 2, 5)
 - 🐛 Orphan on failed deallocate → deallocate-first ordering, retry on failure. (Task 5)
 - 🧹 Dead index dropped; restart rationale corrected (`reconcile_allocations`); 500-row truncation now logged. (Tasks 3, 4, 5)
@@ -813,7 +831,7 @@ Folds in the merge-condition items from the PR #13200 production audit. The reap
 > **⚠️ This PR does NOT auto-clean the servers currently piled up — in any safe configuration.**
 > Existing stuck instances have `last_update_from_server = NULL` and `player_count = 0` (no live
 > heartbeat), so the only path that could reap them is `NeverReported`, gated by
-> `ROWS_REAP_NEVER_REPORTED` — and turning that on **pre-heartbeat also deallocates *populated*
+> `ROWS_REAP_NEVER_REPORTED` — and turning that on **pre-heartbeat also deallocates _populated_
 > servers** (a full server is indistinguishable from a dead one without heartbeats). Additionally,
 > pre-existing rows have `gameservername = NULL` (it's only written on INSERT, never backfilled —
 > `ON CONFLICT DO NOTHING`), so even if the reaper selected them it would take the no-name terminal
@@ -836,12 +854,12 @@ independent steps.
 - **Recommended order anyway:** run `ci-dbmate-deploy` for the target SHA **before** rolling the
   rows image, so restart-safe teardown is fully functional from the first allocation.
 - **Verify after dbmate runs:**
-  ```sql
-  SET search_path TO ows;
-  SELECT column_name FROM information_schema.columns
-   WHERE table_schema='ows' AND table_name='mapinstances' AND column_name='gameservername';
-  ```
-  Expect one row. If empty, the migration has not applied — rows is running in degrade mode.
+    ```sql
+    SET search_path TO ows;
+    SELECT column_name FROM information_schema.columns
+     WHERE table_schema='ows' AND table_name='mapinstances' AND column_name='gameservername';
+    ```
+    Expect one row. If empty, the migration has not applied — rows is running in degrade mode.
 
 ### 2. Per-env enablement — HARD GATE (do this per environment, never globally at once)
 
@@ -852,39 +870,39 @@ The reaper knobs live in `apps/kube/rows/tenants/base/deployment.yaml`: the tuni
 edit that drifts from Argo.
 
 > **GATE — `ROWS_REAP_NEVER_REPORTED` MUST NOT be uncommented in any env until step 1 below is
-> signed off for that env.** It deallocates *populated* servers ~`boot_grace` (default 4h) after
+> signed off for that env.** It deallocates _populated_ servers ~`boot_grace` (default 4h) after
 > spawn when heartbeats aren't live, because a full server is then indistinguishable from a dead
 > one. This is the single most dangerous flag in the PR.
 >
 > **Defence in depth — the `require_heartbeat` auto-gate (default ON).** Even if `never_reported`
-> is enabled prematurely, the reaper suppresses the never-reported path until it has observed *at
-> least one* heartbeat for the tenant (`lastupdatefromserver IS NOT NULL` on any instance). With no
+> is enabled prematurely, the reaper suppresses the never-reported path until it has observed _at
+> least one_ heartbeat for the tenant (`lastupdatefromserver IS NOT NULL` on any instance). With no
 > UE heartbeat configured, none is ever seen, so populated servers are never reaped. This makes the
 > gate above a defense-in-depth process control rather than the only thing standing between you and
 > an outage — but **do not** disable `require_heartbeat` to "force" cleanup of the current backlog
 > (those rows also have `gameservername = NULL`, so they'd take the no-name terminal path anyway —
-> use `kubectl delete gs`). Note the auto-gate latches once satisfied: a *later* global heartbeat
+> use `kubectl delete gs`). Note the auto-gate latches once satisfied: a _later_ global heartbeat
 > outage is still a (narrow) risk for servers spawned during it.
 
 Enable strictly in this order, per env (dev → beta → release):
 
 1. **Confirm heartbeats are live in THIS env first.** With the env carrying real player traffic,
    check that `lastupdatefromserver` advances and `numberofreportedplayers` reflects reality:
-   ```sql
-   SET search_path TO ows;
-   SELECT mapinstanceid, numberofreportedplayers, lastupdatefromserver, lastserveremptydate
-     FROM mapinstances WHERE customerguid = '<tenant-guid>' AND status > 0
-     ORDER BY lastupdatefromserver DESC NULLS LAST LIMIT 20;
-   ```
-   If `lastupdatefromserver` is NULL/stale for live servers, **stop** — heartbeats are not live;
-   enabling the never-reported path here would evict players.
+    ```sql
+    SET search_path TO ows;
+    SELECT mapinstanceid, numberofreportedplayers, lastupdatefromserver, lastserveremptydate
+      FROM mapinstances WHERE customerguid = '<tenant-guid>' AND status > 0
+      ORDER BY lastupdatefromserver DESC NULLS LAST LIMIT 20;
+    ```
+    If `lastupdatefromserver` is NULL/stale for live servers, **stop** — heartbeats are not live;
+    enabling the never-reported path here would evict players.
 2. **Enable the count-based path only:** set `ROWS_EMPTY_REAPER_ENABLED=true`, leave
    `ROWS_REAP_NEVER_REPORTED` unset/false. Watch logs for `Reaping empty/abandoned zone server`
    and confirm only genuinely-empty instances are torn down.
 3. **Enable `ROWS_REAP_NEVER_REPORTED=true` only after** step 1 holds for that env. Startup emits a
    `warn!` for each dangerous knob — confirm the logged config matches intent.
 4. **`ROWS_EMPTY_REAP_STALE_SECS > 0`** (crashed-while-populated) only once heartbeat delivery is
-   trusted; a *global* heartbeat outage would otherwise make every live server look stale.
+   trusted; a _global_ heartbeat outage would otherwise make every live server look stale.
 
 Env flags drift between dev/beta/release values files — treat enablement as a per-env change, not a
 single global toggle.
@@ -896,9 +914,9 @@ The reaper now guards each cycle with a tenant-scoped Postgres advisory lock
 double-deallocating the same GameServer — only the lock holder reaps per cycle. No manual step
 required before scaling; the spin-up path remains protected by its existing per-zone lock.
 
-> **Cancellation caveat (post-merge audit, G3).** The cycle is *panic*-safe — `run_reap_cycle`
+> **Cancellation caveat (post-merge audit, G3).** The cycle is _panic_-safe — `run_reap_cycle`
 > runs as a supervised `tokio::spawn(...).await`, so the explicit `pg_advisory_unlock` below it
-> always runs after a panic. It is **not** *cancellation*-safe: if the `empty_server_reaper` task is
+> always runs after a panic. It is **not** _cancellation_-safe: if the `empty_server_reaper` task is
 > aborted between `pg_try_advisory_lock` and `pg_advisory_unlock`, the session-level lock is skipped
 > and leaks on the pooled `lock_conn` (the lock outlives the connection's return to the pool), wedging
 > this tenant's reaping until that connection is recycled. Harmless today (nothing aborts the jobs
@@ -912,6 +930,7 @@ required before scaling; the spin-up path remains protected by its existing per-
 A `CREATE INDEX CONCURRENTLY` interrupted mid-build leaves an INVALID index; `IF NOT EXISTS` makes a
 re-run skip it, so reaper scans silently fall back to seq scans. Recovery (also noted in the
 migration file):
+
 ```sql
 SET search_path TO ows;
 SELECT c.relname FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid
@@ -949,6 +968,7 @@ DELETE FROM reaper_config WHERE customerguid = '<tenant-guid>';
 ```
 
 Notes:
+
 - The master `enabled` is itself overridable, so a tenant can be turned on via DB even when the env
   ships it off — apply the same step-1 heartbeat sign-off before doing so. The `require_heartbeat`
   auto-gate (section 2) still applies regardless of how `never_reported` was enabled.
@@ -967,7 +987,7 @@ backends, and the reaper's draw is:
   pool connection** for the `status=0` flip → peak ≈ `1 + MAX_CONCURRENT_REAPS`.
 - Meanwhile the **player hot path** needs the same pool: `update_number_of_players` on every UE
   heartbeat, and `join_map`/allocation. A reap batch saturating the pool blocks these on `acquire()`
-  (fails after 5s); a heartbeat gap can then make *other* servers look reap-eligible — a feedback loop.
+  (fails after 5s); a heartbeat gap can then make _other_ servers look reap-eligible — a feedback loop.
 
 **Fix shipped (PR #13200):** `MAX_CONCURRENT_REAPS` lowered **8 → 4** (`jobs.rs`), so the reaper draws
 ≤ `1 + 4 = 5` of 10, leaving ≥5 for the hot path. The invariant the constant must keep:
@@ -979,9 +999,9 @@ backends, and the reaper's draw is:
 `DB_MAX_CONNECTIONS` is **deliberately NOT raised** here: it lives in `tenants/base`, so a bump
 multiplies across every tenant against the primary's `max_connections`. Scaling teardown throughput
 by enlarging the pool belongs to the **pooler migration (KBVE #7593)** — and even then the reaper's
-*lock* connection must stay session-pinned (see §3): the transaction-mode RW pooler would void the
+_lock_ connection must stay session-pinned (see §3): the transaction-mode RW pooler would void the
 advisory lock. This whole concern is **inert while the reaper ships off** (lock + teardown
-connections are acquired only *after* the `enabled` check), but the capped constant is the standing
+connections are acquired only _after_ the `enabled` check), but the capped constant is the standing
 guard for whenever it's enabled.
 
 ### 7. Known residuals (post-merge audit, PR #13200)
@@ -992,7 +1012,7 @@ the inert merge.
 
 - **G2 — spin-up MQ failures are silently dropped (no DLX).** `apps/rows/src/mq.rs` rejects a
   twice-failed spin-up `requeue:false`, but **no `x-dead-letter-exchange` is configured on the
-  queue**, so the message is *dropped*, not dead-lettered (the code comment says so). A zone whose
+  queue**, so the message is _dropped_, not dead-lettered (the code comment says so). A zone whose
   allocation fails through the retry window is lost with only a `warn!`; the requesting player is
   stuck. **Follow-up PR:** add a DLX to the spin-up queue + alert on DLQ depth. (Not reaper-specific;
   rode in on this PR via the `redelivered` retry fix. Also noted under Out-of-scope in
@@ -1001,9 +1021,9 @@ the inert merge.
   in §3 above and the interaction note in `2026-06-24-rows-drain-core.md`.
 - **G4 — never-reported rows starved past the 500-row cap (FIXED in code).** The candidate scan
   ordered `lastserveremptydate ASC NULLS LAST`, burying every never-reported row
-  (`lastserveremptydate IS NULL`) *after* all empty rows, so in a backlog > 500 they never entered
+  (`lastserveremptydate IS NULL`) _after_ all empty rows, so in a backlog > 500 they never entered
   the candidate set. **Fix shipped (PR #13200):** order by `COALESCE(lastserveremptydate, createdate)
-  ASC` — each row sorts by its *own* reap clock (empty rows by empty-date, never-reported by
+ASC` — each row sorts by its _own_ reap clock (empty rows by empty-date, never-reported by
   createdate/boot-grace), interleaving both by reap-worthiness. The partial index still serves the
   `status > 0` predicate; the ≤500-row sort is in-memory. The cap-hit is still logged.
 - **Q1 — `worldservers` row leak on reap (RESOLVED + FIXED in code: Low, pre-existing — not a routing hazard).**
@@ -1011,13 +1031,13 @@ the inert merge.
   `status=0` flip — a single `UPDATE … WHERE NOT EXISTS (other active instance on that worldserver)`,
   best-effort, so it bounds the leak without breaking the 1:N launcher case. Original analysis:
   `reap_one` deletes the GameServer and sets `mapinstances.status=0`, but leaves the `worldservers`
-  row at `serverstatus=1`. Cardinality *is* effectively 1:1 — `register_world_server`
+  row at `serverstatus=1`. Cardinality _is_ effectively 1:1 — `register_world_server`
   (`pipeline.rs`) mints a fresh `Uuid::new_v4()` per allocation, so the `register_launcher`
   `ON CONFLICT (customerguid, zoneserverguid)` never fires and every allocation inserts a new
   `worldservers` row. **But there is no mis-routing hazard:** the Agones spin-up path never reuses an
-  existing `serverstatus=1` worldserver — `find_existing` only short-circuits a player to a *ready*
+  existing `serverstatus=1` worldserver — `find_existing` only short-circuits a player to a _ready_
   instance (`map_instance_status == 2`); a "pending" row falls through to `allocate_via_agones` →
-  `register_world_server`, which creates a *new* worldserver and ignores the stale one. So a reaped
+  `register_world_server`, which creates a _new_ worldserver and ignores the stale one. So a reaped
   GameServer's dangling row can never be handed to a player as a connect target. The real consequence
   is **`worldservers` table growth** — each reaped GS orphans a `serverstatus=1` row that's never set
   to 0. This is **pre-existing**, not reaper-introduced: `stale_zone_cleanup` and
@@ -1031,7 +1051,7 @@ the inert merge.
 
 A fresh production-grade audit over the merged-tip state. The prior passes (H1/M1/M2/M3/L1/L2/G1–G4/Q1)
 held up; nothing new rises to blocker. Triage below — two code fixes landed, the rest documented with
-the technical reason they are *not* code-changed (the suggested fix would conflict with intended design
+the technical reason they are _not_ code-changed (the suggested fix would conflict with intended design
 or the risk of touching audited code exceeds the benefit).
 
 **Fixed in code (this pass):**
@@ -1046,17 +1066,17 @@ or the risk of touching audited code exceeds the benefit).
   there if the per-allocation read ever matters. Independent of `enabled`. Documented in
   `deployment.yaml` and the config index.
 - **5.2 — `empty_shutdown_minutes_floor` overflow on absurd config (Low → FIXED).** `(min_empty_secs +
-  59)` on an i64 could overflow for a pathological operator value; switched to `saturating_add(59)`.
+59)` on an i64 could overflow for a pathological operator value; switched to `saturating_add(59)`.
 
 **Documented, not code-changed (with rationale):**
 
 - **2.1 — negative player-count is clamped to 0 but doesn't start the empty timer (Low, WONTFIX).** A
   server persistently reporting a negative count stores `0` (via `GREATEST($3,0)`) without stamping
-  `lastserveremptydate`, so the Empty path never fires for it. This is the *author's explicit* choice
+  `lastserveremptydate`, so the Empty path never fires for it. This is the _author's explicit_ choice
   ("a negative is treated as a glitch and leaves it untouched") and re-touching the heartbeat write — on
   the all-servers hot path — for a pathological UE bug is higher-risk than the edge it closes. Accept.
 - **3.2 — reaper reads `reaperconfig` every 60s even while shipped disabled (Low, by design).** The DB
-  override read happens before the `enabled` check *on purpose*: it's the no-redeploy enable path (a
+  override read happens before the `enabled` check _on purpose_: it's the no-redeploy enable path (a
   tenant flips `enabled=true` in the DB). Short-circuiting on the env baseline would kill that feature.
   The read is a single PK lookup per tenant per cycle; cost is negligible. Keep.
 - **4.1 — `hashtext` advisory-lock key can collide across tenants (Low, benign).** Two tenant GUIDs can
@@ -1064,7 +1084,7 @@ or the risk of touching audited code exceeds the benefit).
   `WHERE customerguid`; no cross-tenant deallocation) — a collided tenant just skips a cycle and retries
   next tick. Changing the lock-key derivation is riskier than the benign throughput nit. Keep.
 - **4.2 — background jobs are detached with no supervision/restart (Low, pre-existing).** `spawn_all`
-  fires five un-tracked `tokio::spawn`s; a panic in a loop's *scaffolding* (outside the per-cycle
+  fires five un-tracked `tokio::spawn`s; a panic in a loop's _scaffolding_ (outside the per-cycle
   isolation) kills that job silently. Pre-existing pattern the reaper merely joins. Follow-up: a
   supervising wrapper (log + restart) across all five jobs — out of scope for this PR's diff.
 - **10.1 — spin-up retry-once has no backoff (Low, acceptable).** First failure `requeue:true` is
@@ -1075,9 +1095,9 @@ or the risk of touching audited code exceeds the benefit).
   `LastServerEmptyDate` but the candidate query sorts by `COALESCE(lastserveremptydate, createdate)`; the
   ≤500-row sort is in-memory. Fine at current scale (noted in `get_active_reap_candidates`).
 
-**Most-likely-incident (30d):** the reaper ships OFF, so the realistic risk is *not* mass deallocation
+**Most-likely-incident (30d):** the reaper ships OFF, so the realistic risk is _not_ mass deallocation
 (triple-gated: `enabled` + `never_reported` + `require_heartbeat` auto-gate). It's **silent
 under-reaping on first enable** if `heartbeat_interval ≥ ROWS_EMPTY_REAP_FRESH_SECS` — the Empty path
 no-ops even with `ENABLED=true`. Detectable via the per-cycle "empty servers retained: heartbeat stale
-vs empty_fresh_secs" log, *if* someone watches it. Make verifying `heartbeat_interval < FRESH_SECS` a
+vs empty_fresh_secs" log, _if_ someone watches it. Make verifying `heartbeat_interval < FRESH_SECS` a
 hard precondition in the §2 enablement runbook.

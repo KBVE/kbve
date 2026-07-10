@@ -527,11 +527,11 @@ UPDATE fleet_restart SET active = false WHERE customerguid = '<tenant-guid>';
 **Lockout behaviour:** while `active && lockout`, the reconcile holds `admission_control.acceptnewjoins
 = false` and records ownership on `fleet_restart.lockoutapplied`. On clear (`active=false`) it lifts
 the lockout **once, iff it owns it** — it never clobbers a lockout another writer (maintenance /
-abuse mitigation) set. Travel is unaffected; only *new* joins are blocked.
+abuse mitigation) set. Travel is unaffected; only _new_ joins are blocked.
 
 **Polling contract (`GET /fleet-restart/status`):** `{ active, draining, gameservers, all_drained,
 safe_to_roll, stalled }`. Two-level barrier: `all_drained` (DB `status>0` count == 0) is the
-*necessary* trigger to begin a cutover; `safe_to_roll` additionally requires the Agones GameServer
+_necessary_ trigger to begin a cutover; `safe_to_roll` additionally requires the Agones GameServer
 count == 0 (a DB row can hit 0 while its pod is still flushing a save). `gameservers: -1` = Agones
 unknown — fail closed, never roll on it. Poll cadence ≥ 5s (the GS count is cached ~5s). Note:
 `all_drained`/`safe_to_roll` flip back to `false` the instant `active` clears — completion is
@@ -570,7 +570,7 @@ path since they share port 4322), and 404s unless `deploy_state` reports an upda
 checks `pg_index.indisvalid` at startup and warns. Recovery: `DROP INDEX CONCURRENTLY
 ows.idx_mapinstances_drainable;` then re-run dbmate up.
 
-**Orchestrator handoff:** ROWS only *signals* (`safe_to_roll`); the named deploy orchestrator (R3,
+**Orchestrator handoff:** ROWS only _signals_ (`safe_to_roll`); the named deploy orchestrator (R3,
 blocked on the chuck login-crash) sequences drain → barrier → scale-to-0 `maxSurge:0` cutover →
 migration → scale-up → soak → `deploy_state.rolled=true`. Until it exists, that sequence is manual.
 
@@ -678,7 +678,7 @@ DB = lifecycle truth (survives ROWS restart + valkey loss). valkey = routing/aff
   (closes the "silence ≠ dead" Empty residual — see Reaper interaction). The #13200 reaper is v1.
 - **UE/chuck contract** — receiving requests, admission policy, save-to-DB, drain pacing, transfer,
   `SDK.Shutdown()` timing, player broadcasts. Extends #13194. **Spec'd for the UE dev in**
-  `docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md` (living doc — updated per phase).
+  `apps/rows/docs/2026-06-24-ue-chuck-drain-contract.md` (living doc — updated per phase).
 - **RabbitMQ write-behind** save buffer (only when stagger waves aren't enough).
 - **Spin-up dead-letter exchange (G2, PR #13200 residual)** — the spin-up consumer
   (`apps/rows/src/mq.rs`) rejects a twice-failed allocation `requeue:false`, but the queue has **no

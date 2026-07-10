@@ -542,7 +542,7 @@ Separately, `all_drained`/`safe_to_roll` flip back to `false` the moment the ope
 
 ### Task 7: Runbook + spec cross-reference
 
-**Files:** Modify `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md`
+**Files:** Modify `apps/rows/docs/2026-06-24-rows-server-lifecycle-and-shutdown.md`
 
 - [ ] Document the operator flow: the SQL to trigger/clear a restart (clear with `active=false`, **never `DELETE`** — a deleted row can't run the one-shot lockout lift), the lockout behaviour (lifted automatically by the reconcile when it owns it — never delete `admission_control` by hand), the `safe_to_roll` polling contract, the **two-stage non-aggressive stall backstop**, the aggressive deadline behaviour, the stall SLA (`fleet_restart_stall_secs`), the `CREATE INDEX CONCURRENTLY` invalid-index recovery + the automated `indisvalid` check, and the named-orchestrator handoff. **Stall behaviour operators must expect (Task 4 Step 3):**
     - **Non-aggressive, stage 1** (`age > fleet_restart_stall_secs`): `/fleet-restart/status` shows `stalled=true`; a warn is logged. Meaning: drain isn't converging → **check `empty_server_reaper` is enabled and healthy first**. Lockout still held.
@@ -627,7 +627,7 @@ A server speaking a new protocol with no client to speak it bounces every player
 - [ ] **Step 1: Define AND pin the client-published signal BEFORE making the check required (C1).** A required status check whose data source is undefined or flaky blocks _every_ server post-publish PR. Recommended and pinned here: a `client_versions(version, platform, published_at)` row written by the client build job, so the check is a cheap DB/HTTP lookup with no third-party coupling. (Alternatives — launcher manifest entry, itch/Steam channel API — are explicitly NOT chosen; pick one source and commit before Step 2.) Define the **break-glass override** (a maintainer label or env that lets a human merge past a red parity check for a genuine emergency) at the same time, so a signal-writer outage can't hard-block all rolls.
 - [ ] **Step 2: Add a required status check** `version-parity/windows` on the rows post-publish PR that is red until the matching Windows client build for that version is published (sourced from the Step 1 `client_versions` signal). The PR cannot merge while red, except via the Step 1 break-glass. Merge is the deliberate, reviewable roll trigger; it bumps `OWS_SERVER_VERSION`.
 - [ ] **Step 3: Scope to beta first** (prod not live). The automated sync fires only once both the server build and the Windows client build for the version exist.
-- [ ] **Step 4: Defense-in-depth at runtime (cross-repo, UE side).** The CI gate prevents the _bad ordering_; back it with a runtime check so a stale client that does connect is handled gracefully. The existing `ows.kbve.com/version` label + UE-contract obligation #12 (client-version gate): a connecting client below the required version gets an "update required" signal, not a raw disconnect. ROWS publishes the required version via `/health.unreal_version` (Task 5b); the UE server enforces the floor on connect. Spec'd in `docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md`.
+- [ ] **Step 4: Defense-in-depth at runtime (cross-repo, UE side).** The CI gate prevents the _bad ordering_; back it with a runtime check so a stale client that does connect is handled gracefully. The existing `ows.kbve.com/version` label + UE-contract obligation #12 (client-version gate): a connecting client below the required version gets an "update required" signal, not a raw disconnect. ROWS publishes the required version via `/health.unreal_version` (Task 5b); the UE server enforces the floor on connect. Spec'd in `apps/rows/docs/2026-06-24-ue-chuck-drain-contract.md`.
 - [ ] **Step 5: Commit** — `feat(ci): version-parity gate (windows client) on rows server roll`.
 
 ---
@@ -794,10 +794,10 @@ ON CONFLICT (customerguid) DO NOTHING;
 - **Stagger by zone:** this plan staggers by instance (`batch_size`); zone-grouped waves (for per-zone messaging) are a later refinement.
 - **Shared advisory-lock helper (follow-up):** `fleet_restart_reconcile` reuses `empty_server_reaper`'s `AdvisoryLockGuard` directly (same file). With two jobs now depending on the same subtle session-lock/pinned-connection pattern, extract `acquire → try-lock → guard → unlock-or-detach` into one shared helper (e.g. `with_tenant_advisory_lock(svc, key, guid, async-fn)`) so a third job can't re-derive the pool-based-unlock bug (F1). Not blocking; do it before the next lock-using job lands.
 - **Client-published signal source:** R1 Step 1 recommends `client_versions`, but the final choice (manifest / Steam-itch / DB row) is pinned when the dispatch step is built.
-- **UE player-countdown broadcast:** ROWS supplies the deadline; the in-game "restarting in X" render and the `ShutdownNotifier` wiring are UE-side (`docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md`).
+- **UE player-countdown broadcast:** ROWS supplies the deadline; the in-game "restarting in X" render and the `ShutdownNotifier` wiring are UE-side (`apps/rows/docs/2026-06-24-ue-chuck-drain-contract.md`).
 
 ## Next up
 
-**Reaper v2 (valkey-backed occupancy) + UE drain contract** — tracked in the lifecycle spec `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md`. Cross-repo / decision-blocked (UE ack, valkey occupancy); each gets its own plan once its blocker clears.
+**Reaper v2 (valkey-backed occupancy) + UE drain contract** — tracked in the lifecycle spec `apps/rows/docs/2026-06-24-rows-server-lifecycle-and-shutdown.md`. Cross-repo / decision-blocked (UE ack, valkey occupancy); each gets its own plan once its blocker clears.
 
-(Previous: Phase 2 Admission → `docs/superpowers/plans/2026-06-24-rows-drain-admission.md`.)
+(Previous: Phase 2 Admission → `apps/rows/docs/2026-06-24-rows-drain-admission.md`.)
