@@ -5,6 +5,8 @@ export interface MotorConfig {
 	runSpeed: number;
 	accel: number;
 	turnLerp: number;
+	gravity: number;
+	jumpSpeed: number;
 }
 
 export const DEFAULT_MOTOR: MotorConfig = {
@@ -12,6 +14,8 @@ export const DEFAULT_MOTOR: MotorConfig = {
 	runSpeed: 4.5,
 	accel: 12,
 	turnLerp: 10,
+	gravity: 22,
+	jumpSpeed: 6,
 };
 
 export type Gait = 'idle' | 'walk' | 'run';
@@ -26,11 +30,24 @@ export class CharacterMotor {
 	readonly position = new THREE.Vector3();
 	readonly velocity = new THREE.Vector3();
 	yaw = 0;
+	vy = 0;
+	grounded = true;
 	/** Optional collision resolver; mutates pos by (dx,dz) honoring walls. */
 	mover: ((pos: THREE.Vector3, dx: number, dz: number) => void) | null = null;
 	private readonly desired = new THREE.Vector3();
 
 	constructor(private cfg: MotorConfig = DEFAULT_MOTOR) {}
+
+	/** Launch upward if standing on the ground; no double-jump. */
+	jump(): void {
+		if (!this.grounded) return;
+		this.vy = this.cfg.jumpSpeed;
+		this.grounded = false;
+	}
+
+	get airborne(): boolean {
+		return !this.grounded;
+	}
 
 	setDesiredVelocity(x: number, z: number): void {
 		this.desired.set(x, 0, z);
@@ -72,6 +89,15 @@ export class CharacterMotor {
 			const targetYaw = Math.atan2(this.velocity.x, this.velocity.z);
 			const tk = 1 - Math.exp(-this.cfg.turnLerp * dt);
 			this.yaw = lerpAngle(this.yaw, targetYaw, tk);
+		}
+		if (!this.grounded || this.vy !== 0) {
+			this.vy -= this.cfg.gravity * dt;
+			this.position.y += this.vy * dt;
+			if (this.position.y <= 0) {
+				this.position.y = 0;
+				this.vy = 0;
+				this.grounded = true;
+			}
 		}
 	}
 }

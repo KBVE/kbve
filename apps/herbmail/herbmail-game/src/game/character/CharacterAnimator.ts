@@ -20,6 +20,8 @@ export class CharacterAnimator {
 	readonly mixer: THREE.AnimationMixer;
 	private readonly actions = new Map<string, THREE.AnimationAction>();
 	private readonly additive = new Map<string, THREE.AnimationAction>();
+	private readonly masked = new Map<string, THREE.AnimationAction>();
+	private readonly activeBase = new Set<THREE.AnimationAction>();
 	private base: THREE.AnimationAction | null = null;
 	private baseName = '';
 
@@ -38,24 +40,44 @@ export class CharacterAnimator {
 		return [...this.actions.keys()];
 	}
 
+	/** Clip duration in seconds, or 0 if unknown. */
+	duration(name: string): number {
+		return this.actions.get(name)?.getClip().duration ?? 0;
+	}
+
 	/** Crossfade the base (locomotion/stance) layer to a looping clip. */
 	play(name: string, opts: PlayOptions = {}): void {
 		const next = this.actions.get(name);
 		if (!next) return;
-		// Re-play if the base got stuck (e.g. StrictMode remount stopped it).
-		if (next === this.base && next.isRunning()) return;
+		// Already the sole running base? nothing to do (also self-heals a
+		// StrictMode remount that stopped the action).
+		if (
+			next === this.base &&
+			next.isRunning() &&
+			this.activeBase.size === 1
+		)
+			return;
 		const fade = opts.fade ?? 0.2;
-		const prev = this.base;
-		next.reset()
-			.setEffectiveTimeScale(opts.timeScale ?? 1)
-			.setEffectiveWeight(1)
-			.setLoop(
-				opts.loop === false ? THREE.LoopOnce : THREE.LoopRepeat,
-				Infinity,
-			)
-			.fadeIn(fade)
-			.play();
-		if (prev && prev !== next) prev.fadeOut(fade);
+		const loop = opts.loop === false ? THREE.LoopOnce : THREE.LoopRepeat;
+		if (next.isRunning() && this.activeBase.has(next)) {
+			// Already contributing (a blend partner). Keep its phase and take it
+			// to full weight — resetting + fadeIn would drop weight to 0 first
+			// and flash the bind (T) pose while the total weight is < 1.
+			next.setEffectiveTimeScale(opts.timeScale ?? 1)
+				.setLoop(loop, Infinity)
+				.stopFading();
+			next.setEffectiveWeight(1);
+		} else {
+			next.reset()
+				.setEffectiveTimeScale(opts.timeScale ?? 1)
+				.setEffectiveWeight(1)
+				.setLoop(loop, Infinity)
+				.fadeIn(fade)
+				.play();
+		}
+		for (const a of this.activeBase) if (a !== next) a.fadeOut(fade);
+		this.activeBase.clear();
+		this.activeBase.add(next);
 		this.base = next;
 		this.baseName = name;
 	}
@@ -96,8 +118,55 @@ export class CharacterAnimator {
 		}
 		wa.setEffectiveWeight(1 - alpha);
 		wb.setEffectiveWeight(alpha);
+		for (const act of this.activeBase)
+			if (act !== wa && act !== wb) act.fadeOut(0.15);
+		this.activeBase.clear();
+		this.activeBase.add(wa);
+		this.activeBase.add(wb);
 		this.base = alpha > 0.5 ? wb : wa;
 		this.baseName = alpha > 0.5 ? b : a;
+	}
+
+	/**
+	 * Register a body-masked one-shot: a copy of `srcName` keeping only the
+	 * tracks whose bone passes `keepBone`. Played on top of the base at full
+	 * weight, it overwrites just those bones (e.g. upper body) while the base
+	 * clip keeps driving the rest (e.g. running legs).
+	 */
+	registerMasked(
+		name: string,
+		srcName: string,
+		keepBone: (boneName: string) => boolean,
+	): boolean {
+		if (this.masked.has(name)) return true;
+		const src = this.actions.get(srcName);
+		if (!src) return false;
+		const clip = src.getClip().clone();
+		clip.tracks = clip.tracks.filter((t) => keepBone(t.name.split('.')[0]));
+		if (!clip.tracks.length) return false;
+		clip.name = name;
+		const action = this.mixer.clipAction(clip);
+		action.setLoop(THREE.LoopOnce, 1);
+		this.masked.set(name, action);
+		return true;
+	}
+
+	/** Fire a masked one-shot over the base; resolves when it finishes. */
+	playMaskedOnce(name: string, fade = 0.12): Promise<void> {
+		const action = this.masked.get(name);
+		if (!action) return Promise.resolve();
+		return new Promise((resolve) => {
+			const onFinished = (e: { action: THREE.AnimationAction }) => {
+				if (e.action !== action) return;
+				this.mixer.removeEventListener('finished', onFinished);
+				action.fadeOut(fade);
+				resolve();
+			};
+			this.mixer.addEventListener('finished', onFinished);
+			action.reset().setLoop(THREE.LoopOnce, 1).setEffectiveWeight(1);
+			action.clampWhenFinished = false;
+			action.fadeIn(fade).play();
+		});
 	}
 
 	/** Register an additive overlay clip (recoil/breathing/flinch). */
@@ -130,5 +199,6 @@ export class CharacterAnimator {
 
 	dispose(): void {
 		this.mixer.stopAllAction();
+		this.activeBase.clear();
 	}
 }

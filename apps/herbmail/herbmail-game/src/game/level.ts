@@ -1,5 +1,7 @@
+import * as THREE from 'three';
 import { TILE } from './config';
 import { jitter } from './geometry/rng';
+import type { Grid } from './geometry/grid';
 
 export const WALL = 1;
 export const FLOOR = 0;
@@ -33,6 +35,14 @@ export function tileAt(col: number, row: number): number {
 export function isWall(col: number, row: number): boolean {
 	return tileAt(col, row) === WALL;
 }
+
+export const levelGrid: Grid = {
+	cols: COLS,
+	rows: ROWS,
+	originCol: 0,
+	originRow: 0,
+	tileAt,
+};
 
 export type ArchAxis = 'x' | 'z';
 
@@ -129,6 +139,26 @@ function buildRooms(): Int16Array {
 		}
 	}
 	return ids;
+}
+
+let mapTex: THREE.DataTexture | null = null;
+
+export function mapTexture(): THREE.DataTexture {
+	if (mapTex) return mapTex;
+	const data = new Uint8Array(ROWS * COLS);
+	for (let r = 0; r < ROWS; r++) {
+		for (let c = 0; c < COLS; c++) {
+			const t = MAP[r][c];
+			data[r * COLS + c] = t === WALL ? 254 : t === ARCH ? 127 : 0;
+		}
+	}
+	mapTex = new THREE.DataTexture(data, COLS, ROWS, THREE.RedFormat);
+	mapTex.magFilter = THREE.NearestFilter;
+	mapTex.minFilter = THREE.NearestFilter;
+	mapTex.wrapS = THREE.ClampToEdgeWrapping;
+	mapTex.wrapT = THREE.ClampToEdgeWrapping;
+	mapTex.needsUpdate = true;
+	return mapTex;
 }
 
 export function roomAt(x: number, z: number): number {

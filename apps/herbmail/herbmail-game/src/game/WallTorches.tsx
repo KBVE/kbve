@@ -1,9 +1,8 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { useTorches, type Torch } from './torches';
-import { roomAt } from './level';
+import { type Torch } from './torches';
+import { useDungeonTorches } from './dungeon/torchList';
 import { Flame } from './Flame';
 
 const TORCH_URL = '/models/torch.glb';
@@ -11,7 +10,6 @@ useGLTF.preload(TORCH_URL);
 
 const SCALE = 1.1;
 const HEAD_LOCAL = new THREE.Vector3(0, 0, 1);
-const FLAME_COLOR = 0xff8a3c;
 
 function prep(scene: THREE.Object3D): THREE.Object3D {
 	const clone = scene.clone(true);
@@ -29,23 +27,7 @@ function prep(scene: THREE.Object3D): THREE.Object3D {
 	return clone;
 }
 
-interface FlameRef {
-	light: THREE.PointLight;
-	phase: number;
-}
-
-function TorchInstance({
-	torch,
-	base,
-}: {
-	torch: Torch;
-	base: THREE.Object3D;
-}) {
-	const ref = useRef<FlameRef>({
-		light: null as unknown as THREE.PointLight,
-		phase: (torch.id * 12.9898) % (Math.PI * 2),
-	});
-
+function TorchInstance({ torch, base }: { torch: Torch; base: THREE.Object3D }) {
 	const quat = useMemo(() => {
 		const dir = new THREE.Vector3(...torch.dir).normalize();
 		return new THREE.Quaternion().setFromUnitVectors(HEAD_LOCAL, dir);
@@ -67,21 +49,6 @@ function TorchInstance({
 		];
 	}, [torch.pos, torch.dir]);
 
-	useFrame((state) => {
-		const r = ref.current;
-		if (!r.light) return;
-		const cam = state.camera;
-		const lit = roomAt(cam.position.x, cam.position.z) === torch.room;
-		r.light.visible = lit;
-		if (!lit) return;
-		const t = state.clock.elapsedTime;
-		const f =
-			0.75 +
-			0.15 * Math.sin(t * 11 + r.phase) +
-			0.1 * Math.sin(t * 23.3 + r.phase * 2.1);
-		r.light.intensity = 5.5 * f;
-	});
-
 	return (
 		<>
 			<group position={torch.pos} quaternion={quat}>
@@ -89,27 +56,23 @@ function TorchInstance({
 			</group>
 			<group position={headPos}>
 				<Flame seed={(torch.id % 97) * 1.7} />
-				<pointLight
-					ref={(o) => (ref.current.light = o as THREE.PointLight)}
-					color={FLAME_COLOR}
-					intensity={5.5}
-					distance={8}
-					decay={2}
-					position={[0, 0.28, 0]}
-				/>
 			</group>
 		</>
 	);
 }
 
 export function WallTorches() {
-	const torches = useTorches();
+	const torches = useDungeonTorches();
 	const gltf = useGLTF(TORCH_URL);
 
 	return (
 		<group>
 			{torches.map((t) => (
-				<TorchInstance key={t.id} torch={t} base={gltf.scene} />
+				<TorchInstance
+					key={`${t.cx}|${t.cy}|${t.id}`}
+					torch={t}
+					base={gltf.scene}
+				/>
 			))}
 		</group>
 	);

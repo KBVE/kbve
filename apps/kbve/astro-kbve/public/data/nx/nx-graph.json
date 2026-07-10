@@ -5635,7 +5635,7 @@
                 },
                 "ci": {
                   "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/discordsh-bot:latest --file apps/discordsh/discordsh-bot/Dockerfile .",
+                    "bash scripts/ci/retry-transient.sh 'BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/discordsh-bot:latest --file apps/discordsh/discordsh-bot/Dockerfile .'",
                     "VERSION=$(grep '^version' apps/discordsh/discordsh-bot/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh-bot:latest kbve/discordsh-bot:$VERSION && echo \"Tagged kbve/discordsh-bot:$VERSION\""
                   ]
                 }
@@ -6426,6 +6426,189 @@
           "implicitDependencies": [
             "firecracker-ctl"
           ]
+        }
+      },
+      "herbmail-game": {
+        "name": "herbmail-game",
+        "type": "app",
+        "data": {
+          "root": "apps/herbmail/herbmail-game",
+          "targets": {
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "cache": true,
+              "dependsOn": [
+                "lfs-pull"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "executor": "@nx/vite:build",
+              "outputs": [
+                "{options.outputPath}"
+              ],
+              "options": {
+                "outputPath": "dist/apps/herbmail/herbmail-game"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve": {
+              "executor": "@nx/vite:dev-server",
+              "options": {
+                "buildTarget": "herbmail-game:build"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "continuous": true
+            },
+            "dev": {
+              "executor": "@nx/vite:dev-server",
+              "options": {
+                "buildTarget": "herbmail-game:build"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "continuous": true
+            },
+            "preview": {
+              "executor": "@nx/vite:preview-server",
+              "options": {
+                "buildTarget": "herbmail-game:build"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "continuous": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/herbmail/herbmail-game",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects herbmail-game --includeDependencies -- pnpm exec nx build-deps herbmail-game"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lfs-pull": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail pull --include='apps/herbmail/herbmail-game/public/**') || echo 'herbmail LFS pull skipped (no creds / offline) — assets may be pointer stubs'"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lfs-push": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail push origin HEAD)"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lfs-register": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail register origin)"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@kbve/herbmail-game",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "name": "herbmail-game",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/herbmail/herbmail-game/src",
+          "tags": [
+            "npm:private",
+            "scope:herbmail",
+            "type:app",
+            "game"
+          ],
+          "implicitDependencies": []
         }
       },
       "kbve-react-native": {
@@ -11852,7 +12035,7 @@
                 },
                 "ci": {
                   "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
+                    "bash scripts/ci/retry-transient.sh 'BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .'",
                     "VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
                   ]
                 }
@@ -16259,7 +16442,7 @@
                 },
                 "ci": {
                   "commands": [
-                    "./kbve.sh -nx edge:containerx --configuration=ci"
+                    "bash scripts/ci/retry-transient.sh './kbve.sh -nx edge:containerx --configuration=ci'"
                   ]
                 }
               },
@@ -18047,6 +18230,7 @@
           "type": "implicit"
         }
       ],
+      "herbmail-game": [],
       "kbve-react-native": [
         {
           "source": "kbve-react-native",
