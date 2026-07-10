@@ -627,6 +627,14 @@ async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
              will surface this)"
         );
     }
+    // HA precondition (unenforceable from inside the pod — replica count isn't visible here):
+    // the reconcile is resume-safe and the advisory lock makes >1 replica correct, but at
+    // replicas: 1 a node drain pauses admission lifting, status polling, and the reconcile until
+    // reschedule. Surface the requirement every boot so it isn't just a YAML comment.
+    warn!(
+        "fleet-restart reconcile active — before relying on it in prod, run ROWS with replicas >= 2 \
+         (rows-pdb is maxUnavailable:1; a single replica pauses orchestration on every node drain)"
+    );
 
     let mut interval = tokio::time::interval(Duration::from_secs(30));
     interval.tick().await;

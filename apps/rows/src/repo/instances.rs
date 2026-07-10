@@ -1442,15 +1442,20 @@ impl<'a> InstanceRepo<'a> {
     /// stage-2 auto-lift may have left `lockout=false`, and without the reset a re-trigger would
     /// never re-lock new joins. Does NOT degrade on 42P01: triggering a restart with no table is a
     /// real error the caller must surface, not a silent no-op.
+    ///
+    /// **Atomic one-restart-at-a-time guard:** the `WHERE fleet_restart.active = false` on the
+    /// conflict arm makes activation conditional in the same statement — two concurrent triggers
+    /// can't both win (no check-then-write TOCTOU; the loser's update matches 0 rows). Returns
+    /// `true` iff this call activated the restart; `false` = one was already active (caller 409s).
     pub async fn set_fleet_restart(
         &self,
         customer_guid: Uuid,
         aggressive: bool,
         deadline: Option<chrono::DateTime<chrono::Utc>>,
         reason: &str,
-    ) -> Result<(), RowsError> {
+    ) -> Result<bool, RowsError> {
         let (urgency, drop_players): (i16, bool) = if aggressive { (1, true) } else { (0, false) };
-        sqlx::query(
+        let result = sqlx::query(
             "INSERT INTO fleet_restart
                  (customerguid, active, reason, urgency, dropplayers, stagger, batchsize,
                   lockout, lockoutapplied, startedat, draindeadline, requestid)
@@ -1459,7 +1464,8 @@ impl<'a> InstanceRepo<'a> {
                  active = true, reason = EXCLUDED.reason, urgency = EXCLUDED.urgency,
                  dropplayers = EXCLUDED.dropplayers, draindeadline = EXCLUDED.draindeadline,
                  lockout = true, lockoutapplied = false, startedat = now(),
-                 requestid = gen_random_uuid()",
+                 requestid = gen_random_uuid()
+             WHERE fleet_restart.active = false",
         )
         .bind(customer_guid)
         .bind(reason)
@@ -1468,7 +1474,7 @@ impl<'a> InstanceRepo<'a> {
         .bind(deadline)
         .execute(self.0)
         .await?;
-        Ok(())
+        Ok(result.rows_affected() > 0)
     }
 
     /// Detects the silent-failure mode of `CREATE INDEX CONCURRENTLY`: a failed concurrent build
@@ -1481,7 +1487,8 @@ impl<'a> InstanceRepo<'a> {
         let result = sqlx::query_scalar::<_, bool>(
             "SELECT i.indisvalid FROM pg_index i
              JOIN pg_class c ON c.oid = i.indexrelid
-             WHERE c.relname = 'idx_mapinstances_drainable'",
+             JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = 'idx_mapinstances_drainable' AND n.nspname = 'ows'",
         )
         .fetch_optional(self.0)
         .await;

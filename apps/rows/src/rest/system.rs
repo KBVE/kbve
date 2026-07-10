@@ -266,23 +266,6 @@ pub async fn fleet_restart_trigger(
     let guid = hs.app.config.customer_guid;
     let repo = crate::repo::InstanceRepo(&hs.app.db);
 
-    // One restart at a time: a re-trigger mid-drain would silently reset the stall clock and
-    // (aggressive) re-arm the deadline; make the operator clear or finish the active one first.
-    match repo.get_fleet_restart(guid).await {
-        Ok(Some(fr)) if fr.active => {
-            return (
-                StatusCode::CONFLICT,
-                Json(serde_json::json!({
-                    "success": false,
-                    "error": "a fleet restart is already active",
-                })),
-            )
-                .into_response();
-        }
-        Ok(_) => {}
-        Err(e) => return e.into_response(),
-    }
-
     // The aggressive path exists to *deploy a pending update* — you can't restart-to-deploy with
     // nothing to deploy (this narrows WHEN it fires; the token above controls WHO).
     if aggressive {
@@ -308,11 +291,26 @@ pub async fn fleet_restart_trigger(
     } else {
         "fleet-restart:non_aggressive"
     };
-    if let Err(e) = repo
+    // One restart at a time, enforced ATOMICALLY in the upsert (`WHERE fleet_restart.active =
+    // false`): a re-trigger mid-drain would silently reset the stall clock and (aggressive) re-arm
+    // the deadline, and a check-then-write here would race two concurrent triggers. `false` =
+    // another restart is active → 409; the operator clears or finishes it first.
+    match repo
         .set_fleet_restart(guid, aggressive, deadline, reason)
         .await
     {
-        return e.into_response();
+        Ok(true) => {}
+        Ok(false) => {
+            return (
+                StatusCode::CONFLICT,
+                Json(serde_json::json!({
+                    "success": false,
+                    "error": "a fleet restart is already active",
+                })),
+            )
+                .into_response();
+        }
+        Err(e) => return e.into_response(),
     }
 
     tracing::info!(
@@ -787,15 +785,38 @@ pub async fn restart_game_server(
     ),
     responses(
         (status = 200, description = "{ success: bool, message?: string, error?: string }"),
+        (status = 401, description = "ROWS_FLEET_RESTART_TOKEN is configured and the bearer token is missing/invalid"),
         (status = 409, description = "A cooperative fleet restart is active — refused (use the fleet-restart flow)"),
         (status = 503, description = "Could not verify the fleet_restart control row — refused (fail closed)"),
     )
 )]
 pub async fn restart_fleet(
     State(hs): State<HandlerState>,
+    headers: HeaderMap,
     Json(body): Json<serde_json::Value>,
 ) -> axum::response::Response {
     use axum::response::IntoResponse;
+
+    // This force-drops every player (scale-to-0 + delete_all_map_instances) — strictly more
+    // destructive than /fleet-restart/trigger, so it gets the same gateway-token gate. Conditional
+    // (only when ROWS_FLEET_RESTART_TOKEN is configured) rather than fail-closed: this endpoint
+    // pre-dates the token and is the documented break-glass; hard-401ing it before the sealed
+    // secret ships would brick the existing dashboard flow. Once the secret is deployed, every
+    // caller must present it.
+    if std::env::var("ROWS_FLEET_RESTART_TOKEN")
+        .map(|v| !v.is_empty())
+        .unwrap_or(false)
+        && !fleet_restart_token_ok(&headers)
+    {
+        return (
+            axum::http::StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "RestartFleet requires the gateway bearer token",
+            })),
+        )
+            .into_response();
+    }
 
     let customer_guid = hs.app.config.customer_guid;
     let desired_replicas = body.get("replicas").and_then(|v| v.as_i64()).unwrap_or(2) as i32;
