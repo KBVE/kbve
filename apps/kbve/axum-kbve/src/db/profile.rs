@@ -59,6 +59,64 @@ pub fn validate_username(username: &str) -> Result<String, UsernameError> {
     Ok(lowered)
 }
 
+fn provider_base(p: &UserProvider) -> Option<String> {
+    if let Some(u) = p.username.clone() {
+        if !u.trim().is_empty() {
+            return Some(u);
+        }
+    }
+    let d = p.identity_data.as_ref()?;
+    let keys: &[&str] = match p.provider.as_str() {
+        "discord" => &[
+            "global_name",
+            "full_name",
+            "name",
+            "preferred_username",
+            "user_name",
+        ],
+        "github" => &["user_name", "preferred_username", "name"],
+        "twitch" => &["nickname", "preferred_username", "user_name", "name"],
+        _ => &["preferred_username", "user_name", "name"],
+    };
+    for k in keys {
+        if let Some(v) = d.get(*k).and_then(|v| v.as_str()) {
+            if !v.trim().is_empty() {
+                return Some(v.to_string());
+            }
+        }
+    }
+    None
+}
+
+pub fn resolve_oauth_base(
+    providers: &[UserProvider],
+    hint: Option<&str>,
+) -> Option<(String, String)> {
+    let mut order: Vec<&str> = Vec::new();
+    if let Some(h) = hint {
+        order.push(h);
+    }
+    for p in ["discord", "github", "twitch"] {
+        if !order.contains(&p) {
+            order.push(p);
+        }
+    }
+    for name in order {
+        if let Some(p) = providers.iter().find(|p| p.provider == name) {
+            if let Some(base) = provider_base(p) {
+                return Some((base, p.provider_id.clone()));
+            }
+        }
+    }
+    None
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct AutoClaimResult {
+    pub username: Option<String>,
+    pub claimed: bool,
+}
+
 /// User provider information from get_user_all_providers RPC
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserProvider {
@@ -549,6 +607,75 @@ impl ProfileService {
         Ok(row.username)
     }
 
+    pub async fn auto_claim_username(
+        &self,
+        user_id: &str,
+        provider_hint: Option<&str>,
+    ) -> Result<AutoClaimResult, String> {
+        if let Some(existing) = self.get_username_by_id(user_id).await? {
+            return Ok(AutoClaimResult {
+                username: Some(existing),
+                claimed: false,
+            });
+        }
+
+        let providers = self.get_user_providers(user_id).await?;
+        let (base, fallback_id) = match resolve_oauth_base(&providers, provider_hint) {
+            Some(pair) => pair,
+            None => {
+                return Ok(AutoClaimResult {
+                    username: None,
+                    claimed: false,
+                });
+            }
+        };
+
+        let url = self.client.config().rpc_url("ensure_oauth_username");
+        let headers = self.client.rpc_headers("tracker")?;
+        let payload = serde_json::json!({
+            "p_user_id": user_id,
+            "p_base": base,
+            "p_fallback_id": fallback_id,
+        });
+
+        let response = self
+            .client
+            .client()
+            .post(&url)
+            .headers(headers)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("Network error: {}", e))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("Database error: {} - {}", status, body));
+        }
+
+        let text = response
+            .text()
+            .await
+            .map_err(|e| format!("Failed to read response: {}", e))?;
+
+        if text.is_empty() || text == "null" {
+            return Ok(AutoClaimResult {
+                username: None,
+                claimed: false,
+            });
+        }
+
+        let username: String = serde_json::from_str(&text)
+            .map_err(|e| format!("Failed to parse username: {} (response: {})", e, text))?;
+
+        tracing::info!("Auto-claimed username '{}' for user {}", username, user_id);
+        Ok(AutoClaimResult {
+            username: Some(username),
+            claimed: true,
+        })
+    }
+
     /// Batch resolve `user_id → username` via direct PostgREST SELECT on
     /// `profile.username`. Single round-trip with `?user_id=in.(…)`.
     /// Missing rows (user with no username set) are absent from the map.
@@ -681,7 +808,51 @@ pub fn get_profile_service() -> Option<&'static ProfileService> {
 
 #[cfg(test)]
 mod tests {
-    use super::{UsernameError, validate_username};
+    use super::{UserProvider, UsernameError, resolve_oauth_base, validate_username};
+    use serde_json::json;
+
+    fn prov(provider: &str, id: &str, identity: serde_json::Value) -> UserProvider {
+        UserProvider {
+            provider: provider.to_string(),
+            provider_id: id.to_string(),
+            linked_at: None,
+            last_sign_in_at: None,
+            identity_data: Some(identity),
+            email: None,
+            username: None,
+            avatar_url: None,
+        }
+    }
+
+    #[test]
+    fn resolver_prefers_hint_then_priority() {
+        let providers = vec![
+            prov("github", "gh1", json!({ "user_name": "octocat" })),
+            prov("discord", "dc1", json!({ "global_name": "Cool Guy" })),
+        ];
+        assert_eq!(
+            resolve_oauth_base(&providers, Some("github")),
+            Some(("octocat".to_string(), "gh1".to_string()))
+        );
+        assert_eq!(
+            resolve_oauth_base(&providers, None),
+            Some(("Cool Guy".to_string(), "dc1".to_string()))
+        );
+        assert_eq!(resolve_oauth_base(&[], None), None);
+    }
+
+    #[test]
+    fn resolver_reads_twitch_and_github_fields() {
+        let twitch = vec![prov(
+            "twitch",
+            "tw1",
+            json!({ "preferred_username": "streamer" }),
+        )];
+        assert_eq!(
+            resolve_oauth_base(&twitch, None),
+            Some(("streamer".to_string(), "tw1".to_string()))
+        );
+    }
 
     #[test]
     fn accepts_hyphen_leading_digit_and_long_names() {
