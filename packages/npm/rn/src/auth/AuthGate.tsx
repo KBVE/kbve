@@ -18,7 +18,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
 		return <LoginScreen />;
 	}
 	if (auth.needsUsername) {
-		return <SetUsernameScreen />;
+		return (
+			<SetUsernameScreen title="Hey! We need you to create a username?" />
+		);
 	}
 	return <>{children}</>;
 }

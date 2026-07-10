@@ -1,16 +1,30 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
-import { Button, Text, tokens } from '../ui';
+import { Modal, StyleSheet, TextInput, View } from 'react-native';
+import { Button } from '../ui/primitives/Button';
+import { Text } from '../ui/primitives/Text';
+import { tokens } from '../ui/theme';
 import { useAuth, useAuthActions } from './useAuth';
 
-const USERNAME_RE = /^[a-zA-Z][a-zA-Z0-9_]{2,23}$/;
+const USERNAME_RE = /^[a-z0-9_-]{3,63}$/;
 
-export function SetUsernameScreen() {
+export interface SetUsernameScreenProps {
+	title?: string;
+	subtitle?: string;
+	suggestion?: string;
+	variant?: 'screen' | 'modal';
+}
+
+export function SetUsernameScreen({
+	title = 'Pick a username',
+	subtitle = 'Your public KBVE handle — kbve.com/@you',
+	suggestion = '',
+	variant = 'screen',
+}: SetUsernameScreenProps = {}) {
 	const auth = useAuth();
 	const { setUsername, signOut } = useAuthActions();
-	const [value, setValue] = useState('');
+	const [value, setValue] = useState(suggestion);
 	const [submitting, setSubmitting] = useState(false);
-	const trimmed = value.trim();
+	const trimmed = value.trim().toLowerCase();
 	const valid = USERNAME_RE.test(trimmed);
 	const showError = trimmed.length > 0 && !valid;
 
@@ -21,15 +35,15 @@ export function SetUsernameScreen() {
 	const submit = () => {
 		if (!valid) return;
 		setSubmitting(true);
-		setUsername(trimmed.toLowerCase());
+		setUsername(trimmed);
 	};
 
-	return (
+	const body = (
 		<View style={styles.container}>
 			<View style={styles.hero}>
-				<Text variant="display">Pick a username</Text>
+				<Text variant="display">{title}</Text>
 				<Text variant="body" tone="muted">
-					Your public KBVE handle — kbve.com/@you
+					{subtitle}
 				</Text>
 			</View>
 
@@ -53,8 +67,8 @@ export function SetUsernameScreen() {
 				variant="caption"
 				tone={showError ? 'danger' : 'faint'}
 				style={styles.hint}>
-				3–24 characters, start with a letter, letters / numbers /
-				underscores.
+				3–63 characters: lowercase letters, numbers, underscores,
+				hyphens.
 			</Text>
 
 			<Button
@@ -81,6 +95,18 @@ export function SetUsernameScreen() {
 			/>
 		</View>
 	);
+
+	if (variant === 'modal') {
+		return (
+			<Modal transparent animationType="fade" visible>
+				<View style={styles.backdrop}>
+					<View style={styles.card}>{body}</View>
+				</View>
+			</Modal>
+		);
+	}
+
+	return body;
 }
 
 const styles = StyleSheet.create({
@@ -90,6 +116,20 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		paddingHorizontal: tokens.space.xl,
 		gap: tokens.space.lg,
+	},
+	backdrop: {
+		flex: 1,
+		backgroundColor: 'rgba(0,0,0,0.6)',
+		justifyContent: 'center',
+		paddingHorizontal: tokens.space.lg,
+	},
+	card: {
+		backgroundColor: tokens.color.bg,
+		borderRadius: tokens.radius.lg,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+		overflow: 'hidden',
+		maxHeight: '80%',
 	},
 	hero: {
 		alignItems: 'center',
