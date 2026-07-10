@@ -1,0 +1,37 @@
+---
+title: Heavy Crossbow
+template: splash
+description: |
+    Immersive Aircraft Heavy Crossbow — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Heavy Crossbow
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900026
+    ref: immersive_aircraft:heavy_crossbow
+    slug: heavy-crossbow
+    content_rev: 0
+    display_name: Heavy Crossbow
+    category: weapon
+    rarity: common
+    stack_size: 1
+    tags:
+        - immersive_aircraft
+        - weapon
+    about:
+        description: |
+            A heavy aircraft-mounted crossbow with a powerful punch. Requires arrows.
+        lore: |
+            One heavy bolt at a time.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

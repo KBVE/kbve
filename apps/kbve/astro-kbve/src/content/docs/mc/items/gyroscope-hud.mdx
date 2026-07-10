@@ -1,0 +1,37 @@
+---
+title: Electronic Gyroscope
+template: splash
+description: |
+    Immersive Aircraft Electronic Gyroscope — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Electronic Gyroscope
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900021
+    ref: immersive_aircraft:gyroscope_hud
+    slug: gyroscope-hud
+    content_rev: 0
+    display_name: Electronic Gyroscope
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            An electronic dashboard that overlays live flight data as a heads-up display.
+        lore: |
+            The future, projected onto your visor.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

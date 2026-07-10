@@ -1,0 +1,37 @@
+---
+title: Hull
+template: splash
+description: |
+    Immersive Aircraft Hull — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Hull
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900008
+    ref: immersive_aircraft:hull
+    slug: hull
+    content_rev: 0
+    display_name: Hull
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - part
+    about:
+        description: |
+            The wooden frame every Immersive Aircraft is assembled around.
+        lore: |
+            Every flight starts with a good hull.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

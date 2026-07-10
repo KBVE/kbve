@@ -1,0 +1,37 @@
+---
+title: Enhanced Propeller
+template: splash
+description: |
+    Immersive Aircraft Enhanced Propeller — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Enhanced Propeller
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900013
+    ref: immersive_aircraft:enhanced_propeller
+    slug: enhanced-propeller
+    content_rev: 0
+    display_name: Enhanced Propeller
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            An upgraded propeller that delivers extra thrust and higher top speed.
+        lore: |
+            For pilots who are always in a hurry.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

@@ -138,8 +138,8 @@ export const MCIdentitySchema = z.object({
 		.string()
 		.min(1)
 		.regex(
-			/^(?:[a-z]+:)?[a-z0-9_]+(?:\/[a-z0-9_]+)*$/,
-			'ref must be lowercase snake_case, optionally prefixed by a namespace like "kbve:" or "minecraft:"',
+			/^(?:[a-z_]+:)?[a-z0-9_]+(?:\/[a-z0-9_]+)*$/,
+			'ref must be lowercase snake_case, optionally prefixed by a namespace like "kbve:", "minecraft:" or "immersive_aircraft:"',
 		),
 	slug: z
 		.string()
