@@ -12,12 +12,12 @@ export interface ViewmodelRest {
 
 export const REST: ViewmodelRest = {
 	px: 0,
-	py: -0.2,
-	pz: -0.8,
+	py: -0.28,
+	pz: -0.54,
 	rx: 0.1,
 	ry: 0,
 	rz: 0,
-	scale: 0.13,
+	scale: 0.12,
 };
 
 export const MOTION = {
@@ -33,8 +33,8 @@ export const MOTION = {
 	recoilBack: 0.09,
 	recoilKick: 0.16,
 	recoilRoll: 0.05,
-	reachPush: 0.12,
-	springBack: 14,
+	reachPush: 0.5,
+	springBack: 10,
 } as const;
 
 export const SOCKET_BONE = 'socket.r';

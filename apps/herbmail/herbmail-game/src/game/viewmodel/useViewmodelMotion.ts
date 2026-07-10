@@ -60,19 +60,20 @@ export function useViewmodelMotion(
 		const targetWalk = THREE.MathUtils.clamp(speed / 3.2, 0, 1);
 		walk.current = damp(walk.current, targetWalk, MOTION.walkLerp, dt);
 
+		const safeDt = Math.max(dt, 1e-4);
 		const dYaw = euler.y - prevYaw.current;
 		const dPitch = euler.x - prevPitch.current;
 		prevYaw.current = euler.y;
 		prevPitch.current = euler.x;
 		swayX.current = damp(
 			swayX.current,
-			THREE.MathUtils.clamp(-dYaw / dt / 12, -1, 1),
+			THREE.MathUtils.clamp(-dYaw / safeDt / 12, -1, 1),
 			MOTION.swayLerp,
 			dt,
 		);
 		swayY.current = damp(
 			swayY.current,
-			THREE.MathUtils.clamp(-dPitch / dt / 12, -1, 1),
+			THREE.MathUtils.clamp(-dPitch / safeDt / 12, -1, 1),
 			MOTION.swayLerp,
 			dt,
 		);
