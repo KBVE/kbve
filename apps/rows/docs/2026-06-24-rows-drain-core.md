@@ -684,7 +684,7 @@ git commit -m "feat(rows): drain-aware join_map via pure join_candidate_key poli
 
 **Files:**
 
-- Modify: `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md` (runbook)
+- Modify: `apps/rows/docs/2026-06-24-rows-server-lifecycle-and-shutdown.md` (runbook)
 
 **Interfaces:** deploy-ordering procedure + docs.
 
@@ -716,7 +716,7 @@ drain-aware image re-creates the `ColumnNotFound` outage). Cross-reference this 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md
+git add apps/rows/docs/2026-06-24-rows-server-lifecycle-and-shutdown.md
 git commit -m "docs(rows): migration-before-merge procedure + core drain plumbing note in lifecycle spec"
 ```
 
@@ -791,6 +791,6 @@ and `drain_deadline: Option<NaiveDateTime>`, read in Task 3. `set_drain_state`/`
 
 ## Next up
 
-**Phase 2 — Admission control plane** → `docs/superpowers/plans/2026-06-24-rows-drain-admission.md`
+**Phase 2 — Admission control plane** → `apps/rows/docs/2026-06-24-rows-drain-admission.md`
 
 (Phase 2 hard-depends on this Core phase: it reuses `is_undefined_table` and the drain state landed here. Land Core first.)

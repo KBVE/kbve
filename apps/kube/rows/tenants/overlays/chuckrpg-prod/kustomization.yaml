@@ -7,6 +7,7 @@ resources:
     - namespace.yaml
     - sealed-customer-guid.yaml
     - sealed-encryption-key.yaml
+    - sealed-fleet-restart-token.yaml
     - ../../base
 
 labels:
