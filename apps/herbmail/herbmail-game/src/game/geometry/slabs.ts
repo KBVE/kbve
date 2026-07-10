@@ -1,25 +1,31 @@
 import * as THREE from 'three';
-import { COLS, ROWS } from '../level';
 import { TILE, WALL_H } from '../config';
+import type { Grid } from './grid';
 
-function buildSlab(y: number, flip: boolean): THREE.BufferGeometry {
-	const w = COLS * TILE;
-	const d = ROWS * TILE;
-	const g = new THREE.PlaneGeometry(w, d, COLS * 2, ROWS * 2);
+function buildSlab(grid: Grid, y: number, flip: boolean): THREE.BufferGeometry {
+	const w = grid.cols * TILE;
+	const d = grid.rows * TILE;
+	const x0 = grid.originCol * TILE;
+	const z0 = grid.originRow * TILE;
+	const g = new THREE.PlaneGeometry(w, d, grid.cols * 2, grid.rows * 2);
 	g.rotateX(flip ? Math.PI / 2 : -Math.PI / 2);
-	g.translate(w / 2, y, d / 2);
+	g.translate(x0 + w / 2, y, z0 + d / 2);
 	const uv = g.attributes.uv as THREE.BufferAttribute;
 	for (let i = 0; i < uv.count; i++) {
-		uv.setXY(i, uv.getX(i) * COLS, uv.getY(i) * ROWS);
+		uv.setXY(
+			i,
+			grid.originCol + uv.getX(i) * grid.cols,
+			grid.originRow + uv.getY(i) * grid.rows,
+		);
 	}
 	uv.needsUpdate = true;
 	return g;
 }
 
-export function buildFloor(): THREE.BufferGeometry {
-	return buildSlab(0, false);
+export function buildFloor(grid: Grid): THREE.BufferGeometry {
+	return buildSlab(grid, 0, false);
 }
 
-export function buildCeiling(): THREE.BufferGeometry {
-	return buildSlab(WALL_H, true);
+export function buildCeiling(grid: Grid): THREE.BufferGeometry {
+	return buildSlab(grid, WALL_H, true);
 }

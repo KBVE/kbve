@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { DungeonScene } from '../game/DungeonScene';
+import { Dungeon } from '../game/Dungeon';
 import { AimReticle } from '../game/AimReticle';
 import { WallTorches } from '../game/WallTorches';
 import { TorchPlacer } from '../game/TorchPlacer';
@@ -52,7 +52,7 @@ export function App() {
 				<color attach="background" args={['#0a0a0e']} />
 				<ambientLight intensity={0.05} />
 				<Suspense fallback={null}>
-					<DungeonScene snap={psx.snap} affine={psx.affine} />
+					<Dungeon snap={psx.snap} affine={psx.affine} />
 				</Suspense>
 				<TorchLighting ambient={0.1} />
 				<Suspense fallback={null}>

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COVE_R, TILE, WALL_H, WALL_SEG } from '../config';
 import { exposedFaces, faceMatrix } from './faces';
+import type { Grid } from './grid';
 
 const ARC_SEG = 8;
 const HALF = TILE / 2;
@@ -45,15 +46,15 @@ function coveProfile(): THREE.BufferGeometry {
 	return g;
 }
 
-export function buildCoves(): THREE.BufferGeometry {
-	const faces = exposedFaces();
+export function buildCoves(grid: Grid): THREE.BufferGeometry {
+	const faces = exposedFaces(grid);
 	if (!faces.length) return new THREE.BufferGeometry();
 
 	const profile = coveProfile();
 	const parts: THREE.BufferGeometry[] = [];
 	for (const face of faces) {
 		const g = profile.clone();
-		g.applyMatrix4(faceMatrix(face, 0));
+		g.applyMatrix4(faceMatrix(grid, face, 0));
 		parts.push(g);
 	}
 	return mergeGeometries(parts, false);

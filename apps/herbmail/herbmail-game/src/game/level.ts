@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { TILE } from './config';
 import { jitter } from './geometry/rng';
+import type { Grid } from './geometry/grid';
 
 export const WALL = 1;
 export const FLOOR = 0;
@@ -34,6 +35,14 @@ export function tileAt(col: number, row: number): number {
 export function isWall(col: number, row: number): boolean {
 	return tileAt(col, row) === WALL;
 }
+
+export const levelGrid: Grid = {
+	cols: COLS,
+	rows: ROWS,
+	originCol: 0,
+	originRow: 0,
+	tileAt,
+};
 
 export type ArchAxis = 'x' | 'z';
 

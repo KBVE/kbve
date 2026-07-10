@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COVE_R, TILE, WALL_H, WALL_SEG } from '../config';
 import { insetUV } from './uv';
-import { exposedFaces, faceMatrix, isBay } from './faces';
+import { exposedFaces, faceMatrix, isBay, worldCol, worldRow } from './faces';
+import type { Grid } from './grid';
 import { hash01 } from './rng';
 
 function flipU(g: THREE.BufferGeometry): void {
@@ -17,33 +18,33 @@ const CAP_H = WALL_H - COVE_R;
 const V_SEGMENTS = Math.max(1, Math.round(CAP_H / TILE));
 const SEG_H = CAP_H / V_SEGMENTS;
 
-function texBucket(col: number, row: number): number {
-	return (col * 3 + row * 5) % WALL_TEX_COUNT;
+function texBucket(col: number, row: number, variant: number): number {
+	return (
+		(((col * 3 + row * 5 + variant * 7) % WALL_TEX_COUNT) + WALL_TEX_COUNT) %
+		WALL_TEX_COUNT
+	);
 }
 
-export function buildWalls(): THREE.BufferGeometry[] {
+export function buildWalls(grid: Grid, variant = 0): THREE.BufferGeometry[] {
 	const buckets: THREE.BufferGeometry[][] = Array.from(
 		{ length: WALL_TEX_COUNT },
 		() => [],
 	);
 
-	for (const face of exposedFaces()) {
-		if (isBay(face)) continue;
-		const nc = face.col + face.dir.dc;
-		const nr = face.row + face.dir.dr;
-		const flip = hash01(face.col, face.row, face.di) > 0.5;
+	for (const face of exposedFaces(grid)) {
+		if (isBay(grid, face, variant)) continue;
+		const wc = worldCol(grid, face);
+		const wr = worldRow(grid, face);
+		const nc = wc + face.dir.dc;
+		const nr = wr + face.dir.dr;
+		const flip = hash01(wc, wr, face.di + variant * 17) > 0.5;
 		for (let seg = 0; seg < V_SEGMENTS; seg++) {
 			const cy = seg * SEG_H + SEG_H / 2;
-			const quad = new THREE.PlaneGeometry(
-				TILE,
-				SEG_H,
-				WALL_SEG,
-				WALL_SEG,
-			);
+			const quad = new THREE.PlaneGeometry(TILE, SEG_H, WALL_SEG, WALL_SEG);
 			insetUV(quad);
 			if (flip) flipU(quad);
-			quad.applyMatrix4(faceMatrix(face, cy));
-			buckets[texBucket(nc, nr)].push(quad);
+			quad.applyMatrix4(faceMatrix(grid, face, cy));
+			buckets[texBucket(nc, nr, variant)].push(quad);
 		}
 	}
 

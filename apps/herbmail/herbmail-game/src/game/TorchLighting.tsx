@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
-import { useTorches } from './torches';
+import { type Torch } from './torches';
+import { useDungeonTorches } from './dungeon/torchList';
 import { MAX_LIGHTS } from './PsxMaterial';
 
 const FLAME_COLOR = new THREE.Color(0xff8a3c);
@@ -11,16 +12,15 @@ const HEAD_OFFSET = 0.28;
 interface Lamp {
 	pos: THREE.Vector3;
 	phase: number;
-	room: number;
 }
 
 export function TorchLighting({ ambient = 0.12 }: { ambient?: number }) {
-	const torches = useTorches();
+	const torches = useDungeonTorches();
 	const scene = useThree((s) => s.scene);
 
 	const lamps = useMemo<Lamp[]>(
 		() =>
-			torches.map((t) => {
+			torches.map((t: Torch) => {
 				const d = new THREE.Vector3(...t.dir).normalize();
 				return {
 					pos: new THREE.Vector3(
@@ -29,7 +29,6 @@ export function TorchLighting({ ambient = 0.12 }: { ambient?: number }) {
 						t.pos[2] + d.z * 1.122,
 					),
 					phase: (t.id * 12.9898) % (Math.PI * 2),
-					room: t.room,
 				};
 			}),
 		[torches],
