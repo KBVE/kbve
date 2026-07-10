@@ -46,6 +46,9 @@ pub struct AppConfig {
     /// Env baseline for the new-join admission gate (`ROWS_ACCEPT_NEW_JOINS`, default `true`). The
     /// join path combines this with the per-scope `admission_control` overrides.
     pub accept_new_joins: bool,
+    /// Non-aggressive fleet-restart stall SLA in seconds (`ROWS_FLEET_RESTART_STALL_SECS`, default
+    /// 1800). Past this the restart is `stalled`; past 2× the reconcile auto-lifts the join lockout.
+    pub fleet_restart_stall_secs: i64,
 }
 
 impl AppState {
@@ -66,6 +69,7 @@ pub struct AppStateBuilder {
     agones: Option<AgonesClient>,
     reaper: Option<ReaperKnobs>,
     accept_new_joins: Option<bool>,
+    fleet_restart_stall_secs: Option<i64>,
 }
 
 impl AppStateBuilder {
@@ -115,6 +119,11 @@ impl AppStateBuilder {
         self
     }
 
+    pub fn fleet_restart_stall_secs(mut self, secs: i64) -> Self {
+        self.fleet_restart_stall_secs = Some(secs);
+        self
+    }
+
     pub fn build(self) -> anyhow::Result<Arc<AppState>> {
         let tenant = self
             .tenant
@@ -136,6 +145,7 @@ impl AppStateBuilder {
                 agones_fleet: self.agones_fleet.unwrap_or_else(|| "ows-hubworld".into()),
                 reaper: self.reaper.unwrap_or_default(),
                 accept_new_joins: self.accept_new_joins.unwrap_or(true),
+                fleet_restart_stall_secs: self.fleet_restart_stall_secs.unwrap_or(1800),
             },
             mq: self.mq,
             agones: self.agones,

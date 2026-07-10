@@ -134,6 +134,34 @@ pub struct ReaperConfigOverride {
     pub empty_fresh_secs: Option<i64>,
 }
 
+/// Fleet-restart control row, read from the `ows.fleet_restart` table (operator/dashboard-written,
+/// one row per tenant). Drives the `fleet_restart_reconcile` job: `active=true` fans
+/// `set_drain_state` across active instances and (when `lockout`) holds the admission lockout.
+/// `lockout_applied` tracks lockout ownership so the reconcile only lifts a lockout it itself set
+/// (the `admission_control` table is shared with other writers). Absent row / `active=false` = inert.
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct FleetRestart {
+    pub active: bool,
+    pub reason: String,
+    pub urgency: i16,
+    #[sqlx(rename = "dropplayers")]
+    pub drop_players: bool,
+    pub stagger: bool,
+    #[sqlx(rename = "batchsize")]
+    pub batch_size: i32,
+    pub lockout: bool,
+    #[sqlx(rename = "lockoutapplied")]
+    pub lockout_applied: bool,
+    #[sqlx(rename = "startedat")]
+    pub started_at: chrono::DateTime<chrono::Utc>,
+    #[sqlx(rename = "draindeadline")]
+    pub drain_deadline: Option<chrono::DateTime<chrono::Utc>>,
+    #[sqlx(rename = "targetversion")]
+    pub target_version: Option<String>,
+    #[sqlx(rename = "requestid")]
+    pub request_id: uuid::Uuid,
+}
+
 /// Per-scope admission override, read from the `ows.admission_control` table. `accept_new_joins`
 /// is `Option`: `None` (or no row) means "fall back to the env baseline" (`ROWS_ACCEPT_NEW_JOINS`).
 /// One of these is read per scope (tenant + global sentinel) and combined by
@@ -224,6 +252,10 @@ pub struct RowsConfig {
     /// Env baseline for the new-join admission gate (`ROWS_ACCEPT_NEW_JOINS`, default `true`). Used
     /// when neither the tenant nor the global `admission_control` row overrides it.
     pub accept_new_joins: bool,
+    /// Non-aggressive stall SLA: seconds a restart may sit `active` with `draining > 0` before it is
+    /// declared stalled (surfaced on /fleet-restart/status and, at 2× this, auto-lifts the lockout).
+    /// Env: ROWS_FLEET_RESTART_STALL_SECS. Default 1800 (30 min).
+    pub fleet_restart_stall_secs: i64,
 }
 
 impl RowsConfig {
@@ -318,6 +350,8 @@ impl RowsConfig {
         // a freeze requires either an env override or an `admission_control` DB row.
         let accept_new_joins = env_bool("ROWS_ACCEPT_NEW_JOINS", true);
 
+        let fleet_restart_stall_secs = env_i64("ROWS_FLEET_RESTART_STALL_SECS", 1800);
+
         Ok(Self {
             tenant: TenantConfig {
                 customer_guid,
@@ -333,6 +367,7 @@ impl RowsConfig {
             docs_port,
             reaper,
             accept_new_joins,
+            fleet_restart_stall_secs,
         })
     }
 }
