@@ -1232,6 +1232,71 @@ impl<'a> InstanceRepo<'a> {
         Ok(rows.into_iter().map(|r| r.0).collect())
     }
 
+    /// Writes the tenant's `admission_control` row (Phase 2's shared new-join lockout).
+    /// `Some(false)` sets the lockout; `None` writes SQL `NULL`, which makes admission fall back
+    /// to the env baseline — i.e. `None` lifts the lockout. The table is shared with other writers
+    /// (maintenance/abuse flows), so the fleet-restart reconcile must only lift a lockout it set —
+    /// ownership is tracked on `fleet_restart.lockoutapplied` via [`Self::set_fleet_lockout_applied`].
+    pub async fn set_admission(
+        &self,
+        customer_guid: Uuid,
+        accept_new_joins: Option<bool>,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "INSERT INTO admission_control (customerguid, acceptnewjoins)
+             VALUES ($1, $2)
+             ON CONFLICT (customerguid) DO UPDATE SET acceptnewjoins = EXCLUDED.acceptnewjoins",
+        )
+        .bind(customer_guid)
+        .bind(accept_new_joins)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+
+    /// Lockout-ownership flag: true while THIS restart holds the admission lockout, so the
+    /// reconcile only lifts what it set (never clobbers another writer's `admission_control` row).
+    /// No-op if the row is absent; degrades on 42P01 (feature dark — nothing to track).
+    pub async fn set_fleet_lockout_applied(
+        &self,
+        customer_guid: Uuid,
+        applied: bool,
+    ) -> Result<(), RowsError> {
+        let result = sqlx::query(
+            "UPDATE fleet_restart SET lockoutapplied = $2 WHERE customerguid = $1",
+        )
+        .bind(customer_guid)
+        .bind(applied)
+        .execute(self.0)
+        .await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) if is_undefined_table(&e) => Ok(()), // feature dark — nothing to track
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Sets `fleet_restart.lockout` (degrade on 42P01). Used by the non-aggressive stall-SLA
+    /// auto-lift to stop the reconcile re-applying the lockout while the restart stays active.
+    pub async fn set_fleet_lockout(
+        &self,
+        customer_guid: Uuid,
+        lockout: bool,
+    ) -> Result<(), RowsError> {
+        let result = sqlx::query(
+            "UPDATE fleet_restart SET lockout = $2 WHERE customerguid = $1",
+        )
+        .bind(customer_guid)
+        .bind(lockout)
+        .execute(self.0)
+        .await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) if is_undefined_table(&e) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
+    }
+
     /// Detects the silent-failure mode of `CREATE INDEX CONCURRENTLY`: a failed concurrent build
     /// leaves the index in an `INVALID` state that Postgres refuses to use, degrading the per-tick
     /// `list_drainable_instances` scan to a seq-scan on the hot `mapinstances` table with no error.
