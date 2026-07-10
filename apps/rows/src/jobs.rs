@@ -722,13 +722,35 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
     };
 
     // Hold the lockout while the restart runs (travel still allowed — the admission gate only
-    // blocks *new* joins). Record ownership so the inactive branch above lifts only what we set.
+    // blocks *new* joins). Ownership means "the lockout exists because of THIS restart": on first
+    // application, check the shared admission_control row first — if another writer (maintenance /
+    // abuse mitigation) already holds acceptnewjoins=false, do NOT write or claim it, or the
+    // restart's clear-path would lift that writer's freeze (the exact clobber `lockoutapplied`
+    // exists to prevent). Once owned, re-assert every tick (heals a concurrent NULL-out).
     if fr.lockout {
-        if let Err(e) = repo.set_admission(guid, Some(false)).await {
-            warn!(error = %e, "fleet-restart: failed to set lockout");
-        } else if !fr.lockout_applied {
-            if let Err(e) = repo.set_fleet_lockout_applied(guid, true).await {
-                warn!(error = %e, "fleet-restart: failed to record lockout ownership");
+        if fr.lockout_applied {
+            if let Err(e) = repo.set_admission(guid, Some(false)).await {
+                warn!(error = %e, "fleet-restart: failed to re-assert lockout");
+            }
+        } else {
+            match repo.get_admission_overrides(guid).await {
+                Ok((tenant, _)) if tenant.accept_new_joins == Some(false) => {
+                    // Another writer's freeze is already in effect — piggyback, never claim.
+                }
+                Ok(_) => {
+                    // Claim FIRST, then write. If the claim lands but the admission write fails
+                    // (or we crash between them), the next tick's `lockout_applied` branch simply
+                    // re-asserts — self-healing. The reverse order would strand an applied-but-
+                    // unowned lockout: the next tick would read tenant=false and piggyback forever.
+                    if let Err(e) = repo.set_fleet_lockout_applied(guid, true).await {
+                        warn!(error = %e, "fleet-restart: lockout ownership claim failed — retrying next tick");
+                    } else if let Err(e) = repo.set_admission(guid, Some(false)).await {
+                        warn!(error = %e, "fleet-restart: failed to set lockout (owned; re-asserted next tick)");
+                    }
+                }
+                Err(e) => {
+                    warn!(error = %e, "fleet-restart: admission read failed — skipping lockout this tick");
+                }
             }
         }
     }
