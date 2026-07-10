@@ -37,6 +37,12 @@ pub struct AppState {
     /// (`(fetched_at, count)`), shared across callers so an orchestrator polling the endpoint
     /// doesn't turn into a kube-apiserver LIST per request.
     pub gs_count_cache: std::sync::Mutex<Option<(Instant, i64)>>,
+    /// In-memory snapshot of the tenant's `deploy_state` row, refreshed by a background job
+    /// (`jobs::deploy_state_refresh`, 30s). `/health` reads ONLY this — it is the liveness-probe
+    /// path (timeoutSeconds: 3), and a synchronous DB read there turns any Postgres latency spike
+    /// into a kubelet restart storm. `None` = no row / table dark. On a refresh error the last
+    /// snapshot is kept.
+    pub deploy_state_cache: std::sync::RwLock<Option<crate::config::DeployState>>,
 }
 
 pub struct AppConfig {
@@ -158,6 +164,7 @@ impl AppStateBuilder {
             started_at: Instant::now(),
             server_build_version: std::sync::RwLock::new(None),
             gs_count_cache: std::sync::Mutex::new(None),
+            deploy_state_cache: std::sync::RwLock::new(None),
         }))
     }
 }

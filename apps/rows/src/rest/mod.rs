@@ -95,14 +95,12 @@ pub async fn root() -> Json<serde_json::Value> {
     responses((status = 200, description = "Health check", body = HealthResponse))
 )]
 pub async fn health(State(hs): State<HandlerState>) -> Json<HealthResponse> {
-    // Authoritative version from the DB-backed deploy_state (survives ROWS restarts; the launcher
-    // needs the target BEFORE any server connects). Degrades to the in-memory ReportBuild value on
-    // 42P01/absent row, and never fails the probe over a deploy_state read error —
+    // Authoritative version from the deploy_state SNAPSHOT (refreshed by jobs::deploy_state_refresh
+    // every 30s). /health is the liveness-probe path (timeoutSeconds: 3) and MUST stay DB-free —
+    // a synchronous read here would turn a Postgres latency spike into a kubelet restart storm.
+    // Degrades to the in-memory ReportBuild value when the snapshot is empty (table dark / no row);
     // `deploy_healthy:true` is the degrade default.
-    let deploy = crate::repo::InstanceRepo(&hs.app.db)
-        .get_deploy_state(hs.app.config.customer_guid)
-        .await
-        .unwrap_or_default();
+    let deploy = hs.app.deploy_state_cache.read().unwrap().clone();
     let (unreal_version, pending_version, deploy_healthy, failing_version) = match deploy {
         Some(ds) => {
             let healthy = ds.health != "unhealthy";

@@ -41,7 +41,10 @@ pub fn spawn_all(svc: Arc<OWSService>) {
     {
         let svc = svc.clone();
         tokio::spawn(async move {
-            match InstanceRepo(&svc.state().db).check_drainable_index_valid().await {
+            match InstanceRepo(&svc.state().db)
+                .check_drainable_index_valid()
+                .await
+            {
                 Ok(Some(false)) => warn!(
                     "idx_mapinstances_drainable is INVALID (failed CONCURRENTLY build) — \
                      drainable scans are seq-scanning; DROP INDEX and re-create CONCURRENTLY"
@@ -56,8 +59,30 @@ pub fn spawn_all(svc: Arc<OWSService>) {
     tokio::spawn(stale_zone_cleanup(svc.clone()));
     tokio::spawn(empty_server_reaper(svc.clone()));
     tokio::spawn(fleet_restart_reconcile(svc.clone()));
+    tokio::spawn(deploy_state_refresh(svc.clone()));
     tokio::spawn(spinup_lock_expiry(svc.clone()));
     tokio::spawn(session_cache_sweep(svc));
+}
+
+/// Keeps `AppState.deploy_state_cache` fresh so `/health` never touches the DB — `/health` is the
+/// liveness-probe path (timeoutSeconds: 3, failureThreshold: 3): a synchronous read there would
+/// turn any Postgres latency spike into a kubelet restart storm (this cluster has documented
+/// storage-contention incidents). First refresh runs immediately so the snapshot is populated as
+/// soon as the pod is up; a refresh error keeps the last-known snapshot (stale beats a probe kill).
+async fn deploy_state_refresh(svc: Arc<OWSService>) {
+    let mut interval = tokio::time::interval(Duration::from_secs(30));
+    loop {
+        interval.tick().await; // first tick fires immediately
+        let guid = svc.state().config.customer_guid;
+        match InstanceRepo(&svc.state().db).get_deploy_state(guid).await {
+            Ok(snapshot) => {
+                *svc.state().deploy_state_cache.write().unwrap() = snapshot;
+            }
+            Err(e) => {
+                warn!(error = %e, "deploy_state refresh failed — keeping last snapshot");
+            }
+        }
+    }
 }
 
 async fn zone_health_monitor(svc: Arc<OWSService>) {
