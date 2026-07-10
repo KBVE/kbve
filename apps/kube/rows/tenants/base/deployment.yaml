@@ -201,7 +201,11 @@ metadata:
         app: rows
         app.kubernetes.io/part-of: ows
 spec:
-    minAvailable: 1
+    # maxUnavailable (not minAvailable): with a single replica, minAvailable:1 blocks every
+    # voluntary eviction and hangs node drains. maxUnavailable:1 always permits the drain; run
+    # replicas >= 2 before enabling the fleet-restart reconcile live so one pod is always serving
+    # (the per-tenant advisory lock makes multi-replica safe).
+    maxUnavailable: 1
     selector:
         matchLabels:
             app: rows
