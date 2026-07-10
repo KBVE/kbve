@@ -1,0 +1,37 @@
+---
+title: Engine
+template: splash
+description: |
+    Immersive Aircraft Engine — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Engine
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900009
+    ref: immersive_aircraft:engine
+    slug: engine
+    content_rev: 0
+    display_name: Engine
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - part
+    about:
+        description: |
+            Burns fuel to drive an aircraft’s propeller and generate thrust.
+        lore: |
+            The beating heart of powered flight.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

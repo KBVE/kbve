@@ -1,0 +1,44 @@
+---
+title: Bamboo Hopper
+template: splash
+description: |
+    Immersive Aircraft Bamboo Hopper — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Bamboo Hopper
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900007
+    ref: immersive_aircraft:bamboo_hopper
+    slug: bamboo-hopper
+    content_rev: 0
+    display_name: Bamboo Hopper
+    category: transport
+    rarity: common
+    stack_size: 1
+    tags:
+        - immersive_aircraft
+        - aircraft
+    about:
+        description: |
+            A chonky aircraft with three seats and pontoons to land safely on water.
+        lore: |
+            Bring friends; land on lakes.
+    faq:
+        - question: How do I fuel an aircraft?
+          answer: |
+              Most Immersive Aircraft burn ordinary furnace fuel — coal, charcoal, or blaze rods — placed in the boiler slot. The Gyrodyne is muscle-powered and needs no fuel; give it a running push to take off.
+        - question: Can I mount and dismount aircraft inside land claims?
+          answer: |
+              Yes. On the KBVE server, Immersive Aircraft can be mounted and dismounted inside Open Parties and Claims land claims just like vanilla boats, so an aircraft parked on a claim can always be reclaimed.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

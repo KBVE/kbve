@@ -304,7 +304,7 @@ function resolveTerminal(ref: string): string {
 }
 
 export function mcTextureUrls(ref: string, category?: string | null): Pair {
-	const clean = ref.replace(/^minecraft:/, '').toLowerCase();
+	const clean = ref.replace(/^[a-z_]+:/, '').toLowerCase();
 	const effective = resolveTerminal(clean);
 	const isBlockish = category ? BLOCK_CATEGORIES.has(category) : false;
 	if (isBlockish) {

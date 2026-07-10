@@ -1,0 +1,37 @@
+---
+title: Sturdy Pipes
+template: splash
+description: |
+    Immersive Aircraft Sturdy Pipes — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Sturdy Pipes
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900018
+    ref: immersive_aircraft:sturdy_pipes
+    slug: sturdy-pipes
+    content_rev: 0
+    display_name: Sturdy Pipes
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            Reinforced piping that smooths fuel flow and reduces drag.
+        lore: |
+            No leaks, no drama.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />
