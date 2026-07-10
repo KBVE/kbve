@@ -700,6 +700,59 @@ fn fr_deadline(fr: &crate::config::FleetRestart) -> Option<chrono::NaiveDateTime
     fr.drain_deadline.map(|d| d.naive_utc())
 }
 
+/// Patches `ows.kbve.com/draining=true` onto each instance's GameServer — the UE-facing half of
+/// the drain (contract obligation #4; UE watches the label via the Agones SDK and starts its
+/// graceful drain/save). Name resolution mirrors the reaper: in-memory `zone_servers` first, one
+/// batched DB fallback for misses. No-op when Agones is unavailable (local dev).
+async fn mark_gameservers_draining(
+    svc: &Arc<OWSService>,
+    repo: &InstanceRepo<'_>,
+    guid: uuid::Uuid,
+    instance_ids: &[i32],
+) {
+    if instance_ids.is_empty() {
+        return;
+    }
+    let Some(ref agones) = svc.state().agones else {
+        return;
+    };
+    let mut named: Vec<(i32, String)> = Vec::new();
+    let mut misses: Vec<i32> = Vec::new();
+    for id in instance_ids {
+        match svc.state().zone_servers.get(id) {
+            Some(v) => named.push((*id, v.value().clone())),
+            None => misses.push(*id),
+        }
+    }
+    if !misses.is_empty() {
+        match repo.get_gameserver_names(guid, &misses).await {
+            Ok(rows) => {
+                for (id, gs) in rows {
+                    match gs {
+                        Some(gs) => named.push((id, gs)),
+                        None => warn!(
+                            instance_id = id,
+                            "fleet-restart: no GameServer name to signal draining (legacy row?)"
+                        ),
+                    }
+                }
+            }
+            Err(e) => {
+                warn!(error = %e, "fleet-restart: failed to resolve GameServer names for drain signal")
+            }
+        }
+    }
+    for (id, gs) in named {
+        if let Err(e) = agones.mark_draining(&gs).await {
+            // error!, not warn!: the label is one-shot per instance (later ticks skip already-
+            // draining rows), so a missed signal means this server never starts its graceful
+            // drain — surfaced loudly for the operator.
+            error!(error = %e, gs = %gs, instance_id = id,
+                   "fleet-restart: failed to set draining label — UE will not begin graceful drain");
+        }
+    }
+}
+
 /// One reconcile pass, run under the advisory lock held by the caller (mirrors `run_reap_cycle`).
 async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
     let repo = InstanceRepo(&svc.state().db);
@@ -777,8 +830,9 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
         }
     };
 
+    let mut newly_draining: Vec<i32> = Vec::with_capacity(batch.len());
     for id in &batch {
-        if let Err(e) = repo
+        match repo
             .set_drain_state(
                 guid,
                 *id,
@@ -791,9 +845,22 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
             )
             .await
         {
-            warn!(error = %e, instance_id = id, "fleet-restart: set_drain_state failed");
+            Ok(n) if n > 0 => newly_draining.push(*id),
+            Ok(_) => {} // guard rejected (row gone / stricter drain in flight) — nothing to signal
+            Err(e) => {
+                warn!(error = %e, instance_id = id, "fleet-restart: set_drain_state failed")
+            }
         }
     }
+
+    // UE-facing drain signal (contract obligation #4): the DB drain state only affects ROWS-side
+    // routing — the GameServer learns it is draining via the `ows.kbve.com/draining=true` label
+    // (watched through the Agones SDK). Without this, a populated server never starts its graceful
+    // drain/save and a non-aggressive restart converges only by luck. Patched once per instance,
+    // on the tick that first marks it draining. Best-effort: a failed patch is NOT retried (the
+    // row is already draining, so later ticks skip it) — it is logged as an error, and the
+    // instance still drains ROWS-side (routing excluded; deadline backstop still bounds it).
+    mark_gameservers_draining(&svc, &repo, guid, &newly_draining).await;
 
     // Escalation re-stamp: when this restart is AGGRESSIVE (deadline set), instances already
     // drained by an earlier non-aggressive pass carry `draindeadline = NULL` and would never match
