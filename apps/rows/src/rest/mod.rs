@@ -95,6 +95,35 @@ pub async fn root() -> Json<serde_json::Value> {
     responses((status = 200, description = "Health check", body = HealthResponse))
 )]
 pub async fn health(State(hs): State<HandlerState>) -> Json<HealthResponse> {
+    // Authoritative version from the DB-backed deploy_state (survives ROWS restarts; the launcher
+    // needs the target BEFORE any server connects). Degrades to the in-memory ReportBuild value on
+    // 42P01/absent row, and never fails the probe over a deploy_state read error —
+    // `deploy_healthy:true` is the degrade default.
+    let deploy = crate::repo::InstanceRepo(&hs.app.db)
+        .get_deploy_state(hs.app.config.customer_guid)
+        .await
+        .unwrap_or_default();
+    let (unreal_version, pending_version, deploy_healthy, failing_version) = match deploy {
+        Some(ds) => {
+            let healthy = ds.health != "unhealthy";
+            let failing = (!healthy).then(|| ds.target_version.clone());
+            if ds.rolled {
+                (Some(ds.target_version), None, healthy, failing)
+            } else {
+                // Update pending: the served version isn't in deploy_state (single row), so fall
+                // back to the in-memory GameServer-reported value for the served build.
+                let served = hs.app.server_build_version.read().unwrap().clone();
+                (served, Some(ds.target_version), healthy, failing)
+            }
+        }
+        None => (
+            hs.app.server_build_version.read().unwrap().clone(),
+            None,
+            true,
+            None,
+        ),
+    };
+
     Json(HealthResponse {
         status: "healthy",
         service: "rows",
@@ -102,7 +131,10 @@ pub async fn health(State(hs): State<HandlerState>) -> Json<HealthResponse> {
         uptime_seconds: hs.app.started_at.elapsed().as_secs(),
         active_sessions: hs.app.sessions.len(),
         active_instances: hs.app.zone_servers.len(),
-        unreal_version: hs.app.server_build_version.read().unwrap().clone(),
+        unreal_version,
+        pending_version,
+        deploy_healthy,
+        failing_version,
     })
 }
 
