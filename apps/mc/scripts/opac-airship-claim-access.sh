@@ -47,6 +47,11 @@ if [ "$found" -eq 0 ]; then
 	stub="/data/${LEVEL:-world}/serverconfig/openpartiesandclaims-server.toml"
 	echo "[opac-airship] no OPAC serverconfig found — seeding stub at $stub"
 	mkdir -p "$(dirname "$stub")"
+	# This entrypoint runs as root before itzg drops to its runtime user, so
+	# the <level>/ dirs mkdir just created are root-owned. Left that way the
+	# server (uid 1000) can't write <level>/session.lock and dies with
+	# AccessDeniedException. Re-own what we created to match /data's owner.
+	chown -R --reference=/data "/data/${LEVEL:-world}" 2>/dev/null || true
 	cat > "$stub" <<EOF
 [serverConfig]
 
