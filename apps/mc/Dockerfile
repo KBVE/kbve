@@ -183,3 +183,10 @@ COPY apps/mc/mods/ /mods/
 
 # Server config overrides
 COPY apps/mc/config/ /config/
+
+# OPAC claim-access seed — wraps itzg's /start so Immersive Aircraft can be
+# mounted/dismounted inside land claims (see script header). exec /start keeps
+# itzg as PID1 for graceful RCON shutdown; the base image's CMD is inherited.
+COPY apps/mc/scripts/opac-airship-claim-access.sh /usr/local/bin/opac-airship-claim-access.sh
+RUN chmod +x /usr/local/bin/opac-airship-claim-access.sh
+ENTRYPOINT ["/usr/local/bin/opac-airship-claim-access.sh"]
