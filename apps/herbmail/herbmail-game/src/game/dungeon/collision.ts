@@ -1,6 +1,7 @@
 import { TILE } from '../config';
 import { ARCH, WALL } from '../geometry/grid';
 import { jitter } from '../geometry/rng';
+import { ARCH_SALT } from '../geometry/arches';
 import { cellAtWorld } from './ecs';
 import { CELL } from './generate';
 import { getDungeon } from './store';
@@ -23,7 +24,14 @@ export function solidAtWorld(x: number, z: number): boolean {
 	const t = desc.tiles[lr * CELL + lc];
 	if (t === WALL) return true;
 	if (t === ARCH) {
-		const openHW = jitter(wc, wr, 1, TILE * 0.28, TILE * 0.38);
+		// Mirror the arch geometry's opening: local tile coords + variant salt.
+		const openHW = jitter(
+			lc,
+			lr,
+			1 + desc.variant * ARCH_SALT,
+			TILE * 0.28,
+			TILE * 0.38,
+		);
 		const nsEdge = lr === 0 || lr === CELL - 1;
 		const off = nsEdge ? x - (wc * TILE + HALF) : z - (wr * TILE + HALF);
 		return Math.abs(off) > openHW;

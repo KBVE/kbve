@@ -49,10 +49,10 @@ export function exposedFaces(grid: Grid): Face[] {
 	return out;
 }
 
-export function isBay(grid: Grid, face: Face): boolean {
+export function isBay(grid: Grid, face: Face, variant = 0): boolean {
 	const c = worldCol(grid, face);
 	const r = worldRow(grid, face);
-	return (((c * 11 + r * 17 + face.di * 3) % 5) + 5) % 5 === 0;
+	return (((c * 11 + r * 17 + face.di * 3 + variant * 23) % 5) + 5) % 5 === 0;
 }
 
 export function faceMatrix(grid: Grid, face: Face, y: number): THREE.Matrix4 {

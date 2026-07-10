@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from 'react';
 import { TILE } from '../config';
-import type { Grid } from '../geometry/grid';
 import {
 	DungeonWorld,
 	cellAtWorld,
@@ -8,7 +7,7 @@ import {
 	PHASE_MOUNTED,
 } from './ecs';
 import { streamAround } from './stream';
-import { makeRoomGrid, type RoomDesc } from './generate';
+import { type RoomDesc } from './generate';
 
 export const DUNGEON_SEED = 1337;
 const MOUNT_HOPS = 1;
@@ -17,7 +16,6 @@ export interface ActiveRoom {
 	eid: number;
 	key: string;
 	desc: RoomDesc;
-	grid: Grid;
 }
 
 let dw = new DungeonWorld(DUNGEON_SEED);
@@ -38,12 +36,7 @@ function rebuild(cx: number, cy: number): void {
 	}
 	active = mounted.map((eid) => {
 		const desc = dw.desc(eid) as RoomDesc;
-		return {
-			eid,
-			key: `${desc.cx}|${desc.cy}`,
-			desc,
-			grid: makeRoomGrid(desc),
-		};
+		return { eid, key: `${desc.cx}|${desc.cy}`, desc };
 	});
 	emit();
 }

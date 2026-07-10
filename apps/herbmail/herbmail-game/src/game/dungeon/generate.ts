@@ -11,6 +11,12 @@ export const DOOR_W = 8;
 const DOOR_THRESHOLD = 0.62;
 const TORCH_KEEP = 0.28;
 
+// Cosmetic variety pool. Geometry + torches depend only on (doors, variant),
+// so at most 16 doors x VARIANTS distinct rooms ever get built — everything
+// else is a cache hit. Bump for more visual variety at the cost of more cached
+// geometry sets.
+export const VARIANTS = 6;
+
 export interface TorchSlot {
 	col: number;
 	row: number;
@@ -33,6 +39,8 @@ export interface RoomDesc {
 	originRow: number;
 	tiles: Uint8Array;
 	doors: number;
+	variant: number;
+	signature: string;
 	torches: TorchSlot[];
 	spawnSlots: SpawnSlot[];
 }
@@ -99,7 +107,8 @@ export function genRoom(seed: number, cx: number, cy: number): RoomDesc {
 	const originCol = cx * CELL;
 	const originRow = cy * CELL;
 
-	const torches = genTorches(seed, cx, cy, tiles);
+	const variant = Math.floor(hash01(cx, cy, seed | 0) * VARIANTS);
+	const torches = genTorches(tiles, variant);
 
 	return {
 		cx,
@@ -110,6 +119,8 @@ export function genRoom(seed: number, cx: number, cy: number): RoomDesc {
 		originRow,
 		tiles,
 		doors,
+		variant,
+		signature: `${doors}:${variant}`,
 		torches,
 		spawnSlots: [],
 	};
@@ -127,23 +138,16 @@ function tileOf(tiles: Uint8Array, col: number, row: number): number {
 	return tiles[idx(col, row)];
 }
 
-function genTorches(
-	seed: number,
-	cx: number,
-	cy: number,
-	tiles: Uint8Array,
-): TorchSlot[] {
+// Torches depend only on the local tile layout (doors) + variant, so the same
+// signature always yields the same slots — a cache/pool hit.
+function genTorches(tiles: Uint8Array, variant: number): TorchSlot[] {
 	const out: TorchSlot[] = [];
 	for (let row = 1; row < CELL - 1; row++) {
 		for (let col = 1; col < CELL - 1; col++) {
 			if (tiles[idx(col, row)] !== FLOOR) continue;
 			for (const d of TORCH_DIRS) {
 				if (tileOf(tiles, col + d.dc, row + d.dr) !== WALL) continue;
-				const h = hash01(
-					(cx * CELL + col) | 0,
-					(cy * CELL + row) | 0,
-					(d.di + 1) * 131 + (seed | 0),
-				);
+				const h = hash01(col, row, (d.di + 1) * 131 + variant * 997);
 				if (h < TORCH_KEEP) out.push({ col, row, di: d.di });
 			}
 		}
@@ -151,12 +155,24 @@ function genTorches(
 	return out;
 }
 
+// World-placed grid (for collision / world lookups).
 export function makeRoomGrid(desc: RoomDesc): Grid {
 	return {
 		cols: desc.cols,
 		rows: desc.rows,
 		originCol: desc.originCol,
 		originRow: desc.originRow,
+		tileAt: (col: number, row: number) => desc.tiles[row * desc.cols + col],
+	};
+}
+
+// Origin-local grid (for building reusable, position-independent geometry).
+export function makeLocalGrid(desc: RoomDesc): Grid {
+	return {
+		cols: desc.cols,
+		rows: desc.rows,
+		originCol: 0,
+		originRow: 0,
 		tileAt: (col: number, row: number) => desc.tiles[row * desc.cols + col],
 	};
 }

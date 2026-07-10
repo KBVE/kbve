@@ -23,13 +23,14 @@ interface Niche {
 	recess: number;
 }
 
-function nicheOf(grid: Grid, face: Face): Niche {
+function nicheOf(grid: Grid, face: Face, variant: number): Niche {
 	const c = worldCol(grid, face);
 	const r = worldRow(grid, face);
+	const s = variant * 29;
 	return {
-		openHW: jitter(c, r, face.di + 1, TILE * 0.22, TILE * 0.34),
-		spring: jitter(c, r, face.di + 2, CAP_H * 0.5, CAP_H * 0.72),
-		recess: jitter(c, r, face.di + 3, 0.25, 0.45),
+		openHW: jitter(c, r, face.di + 1 + s, TILE * 0.22, TILE * 0.34),
+		spring: jitter(c, r, face.di + 2 + s, CAP_H * 0.5, CAP_H * 0.72),
+		recess: jitter(c, r, face.di + 3 + s, 0.25, 0.45),
 	};
 }
 
@@ -65,8 +66,8 @@ export interface BayGeometry {
 	backs: THREE.BufferGeometry;
 }
 
-export function buildBays(grid: Grid): BayGeometry {
-	const faces = exposedFaces(grid).filter((f) => isBay(grid, f));
+export function buildBays(grid: Grid, variant = 0): BayGeometry {
+	const faces = exposedFaces(grid).filter((f) => isBay(grid, f, variant));
 	if (!faces.length) {
 		return {
 			frames: new THREE.BufferGeometry(),
@@ -77,7 +78,7 @@ export function buildBays(grid: Grid): BayGeometry {
 	const frameParts: THREE.BufferGeometry[] = [];
 	const backParts: THREE.BufferGeometry[] = [];
 	for (const face of faces) {
-		const n = nicheOf(grid, face);
+		const n = nicheOf(grid, face, variant);
 		const m = faceMatrix(grid, face, 0);
 
 		const frame = new THREE.ExtrudeGeometry(frameShape(n), {

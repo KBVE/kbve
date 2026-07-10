@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { DungeonScene } from './DungeonScene';
+import { RoomView } from './RoomView';
 import { updatePlayerWorld, useActiveRooms } from './dungeon/store';
 
 function Streamer() {
@@ -21,9 +21,9 @@ export function Dungeon({ snap, affine }: Props) {
 		<>
 			<Streamer />
 			{rooms.map((r) => (
-				<DungeonScene
+				<RoomView
 					key={r.key}
-					grid={r.grid}
+					desc={r.desc}
 					snap={snap}
 					affine={affine}
 				/>
