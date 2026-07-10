@@ -491,6 +491,89 @@ Three escalating tiers, build only what's needed:
    **Never buffer authoritative saves in valkey** (volatile; eviction/restart = data loss — it
    reintroduces the exact risk the graceful save exists to prevent).
 
+### Fleet-restart — operator runbook (Phase 3, SHIPPED inert)
+
+Shipped by the Phase 3 implementation (`fleet_restart_reconcile` in `apps/rows/src/jobs.rs`, 30s
+cadence, per-tenant advisory lock). Inert until a `fleet_restart` row goes `active=true`.
+
+**Trigger a restart (SQL):**
+
+```sql
+SET search_path TO ows;
+
+-- Routine version roll (NON-AGGRESSIVE, safe-by-default): drain-to-natural-empty, no forced
+-- disconnects. urgency=0, dropplayers=false, no draindeadline. The default path.
+-- Re-activating MUST reset startedat (the stall clock), lockoutapplied (ownership), AND lockout=true:
+-- a prior run's stage-2 auto-lift may have set lockout=false, and without the reset a re-trigger
+-- inherits lockout=false and never re-locks new joins; a stale startedat misfires the stall backstop.
+INSERT INTO fleet_restart (customerguid, active, reason, urgency, dropplayers, stagger, batchsize, lockout, requestid)
+VALUES ('<tenant-guid>', true, 'fleet-restart', 0, false, false, 1, true, gen_random_uuid())
+ON CONFLICT (customerguid) DO UPDATE SET active = true, urgency = 0, dropplayers = false,
+    draindeadline = NULL, lockout = true, startedat = now(), lockoutapplied = false, requestid = gen_random_uuid();
+
+-- Urgent / security roll (AGGRESSIVE, dashboard opt-in only): save-then-disconnect at the deadline.
+-- Prefer POST /fleet-restart/trigger (computes the deadline, requires the gateway token, and is
+-- gated on a pending update). SQL equivalent:
+-- ... DO UPDATE SET active = true, urgency = 1, dropplayers = true, draindeadline = now() + interval '5 min',
+--                   lockout = true, startedat = now(), lockoutapplied = false, requestid = gen_random_uuid();
+
+-- After safe_to_roll + deploy: clear it. The reconcile lifts the admission lockout itself on the
+-- next tick (writes acceptnewjoins = NULL) — ONLY if it owns it (lockoutapplied). Do NOT manually
+-- DELETE admission_control, and NEVER `DELETE FROM fleet_restart` — a deleted row is unreadable,
+-- so the one-shot lockout lift can't run and players stay locked out.
+UPDATE fleet_restart SET active = false WHERE customerguid = '<tenant-guid>';
+```
+
+**Lockout behaviour:** while `active && lockout`, the reconcile holds `admission_control.acceptnewjoins
+= false` and records ownership on `fleet_restart.lockoutapplied`. On clear (`active=false`) it lifts
+the lockout **once, iff it owns it** — it never clobbers a lockout another writer (maintenance /
+abuse mitigation) set. Travel is unaffected; only *new* joins are blocked.
+
+**Polling contract (`GET /fleet-restart/status`):** `{ active, draining, gameservers, all_drained,
+safe_to_roll, stalled }`. Two-level barrier: `all_drained` (DB `status>0` count == 0) is the
+*necessary* trigger to begin a cutover; `safe_to_roll` additionally requires the Agones GameServer
+count == 0 (a DB row can hit 0 while its pod is still flushing a save). `gameservers: -1` = Agones
+unknown — fail closed, never roll on it. Poll cadence ≥ 5s (the GS count is cached ~5s). Note:
+`all_drained`/`safe_to_roll` flip back to `false` the instant `active` clears — completion is
+"operator/orchestrator sets `active=false` after a confirmed scale-up," recorded durably as
+`deploy_state.rolled=true`, not a post-clear `safe_to_roll` reading. If the orchestrator dies
+between scale-up and `rolled=true`, the update re-reports pending; break-glass: manually
+`UPDATE deploy_state SET rolled = true` for a confirmed-healthy roll.
+
+**Stall behaviour operators must expect (non-aggressive; stall SLA = `ROWS_FLEET_RESTART_STALL_SECS`,
+default 1800s):**
+
+- **Stage 1** (`age(startedat) > SLA`): `/fleet-restart/status` shows `stalled=true`; a `warn!` is
+  logged. Meaning: drain isn't converging → **check `empty_server_reaper` is enabled and healthy
+  first** (only the reaper moves instances to `status=0`; `set_drain_state` rejects `state=0`).
+  Lockout still held.
+- **Stage 2** (`age > 2 × SLA`): ROWS **auto-lifts the join lockout** (an `error!` "join-outage cap
+  hit" is logged). New players can join again — on old-version instances, which is safe within a
+  version line; the roll just takes longer. The restart stays `active` + `stalled=true` (alerting
+  continues). To actually complete the roll, **escalate to aggressive** (a deadline that
+  force-deallocates) or clear the row.
+- **Aggressive:** the `draindeadline` force-deallocates overdue instances **per-GameServer** (never a
+  whole-fleet scale — that would kill instances still draining cleanly). No stage-2 auto-lift is
+  needed; the deadline drives convergence.
+
+**Legacy `POST /api/System/RestartFleet`:** refused with 409 while a restart is `active` (it would
+delete instances out from under the reconcile and force-drop every player). Break-glass only, after
+clearing the row.
+
+**Aggressive trigger API (`POST /fleet-restart/trigger`):** requires the gateway bearer token
+(`ROWS_FLEET_RESTART_TOKEN` — GameServers must NOT hold it; a NetworkPolicy can't keep them off the
+path since they share port 4322), and 404s unless `deploy_state` reports an update pending
+(`GET /fleet-restart/pending`).
+
+**Index health:** the drainable scan is backed by `idx_mapinstances_drainable` (built
+`CONCURRENTLY`). An interrupted build strands an INVALID index Postgres silently ignores; ROWS
+checks `pg_index.indisvalid` at startup and warns. Recovery: `DROP INDEX CONCURRENTLY
+ows.idx_mapinstances_drainable;` then re-run dbmate up.
+
+**Orchestrator handoff:** ROWS only *signals* (`safe_to_roll`); the named deploy orchestrator (R3,
+blocked on the chuck login-crash) sequences drain → barrier → scale-to-0 `maxSurge:0` cutover →
+migration → scale-up → soak → `deploy_state.rolled=true`. Until it exists, that sequence is manual.
+
 ## Drain state representation
 
 Lean toward dedicated columns on `mapinstances` (keeps the existing `status` 0/1/2 semantics intact):
