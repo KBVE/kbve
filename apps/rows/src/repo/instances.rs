@@ -1407,6 +1407,42 @@ impl<'a> InstanceRepo<'a> {
         }
     }
 
+    /// (Re)activates the tenant's `fleet_restart` row (the `POST /fleet-restart/trigger` upsert).
+    /// Aggressive ⇒ `urgency=1, dropplayers=true` + the caller-computed `deadline`; non-aggressive
+    /// ⇒ `urgency=0, dropplayers=false, draindeadline=NULL`. Either mode resets `startedat=now()`
+    /// (the stall clock), `lockoutapplied=false` (ownership), AND `lockout=true` — a prior run's
+    /// stage-2 auto-lift may have left `lockout=false`, and without the reset a re-trigger would
+    /// never re-lock new joins. Does NOT degrade on 42P01: triggering a restart with no table is a
+    /// real error the caller must surface, not a silent no-op.
+    pub async fn set_fleet_restart(
+        &self,
+        customer_guid: Uuid,
+        aggressive: bool,
+        deadline: Option<chrono::DateTime<chrono::Utc>>,
+        reason: &str,
+    ) -> Result<(), RowsError> {
+        let (urgency, drop_players): (i16, bool) = if aggressive { (1, true) } else { (0, false) };
+        sqlx::query(
+            "INSERT INTO fleet_restart
+                 (customerguid, active, reason, urgency, dropplayers, stagger, batchsize,
+                  lockout, lockoutapplied, startedat, draindeadline, requestid)
+             VALUES ($1, true, $2, $3, $4, false, 1, true, false, now(), $5, gen_random_uuid())
+             ON CONFLICT (customerguid) DO UPDATE SET
+                 active = true, reason = EXCLUDED.reason, urgency = EXCLUDED.urgency,
+                 dropplayers = EXCLUDED.dropplayers, draindeadline = EXCLUDED.draindeadline,
+                 lockout = true, lockoutapplied = false, startedat = now(),
+                 requestid = gen_random_uuid()",
+        )
+        .bind(customer_guid)
+        .bind(reason)
+        .bind(urgency)
+        .bind(drop_players)
+        .bind(deadline)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+
     /// Detects the silent-failure mode of `CREATE INDEX CONCURRENTLY`: a failed concurrent build
     /// leaves the index in an `INVALID` state that Postgres refuses to use, degrading the per-tick
     /// `list_drainable_instances` scan to a seq-scan on the hot `mapinstances` table with no error.
