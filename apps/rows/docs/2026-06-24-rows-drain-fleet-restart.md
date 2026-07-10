@@ -532,7 +532,7 @@ Today `HealthResponse.unreal_version` (`models.rs:382`) is populated in-memory o
 
 The imperative `POST /api/System/RestartFleet` (scale-to-0 → `delete_all_map_instances` → scale-up) still exists and force-drops every player. If an operator fires it during an in-flight cooperative drain, it deletes instances out from under the reconcile. The cooperative flow must supersede it.
 
-Separately, `all_drained`/`safe_to_roll` flip back to `false` the moment the operator clears `active`, so an orchestrator that re-polls after clearing reads "not drained." Give the rollout a terminal state so completion is unambiguous.
+Separately, `all_drained` flips back to `false` the moment the operator clears `active`, so an orchestrator that re-polls after clearing reads "not drained." `safe_to_roll` is now durable **while the row stays active** via the `drainedat` convergence latch (stamped at 0 instances + 0 gameservers; also stops the drain fan-out so the post-cutover new fleet is never drained); after `active` clears, the durable terminal record is `deploy_state.rolled=true`.
 
 - [ ] **Step 1:** Guard `restart_fleet` to refuse (HTTP 409) while a `fleet_restart` row is `active`, directing the caller to the cooperative flow. Keep it as a break-glass for when ROWS itself is the problem.
 - [ ] **Step 2:** Treat the completion of a roll as "operator/orchestrator sets `active=false` after a confirmed scale-up," not as a `safe_to_roll` reading (which flips back to `false` the instant `active` clears). Document that a post-clear `/fleet-restart/status` returning `all_drained=false` is expected. The durable terminal record is `deploy_state.rolled=true` (Task 8), which the orchestrator sets after the soak (R3). **Crash window (F4):** if the orchestrator dies between scale-up and `rolled=true`, R5 still reports the update pending and the dashboard re-offers an aggressive restart for an already-completed roll. Mitigate: the orchestrator sets `rolled=true` idempotently as its final committed step, and the runbook documents the break-glass "manually `UPDATE deploy_state SET rolled=true` if a confirmed-healthy roll wasn't recorded."
@@ -576,6 +576,35 @@ ON CONFLICT (customerguid) DO UPDATE SET active = true, urgency = 0, dropplayers
 -- two-statement teardown silently locks players out if the second statement is missed.
 UPDATE fleet_restart SET active = false WHERE customerguid = '<tenant-guid>';
 ```
+
+API counterpart: `POST /fleet-restart/clear` (gateway bearer token) does the same `active=false`
+flip, so an API-triggered restart can be completed/cancelled without a psql session.
+
+**Convergence latch (`fleet_restart.drainedat`):** the reconcile stamps `drainedat` the first tick
+it observes **0 DB instances AND 0 Agones GameServers**, and stops the drain fan-out from then on.
+This is what makes R3 Step 5's ordering ("scale up, _then_ clear `active`") safe — without the
+latch, the still-active row would drain-label the new-version fleet as it registers.
+`/fleet-restart/status.safe_to_roll` is durable off the latch (it does not flip back to `false`
+when the cutover's scale-up brings new GameServers up). The trigger upsert resets `drainedat` to
+`NULL` on (re)activation.
+
+**⚠️ ROWS image rollback mid-restart strands the lockout.** A pre-fleet-restart ROWS image honors
+`admission_control.acceptnewjoins=false` (Phase 2) but has no reconcile to lift it. Before rolling
+the ROWS image back while a restart is active:
+
+```sql
+-- 1. clear the restart; 2. lift the lockout it owned (the old image will never do either)
+UPDATE fleet_restart SET active = false WHERE customerguid = '<tenant-guid>';
+UPDATE admission_control SET acceptnewjoins = NULL
+WHERE customerguid IN (SELECT customerguid FROM fleet_restart WHERE lockoutapplied);
+UPDATE fleet_restart SET lockoutapplied = false WHERE customerguid = '<tenant-guid>';
+```
+
+**Aggressive stall (no auto-lift):** if force-deallocation cannot converge (Agones down,
+unresolvable GameServer names), the reconcile logs an `error!` past the stall SLA and
+`/fleet-restart/status` reports `stalled=true`, but the lockout is deliberately **not**
+auto-lifted — lifted joins would land on instances the deadline backstop force-drops on the next
+tick. Recovery is operator action: restore Agones, or clear the restart.
 
 - [ ] Commit — `docs(rows): fleet-restart runbook + orchestrator contract`.
 
@@ -660,7 +689,7 @@ On merge of the gated PR, do a non-aggressive roll and only roll the new build o
 - [ ] **Step 2:** Poll `GET /fleet-restart/status` for `safe_to_roll == true` (DB `draining==0` and Agones `gameservers==0`). No timeout on the non-aggressive path; the aggressive path (R4) supplies the deadline.
 - [ ] **Step 3:** Scale the Fleet to 0 and confirm 0 GameServers (pods reaped, grace period elapsed). Set `strategy.rollingUpdate.maxSurge: 0` for the cutover so no new-version pod co-exists with an old one.
 - [ ] **Step 4:** Apply the version bump (`OWS_SERVER_VERSION`) and run the `dbmate` migration Job — now, at the barrier, with zero old binaries running (migration must be additive, R2).
-- [ ] **Step 5:** Scale the Fleet back up (new version), restore `maxSurge:25%`, then clear the `fleet_restart` row (`active=false`); ROWS auto-lifts the lockout.
+- [ ] **Step 5:** Scale the Fleet back up (new version), restore `maxSurge:25%`, then clear the `fleet_restart` row (`active=false`, or `POST /fleet-restart/clear`); ROWS auto-lifts the lockout. This ordering is safe because the `drainedat` latch (stamped when the barrier opened in Step 3) has already stopped the reconcile's drain fan-out — the new fleet registering while the row is still active is NOT drained.
 - [ ] **Step 6:** Confirm the new version is healthy before marking the roll done or deleting the old build: wait until `readyReplicas >= desired` with GameServers carrying the new `ows.kbve.com/server-version` label Ready for a soak window (≥5 min, no crash-loop — the live guard against the known login-crash class). On success, set `deploy_state.rolled=true`. The old `/server/<old-version>/` dir is not pruned here; the R0 GC removes it later, keeping N-1.
 - [ ] **Step 7:** On a FAILED soak, no auto-rollback: set `deploy_state.health='unhealthy'` so `https://api-beta.chuckrpg.com/health` reports `deploy_healthy:false` + `failing_version` (Task 5b), externally visible and alertable. `deploy_state.rolled` stays `false` (update still pending). The orchestrator halts; a human decides.
 - [ ] **Step 8:** Document manual rollback as a fast re-pin (operator-initiated): set `OWS_SERVER_VERSION` back to `<old-version>` and re-run the cutover (Steps 1–5), typically via the R4 trigger. No `dbmate down`.

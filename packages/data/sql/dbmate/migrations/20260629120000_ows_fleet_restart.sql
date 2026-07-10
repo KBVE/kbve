@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS fleet_restart
     LockoutApplied BOOLEAN NOT NULL DEFAULT false,-- ownership flag: true while THIS restart holds the admission lockout (so the reconcile only lifts what it set)
     StartedAt     TIMESTAMPTZ NOT NULL DEFAULT now(), -- when this restart went active; backs the stall backstop
     DrainDeadline TIMESTAMPTZ NULL,              -- aggressive only: force-deallocate overdue instances past this; NULL on the non-aggressive path (never forces)
+    DrainedAt     TIMESTAMPTZ NULL,              -- barrier latch: set once by the reconcile when draining==0 AND gameservers==0; past this the drain fan-out STOPS (later instances are the new fleet). Reset to NULL on (re)activation.
     TargetVersion TEXT    NULL,                  -- reserved (version-selective drain; deferred)
     RequestID     UUID    NOT NULL DEFAULT gen_random_uuid(), -- defaulted so a hand-written operator INSERT can't fail the NOT NULL
     CONSTRAINT PK_FleetRestart PRIMARY KEY (CustomerGUID),

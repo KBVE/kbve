@@ -19,6 +19,7 @@ CREATE TABLE fleet_restart
     LockoutApplied BOOLEAN NOT NULL DEFAULT false,-- ownership: true while THIS restart holds the admission lockout
     StartedAt     TIMESTAMPTZ NOT NULL DEFAULT now(), -- stall-backstop clock
     DrainDeadline TIMESTAMPTZ NULL,              -- aggressive only; NULL = never force
+    DrainedAt     TIMESTAMPTZ NULL,              -- barrier latch: set once by the reconcile when draining==0 AND gameservers==0; past this the drain fan-out STOPS (later instances are the new fleet). Reset to NULL on (re)activation.
     TargetVersion TEXT    NULL,                  -- reserved (version-selective drain; deferred)
     RequestID     UUID    NOT NULL DEFAULT gen_random_uuid(),
     CONSTRAINT PK_FleetRestart

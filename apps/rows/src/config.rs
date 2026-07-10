@@ -156,6 +156,12 @@ pub struct FleetRestart {
     pub started_at: chrono::DateTime<chrono::Utc>,
     #[sqlx(rename = "draindeadline")]
     pub drain_deadline: Option<chrono::DateTime<chrono::Utc>>,
+    /// Barrier latch: set once by the reconcile when `draining == 0 && gameservers == 0`. Past
+    /// this the drain fan-out STOPS — any instance created later belongs to the new fleet (the old
+    /// fleet was provably at 0) and must never be drained by this restart. `None` until converged;
+    /// reset to `None` on (re)activation.
+    #[sqlx(rename = "drainedat")]
+    pub drained_at: Option<chrono::DateTime<chrono::Utc>>,
     #[sqlx(rename = "targetversion")]
     pub target_version: Option<String>,
     #[sqlx(rename = "requestid")]
@@ -318,8 +324,11 @@ impl RowsConfig {
             "postgres://postgres:postgres@localhost:5432/ows",
             environment,
         )?;
-        let rabbitmq_url =
-            require_or_default("RABBITMQ_URL", "amqp://dev:test@localhost:5672", environment)?;
+        let rabbitmq_url = require_or_default(
+            "RABBITMQ_URL",
+            "amqp://dev:test@localhost:5672",
+            environment,
+        )?;
         let agones_namespace = require_or_default("AGONES_NAMESPACE", "ows", environment)?;
         let agones_fleet = require_or_default("AGONES_FLEET", "ows-hubworld", environment)?;
 
@@ -352,10 +361,7 @@ impl RowsConfig {
             stale_secs: env_i64("ROWS_EMPTY_REAP_STALE_SECS", 0),
             min_empty_secs: env_i64("ROWS_EMPTY_REAP_MIN_EMPTY_SECS", 300),
             empty_fresh_secs: env_i64("ROWS_EMPTY_REAP_FRESH_SECS", 180),
-            stamp_empty_shutdown_annotation: env_bool(
-                "ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION",
-                true,
-            ),
+            stamp_empty_shutdown_annotation: env_bool("ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION", true),
         };
 
         // Admission gate env baseline. Defaults `true` (accept new joins) so the gate ships inert —
@@ -460,11 +466,13 @@ mod tests {
     // the annotation floor is ceil(min_empty_secs / 60), at least 1; 0 disables it.
     #[test]
     fn empty_shutdown_minutes_floor_ceils_and_clamps() {
-        let floor = |secs: i64| ReaperKnobs {
-            min_empty_secs: secs,
-            ..ReaperKnobs::default()
-        }
-        .empty_shutdown_minutes_floor();
+        let floor = |secs: i64| {
+            ReaperKnobs {
+                min_empty_secs: secs,
+                ..ReaperKnobs::default()
+            }
+            .empty_shutdown_minutes_floor()
+        };
         assert_eq!(floor(300), 5); // exact
         assert_eq!(floor(301), 6); // ceils up
         assert_eq!(floor(59), 1); // sub-minute clamps to 1

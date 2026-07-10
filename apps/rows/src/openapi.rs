@@ -36,6 +36,7 @@ use crate::models::*;
         crate::rest::system::fleet_restart_status,
         crate::rest::system::fleet_restart_pending,
         crate::rest::system::fleet_restart_trigger,
+        crate::rest::system::fleet_restart_clear,
         crate::rest::auth::login,
         crate::rest::auth::external_login,
         crate::rest::auth::get_user_session,

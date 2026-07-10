@@ -1202,7 +1202,7 @@ impl<'a> InstanceRepo<'a> {
     ) -> Result<Option<crate::config::FleetRestart>, RowsError> {
         let result = sqlx::query_as::<_, crate::config::FleetRestart>(
             "SELECT active, reason, urgency, dropplayers, stagger, batchsize, lockout,
-                    lockoutapplied, startedat, draindeadline, targetversion, requestid
+                    lockoutapplied, startedat, draindeadline, drainedat, targetversion, requestid
              FROM fleet_restart WHERE customerguid = $1",
         )
         .bind(customer_guid)
@@ -1257,6 +1257,85 @@ impl<'a> InstanceRepo<'a> {
         .execute(self.0)
         .await?;
         Ok(())
+    }
+
+    /// All still-draining instances (`status > 0 AND drainstate IS NOT NULL`), capped — the
+    /// fleet-restart label re-signal source. Served by `idx_mapinstances_active` + filter (the
+    /// drainable partial index is on `drainstate IS NULL`); the working set is the shrinking
+    /// draining population, so the filter is cheap.
+    pub async fn list_draining_instances(
+        &self,
+        customer_guid: Uuid,
+        limit: i64,
+    ) -> Result<Vec<i32>, RowsError> {
+        let rows: Vec<(i32,)> = sqlx::query_as(
+            "SELECT mapinstanceid FROM mapinstances
+             WHERE customerguid = $1 AND status > 0 AND drainstate IS NOT NULL
+             ORDER BY mapinstanceid
+             LIMIT $2",
+        )
+        .bind(customer_guid)
+        .bind(limit)
+        .fetch_all(self.0)
+        .await?;
+        Ok(rows.into_iter().map(|r| r.0).collect())
+    }
+
+    /// Atomically claims the admission lockout for the fleet restart: writes
+    /// `acceptnewjoins = false` ONLY IF it isn't already `false`, in one statement. Returns `true`
+    /// iff this call performed the transition (we own the freeze), `false` iff another writer
+    /// (maintenance / abuse mitigation) already holds `false` (piggyback — never claim). This
+    /// closes the read-then-claim TOCTOU: a plain read + separate write leaves a window where
+    /// another writer's freeze lands in between and gets silently adopted (and later lifted) by
+    /// the restart's clear path.
+    pub async fn try_set_admission_lockout(&self, customer_guid: Uuid) -> Result<bool, RowsError> {
+        let result = sqlx::query(
+            "INSERT INTO admission_control (customerguid, acceptnewjoins)
+             VALUES ($1, false)
+             ON CONFLICT (customerguid) DO UPDATE SET acceptnewjoins = false
+             WHERE admission_control.acceptnewjoins IS DISTINCT FROM false",
+        )
+        .bind(customer_guid)
+        .execute(self.0)
+        .await?;
+        Ok(result.rows_affected() > 0)
+    }
+
+    /// Sets the barrier latch `fleet_restart.drainedat = now()`, once (`WHERE drainedat IS NULL`).
+    /// The reconcile calls this when `draining == 0 && gameservers == 0`: every old instance AND
+    /// pod is provably gone, so any instance created afterwards belongs to the new fleet and the
+    /// drain fan-out must stop — without the latch, an `active` row would drain the new-version
+    /// servers as they register after the cutover's scale-up. Degrades on 42P01.
+    pub async fn set_fleet_drained_at(&self, customer_guid: Uuid) -> Result<(), RowsError> {
+        let result = sqlx::query(
+            "UPDATE fleet_restart SET drainedat = now()
+             WHERE customerguid = $1 AND drainedat IS NULL",
+        )
+        .bind(customer_guid)
+        .execute(self.0)
+        .await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) if is_undefined_table(&e) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Clears an active restart (`active = false`) — the API counterpart of the SQL runbook step,
+    /// so a restart triggered via `POST /fleet-restart/trigger` can be completed/cancelled via
+    /// `POST /fleet-restart/clear` without a psql session. Returns `true` iff a row flipped from
+    /// active to inactive (`false` = nothing was active). The reconcile's next tick performs the
+    /// owned-lockout lift exactly as it does for a SQL clear. Does NOT degrade on 42P01: clearing
+    /// with no table is a caller error to surface.
+    pub async fn clear_fleet_restart(&self, customer_guid: Uuid) -> Result<bool, RowsError> {
+        let result = sqlx::query(
+            "UPDATE fleet_restart SET active = false
+             WHERE customerguid = $1 AND active = true",
+        )
+        .bind(customer_guid)
+        .execute(self.0)
+        .await?;
+        Ok(result.rows_affected() > 0)
     }
 
     /// Lockout-ownership flag: true while THIS restart holds the admission lockout, so the
@@ -1472,7 +1551,7 @@ impl<'a> InstanceRepo<'a> {
                  dropplayers = EXCLUDED.dropplayers, draindeadline = EXCLUDED.draindeadline,
                  stagger = EXCLUDED.stagger, batchsize = EXCLUDED.batchsize,
                  lockout = true, lockoutapplied = false, startedat = now(),
-                 requestid = gen_random_uuid()
+                 drainedat = NULL, requestid = gen_random_uuid()
              WHERE fleet_restart.active = false",
         )
         .bind(customer_guid)

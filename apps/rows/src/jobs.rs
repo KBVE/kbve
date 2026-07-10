@@ -723,11 +723,26 @@ async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
 /// `pg_locks` whether the *current backend* holds an advisory lock: behind a transaction-mode
 /// pooler the two statements can land on different backends, so the lock is invisible to the
 /// second (`false`). Always releases via `pg_advisory_unlock_all()` on the same pinned connection.
+///
+/// The probe key is `pg_backend_pid()`, NOT a shared constant: with a shared key, two replicas
+/// probing at the same instant collide — the loser's try-lock returns false, its `pg_locks` check
+/// finds nothing, and a correctly-pinned process would be misdiagnosed as "behind a pooler" and
+/// permanently disable its reconcile. Keying by backend pid makes cross-process collision
+/// impossible on a direct connection. The try-lock result is still checked as a belt-and-braces
+/// (a leaked probe lock on a pooled backend could shadow the key): a failed acquire is
+/// INCONCLUSIVE (`Err` → caller retries), never a "not pinned" verdict.
 async fn verify_session_pinned_locks(db: &crate::db::DbPool) -> Result<bool, sqlx::Error> {
     let mut conn = db.acquire().await?;
-    sqlx::query("SELECT pg_try_advisory_lock(hashtext('rows-pooler-probe'), 0)")
-        .execute(&mut *conn)
-        .await?;
+    let locked: bool = sqlx::query_scalar(
+        "SELECT pg_try_advisory_lock(hashtext('rows-pooler-probe'), pg_backend_pid())",
+    )
+    .fetch_one(&mut *conn)
+    .await?;
+    if !locked {
+        return Err(sqlx::Error::Protocol(
+            "pooler probe lock contended — inconclusive, retry".into(),
+        ));
+    }
     let pinned: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM pg_locks
          WHERE locktype = 'advisory' AND pid = pg_backend_pid())",
@@ -790,11 +805,10 @@ async fn mark_gameservers_draining(
     }
     for (id, gs) in named {
         if let Err(e) = agones.mark_draining(&gs).await {
-            // error!, not warn!: the label is one-shot per instance (later ticks skip already-
-            // draining rows), so a missed signal means this server never starts its graceful
-            // drain — surfaced loudly for the operator.
-            error!(error = %e, gs = %gs, instance_id = id,
-                   "fleet-restart: failed to set draining label — UE will not begin graceful drain");
+            // Retried next tick (the caller re-signals every still-draining instance), so a
+            // transient apiserver failure only delays the graceful drain by ~30s.
+            warn!(error = %e, gs = %gs, instance_id = id,
+                  "fleet-restart: failed to set draining label — retrying next tick");
         }
     }
 }
@@ -840,26 +854,42 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
                 warn!(error = %e, "fleet-restart: failed to re-assert lockout");
             }
         } else {
-            match repo.get_admission_overrides(guid).await {
-                Ok((tenant, _)) if tenant.accept_new_joins == Some(false) => {
-                    // Another writer's freeze is already in effect — piggyback, never claim.
-                }
-                Ok(_) => {
-                    // Claim FIRST, then write. If the claim lands but the admission write fails
-                    // (or we crash between them), the next tick's `lockout_applied` branch simply
-                    // re-asserts — self-healing. The reverse order would strand an applied-but-
-                    // unowned lockout: the next tick would read tenant=false and piggyback forever.
-                    if let Err(e) = repo.set_fleet_lockout_applied(guid, true).await {
-                        warn!(error = %e, "fleet-restart: lockout ownership claim failed — retrying next tick");
-                    } else if let Err(e) = repo.set_admission(guid, Some(false)).await {
+            // Claim ownership FIRST, then write — if the claim lands but the write fails (or we
+            // crash between them), the next tick's `lockout_applied` branch re-asserts. The
+            // reverse order would strand an applied-but-unowned lockout (piggybacked forever).
+            // The write itself is CONDITIONAL-ATOMIC (`try_set_admission_lockout`: only
+            // transitions acceptnewjoins to false if it isn't false already), so another writer's
+            // freeze landing concurrently is detected in the same statement — no read-then-write
+            // TOCTOU — and we un-claim instead of adopting (and later lifting) their freeze.
+            if let Err(e) = repo.set_fleet_lockout_applied(guid, true).await {
+                warn!(error = %e, "fleet-restart: lockout ownership claim failed — retrying next tick");
+            } else {
+                match repo.try_set_admission_lockout(guid).await {
+                    Ok(true) => {} // we performed the transition — ownership stands
+                    Ok(false) => {
+                        // Another writer already holds the freeze — piggyback, never claim.
+                        if let Err(e) = repo.set_fleet_lockout_applied(guid, false).await {
+                            warn!(error = %e, "fleet-restart: failed to un-claim after piggyback detection");
+                        }
+                    }
+                    Err(e) => {
                         warn!(error = %e, "fleet-restart: failed to set lockout (owned; re-asserted next tick)");
                     }
                 }
-                Err(e) => {
-                    warn!(error = %e, "fleet-restart: admission read failed — skipping lockout this tick");
-                }
             }
         }
+    }
+
+    // Barrier latch (see `FleetRestart::drained_at`): once the restart has fully converged —
+    // no DB instances AND no Agones GameServers — the drain fan-out below must never run again
+    // for this activation. The cutover's scale-up registers NEW-version instances while the row
+    // is still `active` (the runbook clears it after a confirmed scale-up); without the latch the
+    // next tick would drain-label and fan `set_drain_state` across the fresh fleet.
+    if fr.drained_at.is_some() {
+        info!(
+            "fleet-restart: converged (drained_at latched) — holding lockout, awaiting operator clear"
+        );
+        return;
     }
 
     // Batch source: instances not yet draining. Whole-fleet if !stagger.
@@ -876,7 +906,6 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
         }
     };
 
-    let mut newly_draining: Vec<i32> = Vec::with_capacity(batch.len());
     for id in &batch {
         match repo
             .set_drain_state(
@@ -891,8 +920,7 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
             )
             .await
         {
-            Ok(n) if n > 0 => newly_draining.push(*id),
-            Ok(_) => {} // guard rejected (row gone / stricter drain in flight) — nothing to signal
+            Ok(_) => {} // 0 rows = guard rejected (row gone / stricter drain in flight)
             Err(e) => {
                 warn!(error = %e, instance_id = id, "fleet-restart: set_drain_state failed")
             }
@@ -902,11 +930,20 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
     // UE-facing drain signal (contract obligation #4): the DB drain state only affects ROWS-side
     // routing — the GameServer learns it is draining via the `ows.kbve.com/draining=true` label
     // (watched through the Agones SDK). Without this, a populated server never starts its graceful
-    // drain/save and a non-aggressive restart converges only by luck. Patched once per instance,
-    // on the tick that first marks it draining. Best-effort: a failed patch is NOT retried (the
-    // row is already draining, so later ticks skip it) — it is logged as an error, and the
-    // instance still drains ROWS-side (routing excluded; deadline backstop still bounds it).
-    mark_gameservers_draining(&svc, &repo, guid, &newly_draining).await;
+    // drain/save and a non-aggressive restart converges only by luck. Re-signaled for EVERY
+    // still-draining instance each tick, not once at first drain: a one-shot patch lost to a
+    // transient apiserver failure (this cluster has a documented etcd-pressure history) would
+    // otherwise never be retried and the server would never begin its graceful drain. The patch is
+    // idempotent — a no-op label PATCH does not bump resourceVersion or write etcd — and the
+    // re-signal set shrinks as instances converge to status=0, so steady-state cost is zero.
+    match repo.list_draining_instances(guid, FLEET_DRAIN_CAP).await {
+        Ok(draining_ids) => {
+            mark_gameservers_draining(&svc, &repo, guid, &draining_ids).await;
+        }
+        Err(e) => {
+            warn!(error = %e, "fleet-restart: draining-instance list failed — labels retry next tick")
+        }
+    }
 
     // Escalation re-stamp: when this restart is AGGRESSIVE (deadline set), instances already
     // drained by an earlier non-aggressive pass carry `draindeadline = NULL` and would never match
@@ -963,6 +1000,32 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
     // remaining == 0 is the DB all-drained signal (exposed via /fleet-restart/status). It only
     // reaches 0 once instances hit status=0, which ONLY empty_server_reaper writes
     // (set_drain_state rejects state=0) — so convergence depends on the reaper AND the backstop.
+
+    // Latch full convergence: DB drained AND every Agones GameServer gone (the same two-level
+    // barrier as /fleet-restart/status.safe_to_roll). Requires a LIVE Agones count — an
+    // unavailable/failed LIST must never latch (fail closed), and local dev (no Agones) never
+    // latches. Once set, the next tick's early-return stops the fan-out so the post-cutover new
+    // fleet is never drained by this still-active row; the trigger upsert resets the latch.
+    if remaining == 0 {
+        if let Some(ref agones) = svc.state().agones {
+            match agones.count_gameservers().await {
+                Ok(0) => {
+                    if let Err(e) = repo.set_fleet_drained_at(guid).await {
+                        warn!(error = %e, "fleet-restart: failed to latch drained_at — retrying next tick");
+                    } else {
+                        info!(
+                            "fleet-restart: fully converged (0 instances, 0 gameservers) — \
+                             drained_at latched; fan-out stopped, safe to begin the cutover"
+                        );
+                    }
+                }
+                Ok(_) => {} // pods still terminating — latch next tick
+                Err(e) => {
+                    warn!(error = %e, "fleet-restart: gameserver count failed — latch deferred")
+                }
+            }
+        }
+    }
 }
 
 /// Two paths, two behaviours (safe-by-default is a hard invariant):
@@ -976,6 +1039,12 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: uuid::Uuid) {
 ///   1. past `fleet_restart_stall_secs`: loud warn + `stalled` surfaces on /fleet-restart/status.
 ///   2. past 2×: auto-lift the join lockout while leaving the restart active (new players land on
 ///      old-version instances — safe within a version line; the roll just takes longer).
+///
+/// The aggressive path gets stall *surfacing* (an `error!` past the stall SLA when overdue
+/// instances aren't converging) but deliberately NO stage-2 auto-lift: lifting joins mid-aggressive
+/// routes players onto instances (or fresh old-version spin-ups) that the deadline backstop
+/// force-deallocates on the next tick — a join-and-drop churn loop, strictly worse than the
+/// lockout. The recovery is operator action: restore Agones / clear the restart.
 async fn enforce_drain_deadline(
     svc: &Arc<OWSService>,
     repo: &InstanceRepo<'_>,
@@ -999,6 +1068,20 @@ async fn enforce_drain_deadline(
         };
         if overdue.is_empty() {
             return;
+        }
+        // Aggressive stall surfacing (no auto-lift — see the doc comment): if overdue instances
+        // are still here past the stall SLA, force-deallocation is not converging (Agones down,
+        // unresolvable GameServer names). Escalate to error! so it alerts; /fleet-restart/status
+        // reports stalled=true off the same clock.
+        let stalled_secs = (chrono::Utc::now() - fr.started_at).num_seconds();
+        if stalled_secs > svc.state().config.fleet_restart_stall_secs {
+            error!(
+                stalled_secs,
+                overdue = overdue.len(),
+                "fleet-restart: AGGRESSIVE restart stalled — force-deallocation not converging; \
+                 lockout stays held (no auto-lift: joins would land on doomed instances). \
+                 Restore Agones / resolve GameServer names, or clear the restart (active=false)"
+            );
         }
         let Some(ref agones) = svc.state().agones else {
             warn!(

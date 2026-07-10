@@ -47,6 +47,10 @@ pub fn fleet_restart_routes(hs: HandlerState) -> Router {
             "/fleet-restart/trigger",
             axum::routing::post(fleet_restart_trigger),
         )
+        .route(
+            "/fleet-restart/clear",
+            axum::routing::post(fleet_restart_clear),
+        )
         .layer(middleware::from_fn_with_state(
             hs.clone(),
             require_customer_guid,
@@ -59,9 +63,13 @@ pub fn fleet_restart_routes(hs: HandlerState) -> Router {
 /// NetworkPolicy cannot keep them off this path (same port 4322, and policies can't filter by
 /// HTTP path). Fails closed: unset/empty env ⇒ every caller is rejected 401.
 fn fleet_restart_token_ok(headers: &HeaderMap) -> bool {
-    let Ok(expected) = std::env::var("ROWS_FLEET_RESTART_TOKEN") else {
-        return false;
-    };
+    let expected = std::env::var("ROWS_FLEET_RESTART_TOKEN").unwrap_or_default();
+    fleet_restart_token_matches(&expected, headers)
+}
+
+/// Pure comparison half of [`fleet_restart_token_ok`] (env-free so it is unit-testable).
+/// Fails closed: empty expected token ⇒ every caller is rejected.
+fn fleet_restart_token_matches(expected: &str, headers: &HeaderMap) -> bool {
     if expected.is_empty() {
         return false;
     }
@@ -118,8 +126,15 @@ pub struct FleetRestartStatus {
     pub gameservers: i64,
     /// `active && draining == 0` — the DB says every instance is gone; begin the cutover.
     pub all_drained: bool,
-    /// `all_drained && gameservers == 0` — every old pod is actually gone; safe to roll.
+    /// Every old pod is actually gone; safe to roll. Exactly `drained_at != null`: stamped (by
+    /// this endpoint or the reconcile) at full convergence — 0 instances + 0 gameservers — and
+    /// DURABLE for the rest of the activation, so the cutover's scale-up (new gameservers while
+    /// the row is still active) does NOT flip it back to false. Stamping also stops the
+    /// reconcile's drain fan-out, so the new fleet is never drained by this restart.
     pub safe_to_roll: bool,
+    /// RFC3339 timestamp of the convergence latch (`fleet_restart.drainedat`); `null` until the
+    /// two-level barrier first opened. Past this, the reconcile's drain fan-out is stopped.
+    pub drained_at: Option<String>,
     /// Non-aggressive stall backstop: `active && draining > 0` past the stall SLA. The alertable
     /// "drain not converging — check empty_server_reaper" signal.
     pub stalled: bool,
@@ -144,7 +159,29 @@ pub async fn fleet_restart_status(
     // Fail closed on an unknown GS count: -1 can never satisfy `== 0`.
     let gameservers = cached_gameserver_count(&hs).await.unwrap_or(-1);
     let all_drained = active && draining == 0;
-    let safe_to_roll = all_drained && gameservers == 0;
+    let mut drained_at = fr
+        .as_ref()
+        .filter(|fr| fr.active)
+        .and_then(|fr| fr.drained_at);
+    // Read-repair the convergence latch: THIS response is what tells the orchestrator "roll now",
+    // and the orchestrator's scale-up races the reconcile's next tick (up to 30s away). If the
+    // latch weren't stamped before we answer, the new fleet's gameservers would flip the barrier
+    // shut and the still-active row would drain them. Stamping here (idempotent, WHERE drainedat
+    // IS NULL) closes that window: fan-out is stopped no later than the first safe-to-roll answer.
+    // The reconcile stamps it too (backup for pollers that never call this endpoint).
+    if active && drained_at.is_none() && draining == 0 && gameservers == 0 {
+        match repo.set_fleet_drained_at(guid).await {
+            Ok(()) => drained_at = Some(chrono::Utc::now()),
+            Err(e) => {
+                tracing::warn!(error = %e, "fleet-restart: status read-repair of drained_at failed")
+            }
+        }
+    }
+    // safe_to_roll IS the latch — never reported true without drainedat durably stamped, so a
+    // failed stamp fails closed (this poll says false; the next one retries). Durable: once
+    // stamped, the cutover's own scale-up (new gameservers while the row is still active) must
+    // not flip safe_to_roll back to false.
+    let safe_to_roll = drained_at.is_some();
     let stalled = fr.as_ref().is_some_and(|fr| {
         fr.active
             && draining > 0
@@ -157,6 +194,7 @@ pub async fn fleet_restart_status(
         gameservers,
         all_drained,
         safe_to_roll,
+        drained_at: drained_at.map(|d| d.to_rfc3339()),
         stalled,
     }))
 }
@@ -210,9 +248,8 @@ const FLEET_RESTART_DEFAULT_GRACE_SECS: i64 = 300;
         (status = 200, description = "Restart activated: { success, mode, drain_deadline? }"),
         (status = 400, description = "Invalid mode / grace_secs / batch_size"),
         (status = 401, description = "Missing/invalid gateway token"),
-        (status = 404, description = "Aggressive mode with no pending update"),
         (status = 409, description = "A restart is already active"),
-        (status = 412, description = "empty_server_reaper is disabled for this tenant — the restart cannot converge; enable the reaper first"),
+        (status = 412, description = "Precondition failed: empty_server_reaper is disabled for this tenant (the restart cannot converge; enable it first), or aggressive mode with no pending update"),
     ),
 )]
 pub async fn fleet_restart_trigger(
@@ -314,13 +351,14 @@ pub async fn fleet_restart_trigger(
     }
 
     // The aggressive path exists to *deploy a pending update* — you can't restart-to-deploy with
-    // nothing to deploy (this narrows WHEN it fires; the token above controls WHO).
+    // nothing to deploy (this narrows WHEN it fires; the token above controls WHO). 412, not 404:
+    // the resource exists, a precondition doesn't hold (and 404 is ambiguous with a bad route).
     if aggressive {
         match repo.get_deploy_state(guid).await {
             Ok(Some(ds)) if !ds.rolled => {}
             Ok(_) => {
                 return (
-                    StatusCode::NOT_FOUND,
+                    StatusCode::PRECONDITION_FAILED,
                     Json(serde_json::json!({
                         "success": false,
                         "error": "no pending update — aggressive restart refused",
@@ -378,6 +416,54 @@ pub async fn fleet_restart_trigger(
         "drain_deadline": deadline.map(|d| d.to_rfc3339()),
     }))
     .into_response()
+}
+
+#[utoipa::path(
+    post,
+    path = "/fleet-restart/clear",
+    tag = "system",
+    summary = "Clear (complete or cancel) the active fleet restart",
+    description = "Sets fleet_restart.active=false — the API counterpart of the SQL runbook step, so a restart started via /fleet-restart/trigger can be finished without a psql session. The reconcile's next tick lifts the admission lockout iff it owns it. cleared=false when nothing was active (idempotent). Requires the gateway bearer token.",
+    responses(
+        (status = 200, description = "{ success: true, cleared: bool }"),
+        (status = 401, description = "Missing/invalid gateway token"),
+    ),
+)]
+pub async fn fleet_restart_clear(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+) -> axum::response::Response {
+    use axum::http::StatusCode;
+    use axum::response::IntoResponse;
+
+    // Same gate as the trigger: clearing mid-drain re-opens joins and re-arms the legacy
+    // RestartFleet break-glass — as operator-privileged as starting one.
+    if !fleet_restart_token_ok(&headers) {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "fleet-restart clear requires the gateway bearer token",
+            })),
+        )
+            .into_response();
+    }
+
+    let guid = hs.app.config.customer_guid;
+    match crate::repo::InstanceRepo(&hs.app.db)
+        .clear_fleet_restart(guid)
+        .await
+    {
+        Ok(cleared) => {
+            if cleared {
+                tracing::info!(
+                    "fleet-restart cleared via API — reconcile lifts any owned lockout next tick"
+                );
+            }
+            Json(serde_json::json!({ "success": true, "cleared": cleared })).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
 }
 
 #[utoipa::path(
@@ -1154,7 +1240,59 @@ pub async fn verify_deployment(
 
 #[cfg(test)]
 mod tests {
-    use super::is_plausible_build_version;
+    use super::{fleet_restart_token_matches, is_plausible_build_version};
+    use axum::http::{HeaderMap, HeaderValue, header::AUTHORIZATION};
+
+    fn headers_with_bearer(token: &str) -> HeaderMap {
+        let mut h = HeaderMap::new();
+        h.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+        h
+    }
+
+    /// The gate guards the mutating fleet-restart routes AND (once configured) the destructive
+    /// legacy RestartFleet — it must fail closed on every malformed/absent input.
+    #[test]
+    fn token_gate_fails_closed() {
+        // No expected token configured ⇒ reject everyone, even an empty-for-empty "match".
+        assert!(!fleet_restart_token_matches("", &HeaderMap::new()));
+        assert!(!fleet_restart_token_matches("", &headers_with_bearer("")));
+        assert!(!fleet_restart_token_matches(
+            "",
+            &headers_with_bearer("anything")
+        ));
+        // Configured token, missing/malformed/wrong credentials.
+        assert!(!fleet_restart_token_matches("s3cret", &HeaderMap::new()));
+        assert!(!fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("")
+        ));
+        assert!(!fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("wrong!")
+        ));
+        assert!(!fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("s3cre")
+        )); // prefix
+        assert!(!fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("s3crets")
+        )); // superstring
+        let mut no_bearer = HeaderMap::new();
+        no_bearer.insert(AUTHORIZATION, HeaderValue::from_static("Basic s3cret"));
+        assert!(!fleet_restart_token_matches("s3cret", &no_bearer));
+    }
+
+    #[test]
+    fn token_gate_accepts_exact_match() {
+        assert!(fleet_restart_token_matches(
+            "s3cret",
+            &headers_with_bearer("s3cret")
+        ));
+    }
 
     // The seed defines the launcher's download target (first-write-wins), so the gate must pass
     // real build shapes and block garbage/injection-shaped strings.
