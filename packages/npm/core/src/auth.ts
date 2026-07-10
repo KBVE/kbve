@@ -28,6 +28,8 @@ export interface AuthState {
 	user: AuthUser | null;
 	session: AuthSession | null;
 	error: string | null;
+	autoClaimAttempted: boolean;
+	lastProvider: OAuthProvider | null;
 }
 
 export const initialAuthState: AuthState = {
@@ -35,6 +37,8 @@ export const initialAuthState: AuthState = {
 	user: null,
 	session: null,
 	error: null,
+	autoClaimAttempted: false,
+	lastProvider: null,
 };
 
 export type AuthEvent =
@@ -69,7 +73,8 @@ export type AuthEffect =
 	  }
 	| { type: 'supabase.sign_in_oauth'; provider: OAuthProvider }
 	| { type: 'api.set_username'; username: string }
-	| { type: 'supabase.sign_out' };
+	| { type: 'supabase.sign_out' }
+	| { type: 'api.auto_claim_username'; provider: OAuthProvider | null };
 
 export interface AuthViewModel {
 	status: AuthStatus;
@@ -81,8 +86,31 @@ export interface AuthViewModel {
 	error: string | null;
 }
 
-function signedIn(session: AuthSession): AuthState {
-	return { status: 'signed_in', user: session.user, session, error: null };
+function signedIn(state: AuthState, session: AuthSession): AuthState {
+	return {
+		status: 'signed_in',
+		user: session.user,
+		session,
+		error: null,
+		autoClaimAttempted: state.autoClaimAttempted,
+		lastProvider: state.lastProvider,
+	};
+}
+
+function withAutoClaim(next: AuthState): UpdateResult<AuthState, AuthEffect> {
+	const noUsername = next.user?.username == null;
+	if (next.status === 'signed_in' && noUsername && !next.autoClaimAttempted) {
+		return {
+			state: { ...next, autoClaimAttempted: true },
+			effects: [
+				{
+					type: 'api.auto_claim_username',
+					provider: next.lastProvider,
+				},
+			],
+		};
+	}
+	return { state: next, effects: [] };
 }
 
 function reduce(
@@ -96,17 +124,15 @@ function reduce(
 				effects: [{ type: 'supabase.restore' }],
 			};
 		case 'restored':
-			return {
-				state: event.session
-					? signedIn(event.session)
-					: {
+			return event.session
+				? withAutoClaim(signedIn(state, event.session))
+				: {
+						state: {
+							...initialAuthState,
 							status: 'signed_out',
-							user: null,
-							session: null,
-							error: null,
 						},
-				effects: [],
-			};
+						effects: [],
+					};
 		case 'sign_in_password':
 			return {
 				state: { ...state, status: 'authenticating', error: null },
@@ -133,7 +159,12 @@ function reduce(
 			};
 		case 'sign_in_oauth':
 			return {
-				state: { ...state, status: 'authenticating', error: null },
+				state: {
+					...state,
+					status: 'authenticating',
+					error: null,
+					lastProvider: event.provider,
+				},
 				effects: [
 					{
 						type: 'supabase.sign_in_oauth',
@@ -150,26 +181,19 @@ function reduce(
 			};
 		case 'sign_out':
 			return {
-				state: {
-					status: 'signed_out',
-					user: null,
-					session: null,
-					error: null,
-				},
+				state: { ...initialAuthState, status: 'signed_out' },
 				effects: [{ type: 'supabase.sign_out' }],
 			};
 		case 'session_changed':
-			return {
-				state: event.session
-					? signedIn(event.session)
-					: {
+			return event.session
+				? withAutoClaim(signedIn(state, event.session))
+				: {
+						state: {
+							...initialAuthState,
 							status: 'signed_out',
-							user: null,
-							session: null,
-							error: null,
 						},
-				effects: [],
-			};
+						effects: [],
+					};
 		case 'auth_error':
 			return {
 				state: { ...state, status: 'error', error: event.message },
