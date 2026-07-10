@@ -130,6 +130,7 @@ async fn main() -> anyhow::Result<()> {
         .agones_config(&cfg.agones_namespace, &cfg.agones_fleet)
         .reaper_config(cfg.reaper.clone())
         .accept_new_joins(cfg.accept_new_joins)
+        .fleet_restart_stall_secs(cfg.fleet_restart_stall_secs)
         .mq(mq_producer)
         .agones(agones_client)
         .build()?;
