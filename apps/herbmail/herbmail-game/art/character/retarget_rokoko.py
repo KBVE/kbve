@@ -28,16 +28,28 @@ def import_glb(path):
     return arm, added
 
 
+# SIDEKICK attachment slot -> the deform-following attach bone it rides.
+SLOT_ATTACH = {
+    "AHED": "headAttach", "AFAC": "faceAttach", "ABAC": "backAttach",
+    "AHPF": "hipAttachFront", "AHPB": "hipAttachBack",
+    "AHPL": "hipAttach_l", "AHPR": "hipAttach_r",
+    "ASHL": "shoulderAttach_l", "ASHR": "shoulderAttach_r",
+    "AEBL": "elbowAttach_l", "AEBR": "elbowAttach_r",
+    "AKNL": "kneeAttach_l", "AKNR": "kneeAttach_r",
+}
+
+
 def reweight_neutral(tgt_objs, arm):
-    """Synty/Unity FBX parks stray verts on a static 'neutral_bone'. It isn't
-    animated or retargeted, so those verts (plume, backpack) freeze or detach.
-    Move each neutral_bone weight to the nearest real bone, then delete it."""
-    import mathutils  # noqa: F401
-    centers = {}
-    for b in arm.data.bones:
-        if b.name == "neutral_bone":
-            continue
-        centers[b.name] = (b.head_local + b.tail_local) * 0.5
+    """Synty/Unity FBX parks stray verts on a static 'neutral_bone' (and IK
+    bones aren't deform bones). Route each attachment mesh's neutral weights to
+    its designated attach bone; route body meshes to the nearest DEFORM bone."""
+    def is_deform(name):
+        return name != "neutral_bone" and not name.startswith("ik_")
+
+    centers = {
+        b.name: (b.head_local + b.tail_local) * 0.5
+        for b in arm.data.bones if is_deform(b.name)
+    }
     names = list(centers.keys())
     total = 0
     for mesh in tgt_objs:
@@ -47,12 +59,17 @@ def reweight_neutral(tgt_objs, arm):
         if not nb:
             continue
         nb_idx = nb.index
+        slot = next((s for s in SLOT_ATTACH if mesh.name.startswith(s)), None)
+        fixed = SLOT_ATTACH.get(slot) if slot else None
+        if fixed and fixed not in centers:
+            fixed = None
         moves = []
         for v in mesh.data.vertices:
             for g in v.groups:
                 if g.group == nb_idx and g.weight > 0:
-                    co = v.co
-                    best = min(names, key=lambda n: (centers[n] - co).length)
+                    best = fixed or min(
+                        names, key=lambda n: (centers[n] - v.co).length
+                    )
                     moves.append((v.index, best, g.weight))
         for vi, best, w in moves:
             grp = mesh.vertex_groups.get(best) or mesh.vertex_groups.new(

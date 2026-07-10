@@ -11,6 +11,7 @@ import {
 } from './CharacterMotor';
 import { ProceduralPose } from './ProceduralPose';
 import { WEAPON_GRIP } from './weaponGrip';
+import { useCharacterParts } from './useCharacterParts';
 
 const SWORD_URL = '/models/sword.glb';
 useGLTF.preload(SWORD_URL);
@@ -57,6 +58,7 @@ export function Character({
 	const jumpRef = useRef({ wasGrounded: true, landUntil: 0 });
 
 	const scene = useMemo(() => cloneSkinned(gltf.scene), [gltf]);
+	useCharacterParts(scene);
 
 	useEffect(() => {
 		if (!armed) return;

@@ -8,6 +8,7 @@ import { TorchLighting } from '../game/TorchLighting';
 import { Hud } from '../game/Hud';
 import { PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
+import { EquipmentPanel } from '../game/character/EquipmentPanel';
 import { SwordGripDebug } from '../game/character/SwordGripDebug';
 import { LOADOUT } from '../game/viewmodel/equipment';
 import { setEquipped, useEquippedId } from '../game/viewmodel/store';
@@ -65,6 +66,7 @@ export function App() {
 				<AimReticle onAim={setAim} />
 			</Canvas>
 			<Hud kind={aim} equippedId={equippedId} />
+			<EquipmentPanel />
 			{debug && <SwordGripDebug />}
 			<div
 				style={{
