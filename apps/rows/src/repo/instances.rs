@@ -1368,12 +1368,14 @@ impl<'a> InstanceRepo<'a> {
     /// One-shot seed of the currently-served version (`rolled=true, health='healthy'`), called
     /// from the ReportBuild path when a GameServer reports the build it loaded. `ON CONFLICT DO
     /// NOTHING` so it never overwrites a real roll or a pending update; degrade on 42P01. This is
-    /// what keeps `/health.unreal_version` non-null before the first orchestrated roll.
+    /// what keeps `/health.unreal_version` non-null before the first orchestrated roll. Returns
+    /// `true` iff this call actually inserted the row (first-write-wins — the caller logs it,
+    /// since the seed defines the launcher's download target).
     pub async fn seed_deploy_state(
         &self,
         customer_guid: Uuid,
         version: &str,
-    ) -> Result<(), RowsError> {
+    ) -> Result<bool, RowsError> {
         let result = sqlx::query(
             "INSERT INTO deploy_state (customerguid, targetversion, rolled, health)
              VALUES ($1, $2, true, 'healthy')
@@ -1384,8 +1386,8 @@ impl<'a> InstanceRepo<'a> {
         .execute(self.0)
         .await;
         match result {
-            Ok(_) => Ok(()),
-            Err(e) if is_undefined_table(&e) => Ok(()),
+            Ok(r) => Ok(r.rows_affected() > 0),
+            Err(e) if is_undefined_table(&e) => Ok(false),
             Err(e) => Err(e.into()),
         }
     }

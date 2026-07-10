@@ -618,6 +618,7 @@ pub async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json:
 )]
 pub async fn report_build(
     State(hs): State<HandlerState>,
+    headers: HeaderMap,
     Json(body): Json<serde_json::Value>,
 ) -> Json<serde_json::Value> {
     let version = body
@@ -626,8 +627,20 @@ pub async fn report_build(
         .unwrap_or("")
         .trim();
 
-    if version.is_empty() {
-        return Json(serde_json::json!({ "success": false, "error": "version required" }));
+    // ReportBuild is reachable by anything holding the tenant-GUID header (every GameServer / any
+    // in-cluster caller on 4322), and its first write permanently seeds the launcher's download
+    // target — so gate on plausibility before it touches any state. This bounds accidental (typo'd
+    // test pod, garbage payload) and casual-malicious poisoning; a real orchestrated roll
+    // overwrites the seed with the authoritative version anyway.
+    if !is_plausible_build_version(version) {
+        tracing::warn!(
+            version,
+            "ReportBuild: rejected implausible build version (charset/length/shape)"
+        );
+        return Json(serde_json::json!({
+            "success": false,
+            "error": "version must be 1-64 chars of [0-9A-Za-z._-] and contain a digit"
+        }));
     }
 
     {
@@ -640,15 +653,41 @@ pub async fn report_build(
 
     // One-shot deploy_state seed (ON CONFLICT DO NOTHING): keeps /health.unreal_version non-null
     // before the first orchestrated roll ever writes rolled=true. Never overwrites a real roll or
-    // a pending update; best-effort (a failure just leaves the in-memory fallback).
-    if let Err(e) = crate::repo::InstanceRepo(&hs.app.db)
+    // a pending update; best-effort (a failure just leaves the in-memory fallback). Logged with
+    // the caller so a mis-seed is traceable (first-write-wins defines the launcher target).
+    let source = headers
+        .get("x-forwarded-for")
+        .or_else(|| headers.get("user-agent"))
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("unknown");
+    match crate::repo::InstanceRepo(&hs.app.db)
         .seed_deploy_state(hs.app.config.customer_guid, version)
         .await
     {
-        tracing::warn!(error = %e, "ReportBuild: deploy_state seed failed (non-fatal)");
+        Ok(seeded) if seeded => {
+            tracing::info!(
+                version,
+                source,
+                "ReportBuild: seeded deploy_state as the served version (first report wins; \
+                 verify against the PVC if unexpected)"
+            );
+        }
+        Ok(_) => {}
+        Err(e) => tracing::warn!(error = %e, "ReportBuild: deploy_state seed failed (non-fatal)"),
     }
 
     Json(serde_json::json!({ "success": true, "version": version }))
+}
+
+/// Plausibility gate for GameServer-reported build versions: 1–64 chars of `[0-9A-Za-z._-]`, at
+/// least one digit. Deliberately loose (matches `0.3.46`, `0.3.46-rc1`, `dev.1`), but blocks
+/// empty/garbage/injection-shaped strings from becoming the launcher's download target.
+fn is_plausible_build_version(v: &str) -> bool {
+    !v.is_empty()
+        && v.len() <= 64
+        && v.bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-'))
+        && v.bytes().any(|b| b.is_ascii_digit())
 }
 
 #[utoipa::path(
@@ -1032,4 +1071,33 @@ pub async fn verify_deployment(
             "One or more checks failed. See details.".to_string()
         }
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_plausible_build_version;
+
+    // The seed defines the launcher's download target (first-write-wins), so the gate must pass
+    // real build shapes and block garbage/injection-shaped strings.
+    #[test]
+    fn plausible_build_versions_pass() {
+        for v in ["0.3.46", "0.3.46-rc1", "1.0.0_beta", "dev.1", "20260709"] {
+            assert!(is_plausible_build_version(v), "{v} should pass");
+        }
+    }
+
+    #[test]
+    fn implausible_build_versions_rejected() {
+        let too_long = "1".repeat(65);
+        for v in [
+            "",                   // empty
+            "latest",             // no digit — a mutable tag, not a version
+            "0.3.46; DROP TABLE", // spaces / injection charset
+            "../0.3.46",          // path traversal shape
+            "0.3.46\n",           // control chars
+            too_long.as_str(),    // over length cap
+        ] {
+            assert!(!is_plausible_build_version(v), "{v:?} should be rejected");
+        }
+    }
 }
