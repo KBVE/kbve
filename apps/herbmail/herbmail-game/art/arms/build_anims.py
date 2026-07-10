@@ -63,15 +63,15 @@ def build_idle():
 WAVE_AIM = mathutils.Vector((0.22, 0.80, 0.10)).normalized()
 WAVE_R = ik_target(SHOULDER_R, WAVE_AIM)
 # palm-toward-camera base wrist rotation (tuned via render)
-WAVE_WROT = (-0.2, 0.0, 1.0)
-WAVE_ROCK = 0.55  # wrist tilt amplitude
+WAVE_WROT = (-1.5, 0.0, 0.3)
+WAVE_ROCK = 0.5  # wrist side-to-side amplitude (yaw)
 
 def build_wave():
     act = new_action('wave')
     for f in (1, 44):
         key_target(L_IK, f, IDLE_L, IDLE_LROT)
     wr = WAVE_WROT
-    tilt = lambda s: (wr[0], wr[1], wr[2] + s * WAVE_ROCK)
+    tilt = lambda s: (wr[0], wr[1] + s * WAVE_ROCK, wr[2])
     frames = [
         (1, IDLE_R, IDLE_RROT),
         (10, WAVE_R, tilt(+1)),
