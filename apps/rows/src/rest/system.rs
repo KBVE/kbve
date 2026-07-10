@@ -212,6 +212,7 @@ const FLEET_RESTART_DEFAULT_GRACE_SECS: i64 = 300;
         (status = 401, description = "Missing/invalid gateway token"),
         (status = 404, description = "Aggressive mode with no pending update"),
         (status = 409, description = "A restart is already active"),
+        (status = 412, description = "empty_server_reaper is disabled for this tenant — the restart cannot converge; enable the reaper first"),
     ),
 )]
 pub async fn fleet_restart_trigger(
@@ -284,6 +285,33 @@ pub async fn fleet_restart_trigger(
 
     let guid = hs.app.config.customer_guid;
     let repo = crate::repo::InstanceRepo(&hs.app.db);
+
+    // Convergence precondition: only empty_server_reaper moves instances to status=0
+    // (set_drain_state rejects it), so a restart with the reaper disabled is a GUARANTEED stall —
+    // 30–60 min of join lockout ending in the stage-2 auto-lift, not a completed drain. Fail fast
+    // at the operator with the runbook pointer instead. Effective config = env baseline merged
+    // with the per-tenant reaperconfig override (the same read the reaper does each cycle).
+    // Deliberately NOT auto-enabled here: enabling the reaper is a hard-gated runbook step (UE
+    // heartbeats must be live first) and must never happen as a side effect of a restart click.
+    // The SQL trigger path stays ungated as the break-glass. Fail closed on a read error — we
+    // can't prove the restart can converge.
+    match repo.get_reaper_config_override(guid).await {
+        Ok(ov) => {
+            if !hs.app.config.reaper.merged_with(&ov).enabled {
+                return (
+                    StatusCode::PRECONDITION_FAILED,
+                    Json(serde_json::json!({
+                        "success": false,
+                        "error": "fleet restart cannot converge: empty_server_reaper is disabled \
+                                  for this tenant — enable it first (reaper runbook §2), or use \
+                                  the SQL trigger path deliberately",
+                    })),
+                )
+                    .into_response();
+            }
+        }
+        Err(e) => return e.into_response(),
+    }
 
     // The aggressive path exists to *deploy a pending update* — you can't restart-to-deploy with
     // nothing to deploy (this narrows WHEN it fires; the token above controls WHO).
