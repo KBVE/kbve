@@ -41,6 +41,8 @@ These are verified facts about the current codebase the tasks below depend on. T
     - `count_active_instances(tenant) -> i64` already exists (counts `status > 0`).
 - **The chuck UE server version is a PVC path, NOT a container image tag.** In `apps/kube/agones/rows-tenants/chuckrpg-*/manifests/fleet.yaml` the `ue5-server` container image is a fixed `ubuntu:24.04`; the cooked server is delivered via the `ows-server-build` PVC mounted at `/server`, and the pod runs `/server/latest/LinuxServer/chuckServer.sh`. Bumping a deployment `image:` tag does **not** roll the UE server — it only rolls the `ghcr.io/kbve/kubectl` sidecar. Because the path is the mutable `latest/`, any pod restart (crash, eviction, node drain, autoscale) silently loads whatever build currently sits in `latest/` — an accidental mixed-version fleet with no deploy action. **R0 fixes this and is a hard prerequisite for the barrier to mean anything.**
 - **End-to-end (Agones barrier + soak) is untestable until chuck servers reach `Ready()`.** Today the beta fleet sits at `replicas:0` and servers hang at login (tracked: `project_chuckrpg_ready_hang` — UE hangs after SessionSubsystem init, never calls Agones `Ready()`). Tasks 1–5 (DB + signal) are testable now; R3 (the live cutover) is not until that game-side crash clears.
+- **ROWS is scaled to `replicas: 0` today, not `1`** (`apps/kube/rows/manifest/rows-deployment.yaml:15`, `apps/kube/rows/tenants/base/deployment.yaml`). The `rows-pdb minAvailable: 1` **does** exist (`rows-deployment.yaml:162`, `tenants/base/deployment.yaml:204`). So the SPOF/PDB hazard (Task 4 Step 4 / K1) is **dormant while scaled to 0** but becomes live the instant ROWS scales up to serve — it is still a hard prerequisite, just not currently observable. Do not read "replicas: 1" anywhere in this plan as current truth.
+- **The `ows-server-build` PVC is `ReadWriteMany` (RWX)** — verified at `apps/kube/github/runners/manifests/ows-server-build-pvc.yaml:14`. This **resolves the R0 Step 4 gate**: version-pinned coexistence (old and new pods each mounting their own `<version>/` dir concurrently) is possible. **Open item R0 Step 4 must still confirm** the PVC is reachable from the agones tenant namespaces — the PVC object is defined in the **runners** namespace, and PVCs are namespace-scoped, so either a same-named PVC exists per tenant namespace or the mount works via a mechanism this plan must name. Do not assume cross-namespace mount "just works."
 
 ---
 
@@ -81,7 +83,12 @@ CREATE TABLE IF NOT EXISTS fleet_restart
     TargetVersion TEXT    NULL,                  -- reserved (version-selective drain; deferred)
     RequestID     UUID    NOT NULL,
     CONSTRAINT PK_FleetRestart PRIMARY KEY (CustomerGUID),
-    CONSTRAINT chk_urgency CHECK (Urgency IN (0,1))
+    CONSTRAINT chk_urgency CHECK (Urgency IN (0,1)),
+    -- Safe-by-default is a HARD invariant (Global Constraints). Column defaults alone don't stop a
+    -- hand-written / partial-upsert row like (urgency=0, dropplayers=true) from force-disconnecting on
+    -- the "non-aggressive" path. Make it structural: force-disconnect and a deadline require aggressive.
+    CONSTRAINT chk_safe_default   CHECK (Urgency = 1 OR DropPlayers = false),
+    CONSTRAINT chk_deadline_aggr  CHECK (DrainDeadline IS NULL OR Urgency = 1)
 );
 ALTER TABLE fleet_restart ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fleet_restart FORCE ROW LEVEL SECURITY;
@@ -123,7 +130,25 @@ pub struct FleetRestart {
 }
 ```
 
-- [ ] **Step 4: Build.** **Step 5: Commit** — `feat(rows): fleet_restart control table + model`.
+- [ ] **Step 4: Add the stall-SLA config knob** (consumed by Task 4 Step 3 and Task 5 Step 1 — declare it here so those tasks compile). In the config struct that holds `customer_guid`, add:
+
+```rust
+    /// Non-aggressive stall SLA: seconds a restart may sit `active` with `draining > 0` before it is
+    /// declared stalled (surfaced on /fleet-restart/status and, at 2× this, auto-lifts the lockout —
+    /// Task 4 Step 3). Env: ROWS_FLEET_RESTART_STALL_SECS. Default 1800 (30 min).
+    pub fleet_restart_stall_secs: i64,
+```
+
+and parse it in the same place other `ROWS_*` env knobs are read:
+
+```rust
+    fleet_restart_stall_secs: std::env::var("ROWS_FLEET_RESTART_STALL_SECS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1800),
+```
+
+- [ ] **Step 5: Build.** **Step 6: Commit** — `feat(rows): fleet_restart control table + model + stall-SLA config`.
 
 ---
 
@@ -184,7 +209,7 @@ pub async fn list_drainable_instances(
 }
 ```
 
-- [ ] **Step 3:** Add an index to back the per-tick scan. `mapinstances` is a hot table (spin-up/teardown write it constantly), so a plain `CREATE INDEX` takes a write-blocking `SHARE` lock for the whole build and stalls instance writes. Use **`CONCURRENTLY`**, which **cannot run inside dbmate's implicit transaction** — ship it in its own migration with the transaction disabled (dbmate `-- migrate:up` with `transaction:false`, or a dedicated single-statement migration): `CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_mapinstances_drainable ON mapinstances (customerguid, status, drainstate);`. A `CONCURRENTLY` build can fail and leave an `INVALID` index — the runbook must note "if invalid, `DROP INDEX` and re-create."
+- [ ] **Step 3:** Add an index to back the per-tick scan. `mapinstances` is a hot table (spin-up/teardown write it constantly), so a plain `CREATE INDEX` takes a write-blocking `SHARE` lock for the whole build and stalls instance writes. Use **`CONCURRENTLY`**, which **cannot run inside dbmate's implicit transaction** — ship it in its own migration with the transaction disabled (dbmate `-- migrate:up` with `transaction:false`, or a dedicated single-statement migration): `CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_mapinstances_drainable ON mapinstances (customerguid, status, drainstate);`. A `CONCURRENTLY` build can fail and leave an `INVALID` index that Postgres silently refuses to use — the per-tick `list_drainable_instances` scan then degrades to a seq-scan on the hot `mapinstances` table under load, with no error. Runbook-only recovery is not enough. **Add automated detection:** ship a post-migration assertion (a CI/Argo post-sync check, or a startup log-and-metric in ROWS) that runs `SELECT indisvalid FROM pg_index WHERE indexrelid = 'idx_mapinstances_drainable'::regclass` and alerts/logs `warn!` on `false`. Runbook recovery stays `DROP INDEX idx_mapinstances_drainable; ` then re-create `CONCURRENTLY`.
 - [ ] **Step 4: Build.** **Step 5: Commit** — `feat(rows): fleet-restart repo reads (control, drainable list)`.
 
 ---
@@ -200,6 +225,7 @@ Reuses Phase 2's **shared** `admission_control` table. `Some(false)` sets the lo
 - Produces:
     - `set_admission(tenant, accept_new_joins: Option<bool>) -> Result<(), RowsError>`.
     - `set_fleet_lockout_applied(tenant, applied: bool) -> Result<(), RowsError>` — `UPDATE fleet_restart SET lockoutapplied = $2 WHERE customerguid = $1` (no-op if the row is absent; degrade on 42P01).
+    - `set_fleet_lockout(tenant, lockout: bool) -> Result<(), RowsError>` — `UPDATE fleet_restart SET lockout = $2 WHERE customerguid = $1` (degrade on 42P01). Used by the stall-SLA auto-lift (Task 4 Step 3) to stop re-applying the lockout while the restart stays active.
 
 - [ ] **Step 1: Implement**:
 
@@ -239,9 +265,28 @@ pub async fn set_fleet_lockout_applied(
         Err(e) => Err(e.into()),
     }
 }
+
+pub async fn set_fleet_lockout(
+    &self,
+    customer_guid: Uuid,
+    lockout: bool,
+) -> Result<(), RowsError> {
+    let result = sqlx::query(
+        "UPDATE fleet_restart SET lockout = $2 WHERE customerguid = $1",
+    )
+    .bind(customer_guid)
+    .bind(lockout)
+    .execute(self.0)
+    .await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(e) if is_undefined_table(&e) => Ok(()),
+        Err(e) => Err(e.into()),
+    }
+}
 ```
 
-- [ ] **Step 2: Build.** **Step 3: Commit** — `feat(rows): set_admission + lockout-ownership setter (fleet-restart lockout)`.
+- [ ] **Step 2: Build.** **Step 3: Commit** — `feat(rows): set_admission + lockout-ownership/lockout setters (fleet-restart lockout)`.
 
 ---
 
@@ -407,13 +452,15 @@ async fn run_fleet_restart_cycle(svc: Arc<OWSService>, guid: Uuid) {
 
 When `stagger`, each tick drains the next `batch_size` instances not yet draining; as earlier instances finish (rows leave `status>0`), later ticks pick up the rest. Without a UE drain-complete ack, a batch is gated on instances still being `drainstate IS NULL`, not on the previous batch fully completing — good enough to avoid re-draining, but it is not strict wave-by-wave isolation; do not document it as such.
 
-- [ ] **Step 3: Deadline + stall backstop so a stuck instance can't pin the fleet forever (F2) — without violating safe-by-default.** A hung instance never leaves `status>0`, so `count_active` never reaches 0 and the lockout would otherwise stay on indefinitely. Convergence is coupled to `empty_server_reaper` (only it writes `status=0`); if the reaper is disabled or wedged, the fleet never drains. Two paths, two behaviours — **the non-aggressive path must never force-disconnect** (safe-by-default), so it gets _observability_, not a forced drain:
+- [ ] **Step 3: Deadline + stall backstop so a stuck instance — or a live population — can't pin the fleet forever (F2, HIGH-2) — without violating safe-by-default.** A hung instance (or any player who simply never leaves) keeps `status>0`, so `count_active` never reaches 0. Convergence is coupled to `empty_server_reaper` (only it writes `status=0`) **and** to players actually departing; on a populated tenant a non-aggressive drain-to-natural-empty can stay incomplete indefinitely. The join lockout is held the entire time, so an unbounded stall is a silent **fleet-wide "can't join" outage**, not merely a slow roll. Two paths, two behaviours — **the non-aggressive path must never force-disconnect** (safe-by-default), but it also must not hold the join lockout without bound:
     - `fr_deadline(&fr) -> Option<chrono::NaiveDateTime>` = `fr.drain_deadline.map(|d| d.naive_utc())` — stamped on each `set_drain_state`. Aggressive ⇒ `Some(deadline)`; non-aggressive ⇒ `None` (never auto-disconnects).
     - `enforce_drain_deadline(svc, repo, guid, &fr)`:
-        - **Aggressive (`fr.drain_deadline` set and passed):** force-deallocate overdue instances via Agones (reuse the deallocate path behind `restart_fleet`'s scale logic) and/or exclude them from the active count. This is allowed — aggressive explicitly opts into save-then-disconnect.
-        - **Non-aggressive (no `drain_deadline`):** **do not disconnect anyone.** If the restart has been `active` with `draining>0` longer than `CONFIG.fleet_restart_stall_secs` (new env knob, default e.g. `1800`), emit a loud `warn!(stalled_secs, draining, "fleet-restart: drain stalled — check empty_server_reaper")` and set a `stalled` flag surfaced on `/fleet-restart/status` (Task 5). The stuck lockout is now **observable and alertable**, not a silent hang. `started_at` backs the age computation. Define the stall SLA in the runbook (Task 6).
+        - **Aggressive (`fr.drain_deadline` set and passed):** force-deallocate the overdue instances **per-GameServer** — do NOT reuse `restart_fleet`'s whole-Fleet scale-to-0 (that would also kill instances still draining cleanly, and it isn't per-instance). Map each overdue `mapinstanceid` to its Agones `GameServer` and mark that one for shutdown (Agones GameServer `Shutdown()` / patch its state), then let the reaper/lifecycle move the row to `status=0`. This is allowed — aggressive explicitly opts into save-then-disconnect at the deadline.
+        - **Non-aggressive (no `drain_deadline`):** never disconnect anyone, but **bound the join outage in two escalating stages** off `started_at`:
+            1. **Stall SLA breached** (`age(started_at) > fleet_restart_stall_secs`, default 1800s): emit a loud `warn!(stalled_secs, draining, "fleet-restart: drain stalled — check empty_server_reaper")` and set the `stalled` flag surfaced on `/fleet-restart/status` (Task 5). The stuck lockout is now observable and alertable. Drain continues; lockout still held.
+            2. **Hard join-outage cap breached** (`age(started_at) > 2 * fleet_restart_stall_secs`): **auto-lift the join lockout while leaving the restart active** so new players stop being refused (they land on old-version instances, which is safe within a version line — no protocol break, the roll just takes longer). Do it idempotently and in an order that won't re-apply next tick: `set_admission(guid, None)` → `set_fleet_lockout_applied(guid, false)` → `set_fleet_lockout(guid, false)` (so the active branch's `if fr.lockout` no longer re-applies). Emit `error!(stalled_secs, "fleet-restart: join-outage cap hit — lockout auto-lifted, drain still pending; escalate to aggressive")`. The restart stays `active` and `stalled=true` (alerting/paging continues) until an operator clears it or escalates to aggressive with a deadline.
     - Log/assert the reaper's enabled state at job start so the reaper-coupling failure mode is diagnosable from ROWS logs.
-- [ ] **Step 4 (PREREQUISITE, not a follow-up — K1): the SPOF/PDB hazard must be fixed before this job is enabled in prod.** This reconcile _is_ the orchestrator and runs on ROWS, which today deploys `replicas: 1` with `rows-pdb minAvailable: 1` (`apps/kube/rows/manifest/rows-deployment.yaml`) — that PDB on a single replica hangs node drains, and a reschedule mid-restart drops in-flight progress. The advisory lock (Step 2) already makes >1 replica correct (one replica wins the per-tenant lock each tick), so before flipping the feature live: run ROWS HA (`replicas: ≥2`, leader-elected by the per-tenant lock) **and** change `rows-pdb` so it never blocks a node drain (`maxUnavailable: 1` instead of `minAvailable: 1`). `selfHeal: true` on the rows Argo app reverts manual `kubectl scale` — change the manifest in git, never by hand. The job is designed to be resume-safe (re-derives the batch from `drainstate IS NULL` each tick, re-applies/lifts the lockout idempotently via `lockoutapplied`); verify with the "kill ROWS mid-restart" test. **Do not ship a fleet-wide orchestrator onto a single self-deadlocking pod and call HA a later refinement.**
+- [ ] **Step 4 (PREREQUISITE, not a follow-up — K1): the SPOF/PDB hazard must be fixed before this job is enabled in prod.** This reconcile _is_ the orchestrator and runs on ROWS, which is currently `replicas: 0` but carries `rows-pdb minAvailable: 1` (`apps/kube/rows/manifest/rows-deployment.yaml:15,162`; see Preconditions). The moment ROWS scales up to serve, that PDB on a single replica hangs node drains, and a reschedule mid-restart drops in-flight progress — dormant today, live the instant it scales to 1. The advisory lock (Step 2) already makes >1 replica correct (one replica wins the per-tenant lock each tick), so before flipping the feature live: run ROWS HA (`replicas: ≥2`, leader-elected by the per-tenant lock) **and** change `rows-pdb` so it never blocks a node drain (`maxUnavailable: 1` instead of `minAvailable: 1`). `selfHeal: true` on the rows Argo app reverts manual `kubectl scale` — change the manifest in git, never by hand. The job is designed to be resume-safe (re-derives the batch from `drainstate IS NULL` each tick, re-applies/lifts the lockout idempotently via `lockoutapplied`); verify with the "kill ROWS mid-restart" test. **Do not ship a fleet-wide orchestrator onto a single self-deadlocking pod and call HA a later refinement.**
 - [ ] **Step 5: Build + tests** — `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail`. **Step 6: Commit** — `feat(rows): fleet-restart reconcile job (pinned advisory lock + owned lockout + stall backstop)`.
 
 ---
@@ -450,7 +497,9 @@ async fn fleet_restart_status(State(hs): State<HandlerState>) -> ApiResult<Fleet
 ```
 
 - [ ] **Step 2 (F5): bound the Agones LIST cost.** `count_gameservers` does an Agones GameServer LIST per call; an orchestrator polling this hot would add steady kube-apiserver/Agones-controller pressure (this cluster has a documented apiserver/etcd-starvation history — `project_etcd_io_starvation_argo_flapping`). Cache the GS count behind a short TTL (e.g. 3–5s, shared across callers) and **document the orchestrator poll cadence (≥5s)** in the R3 contract. The DB counts are cheap; only the Agones LIST needs the cache.
-- [ ] **Step 3: Keep this route NOT public.** Expose it only on the cluster-internal Service (`rows.<ns>.svc.cluster.local:4322`, the same one GameServers already call) — no Ingress/Gateway route. Add a NetworkPolicy in the `rows` namespace allowing ingress to the fleet-restart paths only from the orchestrator/dashboard-gateway pod(s), default-deny otherwise. ROWS does not implement user auth on these routes; it trusts the in-cluster caller, and the dashboard gateway enforces RBAC upstream (same trust model as GameServer→ROWS calls today).
+- [ ] **Step 3 (SECURITY — HIGH-1): a NetworkPolicy alone does NOT protect these routes.** `/fleet-restart/*` is served on the **same port (4322)** every GameServer already calls, and a NetworkPolicy filters by pod-selector + **port**, never by HTTP path. So "allow the fleet-restart paths only from the gateway, default-deny otherwise" is not expressible as a NetworkPolicy — any pod already permitted to reach `rows:4322` (i.e. **every chuck GameServer**) can also hit `/fleet-restart/status`. That is tolerable for the read-only `/status`, but **not** for the mutating routes (`POST /fleet-restart/trigger`, R4 — a fleet-wide save-then-disconnect). Required posture:
+    - **Read (`GET /fleet-restart/status`, `GET /fleet-restart/pending`):** cluster-internal Service only, no Ingress/Gateway. NetworkPolicy default-deny in the `rows` namespace, allowing 4322 ingress from the existing GameServer/orchestrator/gateway selectors (this preserves today's GameServer→ROWS calls — do not break them).
+    - **Mutate (`POST /fleet-restart/trigger`, R4):** must carry **app-level auth** — a shared secret / bearer token (from the `ows-*` sealed-secret set) or mTLS that the dashboard-gateway holds and GameServers do **not**. Reject unauthenticated callers with 401. A NetworkPolicy is defence-in-depth here, not the control. **Alternative that makes the NetworkPolicy sufficient:** bind the mutating routes to a **separate port** (e.g. a second axum listener on 4323) that only the gateway selector is allowed to reach; then the policy can isolate mutate from the GameServer-open 4322. Pick one (token-auth or split-port) and specify the manifest change. Do not ship the aggressive-restart trigger reachable by any GameServer.
 - [ ] **Step 4: Build + tests.** **Step 5: Commit** — `feat(rows): /fleet-restart/status two-level (DB+Agones) safe-to-roll + stall signal`.
 
 ---
@@ -471,7 +520,7 @@ Today `HealthResponse.unreal_version` (`models.rs:382`) is populated in-memory o
 
 - [ ] **Step 1:** Add repo reads `get_served_version(tenant) -> Option<String>` (`rolled=true`), `get_pending_version(tenant) -> Option<String>` (`rolled=false`), and an upsert `set_deploy_health(tenant, healthy: bool, failing_version: Option<&str>)`.
 - [ ] **Step 2:** Extend `HealthResponse` with `pending_version`, `deploy_healthy`, `failing_version`; fill `unreal_version` from `get_served_version` (fallback to `hs.app.server_build_version` on 42P01/None). Degrade-on-42P01 ⇒ `deploy_healthy:true` (never fail the probe because the rollout table is missing).
-- [ ] **Step 3 (launcher contract):** Document that the launcher polls `/health.unreal_version` as the required client version and downloads the matching build; `pending_version` is informational. This is the runtime half of the version-parity gate (the CI half is R1).
+- [ ] **Step 3 (launcher contract):** Document that the launcher polls `/health.unreal_version` as the required client version and downloads the matching build; `pending_version` is informational. This is the runtime half of the version-parity gate (the CI half is R1). **Null case (MEDIUM-3):** `unreal_version: null` means "no authoritative target" (seed missing or feature dark) — the launcher must surface a maintenance/hold state and NOT auto-download an arbitrary build. The `deploy_state` seed (Task 8 Step 3) is what keeps this non-null in normal operation.
 - [ ] **Step 4:** Do **not** fail `/ready` on `deploy_healthy:false` — keep `/ready` purely DB/pod liveness so a bad game build doesn't deregister the ROWS API pod the dashboard, launcher, and orchestrator depend on. `deploy_healthy` is advisory on `/health` only.
 - [ ] **Step 5: Commit** — `feat(rows): /health reports authoritative PVC version + deploy_healthy (launcher + rollback surface)`.
 
@@ -495,25 +544,32 @@ Separately, `all_drained`/`safe_to_roll` flip back to `false` the moment the ope
 
 **Files:** Modify `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md`
 
-- [ ] Document the operator flow: the SQL to trigger/clear a restart (clear with `active=false`, **never `DELETE`** — a deleted row can't run the one-shot lockout lift), the lockout behaviour (lifted automatically by the reconcile when it owns it — never delete `admission_control` by hand), the `safe_to_roll` polling contract, the **stall backstop** (non-aggressive: a `stalled=true` on `/fleet-restart/status` means drain isn't converging → **check `empty_server_reaper` is enabled and healthy** first; aggressive: the deadline force-deallocates), the stuck-instance/stall SLA (`fleet_restart_stall_secs`), the `CREATE INDEX CONCURRENTLY` invalid-index recovery (`DROP INDEX` + re-create), and the named-orchestrator handoff. Trigger SQL:
+- [ ] Document the operator flow: the SQL to trigger/clear a restart (clear with `active=false`, **never `DELETE`** — a deleted row can't run the one-shot lockout lift), the lockout behaviour (lifted automatically by the reconcile when it owns it — never delete `admission_control` by hand), the `safe_to_roll` polling contract, the **two-stage non-aggressive stall backstop**, the aggressive deadline behaviour, the stall SLA (`fleet_restart_stall_secs`), the `CREATE INDEX CONCURRENTLY` invalid-index recovery + the automated `indisvalid` check, and the named-orchestrator handoff. **Stall behaviour operators must expect (Task 4 Step 3):**
+    - **Non-aggressive, stage 1** (`age > fleet_restart_stall_secs`): `/fleet-restart/status` shows `stalled=true`; a warn is logged. Meaning: drain isn't converging → **check `empty_server_reaper` is enabled and healthy first**. Lockout still held.
+    - **Non-aggressive, stage 2** (`age > 2 × fleet_restart_stall_secs`): ROWS **auto-lifts the join lockout** (an `error!` is logged: "join-outage cap hit"). New players can join again (on old-version instances); the restart stays `active` + `stalled=true`. This is expected and intentional — it bounds the join outage. To actually complete the roll, **escalate to aggressive** (a deadline that force-deallocates) or clear the row.
+    - **Aggressive:** the deadline force-deallocates overdue instances **per-GameServer** (not a whole-fleet scale). No stage-2 auto-lift is needed — the deadline drives convergence.
+
+    Trigger SQL:
 
 ```sql
 SET search_path TO ows;
 
 -- Routine version roll (NON-AGGRESSIVE, safe-by-default): drain-to-natural-empty, no forced
 -- disconnects. urgency=0, dropplayers=false, no draindeadline. The default path.
--- Re-activating MUST reset startedat (the stall clock) and lockoutapplied (ownership), else a
--- re-trigger inherits a stale start time and the stall backstop misfires.
+-- Re-activating MUST reset startedat (the stall clock), lockoutapplied (ownership), AND lockout=true.
+-- lockout=true matters because a prior run's stage-2 auto-lift (Task 4 Step 3) may have set lockout=false;
+-- without resetting it, a re-trigger inherits lockout=false and never re-locks new joins. Same for a
+-- stale startedat (stall backstop misfires).
 INSERT INTO fleet_restart (customerguid, active, reason, urgency, dropplayers, stagger, batchsize, lockout, requestid)
 VALUES ('<tenant-guid>', true, 'fleet-restart', 0, false, false, 1, true, gen_random_uuid())
 ON CONFLICT (customerguid) DO UPDATE SET active = true, urgency = 0, dropplayers = false,
-    draindeadline = NULL, startedat = now(), lockoutapplied = false, requestid = gen_random_uuid();
+    draindeadline = NULL, lockout = true, startedat = now(), lockoutapplied = false, requestid = gen_random_uuid();
 
 -- Urgent / security roll (AGGRESSIVE, dashboard opt-in only): save-then-disconnect at the deadline.
 -- urgency=1, dropplayers=true, draindeadline set (prefer the R4 endpoint, which computes it).
 -- Never the automated default.
 -- ... DO UPDATE SET active = true, urgency = 1, dropplayers = true, draindeadline = now() + interval '5 min',
---                   startedat = now(), lockoutapplied = false, requestid = gen_random_uuid();
+--                   lockout = true, startedat = now(), lockoutapplied = false, requestid = gen_random_uuid();
 
 -- After safe_to_roll + deploy: clear it. The reconcile loop lifts the admission lockout itself
 -- (set_admission writes NULL) on the next tick. Do NOT manually DELETE admission_control — a manual
@@ -620,11 +676,11 @@ A dashboard button triggers an aggressive roll — "5 minutes till restart," sav
 
 **Interfaces:**
 
-- Produces: `POST /fleet-restart/trigger` body `{ mode: "aggressive"|"non_aggressive", grace_secs?: i64 }` → upserts the `fleet_restart` row. Aggressive ⇒ `urgency=1, dropplayers=true`, `draindeadline = now() + grace_secs` (default 300s), `lockout=true`. Non-aggressive ⇒ `urgency=0, dropplayers=false, draindeadline=NULL`. Either mode resets `startedat=now()` and `lockoutapplied=false` on (re)activation (so the stall clock and lockout ownership are correct — see Task 4 / Task 7). Returns `409 Conflict` if a restart is already `active`; returns `404 Not Found` for aggressive mode unless an update is pending (R5). Backed by a new `set_fleet_restart(tenant, mode, grace_secs, deadline)` repo upsert (mirrors `set_admission`).
+- Produces: `POST /fleet-restart/trigger` body `{ mode: "aggressive"|"non_aggressive", grace_secs?: i64 }` → upserts the `fleet_restart` row. Aggressive ⇒ `urgency=1, dropplayers=true`, `draindeadline = now() + grace_secs` (default 300s), `lockout=true`. Non-aggressive ⇒ `urgency=0, dropplayers=false, draindeadline=NULL`. Either mode resets `startedat=now()`, `lockoutapplied=false`, **and `lockout=true`** on (re)activation (so the stall clock and lockout ownership are correct, and a prior stage-2 auto-lift that set `lockout=false` doesn't leave the re-triggered restart unable to re-lock — see Task 4 Step 3 / Task 7). Returns `409 Conflict` if a restart is already `active`; returns `404 Not Found` for aggressive mode unless an update is pending (R5). Backed by a new `set_fleet_restart(tenant, mode, grace_secs, deadline)` repo upsert (mirrors `set_admission`).
 
 - [ ] **Step 1: Implement the handler** — validate `mode`, compute the deadline, upsert. The deadline is written to the `fleet_restart` row; the reconcile passes it to `set_drain_state(... deadline ...)` and enforces it (Task 4 Step 3).
 - [ ] **Step 2: Player countdown.** ROWS supplies `drain_deadline`; the "restarting in X" message is UE-rendered. Today `ShutdownNotifier` is logging-only — wiring the real broadcast is a UE-side obligation (cross-repo).
-- [ ] **Step 3: Keep it NOT public** — same posture as Task 5 Step 2: cluster-internal Service only, NetworkPolicy allows the dashboard-gateway pod(s), no user auth in ROWS.
+- [ ] **Step 3: NOT public AND authenticated (SECURITY — HIGH-1).** This is a **mutating** route that force-disconnects players, so the Task 5 Step 3 rule applies at full strength: a NetworkPolicy cannot keep GameServers (which share port 4322) off this path. Require app-level auth (gateway-held bearer token / mTLS) **or** move the mutating routes to a gateway-only port. The R5 `404-unless-pending` gate narrows _when_ it fires, not _who_ can call it — it is not an access control. Never rely on "cluster-internal" alone for the aggressive trigger.
 - [ ] **Step 4: Commit** — `feat(rows): POST /fleet-restart/trigger (aggressive deadline, cluster-internal)`.
 
 ---
@@ -676,7 +732,19 @@ SET search_path TO ows;
 DROP TABLE IF EXISTS deploy_state;
 ```
 
-- [ ] **Step 2: Reference schema** mirroring the above. **Step 3: Commit** — `feat(rows): deploy_state table (rollout target + health)`.
+- [ ] **Step 2: Reference schema** mirroring the above.
+- [ ] **Step 3 (MEDIUM-3 — seed the current version, or `/health.unreal_version` stays `null`).** An empty `deploy_state` means `get_served_version` returns `None` and `/health.unreal_version` is `null` until the **first** R3 orchestrated roll ever sets `rolled=true` — and R3 is BLOCKED on the chuck login-crash. That leaves Task 5b's whole purpose (an authoritative launcher target) unmet from migration day. Seed the currently-served build in the same migration so the row exists immediately:
+
+```sql
+-- migrate:up  (append, after the CREATE TABLE above)
+INSERT INTO deploy_state (customerguid, targetversion, rolled, health)
+SELECT '<tenant-guid>', '<current-served-version>', true, 'healthy'
+ON CONFLICT (customerguid) DO NOTHING;
+```
+
+`<current-served-version>` = the version currently sitting in the PVC (`0.3.46` at time of writing — confirm against `latest/` before shipping). If the tenant guid isn't known at migration time, seed it from a one-shot ROWS startup upsert instead (guarded by `ON CONFLICT DO NOTHING` so it never overwrites a real roll). **Task 5b Step 2 must also define the null case:** if `deploy_state` is genuinely absent (42P01) AND the in-memory value is `None`, `/health.unreal_version` is `null` and the launcher treats that as "no authoritative target — do not auto-download; surface a maintenance state," never as "any version is fine."
+
+- [ ] **Step 4: Commit** — `feat(rows): deploy_state table + current-version seed (rollout target + health)`.
 
 ---
 
@@ -703,7 +771,13 @@ DROP TABLE IF EXISTS deploy_state;
 - Reconcile lifts the lockout on `active=false` **only when it owns it** (set active+`lockoutapplied=true`, then inactive, assert next tick writes `NULL` and clears `lockoutapplied`).
 - **Lockout no-clobber (F3):** with no active fleet_restart but an `admission_control` lockout set by another writer (`lockoutapplied=false`), assert the reconcile leaves `admission_control` untouched across multiple ticks.
 - **Advisory-lock survives >1 tick on a multi-connection pool (F1):** with pool size >1, run the reconcile for several ticks against an active restart and assert it keeps acquiring the lock and fanning `set_drain_state` (i.e. lock+unlock ran on the same pinned connection and did not wedge after tick 1). Regression test for the pool-based-unlock bug.
-- **Non-aggressive stall surfaces, never disconnects (F2):** with the reaper disabled and `startedat` older than `fleet_restart_stall_secs`, assert `/fleet-restart/status` reports `stalled=true`, a warn is emitted, and **no instance is force-deallocated** (safe-by-default holds on the non-aggressive path).
+- **Non-aggressive stall surfaces, never disconnects (F2 stage 1):** with the reaper disabled and `startedat` older than `fleet_restart_stall_secs` (but < 2×), assert `/fleet-restart/status` reports `stalled=true`, a warn is emitted, the lockout is **still held**, and **no instance is force-deallocated**.
+- **Non-aggressive join-outage cap auto-lifts (HIGH-2 stage 2):** with `startedat` older than `2 × fleet_restart_stall_secs`, assert the reconcile writes `admission_control` back to `NULL` (lockout lifted), clears `lockoutapplied`, sets `fleet_restart.lockout=false`, the restart stays `active` and `stalled=true`, an `error!` is logged, and **still no instance is force-deallocated**. A follow-up tick must NOT re-apply the lockout.
+- **Safe-default DB constraints (MEDIUM-4):** assert the migration rejects `INSERT (urgency=0, dropplayers=true)` and `INSERT (urgency=0, draindeadline=now())` with a check-constraint violation; the aggressive `(urgency=1, dropplayers=true, draindeadline set)` row inserts cleanly.
+- **Mutating routes reject unauthenticated callers (HIGH-1):** assert `POST /fleet-restart/trigger` without the gateway token (or from a GameServer-equivalent context) returns 401 / is unreachable on the gateway-only port; `GET /fleet-restart/status` from a GameServer context still succeeds.
+- **Aggressive deadline is per-instance (MEDIUM-5):** with two active instances, one overdue past `draindeadline` and one not, assert only the overdue GameServer is marked for shutdown and the non-overdue one is untouched (no whole-fleet scale).
+- **`/health.unreal_version` non-null after seed (MEDIUM-3):** with `deploy_state` seeded (`rolled=true`), assert `/health.unreal_version` returns the seeded version; with `deploy_state` absent (42P01) and no in-memory value, assert it returns `null` (and `deploy_healthy:true`).
+- **Invalid concurrent index is detected (MEDIUM-7):** simulate an `INVALID` `idx_mapinstances_drainable` and assert the post-migration/startup check emits the `warn!`/alert rather than silently seq-scanning.
 - Two-replica reconcile race: the advisory lock single-flights — only one replica fans `set_drain_state` per tick.
 - Spawn-during-drain: a new instance appearing mid-drain must not pin `safe_to_roll=false` forever once the deadline fires (aggressive) or stall-surfaces (non-aggressive).
 - Safe-default control row: a row with unspecified columns never force-disconnects (`urgency=0, dropplayers=false`).
