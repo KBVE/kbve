@@ -680,6 +680,10 @@ pub async fn report_build(
 /// Plausibility gate for GameServer-reported build versions: 1–64 chars of `[0-9A-Za-z._-]`, at
 /// least one digit. Deliberately loose (matches `0.3.46`, `0.3.46-rc1`, `dev.1`), but blocks
 /// empty/garbage/injection-shaped strings from becoming the launcher's download target.
+///
+/// NOT a path-safety guarantee: `..1` passes the charset. Never interpolate an accepted version
+/// into a filesystem path (e.g. a `/server/<version>/` lookup) without an additional
+/// no-leading-dot / exact-segment check at that call site.
 fn is_plausible_build_version(v: &str) -> bool {
     !v.is_empty()
         && v.len() <= 64

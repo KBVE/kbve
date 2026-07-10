@@ -1074,19 +1074,23 @@ async fn enforce_drain_deadline(
         return; // converged — nothing stalled
     }
     if stalled_secs > 2 * stall_secs {
-        // Stage 2: hard join-outage cap. Auto-lift the lockout while leaving the restart active,
-        // idempotently and in an order that won't re-apply next tick: lift admission, clear
-        // ownership, then lockout=false (so the active branch's `if fr.lockout` stops re-applying).
+        // Stage 2: hard join-outage cap. Auto-lift the lockout while leaving the restart active.
+        // Order matters — `lockout=false` FIRST, so the next tick's active branch (`if fr.lockout`)
+        // can never re-apply the lockout between a partial lift and its retry (lifting admission
+        // first left a one-tick null↔false flap window when the lockout clear failed). Then lift
+        // admission; then clear ownership LAST, so a failure anywhere leaves `lockoutapplied=true`
+        // and this branch (or the operator-clear branch) retries the lift next tick.
         if fr.lockout || fr.lockout_applied {
+            if let Err(e) = repo.set_fleet_lockout(guid, false).await {
+                warn!(error = %e, "fleet-restart: stall auto-lift failed to clear lockout flag");
+                return; // nothing changed; retry next tick
+            }
             if let Err(e) = repo.set_admission(guid, None).await {
                 warn!(error = %e, "fleet-restart: stall auto-lift failed to lift admission");
-                return; // retry next tick; flags untouched so we come back here
+                return; // lockout=false already: no re-apply flap; lockoutapplied=true retries this
             }
             if let Err(e) = repo.set_fleet_lockout_applied(guid, false).await {
                 warn!(error = %e, "fleet-restart: stall auto-lift failed to clear ownership flag");
-            }
-            if let Err(e) = repo.set_fleet_lockout(guid, false).await {
-                warn!(error = %e, "fleet-restart: stall auto-lift failed to clear lockout flag");
             }
             error!(
                 stalled_secs,

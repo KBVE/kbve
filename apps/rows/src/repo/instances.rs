@@ -1325,6 +1325,11 @@ impl<'a> InstanceRepo<'a> {
     /// aggressive, these must be re-stamped with the aggressive params + deadline or the deadline
     /// backstop never matches them and the escalation silently no-ops (the primary runbook
     /// recovery). `drainstate = 2` (saving) is excluded — those are already past drain.
+    ///
+    /// Not index-covered by design: `idx_mapinstances_drainable` is partial on
+    /// `drainstate IS NULL`, which this predicate (`drainstate = 1`) can't use — it falls back to
+    /// `idx_mapinstances_active` + filter. Acceptable: only runs on aggressive-restart ticks
+    /// against an already-draining (small) working set.
     pub async fn list_deadline_restampable_instances(
         &self,
         customer_guid: Uuid,

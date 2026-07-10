@@ -11,7 +11,8 @@ NOT multi-tenant per process, and the RLS policies on ows tables are deliberatel
 instancing, drain), first ask: what would TrinityCore and AzerothCore do?**
 (https://github.com/TrinityCore/TrinityCore, https://github.com/azerothcore/azerothcore-wotlk —
 battle-tested implementations of this exact problem domain. Verify against their actual source,
-not from memory.) Translation table: their single stateful worldserver's process memory ≈ our
+not from memory.) They're commonly abbreviated **TC** (TrinityCore) and **AC** (AzerothCore) — if
+the user says "AC/TC", this is what they mean. Translation table: their single stateful worldserver's process memory ≈ our
 valkey live tier; their `characters` table ≈ the `ows` schema; their async DB worker pool ≈ our
 background jobs. Second question, from the lifecycle spec: does this state belong in the **live
 tier** (valkey — derivable, loss is self-healing) or the **durable tier** (Postgres — authoritative,
