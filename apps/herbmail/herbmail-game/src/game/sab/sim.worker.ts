@@ -27,6 +27,8 @@ const PLAYER_RADIUS = 0.35;
 const CRATE_HALF = 0.6;
 const PANEL_THIN = 0.02;
 const EXPLODE = 2.6;
+const PANEL_TTL = 8;
+const PANEL_FADE = 1.2;
 
 // Six crate faces: outward normal + quaternion rotating a thin-Z panel to face it.
 const FACES: {
@@ -69,8 +71,8 @@ let acc = 0;
 let last = 0;
 let running = false;
 
-// mat4 (column-major, THREE.Matrix4 element order) from a unit quaternion + a
-// translation, scale 1. Local so the worker never imports three.
+// mat4 (column-major, THREE.Matrix4 element order) from a unit quaternion +
+// translation + uniform scale. Local so the worker never imports three.
 function composeMat4(
 	out: Float32Array,
 	base: number,
@@ -81,6 +83,7 @@ function composeMat4(
 	qy: number,
 	qz: number,
 	qw: number,
+	s: number,
 ): void {
 	const x2 = qx + qx,
 		y2 = qy + qy,
@@ -94,17 +97,17 @@ function composeMat4(
 	const wx = qw * x2,
 		wy = qw * y2,
 		wz = qw * z2;
-	out[base] = 1 - (yy + zz);
-	out[base + 1] = xy + wz;
-	out[base + 2] = xz - wy;
+	out[base] = (1 - (yy + zz)) * s;
+	out[base + 1] = (xy + wz) * s;
+	out[base + 2] = (xz - wy) * s;
 	out[base + 3] = 0;
-	out[base + 4] = xy - wz;
-	out[base + 5] = 1 - (xx + zz);
-	out[base + 6] = yz + wx;
+	out[base + 4] = (xy - wz) * s;
+	out[base + 5] = (1 - (xx + zz)) * s;
+	out[base + 6] = (yz + wx) * s;
 	out[base + 7] = 0;
-	out[base + 8] = xz + wy;
-	out[base + 9] = yz - wx;
-	out[base + 10] = 1 - (xx + yy);
+	out[base + 8] = (xz + wy) * s;
+	out[base + 9] = (yz - wx) * s;
+	out[base + 10] = (1 - (xx + yy)) * s;
 	out[base + 11] = 0;
 	out[base + 12] = tx;
 	out[base + 13] = ty;
@@ -142,10 +145,34 @@ function shatter(x: number, y: number, z: number): void {
 		w.add(eid, 'Transform');
 		w.add(eid, 'Body');
 		w.add(eid, 'Flags');
+		w.add(eid, 'Lifetime');
 		w.stores.Body.kind[eid] = BODY_PANEL;
 		w.stores.Flags.mask[eid] = F_RENDER | F_DYNAMIC | F_BREAKABLE;
+		w.stores.Lifetime.age[eid] = 0;
+		w.stores.Lifetime.ttl[eid] = PANEL_TTL;
 		bodyOf.set(eid, rb);
 	}
+}
+
+// Retire an entity: drop its Rapier body, forget the mapping, free the mecs slot.
+function despawnBody(eid: number): void {
+	const rb = bodyOf.get(eid);
+	if (rb && phys) phys.removeRigidBody(rb);
+	bodyOf.delete(eid);
+	ecs?.despawn(eid);
+}
+
+// System: age every Lifetime entity, reap the expired. Query-driven — no per-kind
+// special-casing; anything that carries Lifetime ages out the same way.
+function sysLifetime(dt: number): void {
+	if (!ecs) return;
+	const L = ecs.stores.Lifetime;
+	const dead: number[] = [];
+	for (const eid of ecs.query(['Lifetime'])) {
+		L.age[eid] += dt;
+		if (L.age[eid] >= L.ttl[eid]) dead.push(eid);
+	}
+	for (const eid of dead) despawnBody(eid);
 }
 
 function addSector(d: SectorData): void {
@@ -182,6 +209,7 @@ function syncAndPack(): void {
 	if (!ecs || !instance) return;
 	const w = ecs;
 	const T = w.stores.Transform;
+	const L = w.stores.Lifetime;
 	const mats = instance.matrices;
 	let count = 0;
 	for (const eid of w.query(['Body'])) {
@@ -196,6 +224,11 @@ function syncAndPack(): void {
 		T.qy[eid] = q.y;
 		T.qz[eid] = q.z;
 		T.qw[eid] = q.w;
+		let s = 1;
+		if (w.has(eid, 'Lifetime')) {
+			const left = L.ttl[eid] - L.age[eid];
+			if (left < PANEL_FADE) s = left > 0 ? left / PANEL_FADE : 0;
+		}
 		composeMat4(
 			mats,
 			count * FLOATS_PER_INSTANCE,
@@ -206,6 +239,7 @@ function syncAndPack(): void {
 			q.y,
 			q.z,
 			q.w,
+			s,
 		);
 		count++;
 	}
@@ -225,6 +259,7 @@ function loop(now: number): void {
 	}
 	while (acc >= FIXED_DT) {
 		phys.step();
+		sysLifetime(FIXED_DT);
 		acc -= FIXED_DT;
 	}
 	ecs.beginWrite();

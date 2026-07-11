@@ -23,6 +23,7 @@ export const GAME_SCHEMA = {
 	Body: { kind: 'u8' },
 	Health: { hp: 'f32', max: 'f32' },
 	Flags: { mask: 'u32' },
+	Lifetime: { age: 'f32', ttl: 'f32' },
 } satisfies Schema;
 
 export type GameWorld = SabWorld<typeof GAME_SCHEMA>;
