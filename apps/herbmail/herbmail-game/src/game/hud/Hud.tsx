@@ -1,4 +1,4 @@
-import { equipmentById } from './viewmodel/equipment';
+import { equipmentById } from '../viewmodel/equipment';
 
 interface Props {
 	kind: string | null;

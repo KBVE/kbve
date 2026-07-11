@@ -16,6 +16,31 @@ const CAP = 24;
 let records: PlacedRecord[] = [];
 let nextId = 1;
 
+// Removed-torch positions, so a despawned torch (procedural or placed) does not
+// respawn when its room streams back in. Keyed by rounded world position.
+const suppressed = new Set<string>();
+
+function posKey(pos: [number, number, number]): string {
+	return `${Math.round(pos[0] * 10)}|${Math.round(pos[1] * 10)}|${Math.round(pos[2] * 10)}`;
+}
+
+export function suppressAt(pos: [number, number, number]): void {
+	suppressed.add(posKey(pos));
+}
+
+export function unsuppressAt(pos: [number, number, number]): void {
+	suppressed.delete(posKey(pos));
+}
+
+export function isSuppressed(pos: [number, number, number]): boolean {
+	return suppressed.has(posKey(pos));
+}
+
+export function removePlacedNear(pos: [number, number, number]): void {
+	const k = posKey(pos);
+	records = records.filter((r) => posKey(r.pos) !== k);
+}
+
 export function recordPlaced(
 	pos: [number, number, number],
 	dir: [number, number, number],
@@ -33,4 +58,5 @@ export function placedForCell(cx: number, cy: number): PlacedRecord[] {
 
 export function clearPlaced(): void {
 	records = [];
+	suppressed.clear();
 }

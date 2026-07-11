@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { LightEmitter, query, Transform3, type World } from '@kbve/laser/ecs';
-import { MAX_LIGHTS, LIGHT_RANGE } from '../PsxMaterial';
+import { MAX_LIGHTS, LIGHT_RANGE } from './PsxMaterial';
 import type { OcclusionField } from '../dungeon/occlusion';
+import { heldLight } from './heldLight';
 
 const HEAD_REACH = 1.122;
 const HEAD_OFFSET = 0.28;
@@ -87,6 +88,25 @@ export class LightSystem {
 				intensity: LightEmitter.baseIntensity[eid] * f,
 			});
 		}
+
+		// Torch held in hand: always the nearest source (lights walls + character).
+		if (heldLight.on) {
+			const flick =
+				0.85 +
+				0.1 * Math.sin(time * 2.3) +
+				0.05 * Math.sin(time * 4.1 + 1.3);
+			this.ranked.push({
+				x: heldLight.pos.x,
+				y: heldLight.pos.y,
+				z: heldLight.pos.z,
+				r: heldLight.r,
+				g: heldLight.g,
+				b: heldLight.b,
+				dist: 0,
+				intensity: heldLight.intensity * flick,
+			});
+		}
+
 		this.ranked.sort((a, b) => a.dist - b.dist);
 		const count = Math.min(this.ranked.length, MAX_LIGHTS);
 

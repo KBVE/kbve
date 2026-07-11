@@ -161,6 +161,8 @@ This is the crux of the pipeline.
 
 `art/character/retarget_m2m.py` holds the (failed) headless delta attempt **for reference only**.
 
+> **UPDATE (2026-07-10): headless Rokoko retarget WORKS now.** On Blender 5.0.1 the `rsl.*` operators DO register — `rokoko_stable` fails (`No module named 'gql'`) but **`rokoko_beta` enables clean** and exposes `rsl.build_bone_list` + `rsl.retarget_animation`. `art/character/retarget_rokoko.py` runs the full pipeline headless (target `character.glb` + source `m2m-character.glb` → `character-anim.glb`, 11/11 clips). Run it **from `art/character/`** (it uses a `__file__`-relative models path; a `/tmp` copy resolves wrong and errors "Please select a file"). Use this to ADD clips — but see below: a re-retarget does **not** fix foot float.
+
 > **IMPORTANT:** the SIDEKICK **88-bone skeleton is KEPT entirely** through retargeting. Retargeting only copies **motion** onto it — **fingers and `prop_l` / `prop_r` weapon sockets remain intact.**
 
 ### Rokoko GUI Retarget — step by step
@@ -246,6 +248,33 @@ three.js `GLTFLoader` **strips dots** from node/bone names. SIDEKICK and Mesh2Mo
 
 ---
 
+## 4b. Foot grounding (two distinct problems)
+
+Mesh2Motion source clips bake feet at **different heights** relative to the pelvis — some clips (notably `Sword_Idle`/`Sword_Attack`) hang the whole body ~0.12 above the floor, and separately leave **one foot raised** in the stance. Rokoko copies bone **rotations** with no foot-plant IK, so **re-retargeting reproduces the same float** (verified: a fresh headless retarget put `Sword_Idle` feet at 0.219 vs the committed 0.197). Two separate issues:
+
+**(1) Body height** — the whole character floats because the clip's lowest foot sits above the floor. This is a single per-clip **vertical offset**.
+
+**(2) Raised foot** — even after grounding the lowest foot, the _other_ foot stays lifted (the sword stance is authored weight-on-one-leg). This is a **per-foot pose** problem — vertical grounding cannot fix it; it needs foot-IK per leg. **Open.**
+
+### Why body-height grounding must be RUNTIME, not baked
+
+The obvious fix — bake a `pelvis` translation.y offset per clip (`art/character/footplant_bake.mjs`, kept for reference) — **breaks jumps**. It shifts pelvis inside stance/locomotion clips but the `Jump_*` clips stay at the neutral pelvis, so a jump (especially armed: `Sword_Idle` baked-low → `Jump_*` neutral → land → `Sword_Idle`) **snaps the body vertically** = "legs pull up before planting." A per-clip vertical constant must **blend across clip transitions**, so it has to live outside the clips.
+
+> `footplant_bake.mjs` gotcha if you ever do use it: the glTF exporter **dedupes identical constant accessors** (9 clips shared one `pelvis` translation accessor), so editing bytes in place compounds every offset onto every clip. The script gives each clip a private accessor copy first. But prefer the runtime approach below.
+
+### Runtime foot-IK (shipped — `footIK.ts` + `Character.tsx`)
+
+The professional, **clip-agnostic** grounding system (like Unreal IK Rig / Unity Animation Rigging). Every clip just plays; a per-frame runtime pass grounds the feet. New animations need **zero** per-clip work. Two passes each grounded frame (disabled while `motor.airborne` — the motor owns the jump arc):
+
+1. **Body-adjust** — measure the lowest ankle (`foot_l/r`), smoothly shift the group Y (`shift += (target−shift)·(1−e^{−14dt})`) so the lowest ankle lands at `floorY + ANKLE_HEIGHT` (0.049). Handles the body-height float for any clip; smoothing avoids takeoff/landing pops.
+2. **Two-bone leg IK** (`groundLeg`) — for each leg whose ankle is within `FOOT_LOCK` (0.15) of the floor, analytic law-of-cosines IK plants the ankle on the floor and levels the toe (flat sole), preserving bone lengths and the current knee-bend direction. Feet above the lock (swing phase) are left alone, so locomotion gaits stay intact.
+
+Verified headless in three.js (identical code path): Sword_Idle/Idle plant both feet flat (ankle≈toe≈0.049); Walk alternates (planted foot grounded, swing foot free). `FOOT_LOCK`/`ANKLE_HEIGHT` are tunable in `Character.tsx`. The `aim()` helper rotates a bone by the world-space delta between its current and desired child direction, converted to local via the parent world quaternion — the same primitive used by the jump-leg mirror.
+
+### Jump right-leg asymmetry (`mirror_jump_legs.py`)
+
+The retarget over-rotated the **right** thigh in the jump clips (Jump_Loop R pitch ~125° vs L ~53°, erratic) — an asymmetric artifact, same right-side pattern as `fix_right_foot.py`. `art/character/mirror_jump_legs.py` mirrors the clean left leg onto the right (`thigh/calf/foot/ball`) in `Jump_Start/Loop/Land` **only** (locomotion legs alternate — never mirror those). **Direct quaternion copy fails for legs** (L/R rest axes differ); the correct mirror reflects the armature-space matrix: `pose_bone.matrix = MX @ left.matrix @ SX`, `MX=SX=diag(-1,1,1,1)`, applied parent-first with an update between bones. Baked into `character-anim.glb`.
+
 ## 5. Adding More Clips
 
 1. Retarget more Mesh2Motion Actions in the **same Rokoko GUI pass** (steps 6–8 above).
@@ -256,16 +285,20 @@ three.js `GLTFLoader` **strips dots** from node/bone names. SIDEKICK and Mesh2Mo
 
 ## 6. File Reference
 
-| Path                                                                                     | Role                                                                                          |
-| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `~/Downloads/SIDEKICK_Starter_Unity_2021_3_v1_0_4.unitypackage`                          | Source Synty SIDEKICK package (gzipped tar)                                                   |
-| `art/character/assemble_sidekick.py`                                                     | Blender headless — assembles chosen SIDEKICK parts into one rigged glb                        |
-| `art/character/retarget_m2m.py`                                                          | Failed headless delta retarget — **reference only**                                           |
-| `public/models/character.glb`                                                            | Assembled SIDEKICK mesh (T-pose, 88 bones, 2 mats). Retarget overwrites it with baked Actions |
-| `public/models/m2m-character.glb`                                                        | Mesh2Motion placeholder mesh + all 88 clips (~5.7MB, zero-retarget)                           |
-| `github.com/Mesh2Motion/mesh2motion-app` → `static/animations/human-base-animations.glb` | Source animation clips (88 clips, A-pose)                                                     |
-| `src/game/character/CharacterAnimator.ts`                                                | AnimationMixer wrapper — crossfade, phase-sync blend, additive overlays                       |
-| `src/game/character/CharacterMotor.ts`                                                   | Authoritative planar movement; drives animation via gait/runBlend                             |
-| `src/game/character/ProceduralPose.ts`                                                   | Post-mixer procedural bone passes (head look-at)                                              |
-| `src/game/character/Character.tsx`                                                       | R3F component — loads/clones glb, per-frame update order                                      |
-| `src/game/character/ThirdPersonPlayer.tsx`                                               | WASD + pointer-lock third-person controller                                                   |
+| Path                                                                                     | Role                                                                                               |
+| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `~/Downloads/SIDEKICK_Starter_Unity_2021_3_v1_0_4.unitypackage`                          | Source Synty SIDEKICK package (gzipped tar)                                                        |
+| `art/character/assemble_sidekick.py`                                                     | Blender headless — assembles chosen SIDEKICK parts into one rigged glb                             |
+| `art/character/retarget_m2m.py`                                                          | Failed headless delta retarget — **reference only**                                                |
+| `art/character/retarget_rokoko.py`                                                       | **Headless Rokoko retarget** (works on Blender 5.0.1 via `rokoko_beta`); run from `art/character/` |
+| `art/character/footplant_bake.mjs`                                                       | Headless pelvis-Y grounding bake — **reference only** (breaks jumps; use runtime foot-IK)          |
+| `art/character/mirror_jump_legs.py`                                                      | Mirror clean left leg onto right in jump clips (analytic matrix reflection); fixes retarget        |
+| `src/game/character/footIK.ts`                                                           | Runtime two-bone foot-IK — clip-agnostic foot grounding (body-adjust + leg IK)                     |
+| `public/models/character.glb`                                                            | Assembled SIDEKICK mesh (T-pose, 88 bones, 2 mats). Retarget overwrites it with baked Actions      |
+| `public/models/m2m-character.glb`                                                        | Mesh2Motion placeholder mesh + all 88 clips (~5.7MB, zero-retarget)                                |
+| `github.com/Mesh2Motion/mesh2motion-app` → `static/animations/human-base-animations.glb` | Source animation clips (88 clips, A-pose)                                                          |
+| `src/game/character/CharacterAnimator.ts`                                                | AnimationMixer wrapper — crossfade, phase-sync blend, additive overlays                            |
+| `src/game/character/CharacterMotor.ts`                                                   | Authoritative planar movement; drives animation via gait/runBlend                                  |
+| `src/game/character/ProceduralPose.ts`                                                   | Post-mixer procedural bone passes (head look-at)                                                   |
+| `src/game/character/Character.tsx`                                                       | R3F component — loads/clones glb, per-frame update order                                           |
+| `src/game/character/ThirdPersonPlayer.tsx`                                               | WASD + pointer-lock third-person controller                                                        |

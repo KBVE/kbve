@@ -8,9 +8,17 @@ import {
 } from './ecs';
 import { streamAround } from './stream';
 import { type RoomDesc } from './generate';
+import { removeEntity, Transform3 } from '@kbve/laser/ecs';
 import { spawnRoomProps, despawnRoomProps } from '../prop/spawn';
+import { spawnRoomDoors, despawnRoomDoors, resetDoors } from '../door/doors';
 import { spawnTorch } from '../prop/torch';
-import { recordPlaced, clearPlaced } from '../prop/placed';
+import {
+	recordPlaced,
+	clearPlaced,
+	suppressAt,
+	unsuppressAt,
+	removePlacedNear,
+} from '../prop/placed';
 
 export const DUNGEON_SEED = 1337;
 const MOUNT_HOPS = 1;
@@ -47,10 +55,16 @@ function rebuild(cx: number, cy: number): void {
 	}
 
 	for (const eid of mset) {
-		if (!prevMounted.has(eid)) spawnRoomProps(dw, eid);
+		if (!prevMounted.has(eid)) {
+			spawnRoomProps(dw, eid);
+			spawnRoomDoors(eid);
+		}
 	}
 	for (const eid of prevMounted) {
-		if (!mset.has(eid)) despawnRoomProps(dw, eid);
+		if (!mset.has(eid)) {
+			despawnRoomProps(dw, eid);
+			despawnRoomDoors(eid);
+		}
 	}
 	prevMounted = mset;
 
@@ -76,6 +90,7 @@ export function placeTorch(
 	pos: [number, number, number],
 	dir: [number, number, number],
 ): void {
+	unsuppressAt(pos);
 	const rec = recordPlaced(pos, dir);
 	const eid = dw.roomAtCell(rec.cx, rec.cy);
 	if (eid !== undefined && dw.phase(eid) === PHASE_MOUNTED) {
@@ -84,10 +99,26 @@ export function placeTorch(
 	}
 }
 
+// Despawn a torch entity and stop it respawning: suppress its world position
+// (covers procedural room torches) and drop any player-placed record for it.
+export function removeTorch(eid: number): void {
+	const pos: [number, number, number] = [
+		Transform3.px[eid],
+		Transform3.py[eid],
+		Transform3.pz[eid],
+	];
+	suppressAt(pos);
+	removePlacedNear(pos);
+	removeEntity(dw.world, eid);
+	bumpProps();
+}
+
 export function resetDungeon(seed = DUNGEON_SEED): void {
+	seeded = true;
 	dw = new DungeonWorld(seed);
 	prevMounted = new Set();
 	clearPlaced();
+	resetDoors();
 	lastCx = NaN;
 	lastCy = NaN;
 	rebuild(0, 0);
@@ -95,7 +126,20 @@ export function resetDungeon(seed = DUNGEON_SEED): void {
 	lastCy = 0;
 }
 
+// Lazy origin seed: deferring the first rebuild out of module-eval time avoids a
+// circular-import TDZ (store <-> doors), while still seeding before the first
+// render/frame reads the world.
+let seeded = false;
+function ensureSeeded(): void {
+	if (seeded) return;
+	seeded = true;
+	rebuild(0, 0);
+	lastCx = 0;
+	lastCy = 0;
+}
+
 export function getDungeon(): DungeonWorld {
+	ensureSeeded();
 	return dw;
 }
 
@@ -105,6 +149,7 @@ function subscribe(cb: () => void): () => void {
 }
 
 function getSnapshot(): ActiveRoom[] {
+	ensureSeeded();
 	return active;
 }
 
@@ -124,8 +169,3 @@ function getPropGen(): number {
 export function usePropGen(): number {
 	return useSyncExternalStore(subscribeProps, getPropGen, getPropGen);
 }
-
-// Seed the origin room so the first frame renders before the player moves.
-rebuild(0, 0);
-lastCx = 0;
-lastCy = 0;

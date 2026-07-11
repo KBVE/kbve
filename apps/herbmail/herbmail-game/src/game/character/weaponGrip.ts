@@ -15,4 +15,11 @@ export const WEAPON_GRIP = {
 		rot: [-1.7, -1.3415, 0.038],
 		scale: 1,
 	} as GripTransform & { gripY: number },
+	// Third-person hand attachment for the torch (distinct from the LOADOUT grip,
+	// which is authored for the FPS viewmodel arms).
+	torch: {
+		pos: [0, 0.05, 0.09],
+		rot: [-2.05, -0.2, 0],
+		scale: 0.55,
+	} as GripTransform,
 };

@@ -5,6 +5,7 @@ import { ARCH_SALT } from '../geometry/arches';
 import { cellAtWorld } from './ecs';
 import { CELL } from './generate';
 import { getDungeon } from './store';
+import { doorAtLocal, isDoorLocked } from '../door/doors';
 
 const HALF = TILE / 2;
 
@@ -24,6 +25,10 @@ export function solidAtWorld(x: number, z: number): boolean {
 	const t = desc.tiles[lr * CELL + lc];
 	if (t === WALL) return true;
 	if (t === ARCH) {
+		// A closed door seals the whole opening; open (or no) door falls through
+		// to the arch-width check below.
+		const door = doorAtLocal(desc, lc, lr);
+		if (door && isDoorLocked(door.key)) return true;
 		// Mirror the arch geometry's opening: local tile coords + variant salt.
 		const openHW = jitter(
 			lc,

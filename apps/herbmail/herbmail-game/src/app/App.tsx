@@ -1,10 +1,11 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Dungeon } from '../game/Dungeon';
-import { AimReticle } from '../game/AimReticle';
-import { TorchPlacer } from '../game/TorchPlacer';
+import { Dungeon } from '../game/dungeon/Dungeon';
+import { AimReticle } from '../game/hud/AimReticle';
+import { TorchPlacer } from '../game/prop/TorchPlacer';
 import { PropRenderer } from '../game/render/PropRenderer';
-import { Hud } from '../game/Hud';
+import { Hud } from '../game/hud/Hud';
+import { DoorPrompt } from '../game/door/DoorPrompt';
 import { PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
 import { EquipmentPanel } from '../game/character/EquipmentPanel';
@@ -65,6 +66,7 @@ export function App() {
 				<AimReticle onAim={setAim} />
 			</Canvas>
 			<Hud kind={aim} equippedId={equippedId} />
+			<DoorPrompt />
 			<EquipmentPanel />
 			{debug && <SwordGripDebug />}
 			<div
@@ -80,8 +82,8 @@ export function App() {
 					font: '13px monospace',
 					textShadow: '0 1px 2px #000',
 				}}>
-				click to look · WASD move · LMB mount torch · R reload · 1-3
-				equip · ` debug
+				click to look · WASD move · F unlock door · LMB mount torch · R
+				reload · 1-3 equip · ` debug
 			</div>
 		</>
 	);

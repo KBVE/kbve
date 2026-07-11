@@ -12,7 +12,7 @@ import { FlameFx } from './components';
 import { MODEL_TORCH, PROP_TORCH } from './kinds';
 
 const MOUNT_H = 2.6;
-const PITCH = 0.5;
+const PITCH = 0.85;
 const OFF = 0.08;
 
 const FLAME_R = 1.0;

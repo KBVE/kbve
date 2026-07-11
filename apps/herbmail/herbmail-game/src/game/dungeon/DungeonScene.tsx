@@ -1,26 +1,43 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
-import './PsxMaterial';
-import { TILE, TINT } from './config';
-import { useDungeonTextures } from './textures';
-import { getRoomGeoSet } from './dungeon/roomGeometry';
-import type { RoomDesc } from './dungeon/generate';
+import '../render/PsxMaterial';
+import {
+	buildArches,
+	buildBays,
+	buildCeiling,
+	buildCornerCoves,
+	buildCoves,
+	buildFloor,
+	buildWalls,
+	type Grid,
+} from '../geometry';
+import { levelGrid } from '../level';
+import { useDungeonTextures } from '../textures';
+import { TINT } from '../config';
 
 interface Props {
-	desc: RoomDesc;
 	snap: number;
 	affine: number;
+	grid?: Grid;
 }
 
-export function RoomView({ desc, snap, affine }: Props) {
+export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 	const size = useThree((s) => s.size);
 	const res = useMemo(
 		() => new THREE.Vector2(size.width, size.height),
 		[size],
 	);
+
 	const tex = useDungeonTextures();
-	const set = useMemo(() => getRoomGeoSet(desc), [desc.signature]);
+
+	const wallGeo = useMemo(() => buildWalls(grid), [grid]);
+	const floorGeo = useMemo(() => buildFloor(grid), [grid]);
+	const ceilGeo = useMemo(() => buildCeiling(grid), [grid]);
+	const archGeo = useMemo(() => buildArches(grid), [grid]);
+	const coveGeo = useMemo(() => buildCoves(grid), [grid]);
+	const cornerGeo = useMemo(() => buildCornerCoves(grid), [grid]);
+	const bays = useMemo(() => buildBays(grid), [grid]);
 
 	const floorTint = useMemo(() => new THREE.Color(...TINT.floor), []);
 	const ceilTint = useMemo(() => new THREE.Color(...TINT.ceiling), []);
@@ -30,8 +47,8 @@ export function RoomView({ desc, snap, affine }: Props) {
 	const bayBackTint = useMemo(() => new THREE.Color(...TINT.bayBack), []);
 
 	return (
-		<group position={[desc.originCol * TILE, 0, desc.originRow * TILE]}>
-			{set.walls.map((geo, i) => (
+		<group>
+			{wallGeo.map((geo, i) => (
 				<mesh key={i} geometry={geo} userData={{ kind: 'wall' }}>
 					<psxMaterial
 						uMap={tex.walls[i]}
@@ -42,7 +59,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 				</mesh>
 			))}
 
-			<mesh geometry={set.arch} userData={{ kind: 'archway' }}>
+			<mesh geometry={archGeo} userData={{ kind: 'archway' }}>
 				<psxMaterial
 					uMap={tex.arch}
 					uSnap={snap}
@@ -52,7 +69,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 				/>
 			</mesh>
 
-			<mesh geometry={set.floor} userData={{ kind: 'floor' }}>
+			<mesh geometry={floorGeo} userData={{ kind: 'floor' }}>
 				<psxMaterial
 					uMap={tex.floor}
 					uSnap={snap}
@@ -62,7 +79,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 				/>
 			</mesh>
 
-			<mesh geometry={set.ceiling} userData={{ kind: 'ceiling' }}>
+			<mesh geometry={ceilGeo} userData={{ kind: 'ceiling' }}>
 				<psxMaterial
 					uMap={tex.ceiling}
 					uSnap={snap}
@@ -72,7 +89,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 				/>
 			</mesh>
 
-			<mesh geometry={set.cove} userData={{ kind: 'vaulted cove' }}>
+			<mesh geometry={coveGeo} userData={{ kind: 'vaulted cove' }}>
 				<psxMaterial
 					uMap={tex.walls[2]}
 					uSnap={snap}
@@ -86,7 +103,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 				/>
 			</mesh>
 
-			<mesh geometry={set.corner} userData={{ kind: 'corner vault' }}>
+			<mesh geometry={cornerGeo} userData={{ kind: 'corner vault' }}>
 				<psxMaterial
 					uMap={tex.walls[2]}
 					uSnap={snap}
@@ -100,7 +117,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 				/>
 			</mesh>
 
-			<mesh geometry={set.bays.frames} userData={{ kind: 'wall niche' }}>
+			<mesh geometry={bays.frames} userData={{ kind: 'wall niche' }}>
 				<psxMaterial
 					uMap={tex.arch}
 					uSnap={snap}
@@ -114,7 +131,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 				/>
 			</mesh>
 
-			<mesh geometry={set.bays.backs} userData={{ kind: 'niche recess' }}>
+			<mesh geometry={bays.backs} userData={{ kind: 'niche recess' }}>
 				<psxMaterial
 					uMap={tex.arch}
 					uSnap={snap}

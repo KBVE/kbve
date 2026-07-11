@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { RoomView } from './RoomView';
-import { updatePlayerWorld, useActiveRooms } from './dungeon/store';
+import { updatePlayerWorld, useActiveRooms } from './store';
 
 function Streamer() {
 	const camera = useThree((s) => s.camera);

@@ -4,6 +4,27 @@ import { EntityPool, MeshRef, Transform3 } from '@kbve/laser/ecs';
 const SCALE = 1.1;
 const HEAD_LOCAL = new THREE.Vector3(0, 0, 1);
 
+// Wooden ring bracket at the torch base where it meets the wall. Shared geometry
+// + material across every torch (never per-torch disposed — see disposeObject).
+const woodTex = new THREE.TextureLoader().load('/textures/wood_14_256_.png');
+woodTex.magFilter = THREE.NearestFilter;
+woodTex.minFilter = THREE.NearestMipmapNearestFilter;
+woodTex.wrapS = THREE.RepeatWrapping;
+woodTex.wrapT = THREE.RepeatWrapping;
+woodTex.colorSpace = THREE.SRGBColorSpace;
+const HOLDER_GEO = new THREE.TorusGeometry(0.16, 0.055, 6, 12);
+const HOLDER_MAT = new THREE.MeshStandardMaterial({
+	map: woodTex,
+	roughness: 1,
+});
+
+function makeHolder(): THREE.Mesh {
+	const ring = new THREE.Mesh(HOLDER_GEO, HOLDER_MAT);
+	ring.position.z = 0.3;
+	ring.userData.shared = true;
+	return ring;
+}
+
 function prep(base: THREE.Object3D): THREE.Object3D {
 	const clone = base.clone(true);
 	clone.traverse((o) => {
@@ -23,7 +44,7 @@ function prep(base: THREE.Object3D): THREE.Object3D {
 function disposeObject(obj: THREE.Object3D): void {
 	obj.traverse((o) => {
 		const mesh = o as THREE.Mesh;
-		if (mesh.isMesh) mesh.geometry?.dispose();
+		if (mesh.isMesh && !mesh.userData.shared) mesh.geometry?.dispose();
 	});
 }
 
@@ -56,6 +77,8 @@ export class MeshPool extends EntityPool<THREE.Object3D> {
 		).normalize();
 		group.quaternion.setFromUnitVectors(HEAD_LOCAL, dir);
 		group.add(model);
+		group.add(makeHolder());
+		group.traverse((o) => (o.userData.eid = eid));
 
 		this.root.add(group);
 		return group;

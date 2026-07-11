@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { shaderMaterial } from '@react-three/drei';
 import { extend, type ThreeElement } from '@react-three/fiber';
-import { FOG, TILE } from './config';
+import { FOG, TILE } from '../config';
 
 const blankTex = new THREE.DataTexture(
 	new Uint8Array(1),

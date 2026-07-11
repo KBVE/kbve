@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
-import { COLS, ROWS, solidAt, spawnPoint } from './level';
-import { TILE } from './config';
+import { COLS, ROWS, solidAt, spawnPoint } from '../level';
+import { TILE } from '../config';
 
 const SPEED = 3.2;
 const RADIUS = 0.35;
