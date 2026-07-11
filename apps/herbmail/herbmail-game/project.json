@@ -25,6 +25,13 @@
 				"outputPath": "dist/apps/herbmail/herbmail-game"
 			}
 		},
+		"rebake": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/herbmail/herbmail-game",
+				"commands": ["bash art/character/rebake.sh"]
+			}
+		},
 		"lfs-pull": {
 			"executor": "nx:run-commands",
 			"options": {
@@ -57,6 +64,12 @@
 		},
 		"lint": {
 			"executor": "@nx/eslint:lint"
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run --config apps/herbmail/herbmail-game/vite.config.ts"
+			}
 		}
 	}
 }

@@ -5,9 +5,32 @@ export const Position = {
 	y: new Int32Array(MAX_ENTITIES),
 };
 
+// Four regenerating resource pools: Health (HP), Mana (MP), Energy (EP), Stamina
+// (SP). Health keeps its hp/maxHp names for existing consumers; the others use
+// uniform value/max so the generic pool ops in ./stats can treat all four alike.
+// Every pool carries a per-second regen (0 = static, e.g. a crate's HP).
 export const Health = {
 	hp: new Float32Array(MAX_ENTITIES),
 	maxHp: new Float32Array(MAX_ENTITIES),
+	regen: new Float32Array(MAX_ENTITIES),
+};
+
+export const Mana = {
+	value: new Float32Array(MAX_ENTITIES),
+	max: new Float32Array(MAX_ENTITIES),
+	regen: new Float32Array(MAX_ENTITIES),
+};
+
+export const Energy = {
+	value: new Float32Array(MAX_ENTITIES),
+	max: new Float32Array(MAX_ENTITIES),
+	regen: new Float32Array(MAX_ENTITIES),
+};
+
+export const Stamina = {
+	value: new Float32Array(MAX_ENTITIES),
+	max: new Float32Array(MAX_ENTITIES),
+	regen: new Float32Array(MAX_ENTITIES),
 };
 
 export const Kind = {

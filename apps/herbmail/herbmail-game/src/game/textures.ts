@@ -21,6 +21,8 @@ export interface DungeonTextures {
 	floor: THREE.Texture;
 	ceiling: THREE.Texture;
 	arch: THREE.Texture;
+	door: THREE.Texture;
+	doorAlt: THREE.Texture;
 }
 
 export function useDungeonTextures(): DungeonTextures {
@@ -28,15 +30,19 @@ export function useDungeonTextures(): DungeonTextures {
 		...TEXTURES.walls,
 		TEXTURES.floor,
 		TEXTURES.ceiling,
+		TEXTURES.arch,
+		TEXTURES.door,
+		TEXTURES.doorAlt,
 	]);
 
 	return useMemo(() => {
 		const wallCount = TEXTURES.walls.length;
-		const walls = loaded.slice(0, wallCount).map((t) => psxify(t, false));
+		const walls = loaded.slice(0, wallCount).map((t) => psxify(t, true));
 		const floor = psxify(loaded[wallCount], true);
 		const ceiling = psxify(loaded[wallCount + 1], true);
-		const brick = walls[1] ?? walls[0];
-		const arch = psxify(brick.clone(), true);
-		return { walls, floor, ceiling, arch };
+		const arch = psxify(loaded[wallCount + 2], true);
+		const door = psxify(loaded[wallCount + 3], true);
+		const doorAlt = psxify(loaded[wallCount + 4], true);
+		return { walls, floor, ceiling, arch, door, doorAlt };
 	}, [loaded]);
 }

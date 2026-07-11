@@ -1,7 +1,14 @@
-import { ARMOR_PIECES, toggleArmor, useEquippedArmor } from './armor';
+import {
+	ARMOR_PIECES,
+	setAllArmor,
+	toggleArmor,
+	useEquippedArmor,
+} from './armor';
+import { BODY_SLIDERS, setBodyMorph, useBodyMorph } from './body';
 
 export function EquipmentPanel() {
 	const equipped = useEquippedArmor();
+	const morph = useBodyMorph();
 	return (
 		<div
 			style={{
@@ -16,7 +23,43 @@ export function EquipmentPanel() {
 				color: '#c9c9d6',
 				font: '12px monospace',
 			}}>
-			<div style={{ opacity: 0.55, marginBottom: 6 }}>equipment</div>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					marginBottom: 6,
+				}}>
+				<span style={{ opacity: 0.55 }}>equipment</span>
+				<span style={{ display: 'flex', gap: 4 }}>
+					<button
+						onClick={() => setAllArmor(true)}
+						style={{
+							padding: '1px 6px',
+							background: 'rgba(60,60,70,0.3)',
+							border: '1px solid #444',
+							borderRadius: 4,
+							color: '#aaa',
+							font: '11px monospace',
+							cursor: 'pointer',
+						}}>
+						all
+					</button>
+					<button
+						onClick={() => setAllArmor(false)}
+						style={{
+							padding: '1px 6px',
+							background: 'rgba(60,60,70,0.3)',
+							border: '1px solid #444',
+							borderRadius: 4,
+							color: '#aaa',
+							font: '11px monospace',
+							cursor: 'pointer',
+						}}>
+						none
+					</button>
+				</span>
+			</div>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 				{ARMOR_PIECES.map((p) => {
 					const on = equipped.has(p.id);
@@ -43,6 +86,36 @@ export function EquipmentPanel() {
 						</button>
 					);
 				})}
+			</div>
+			<div style={{ opacity: 0.55, margin: '10px 0 6px' }}>body</div>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+				{BODY_SLIDERS.map((s) => (
+					<label
+						key={s.id}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							font: '11px monospace',
+							color: '#c9c9d6',
+						}}>
+						<span style={{ flex: '0 0 64px' }}>{s.label}</span>
+						<input
+							type="range"
+							min={0}
+							max={1}
+							step={0.01}
+							value={morph[s.id]}
+							onChange={(e) =>
+								setBodyMorph(
+									s.id,
+									e.currentTarget.valueAsNumber,
+								)
+							}
+							style={{ flex: 1 }}
+						/>
+					</label>
+				))}
 			</div>
 		</div>
 	);

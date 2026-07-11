@@ -5,15 +5,8 @@ import {
 	removeEntity,
 	type World,
 } from '@kbve/laser/ecs';
-import {
-	genRoom,
-	CELL,
-	DOOR_N,
-	DOOR_S,
-	DOOR_W,
-	DOOR_E,
-	type RoomDesc,
-} from './generate';
+import { genSectorDesc, CELL, type RoomDesc } from './generate';
+import { genSector, SECTOR, floorDiv, type Sector } from './sector';
 
 export const MAX_ROOMS = 4096;
 
@@ -29,33 +22,31 @@ export const PHASE_SEED = 0;
 export const PHASE_GENERATED = 1;
 export const PHASE_MOUNTED = 2;
 
-function cellKey(cx: number, cy: number): string {
-	return `${cx}|${cy}`;
+function sectorKey(sx: number, sy: number): string {
+	return `${sx}|${sy}`;
 }
-
-const DOOR_STEPS: { bit: number; dc: number; dr: number }[] = [
-	{ bit: DOOR_N, dc: 0, dr: -1 },
-	{ bit: DOOR_S, dc: 0, dr: 1 },
-	{ bit: DOOR_W, dc: -1, dr: 0 },
-	{ bit: DOOR_E, dc: 1, dr: 0 },
-];
 
 export class DungeonWorld {
 	readonly world: World = createWorld();
 	readonly seed: number;
-	private byCell = new Map<string, number>();
+	private byKey = new Map<string, number>();
 	private descs = new Map<number, RoomDesc>();
+	private sectors = new Map<number, Sector>();
 
 	constructor(seed: number) {
 		this.seed = seed | 0;
 	}
 
-	roomAtCell(cx: number, cy: number): number | undefined {
-		return this.byCell.get(cellKey(cx, cy));
+	sectorEidAt(sx: number, sy: number): number | undefined {
+		return this.byKey.get(sectorKey(sx, sy));
 	}
 
 	desc(eid: number): RoomDesc | undefined {
 		return this.descs.get(eid);
+	}
+
+	sectorOf(eid: number): Sector | undefined {
+		return this.sectors.get(eid);
 	}
 
 	phase(eid: number): number {
@@ -70,10 +61,9 @@ export class DungeonWorld {
 		return { cx: RoomCell.cx[eid], cy: RoomCell.cy[eid] };
 	}
 
-	/** Idempotent: create the room entity at a cell (PHASE_GENERATED) if absent. */
-	ensureRoom(cx: number, cy: number): number {
-		const key = cellKey(cx, cy);
-		const existing = this.byCell.get(key);
+	ensureSector(sx: number, sy: number): number {
+		const key = sectorKey(sx, sy);
+		const existing = this.byKey.get(key);
 		if (existing !== undefined) return existing;
 
 		const eid = addEntity(this.world);
@@ -82,47 +72,49 @@ export class DungeonWorld {
 		addComponent(this.world, eid, RoomPhase);
 		addComponent(this.world, eid, RoomTag);
 
-		const desc = genRoom(this.seed, cx, cy);
-		RoomCell.cx[eid] = cx;
-		RoomCell.cy[eid] = cy;
-		RoomDoors.bits[eid] = desc.doors;
+		this.descs.set(eid, genSectorDesc(this.seed, sx, sy));
+		this.sectors.set(eid, genSector(this.seed, sx, sy));
+		RoomCell.cx[eid] = sx;
+		RoomCell.cy[eid] = sy;
+		RoomDoors.bits[eid] = 0;
 		RoomPhase.value[eid] = PHASE_GENERATED;
 
-		this.byCell.set(key, eid);
-		this.descs.set(eid, desc);
+		this.byKey.set(key, eid);
 		return eid;
 	}
 
-	/** Cells reachable from this room through open doors. */
-	neighborCells(eid: number): { cx: number; cy: number }[] {
-		const cx = RoomCell.cx[eid];
-		const cy = RoomCell.cy[eid];
-		const bits = RoomDoors.bits[eid];
-		const out: { cx: number; cy: number }[] = [];
-		for (const step of DOOR_STEPS) {
-			if (bits & step.bit) out.push({ cx: cx + step.dc, cy: cy + step.dr });
-		}
-		return out;
+	ensureSectorAtCell(cx: number, cy: number): number {
+		return this.ensureSector(floorDiv(cx, SECTOR), floorDiv(cy, SECTOR));
 	}
 
 	remove(eid: number): void {
-		const cx = RoomCell.cx[eid];
-		const cy = RoomCell.cy[eid];
-		this.byCell.delete(cellKey(cx, cy));
+		const sx = RoomCell.cx[eid];
+		const sy = RoomCell.cy[eid];
+		this.byKey.delete(sectorKey(sx, sy));
 		this.descs.delete(eid);
+		this.sectors.delete(eid);
 		removeEntity(this.world, eid);
 	}
 
 	all(): number[] {
-		return [...this.byCell.values()];
+		return [...this.byKey.values()];
 	}
 }
 
-/** World cell coordinate for a world-space position. */
-export function cellAtWorld(x: number, z: number, tileSize: number): {
-	cx: number;
-	cy: number;
-} {
+export function cellAtWorld(
+	x: number,
+	z: number,
+	tileSize: number,
+): { cx: number; cy: number } {
 	const span = CELL * tileSize;
 	return { cx: Math.floor(x / span), cy: Math.floor(z / span) };
+}
+
+export function sectorAtWorld(
+	x: number,
+	z: number,
+	tileSize: number,
+): { sx: number; sy: number } {
+	const { cx, cy } = cellAtWorld(x, z, tileSize);
+	return { sx: floorDiv(cx, SECTOR), sy: floorDiv(cy, SECTOR) };
 }

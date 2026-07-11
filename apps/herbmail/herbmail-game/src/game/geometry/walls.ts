@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { COVE_R, TILE, WALL_H, WALL_SEG } from '../config';
+import { COVE_R, TILE, WALL_H, WALL_FLAT_SEG } from '../config';
 import { insetUV } from './uv';
 import { exposedFaces, faceMatrix, isBay, worldCol, worldRow } from './faces';
-import type { Grid } from './grid';
+import { ARCH, gridTile, type Grid } from './grid';
 import { hash01 } from './rng';
 
 function flipU(g: THREE.BufferGeometry): void {
@@ -20,7 +20,8 @@ const SEG_H = CAP_H / V_SEGMENTS;
 
 function texBucket(col: number, row: number, variant: number): number {
 	return (
-		(((col * 3 + row * 5 + variant * 7) % WALL_TEX_COUNT) + WALL_TEX_COUNT) %
+		(((col * 3 + row * 5 + variant * 7) % WALL_TEX_COUNT) +
+			WALL_TEX_COUNT) %
 		WALL_TEX_COUNT
 	);
 }
@@ -32,6 +33,15 @@ export function buildWalls(grid: Grid, variant = 0): THREE.BufferGeometry[] {
 	);
 
 	for (const face of exposedFaces(grid)) {
+		// Arch tiles are doorways. Only the passage-facing side (the neighbor is
+		// out-of-bounds = the opening into the hall) must stay clear; the side
+		// faces are the hall walls flanking the passage and are kept.
+		if (gridTile(grid, face.col, face.row) === ARCH) {
+			const nc = face.col + face.dir.dc;
+			const nr = face.row + face.dir.dr;
+			const oob = nc < 0 || nc >= grid.cols || nr < 0 || nr >= grid.rows;
+			if (oob) continue;
+		}
 		if (isBay(grid, face, variant)) continue;
 		const wc = worldCol(grid, face);
 		const wr = worldRow(grid, face);
@@ -40,7 +50,12 @@ export function buildWalls(grid: Grid, variant = 0): THREE.BufferGeometry[] {
 		const flip = hash01(wc, wr, face.di + variant * 17) > 0.5;
 		for (let seg = 0; seg < V_SEGMENTS; seg++) {
 			const cy = seg * SEG_H + SEG_H / 2;
-			const quad = new THREE.PlaneGeometry(TILE, SEG_H, WALL_SEG, WALL_SEG);
+			const quad = new THREE.PlaneGeometry(
+				TILE,
+				SEG_H,
+				WALL_FLAT_SEG,
+				WALL_FLAT_SEG,
+			);
 			insetUV(quad);
 			if (flip) flipU(quad);
 			quad.applyMatrix4(faceMatrix(grid, face, cy));

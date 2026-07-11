@@ -1,0 +1,85 @@
+import { useEffect, useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
+import { getDungeon, usePropGen } from '../dungeon/store';
+import { useOcclusionField } from '../dungeon/occlusion';
+import { MODEL_URLS, MODEL_TORCH, MODEL_CRATE } from '../prop/kinds';
+import { MeshPool, torchConfig, crateConfig } from './MeshPool';
+import { FlamePool } from './FlamePool';
+import { FireflyPool } from './FireflyPool';
+import { FireflySystem } from '../prop/firefly';
+import { LightSystem } from './LightSystem';
+import { getDebrisPool } from './DebrisPool';
+import { syncCrateDamage } from './crateDecal';
+
+const TORCH_URL = MODEL_URLS[MODEL_TORCH];
+const CRATE_URL = MODEL_URLS[MODEL_CRATE];
+useGLTF.preload(TORCH_URL);
+useGLTF.preload(CRATE_URL);
+
+// Single imperative entry point for all room props: owns the mesh/flame pools and
+// the light system, reconciles the pools whenever the ECS prop set changes, and
+// ticks the per-frame systems. Replaces WallTorches + TorchLighting.
+export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
+	const gen = usePropGen();
+	const torchGltf = useGLTF(TORCH_URL);
+	const crateGltf = useGLTF(CRATE_URL);
+	const occ = useOcclusionField();
+	const occRef = useRef(occ);
+	useEffect(() => {
+		occRef.current = occ;
+	}, [occ]);
+
+	const meshPool = useMemo(
+		() =>
+			new MeshPool([
+				torchConfig(torchGltf.scene),
+				crateConfig(crateGltf.scene),
+			]),
+		[torchGltf.scene, crateGltf.scene],
+	);
+	const debrisPool = useMemo(() => getDebrisPool(), []);
+	const flamePool = useMemo(() => new FlamePool(), []);
+	const fireflyPool = useMemo(() => new FireflyPool(), []);
+	const fireflySystem = useMemo(() => new FireflySystem(), []);
+	const lightSystem = useMemo(() => new LightSystem(), []);
+
+	useEffect(() => {
+		const world = getDungeon().world;
+		meshPool.reconcile(world);
+		flamePool.reconcile(world);
+		fireflyPool.reconcile(world);
+	}, [gen, meshPool, flamePool, fireflyPool]);
+
+	useEffect(() => () => meshPool.dispose(), [meshPool]);
+	useEffect(() => () => flamePool.dispose(), [flamePool]);
+	useEffect(() => () => fireflyPool.dispose(), [fireflyPool]);
+	useEffect(() => () => lightSystem.dispose(), [lightSystem]);
+
+	useFrame((state, delta) => {
+		const world = getDungeon().world;
+		fireflySystem.tick(world, state.clock.elapsedTime, delta);
+		lightSystem.tick(
+			world,
+			state.scene,
+			state.camera,
+			state.clock.elapsedTime,
+			occRef.current,
+			ambient,
+		);
+		flamePool.tick(state.clock.elapsedTime, state.camera);
+		fireflyPool.tick(state.clock.elapsedTime);
+		debrisPool.tick(delta);
+		syncCrateDamage(meshPool.entries());
+	});
+
+	return (
+		<>
+			<primitive object={meshPool.root} />
+			<primitive object={debrisPool.root} />
+			<primitive object={flamePool.root} />
+			<primitive object={fireflyPool.root} />
+			<primitive object={lightSystem.root} />
+		</>
+	);
+}

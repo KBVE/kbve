@@ -18230,7 +18230,13 @@
           "type": "implicit"
         }
       ],
-      "herbmail-game": [],
+      "herbmail-game": [
+        {
+          "source": "herbmail-game",
+          "target": "laser",
+          "type": "static"
+        }
+      ],
       "kbve-react-native": [
         {
           "source": "kbve-react-native",

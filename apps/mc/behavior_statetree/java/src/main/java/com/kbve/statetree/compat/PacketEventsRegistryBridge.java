@@ -1,5 +1,7 @@
 package com.kbve.statetree.compat;
 
+import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -16,32 +18,38 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 /**
- * Teaches GrimAC's bundled PacketEvents about our modded items so it stops
- * throwing on every inventory tick.
+ * Teaches GrimAC's bundled PacketEvents about our modded items and entities so
+ * it stops throwing on decode.
  *
- * <p>PacketEvents resolves items through a static, per-protocol vanilla
- * registry loaded from bundled mappings. Modded items get server-assigned
- * network IDs beyond the vanilla range, so {@code IRegistry.getByIdOrThrow}
- * throws "Can't resolve #N in 'minecraft:item'" whenever GrimAC decodes a
- * player inventory holding one — a flood that starves the server thread and
+ * <p>PacketEvents resolves items and entities through static, per-protocol
+ * vanilla registries loaded from bundled mappings. Modded types get
+ * server-assigned network IDs beyond the vanilla range, so
+ * {@code IRegistry.getByIdOrThrow} throws "Can't resolve #N" whenever GrimAC
+ * decodes a packet referencing one — a flood that starves the server thread and
  * freezes the JVM (see GrimAnticheat/Grim#2631; upstream will not fix it).
+ *
+ * <p>Items surface the throw on every inventory tick. Entities surface it
+ * differently: a modded vehicle's {@code EntityType} resolves to null, so
+ * GrimAC's {@code MultiActionsG} check NPEs on {@code getRiding().type
+ * .isInstanceOf(...)} the moment a player rides one — an Immersive Aircraft
+ * warship at the world edge froze the survival server this way.
  *
  * <p>PacketEvents-fabric runs inside the server JVM, so the correct source of
  * truth is the live {@link Registries}. At {@code SERVER_STARTED} — registries
- * frozen, before any player joins — we inject each modded item's real
- * {@code getRawId} into PacketEvents' versioned registry so decoding resolves
- * instead of throwing. GrimAC's movement/combat checks are untouched.
+ * frozen, before any player joins — we inject each modded item's and entity's
+ * real {@code getRawId} into PacketEvents' versioned registries so decoding
+ * resolves instead of throwing. GrimAC's movement/combat checks are untouched;
+ * a resolved modded vehicle simply reports {@code isInstanceOf == false}, the
+ * safe path the null previously blew up.
+ *
+ * <p>Both item and entity registries expose a public {@code getRegistry()}
+ * whose {@code TypesBuilder} we reload and inject into with one shared path.
+ * Blocks are out of scope — block-state IDs need the full global palette and
+ * no modded block has flooded GrimAC yet.
  *
  * <p>Everything is guarded: no-op when PacketEvents isn't present (client, or a
  * server without GrimAC), and any {@link LinkageError} from a PacketEvents
  * SNAPSHOT drift degrades to a logged skip rather than a crash.
- *
- * <p>Scope is items only. Modded blocks and entities hit the same wall, but
- * PacketEvents' entity registry exposes only a static {@code define(...)} whose
- * backing builder can't be reloaded from outside the library, and block-state
- * IDs need the full global palette. Both are handled by the upstream
- * packetevents-fabric live-registry reader tracked separately; items are the
- * flood that froze the server, so they are fixed here.
  */
 public final class PacketEventsRegistryBridge {
 
@@ -63,11 +71,14 @@ public final class PacketEventsRegistryBridge {
         }
         try {
             int items = bridgeItems();
-            LOGGER.info("[{}] PacketEvents registry bridge active — +{} modded items", MOD_ID, items);
+            int entities = bridgeEntities();
+            LOGGER.info("[{}] PacketEvents registry bridge active — +{} modded items, +{} modded entities",
+                    MOD_ID, items, entities);
             verifyDecode();
+            verifyEntityDecode();
         } catch (LinkageError | RuntimeException e) {
             LOGGER.warn("[{}] PacketEvents registry bridge skipped — {}. "
-                    + "Modded items may spam GrimAC encode errors.", MOD_ID, e.toString());
+                    + "Modded items/entities may spam GrimAC decode errors.", MOD_ID, e.toString());
         }
     }
 
@@ -90,6 +101,38 @@ public final class PacketEventsRegistryBridge {
                 count++;
             } catch (RuntimeException e) {
                 LOGGER.debug("[{}] Skipped item {} — {}", MOD_ID, name, e.toString());
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Entity twin of {@link #bridgeItems()}. Injects each modded entity's real
+     * {@code getRawId} into PacketEvents' entity registry, then {@code define}s
+     * the type so {@code getByIdOrThrow} resolves it. A null parent is safe —
+     * {@code StaticEntityType} wraps it in {@code Optional.ofNullable} — and the
+     * modded type needs no vanilla parent to stop GrimAC's null-deref: a
+     * resolved type just answers {@code isInstanceOf == false}.
+     */
+    private static int bridgeEntities() {
+        VersionedRegistry<EntityType> registry = EntityTypes.getRegistry();
+        TypesBuilder builder = registry.getTypesBuilder();
+        ensureMappingsLoaded(builder);
+        int count = 0;
+        for (net.minecraft.entity.EntityType<?> type : Registries.ENTITY_TYPE) {
+            Identifier id = Registries.ENTITY_TYPE.getId(type);
+            if (id == null || VANILLA_NAMESPACE.equals(id.getNamespace())) {
+                continue;
+            }
+            String name = id.toString();
+            if (!injectId(builder, name, Registries.ENTITY_TYPE.getRawId(type))) {
+                continue;
+            }
+            try {
+                EntityTypes.define(name, null);
+                count++;
+            } catch (RuntimeException e) {
+                LOGGER.debug("[{}] Skipped entity {} — {}", MOD_ID, name, e.toString());
             }
         }
         return count;
@@ -128,6 +171,37 @@ public final class PacketEventsRegistryBridge {
     }
 
     /**
+     * Entity twin of {@link #verifyDecode()}. Resolves the first modded entity
+     * through the exact call GrimAC decodes with, proving a ridden warship no
+     * longer yields a null {@code EntityType}.
+     */
+    private static void verifyEntityDecode() {
+        ClientVersion version;
+        try {
+            version = com.github.retrooper.packetevents.PacketEvents.getAPI()
+                    .getServerManager().getVersion().toClientVersion();
+        } catch (RuntimeException | LinkageError e) {
+            version = ClientVersion.getLatest();
+        }
+        for (net.minecraft.entity.EntityType<?> type : Registries.ENTITY_TYPE) {
+            Identifier id = Registries.ENTITY_TYPE.getId(type);
+            if (id == null || VANILLA_NAMESPACE.equals(id.getNamespace())) {
+                continue;
+            }
+            int rawId = Registries.ENTITY_TYPE.getRawId(type);
+            try {
+                EntityType resolved = EntityTypes.getRegistry().getByIdOrThrow(version, rawId);
+                LOGGER.info("[{}] entity decode self-check OK — {} (#{}) resolves to {} at {}",
+                        MOD_ID, id, rawId, resolved.getName(), version);
+            } catch (RuntimeException | LinkageError e) {
+                LOGGER.warn("[{}] entity decode self-check FAILED — {} (#{}) at {}: {}",
+                        MOD_ID, id, rawId, version, e.toString());
+            }
+            return;
+        }
+    }
+
+    /**
      * PacketEvents unloads its string→id mapping tables after boot to save
      * memory ({@code VersionedRegistry.unloadMappings} →
      * {@code TypesBuilder.unloadFileMappings}), leaving {@code getEntries()}
@@ -144,7 +218,7 @@ public final class PacketEventsRegistryBridge {
         try {
             builder.load();
         } catch (RuntimeException | LinkageError e) {
-            LOGGER.debug("[{}] Could not reload item mappings — {}", MOD_ID, e.toString());
+            LOGGER.debug("[{}] Could not reload registry mappings — {}", MOD_ID, e.toString());
         }
     }
 

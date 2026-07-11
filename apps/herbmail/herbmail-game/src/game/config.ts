@@ -6,6 +6,7 @@ export const WALL_H = 4.5;
 export const COVE_R = 1.0;
 
 export const WALL_SEG = 8;
+export const WALL_FLAT_SEG = 2;
 export const TEXEL = 1 / 256;
 export const UV_INSET = TEXEL * 0.5;
 export const ANISOTROPY = 8;
@@ -19,7 +20,8 @@ export const TINT = {
 	arch: [0.72, 0.7, 0.72],
 	cove: [0.92, 0.9, 0.95],
 	bay: [0.72, 0.7, 0.72],
-	bayBack: [0.4, 0.38, 0.42],
+	bayBack: [0.6, 0.57, 0.6],
+	door: [0.85, 0.82, 0.78],
 } as const;
 
 export const TEXTURES = {
@@ -31,6 +33,8 @@ export const TEXTURES = {
 	floor: '/textures/Horror_Floor_01-256x256.png',
 	ceiling: '/textures/Horror_Metal_01-256x256.png',
 	arch: '/textures/Horror_Stone_01-256x256.png',
+	door: '/textures/wood_13_256_.png',
+	doorAlt: '/textures/wood_14_256_.png',
 } as const;
 
 export const PSX_DEFAULTS = {

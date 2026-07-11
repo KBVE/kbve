@@ -58,7 +58,12 @@ export class CharacterAnimator {
 		)
 			return;
 		const fade = opts.fade ?? 0.2;
-		const loop = opts.loop === false ? THREE.LoopOnce : THREE.LoopRepeat;
+		const once = opts.loop === false;
+		const loop = once ? THREE.LoopOnce : THREE.LoopRepeat;
+		// A LoopOnce base clip (Jump_Start/Jump_Land) must clamp on its last
+		// frame; without it Three snaps to the bind pose at clip end and pops
+		// through any crossfade still draining it (e.g. land → idle).
+		next.clampWhenFinished = once;
 		if (next.isRunning() && this.activeBase.has(next)) {
 			// Already contributing (a blend partner). Keep its phase and take it
 			// to full weight — resetting + fadeIn would drop weight to 0 first

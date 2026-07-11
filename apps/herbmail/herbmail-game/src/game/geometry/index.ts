@@ -4,6 +4,7 @@ export { buildArches } from './arches';
 export { buildCoves } from './coves';
 export { buildCornerCoves } from './corners';
 export { buildBays, type BayGeometry } from './bays';
+export { buildColumns, columnShaftRadius } from './columns';
 export {
 	type Grid,
 	FLOOR as GRID_FLOOR,
