@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10T11:01:03Z",
+  "generated_at": "2026-07-11T09:43:41Z",
   "summary": {
     "critical": 5,
     "high": 24,
@@ -439,7 +439,7 @@
           "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
         },
         {
-          "id": "1122845",
+          "id": "1122891",
           "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
           "severity": "high",
           "package": "ws",
