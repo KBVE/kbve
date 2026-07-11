@@ -1,4 +1,4 @@
-import { despawnWhere, Prop } from '@kbve/laser/ecs';
+import { despawnWhere, Prop } from '../mecs/props';
 import type { DungeonWorld } from '../dungeon/ecs';
 import { makeLocalGrid } from '../dungeon/generate';
 import { exposedFaces, isBay } from '../geometry/faces';

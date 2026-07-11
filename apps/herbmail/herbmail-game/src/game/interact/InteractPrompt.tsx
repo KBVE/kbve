@@ -1,7 +1,9 @@
-import { useActiveDoor } from './doors';
+import { useActiveInteract } from './registry';
 
-export function DoorPrompt() {
-	const active = useActiveDoor();
+// Verb-driven [F] prompt: shows whatever the nearest interactable named (unlock
+// the door, mine the rock, ...). Presentation only; targeting lives in registry.
+export function InteractPrompt() {
+	const active = useActiveInteract();
 	if (!active) return null;
 	return (
 		<div
@@ -32,7 +34,7 @@ export function DoorPrompt() {
 				}}>
 				F
 			</span>{' '}
-			to unlock the door
+			to {active.verb}
 		</div>
 	);
 }

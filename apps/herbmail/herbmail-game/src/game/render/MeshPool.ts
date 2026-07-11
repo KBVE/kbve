@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { EntityPool, MeshRef, Stone, Transform3 } from '@kbve/laser/ecs';
+import { EntityPool } from '../mecs/pool';
+import { MeshRef, Stone, Transform3 } from '../mecs/props';
 import { TORCH_HEAD_LOCAL, TORCH_MODEL_SCALE } from '../prop/torchModel';
 import { MODEL_TORCH } from '../prop/kinds';
 import { stoneGeometry } from '../prop/stoneModel';

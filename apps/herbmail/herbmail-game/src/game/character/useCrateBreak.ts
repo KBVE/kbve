@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Health, Prop, Transform3 } from '@kbve/laser/ecs';
+import { Health, Prop, Transform3 } from '../mecs/props';
 import { breakCrate } from '../dungeon/store';
 import { getDebrisPool } from '../render/DebrisPool';
 import { getSimBridge } from '../sab/simBridge';

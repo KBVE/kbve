@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { solidAtWorld, dungeonSpawn } from '../dungeon/collision';
-import { refreshDoorPrompt, tryOpenActiveDoor } from '../door/doors';
+import { refreshPrompt, triggerActive } from '../interact/registry';
 import { TILE } from '../config';
 import { Character, type CharacterHandle } from './Character';
 import { useEquippedId } from '../viewmodel/store';
@@ -124,7 +124,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				e.preventDefault();
 				handleRef.current?.motor.jump();
 			}
-			if (e.code === 'KeyF') tryOpenActiveDoor();
+			if (e.code === 'KeyF') triggerActive();
 		};
 		const up = (e: KeyboardEvent) => (keys.current[e.code] = false);
 		const attack = (e: MouseEvent) => {
@@ -203,7 +203,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			dir.current.normalize().multiplyScalar(speed);
 		}
 		h.motor.setDesiredVelocity(dir.current.x, dir.current.z);
-		refreshDoorPrompt(h.motor.position.x, h.motor.position.z);
+		refreshPrompt(h.motor.position.x, h.motor.position.z);
 
 		pivot.current.copy(h.motor.position);
 		pivot.current.y += CAM_HEIGHT;

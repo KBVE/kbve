@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Health, Prop } from '@kbve/laser/ecs';
+import { Health, Prop } from '../mecs/props';
 import { PROP_STONE } from '../prop/kinds';
 
 // Mined stones shrink in discrete stages as their Health drops, so a swing reads

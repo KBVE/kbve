@@ -3,20 +3,18 @@ import {
 	addEntity,
 	addComponent,
 	removeEntity,
+	RoomCell,
+	RoomDoors,
+	RoomPhase,
+	RoomTag,
+	MAX_ENTITIES,
 	type World,
-} from '@kbve/laser/ecs';
+} from '../mecs/props';
 import { genSectorDesc, CELL, type RoomDesc } from './generate';
 import { genSector, SECTOR, floorDiv, type Sector } from './sector';
 
-export const MAX_ROOMS = 4096;
-
-export const RoomCell = {
-	cx: new Int32Array(MAX_ROOMS),
-	cy: new Int32Array(MAX_ROOMS),
-};
-export const RoomDoors = { bits: new Uint8Array(MAX_ROOMS) };
-export const RoomPhase = { value: new Uint8Array(MAX_ROOMS) };
-export const RoomTag: Record<string, never> = {};
+export const MAX_ROOMS = MAX_ENTITIES;
+export { RoomCell, RoomDoors, RoomPhase, RoomTag };
 
 export const PHASE_SEED = 0;
 export const PHASE_GENERATED = 1;

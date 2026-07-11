@@ -5,7 +5,7 @@ import {
 	query,
 	Transform3,
 	type World,
-} from '@kbve/laser/ecs';
+} from '../mecs/props';
 import { FireflyFx } from '../prop/components';
 import { MAX_LIGHTS, LIGHT_RANGE } from './PsxMaterial';
 import type { OcclusionField } from '../dungeon/occlusion';

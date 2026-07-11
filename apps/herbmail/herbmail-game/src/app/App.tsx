@@ -7,7 +7,7 @@ import { CratePlacer } from '../game/prop/CratePlacer';
 import { PropRenderer } from '../game/render/PropRenderer';
 import { Hud } from '../game/hud/Hud';
 import { PlayerBars } from '../game/hud/PlayerBars';
-import { DoorPrompt } from '../game/door/DoorPrompt';
+import { InteractPrompt } from '../game/interact/InteractPrompt';
 import { PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
 import { PhysicsBodies } from '../game/sab/PhysicsBodies';
@@ -78,7 +78,7 @@ export function App() {
 			</Canvas>
 			<Hud kind={aim} equippedId={equippedId} />
 			<PlayerBars />
-			<DoorPrompt />
+			<InteractPrompt />
 			<EquipmentPanel />
 			{debug && <HeldGripDebug />}
 			<div

@@ -4,7 +4,7 @@ import { cellAtWorld } from './ecs';
 import { CELL } from './generate';
 import { genSector } from './sector';
 import { getDungeon, DUNGEON_SEED } from './store';
-import { Collider, Transform3 } from '@kbve/laser/ecs';
+import { Collider, Transform3 } from '../mecs/props';
 import { colliderAt } from '../prop/crateGrid';
 
 const COLUMN_R = 0.55;

@@ -8,7 +8,7 @@ import {
 	Stone,
 	Transform3,
 	type World,
-} from '@kbve/laser/ecs';
+} from '../mecs/props';
 import { TILE } from '../config';
 import { hashInt } from '../geometry/rng';
 import { MODEL_STONE, PROP_STONE } from './kinds';

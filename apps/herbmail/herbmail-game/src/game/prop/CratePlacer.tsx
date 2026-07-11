@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useThree, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { Prop, Transform3 } from '@kbve/laser/ecs';
+import { Prop, Transform3 } from '../mecs/props';
 import { placeCrate, breakCrate } from '../dungeon/store';
 import { solidAtWorld } from '../dungeon/collision';
 import { getEquippedId } from '../viewmodel/store';

@@ -63,7 +63,7 @@ export function scatterDecor(
 	}
 	if (floors.length === 0) return;
 
-	const policy = DECOR_POLICY[desc.variant % DECOR_POLICY.length];
+	const policy = [{ kind: PROP_STONE, min: 6, max: 6, salt: 0x570e }]; // TEMP-SHOT
 	for (const rule of policy) {
 		const count =
 			rule.min +

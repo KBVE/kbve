@@ -7,7 +7,7 @@ import {
 	PHASE_MOUNTED,
 } from './ecs';
 import { SECTOR_TILES, type RoomDesc } from './generate';
-import { removeEntity, Transform3 } from '@kbve/laser/ecs';
+import { removeEntity, resetPropsWorld, Transform3 } from '../mecs/props';
 import { spawnRoomProps, despawnRoomProps } from '../prop/spawn';
 import { spawnRoomDoors, despawnRoomDoors, resetDoors } from '../door/doors';
 import { spawnTorch } from '../prop/torch';
@@ -148,7 +148,7 @@ export function removeTorch(eid: number): void {
 
 export function placeCrate(pos: [number, number, number]): void {
 	unsuppressAt(pos);
-	const rec = recordPlaced(pos, [0, 1, 0], PROP_CRATE);
+	recordPlaced(pos, [0, 1, 0], PROP_CRATE);
 	const { sx, sy } = sectorAtWorld(pos[0], pos[2], TILE);
 	const eid = dw.sectorEidAt(sx, sy);
 	if (eid !== undefined && dw.phase(eid) === PHASE_MOUNTED) {
@@ -171,6 +171,7 @@ export function breakCrate(eid: number): void {
 
 export function resetDungeon(seed = DUNGEON_SEED): void {
 	seeded = true;
+	resetPropsWorld();
 	dw = new DungeonWorld(seed);
 	prevMounted = new Set();
 	clearPlaced();

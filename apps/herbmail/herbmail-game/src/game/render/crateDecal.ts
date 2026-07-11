@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Health, Prop } from '@kbve/laser/ecs';
+import { Health, Prop } from '../mecs/props';
 import { PROP_CRATE } from '../prop/kinds';
 import { crackStage } from '../prop/crate';
 

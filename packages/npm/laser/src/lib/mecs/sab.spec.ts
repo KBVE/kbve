@@ -103,6 +103,18 @@ describe('mecs sab world', () => {
 		expect(w.gen()).toBe(g0 + 2);
 	});
 
+	it('clear() wipes membership and reuses eid 0', () => {
+		const w = makeWorld();
+		const a = w.spawn();
+		w.add(a, 'Health');
+		w.spawn();
+		w.clear();
+		expect(w.count()).toBe(0);
+		expect(w.isAlive(a)).toBe(false);
+		expect(w.query(['Health'])).toEqual([]);
+		expect(w.spawn()).toBe(0);
+	});
+
 	it('fills to capacity then returns -1', () => {
 		const w = makeWorld();
 		for (let i = 0; i < CAP; i++) expect(w.spawn()).toBe(i);

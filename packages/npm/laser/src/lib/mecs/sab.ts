@@ -145,6 +145,7 @@ export interface SabWorld<S extends Schema> {
 	remove(eid: number, comp: keyof S): void;
 	has(eid: number, comp: keyof S): boolean;
 	isAlive(eid: number): boolean;
+	clear(): void;
 	query(comps: (keyof S)[]): number[];
 	each(comps: (keyof S)[], fn: (eid: number) => void): void;
 	count(): number;
@@ -252,6 +253,15 @@ export function createSabWorld<S extends Schema>(
 		},
 		isAlive(eid: number): boolean {
 			return testBit(alive, eid);
+		},
+
+		// Wipe all membership (entities + component bits) and reset the tick, keeping
+		// the buffer + MAGIC/CAP. Component data is left as-is; spawn() overwrites it.
+		clear(): void {
+			alive.fill(0);
+			for (const m of maskArr) m.fill(0);
+			header[H_ALIVE] = 0;
+			Atomics.store(header, H_TICK, 0);
 		},
 
 		// Walk alive words, AND every requested component mask, yield surviving eids.
