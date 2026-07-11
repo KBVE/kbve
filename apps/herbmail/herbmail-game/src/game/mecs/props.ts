@@ -1,10 +1,6 @@
-import {
-	createSabWorld,
-	sabBytes,
-	type SabWorld,
-	type Schema,
-} from '@kbve/laser/mecs';
+import { createSabWorld, sabBytes, type SabWorld } from '@kbve/laser/mecs';
 import { makeBuffer } from '../sab/isolation';
+import { PROPS_SCHEMA, PROPS_CAP } from './propsSchema';
 
 // The dungeon's main-thread ECS world: rooms, props (torches, crates, stones,
 // fireflies), doors — everything that used to ride a bitecs world. One process
@@ -12,62 +8,21 @@ import { makeBuffer } from '../sab/isolation';
 // main thread is its sole structural writer. A thin bitecs-shaped shim
 // (addEntity/addComponent/query/…) lets the existing prop/room/door code migrate by
 // swapping only its import path. Query-based, layermask-ready, and — because it's a
-// mecs world over a shared buffer — reads can later be handed to the sim worker.
-const SCHEMA = {
-	Transform3: {
-		px: 'f32',
-		py: 'f32',
-		pz: 'f32',
-		dx: 'f32',
-		dy: 'f32',
-		dz: 'f32',
-	},
-	Prop: { kind: 'u8', ownerEid: 'i32' },
-	MeshRef: { modelId: 'u8' },
-	Collider: { hx: 'f32', hz: 'f32' },
-	LightEmitter: {
-		r: 'f32',
-		g: 'f32',
-		b: 'f32',
-		baseIntensity: 'f32',
-		range: 'f32',
-		flickerPhase: 'f32',
-		flickerAmp: 'f32',
-	},
-	Health: { hp: 'f32', maxHp: 'f32', regen: 'f32' },
-	Stone: { seed: 'f32', size: 'f32', hardness: 'f32', ore: 'u8' },
-	FlameFx: { seed: 'f32' },
-	FireflyFx: {
-		homeX: 'f32',
-		homeY: 'f32',
-		homeZ: 'f32',
-		seed: 'f32',
-		vx: 'f32',
-		vy: 'f32',
-		vz: 'f32',
-	},
-	RoomCell: { cx: 'i32', cy: 'i32' },
-	RoomDoors: { bits: 'u8' },
-	RoomPhase: { value: 'u8' },
-	RoomTag: {},
-	Door: {
-		locked: 'u8',
-		open: 'f32',
-		lc: 'u8',
-		lr: 'u8',
-		variant: 'u8',
-		axis: 'u8',
-	},
-} satisfies Schema;
+// mecs world over a shared buffer — the sim worker attaches a read-only view of it
+// (getPropsBuffer) to collide dynamic bodies against static prop footprints.
+const SCHEMA = PROPS_SCHEMA;
 
 export type World = SabWorld<typeof SCHEMA>;
-export const MAX_ENTITIES = 8192;
+export const MAX_ENTITIES = PROPS_CAP;
 
-const world: World = createSabWorld(
-	makeBuffer(sabBytes(SCHEMA, MAX_ENTITIES)),
-	SCHEMA,
-	MAX_ENTITIES,
-);
+const buffer = makeBuffer(sabBytes(SCHEMA, MAX_ENTITIES));
+const world: World = createSabWorld(buffer, SCHEMA, MAX_ENTITIES);
+
+// The backing buffer (SharedArrayBuffer when cross-origin isolated), handed to the
+// sim worker so it can attach a reader over the same memory.
+export function getPropsBuffer(): ArrayBufferLike {
+	return buffer;
+}
 
 // Component accessors — SoA typed-array stores, same `.field[eid]` shape the old
 // bitecs components exposed. Stable because `world` is a singleton.

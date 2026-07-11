@@ -1,27 +1,41 @@
 import { useSyncExternalStore } from 'react';
-import { LOADOUT } from './equipment';
+import { slotOf } from './equipment';
+import { resolveHands, type Hands } from './hands';
 
-let equippedId = LOADOUT[0].id;
+let held: string[] = [];
+let hands: Hands = { right: null, left: null };
 const listeners = new Set<() => void>();
 
 function emit() {
 	for (const l of listeners) l();
 }
 
-export function setEquipped(id: string) {
-	if (id === equippedId) return;
-	equippedId = id;
+// Equip semantics: bare hands clears everything; a light (torch) toggles so it can
+// ride along with a weapon; any other item replaces whatever shared its slot while
+// leaving the light untouched — so picking a sword leaves the torch in the off-hand.
+export function equip(id: string) {
+	const slot = slotOf(id);
+	let next: string[];
+	if (slot === null) {
+		if (held.length === 0) return;
+		next = [];
+	} else if (slot === 'light') {
+		next = held.includes(id) ? held.filter((h) => h !== id) : [...held, id];
+	} else {
+		next = held.filter((h) => h !== id && slotOf(h) !== slot);
+		next.push(id);
+	}
+	held = next;
+	hands = resolveHands(held);
 	emit();
 }
 
-export function cycleEquipped(dir: number) {
-	const i = LOADOUT.findIndex((e) => e.id === equippedId);
-	const n = (i + dir + LOADOUT.length) % LOADOUT.length;
-	setEquipped(LOADOUT[n].id);
+export function getHeld() {
+	return held;
 }
 
-export function getEquippedId() {
-	return equippedId;
+export function isHeld(id: string) {
+	return held.includes(id);
 }
 
 function subscribe(cb: () => void) {
@@ -29,6 +43,28 @@ function subscribe(cb: () => void) {
 	return () => listeners.delete(cb);
 }
 
+export function useHeld() {
+	return useSyncExternalStore(subscribe, getHeld, getHeld);
+}
+
+export function getHands() {
+	return hands;
+}
+
+export function useHands() {
+	return useSyncExternalStore(subscribe, getHands, getHands);
+}
+
+// Compat: legacy callers speak a single "equipped" id. Report the right-hand item
+// (the primary/main), falling back to bare hands.
+export function getEquippedId() {
+	return hands.right ?? 'empty';
+}
+
 export function useEquippedId() {
 	return useSyncExternalStore(subscribe, getEquippedId, getEquippedId);
+}
+
+export function setEquipped(id: string) {
+	equip(id);
 }

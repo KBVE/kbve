@@ -84,6 +84,30 @@ function mountedSectors(
 	return out;
 }
 
+// Cap the resident room set. Rooms stay generated after unmount so revisits are
+// deterministic, but on an endless traverse that leaks eids toward the world cap.
+// Evict the farthest UNMOUNTED rooms past this bound — a revisit regenerates an
+// identical room from the seed (props/doors/suppression persist by world position).
+const KEEP_ROOMS = 64;
+
+function evictFarRooms(sx: number, sy: number, mset: Set<number>): void {
+	const rooms = dw.all();
+	if (rooms.length <= KEEP_ROOMS) return;
+	const cand: { eid: number; d: number }[] = [];
+	for (const eid of rooms) {
+		if (mset.has(eid)) continue;
+		const { cx, cy } = dw.cellOf(eid);
+		cand.push({ eid, d: Math.max(Math.abs(cx - sx), Math.abs(cy - sy)) });
+	}
+	cand.sort((a, b) => b.d - a.d);
+	let over = rooms.length - KEEP_ROOMS;
+	for (const c of cand) {
+		if (over <= 0) break;
+		dw.remove(c.eid);
+		over--;
+	}
+}
+
 function rebuild(x: number, z: number, sx: number, sy: number): void {
 	const mounted = mountedSectors(x, z, sx, sy);
 	const mset = new Set(mounted);
@@ -103,6 +127,7 @@ function rebuild(x: number, z: number, sx: number, sy: number): void {
 		}
 	}
 	prevMounted = mset;
+	evictFarRooms(sx, sy, mset);
 
 	active = mounted.map((eid) => {
 		const desc = dw.desc(eid) as RoomDesc;

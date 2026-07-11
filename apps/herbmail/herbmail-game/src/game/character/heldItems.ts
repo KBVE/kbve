@@ -14,6 +14,14 @@ export const VERTICAL_GRIP = {
 	rot: [-1.5, 0.2, 0.3] as [number, number, number],
 };
 
+// Off-hand (hand_l) pose. hand_l is the mirror of hand_r, so start from the right
+// grip reflected across the sagittal plane (flip x offset, negate yaw/roll) and
+// fine-tune from there with the grip debugger.
+export const VERTICAL_GRIP_LEFT = {
+	pos: [0.06, 0, 0.02] as [number, number, number],
+	rot: [-1.5, -0.2, -0.3] as [number, number, number],
+};
+
 export interface HeldItem {
 	modelUrl: string;
 	// Pivot object name. Keep 'weaponPivot' for melee weapons — useMelee finds the

@@ -7,6 +7,7 @@ import {
 	type GameWorld,
 	type InstanceView,
 } from '../mecs/schema';
+import { getPropsBuffer } from '../mecs/props';
 
 export interface SimStartOpts {
 	ox?: number;
@@ -63,6 +64,7 @@ export class SimBridge {
 			ecs: this.ecsBuf,
 			inst: this.instBuf,
 			player: this.player.buffer,
+			props: getPropsBuffer(),
 			ox: opts.ox ?? 0,
 			oz: opts.oz ?? 0,
 		});

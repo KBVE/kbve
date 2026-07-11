@@ -5,7 +5,7 @@ import { useGLTF } from '@react-three/drei';
 import { Prop, Transform3 } from '../mecs/props';
 import { placeCrate, breakCrate } from '../dungeon/store';
 import { solidAtWorld } from '../dungeon/collision';
-import { getEquippedId } from '../viewmodel/store';
+import { isHeld } from '../viewmodel/store';
 import { getDebrisPool } from '../render/DebrisPool';
 import { TILE } from '../config';
 import { crateAtTile } from './crateGrid';
@@ -95,8 +95,7 @@ export function CratePlacer() {
 	}, [gltf.scene]);
 
 	useFrame(() => {
-		const active =
-			!!document.pointerLockElement && getEquippedId() === 'crate';
+		const active = !!document.pointerLockElement && isHeld('crate');
 		if (!active) {
 			ghost.visible = false;
 			last.current = null;
@@ -116,7 +115,7 @@ export function CratePlacer() {
 	useEffect(() => {
 		const onDown = (e: MouseEvent) => {
 			if (!document.pointerLockElement) return;
-			if (getEquippedId() !== 'crate') return;
+			if (!isHeld('crate')) return;
 			if (e.button === 0) {
 				const p = last.current;
 				if (p && p.valid) placeCrate(p.pos);
@@ -133,7 +132,7 @@ export function CratePlacer() {
 			}
 		};
 		const onCtx = (e: MouseEvent) => {
-			if (document.pointerLockElement && getEquippedId() === 'crate')
+			if (document.pointerLockElement && isHeld('crate'))
 				e.preventDefault();
 		};
 		window.addEventListener('mousedown', onDown);

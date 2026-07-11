@@ -5,7 +5,7 @@ import { solidAtWorld, dungeonSpawn } from '../dungeon/collision';
 import { refreshPrompt, triggerActive } from '../interact/registry';
 import { TILE } from '../config';
 import { Character, type CharacterHandle } from './Character';
-import { useEquippedId } from '../viewmodel/store';
+import { useHands } from '../viewmodel/store';
 import { equipmentById } from '../viewmodel/equipment';
 import { SWING, triggerSwing } from './melee';
 import { useMelee } from './useMelee';
@@ -93,8 +93,8 @@ interface Props {
 
 export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	const { camera, gl } = useThree();
-	const equippedId = useEquippedId();
-	const armed = equipmentById(equippedId).kind === 'weapon';
+	const hands = useHands();
+	const armed = !!hands.right && equipmentById(hands.right).kind === 'weapon';
 	const armedRef = useRef(armed);
 	useEffect(() => {
 		armedRef.current = armed;
@@ -243,7 +243,8 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				url={url}
 				scale={scale}
 				armed={armed}
-				heldId={equippedId}
+				rightId={hands.right}
+				leftId={hands.left}
 				position={[sx, 0, sz]}
 				onReady={(h) => {
 					h.motor.mover = tryMove;

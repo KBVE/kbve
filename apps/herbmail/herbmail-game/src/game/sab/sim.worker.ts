@@ -6,6 +6,7 @@
 // instance buffer the renderer uploads zero-copy. Rapier WASM is inlined by
 // rapier3d-compat (in-worker, no fetch).
 import RAPIER from '@dimforge/rapier3d-compat';
+import { createSabWorld, type SabWorld } from '@kbve/laser/mecs';
 import { TILE, WALL_H } from '../config';
 import { SOLID } from '../geometry/grid';
 import {
@@ -20,6 +21,7 @@ import {
 	INST_COUNT,
 	FLOATS_PER_INSTANCE,
 } from '../mecs/schema';
+import { PROPS_SCHEMA, PROPS_CAP } from '../mecs/propsSchema';
 
 const FIXED_DT = 1 / 60;
 const PLAYER_HALF = 0.6;
@@ -47,9 +49,12 @@ interface InitData {
 	ecs: ArrayBufferLike;
 	inst: ArrayBufferLike;
 	player: ArrayBufferLike;
+	props: ArrayBufferLike;
 	ox: number;
 	oz: number;
 }
+
+type PropsWorld = SabWorld<typeof PROPS_SCHEMA>;
 interface SectorData {
 	key: string;
 	tiles: Uint8Array;
@@ -62,10 +67,13 @@ interface SectorData {
 let ecs: GameWorld | null = null;
 let instance: InstanceView | null = null;
 let playerPose: Float32Array | null = null;
+let props: PropsWorld | null = null;
 let phys: RAPIER.World | null = null;
 let playerBody: RAPIER.RigidBody | null = null;
+let propStaticBody: RAPIER.RigidBody | null = null;
 const bodyOf = new Map<number, RAPIER.RigidBody>();
 const sectorBodies = new Map<string, RAPIER.RigidBody>();
+const propCollider = new Map<number, RAPIER.Collider>();
 const pending: SectorData[] = [];
 let acc = 0;
 let last = 0;
@@ -175,6 +183,37 @@ function sysLifetime(dt: number): void {
 	for (const eid of dead) despawnBody(eid);
 }
 
+// Reconcile static colliders for main-thread props (crates, stones — anything with
+// a Collider footprint) by READING the shared props world zero-copy. New props get
+// a box collider on the static body; despawned ones (broken crate, mined stone,
+// streamed-out room) drop theirs. So dynamic panels land on and bounce off props,
+// not just walls. Cross-thread mecs read in action.
+function syncPropColliders(): void {
+	if (!phys || !props || !propStaticBody) return;
+	const T = props.stores.Transform3;
+	const C = props.stores.Collider;
+	const cur = new Set<number>();
+	for (const eid of props.query(['Prop', 'Collider'])) {
+		cur.add(eid);
+		if (propCollider.has(eid)) continue;
+		const hx = C.hx[eid];
+		const hz = C.hz[eid];
+		const hy = Math.max(hx, hz);
+		const col = phys.createCollider(
+			RAPIER.ColliderDesc.cuboid(hx, hy, hz)
+				.setTranslation(T.px[eid], T.py[eid] + hy, T.pz[eid])
+				.setFriction(0.9),
+			propStaticBody,
+		);
+		propCollider.set(eid, col);
+	}
+	for (const [eid, col] of propCollider) {
+		if (cur.has(eid)) continue;
+		phys.removeCollider(col, false);
+		propCollider.delete(eid);
+	}
+}
+
 function addSector(d: SectorData): void {
 	if (!phys || sectorBodies.has(d.key)) return;
 	const body = phys.createRigidBody(RAPIER.RigidBodyDesc.fixed());
@@ -257,6 +296,7 @@ function loop(now: number): void {
 			z: playerPose[2],
 		});
 	}
+	syncPropColliders();
 	while (acc >= FIXED_DT) {
 		phys.step();
 		sysLifetime(FIXED_DT);
@@ -273,6 +313,7 @@ async function init(d: InitData): Promise<void> {
 	ecs = createGameWorld(d.ecs);
 	instance = createInstanceView(d.inst);
 	playerPose = new Float32Array(d.player);
+	props = createSabWorld(d.props, PROPS_SCHEMA, PROPS_CAP);
 
 	await RAPIER.init();
 	phys = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
@@ -282,6 +323,7 @@ async function init(d: InitData): Promise<void> {
 		RAPIER.ColliderDesc.cuboid(500, 0.5, 500).setTranslation(0, -0.5, 0),
 		ground,
 	);
+	propStaticBody = phys.createRigidBody(RAPIER.RigidBodyDesc.fixed());
 
 	playerBody = phys.createRigidBody(
 		RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(
@@ -306,7 +348,7 @@ async function init(d: InitData): Promise<void> {
 globalThis.addEventListener('message', (e: MessageEvent) => {
 	const d = e.data as { type: string } & Partial<InitData> &
 		Partial<SectorData> & { x?: number; y?: number; z?: number };
-	if (d.type === 'init' && d.ecs && d.inst && d.player) {
+	if (d.type === 'init' && d.ecs && d.inst && d.player && d.props) {
 		void init(d as InitData);
 	} else if (d.type === 'addSector' && d.tiles) {
 		const s = d as SectorData;

@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 
-export type HeldKind = 'empty' | 'tool' | 'weapon';
+export type HeldKind = 'empty' | 'tool' | 'weapon' | 'shield';
+
+// Which hand an item wants. 'main' = right (weapons, tools), 'off' = left
+// (shields), 'light' = flexible light source (torch): takes the right hand when
+// it is free, otherwise slides to the left so a weapon can own the right.
+export type HandSlot = 'main' | 'off' | 'light';
 
 export interface Impulse {
 	back: number;
@@ -20,6 +25,8 @@ export interface Equipment {
 	secondaryImpulse: Impulse;
 	buildItem: () => THREE.Object3D | null;
 	modelUrl?: string;
+	// Overrides the hand derived from `kind`. Torches set 'light'.
+	slot?: HandSlot;
 	grip?: {
 		pos: [number, number, number];
 		rot: [number, number, number];
@@ -82,6 +89,7 @@ export const LOADOUT: Equipment[] = [
 		secondaryImpulse: REACH,
 		buildItem: () => null,
 		modelUrl: '/models/torch.glb',
+		slot: 'light',
 		grip: {
 			pos: [0.02, -0.05, 0.06],
 			rot: [-1.4, 0.1, 0],
@@ -133,6 +141,7 @@ export const LOADOUT: Equipment[] = [
 		secondaryImpulse: REACH,
 		buildItem: () => null,
 		modelUrl: '/models/torch.glb',
+		slot: 'light',
 		grip: {
 			pos: [0.02, -0.05, 0.06],
 			rot: [-1.4, 0.1, 0],
@@ -143,4 +152,14 @@ export const LOADOUT: Equipment[] = [
 
 export function equipmentById(id: string): Equipment {
 	return LOADOUT.find((e) => e.id === id) ?? LOADOUT[0];
+}
+
+// Hand an item wants, or null for bare hands. Explicit `slot` wins; otherwise a
+// weapon/tool is main-hand and a shield is off-hand.
+export function slotOf(id: string): HandSlot | null {
+	const e = equipmentById(id);
+	if (e.kind === 'empty') return null;
+	if (e.slot) return e.slot;
+	if (e.kind === 'shield') return 'off';
+	return 'main';
 }
