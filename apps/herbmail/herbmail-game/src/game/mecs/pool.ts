@@ -31,10 +31,6 @@ export abstract class EntityPool<T> {
 		this.items.clear();
 	}
 
-	get size(): number {
-		return this.items.size;
-	}
-
 	entries(): IterableIterator<[number, T]> {
 		return this.items.entries();
 	}

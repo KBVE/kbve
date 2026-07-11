@@ -31,9 +31,7 @@ export type GameWorld = SabWorld<typeof GAME_SCHEMA>;
 export const GAME_CAP = 4096;
 
 // Body.kind discriminates the simulated archetype (0 = free slot).
-export const BODY_NONE = 0;
 export const BODY_PANEL = 1;
-export const BODY_CRATE = 2;
 
 // Flags.mask layers — the query bitmask for combat/targeting/render selection.
 export const F_RENDER = 1 << 0;

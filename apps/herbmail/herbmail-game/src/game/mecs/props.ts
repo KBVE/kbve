@@ -98,7 +98,7 @@ export function despawnWhere(
 
 // Minimal Health-only stat seeding (props carry only HP). Mirrors the laser
 // applyStats surface the prop/stone spawners call.
-export interface StatBlock {
+interface StatBlock {
 	hp?: number;
 	maxHp?: number;
 	hpRegen?: number;

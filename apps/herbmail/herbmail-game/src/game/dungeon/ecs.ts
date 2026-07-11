@@ -7,16 +7,13 @@ import {
 	RoomDoors,
 	RoomPhase,
 	RoomTag,
-	MAX_ENTITIES,
 	type World,
 } from '../mecs/props';
 import { genSectorDesc, CELL, type RoomDesc } from './generate';
-import { genSector, SECTOR, floorDiv, type Sector } from './sector';
+import { SECTOR, floorDiv } from './sector';
 
-export const MAX_ROOMS = MAX_ENTITIES;
 export { RoomCell, RoomDoors, RoomPhase, RoomTag };
 
-export const PHASE_SEED = 0;
 export const PHASE_GENERATED = 1;
 export const PHASE_MOUNTED = 2;
 
@@ -29,7 +26,6 @@ export class DungeonWorld {
 	readonly seed: number;
 	private byKey = new Map<string, number>();
 	private descs = new Map<number, RoomDesc>();
-	private sectors = new Map<number, Sector>();
 
 	constructor(seed: number) {
 		this.seed = seed | 0;
@@ -41,10 +37,6 @@ export class DungeonWorld {
 
 	desc(eid: number): RoomDesc | undefined {
 		return this.descs.get(eid);
-	}
-
-	sectorOf(eid: number): Sector | undefined {
-		return this.sectors.get(eid);
 	}
 
 	phase(eid: number): number {
@@ -71,7 +63,6 @@ export class DungeonWorld {
 		addComponent(this.world, eid, RoomTag);
 
 		this.descs.set(eid, genSectorDesc(this.seed, sx, sy));
-		this.sectors.set(eid, genSector(this.seed, sx, sy));
 		RoomCell.cx[eid] = sx;
 		RoomCell.cy[eid] = sy;
 		RoomDoors.bits[eid] = 0;
@@ -90,7 +81,6 @@ export class DungeonWorld {
 		const sy = RoomCell.cy[eid];
 		this.byKey.delete(sectorKey(sx, sy));
 		this.descs.delete(eid);
-		this.sectors.delete(eid);
 		removeEntity(this.world, eid);
 	}
 

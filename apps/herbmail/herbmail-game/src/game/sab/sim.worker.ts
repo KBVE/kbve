@@ -75,6 +75,9 @@ const bodyOf = new Map<number, RAPIER.RigidBody>();
 const sectorBodies = new Map<string, RAPIER.RigidBody>();
 const propCollider = new Map<number, RAPIER.Collider>();
 const pending: SectorData[] = [];
+// Reused per-frame scratch so the fixed-step loop allocates nothing steady-state.
+const deadScratch: number[] = [];
+const propCur = new Set<number>();
 let acc = 0;
 let last = 0;
 let running = false;
@@ -175,12 +178,12 @@ function despawnBody(eid: number): void {
 function sysLifetime(dt: number): void {
 	if (!ecs) return;
 	const L = ecs.stores.Lifetime;
-	const dead: number[] = [];
+	deadScratch.length = 0;
 	for (const eid of ecs.query(['Lifetime'])) {
 		L.age[eid] += dt;
-		if (L.age[eid] >= L.ttl[eid]) dead.push(eid);
+		if (L.age[eid] >= L.ttl[eid]) deadScratch.push(eid);
 	}
-	for (const eid of dead) despawnBody(eid);
+	for (const eid of deadScratch) despawnBody(eid);
 }
 
 // Reconcile static colliders for main-thread props (crates, stones — anything with
@@ -192,9 +195,9 @@ function syncPropColliders(): void {
 	if (!phys || !props || !propStaticBody) return;
 	const T = props.stores.Transform3;
 	const C = props.stores.Collider;
-	const cur = new Set<number>();
+	propCur.clear();
 	for (const eid of props.query(['Prop', 'Collider'])) {
-		cur.add(eid);
+		propCur.add(eid);
 		if (propCollider.has(eid)) continue;
 		const hx = C.hx[eid];
 		const hz = C.hz[eid];
@@ -208,7 +211,7 @@ function syncPropColliders(): void {
 		propCollider.set(eid, col);
 	}
 	for (const [eid, col] of propCollider) {
-		if (cur.has(eid)) continue;
+		if (propCur.has(eid)) continue;
 		phys.removeCollider(col, false);
 		propCollider.delete(eid);
 	}
@@ -306,8 +309,10 @@ function loop(now: number): void {
 	syncAndPack();
 	ecs.step();
 	ecs.endWrite();
-	setTimeout(() => loop(performance.now()), 1000 / 60);
+	setTimeout(tick, 1000 / 60);
 }
+
+const tick = (): void => loop(performance.now());
 
 async function init(d: InitData): Promise<void> {
 	ecs = createGameWorld(d.ecs);

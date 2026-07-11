@@ -52,7 +52,32 @@ export class LightSystem {
 		{ length: MAX_LIGHTS },
 		() => new THREE.Vector3(),
 	);
-	private ranked: Ranked[] = [];
+	// Persistent Ranked pool reused across frames; `active` holds references to the
+	// filled entries this frame (no per-emitter object allocation). `casters` is a
+	// reused 2-slot buffer for the nearest-to-player shadow lights.
+	private readonly pool: Ranked[] = [];
+	private active: Ranked[] = [];
+	private casters: (Ranked | null)[] = [null, null];
+
+	private take(): Ranked {
+		let r = this.pool[this.active.length];
+		if (!r) {
+			r = {
+				x: 0,
+				y: 0,
+				z: 0,
+				r: 0,
+				g: 0,
+				b: 0,
+				dist: 0,
+				pdist: 0,
+				intensity: 0,
+				tier: 0,
+			};
+			this.pool[this.active.length] = r;
+		}
+		return r;
+	}
 
 	constructor() {
 		for (let i = 0; i < POINT_LIGHTS; i++) {
@@ -83,7 +108,7 @@ export class LightSystem {
 		occ: OcclusionField,
 		ambient: number,
 	): void {
-		this.ranked.length = 0;
+		this.active.length = 0;
 		for (const eid of query(world, [LightEmitter, Transform3])) {
 			const firefly = hasComponent(world, eid, FireflyFx);
 			const dx = Transform3.dx[eid];
@@ -113,18 +138,18 @@ export class LightSystem {
 			const ddx = x - camera.position.x;
 			const ddy = y - camera.position.y;
 			const ddz = z - camera.position.z;
-			this.ranked.push({
-				x,
-				y,
-				z,
-				r: LightEmitter.r[eid],
-				g: LightEmitter.g[eid],
-				b: LightEmitter.b[eid],
-				dist: ddx * ddx + ddy * ddy + ddz * ddz,
-				pdist: pd2,
-				intensity: LightEmitter.baseIntensity[eid] * f,
-				tier: firefly ? 1 : 0,
-			});
+			const l = this.take();
+			l.x = x;
+			l.y = y;
+			l.z = z;
+			l.r = LightEmitter.r[eid];
+			l.g = LightEmitter.g[eid];
+			l.b = LightEmitter.b[eid];
+			l.dist = ddx * ddx + ddy * ddy + ddz * ddz;
+			l.pdist = pd2;
+			l.intensity = LightEmitter.baseIntensity[eid] * f;
+			l.tier = firefly ? 1 : 0;
+			this.active.push(l);
 		}
 
 		// Torch held in hand: always the nearest source (lights walls + character).
@@ -133,25 +158,25 @@ export class LightSystem {
 				0.85 +
 				0.1 * Math.sin(time * 2.3) +
 				0.05 * Math.sin(time * 4.1 + 1.3);
-			this.ranked.push({
-				x: heldLight.pos.x,
-				y: heldLight.pos.y,
-				z: heldLight.pos.z,
-				r: heldLight.r,
-				g: heldLight.g,
-				b: heldLight.b,
-				dist: 0,
-				pdist: 0,
-				intensity: heldLight.intensity * flick,
-				tier: 0,
-			});
+			const l = this.take();
+			l.x = heldLight.pos.x;
+			l.y = heldLight.pos.y;
+			l.z = heldLight.pos.z;
+			l.r = heldLight.r;
+			l.g = heldLight.g;
+			l.b = heldLight.b;
+			l.dist = 0;
+			l.pdist = 0;
+			l.intensity = heldLight.intensity * flick;
+			l.tier = 0;
+			this.active.push(l);
 		}
 
-		this.ranked.sort((a, b) => a.tier - b.tier || a.dist - b.dist);
-		const count = Math.min(this.ranked.length, MAX_LIGHTS);
+		this.active.sort((a, b) => a.tier - b.tier || a.dist - b.dist);
+		const count = Math.min(this.active.length, MAX_LIGHTS);
 
 		for (let i = 0; i < count; i++) {
-			const l = this.ranked[i];
+			const l = this.active[i];
 			this.pos[i].set(l.x, l.y, l.z);
 			this.col[i].set(l.r, l.g, l.b).multiplyScalar(l.intensity);
 		}
@@ -181,7 +206,7 @@ export class LightSystem {
 		for (let i = 0; i < POINT_LIGHTS; i++) {
 			const pl = this.lights[i];
 			if (i < count) {
-				const l = this.ranked[i];
+				const l = this.active[i];
 				pl.position.set(l.x, l.y, l.z);
 				pl.color.setRGB(l.r, l.g, l.b);
 				pl.intensity = l.intensity * POINT_SCALE;
@@ -191,13 +216,32 @@ export class LightSystem {
 			}
 		}
 
-		const byPlayer = this.ranked
-			.slice()
-			.sort((a, b) => a.tier - b.tier || a.pdist - b.pdist);
+		// Nearest-to-player SHADOW_CASTERS (2), linear-scanned into a reused buffer —
+		// no slice/sort. Ordered by tier then player distance.
+		this.casters[0] = null;
+		this.casters[1] = null;
+		for (const l of this.active) {
+			const c0 = this.casters[0];
+			const c1 = this.casters[1];
+			if (
+				!c0 ||
+				l.tier < c0.tier ||
+				(l.tier === c0.tier && l.pdist < c0.pdist)
+			) {
+				this.casters[1] = c0;
+				this.casters[0] = l;
+			} else if (
+				!c1 ||
+				l.tier < c1.tier ||
+				(l.tier === c1.tier && l.pdist < c1.pdist)
+			) {
+				this.casters[1] = l;
+			}
+		}
 		for (let i = 0; i < SHADOW_CASTERS; i++) {
 			const sl = this.shadowLights[i];
-			if (i < byPlayer.length) {
-				const l = byPlayer[i];
+			const l = this.casters[i];
+			if (l) {
 				sl.position.set(l.x, l.y, l.z);
 				sl.visible = true;
 			} else {
