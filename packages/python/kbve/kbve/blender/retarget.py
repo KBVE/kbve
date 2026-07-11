@@ -118,7 +118,31 @@ def add_plume(arm, tgt_objs):
         pl_vg.add([v.index], wha * grad, "REPLACE")
         ha_vg.add([v.index], wha * (1 - grad), "REPLACE")
         moved += 1
-    print(f"plume bone added; gradient-weighted verts: {moved}")
+    print(f"plume bone added, gradient-weighted verts: {moved}")
+
+
+MIRROR_PAIRS = [("foot_r", "foot_l"), ("ball_r", "ball_l")]
+
+
+def mirror_side_roll(arm, pairs=MIRROR_PAIRS):
+    from mathutils import Matrix
+    s = Matrix.Diagonal((-1.0, 1.0, 1.0))
+    bpy.ops.object.select_all(action="DESELECT")
+    arm.select_set(True)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="EDIT")
+    eb = arm.data.edit_bones
+    n = 0
+    for rname, lname in pairs:
+        r, lb = eb.get(rname), eb.get(lname)
+        if not r or not lb:
+            continue
+        m = (s @ lb.matrix.to_3x3() @ s).to_4x4()
+        m.translation = s @ lb.matrix.to_translation()
+        r.matrix = m
+        n += 1
+    bpy.ops.object.mode_set(mode="OBJECT")
+    print(f"mirrored roll onto right side: {n} bones")
 
 
 def enable_rokoko():
@@ -158,6 +182,8 @@ def retarget(char, anims, out, clips, plume=True, reweight=True):
 
     if reweight:
         reweight_neutral(tgt_objs, tgt)
+
+    mirror_side_roll(tgt)
 
     enable_rokoko()
 
