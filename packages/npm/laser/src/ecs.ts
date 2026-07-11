@@ -11,6 +11,8 @@ export {
 	type PositionLike,
 } from './lib/ecs/helpers';
 export * from './lib/ecs/components';
+export * from './lib/ecs/props';
+export * from './lib/ecs/pool';
 export {
 	EntityStore,
 	Cat,
