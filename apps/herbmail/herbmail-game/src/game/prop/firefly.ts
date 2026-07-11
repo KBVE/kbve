@@ -3,13 +3,16 @@ import {
 	addEntity,
 	LightEmitter,
 	Prop,
-	query,
+	each,
 	Transform3,
 	type World,
 } from '../mecs/props';
 import { playerAnchor } from '../render/playerAnchor';
 import { FireflyFx } from './components';
 import { PROP_FIREFLY } from './kinds';
+
+// Hoisted so the mecs `each` name-map is cached (zero per-frame allocation).
+const FLY_TERMS = [FireflyFx, Transform3];
 
 const FLY_R = 0.42;
 const FLY_G = 1.0;
@@ -73,7 +76,7 @@ export function spawnFirefly(
 export class FireflySystem {
 	tick(world: World, time: number, dt: number): void {
 		const step = Math.min(dt, 0.05);
-		for (const eid of query(world, [FireflyFx, Transform3])) {
+		each(world, FLY_TERMS, (eid) => {
 			const s = FireflyFx.seed[eid];
 			const tx = FireflyFx.homeX[eid] + Math.sin(time * 0.9 + s) * BOB_R;
 			const ty =
@@ -124,6 +127,6 @@ export class FireflySystem {
 			Transform3.px[eid] = px + vx * step;
 			Transform3.py[eid] = py + vy * step;
 			Transform3.pz[eid] = pz + vz * step;
-		}
+		});
 	}
 }

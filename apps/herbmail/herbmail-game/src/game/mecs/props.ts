@@ -77,6 +77,22 @@ export function query(_w: World, terms: readonly Comp[]): number[] {
 	return world.query(terms.map(nameOf));
 }
 
+// Zero-allocation iteration for per-frame systems. Pass a HOISTED terms array (stable
+// identity) so its name mapping is cached and the hot path allocates nothing.
+const namesCache = new WeakMap<readonly Comp[], (keyof typeof SCHEMA)[]>();
+export function each(
+	_w: World,
+	terms: readonly Comp[],
+	fn: (eid: number) => void,
+): void {
+	let names = namesCache.get(terms);
+	if (!names) {
+		names = terms.map(nameOf);
+		namesCache.set(terms, names);
+	}
+	world.each(names, fn);
+}
+
 // Remove every entity carrying `comp` whose `field` equals `value` (e.g. all props
 // owned by a room that just unmounted). Collect-then-despawn.
 export function despawnWhere(
