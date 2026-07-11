@@ -19,6 +19,9 @@ export default defineConfig({
 			'react-native-reanimated': fileURLToPath(
 				new URL('./vitest/reanimated-stub.ts', import.meta.url),
 			),
+			'react-native-safe-area-context': fileURLToPath(
+				new URL('./vitest/safe-area-stub.tsx', import.meta.url),
+			),
 			'@kbve/core': fileURLToPath(
 				new URL('../core/src/index.ts', import.meta.url),
 			),

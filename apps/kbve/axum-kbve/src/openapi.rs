@@ -22,8 +22,8 @@ use crate::db::{
 };
 use crate::gameserver::token::{TokenRequest, TokenResponse};
 use crate::transport::https::{
-    CreateCommentBody, CreateThreadBody, EditCommentBody, HealthResponse, SetUsernameRequest,
-    StatusResponse,
+    AutoClaimRequest, CreateCommentBody, CreateThreadBody, EditCommentBody, HealthResponse,
+    SetUsernameRequest, StatusResponse,
 };
 use crate::transport::proxy::{ClickHouseLogsRequest, ClickHouseLogsResponse};
 
@@ -87,6 +87,7 @@ impl Modify for SecurityAddon {
         // profile
         crate::transport::https::profile_me_handler,
         crate::transport::https::set_username_handler,
+        crate::transport::https::auto_claim_username_handler,
         crate::transport::https::profile_api_handler,
         // osrs
         crate::transport::https::osrs_api_handler,
@@ -159,6 +160,7 @@ impl Modify for SecurityAddon {
             HealthResponse,
             StatusResponse,
             SetUsernameRequest,
+            AutoClaimRequest,
             TokenRequest,
             TokenResponse,
             crate::telemetry::ClientEvent,
