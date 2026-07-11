@@ -1,19 +1,25 @@
 // Authoritative dynamic-physics sim, off the main thread. Owns a Rapier world of
-// crates + break-off panels (the ECS-in-worker), streamed static colliders for the
-// mounted dungeon, and a kinematic proxy of the main-thread player. Each fixed step
-// it writes body transforms + kind into the shared Float32 block; the renderer reads
-// it zero-copy. Rapier WASM is inlined by rapier3d-compat (in-worker, no fetch).
+// break-off panels, a mecs (SAB) ECS world it is the sole structural writer of, the
+// streamed static dungeon colliders, and a kinematic proxy of the main-thread
+// player. Each fixed step it drives Rapier, copies body transforms into the shared
+// mecs Transform component, then packs a dense AoS mat4 row per renderable into the
+// instance buffer the renderer uploads zero-copy. Rapier WASM is inlined by
+// rapier3d-compat (in-worker, no fetch).
 import RAPIER from '@dimforge/rapier3d-compat';
 import { TILE, WALL_H } from '../config';
 import { SOLID } from '../geometry/grid';
 import {
-	STATE_TICK,
-	STATE_RUNNING,
-	STATE_BODY_COUNT,
-	STATE_READY,
-	FLOATS_PER_BODY,
-	MAX_BODIES,
-} from './layout';
+	createGameWorld,
+	createInstanceView,
+	type GameWorld,
+	type InstanceView,
+	BODY_PANEL,
+	F_RENDER,
+	F_DYNAMIC,
+	F_BREAKABLE,
+	INST_COUNT,
+	FLOATS_PER_INSTANCE,
+} from '../mecs/schema';
 
 const FIXED_DT = 1 / 60;
 const PLAYER_HALF = 0.6;
@@ -21,11 +27,6 @@ const PLAYER_RADIUS = 0.35;
 const CRATE_HALF = 0.6;
 const PANEL_THIN = 0.02;
 const EXPLODE = 2.6;
-
-// KIND written into transform slot 7 (0 none, 2 panel — crate stays a main-thread
-// ECS prop; only its break-off panels are simulated here).
-const KIND_NONE = 0;
-const KIND_PANEL = 2;
 
 // Six crate faces: outward normal + quaternion rotating a thin-Z panel to face it.
 const FACES: {
@@ -41,8 +42,8 @@ const FACES: {
 ];
 
 interface InitData {
-	control: ArrayBufferLike;
-	xform: ArrayBufferLike;
+	ecs: ArrayBufferLike;
+	inst: ArrayBufferLike;
 	player: ArrayBufferLike;
 	ox: number;
 	oz: number;
@@ -56,32 +57,71 @@ interface SectorData {
 	originRow: number;
 }
 
-let state: Int32Array | null = null;
-let xform: Float32Array | null = null;
+let ecs: GameWorld | null = null;
+let instance: InstanceView | null = null;
 let playerPose: Float32Array | null = null;
-let world: RAPIER.World | null = null;
+let phys: RAPIER.World | null = null;
 let playerBody: RAPIER.RigidBody | null = null;
-const slots: (RAPIER.RigidBody | null)[] = new Array(MAX_BODIES).fill(null);
-const kinds: number[] = new Array(MAX_BODIES).fill(KIND_NONE);
+const bodyOf = new Map<number, RAPIER.RigidBody>();
 const sectorBodies = new Map<string, RAPIER.RigidBody>();
 const pending: SectorData[] = [];
 let acc = 0;
 let last = 0;
+let running = false;
 
-function allocSlot(): number {
-	for (let i = 0; i < MAX_BODIES; i++) if (!slots[i]) return i;
-	return -1;
+// mat4 (column-major, THREE.Matrix4 element order) from a unit quaternion + a
+// translation, scale 1. Local so the worker never imports three.
+function composeMat4(
+	out: Float32Array,
+	base: number,
+	tx: number,
+	ty: number,
+	tz: number,
+	qx: number,
+	qy: number,
+	qz: number,
+	qw: number,
+): void {
+	const x2 = qx + qx,
+		y2 = qy + qy,
+		z2 = qz + qz;
+	const xx = qx * x2,
+		xy = qx * y2,
+		xz = qx * z2;
+	const yy = qy * y2,
+		yz = qy * z2,
+		zz = qz * z2;
+	const wx = qw * x2,
+		wy = qw * y2,
+		wz = qw * z2;
+	out[base] = 1 - (yy + zz);
+	out[base + 1] = xy + wz;
+	out[base + 2] = xz - wy;
+	out[base + 3] = 0;
+	out[base + 4] = xy - wz;
+	out[base + 5] = 1 - (xx + zz);
+	out[base + 6] = yz + wx;
+	out[base + 7] = 0;
+	out[base + 8] = xz + wy;
+	out[base + 9] = yz - wx;
+	out[base + 10] = 1 - (xx + yy);
+	out[base + 11] = 0;
+	out[base + 12] = tx;
+	out[base + 13] = ty;
+	out[base + 14] = tz;
+	out[base + 15] = 1;
 }
 
-// A crate was destroyed on the main thread -> spawn its six face panels flying
-// outward + tumbling from the crate centre.
+// A crate was destroyed on the main thread -> spawn its six face panels as mecs
+// entities flying outward + tumbling, each backed by a dynamic Rapier body.
 function shatter(x: number, y: number, z: number): void {
-	if (!world) return;
+	if (!phys || !ecs) return;
+	const w = ecs;
 	for (let f = 0; f < FACES.length; f++) {
-		const s = allocSlot();
-		if (s < 0) break;
+		const eid = w.spawn();
+		if (eid < 0) break;
 		const { n, q } = FACES[f];
-		const rb = world.createRigidBody(
+		const rb = phys.createRigidBody(
 			RAPIER.RigidBodyDesc.dynamic()
 				.setTranslation(
 					x + n[0] * CRATE_HALF,
@@ -93,26 +133,30 @@ function shatter(x: number, y: number, z: number): void {
 				.setAngvel({ x: n[1] + n[2], y: n[0] + n[2], z: n[0] - n[1] })
 				.setCcdEnabled(true),
 		);
-		world.createCollider(
+		phys.createCollider(
 			RAPIER.ColliderDesc.cuboid(CRATE_HALF, CRATE_HALF, PANEL_THIN)
 				.setFriction(0.8)
 				.setRestitution(0.2),
 			rb,
 		);
-		slots[s] = rb;
-		kinds[s] = KIND_PANEL;
+		w.add(eid, 'Transform');
+		w.add(eid, 'Body');
+		w.add(eid, 'Flags');
+		w.stores.Body.kind[eid] = BODY_PANEL;
+		w.stores.Flags.mask[eid] = F_RENDER | F_DYNAMIC | F_BREAKABLE;
+		bodyOf.set(eid, rb);
 	}
 }
 
 function addSector(d: SectorData): void {
-	if (!world || sectorBodies.has(d.key)) return;
-	const body = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+	if (!phys || sectorBodies.has(d.key)) return;
+	const body = phys.createRigidBody(RAPIER.RigidBodyDesc.fixed());
 	const hx = TILE / 2;
 	const hy = WALL_H / 2;
 	for (let r = 0; r < d.rows; r++) {
 		for (let c = 0; c < d.cols; c++) {
 			if (!(d.tiles[r * d.cols + c] & SOLID)) continue;
-			world.createCollider(
+			phys.createCollider(
 				RAPIER.ColliderDesc.cuboid(hx, hy, hx).setTranslation(
 					(d.originCol + c + 0.5) * TILE,
 					hy,
@@ -127,35 +171,49 @@ function addSector(d: SectorData): void {
 
 function removeSector(key: string): void {
 	const body = sectorBodies.get(key);
-	if (!world || !body) return;
-	world.removeRigidBody(body);
+	if (!phys || !body) return;
+	phys.removeRigidBody(body);
 	sectorBodies.delete(key);
 }
 
-function writeTransforms(): void {
-	if (!xform) return;
-	for (let i = 0; i < MAX_BODIES; i++) {
-		const b = i * FLOATS_PER_BODY;
-		const rb = slots[i];
-		if (!rb) {
-			xform[b + 7] = KIND_NONE;
-			continue;
-		}
+// Copy every simulated body's Rapier transform into the shared mecs Transform, then
+// compact renderables into dense AoS mat4 rows for the instance buffer.
+function syncAndPack(): void {
+	if (!ecs || !instance) return;
+	const w = ecs;
+	const T = w.stores.Transform;
+	const mats = instance.matrices;
+	let count = 0;
+	for (const eid of w.query(['Body'])) {
+		const rb = bodyOf.get(eid);
+		if (!rb) continue;
 		const t = rb.translation();
 		const q = rb.rotation();
-		xform[b] = t.x;
-		xform[b + 1] = t.y;
-		xform[b + 2] = t.z;
-		xform[b + 3] = q.x;
-		xform[b + 4] = q.y;
-		xform[b + 5] = q.z;
-		xform[b + 6] = q.w;
-		xform[b + 7] = kinds[i];
+		T.px[eid] = t.x;
+		T.py[eid] = t.y;
+		T.pz[eid] = t.z;
+		T.qx[eid] = q.x;
+		T.qy[eid] = q.y;
+		T.qz[eid] = q.z;
+		T.qw[eid] = q.w;
+		composeMat4(
+			mats,
+			count * FLOATS_PER_INSTANCE,
+			t.x,
+			t.y,
+			t.z,
+			q.x,
+			q.y,
+			q.z,
+			q.w,
+		);
+		count++;
 	}
+	instance.header[INST_COUNT] = count;
 }
 
 function loop(now: number): void {
-	if (!world || !state || Atomics.load(state, STATE_RUNNING) === 0) return;
+	if (!phys || !ecs || !running) return;
 	acc += Math.min(0.1, (now - last) / 1000);
 	last = now;
 	if (playerBody && playerPose) {
@@ -166,36 +224,38 @@ function loop(now: number): void {
 		});
 	}
 	while (acc >= FIXED_DT) {
-		world.step();
+		phys.step();
 		acc -= FIXED_DT;
 	}
-	writeTransforms();
-	Atomics.add(state, STATE_TICK, 1);
+	ecs.beginWrite();
+	syncAndPack();
+	ecs.step();
+	ecs.endWrite();
 	setTimeout(() => loop(performance.now()), 1000 / 60);
 }
 
 async function init(d: InitData): Promise<void> {
-	state = new Int32Array(d.control);
-	xform = new Float32Array(d.xform);
+	ecs = createGameWorld(d.ecs);
+	instance = createInstanceView(d.inst);
 	playerPose = new Float32Array(d.player);
 
 	await RAPIER.init();
-	world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+	phys = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
 
-	const ground = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
-	world.createCollider(
+	const ground = phys.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+	phys.createCollider(
 		RAPIER.ColliderDesc.cuboid(500, 0.5, 500).setTranslation(0, -0.5, 0),
 		ground,
 	);
 
-	playerBody = world.createRigidBody(
+	playerBody = phys.createRigidBody(
 		RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(
 			d.ox,
 			PLAYER_HALF + PLAYER_RADIUS,
 			d.oz,
 		),
 	);
-	world.createCollider(
+	phys.createCollider(
 		RAPIER.ColliderDesc.capsule(PLAYER_HALF, PLAYER_RADIUS),
 		playerBody,
 	);
@@ -203,28 +263,25 @@ async function init(d: InitData): Promise<void> {
 	for (const s of pending) addSector(s);
 	pending.length = 0;
 
-	Atomics.store(state, STATE_BODY_COUNT, MAX_BODIES);
-	Atomics.store(state, STATE_RUNNING, 1);
-	Atomics.store(state, STATE_READY, 1);
+	running = true;
 	last = performance.now();
 	loop(last);
 }
 
-// eslint-disable-next-line no-restricted-globals
-self.onmessage = (e: MessageEvent) => {
+globalThis.addEventListener('message', (e: MessageEvent) => {
 	const d = e.data as { type: string } & Partial<InitData> &
 		Partial<SectorData> & { x?: number; y?: number; z?: number };
-	if (d.type === 'init' && d.control && d.xform && d.player) {
+	if (d.type === 'init' && d.ecs && d.inst && d.player) {
 		void init(d as InitData);
 	} else if (d.type === 'addSector' && d.tiles) {
 		const s = d as SectorData;
-		if (world) addSector(s);
+		if (phys) addSector(s);
 		else pending.push(s);
 	} else if (d.type === 'removeSector' && d.key) {
 		removeSector(d.key);
 	} else if (d.type === 'shatter') {
 		shatter(d.x ?? 0, d.y ?? 0, d.z ?? 0);
-	} else if (d.type === 'stop' && state) {
-		Atomics.store(state, STATE_RUNNING, 0);
+	} else if (d.type === 'stop') {
+		running = false;
 	}
-};
+});
