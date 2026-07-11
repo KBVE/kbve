@@ -22,6 +22,7 @@ import {
 	FLOATS_PER_INSTANCE,
 } from '../mecs/schema';
 import { PROPS_SCHEMA, PROPS_CAP } from '../mecs/propsSchema';
+import { PROP_CRATE } from '../prop/kinds';
 
 const FIXED_DT = 1 / 60;
 const PLAYER_HALF = 0.6;
@@ -73,7 +74,19 @@ let playerBody: RAPIER.RigidBody | null = null;
 let propStaticBody: RAPIER.RigidBody | null = null;
 const bodyOf = new Map<number, RAPIER.RigidBody>();
 const sectorBodies = new Map<string, RAPIER.RigidBody>();
-const propCollider = new Map<number, RAPIER.Collider>();
+// Prop colliders keyed by eid, tagged with the footprint they were built from.
+// Streaming reuses eids (despawn+respawn in one synchronous rebuild), so identity
+// is the footprint values, not the eid — a mismatch means the slot now holds a
+// different prop and the collider must be rebuilt at the new spot.
+interface PropRec {
+	col: RAPIER.Collider;
+	px: number;
+	py: number;
+	pz: number;
+	hx: number;
+	hz: number;
+}
+const propCollider = new Map<number, PropRec>();
 const pending: SectorData[] = [];
 // Reused per-frame scratch so the fixed-step loop allocates nothing steady-state.
 const deadScratch: number[] = [];
@@ -195,24 +208,42 @@ function syncPropColliders(): void {
 	if (!phys || !props || !propStaticBody) return;
 	const T = props.stores.Transform3;
 	const C = props.stores.Collider;
+	const P = props.stores.Prop;
 	propCur.clear();
 	for (const eid of props.query(['Prop', 'Collider'])) {
 		propCur.add(eid);
-		if (propCollider.has(eid)) continue;
+		const px = T.px[eid];
+		const py = T.py[eid];
+		const pz = T.pz[eid];
 		const hx = C.hx[eid];
 		const hz = C.hz[eid];
+		const rec = propCollider.get(eid);
+		if (
+			rec &&
+			rec.px === px &&
+			rec.py === py &&
+			rec.pz === pz &&
+			rec.hx === hx &&
+			rec.hz === hz
+		) {
+			continue;
+		}
+		if (rec) phys.removeCollider(rec.col, false);
 		const hy = Math.max(hx, hz);
+		// Crates use a centre-y transform (py = half-height); everything else (stones)
+		// rests its base on py. Place the collider box to match the visible prop.
+		const yc = P.kind[eid] === PROP_CRATE ? py : py + hy;
 		const col = phys.createCollider(
 			RAPIER.ColliderDesc.cuboid(hx, hy, hz)
-				.setTranslation(T.px[eid], T.py[eid] + hy, T.pz[eid])
+				.setTranslation(px, yc, pz)
 				.setFriction(0.9),
 			propStaticBody,
 		);
-		propCollider.set(eid, col);
+		propCollider.set(eid, { col, px, py, pz, hx, hz });
 	}
-	for (const [eid, col] of propCollider) {
+	for (const [eid, rec] of propCollider) {
 		if (propCur.has(eid)) continue;
-		phys.removeCollider(col, false);
+		phys.removeCollider(rec.col, false);
 		propCollider.delete(eid);
 	}
 }
