@@ -355,6 +355,21 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		}
 	}
 
+	// The world is a continuous lattice, but each sector's geometry treats its
+	// out-of-bounds edge as solid and renders a perimeter wall. Force the border
+	// ring to WALL so collision (which samples the tile grid) matches that rendered
+	// wall — otherwise the neighbour sector's floor shows through and the player
+	// walks straight past the seam wall. Connector gates are re-carved right after,
+	// so the mirrored gate on each side stays the one opening between sectors.
+	for (let tc = 0; tc < cols; tc++) {
+		tiles[tc] = WALL;
+		tiles[(rows - 1) * cols + tc] = WALL;
+	}
+	for (let tr = 0; tr < rows; tr++) {
+		tiles[tr * cols] = WALL;
+		tiles[tr * cols + cols - 1] = WALL;
+	}
+
 	carveConnectorGates(tiles, cols, sector.connectors);
 
 	const variant = Math.floor(hash01(sx, sy, seed | 0) * VARIANTS);
