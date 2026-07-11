@@ -10,6 +10,7 @@ import { PlayerBars } from '../game/hud/PlayerBars';
 import { DoorPrompt } from '../game/door/DoorPrompt';
 import { PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
+import { PhysicsBodies } from '../game/sab/PhysicsBodies';
 import { EquipmentPanel } from '../game/character/EquipmentPanel';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { LOADOUT } from '../game/viewmodel/equipment';
@@ -70,6 +71,7 @@ export function App() {
 				<Suspense fallback={null}>
 					<PropRenderer ambient={0.04} />
 				</Suspense>
+				<PhysicsBodies />
 				<TorchPlacer />
 				<CratePlacer />
 				<AimReticle onAim={setAim} />

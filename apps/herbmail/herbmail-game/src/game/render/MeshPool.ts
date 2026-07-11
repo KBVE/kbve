@@ -67,12 +67,29 @@ export function crateConfig(base: THREE.Object3D): ModelConfig {
 	};
 }
 
+// The crate GLB bakes its wood texture into the emissive slot with a black base
+// colour, so it renders fully self-lit and ignores scene lights. Rewire the
+// emissive map into the albedo slot and clear emissive so torch light drives it.
+function delight(mat: THREE.MeshStandardMaterial): void {
+	if (!mat.emissiveMap) return;
+	mat.map = mat.emissiveMap;
+	mat.emissiveMap = null;
+	mat.emissive.setRGB(0, 0, 0);
+	mat.color.setRGB(1, 1, 1);
+	mat.roughness = 1;
+	mat.metalness = 0;
+	mat.needsUpdate = true;
+}
+
 function prep(base: THREE.Object3D, kind: string): THREE.Object3D {
 	const clone = base.clone(true);
 	clone.traverse((o) => {
 		const mesh = o as THREE.Mesh;
 		if (!mesh.isMesh) return;
-		const src = mesh.material as THREE.MeshStandardMaterial;
+		const src = (mesh.material = (
+			mesh.material as THREE.MeshStandardMaterial
+		).clone());
+		delight(src);
 		if (src.map) {
 			src.map.magFilter = THREE.NearestFilter;
 			src.map.minFilter = THREE.NearestMipmapNearestFilter;
@@ -86,7 +103,10 @@ function prep(base: THREE.Object3D, kind: string): THREE.Object3D {
 function disposeObject(obj: THREE.Object3D): void {
 	obj.traverse((o) => {
 		const mesh = o as THREE.Mesh;
-		if (mesh.isMesh && !mesh.userData.shared) mesh.geometry?.dispose();
+		if (mesh.isMesh && !mesh.userData.shared) {
+			mesh.geometry?.dispose();
+			(mesh.material as THREE.Material | undefined)?.dispose();
+		}
 	});
 }
 

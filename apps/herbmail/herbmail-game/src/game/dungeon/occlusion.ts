@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { TILE } from '../config';
-import { WALL } from '../geometry/grid';
+import { OCCLUDES } from '../geometry/grid';
 import { useActiveRooms } from './store';
 
 // Wall-occlusion field for the currently-streamed rooms: a red-channel tilemap
@@ -56,7 +56,7 @@ export function useOcclusionField(): OcclusionField {
 		for (const { desc } of rooms) {
 			for (let rr = 0; rr < desc.rows; rr++) {
 				for (let cc = 0; cc < desc.cols; cc++) {
-					if (desc.tiles[rr * desc.cols + cc] !== WALL) continue;
+					if (!(desc.tiles[rr * desc.cols + cc] & OCCLUDES)) continue;
 					const gx = desc.originCol + cc - minC;
 					const gy = desc.originRow + rr - minR;
 					data[gy * cols + gx] = 254;

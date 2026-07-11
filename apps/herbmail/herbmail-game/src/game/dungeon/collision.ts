@@ -1,10 +1,11 @@
 import { TILE } from '../config';
-import { WALL, COLUMN } from '../geometry/grid';
+import { SOLID, PILLAR } from '../geometry/grid';
 import { cellAtWorld } from './ecs';
 import { CELL } from './generate';
 import { genSector } from './sector';
 import { getDungeon, DUNGEON_SEED } from './store';
-import { crateAtTile } from '../prop/crateGrid';
+import { Collider, Transform3 } from '@kbve/laser/ecs';
+import { colliderAt } from '../prop/crateGrid';
 
 const COLUMN_R = 0.55;
 
@@ -22,15 +23,26 @@ export function solidAtWorld(x: number, z: number): boolean {
 	if (lc < 0 || lc >= desc.cols || lr < 0 || lr >= desc.rows) return true;
 
 	const t = desc.tiles[lr * desc.cols + lc];
-	if (t === WALL) return true;
-	if (t === COLUMN) {
+	// Sub-tile solids (pillars) block only within their radius; full-tile solids
+	// (walls) block the whole cell.
+	if (t & PILLAR) {
 		const ccx = (wc + 0.5) * TILE;
 		const ccz = (wr + 0.5) * TILE;
 		const ex = x - ccx;
 		const ez = z - ccz;
 		return ex * ex + ez * ez < COLUMN_R * COLUMN_R;
 	}
-	return crateAtTile(wc, wr);
+	if (t & SOLID) return true;
+	// Solid props block only their own AABB footprint about the entity centre,
+	// not the whole 3m cell — the player can hug their edges.
+	const propEid = colliderAt(wc, wr);
+	if (propEid >= 0) {
+		return (
+			Math.abs(x - Transform3.px[propEid]) < Collider.hx[propEid] &&
+			Math.abs(z - Transform3.pz[propEid]) < Collider.hz[propEid]
+		);
+	}
+	return false;
 }
 
 export function dungeonSpawn(): [number, number, number] {
