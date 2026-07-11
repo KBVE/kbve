@@ -11,7 +11,8 @@ import {
 } from './torch';
 import { spawnLight, LIGHT_PRESETS } from './lights';
 import { spawnFirefly } from './firefly';
-import { spawnCrate, crateTransform } from './crate';
+import { spawnCrate } from './crate';
+import { scatterDecor } from './decor';
 import { PROP_CANDLE, PROP_CRATE } from './kinds';
 import { placedForSector, isSuppressed } from './placed';
 import { TILE, WALL_H } from '../config';
@@ -68,44 +69,6 @@ function scatterFireflies(
 		const seed =
 			hash01(desc.originCol + col, desc.originRow + row, i) * 6.283;
 		spawnFirefly(world, roomEid, [x, y, z], seed);
-	}
-}
-
-const CRATE_MIN = 0;
-const CRATE_MAX = 2;
-
-// Scatter a few breakable crates on interior floor tiles, deterministic by the
-// room cell so they stream back identically — unless one was broken (suppressed)
-// or a player-placed prop already sits on the tile.
-function scatterCrates(
-	world: DungeonWorld['world'],
-	roomEid: number,
-	desc: RoomDesc,
-): void {
-	const floors: number[] = [];
-	for (let row = 1; row < desc.rows - 1; row++) {
-		for (let col = 1; col < desc.cols - 1; col++) {
-			if (desc.tiles[row * desc.cols + col] === FLOOR)
-				floors.push(row * desc.cols + col);
-		}
-	}
-	if (floors.length === 0) return;
-
-	const roll = hash01(desc.cx, desc.cy, 0x0c7a7e);
-	const count = CRATE_MIN + Math.floor(roll * (CRATE_MAX - CRATE_MIN + 1));
-
-	for (let i = 0; i < count; i++) {
-		const pick = Math.floor(
-			hash01(desc.cx, desc.cy, 0xc7a7 + i * 601) * floors.length,
-		);
-		const cell = floors[pick];
-		const col = cell % desc.cols;
-		const row = (cell - col) / desc.cols;
-		const wc = desc.originCol + col;
-		const wr = desc.originRow + row;
-		const pos = crateTransform(wc, wr);
-		if (isSuppressed(pos)) continue;
-		spawnCrate(world, roomEid, pos);
 	}
 }
 
@@ -167,7 +130,7 @@ export function spawnRoomProps(dw: DungeonWorld, roomEid: number): void {
 	}
 
 	scatterFireflies(world, roomEid, desc);
-	scatterCrates(world, roomEid, desc);
+	scatterDecor(dw.world, roomEid, desc);
 
 	const { cx: sx, cy: sy } = dw.cellOf(roomEid);
 	for (const rec of placedForSector(sx, sy)) {

@@ -10,6 +10,7 @@ import { equipmentById } from '../viewmodel/equipment';
 import { SWING, triggerSwing } from './melee';
 import { useMelee } from './useMelee';
 import { useCrateBreak } from './useCrateBreak';
+import { useStoneMine } from './useStoneMine';
 import { tickPlayerStats } from './playerStats';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
 import { CharacterShadow } from './CharacterShadow';
@@ -101,6 +102,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	const handleRef = useRef<CharacterHandle | null>(null);
 	useMelee();
 	useCrateBreak();
+	useStoneMine();
 	const keys = useRef<Record<string, boolean>>({});
 	const fwd = useRef(new THREE.Vector3());
 	const right = useRef(new THREE.Vector3());
