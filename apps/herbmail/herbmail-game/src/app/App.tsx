@@ -3,8 +3,10 @@ import { Canvas } from '@react-three/fiber';
 import { Dungeon } from '../game/dungeon/Dungeon';
 import { AimReticle } from '../game/hud/AimReticle';
 import { TorchPlacer } from '../game/prop/TorchPlacer';
+import { CratePlacer } from '../game/prop/CratePlacer';
 import { PropRenderer } from '../game/render/PropRenderer';
 import { Hud } from '../game/hud/Hud';
+import { PlayerBars } from '../game/hud/PlayerBars';
 import { DoorPrompt } from '../game/door/DoorPrompt';
 import { PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
@@ -48,7 +50,7 @@ export function App() {
 				shadows="percentage"
 				dpr={psx.dpr}
 				gl={{ antialias: true, powerPreference: 'high-performance' }}
-				camera={{ fov: psx.fov, near: 0.05, far: 100 }}
+				camera={{ fov: psx.fov, near: 0.05, far: 34 }}
 				onCreated={({ camera, scene, gl }) => {
 					(window as unknown as Record<string, unknown>).__vm = {
 						camera,
@@ -69,9 +71,11 @@ export function App() {
 					<PropRenderer ambient={0.04} />
 				</Suspense>
 				<TorchPlacer />
+				<CratePlacer />
 				<AimReticle onAim={setAim} />
 			</Canvas>
 			<Hud kind={aim} equippedId={equippedId} />
+			<PlayerBars />
 			<DoorPrompt />
 			<EquipmentPanel />
 			{debug && <HeldGripDebug />}

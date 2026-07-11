@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { COVE_R, TILE, WALL_H, WALL_SEG } from '../config';
+import { COVE_R, TILE, WALL_H, WALL_FLAT_SEG } from '../config';
 import { insetUV } from './uv';
 import { exposedFaces, faceMatrix, isBay, worldCol, worldRow } from './faces';
 import { ARCH, gridTile, type Grid } from './grid';
@@ -53,8 +53,8 @@ export function buildWalls(grid: Grid, variant = 0): THREE.BufferGeometry[] {
 			const quad = new THREE.PlaneGeometry(
 				TILE,
 				SEG_H,
-				WALL_SEG,
-				WALL_SEG,
+				WALL_FLAT_SEG,
+				WALL_FLAT_SEG,
 			);
 			insetUV(quad);
 			if (flip) flipU(quad);

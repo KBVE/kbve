@@ -43,6 +43,22 @@ export interface CellOwner {
 	id: number;
 }
 
+export const SIDE_N = 0;
+export const SIDE_E = 1;
+export const SIDE_S = 2;
+export const SIDE_W = 3;
+export type Side =
+	| typeof SIDE_N
+	| typeof SIDE_E
+	| typeof SIDE_S
+	| typeof SIDE_W;
+
+export interface Connector {
+	side: Side;
+	lx: number;
+	ly: number;
+}
+
 export interface Sector {
 	sx: number;
 	sy: number;
@@ -52,10 +68,12 @@ export interface Sector {
 	entrance: number;
 	cellOwner: Map<number, CellOwner>;
 	adj: Map<number, number[]>;
+	connectors: Connector[];
 }
 
 export const OWNER_ROOM = 0;
 export const OWNER_CORRIDOR = 1;
+const CONNECTOR_ID_BASE = 900;
 
 export function floorDiv(n: number, d: number): number {
 	return Math.floor(n / d);
@@ -328,6 +346,7 @@ function applyLocks(
 	chosen.sort((p, q) => depth[p.child] - depth[q.child]);
 
 	const lockedChildren = new Set(chosen.map((c) => c.child));
+	const usedKeyRooms = new Set<number>();
 	let keyId = 0;
 	for (const { e, child } of chosen) {
 		const far = subtree(child, parent);
@@ -345,14 +364,122 @@ function applyLocks(
 			ancestor >= 0
 				? subtree(ancestor, parent)
 				: new Set(rooms.map((r) => r.id));
-		const keyRooms = [...region].filter((id) => !far.has(id));
+		const keyRooms = [...region].filter(
+			(id) => !far.has(id) && !usedKeyRooms.has(id),
+		);
 		if (!keyRooms.length) continue;
 		e.locked = true;
 		e.keyId = keyId;
 		const keyRoom = keyRooms[rng.int(0, keyRooms.length - 1)];
 		rooms[keyRoom].keyId = keyId;
+		usedKeyRooms.add(keyRoom);
 		keyId++;
 	}
+}
+
+function borderPos(
+	seed: number,
+	ax: number,
+	ay: number,
+	bx: number,
+	by: number,
+): number {
+	const first = ax < bx || (ax === bx && ay <= by);
+	const x1 = first ? ax : bx;
+	const y1 = first ? ay : by;
+	const x2 = first ? bx : ax;
+	const y2 = first ? by : ay;
+	const h = hashInt(
+		Math.imul(x1, 73856093) ^ Math.imul(x2, 19349663),
+		Math.imul(y1, 83492791) ^ Math.imul(y2, 49979687),
+		(seed | 0) ^ 0xc07,
+	);
+	return 1 + (h % (SECTOR - 2));
+}
+
+function nearestRoom(rooms: SRoom[], lx: number, ly: number): number {
+	let best = 0;
+	let bd = Infinity;
+	for (const r of rooms) {
+		const c = roomCenter(r);
+		const d = Math.abs(c.lx - lx) + Math.abs(c.ly - ly);
+		if (d < bd) {
+			bd = d;
+			best = r.id;
+		}
+	}
+	return best;
+}
+
+function carveCellPath(
+	rooms: SRoom[],
+	fromLx: number,
+	fromLy: number,
+	roomId: number,
+	cellOwner: Map<number, CellOwner>,
+	id: number,
+): void {
+	const c = roomCenter(rooms[roomId]);
+	let x = fromLx;
+	let y = fromLy;
+	const step = (): void => {
+		const ci = cellIndex(x, y);
+		if (!cellOwner.has(ci)) cellOwner.set(ci, { kind: OWNER_CORRIDOR, id });
+	};
+	step();
+	while (x !== c.lx) {
+		x += x < c.lx ? 1 : -1;
+		step();
+	}
+	while (y !== c.ly) {
+		y += y < c.ly ? 1 : -1;
+		step();
+	}
+}
+
+function addConnectors(
+	seed: number,
+	sx: number,
+	sy: number,
+	rooms: SRoom[],
+	cellOwner: Map<number, CellOwner>,
+): Connector[] {
+	const specs: { side: Side; nx: number; ny: number }[] = [
+		{ side: SIDE_N, nx: sx, ny: sy - 1 },
+		{ side: SIDE_E, nx: sx + 1, ny: sy },
+		{ side: SIDE_S, nx: sx, ny: sy + 1 },
+		{ side: SIDE_W, nx: sx - 1, ny: sy },
+	];
+	const connectors: Connector[] = [];
+	for (let i = 0; i < specs.length; i++) {
+		const { side, nx, ny } = specs[i];
+		const pos = borderPos(seed, sx, sy, nx, ny);
+		let lx: number;
+		let ly: number;
+		if (side === SIDE_N) {
+			lx = pos;
+			ly = 0;
+		} else if (side === SIDE_S) {
+			lx = pos;
+			ly = SECTOR - 1;
+		} else if (side === SIDE_W) {
+			lx = 0;
+			ly = pos;
+		} else {
+			lx = SECTOR - 1;
+			ly = pos;
+		}
+		carveCellPath(
+			rooms,
+			lx,
+			ly,
+			nearestRoom(rooms, lx, ly),
+			cellOwner,
+			CONNECTOR_ID_BASE + i,
+		);
+		connectors.push({ side, lx, ly });
+	}
+	return connectors;
 }
 
 export function genSector(seed: number, sx: number, sy: number): Sector {
@@ -418,5 +545,17 @@ export function genSector(seed: number, sx: number, sy: number): Sector {
 			if (!cellOwner.has(ci))
 				cellOwner.set(ci, { kind: OWNER_CORRIDOR, id: e.id });
 
-	return { sx, sy, seed: sseed, rooms, edges, entrance, cellOwner, adj };
+	const connectors = addConnectors(seed, sx, sy, rooms, cellOwner);
+
+	return {
+		sx,
+		sy,
+		seed: sseed,
+		rooms,
+		edges,
+		entrance,
+		cellOwner,
+		adj,
+		connectors,
+	};
 }

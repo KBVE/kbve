@@ -89,6 +89,23 @@ export const LOADOUT: Equipment[] = [
 		},
 	},
 	{
+		id: 'crate',
+		kind: 'tool',
+		label: 'crate',
+		primary: 'place',
+		secondary: 'break',
+		reload: false,
+		primaryImpulse: USE,
+		secondaryImpulse: REACH,
+		buildItem: () => null,
+		modelUrl: '/models/crate.glb',
+		grip: {
+			pos: [0.1, -0.12, 0.15],
+			rot: [0.2, 0.4, 0],
+			scale: 0.45,
+		},
+	},
+	{
 		id: 'sword',
 		kind: 'weapon',
 		label: 'sword',

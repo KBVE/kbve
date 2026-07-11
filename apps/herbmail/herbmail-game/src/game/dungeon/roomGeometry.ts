@@ -7,55 +7,67 @@ import {
 	buildCoves,
 	buildFloor,
 	buildWalls,
-	type BayGeometry,
 } from '../geometry';
 import { makeLocalGrid, type RoomDesc } from './generate';
+import { chunkGeometry } from './chunkGeometry';
 
+// Each category is a flat list of per-chunk geometries (see chunkGeometry): the
+// merged sector mesh is diced into a grid so offscreen chunks frustum-cull out.
 export interface RoomGeoSet {
-	walls: THREE.BufferGeometry[];
-	floor: THREE.BufferGeometry;
-	ceiling: THREE.BufferGeometry;
-	arch: THREE.BufferGeometry;
-	cove: THREE.BufferGeometry;
-	corner: THREE.BufferGeometry;
-	bays: BayGeometry;
+	walls: THREE.BufferGeometry[][];
+	floor: THREE.BufferGeometry[];
+	ceiling: THREE.BufferGeometry[];
+	arch: THREE.BufferGeometry[];
+	cove: THREE.BufferGeometry[];
+	corner: THREE.BufferGeometry[];
+	bays: { frames: THREE.BufferGeometry[]; backs: THREE.BufferGeometry[] };
 }
 
-// Floor + ceiling are identical for every room (they only depend on cell dims),
-// so build them once and share the same buffers across all rooms.
-let sharedFloor: THREE.BufferGeometry | null = null;
-let sharedCeiling: THREE.BufferGeometry | null = null;
+// Chunk a freshly-built merged geometry, then free the merged original — only the
+// diced chunks stay resident.
+function dice(merged: THREE.BufferGeometry): THREE.BufferGeometry[] {
+	const chunks = chunkGeometry(merged);
+	merged.dispose();
+	return chunks;
+}
 
-function floorGeo(desc: RoomDesc): THREE.BufferGeometry {
-	if (!sharedFloor) sharedFloor = buildFloor(makeLocalGrid(desc));
+// Floor + ceiling are flat horizontal planes: chunking them is wasted draw calls
+// (no overdraw to cull, always in view). Keep each as ONE shared mesh, built once
+// and reused across every sector via the group transform.
+let sharedFloor: THREE.BufferGeometry[] | null = null;
+let sharedCeiling: THREE.BufferGeometry[] | null = null;
+
+function floorGeo(desc: RoomDesc): THREE.BufferGeometry[] {
+	if (!sharedFloor) sharedFloor = [buildFloor(makeLocalGrid(desc))];
 	return sharedFloor;
 }
-function ceilingGeo(desc: RoomDesc): THREE.BufferGeometry {
-	if (!sharedCeiling) sharedCeiling = buildCeiling(makeLocalGrid(desc));
+function ceilingGeo(desc: RoomDesc): THREE.BufferGeometry[] {
+	if (!sharedCeiling) sharedCeiling = [buildCeiling(makeLocalGrid(desc))];
 	return sharedCeiling;
 }
 
 function buildSet(desc: RoomDesc): RoomGeoSet {
 	const g = makeLocalGrid(desc);
 	const v = desc.variant;
+	const bays = buildBays(g, v);
 	return {
-		walls: buildWalls(g, v),
+		walls: buildWalls(g, v).map(dice),
 		floor: floorGeo(desc),
 		ceiling: ceilingGeo(desc),
-		arch: buildArches(g, v),
-		cove: buildCoves(g),
-		corner: buildCornerCoves(g, v),
-		bays: buildBays(g, v),
+		arch: dice(buildArches(g, v)),
+		cove: dice(buildCoves(g)),
+		corner: dice(buildCornerCoves(g, v)),
+		bays: { frames: dice(bays.frames), backs: dice(bays.backs) },
 	};
 }
 
 function disposeSet(set: RoomGeoSet): void {
-	for (const w of set.walls) w.dispose();
-	set.arch.dispose();
-	set.cove.dispose();
-	set.corner.dispose();
-	set.bays.frames.dispose();
-	set.bays.backs.dispose();
+	for (const w of set.walls) for (const c of w) c.dispose();
+	for (const c of set.arch) c.dispose();
+	for (const c of set.cove) c.dispose();
+	for (const c of set.corner) c.dispose();
+	for (const c of set.bays.frames) c.dispose();
+	for (const c of set.bays.backs) c.dispose();
 	// floor/ceiling are shared singletons — never disposed here.
 }
 

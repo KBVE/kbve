@@ -1,7 +1,17 @@
 import { ARCH, FLOOR, WALL, type Grid } from '../geometry/grid';
 import { hash01 } from '../geometry/rng';
+import {
+	genSector,
+	SECTOR,
+	cellIndex as sectorCellIndex,
+	SIDE_N,
+	SIDE_S,
+	SIDE_W,
+	type Connector,
+} from './sector';
 
 export const CELL = 6;
+export const SECTOR_TILES = SECTOR * CELL;
 
 export const DOOR_N = 1;
 export const DOOR_E = 2;
@@ -10,6 +20,7 @@ export const DOOR_W = 8;
 
 const DOOR_THRESHOLD = 0.62;
 const TORCH_KEEP = 0.28;
+const TORCH_GAP = 3;
 
 // Per-cell layout style, folded into the signature so cached geometry stays
 // correct (bounded: 16 doors x VARIANTS x STYLES). 0 = open room, 1 = room with
@@ -242,5 +253,125 @@ export function makeLocalGrid(desc: RoomDesc): Grid {
 		originCol: 0,
 		originRow: 0,
 		tileAt: (col: number, row: number) => desc.tiles[row * desc.cols + col],
+	};
+}
+
+function tileOfGrid(
+	tiles: Uint8Array,
+	cols: number,
+	rows: number,
+	col: number,
+	row: number,
+): number {
+	if (col < 0 || col >= cols || row < 0 || row >= rows) return WALL;
+	return tiles[row * cols + col];
+}
+
+function genTorchesGrid(
+	tiles: Uint8Array,
+	cols: number,
+	rows: number,
+	variant: number,
+): TorchSlot[] {
+	const out: TorchSlot[] = [];
+	const lastOnLine = new Map<number, number>();
+	for (let row = 1; row < rows - 1; row++) {
+		for (let col = 1; col < cols - 1; col++) {
+			if (tiles[row * cols + col] !== FLOOR) continue;
+			for (const d of TORCH_DIRS) {
+				if (
+					tileOfGrid(tiles, cols, rows, col + d.dc, row + d.dr) !==
+					WALL
+				)
+					continue;
+				const h = hash01(col, row, (d.di + 1) * 131 + variant * 997);
+				if (h >= TORCH_KEEP) continue;
+				const horiz = d.di < 2;
+				const along = horiz ? col : row;
+				const line = d.di * 1000 + (horiz ? row : col);
+				const last = lastOnLine.get(line);
+				if (last !== undefined && along - last < TORCH_GAP) continue;
+				lastOnLine.set(line, along);
+				out.push({ col, row, di: d.di });
+			}
+		}
+	}
+	return out;
+}
+
+const GATE_HALF = 1;
+
+// Punch an ARCH gateway on the outward-facing tile line of each connector cell.
+// The connector cell sits on the sector border, so its outward tiles face OOB;
+// walls skip an ARCH tile's OOB face and the arch builder draws a frame there, so
+// this opens a passage that lines up with the mirrored gate in the neighbour
+// sector (both derive the same border position from the shared cell pair).
+function carveConnectorGates(
+	tiles: Uint8Array,
+	cols: number,
+	connectors: Connector[],
+): void {
+	for (const c of connectors) {
+		const baseCol = c.lx * CELL;
+		const baseRow = c.ly * CELL;
+		const mid = Math.floor(CELL / 2);
+		for (let k = -GATE_HALF; k <= GATE_HALF; k++) {
+			let tc: number;
+			let tr: number;
+			if (c.side === SIDE_N) {
+				tc = baseCol + mid + k;
+				tr = baseRow;
+			} else if (c.side === SIDE_S) {
+				tc = baseCol + mid + k;
+				tr = baseRow + CELL - 1;
+			} else if (c.side === SIDE_W) {
+				tc = baseCol;
+				tr = baseRow + mid + k;
+			} else {
+				tc = baseCol + CELL - 1;
+				tr = baseRow + mid + k;
+			}
+			tiles[tr * cols + tc] = ARCH;
+		}
+	}
+}
+
+// One carved tile grid for a whole sector: a tile is FLOOR when its lattice cell
+// is owned by a room or corridor, else solid WALL rock. Walls, floors, coves and
+// niches all fall out of the geometry builders reading this grid. Openings between
+// adjacent owned cells are open by construction, so the room graph's connectivity
+// is exactly what the player can walk.
+export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
+	const sector = genSector(seed, sx, sy);
+	const cols = SECTOR_TILES;
+	const rows = SECTOR_TILES;
+	const tiles = new Uint8Array(cols * rows);
+	for (let tr = 0; tr < rows; tr++) {
+		const ly = Math.floor(tr / CELL);
+		for (let tc = 0; tc < cols; tc++) {
+			const lx = Math.floor(tc / CELL);
+			const owned = sector.cellOwner.has(sectorCellIndex(lx, ly));
+			tiles[tr * cols + tc] = owned ? FLOOR : WALL;
+		}
+	}
+
+	carveConnectorGates(tiles, cols, sector.connectors);
+
+	const variant = Math.floor(hash01(sx, sy, seed | 0) * VARIANTS);
+	const torches = genTorchesGrid(tiles, cols, rows, variant);
+
+	return {
+		cx: sx,
+		cy: sy,
+		cols,
+		rows,
+		originCol: sx * SECTOR_TILES,
+		originRow: sy * SECTOR_TILES,
+		tiles,
+		doors: 0,
+		variant,
+		signature: `sector:${sx}:${sy}`,
+		torches,
+		spawnSlots: [],
 	};
 }

@@ -9,6 +9,8 @@ import { useEquippedId } from '../viewmodel/store';
 import { equipmentById } from '../viewmodel/equipment';
 import { SWING, triggerSwing } from './melee';
 import { useMelee } from './useMelee';
+import { useCrateBreak } from './useCrateBreak';
+import { tickPlayerStats } from './playerStats';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
 import { CharacterShadow } from './CharacterShadow';
 
@@ -66,9 +68,21 @@ function clampBoom(
 	return max;
 }
 
+function moveAxis(pos: THREE.Vector3, dx: number, dz: number): void {
+	if (dx !== 0 && !solidAtWorld(pos.x + dx + Math.sign(dx) * RADIUS, pos.z))
+		pos.x += dx;
+	if (dz !== 0 && !solidAtWorld(pos.x, pos.z + dz + Math.sign(dz) * RADIUS))
+		pos.z += dz;
+}
+
+// Sub-step so a single frame never advances more than RADIUS (< one tile): a long
+// frame or fast move would otherwise sample past a thin wall and tunnel through it.
 function tryMove(pos: THREE.Vector3, dx: number, dz: number): void {
-	if (!solidAtWorld(pos.x + dx + Math.sign(dx) * RADIUS, pos.z)) pos.x += dx;
-	if (!solidAtWorld(pos.x, pos.z + dz + Math.sign(dz) * RADIUS)) pos.z += dz;
+	const dist = Math.hypot(dx, dz);
+	const steps = Math.min(64, Math.max(1, Math.ceil(dist / RADIUS)));
+	const sx = dx / steps;
+	const sz = dz / steps;
+	for (let i = 0; i < steps; i++) moveAxis(pos, sx, sz);
 }
 
 interface Props {
@@ -86,6 +100,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	}, [armed]);
 	const handleRef = useRef<CharacterHandle | null>(null);
 	useMelee();
+	useCrateBreak();
 	const keys = useRef<Record<string, boolean>>({});
 	const fwd = useRef(new THREE.Vector3());
 	const right = useRef(new THREE.Vector3());
@@ -157,6 +172,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	}, [gl]);
 
 	useFrame((_, dt) => {
+		tickPlayerStats(dt);
 		const h = handleRef.current;
 		if (!h) return;
 		const k = keys.current;
@@ -230,6 +246,10 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				onReady={(h) => {
 					h.motor.mover = tryMove;
 					handleRef.current = h;
+					(window as unknown as Record<string, unknown>).__coll = {
+						solid: solidAtWorld,
+						pos: h.motor.position,
+					};
 				}}
 			/>
 			<CharacterShadow target={handleRef} />

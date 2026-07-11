@@ -14,6 +14,8 @@ import { playerAnchor } from './playerAnchor';
 
 const HEAD_REACH = 1.122;
 const HEAD_OFFSET = 0.28;
+const CULL_RADIUS = 22;
+const CULL_SQ = CULL_RADIUS * CULL_RADIUS;
 const POINT_LIGHTS = 6;
 const POINT_SCALE = 3.0;
 const SHADOW_CASTERS = 2;
@@ -100,11 +102,14 @@ export class LightSystem {
 						0.05 * Math.sin(time * 3.7 + ph * 1.7) +
 						0.025 * Math.sin(time * 6.3 + ph * 2.3));
 
+			const pdx = x - playerAnchor.pos.x;
+			const pdz = z - playerAnchor.pos.z;
+			const pd2 = pdx * pdx + pdz * pdz;
+			if (pd2 > CULL_SQ) continue;
+
 			const ddx = x - camera.position.x;
 			const ddy = y - camera.position.y;
 			const ddz = z - camera.position.z;
-			const pdx = x - playerAnchor.pos.x;
-			const pdz = z - playerAnchor.pos.z;
 			this.ranked.push({
 				x,
 				y,
@@ -113,7 +118,7 @@ export class LightSystem {
 				g: LightEmitter.g[eid],
 				b: LightEmitter.b[eid],
 				dist: ddx * ddx + ddy * ddy + ddz * ddz,
-				pdist: pdx * pdx + pdz * pdz,
+				pdist: pd2,
 				intensity: LightEmitter.baseIntensity[eid] * f,
 				tier: firefly ? 1 : 0,
 			});
@@ -148,6 +153,10 @@ export class LightSystem {
 			this.col[i].set(l.r, l.g, l.b).multiplyScalar(l.intensity);
 		}
 
+		// Every PSX material shares LightSystem's own pos/col arrays by reference, so
+		// the per-light vectors are written once (above) instead of copied into each
+		// material. Chunked geometry means thousands of meshes; per-mesh copies here
+		// would dominate the frame. Only cheap per-material scalars/refs remain.
 		scene.traverse((obj) => {
 			const mat = (obj as THREE.Mesh).material as
 				| (THREE.ShaderMaterial & {
@@ -161,12 +170,9 @@ export class LightSystem {
 			u.uMapTex.value = occ.tex;
 			(u.uGridOrigin.value as THREE.Vector2).copy(occ.origin);
 			(u.uGridSize.value as THREE.Vector2).copy(occ.size);
-			(u.uLightPos.value as THREE.Vector3[]).forEach((v, i) =>
-				v.copy(this.pos[i]),
-			);
-			(u.uLightColor.value as THREE.Vector3[]).forEach((v, i) =>
-				v.copy(this.col[i]),
-			);
+			if (u.uLightPos.value !== this.pos) u.uLightPos.value = this.pos;
+			if (u.uLightColor.value !== this.col)
+				u.uLightColor.value = this.col;
 		});
 
 		for (let i = 0; i < POINT_LIGHTS; i++) {

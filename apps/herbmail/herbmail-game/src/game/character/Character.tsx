@@ -19,6 +19,7 @@ import { setHeldLight, clearHeldLight } from '../render/heldLight';
 import { HELD_ITEMS, VERTICAL_GRIP, SWORD_URL, TORCH_URL } from './heldItems';
 
 const UP = new THREE.Vector3(0, 1, 0);
+const LAND_SPEED = 1.35;
 
 useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
@@ -96,7 +97,7 @@ export function Character({
 	} | null>(null);
 	const groupRef = useRef<THREE.Group>(null);
 	const tRef = useRef(0);
-	const jumpRef = useRef({ wasGrounded: true, landUntil: 0 });
+	const jumpRef = useRef({ wasGrounded: true, landUntil: 0, recover: false });
 
 	const scene = useMemo(() => {
 		const s = cloneSkinned(gltf.scene);
@@ -255,12 +256,14 @@ export function Character({
 			// landing while still moving would freeze the legs and slide.
 			j.landUntil =
 				gait === 'idle'
-					? tRef.current + animator.duration('Jump_Land') * 0.8
+					? tRef.current +
+						(animator.duration('Jump_Land') * 0.55) / LAND_SPEED
 					: 0;
+			if (gait === 'idle') j.recover = true;
 		}
 		// Hold the landing recovery briefly before locomotion resumes.
 		if (!jumping && tRef.current < j.landUntil) {
-			animator.play('Jump_Land', { loop: false });
+			animator.play('Jump_Land', { loop: false, timeScale: LAND_SPEED });
 			jumping = true;
 		}
 
@@ -272,7 +275,10 @@ export function Character({
 				holding && animator.has(WEAPON_GRIP.idleClip)
 					? WEAPON_GRIP.idleClip
 					: 'Idle_Loop';
-			animator.play(idle);
+			// Snap out of the landing pose fast; the drawn-out default
+			// crossfade is what read as a laggy tail.
+			animator.play(idle, j.recover ? { fade: 0.14 } : {});
+			j.recover = false;
 		} else if (motor.runBlend <= 0.001) {
 			animator.play('Walk_Loop');
 		} else {

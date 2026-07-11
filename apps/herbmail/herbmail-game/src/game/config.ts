@@ -6,6 +6,7 @@ export const WALL_H = 4.5;
 export const COVE_R = 1.0;
 
 export const WALL_SEG = 8;
+export const WALL_FLAT_SEG = 2;
 export const TEXEL = 1 / 256;
 export const UV_INSET = TEXEL * 0.5;
 export const ANISOTROPY = 8;

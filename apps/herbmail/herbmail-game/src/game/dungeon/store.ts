@@ -1,17 +1,19 @@
 import { useSyncExternalStore } from 'react';
-import { TILE } from '../config';
+import { TILE, FOG } from '../config';
 import {
 	DungeonWorld,
-	cellAtWorld,
+	sectorAtWorld,
 	PHASE_GENERATED,
 	PHASE_MOUNTED,
 } from './ecs';
-import { streamAround } from './stream';
-import { type RoomDesc } from './generate';
+import { SECTOR_TILES, type RoomDesc } from './generate';
 import { removeEntity, Transform3 } from '@kbve/laser/ecs';
 import { spawnRoomProps, despawnRoomProps } from '../prop/spawn';
 import { spawnRoomDoors, despawnRoomDoors, resetDoors } from '../door/doors';
 import { spawnTorch } from '../prop/torch';
+import { spawnCrate } from '../prop/crate';
+import { PROP_CRATE } from '../prop/kinds';
+import { rebuildCrateGrid } from '../prop/crateGrid';
 import {
 	recordPlaced,
 	clearPlaced,
@@ -21,7 +23,18 @@ import {
 } from '../prop/placed';
 
 export const DUNGEON_SEED = 1337;
-const MOUNT_HOPS = 1;
+
+const SECTOR_SPAN = SECTOR_TILES * TILE;
+const MOUNT_MARGIN = FOG.far + SECTOR_SPAN * 0.25;
+
+let dw = new DungeonWorld(DUNGEON_SEED);
+let active: ActiveRoom[] = [];
+let prevMounted = new Set<number>();
+let lastSx = NaN;
+let lastSy = NaN;
+const listeners = new Set<() => void>();
+let propGen = 0;
+const propListeners = new Set<() => void>();
 
 export interface ActiveRoom {
 	eid: number;
@@ -29,30 +42,53 @@ export interface ActiveRoom {
 	desc: RoomDesc;
 }
 
-let dw = new DungeonWorld(DUNGEON_SEED);
-let active: ActiveRoom[] = [];
-let prevMounted = new Set<number>();
-let lastCx = NaN;
-let lastCy = NaN;
-const listeners = new Set<() => void>();
-let propGen = 0;
-const propListeners = new Set<() => void>();
-
 function emit(): void {
 	for (const l of listeners) l();
 }
 
 function bumpProps(): void {
+	rebuildCrateGrid(dw.world);
 	propGen++;
 	for (const l of propListeners) l();
 }
 
-function rebuild(cx: number, cy: number): void {
-	const { mounted } = streamAround(dw, cx, cy, MOUNT_HOPS);
-	const mset = new Set(mounted);
-	for (const eid of dw.all()) {
-		dw.setPhase(eid, mset.has(eid) ? PHASE_MOUNTED : PHASE_GENERATED);
+function axisGap(p: number, lo: number, hi: number): number {
+	if (p < lo) return lo - p;
+	if (p > hi) return p - hi;
+	return 0;
+}
+
+function mountedSectors(
+	x: number,
+	z: number,
+	sx: number,
+	sy: number,
+): number[] {
+	const out: number[] = [];
+	for (let dy = -1; dy <= 1; dy++) {
+		for (let dx = -1; dx <= 1; dx++) {
+			const csx = sx + dx;
+			const csy = sy + dy;
+			const x0 = csx * SECTOR_SPAN;
+			const z0 = csy * SECTOR_SPAN;
+			const gx = axisGap(x, x0, x0 + SECTOR_SPAN);
+			const gz = axisGap(z, z0, z0 + SECTOR_SPAN);
+			if (dx === 0 && dy === 0) {
+				out.push(dw.ensureSector(csx, csy));
+				continue;
+			}
+			if (Math.hypot(gx, gz) <= MOUNT_MARGIN)
+				out.push(dw.ensureSector(csx, csy));
+		}
 	}
+	return out;
+}
+
+function rebuild(x: number, z: number, sx: number, sy: number): void {
+	const mounted = mountedSectors(x, z, sx, sy);
+	const mset = new Set(mounted);
+	for (const eid of dw.all())
+		dw.setPhase(eid, mset.has(eid) ? PHASE_MOUNTED : PHASE_GENERATED);
 
 	for (const eid of mset) {
 		if (!prevMounted.has(eid)) {
@@ -77,31 +113,51 @@ function rebuild(cx: number, cy: number): void {
 }
 
 export function updatePlayerWorld(x: number, z: number): void {
-	const { cx, cy } = cellAtWorld(x, z, TILE);
-	if (cx === lastCx && cy === lastCy) return;
-	lastCx = cx;
-	lastCy = cy;
-	rebuild(cx, cy);
+	const { sx, sy } = sectorAtWorld(x, z, TILE);
+	if (sx === lastSx && sy === lastSy) return;
+	lastSx = sx;
+	lastSy = sy;
+	rebuild(x, z, sx, sy);
 }
 
-// Record a player-placed torch and, if its cell is currently mounted, spawn it
-// immediately. Re-spawn on future mounts is handled by spawnRoomProps.
 export function placeTorch(
 	pos: [number, number, number],
 	dir: [number, number, number],
 ): void {
 	unsuppressAt(pos);
 	const rec = recordPlaced(pos, dir);
-	const eid = dw.roomAtCell(rec.cx, rec.cy);
+	const { sx, sy } = sectorAtWorld(pos[0], pos[2], TILE);
+	const eid = dw.sectorEidAt(sx, sy);
 	if (eid !== undefined && dw.phase(eid) === PHASE_MOUNTED) {
 		spawnTorch(dw.world, eid, pos, dir, rec.id);
 		bumpProps();
 	}
 }
 
-// Despawn a torch entity and stop it respawning: suppress its world position
-// (covers procedural room torches) and drop any player-placed record for it.
 export function removeTorch(eid: number): void {
+	const pos: [number, number, number] = [
+		Transform3.px[eid],
+		Transform3.py[eid],
+		Transform3.pz[eid],
+	];
+	suppressAt(pos);
+	removePlacedNear(pos);
+	removeEntity(dw.world, eid);
+	bumpProps();
+}
+
+export function placeCrate(pos: [number, number, number]): void {
+	unsuppressAt(pos);
+	const rec = recordPlaced(pos, [0, 1, 0], PROP_CRATE);
+	const { sx, sy } = sectorAtWorld(pos[0], pos[2], TILE);
+	const eid = dw.sectorEidAt(sx, sy);
+	if (eid !== undefined && dw.phase(eid) === PHASE_MOUNTED) {
+		spawnCrate(dw.world, eid, pos);
+		bumpProps();
+	}
+}
+
+export function breakCrate(eid: number): void {
 	const pos: [number, number, number] = [
 		Transform3.px[eid],
 		Transform3.py[eid],
@@ -119,23 +175,20 @@ export function resetDungeon(seed = DUNGEON_SEED): void {
 	prevMounted = new Set();
 	clearPlaced();
 	resetDoors();
-	lastCx = NaN;
-	lastCy = NaN;
-	rebuild(0, 0);
-	lastCx = 0;
-	lastCy = 0;
+	lastSx = NaN;
+	lastSy = NaN;
+	rebuild(SECTOR_SPAN / 2, SECTOR_SPAN / 2, 0, 0);
+	lastSx = 0;
+	lastSy = 0;
 }
 
-// Lazy origin seed: deferring the first rebuild out of module-eval time avoids a
-// circular-import TDZ (store <-> doors), while still seeding before the first
-// render/frame reads the world.
 let seeded = false;
 function ensureSeeded(): void {
 	if (seeded) return;
 	seeded = true;
-	rebuild(0, 0);
-	lastCx = 0;
-	lastCy = 0;
+	rebuild(SECTOR_SPAN / 2, SECTOR_SPAN / 2, 0, 0);
+	lastSx = 0;
+	lastSy = 0;
 }
 
 export function getDungeon(): DungeonWorld {

@@ -1,10 +1,14 @@
 import { cellAtWorld } from '../dungeon/ecs';
+import { SECTOR, floorDiv } from '../dungeon/sector';
 import { TILE } from '../config';
+import { PROP_TORCH } from './kinds';
 
 // Player-placed props persisted per cell, so they survive room streaming: a room
-// mount re-spawns any records for its cell. Bounded ring across all cells.
+// mount re-spawns any records for its cell. Bounded ring across all cells. `kind`
+// discriminates what to re-spawn (torch on a wall, crate on the floor, ...).
 export interface PlacedRecord {
 	id: number;
+	kind: number;
 	cx: number;
 	cy: number;
 	pos: [number, number, number];
@@ -44,9 +48,10 @@ export function removePlacedNear(pos: [number, number, number]): void {
 export function recordPlaced(
 	pos: [number, number, number],
 	dir: [number, number, number],
+	kind: number = PROP_TORCH,
 ): PlacedRecord {
 	const { cx, cy } = cellAtWorld(pos[0], pos[2], TILE);
-	const rec: PlacedRecord = { id: nextId++, cx, cy, pos, dir };
+	const rec: PlacedRecord = { id: nextId++, kind, cx, cy, pos, dir };
 	records.push(rec);
 	if (records.length > CAP) records = records.slice(records.length - CAP);
 	return rec;
@@ -54,6 +59,12 @@ export function recordPlaced(
 
 export function placedForCell(cx: number, cy: number): PlacedRecord[] {
 	return records.filter((r) => r.cx === cx && r.cy === cy);
+}
+
+export function placedForSector(sx: number, sy: number): PlacedRecord[] {
+	return records.filter(
+		(r) => floorDiv(r.cx, SECTOR) === sx && floorDiv(r.cy, SECTOR) === sy,
+	);
 }
 
 export function clearPlaced(): void {
