@@ -7,7 +7,7 @@ import {
 	type World,
 } from '../mecs/props';
 import { FireflyFx } from '../prop/components';
-import { MAX_LIGHTS, LIGHT_RANGE } from './PsxMaterial';
+import { MAX_LIGHTS, LIGHT_RANGE, psxMaterialRegistry } from './PsxMaterial';
 import type { OcclusionField } from '../dungeon/occlusion';
 import { heldLight } from './heldLight';
 import { playerAnchor } from './playerAnchor';
@@ -102,7 +102,6 @@ export class LightSystem {
 
 	tick(
 		world: World,
-		scene: THREE.Scene,
 		camera: THREE.Camera,
 		time: number,
 		occ: OcclusionField,
@@ -183,16 +182,15 @@ export class LightSystem {
 
 		// Every PSX material shares LightSystem's own pos/col arrays by reference, so
 		// the per-light vectors are written once (above) instead of copied into each
-		// material. Chunked geometry means thousands of meshes; per-mesh copies here
-		// would dominate the frame. Only cheap per-material scalars/refs remain.
-		scene.traverse((obj) => {
-			const mat = (obj as THREE.Mesh).material as
-				| (THREE.ShaderMaterial & {
-						uniforms?: Record<string, { value: unknown }>;
-				  })
-				| undefined;
-			const u = mat?.uniforms;
-			if (!u || !u.uLightPos) return;
+		// material. Iterate the material registry directly (only live PSX materials)
+		// rather than walking the whole scene graph's thousands of meshes each frame.
+		for (const mat of psxMaterialRegistry) {
+			const u = (
+				mat as THREE.ShaderMaterial & {
+					uniforms: Record<string, { value: unknown }>;
+				}
+			).uniforms;
+			if (!u.uLightPos) continue;
 			u.uLightCount.value = count;
 			u.uAmbient.value = ambient;
 			u.uMapTex.value = occ.tex;
@@ -201,7 +199,7 @@ export class LightSystem {
 			if (u.uLightPos.value !== this.pos) u.uLightPos.value = this.pos;
 			if (u.uLightColor.value !== this.col)
 				u.uLightColor.value = this.col;
-		});
+		}
 
 		for (let i = 0; i < POINT_LIGHTS; i++) {
 			const pl = this.lights[i];

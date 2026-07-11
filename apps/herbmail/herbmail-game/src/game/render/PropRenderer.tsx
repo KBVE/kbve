@@ -63,7 +63,6 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 		fireflySystem.tick(world, state.clock.elapsedTime, delta);
 		lightSystem.tick(
 			world,
-			state.scene,
 			state.camera,
 			state.clock.elapsedTime,
 			occRef.current,

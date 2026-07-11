@@ -122,7 +122,7 @@ const fragment = /* glsl */ `
 	}
 `;
 
-const PsxMaterialImpl = shaderMaterial(
+const PsxMaterialBase = shaderMaterial(
 	{
 		uMap: null as THREE.Texture | null,
 		uSnap: 80,
@@ -150,6 +150,22 @@ const PsxMaterialImpl = shaderMaterial(
 	vertex,
 	fragment,
 );
+
+// Live PSX materials register on construct, unregister on dispose. LightSystem
+// iterates this set to push light/occlusion uniforms — far cheaper than walking the
+// whole scene graph (thousands of chunk meshes) every frame to find them.
+export const psxMaterialRegistry = new Set<THREE.ShaderMaterial>();
+
+class PsxMaterialImpl extends PsxMaterialBase {
+	constructor() {
+		super();
+		psxMaterialRegistry.add(this);
+	}
+	dispose(): void {
+		psxMaterialRegistry.delete(this);
+		super.dispose();
+	}
+}
 
 extend({ PsxMaterial: PsxMaterialImpl });
 

@@ -26,6 +26,7 @@ import {
 
 const UP = new THREE.Vector3(0, 1, 0);
 const LAND_SPEED = 1.35;
+const GROUND_Y = -0.037;
 
 useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
@@ -320,6 +321,7 @@ export function Character({
 		const g = groupRef.current;
 		if (g) {
 			g.position.copy(motor.position);
+			g.position.y += GROUND_Y;
 			g.rotation.y = motor.yaw;
 			g.updateMatrixWorld(true);
 		}
