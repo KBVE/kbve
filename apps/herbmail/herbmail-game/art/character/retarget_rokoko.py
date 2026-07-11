@@ -82,6 +82,54 @@ def reweight_neutral(tgt_objs, arm):
     print(f"reweighted neutral_bone verts: {total}")
 
 
+def add_plume_bone(arm, tgt_objs):
+    """Split the helmet crest onto its own 'plume' bone (child of headAttach)
+    with a height-gradient weight so the game can spring it. Helmet base stays
+    rigid on headAttach; crest tips ride the plume bone."""
+    from mathutils import Vector
+    ahed = next(
+        (m for m in tgt_objs
+         if m.type == "MESH" and m.name.startswith("AHED")), None)
+    if not ahed:
+        print("no AHED mesh; skipping plume")
+        return
+    bpy.ops.object.select_all(action="DESELECT")
+    arm.select_set(True)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="EDIT")
+    eb = arm.data.edit_bones
+    ha = eb.get("headAttach")
+    base = ha.head.copy() if ha else Vector((0.0, 0.0, 1.6))
+    pl = eb.new("plume")
+    pl.head = base
+    pl.tail = base + Vector((0.0, 0.03, 0.3))
+    pl.parent = ha
+    pl.use_connect = False
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+    ha_vg = ahed.vertex_groups.get("headAttach")
+    pl_vg = ahed.vertex_groups.get("plume") or ahed.vertex_groups.new(
+        name="plume")
+    mw = ahed.matrix_world
+    z0, z1 = 1.62, 1.95
+    moved = 0
+    for v in ahed.data.vertices:
+        wco = mw @ v.co
+        if abs(wco.x) > 0.17:
+            continue
+        grad = max(0.0, min(1.0, (wco.z - z0) / (z1 - z0)))
+        if grad <= 0:
+            continue
+        wha = next((g.weight for g in v.groups
+                    if ha_vg and g.group == ha_vg.index), 0.0)
+        if wha <= 0:
+            continue
+        pl_vg.add([v.index], wha * grad, "REPLACE")
+        ha_vg.add([v.index], wha * (1 - grad), "REPLACE")
+        moved += 1
+    print(f"plume bone added; gradient-weighted verts: {moved}")
+
+
 def enable_rokoko():
     for mod in ("rokoko_stable", "rokoko_beta", "rokoko_rt"):
         try:
@@ -214,6 +262,8 @@ def main():
         if a not in keep:
             bpy.data.actions.remove(a)
     print(f"actions kept for export: {[a.name for a in bpy.data.actions]}")
+
+    add_plume_bone(tgt, tgt_objs)
 
     bpy.ops.object.select_all(action="DESELECT")
     for o in tgt_objs:

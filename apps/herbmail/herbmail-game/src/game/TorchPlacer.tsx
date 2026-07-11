@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
-import { addTorch } from './torches';
+import { placeTorch } from './dungeon/store';
 import { getEquippedId } from './viewmodel/store';
 
 const CENTER = new THREE.Vector2(0, 0);
@@ -49,7 +49,7 @@ export function TorchPlacer() {
 				hit.point.y,
 				hit.point.z + n.z * OFF,
 			];
-			addTorch(pos, dir);
+			placeTorch(pos, dir);
 		};
 		window.addEventListener('mousedown', onDown);
 		return () => window.removeEventListener('mousedown', onDown);

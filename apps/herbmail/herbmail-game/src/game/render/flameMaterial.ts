@@ -1,6 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
 
 const VERT = /* glsl */ `
 varying vec2 vUv;
@@ -133,16 +131,10 @@ void main() {
 }
 `;
 
-interface Props {
-	seed?: number;
-	width?: number;
-	height?: number;
-	speed?: number;
-	planes?: number;
-	lodDistance?: number;
-}
-
-function makeMaterial(seed: number, speed: number): THREE.ShaderMaterial {
+export function makeFlameMaterial(
+	seed: number,
+	speed: number,
+): THREE.ShaderMaterial {
 	const material = new THREE.ShaderMaterial({
 		vertexShader: VERT,
 		fragmentShader: FRAG,
@@ -164,80 +156,4 @@ function makeMaterial(seed: number, speed: number): THREE.ShaderMaterial {
 	});
 	material.alphaToCoverage = true;
 	return material;
-}
-
-export function Flame({
-	seed = 0,
-	width = 0.66,
-	height = 1,
-	speed = 12,
-	planes = 3,
-	lodDistance = 9,
-}: Props) {
-	const ref = useRef<THREE.Group>(null);
-	const wp = useRef(new THREE.Vector3());
-	const far = useRef(false);
-
-	const geometry = useMemo(
-		() => new THREE.PlaneGeometry(width, height),
-		[width, height],
-	);
-
-	const count = Math.max(1, planes);
-	const materials = useMemo(
-		() =>
-			Array.from({ length: count }, (_, i) =>
-				makeMaterial(seed + i * 3.713, speed),
-			),
-		[seed, speed, count],
-	);
-
-	useEffect(() => {
-		return () => {
-			geometry.dispose();
-			for (const m of materials) m.dispose();
-		};
-	}, [geometry, materials]);
-
-	useFrame((state) => {
-		const time = state.clock.elapsedTime;
-		for (const m of materials) m.uniforms.uTime.value = time;
-
-		const g = ref.current;
-		if (!g) return;
-		g.getWorldPosition(wp.current);
-		const cam = state.camera;
-		const dist = wp.current.distanceTo(cam.position);
-		// hysteresis band so it doesn't flip-flop at the boundary
-		const nowFar = far.current
-			? dist > lodDistance - 0.75
-			: dist > lodDistance + 0.75;
-		far.current = nowFar;
-
-		if (nowFar) {
-			g.rotation.y = Math.atan2(
-				cam.position.x - wp.current.x,
-				cam.position.z - wp.current.z,
-			);
-		} else {
-			g.rotation.y = 0;
-		}
-		for (let i = 1; i < g.children.length; i++) {
-			g.children[i].visible = !nowFar;
-		}
-	});
-
-	return (
-		<group ref={ref} position={[0, height * 0.5, 0]}>
-			{materials.map((material, i) => (
-				<mesh
-					key={i}
-					geometry={geometry}
-					material={material}
-					rotation={[0, (i / count) * Math.PI, 0]}
-					renderOrder={10}
-				/>
-			))}
-		</group>
-	);
 }

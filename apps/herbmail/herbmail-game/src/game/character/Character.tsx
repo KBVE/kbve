@@ -10,8 +10,10 @@ import {
 	type MotorConfig,
 } from './CharacterMotor';
 import { ProceduralPose } from './ProceduralPose';
+import { ProceduralPlume } from './ProceduralPlume';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
+import { useBodySkinMorph } from './body';
 
 const SWORD_URL = '/models/sword.glb';
 useGLTF.preload(SWORD_URL);
@@ -57,8 +59,15 @@ export function Character({
 	const tRef = useRef(0);
 	const jumpRef = useRef({ wasGrounded: true, landUntil: 0 });
 
-	const scene = useMemo(() => cloneSkinned(gltf.scene), [gltf]);
+	const scene = useMemo(() => {
+		const s = cloneSkinned(gltf.scene);
+		s.traverse((o) => {
+			if ((o as THREE.Mesh).isMesh) o.castShadow = true;
+		});
+		return s;
+	}, [gltf]);
 	useCharacterParts(scene);
+	useBodySkinMorph(scene);
 
 	useEffect(() => {
 		if (!armed) return;
@@ -84,8 +93,9 @@ export function Character({
 		const animator = new CharacterAnimator(scene, gltf.animations);
 		const motor = new CharacterMotor(motorConfig);
 		const pose = new ProceduralPose(scene);
+		const plume = new ProceduralPlume(scene);
 		motor.position.set(position[0], position[1], position[2]);
-		return { animator, motor, pose };
+		return { animator, motor, pose, plume };
 	}, [scene, gltf]);
 
 	useEffect(() => {
@@ -116,7 +126,7 @@ export function Character({
 
 	useFrame((_, dtRaw) => {
 		const dt = Math.min(dtRaw, 0.05);
-		const { animator, motor, pose } = rig;
+		const { animator, motor, pose, plume } = rig;
 		tRef.current += dt;
 		drive?.(motor, tRef.current);
 		motor.update(dt);
@@ -171,6 +181,10 @@ export function Character({
 			g.position.copy(motor.position);
 			g.rotation.y = motor.yaw;
 		}
+		// After the group transform so the driver's world accel includes body
+		// motion (the jump), giving the crest something to lag behind.
+		g?.updateMatrixWorld(true);
+		plume.update(dt);
 	});
 
 	return (

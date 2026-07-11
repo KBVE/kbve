@@ -10,6 +10,7 @@ import { equipmentById } from '../viewmodel/equipment';
 import { SWING, triggerSwing } from './melee';
 import { useMelee } from './useMelee';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
+import { setCharOccluder } from '../render/occluder';
 
 const RADIUS = 0.35;
 const CAM_DIST = 2.2;
@@ -146,6 +147,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			dir.current.normalize().multiplyScalar(speed);
 		}
 		h.motor.setDesiredVelocity(dir.current.x, dir.current.z);
+		setCharOccluder(h.motor.position.x, h.motor.position.z);
 
 		pivot.current.copy(h.motor.position);
 		pivot.current.y += CAM_HEIGHT;

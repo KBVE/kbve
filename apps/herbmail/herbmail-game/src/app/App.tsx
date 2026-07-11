@@ -2,9 +2,8 @@ import { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Dungeon } from '../game/Dungeon';
 import { AimReticle } from '../game/AimReticle';
-import { WallTorches } from '../game/WallTorches';
 import { TorchPlacer } from '../game/TorchPlacer';
-import { TorchLighting } from '../game/TorchLighting';
+import { PropRenderer } from '../game/render/PropRenderer';
 import { Hud } from '../game/Hud';
 import { PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
@@ -55,12 +54,11 @@ export function App() {
 				<Suspense fallback={null}>
 					<Dungeon snap={psx.snap} affine={psx.affine} />
 				</Suspense>
-				<TorchLighting ambient={0.1} />
 				<Suspense fallback={null}>
 					<ThirdPersonPlayer url="/models/character-anim.glb" />
 				</Suspense>
 				<Suspense fallback={null}>
-					<WallTorches />
+					<PropRenderer ambient={0.04} />
 				</Suspense>
 				<TorchPlacer />
 				<AimReticle onAim={setAim} />

@@ -8,21 +8,28 @@ export interface ArmorPiece {
 }
 
 /**
- * Equipment pieces = SIDEKICK `A*` attachment meshes, grouped into logical
- * items. Every other mesh (body, head, hair, hands, feet) is always visible.
+ * The knight is a removable layer over a permanent skin base. `SKIN_*` body
+ * meshes + the head/face group are always visible; every knight slot below is
+ * toggleable. Removing all pieces leaves the naked base in its underwear.
  * Toggling a piece off hides its slot meshes; the rig and clips are untouched.
  */
 export const ARMOR_PIECES: ArmorPiece[] = [
 	{ id: 'helmet', label: 'Helmet', slots: ['AHED', 'AFAC'] },
+	{ id: 'chest', label: 'Chestplate', slots: ['TORS'] },
 	{ id: 'backpack', label: 'Backpack', slots: ['ABAC'] },
 	{ id: 'pauldrons', label: 'Pauldrons', slots: ['ASHL', 'ASHR'] },
-	{
-		id: 'hipGuards',
-		label: 'Hip Guards',
-		slots: ['AHPF', 'AHPB', 'AHPL', 'AHPR'],
-	},
+	{ id: 'upperArms', label: 'Upper Arms', slots: ['AUPL', 'AUPR'] },
 	{ id: 'elbowGuards', label: 'Elbow Guards', slots: ['AEBL', 'AEBR'] },
+	{ id: 'bracers', label: 'Bracers', slots: ['ALWL', 'ALWR'] },
+	{ id: 'gauntlets', label: 'Gauntlets', slots: ['HNDL', 'HNDR'] },
+	{
+		id: 'faulds',
+		label: 'Faulds',
+		slots: ['HIPS', 'AHPF', 'AHPB', 'AHPL', 'AHPR'],
+	},
+	{ id: 'legs', label: 'Leg Armor', slots: ['LEGL', 'LEGR'] },
 	{ id: 'kneeGuards', label: 'Knee Guards', slots: ['AKNL', 'AKNR'] },
+	{ id: 'boots', label: 'Boots', slots: ['FOTL', 'FOTR'] },
 ];
 
 const SLOT_BY_PIECE = new Map(ARMOR_PIECES.map((p) => [p.id, p.slots]));
@@ -46,6 +53,11 @@ export function setArmor(id: string, on: boolean) {
 	if (on) equipped.add(id);
 	else equipped.delete(id);
 	emit();
+}
+
+export function setAllArmor(on: boolean) {
+	equipped = on ? new Set(ARMOR_PIECES.map((p) => p.id)) : new Set();
+	for (const l of listeners) l();
 }
 
 export function getEquipped() {
