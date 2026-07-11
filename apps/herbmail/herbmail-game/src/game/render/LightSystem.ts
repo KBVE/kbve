@@ -11,10 +11,13 @@ import { MAX_LIGHTS, LIGHT_RANGE } from './PsxMaterial';
 import type { OcclusionField } from '../dungeon/occlusion';
 import { heldLight } from './heldLight';
 import { playerAnchor } from './playerAnchor';
+import { FOG } from '../config';
 
 const HEAD_REACH = 1.122;
 const HEAD_OFFSET = 0.28;
-const CULL_RADIUS = 22;
+// Consider any emitter within visible range: a torch you could see (out to the fog
+// wall, plus its own LIGHT_RANGE glow radius) must still be fed to the shader.
+const CULL_RADIUS = FOG.far + LIGHT_RANGE;
 const CULL_SQ = CULL_RADIUS * CULL_RADIUS;
 const POINT_LIGHTS = 6;
 const POINT_SCALE = 3.0;

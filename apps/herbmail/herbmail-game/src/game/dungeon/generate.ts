@@ -1,4 +1,5 @@
-import { ARCH, FLOOR, WALL, type Grid } from '../geometry/grid';
+import { ARCH, FLOOR, WALL, COLUMN, type Grid } from '../geometry/grid';
+import { WALL_TEX_COUNT } from '../geometry/walls';
 import { hash01 } from '../geometry/rng';
 import {
 	genSector,
@@ -56,6 +57,17 @@ export interface SpawnSlot {
 	row: number;
 }
 
+// A structural pillar between floor and ceiling. style = which of COLUMN_STYLES
+// shapes (chosen per owning room, never mixed); tex = which wall atlas it shares
+// with that room's walls; torch = carries a mid-shaft sconce light.
+export interface ColumnSlot {
+	col: number;
+	row: number;
+	style: number;
+	tex: number;
+	torch: boolean;
+}
+
 export interface RoomDesc {
 	cx: number;
 	cy: number;
@@ -68,6 +80,7 @@ export interface RoomDesc {
 	variant: number;
 	signature: string;
 	torches: TorchSlot[];
+	columns: ColumnSlot[];
 	spawnSlots: SpawnSlot[];
 }
 
@@ -201,6 +214,7 @@ export function genRoom(seed: number, cx: number, cy: number): RoomDesc {
 		variant,
 		signature: `${doors}:${variant}:${style}`,
 		torches,
+		columns: [],
 		spawnSlots: [],
 	};
 }
@@ -336,6 +350,59 @@ function carveConnectorGates(
 	}
 }
 
+export const COLUMN_STYLES = 4;
+const COLUMN_SPACING = 5;
+
+// Place pillars on a coarse lattice, only where the tile and its 4 neighbours are
+// all open floor — so a column stands free in a room "holding up" the ceiling, not
+// buried in a wall. Style + shared wall texture are picked from the OWNING room so
+// every column in a room matches (and matches that room's walls); marks the tile
+// COLUMN so collision and wall-face generation treat it as solid-but-not-wall.
+function genColumns(
+	sector: ReturnType<typeof genSector>,
+	tiles: Uint8Array,
+	cols: number,
+	rows: number,
+	variant: number,
+): ColumnSlot[] {
+	const out: ColumnSlot[] = [];
+	const isFloor = (c: number, r: number): boolean =>
+		c >= 0 &&
+		c < cols &&
+		r >= 0 &&
+		r < rows &&
+		tiles[r * cols + c] === FLOOR;
+
+	for (let row = COLUMN_SPACING; row < rows - 2; row += COLUMN_SPACING) {
+		for (let col = COLUMN_SPACING; col < cols - 2; col += COLUMN_SPACING) {
+			const h = hash01(col, row, variant * 131 + 7);
+			const jc = col + (h < 0.34 ? -1 : h < 0.67 ? 0 : 1);
+			const jr =
+				row + (hash01(col, row, variant * 131 + 13) < 0.5 ? 0 : 1);
+			if (
+				!isFloor(jc, jr) ||
+				!isFloor(jc - 1, jr) ||
+				!isFloor(jc + 1, jr) ||
+				!isFloor(jc, jr - 1) ||
+				!isFloor(jc, jr + 1)
+			)
+				continue;
+
+			const lx = Math.floor(jc / CELL);
+			const ly = Math.floor(jr / CELL);
+			const owner = sector.cellOwner.get(sectorCellIndex(lx, ly));
+			const rid = owner ? owner.id + 1 : 0;
+			const style = Math.floor(hash01(rid, variant, 91) * COLUMN_STYLES);
+			const tex = Math.floor(hash01(rid, variant, 53) * WALL_TEX_COUNT);
+			const torch = hash01(jc, jr, variant * 29 + 3) < 0.4;
+
+			tiles[jr * cols + jc] = COLUMN;
+			out.push({ col: jc, row: jr, style, tex, torch });
+		}
+	}
+	return out;
+}
+
 // One carved tile grid for a whole sector: a tile is FLOOR when its lattice cell
 // is owned by a room or corridor, else solid WALL rock. Walls, floors, coves and
 // niches all fall out of the geometry builders reading this grid. Openings between
@@ -374,6 +441,7 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 
 	const variant = Math.floor(hash01(sx, sy, seed | 0) * VARIANTS);
 	const torches = genTorchesGrid(tiles, cols, rows, variant);
+	const columns = genColumns(sector, tiles, cols, rows, variant);
 
 	return {
 		cx: sx,
@@ -387,6 +455,7 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		variant,
 		signature: `sector:${sx}:${sy}`,
 		torches,
+		columns,
 		spawnSlots: [],
 	};
 }

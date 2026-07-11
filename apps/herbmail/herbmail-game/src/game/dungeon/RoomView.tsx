@@ -70,6 +70,22 @@ export function RoomView({ desc, snap, affine }: Props) {
 				/>
 			))}
 
+			{set.columns.map((chunks, i) => (
+				<ChunkGroup
+					key={`col${i}`}
+					geos={chunks}
+					kind="column"
+					mat={() => (
+						<psxMaterial
+							uMap={tex.walls[i]}
+							uSnap={snap}
+							uAffine={affine}
+							uRes={res}
+						/>
+					)}
+				/>
+			))}
+
 			<ChunkGroup
 				geos={set.arch}
 				kind="archway"

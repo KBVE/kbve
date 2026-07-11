@@ -1,6 +1,7 @@
 export const FLOOR = 0;
 export const WALL = 1;
 export const ARCH = 2;
+export const COLUMN = 3;
 
 export interface Grid {
 	cols: number;

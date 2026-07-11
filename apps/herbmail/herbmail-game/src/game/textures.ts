@@ -37,7 +37,7 @@ export function useDungeonTextures(): DungeonTextures {
 
 	return useMemo(() => {
 		const wallCount = TEXTURES.walls.length;
-		const walls = loaded.slice(0, wallCount).map((t) => psxify(t, false));
+		const walls = loaded.slice(0, wallCount).map((t) => psxify(t, true));
 		const floor = psxify(loaded[wallCount], true);
 		const ceiling = psxify(loaded[wallCount + 1], true);
 		const arch = psxify(loaded[wallCount + 2], true);

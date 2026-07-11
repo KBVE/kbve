@@ -2,18 +2,31 @@ import { despawnWhere, Prop } from '@kbve/laser/ecs';
 import type { DungeonWorld } from '../dungeon/ecs';
 import { makeLocalGrid } from '../dungeon/generate';
 import { exposedFaces, isBay } from '../geometry/faces';
-import { spawnTorch, torchId, torchTransform, nicheTransform } from './torch';
+import {
+	spawnTorch,
+	torchId,
+	torchTransform,
+	nicheTransform,
+	headDir,
+} from './torch';
 import { spawnLight, LIGHT_PRESETS } from './lights';
 import { spawnFirefly } from './firefly';
 import { spawnCrate, crateTransform } from './crate';
 import { PROP_CANDLE, PROP_CRATE } from './kinds';
 import { placedForSector, isSuppressed } from './placed';
-import { TILE } from '../config';
+import { TILE, WALL_H } from '../config';
 import { FLOOR } from '../geometry/grid';
+import { columnShaftRadius } from '../geometry';
 import { hash01 } from '../geometry/rng';
 import type { RoomDesc } from '../dungeon/generate';
 
 const NICHE_Y = 1.3;
+const COL_TORCH_DIRS: [number, number][] = [
+	[0, -1],
+	[0, 1],
+	[-1, 0],
+	[1, 0],
+];
 
 const FIREFLY_MIN = 2;
 const FIREFLY_MAX = 4;
@@ -109,6 +122,29 @@ export function spawnRoomProps(dw: DungeonWorld, roomEid: number): void {
 		const { pos, dir } = torchTransform(wc, wr, s.di);
 		if (isSuppressed(pos)) continue;
 		spawnTorch(world, roomEid, pos, dir, torchId(wc, wr, s.di));
+	}
+
+	// Sconce torch on the flagged columns, mounted mid-shaft facing a hashed side.
+	for (const c of desc.columns) {
+		if (!c.torch) continue;
+		const wc = desc.originCol + c.col;
+		const wr = desc.originRow + c.row;
+		const di = Math.floor(hash01(wc, wr, 71) * 4) % 4;
+		const [nx, nz] = COL_TORCH_DIRS[di];
+		const r = columnShaftRadius(c.style) + 0.05;
+		const pos: [number, number, number] = [
+			(wc + 0.5) * TILE + nx * r,
+			WALL_H * 0.5,
+			(wr + 0.5) * TILE + nz * r,
+		];
+		if (isSuppressed(pos)) continue;
+		spawnTorch(
+			world,
+			roomEid,
+			pos,
+			headDir(nx, nz),
+			torchId(wc, wr, di + 40),
+		);
 	}
 
 	// A candle light inside every wall niche, so recesses are lit by their own

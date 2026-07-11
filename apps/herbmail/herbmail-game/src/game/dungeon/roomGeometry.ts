@@ -7,6 +7,7 @@ import {
 	buildCoves,
 	buildFloor,
 	buildWalls,
+	buildColumns,
 } from '../geometry';
 import { makeLocalGrid, type RoomDesc } from './generate';
 import { chunkGeometry } from './chunkGeometry';
@@ -15,6 +16,7 @@ import { chunkGeometry } from './chunkGeometry';
 // merged sector mesh is diced into a grid so offscreen chunks frustum-cull out.
 export interface RoomGeoSet {
 	walls: THREE.BufferGeometry[][];
+	columns: THREE.BufferGeometry[][];
 	floor: THREE.BufferGeometry[];
 	ceiling: THREE.BufferGeometry[];
 	arch: THREE.BufferGeometry[];
@@ -52,6 +54,7 @@ function buildSet(desc: RoomDesc): RoomGeoSet {
 	const bays = buildBays(g, v);
 	return {
 		walls: buildWalls(g, v).map(dice),
+		columns: buildColumns(desc.columns).map(dice),
 		floor: floorGeo(desc),
 		ceiling: ceilingGeo(desc),
 		arch: dice(buildArches(g, v)),
@@ -63,6 +66,7 @@ function buildSet(desc: RoomDesc): RoomGeoSet {
 
 function disposeSet(set: RoomGeoSet): void {
 	for (const w of set.walls) for (const c of w) c.dispose();
+	for (const w of set.columns) for (const c of w) c.dispose();
 	for (const c of set.arch) c.dispose();
 	for (const c of set.cove) c.dispose();
 	for (const c of set.corner) c.dispose();
