@@ -38,6 +38,7 @@ export function App() {
 	return (
 		<>
 			<Canvas
+				shadows
 				dpr={psx.dpr}
 				gl={{ antialias: true, powerPreference: 'high-performance' }}
 				camera={{ fov: psx.fov, near: 0.05, far: 100 }}

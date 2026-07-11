@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { LightEmitter, query, Transform3, type World } from '@kbve/laser/ecs';
 import { MAX_LIGHTS, LIGHT_RANGE } from '../PsxMaterial';
 import type { OcclusionField } from '../dungeon/occlusion';
-import { charOccluder } from './occluder';
 
 const HEAD_REACH = 1.122;
 const HEAD_OFFSET = 0.28;
@@ -107,12 +106,6 @@ export class LightSystem {
 			if (!u || !u.uLightPos) return;
 			u.uLightCount.value = count;
 			u.uAmbient.value = ambient;
-			(u.uCharPos.value as THREE.Vector2).set(
-				charOccluder.x,
-				charOccluder.z,
-			);
-			u.uCharR.value = charOccluder.r;
-			u.uCharOn.value = charOccluder.on;
 			u.uMapTex.value = occ.tex;
 			(u.uGridOrigin.value as THREE.Vector2).copy(occ.origin);
 			(u.uGridSize.value as THREE.Vector2).copy(occ.size);

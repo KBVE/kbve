@@ -62,9 +62,6 @@ const fragment = /* glsl */ `
 	uniform int uLightCount;
 	uniform vec3 uLightPos[MAX_LIGHTS];
 	uniform vec3 uLightColor[MAX_LIGHTS];
-	uniform vec2 uCharPos;
-	uniform float uCharR;
-	uniform float uCharOn;
 	varying vec2 vUvCorrect;
 	varying vec2 vUvAffine;
 	varying float vW;
@@ -94,19 +91,6 @@ const fragment = /* glsl */ `
 		return 1.0;
 	}
 
-	float charShadow(vec2 frag, vec2 lp) {
-		if (uCharOn < 0.5) return 1.0;
-		vec2 toL = lp - uCharPos;
-		float Ld = length(toL);
-		vec2 ldir = Ld > 0.001 ? toL / Ld : vec2(1.0, 0.0);
-		vec2 rel = frag - uCharPos;
-		float along = dot(rel, -ldir);
-		float perp = length(rel + ldir * along);
-		float a = (along - uCharR * 0.6) / (uCharR * 2.6);
-		float bb = perp / (uCharR * 0.95);
-		float d = length(vec2(a, bb));
-		return smoothstep(0.72, 1.15, d);
-	}
 
 	void main() {
 		vec2 uv = mix(vUvCorrect, vUvAffine / vW, uAffine);
@@ -124,7 +108,7 @@ const fragment = /* glsl */ `
 			float lambert = max(ndl * 0.75 + 0.25, 0.0);
 			lambert *= lambert;
 			float att = 1.0 / max(0.4 + 0.15 * d + 0.12 * d * d, 0.05);
-			float vis = visibility(vWorld.xz, uLightPos[i].xz) * charShadow(vWorld.xz, uLightPos[i].xz);
+			float vis = visibility(vWorld.xz, uLightPos[i].xz);
 			light += uLightColor[i] * att * win * win * vis * lambert;
 		}
 
@@ -158,9 +142,6 @@ const PsxMaterialImpl = shaderMaterial(
 			{ length: MAX_LIGHTS },
 			() => new THREE.Vector3(),
 		),
-		uCharPos: new THREE.Vector2(0, 0),
-		uCharR: 0.42,
-		uCharOn: 0,
 	},
 	vertex,
 	fragment,
