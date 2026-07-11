@@ -2,6 +2,7 @@ import {
 	addComponent,
 	addEntity,
 	applyStats,
+	Collider,
 	MeshRef,
 	Prop,
 	Transform3,
@@ -49,10 +50,14 @@ export function spawnCrate(
 	addComponent(world, eid, Prop);
 	addComponent(world, eid, Transform3);
 	addComponent(world, eid, MeshRef);
+	addComponent(world, eid, Collider);
 	applyStats(world, eid, { maxHp: MAX_CRATE_HP });
 
 	Prop.kind[eid] = PROP_CRATE;
 	Prop.ownerEid[eid] = ownerEid;
+
+	Collider.hx[eid] = CRATE_HALF;
+	Collider.hz[eid] = CRATE_HALF;
 
 	Transform3.px[eid] = pos[0];
 	Transform3.py[eid] = pos[1];

@@ -29,6 +29,15 @@ export const MeshRef = {
 	modelId: new Uint8Array(MAX_ENTITIES),
 };
 
+// Axis-aligned box footprint for movement collision, half-extents on the X/Z
+// ground plane about the entity's Transform3 centre. Props that carry it are
+// solid; those without pass through. Physics reads this off the entity rather
+// than special-casing prop kinds.
+export const Collider = {
+	hx: new Float32Array(MAX_ENTITIES),
+	hz: new Float32Array(MAX_ENTITIES),
+};
+
 export const Prop = {
 	kind: new Uint8Array(MAX_ENTITIES),
 	ownerEid: new Int32Array(MAX_ENTITIES),

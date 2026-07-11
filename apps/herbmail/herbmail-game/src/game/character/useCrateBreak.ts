@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Health, Prop, Transform3 } from '@kbve/laser/ecs';
 import { breakCrate } from '../dungeon/store';
 import { getDebrisPool } from '../render/DebrisPool';
+import { getSimBridge } from '../sab/simBridge';
 import { PROP_CRATE } from '../prop/kinds';
 import { onContact } from './melee';
 
@@ -27,6 +28,7 @@ export function useCrateBreak(): void {
 				Health.hp[eid] -= 1;
 				if (Health.hp[eid] <= 0) {
 					getDebrisPool().burst(pos);
+					getSimBridge().shatter(pos[0], pos[1], pos[2]);
 					breakCrate(eid);
 				} else {
 					getDebrisPool().burst(pos, HIT_PUFF);
