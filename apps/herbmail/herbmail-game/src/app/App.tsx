@@ -9,9 +9,15 @@ import { DoorPrompt } from '../game/door/DoorPrompt';
 import { PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
 import { EquipmentPanel } from '../game/character/EquipmentPanel';
-import { SwordGripDebug } from '../game/character/SwordGripDebug';
+import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { LOADOUT } from '../game/viewmodel/equipment';
 import { setEquipped, useEquippedId } from '../game/viewmodel/store';
+
+// Dev cache-bust: browsers cache /models/*.glb by URL, so a re-baked model can
+// serve stale for hours. A per-load query forces a fresh fetch in dev only.
+const CHARACTER_URL = `/models/character-anim.glb${
+	import.meta.env.DEV ? `?v=${Date.now()}` : ''
+}`;
 
 export function App() {
 	const [psx] = useState({ ...PSX_DEFAULTS });
@@ -39,7 +45,7 @@ export function App() {
 	return (
 		<>
 			<Canvas
-				shadows
+				shadows="percentage"
 				dpr={psx.dpr}
 				gl={{ antialias: true, powerPreference: 'high-performance' }}
 				camera={{ fov: psx.fov, near: 0.05, far: 100 }}
@@ -57,7 +63,7 @@ export function App() {
 					<Dungeon snap={psx.snap} affine={psx.affine} />
 				</Suspense>
 				<Suspense fallback={null}>
-					<ThirdPersonPlayer url="/models/character-anim.glb" />
+					<ThirdPersonPlayer url={CHARACTER_URL} />
 				</Suspense>
 				<Suspense fallback={null}>
 					<PropRenderer ambient={0.04} />
@@ -68,7 +74,7 @@ export function App() {
 			<Hud kind={aim} equippedId={equippedId} />
 			<DoorPrompt />
 			<EquipmentPanel />
-			{debug && <SwordGripDebug />}
+			{debug && <HeldGripDebug />}
 			<div
 				style={{
 					position: 'fixed',

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COVE_R, TILE, WALL_H } from '../config';
 import { DIRS, isBay } from './faces';
-import { gridSolid, type Grid } from './grid';
+import { ARCH, gridSolid, gridTile, type Grid } from './grid';
 
 const ARC_SEG = 6;
 const H_SEG = 4;
@@ -92,11 +92,18 @@ function fillet(c: Corner): THREE.BufferGeometry {
 	return g;
 }
 
-export function buildCornerCoves(grid: Grid, variant = 0): THREE.BufferGeometry {
+export function buildCornerCoves(
+	grid: Grid,
+	variant = 0,
+): THREE.BufferGeometry {
 	const parts: THREE.BufferGeometry[] = [];
 	for (let row = 0; row < grid.rows; row++) {
 		for (let col = 0; col < grid.cols; col++) {
 			if (gridSolid(grid, col, row)) continue;
+			// Doorway tiles: every corner here pairs a real jamb with the
+			// out-of-bounds passage side (phantom-solid), producing fillets that
+			// hang in the opening. The arch mesh owns this tile.
+			if (gridTile(grid, col, row) === ARCH) continue;
 			cornersAt(grid, col, row, variant).forEach((c, i) => {
 				const wc = grid.originCol + col;
 				const wr = grid.originRow + row;

@@ -110,6 +110,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 					uAffine={0}
 					uRes={res}
 					uTint={bayTint}
+					uOcclude={0}
 					side={THREE.DoubleSide}
 					polygonOffset
 					polygonOffsetFactor={-3}
@@ -124,6 +125,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 					uAffine={0}
 					uRes={res}
 					uTint={bayBackTint}
+					uOcclude={0}
 					side={THREE.DoubleSide}
 				/>
 			</mesh>

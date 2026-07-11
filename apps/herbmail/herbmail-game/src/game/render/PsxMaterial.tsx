@@ -59,6 +59,7 @@ const fragment = /* glsl */ `
 	uniform float uFogFar;
 	uniform float uAffine;
 	uniform float uAmbient;
+		uniform float uOcclude;
 	uniform int uLightCount;
 	uniform vec3 uLightPos[MAX_LIGHTS];
 	uniform vec3 uLightColor[MAX_LIGHTS];
@@ -97,6 +98,8 @@ const fragment = /* glsl */ `
 		vec4 tex = texture2D(uMap, uv);
 
 		vec3 light = vec3(uAmbient);
+		vec3 N = normalize(vNormal);
+		if (!gl_FrontFacing) N = -N;
 		for (int i = 0; i < MAX_LIGHTS; i++) {
 			if (i >= uLightCount) break;
 			vec3 toL = uLightPos[i] - vWorld;
@@ -104,11 +107,11 @@ const fragment = /* glsl */ `
 			float win = clamp(1.0 - pow(d / LIGHT_RANGE, 4.0), 0.0, 1.0);
 			if (win <= 0.0) continue;
 			vec3 L = toL / max(d, 0.001);
-			float ndl = dot(normalize(vNormal), L);
+			float ndl = dot(N, L);
 			float lambert = max(ndl * 0.75 + 0.25, 0.0);
 			lambert *= lambert;
 			float att = 1.0 / max(0.4 + 0.15 * d + 0.12 * d * d, 0.05);
-			float vis = visibility(vWorld.xz, uLightPos[i].xz);
+			float vis = uOcclude > 0.5 ? visibility(vWorld.xz, uLightPos[i].xz) : 1.0;
 			light += uLightColor[i] * att * win * win * vis * lambert;
 		}
 
@@ -130,6 +133,7 @@ const PsxMaterialImpl = shaderMaterial(
 		uFogNear: FOG.near,
 		uFogFar: FOG.far,
 		uAmbient: 0.12,
+		uOcclude: 1,
 		uMapTex: blankTex,
 		uGridOrigin: new THREE.Vector2(0, 0),
 		uGridSize: new THREE.Vector2(1, 1),

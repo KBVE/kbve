@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COVE_R, TILE, WALL_H, WALL_SEG } from '../config';
 import { exposedFaces, faceMatrix } from './faces';
-import type { Grid } from './grid';
+import { ARCH, gridTile, type Grid } from './grid';
 
 const ARC_SEG = 8;
 const HALF = TILE / 2;
@@ -53,6 +53,14 @@ export function buildCoves(grid: Grid): THREE.BufferGeometry {
 	const profile = coveProfile();
 	const parts: THREE.BufferGeometry[] = [];
 	for (const face of faces) {
+		// Skip the doorway opening (passage side faces out-of-bounds) so no cove
+		// arc is draped across the top of the passage.
+		if (gridTile(grid, face.col, face.row) === ARCH) {
+			const nc = face.col + face.dir.dc;
+			const nr = face.row + face.dir.dr;
+			if (nc < 0 || nc >= grid.cols || nr < 0 || nr >= grid.rows)
+				continue;
+		}
 		const g = profile.clone();
 		g.applyMatrix4(faceMatrix(grid, face, 0));
 		parts.push(g);

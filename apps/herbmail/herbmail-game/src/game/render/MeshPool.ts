@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { EntityPool, MeshRef, Transform3 } from '@kbve/laser/ecs';
+import { TORCH_HEAD_LOCAL, TORCH_MODEL_SCALE } from '../prop/torchModel';
 
-const SCALE = 1.1;
-const HEAD_LOCAL = new THREE.Vector3(0, 0, 1);
+const SCALE = TORCH_MODEL_SCALE;
+const HEAD_LOCAL = TORCH_HEAD_LOCAL;
 
 // Wooden ring bracket at the torch base where it meets the wall. Shared geometry
 // + material across every torch (never per-torch disposed — see disposeObject).

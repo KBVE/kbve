@@ -6,6 +6,8 @@ import { useOcclusionField } from '../dungeon/occlusion';
 import { MODEL_URLS } from '../prop/kinds';
 import { MeshPool } from './MeshPool';
 import { FlamePool } from './FlamePool';
+import { FireflyPool } from './FireflyPool';
+import { FireflySystem } from '../prop/firefly';
 import { LightSystem } from './LightSystem';
 
 const TORCH_URL = MODEL_URLS[0];
@@ -25,20 +27,25 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 
 	const meshPool = useMemo(() => new MeshPool([gltf.scene]), [gltf.scene]);
 	const flamePool = useMemo(() => new FlamePool(), []);
+	const fireflyPool = useMemo(() => new FireflyPool(), []);
+	const fireflySystem = useMemo(() => new FireflySystem(), []);
 	const lightSystem = useMemo(() => new LightSystem(), []);
 
 	useEffect(() => {
 		const world = getDungeon().world;
 		meshPool.reconcile(world);
 		flamePool.reconcile(world);
-	}, [gen, meshPool, flamePool]);
+		fireflyPool.reconcile(world);
+	}, [gen, meshPool, flamePool, fireflyPool]);
 
 	useEffect(() => () => meshPool.dispose(), [meshPool]);
 	useEffect(() => () => flamePool.dispose(), [flamePool]);
+	useEffect(() => () => fireflyPool.dispose(), [fireflyPool]);
 	useEffect(() => () => lightSystem.dispose(), [lightSystem]);
 
-	useFrame((state) => {
+	useFrame((state, delta) => {
 		const world = getDungeon().world;
+		fireflySystem.tick(world, state.clock.elapsedTime, delta);
 		lightSystem.tick(
 			world,
 			state.scene,
@@ -48,12 +55,14 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 			ambient,
 		);
 		flamePool.tick(state.clock.elapsedTime, state.camera);
+		fireflyPool.tick(state.clock.elapsedTime);
 	});
 
 	return (
 		<>
 			<primitive object={meshPool.root} />
 			<primitive object={flamePool.root} />
+			<primitive object={fireflyPool.root} />
 			<primitive object={lightSystem.root} />
 		</>
 	);

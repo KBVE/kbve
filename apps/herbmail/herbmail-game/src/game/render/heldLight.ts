@@ -17,10 +17,16 @@ export function setHeldLight(
 	y: number,
 	z: number,
 	intensity: number,
+	r = heldLight.r,
+	g = heldLight.g,
+	b = heldLight.b,
 ): void {
 	heldLight.on = 1;
 	heldLight.pos.set(x, y, z);
 	heldLight.intensity = intensity;
+	heldLight.r = r;
+	heldLight.g = g;
+	heldLight.b = b;
 }
 
 export function clearHeldLight(): void {

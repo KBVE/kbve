@@ -1,13 +1,22 @@
 import * as THREE from 'three';
-import { LightEmitter, query, Transform3, type World } from '@kbve/laser/ecs';
+import {
+	hasComponent,
+	LightEmitter,
+	query,
+	Transform3,
+	type World,
+} from '@kbve/laser/ecs';
+import { FireflyFx } from '../prop/components';
 import { MAX_LIGHTS, LIGHT_RANGE } from './PsxMaterial';
 import type { OcclusionField } from '../dungeon/occlusion';
 import { heldLight } from './heldLight';
+import { playerAnchor } from './playerAnchor';
 
 const HEAD_REACH = 1.122;
 const HEAD_OFFSET = 0.28;
 const POINT_LIGHTS = 6;
 const POINT_SCALE = 3.0;
+const SHADOW_CASTERS = 2;
 
 interface Ranked {
 	x: number;
@@ -17,7 +26,9 @@ interface Ranked {
 	g: number;
 	b: number;
 	dist: number;
+	pdist: number;
 	intensity: number;
+	tier: number;
 }
 
 // Reads all LightEmitter props each frame, ranks them by camera distance, and
@@ -27,6 +38,7 @@ interface Ranked {
 export class LightSystem {
 	readonly root = new THREE.Group();
 	private readonly lights: THREE.PointLight[] = [];
+	private readonly shadowLights: THREE.PointLight[] = [];
 	private readonly pos = Array.from(
 		{ length: MAX_LIGHTS },
 		() => new THREE.Vector3(),
@@ -44,6 +56,18 @@ export class LightSystem {
 			this.lights.push(pl);
 			this.root.add(pl);
 		}
+		for (let i = 0; i < SHADOW_CASTERS; i++) {
+			const sl = new THREE.PointLight(0xffffff, 0, LIGHT_RANGE, 2);
+			sl.castShadow = true;
+			sl.visible = false;
+			sl.shadow.mapSize.set(512, 512);
+			sl.shadow.camera.near = 0.2;
+			sl.shadow.camera.far = LIGHT_RANGE;
+			sl.shadow.bias = -0.005;
+			sl.shadow.radius = 4;
+			this.shadowLights.push(sl);
+			this.root.add(sl);
+		}
 	}
 
 	tick(
@@ -56,14 +80,16 @@ export class LightSystem {
 	): void {
 		this.ranked.length = 0;
 		for (const eid of query(world, [LightEmitter, Transform3])) {
+			const firefly = hasComponent(world, eid, FireflyFx);
 			const dx = Transform3.dx[eid];
 			const dy = Transform3.dy[eid];
 			const dz = Transform3.dz[eid];
 			const len = Math.hypot(dx, dy, dz) || 1;
-			const x = Transform3.px[eid] + (dx / len) * HEAD_REACH;
-			const y =
-				Transform3.py[eid] + (dy / len) * HEAD_REACH + HEAD_OFFSET;
-			const z = Transform3.pz[eid] + (dz / len) * HEAD_REACH;
+			const reach = firefly ? 0 : HEAD_REACH;
+			const yoff = firefly ? 0 : HEAD_OFFSET;
+			const x = Transform3.px[eid] + (dx / len) * reach;
+			const y = Transform3.py[eid] + (dy / len) * reach + yoff;
+			const z = Transform3.pz[eid] + (dz / len) * reach;
 
 			const ph = LightEmitter.flickerPhase[eid];
 			const amp = LightEmitter.flickerAmp[eid];
@@ -77,6 +103,8 @@ export class LightSystem {
 			const ddx = x - camera.position.x;
 			const ddy = y - camera.position.y;
 			const ddz = z - camera.position.z;
+			const pdx = x - playerAnchor.pos.x;
+			const pdz = z - playerAnchor.pos.z;
 			this.ranked.push({
 				x,
 				y,
@@ -85,7 +113,9 @@ export class LightSystem {
 				g: LightEmitter.g[eid],
 				b: LightEmitter.b[eid],
 				dist: ddx * ddx + ddy * ddy + ddz * ddz,
+				pdist: pdx * pdx + pdz * pdz,
 				intensity: LightEmitter.baseIntensity[eid] * f,
+				tier: firefly ? 1 : 0,
 			});
 		}
 
@@ -103,11 +133,13 @@ export class LightSystem {
 				g: heldLight.g,
 				b: heldLight.b,
 				dist: 0,
+				pdist: 0,
 				intensity: heldLight.intensity * flick,
+				tier: 0,
 			});
 		}
 
-		this.ranked.sort((a, b) => a.dist - b.dist);
+		this.ranked.sort((a, b) => a.tier - b.tier || a.dist - b.dist);
 		const count = Math.min(this.ranked.length, MAX_LIGHTS);
 
 		for (let i = 0; i < count; i++) {
@@ -149,9 +181,27 @@ export class LightSystem {
 				pl.visible = false;
 			}
 		}
+
+		const byPlayer = this.ranked
+			.slice()
+			.sort((a, b) => a.tier - b.tier || a.pdist - b.pdist);
+		for (let i = 0; i < SHADOW_CASTERS; i++) {
+			const sl = this.shadowLights[i];
+			if (i < byPlayer.length) {
+				const l = byPlayer[i];
+				sl.position.set(l.x, l.y, l.z);
+				sl.visible = true;
+			} else {
+				sl.visible = false;
+			}
+		}
 	}
 
 	dispose(): void {
 		for (const pl of this.lights) this.root.remove(pl);
+		for (const sl of this.shadowLights) {
+			sl.shadow.map?.dispose();
+			this.root.remove(sl);
+		}
 	}
 }

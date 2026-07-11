@@ -1,0 +1,129 @@
+import {
+	addComponent,
+	addEntity,
+	LightEmitter,
+	Prop,
+	query,
+	Transform3,
+	type World,
+} from '@kbve/laser/ecs';
+import { playerAnchor } from '../render/playerAnchor';
+import { FireflyFx } from './components';
+import { PROP_FIREFLY } from './kinds';
+
+const FLY_R = 0.42;
+const FLY_G = 1.0;
+const FLY_B = 0.5;
+const BASE_INTENSITY = 0.55;
+const LIGHT_RANGE = 6;
+const FLICKER_AMP = 1.4;
+
+const BOB_R = 0.35;
+const BOB_Y = 0.28;
+const FLEE_RADIUS = 3.0;
+const FLEE_ACCEL = 22;
+const SPRING = 5.5;
+const DAMP = 3.6;
+const MAX_SPEED = 7;
+
+export function spawnFirefly(
+	world: World,
+	ownerEid: number,
+	home: [number, number, number],
+	seed: number,
+): number {
+	const eid = addEntity(world);
+	addComponent(world, eid, Prop);
+	addComponent(world, eid, Transform3);
+	addComponent(world, eid, LightEmitter);
+	addComponent(world, eid, FireflyFx);
+
+	Prop.kind[eid] = PROP_FIREFLY;
+	Prop.ownerEid[eid] = ownerEid;
+
+	Transform3.px[eid] = home[0];
+	Transform3.py[eid] = home[1];
+	Transform3.pz[eid] = home[2];
+	Transform3.dx[eid] = 0;
+	Transform3.dy[eid] = 1;
+	Transform3.dz[eid] = 0;
+
+	LightEmitter.r[eid] = FLY_R;
+	LightEmitter.g[eid] = FLY_G;
+	LightEmitter.b[eid] = FLY_B;
+	LightEmitter.baseIntensity[eid] = BASE_INTENSITY;
+	LightEmitter.range[eid] = LIGHT_RANGE;
+	LightEmitter.flickerPhase[eid] = (seed * 12.9898) % (Math.PI * 2);
+	LightEmitter.flickerAmp[eid] = FLICKER_AMP;
+
+	FireflyFx.homeX[eid] = home[0];
+	FireflyFx.homeY[eid] = home[1];
+	FireflyFx.homeZ[eid] = home[2];
+	FireflyFx.seed[eid] = seed;
+	FireflyFx.vx[eid] = 0;
+	FireflyFx.vy[eid] = 0;
+	FireflyFx.vz[eid] = 0;
+
+	return eid;
+}
+
+// Per-frame kinematics: each firefly drifts around its home anchor with a soft
+// lissajous bob, darts away when the player enters FLEE_RADIUS, and springs back
+// to its drift target once the player leaves.
+export class FireflySystem {
+	tick(world: World, time: number, dt: number): void {
+		const step = Math.min(dt, 0.05);
+		for (const eid of query(world, [FireflyFx, Transform3])) {
+			const s = FireflyFx.seed[eid];
+			const tx = FireflyFx.homeX[eid] + Math.sin(time * 0.9 + s) * BOB_R;
+			const ty =
+				FireflyFx.homeY[eid] + Math.sin(time * 1.3 + s * 2.1) * BOB_Y;
+			const tz =
+				FireflyFx.homeZ[eid] + Math.cos(time * 0.75 + s * 1.7) * BOB_R;
+
+			const px = Transform3.px[eid];
+			const py = Transform3.py[eid];
+			const pz = Transform3.pz[eid];
+
+			let ax: number;
+			let ay: number;
+			let az: number;
+
+			const fdx = px - playerAnchor.pos.x;
+			const fdz = pz - playerAnchor.pos.z;
+			const fd = Math.hypot(fdx, fdz);
+
+			if (playerAnchor.on && fd < FLEE_RADIUS) {
+				const k = (1 - fd / FLEE_RADIUS) * FLEE_ACCEL;
+				const inv = fd > 0.001 ? 1 / fd : 0;
+				ax = fdx * inv * k;
+				az = fdz * inv * k;
+				ay = k * 0.35;
+			} else {
+				ax = (tx - px) * SPRING;
+				ay = (ty - py) * SPRING;
+				az = (tz - pz) * SPRING;
+			}
+
+			let vx = (FireflyFx.vx[eid] + ax * step) * (1 - DAMP * step);
+			let vy = (FireflyFx.vy[eid] + ay * step) * (1 - DAMP * step);
+			let vz = (FireflyFx.vz[eid] + az * step) * (1 - DAMP * step);
+
+			const sp = Math.hypot(vx, vy, vz);
+			if (sp > MAX_SPEED) {
+				const c = MAX_SPEED / sp;
+				vx *= c;
+				vy *= c;
+				vz *= c;
+			}
+
+			FireflyFx.vx[eid] = vx;
+			FireflyFx.vy[eid] = vy;
+			FireflyFx.vz[eid] = vz;
+
+			Transform3.px[eid] = px + vx * step;
+			Transform3.py[eid] = py + vy * step;
+			Transform3.pz[eid] = pz + vz * step;
+		}
+	}
+}

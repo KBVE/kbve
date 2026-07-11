@@ -14,22 +14,36 @@ import { ProceduralPlume } from './ProceduralPlume';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
 import { useBodySkinMorph } from './body';
-import { collectLegs, lowestAnkleY, groundLeg } from './footIK';
 import { makeFlameMaterial } from '../render/flameMaterial';
 import { setHeldLight, clearHeldLight } from '../render/heldLight';
+import { HELD_ITEMS, VERTICAL_GRIP, SWORD_URL, TORCH_URL } from './heldItems';
 
-const SWORD_URL = '/models/sword.glb';
-const TORCH_URL = '/models/torch.glb';
+const UP = new THREE.Vector3(0, 1, 0);
+
 useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
 
-const HELD_INTENSITY = 5;
-const HELD_FLAME_SCALE = 0.11;
+const HELD_FLAME_SCALE = 0.24;
 const flameGeo = new THREE.PlaneGeometry(0.66, 1);
 
-const ANKLE_HEIGHT = 0.049;
-const FOOT_BLEND_FULL = 0.09;
-const FOOT_BLEND_FADE = 0.22;
+function buildFlame(gripScale: number): {
+	flame: THREE.Group;
+	mats: THREE.ShaderMaterial[];
+} {
+	const mats: THREE.ShaderMaterial[] = [];
+	const flame = new THREE.Group();
+	flame.scale.setScalar(HELD_FLAME_SCALE / gripScale);
+	for (let i = 0; i < 3; i++) {
+		const mat = makeFlameMaterial(i * 3.713, 12);
+		mats.push(mat);
+		const mesh = new THREE.Mesh(flameGeo, mat);
+		mesh.rotation.y = (i / 3) * Math.PI;
+		mesh.position.y = flameGeo.parameters.height * 0.5;
+		mesh.renderOrder = 10;
+		flame.add(mesh);
+	}
+	return { flame, mats };
+}
 
 const UPPER_BONE =
 	/spine|neck|head|clavicle|upperarm|lowerarm|hand|thumb|index|middle|ring|pinky|prop/i;
@@ -72,13 +86,17 @@ export function Character({
 	const sword = useGLTF(SWORD_URL);
 	const torch = useGLTF(TORCH_URL);
 	const heldAnchor = useRef<THREE.Object3D | null>(null);
+	const heldFlame = useRef<THREE.Object3D | null>(null);
 	const heldMats = useRef<THREE.ShaderMaterial[] | null>(null);
 	const heldPos = useRef(new THREE.Vector3());
+	const heldQuat = useRef(new THREE.Quaternion());
+	const heldLightCfg = useRef<{
+		intensity: number;
+		color: [number, number, number];
+	} | null>(null);
 	const groupRef = useRef<THREE.Group>(null);
 	const tRef = useRef(0);
 	const jumpRef = useRef({ wasGrounded: true, landUntil: 0 });
-	const groundRef = useRef({ shift: 0 });
-	const forwardRef = useRef(new THREE.Vector3());
 
 	const scene = useMemo(() => {
 		const s = cloneSkinned(gltf.scene);
@@ -90,90 +108,92 @@ export function Character({
 	useCharacterParts(scene);
 	useBodySkinMorph(scene);
 
+	// Generic held-item attach: everything is driven by the HELD_ITEMS registry, so
+	// a new object is a config entry, not new code. Grips the handle end, applies
+	// the authored pos/rot/scale, and wires optional flame/light attachments.
 	useEffect(() => {
-		if (!armed) return;
+		const cfg = HELD_ITEMS[heldId];
 		const hand = scene.getObjectByName(WEAPON_GRIP.handBone);
-		if (!hand) return;
-		const g = WEAPON_GRIP.sword;
-		const inner = cloneSkinned(sword.scene);
-		inner.position.y = -g.gripY; // handle -> pivot origin
-		const pivot = new THREE.Group();
-		pivot.name = 'weaponPivot';
-		pivot.add(inner);
-		pivot.position.fromArray(g.pos);
-		pivot.rotation.set(g.rot[0], g.rot[1], g.rot[2]);
-		pivot.scale.setScalar(g.scale);
-		pivot.userData.weapon = true;
-		hand.add(pivot);
-		return () => {
-			hand.remove(pivot);
+		if (!cfg || !hand) return;
+		const srcByUrl: Record<string, THREE.Object3D> = {
+			[SWORD_URL]: sword.scene,
+			[TORCH_URL]: torch.scene,
 		};
-	}, [scene, sword, armed]);
+		const src = srcByUrl[cfg.modelUrl];
+		if (!src) return;
 
-	// Torch held in hand: attach the torch model + a flame at its head, and expose
-	// the head anchor so the frame loop can drive the held light from it.
-	useEffect(() => {
-		if (heldId !== 'torch') return;
-		const grip = WEAPON_GRIP.torch;
-		const hand = scene.getObjectByName(WEAPON_GRIP.handBone);
-		if (!hand) return;
-
-		const inner = cloneSkinned(torch.scene);
+		const inner = cloneSkinned(src);
 		inner.traverse((o) => {
 			const mesh = o as THREE.Mesh;
 			if (!mesh.isMesh) return;
-			const src = mesh.material as THREE.MeshStandardMaterial;
-			if (src.map) {
-				src.map.magFilter = THREE.NearestFilter;
-				src.map.minFilter = THREE.NearestMipmapNearestFilter;
-				src.map.needsUpdate = true;
+			const m = mesh.material as THREE.MeshStandardMaterial;
+			if (m.map) {
+				m.map.magFilter = THREE.NearestFilter;
+				m.map.minFilter = THREE.NearestMipmapNearestFilter;
+				m.map.needsUpdate = true;
 			}
 			mesh.castShadow = true;
 		});
 
-		const pivot = new THREE.Group();
-		pivot.name = 'torchPivot';
-		pivot.add(inner);
-		pivot.position.fromArray(grip.pos);
-		pivot.rotation.set(grip.rot[0], grip.rot[1], grip.rot[2]);
-		pivot.scale.setScalar(grip.scale);
-
-		// Head anchor at the torch's +z tip (HEAD_LOCAL), where the flame sits.
+		// Normalize any vertical item the same way: rotate its long axis to +Y
+		// (up) and shift so the grip point sits at the pivot origin (the fist).
+		// After this every item is "a vertical stick gripped at the bottom", so the
+		// one shared VERTICAL_GRIP poses them identically. Tip is +Y for the flame.
+		const axis = new THREE.Vector3(...cfg.axis).normalize();
+		inner.quaternion.setFromUnitVectors(axis, UP);
+		inner.updateMatrixWorld(true);
 		const box = new THREE.Box3().setFromObject(inner);
-		const anchor = new THREE.Object3D();
-		anchor.position.set(
+		const gripY = box.min.y + cfg.gripFrac * (box.max.y - box.min.y);
+		inner.position.y = -gripY;
+		const headPoint = new THREE.Vector3(
 			(box.min.x + box.max.x) / 2,
-			(box.min.y + box.max.y) / 2,
-			box.max.z,
+			box.max.y - gripY,
+			(box.min.z + box.max.z) / 2,
 		);
-		pivot.add(anchor);
 
-		const mats: THREE.ShaderMaterial[] = [];
-		const flame = new THREE.Group();
-		flame.scale.setScalar(HELD_FLAME_SCALE / grip.scale);
-		for (let i = 0; i < 3; i++) {
-			const mat = makeFlameMaterial(i * 3.713, 12);
-			mats.push(mat);
-			const mesh = new THREE.Mesh(flameGeo, mat);
-			mesh.rotation.y = (i / 3) * Math.PI;
-			mesh.position.y = flameGeo.parameters.height * 0.5;
-			mesh.renderOrder = 10;
-			flame.add(mesh);
+		const pivot = new THREE.Group();
+		pivot.name = cfg.pivotName;
+		pivot.add(inner);
+		pivot.position.fromArray(VERTICAL_GRIP.pos);
+		pivot.rotation.set(
+			VERTICAL_GRIP.rot[0],
+			VERTICAL_GRIP.rot[1],
+			VERTICAL_GRIP.rot[2],
+		);
+		pivot.scale.setScalar(cfg.scale);
+		pivot.userData.heldPivot = true;
+
+		let anchor: THREE.Object3D | null = null;
+		let flame: THREE.Group | null = null;
+		let mats: THREE.ShaderMaterial[] | null = null;
+		if (cfg.flame || cfg.light) {
+			anchor = new THREE.Object3D();
+			if (headPoint) anchor.position.copy(headPoint);
+			pivot.add(anchor);
 		}
-		anchor.add(flame);
+		if (cfg.flame && anchor) {
+			const built = buildFlame(cfg.scale);
+			flame = built.flame;
+			mats = built.mats;
+			anchor.add(flame);
+		}
 
 		hand.add(pivot);
 		heldAnchor.current = anchor;
+		heldFlame.current = flame;
 		heldMats.current = mats;
+		heldLightCfg.current = cfg.light ?? null;
 
 		return () => {
 			hand.remove(pivot);
 			heldAnchor.current = null;
+			heldFlame.current = null;
 			heldMats.current = null;
-			for (const m of mats) m.dispose();
+			heldLightCfg.current = null;
+			if (mats) for (const m of mats) m.dispose();
 			clearHeldLight();
 		};
-	}, [scene, torch, heldId]);
+	}, [scene, heldId, sword, torch]);
 
 	const rig = useMemo(() => {
 		const animator = new CharacterAnimator(scene, gltf.animations);
@@ -181,8 +201,7 @@ export function Character({
 		const pose = new ProceduralPose(scene);
 		const plume = new ProceduralPlume(scene);
 		motor.position.set(position[0], position[1], position[2]);
-		const legs = collectLegs(scene);
-		return { animator, motor, pose, plume, legs };
+		return { animator, motor, pose, plume };
 	}, [scene, gltf]);
 
 	useEffect(() => {
@@ -213,7 +232,7 @@ export function Character({
 
 	useFrame((_, dtRaw) => {
 		const dt = Math.min(dtRaw, 0.05);
-		const { animator, motor, pose, plume, legs } = rig;
+		const { animator, motor, pose, plume } = rig;
 		tRef.current += dt;
 		drive?.(motor, tRef.current);
 		motor.update(dt);
@@ -248,8 +267,9 @@ export function Character({
 		if (jumping) {
 			// jump state already selected
 		} else if (gait === 'idle') {
+			const holding = heldId !== 'empty';
 			const idle =
-				armed && animator.has(WEAPON_GRIP.idleClip)
+				holding && animator.has(WEAPON_GRIP.idleClip)
 					? WEAPON_GRIP.idleClip
 					: 'Idle_Loop';
 			animator.play(idle);
@@ -268,30 +288,6 @@ export function Character({
 			g.position.copy(motor.position);
 			g.rotation.y = motor.yaw;
 			g.updateMatrixWorld(true);
-			const gr = groundRef.current;
-			if (legs.length && !motor.airborne) {
-				const target =
-					motor.position.y + ANKLE_HEIGHT - lowestAnkleY(legs);
-				gr.shift += (target - gr.shift) * (1 - Math.exp(-14 * dt));
-				g.position.y = motor.position.y + gr.shift;
-				g.updateMatrixWorld(true);
-				forwardRef.current.set(
-					Math.sin(motor.yaw),
-					0,
-					Math.cos(motor.yaw),
-				);
-				for (const leg of legs)
-					groundLeg(leg, {
-						floorY: motor.position.y,
-						ankleHeight: ANKLE_HEIGHT,
-						blendFull: FOOT_BLEND_FULL,
-						blendFade: FOOT_BLEND_FADE,
-						forward: forwardRef.current,
-					});
-			} else {
-				g.position.y = motor.position.y + gr.shift;
-				g.updateMatrixWorld(true);
-			}
 		}
 		plume.update(dt);
 
@@ -302,17 +298,29 @@ export function Character({
 		const anchor = heldAnchor.current;
 		if (anchor) {
 			anchor.getWorldPosition(heldPos.current);
-			setHeldLight(
-				heldPos.current.x,
-				heldPos.current.y,
-				heldPos.current.z,
-				HELD_INTENSITY,
-			);
+			const lc = heldLightCfg.current;
+			if (lc) {
+				setHeldLight(
+					heldPos.current.x,
+					heldPos.current.y,
+					heldPos.current.z,
+					lc.intensity,
+					lc.color[0],
+					lc.color[1],
+					lc.color[2],
+				);
+			}
+			// Keep the flame world-upright (fire rises up) regardless of torch tilt.
+			const fl = heldFlame.current;
+			if (fl) {
+				anchor.getWorldQuaternion(heldQuat.current);
+				fl.quaternion.copy(heldQuat.current.invert());
+			}
 		}
 	});
 
 	return (
-		<group ref={groupRef} scale={scale}>
+		<group ref={groupRef} name="characterRoot" scale={scale}>
 			<primitive object={scene} />
 		</group>
 	);

@@ -10,17 +10,11 @@ import {
 import { TILE } from '../config';
 import { FlameFx } from './components';
 import { MODEL_TORCH, PROP_TORCH } from './kinds';
+import { applyLight, LIGHT_PRESETS } from './lights';
 
 const MOUNT_H = 2.6;
 const PITCH = 0.85;
 const OFF = 0.08;
-
-const FLAME_R = 1.0;
-const FLAME_G = 0.42;
-const FLAME_B = 0.13;
-const BASE_INTENSITY = 2.25;
-const FLICKER_AMP = 1.0;
-const LIGHT_RANGE = 15;
 
 const DIRS: [number, number][] = [
 	[0, -1],
@@ -46,6 +40,20 @@ export function torchTransform(
 	// Mount sits against the wall (nx,nz points floor->wall); the head faces the
 	// opposite way, out into the room, so mesh/flame/light extend inward.
 	return { pos: [fx, MOUNT_H, fz], dir: headDir(-nx, -nz) };
+}
+
+// Niche candle: sits at the wall face at niche height, emitting horizontally into
+// the room (no upward pitch, so the light stays inside the recess).
+export function nicheTransform(
+	worldCol: number,
+	worldRow: number,
+	di: number,
+	y: number,
+): { pos: [number, number, number]; dir: [number, number, number] } {
+	const [nx, nz] = DIRS[di];
+	const fx = (worldCol + 0.5) * TILE + nx * (TILE / 2 - OFF);
+	const fz = (worldRow + 0.5) * TILE + nz * (TILE / 2 - OFF);
+	return { pos: [fx, y, fz], dir: [-nx, 0, -nz] };
 }
 
 // Stable per-tile id so flame seed + light flicker phase are deterministic.
@@ -86,13 +94,7 @@ export function spawnTorch(
 	Transform3.dy[eid] = dir[1];
 	Transform3.dz[eid] = dir[2];
 
-	LightEmitter.r[eid] = FLAME_R;
-	LightEmitter.g[eid] = FLAME_G;
-	LightEmitter.b[eid] = FLAME_B;
-	LightEmitter.baseIntensity[eid] = BASE_INTENSITY;
-	LightEmitter.range[eid] = LIGHT_RANGE;
-	LightEmitter.flickerPhase[eid] = (id * 12.9898) % (Math.PI * 2);
-	LightEmitter.flickerAmp[eid] = FLICKER_AMP;
+	applyLight(eid, LIGHT_PRESETS.torch, id);
 
 	FlameFx.seed[eid] = (id % 97) * 1.7;
 	MeshRef.modelId[eid] = MODEL_TORCH;

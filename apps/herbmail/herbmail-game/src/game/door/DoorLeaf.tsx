@@ -82,6 +82,7 @@ export function DoorLeaf({ door, snap, affine, res }: Props) {
 						uAffine={affine}
 						uRes={res}
 						uTint={tint}
+						uOcclude={0}
 						side={THREE.DoubleSide}
 					/>
 				</mesh>

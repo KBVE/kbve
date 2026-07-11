@@ -1,23 +1,23 @@
+"""Headless Rokoko retarget. Runs inside Blender: ``blender -b -P retarget.py --``.
+
+Retargets Mesh2Motion (A-pose) source clips onto a Synty SIDEKICK (T-pose)
+target rig using the Rokoko Studio Live addon's ``rsl.*`` operators. Rokoko
+correctly resolves the A<->T rest-pose difference (a naive same-name delta
+leaves arms stuck in the target's T-pose). Requires the addon installed in the
+Blender that runs this; ``rokoko_beta`` registers cleanly on Blender 5.0.x.
+
+Also performs SIDEKICK-general cleanup:
+- ``reweight_neutral`` — routes Synty ``neutral_bone`` stray weights to the
+  right deform/attach bone so accessories follow the body.
+- ``add_plume`` (optional) — splits a helmet crest onto a springable ``plume``
+  bone; herbmail-specific, gate off with ``--no-plume``.
+
+Args after ``--``: CHAR ANIMS OUT CLIP[,CLIP...] [PLUME] [REWEIGHT]
+  PLUME/REWEIGHT are "1"/"0" (default "1").
+"""
 import bpy
 import os
-
-HERE = os.path.dirname(os.path.abspath(__file__))
-MODELS = os.path.normpath(os.path.join(HERE, "..", "..", "public", "models"))
-TARGET_GLB = os.path.join(MODELS, "character.glb")
-SOURCE_GLB = os.path.join(MODELS, "m2m-character.glb")
-OUT_GLB = os.path.join(MODELS, "character-anim.glb")
-
-CLIPS = [
-    "Idle_Loop", "Walk_Loop", "Jog_Fwd_Loop", "Sprint_Loop",
-    "Sword_Idle", "Sword_Attack", "Sword_Block",
-    "Jump_Start", "Jump_Loop", "Jump_Land", "Punch_Cross",
-]
-
-SUFFIX = " Retarget"
-
-
-def wipe():
-    bpy.ops.wm.read_factory_settings(use_empty=True)
+import sys
 
 
 def import_glb(path):
@@ -28,7 +28,6 @@ def import_glb(path):
     return arm, added
 
 
-# SIDEKICK attachment slot -> the deform-following attach bone it rides.
 SLOT_ATTACH = {
     "AHED": "headAttach", "AFAC": "faceAttach", "ABAC": "backAttach",
     "AHPF": "hipAttachFront", "AHPB": "hipAttachBack",
@@ -40,9 +39,6 @@ SLOT_ATTACH = {
 
 
 def reweight_neutral(tgt_objs, arm):
-    """Synty/Unity FBX parks stray verts on a static 'neutral_bone' (and IK
-    bones aren't deform bones). Route each attachment mesh's neutral weights to
-    its designated attach bone; route body meshes to the nearest DEFORM bone."""
     def is_deform(name):
         return name != "neutral_bone" and not name.startswith("ik_")
 
@@ -68,13 +64,11 @@ def reweight_neutral(tgt_objs, arm):
             for g in v.groups:
                 if g.group == nb_idx and g.weight > 0:
                     best = fixed or min(
-                        names, key=lambda n: (centers[n] - v.co).length
-                    )
+                        names, key=lambda n: (centers[n] - v.co).length)
                     moves.append((v.index, best, g.weight))
         for vi, best, w in moves:
             grp = mesh.vertex_groups.get(best) or mesh.vertex_groups.new(
-                name=best
-            )
+                name=best)
             grp.add([vi], w, "ADD")
             nb.remove([vi])
         mesh.vertex_groups.remove(nb)
@@ -82,10 +76,7 @@ def reweight_neutral(tgt_objs, arm):
     print(f"reweighted neutral_bone verts: {total}")
 
 
-def add_plume_bone(arm, tgt_objs):
-    """Split the helmet crest onto its own 'plume' bone (child of headAttach)
-    with a height-gradient weight so the game can spring it. Helmet base stays
-    rigid on headAttach; crest tips ride the plume bone."""
+def add_plume(arm, tgt_objs):
     from mathutils import Vector
     ahed = next(
         (m for m in tgt_objs
@@ -138,6 +129,7 @@ def enable_rokoko():
             return
         except Exception:  # noqa: BLE001
             continue
+    raise SystemExit("Rokoko addon not available in this Blender")
 
 
 def set_arm_prop(scene, prop, arm):
@@ -147,40 +139,28 @@ def set_arm_prop(scene, prop, arm):
         setattr(scene, prop, arm.name)
 
 
-def main():
-    wipe()
+def retarget(char, anims, out, clips, plume=True, reweight=True):
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
 
-    tgt, tgt_objs = import_glb(TARGET_GLB)
-    src, _ = import_glb(SOURCE_GLB)
-    print(
-        f"target={tgt.name} source={src.name} actions={len(bpy.data.actions)}")
+    tgt, tgt_objs = import_glb(char)
+    src, _ = import_glb(anims)
+    print(f"target={tgt.name} source={src.name} actions={len(bpy.data.actions)}")
 
-    # glTF import leaves a +90deg X object rotation (Y-up->Z-up). Rokoko's
-    # retarget does transform_apply + a rotation flip that assumes a CLEAN
-    # Z-up armature, so bake that rotation into the data first or the target
-    # collapses. Apply on the armatures (bones) before touching Rokoko.
+    # glTF import leaves a +90deg X object rotation; Rokoko's retarget assumes a
+    # clean Z-up armature, so bake it into the bones first.
     for arm in (tgt, src):
         bpy.ops.object.select_all(action="DESELECT")
         arm.select_set(True)
         bpy.context.view_layer.objects.active = arm
         bpy.ops.object.transform_apply(
-            location=False, rotation=True, scale=True
-        )
-    # Keep both armatures at the origin. Offsetting the source pollutes the
-    # target root via Rokoko's COPY_LOCATION and leaves rest-pose accessory
-    # bones stretching back to origin.
-    print(
-        f"tgt rot after apply={tuple(round(v, 3) for v in tgt.rotation_quaternion)}")
+            location=False, rotation=True, scale=True)
 
-    reweight_neutral(tgt_objs, tgt)
+    if reweight:
+        reweight_neutral(tgt_objs, tgt)
 
     enable_rokoko()
 
-    # The source pointer has a poll requiring an active action, so assign one
-    # BEFORE binding the armatures (glTF import parks clips in the NLA).
-    # The glTF importer suffixes actions with the object name
-    # (e.g. "Idle_Loop_Armature.001"); map clean clip names to datablocks.
     suffixes = [f"_{src.name}", f" {src.name}", ""]
     clip_action = {}
     for a in bpy.data.actions:
@@ -192,17 +172,11 @@ def main():
             clip_action.setdefault(a.name, a)
 
     src.animation_data_create()
-    src.animation_data.action = clip_action.get(
-        CLIPS[0]) or bpy.data.actions[0]
-    print(f"src active action={src.animation_data.action.name}")
+    src.animation_data.action = clip_action.get(clips[0]) or bpy.data.actions[0]
 
     set_arm_prop(sc, "rsl_retargeting_armature_source", src)
     set_arm_prop(sc, "rsl_retargeting_armature_target", tgt)
-    print(f"src ptr={sc.rsl_retargeting_armature_source} "
-          f"tgt ptr={sc.rsl_retargeting_armature_target}")
     sc.rsl_retargeting_use_pose = "REST"
-    # Both rigs are same-scale UE mannequins; auto-scaling bakes stray scale
-    # channels that balloon skinned accessories (helmet/backpack) in three.js.
     sc.rsl_retargeting_auto_scaling = False
 
     bpy.ops.object.select_all(action="DESELECT")
@@ -211,9 +185,6 @@ def main():
     bpy.context.view_layer.objects.active = tgt
     bpy.ops.rsl.build_bone_list()
     bl = sc.rsl_retargeting_bone_list
-    # Auto-detect misses bones whose names aren't in Rokoko's scheme. SIDEKICK
-    # and M2M share exact UE bone names, so fill any unmapped row where the
-    # target rig has a bone of the same name as the source.
     tgt_bones = {b.name for b in tgt.pose.bones}
     for item in bl:
         if not item.bone_name_target and item.bone_name_source in tgt_bones:
@@ -222,7 +193,7 @@ def main():
     print(f"bone_list total={len(bl)} mapped={mapped}")
 
     made = []
-    for name in CLIPS:
+    for name in clips:
         act = clip_action.get(name)
         if not act:
             print(f"  MISSING {name}")
@@ -233,26 +204,22 @@ def main():
         except Exception as e:  # noqa: BLE001
             print(f"  FAIL {name}: {e}")
             continue
-        out = tgt.animation_data.action if tgt.animation_data else None
-        if res == {"FINISHED"} and out:
-            out.name = f"RT_{name}"
-            made.append((name, out))
+        result = tgt.animation_data.action if tgt.animation_data else None
+        if res == {"FINISHED"} and result:
+            result.name = f"RT_{name}"
+            made.append((name, result))
         else:
             print(f"  no result for {name}: {res}")
-
-    print(f"retargeted {len(made)}/{len(CLIPS)}")
+    print(f"retargeted {len(made)}/{len(clips)}")
 
     for name, act in made:
         clash = bpy.data.actions.get(name)
         if clash and clash is not act:
             clash.name = f"SRC_{name}"
         act.name = name
-
     if made:
         tgt.animation_data.action = made[0][1]
 
-    # Drop the source armature and every non-retargeted action so the export
-    # carries only the 11 clean clips (not all 88 M2M source clips).
     keep = {a for _, a in made}
     bpy.ops.object.select_all(action="DESELECT")
     src.select_set(True)
@@ -261,9 +228,9 @@ def main():
     for a in list(bpy.data.actions):
         if a not in keep:
             bpy.data.actions.remove(a)
-    print(f"actions kept for export: {[a.name for a in bpy.data.actions]}")
 
-    add_plume_bone(tgt, tgt_objs)
+    if plume:
+        add_plume(tgt, tgt_objs)
 
     bpy.ops.object.select_all(action="DESELECT")
     for o in tgt_objs:
@@ -271,14 +238,19 @@ def main():
             o.select_set(True)
     bpy.context.view_layer.objects.active = tgt
     bpy.ops.export_scene.gltf(
-        filepath=OUT_GLB,
-        use_selection=True,
-        export_yup=True,
-        export_morph=False,
-        export_animation_mode="ACTIONS",
-        export_animations=True,
-    )
-    print(f"exported {OUT_GLB}")
+        filepath=out, use_selection=True, export_yup=True, export_morph=False,
+        export_animation_mode="ACTIONS", export_animations=True)
+    size = round(os.path.getsize(out) / 1048576, 2)
+    print(f"exported {out} {size} MB {[n for n, _ in made]}")
+
+
+def main():
+    argv = sys.argv[sys.argv.index("--") + 1:]
+    char, anims, out = argv[0], argv[1], argv[2]
+    clips = argv[3].split(",")
+    plume = argv[4] != "0" if len(argv) > 4 else True
+    reweight = argv[5] != "0" if len(argv) > 5 else True
+    retarget(char, anims, out, clips, plume=plume, reweight=reweight)
 
 
 if __name__ == "__main__":
