@@ -1,11 +1,5 @@
-import {
-	addComponent,
-	addEntity,
-	LightEmitter,
-	Prop,
-	Transform3,
-	type World,
-} from '../mecs/props';
+import { addComponent, LightEmitter, type World } from '../mecs/props';
+import { spawnPropBase } from './base';
 
 // A light source is pure ECS: any entity with LightEmitter + Transform3 is picked
 // up by LightSystem, regardless of what it is. Presets are just data, so torches,
@@ -37,12 +31,12 @@ export const LIGHT_PRESETS: Record<string, LightPreset> = {
 		flickerAmp: 1.4,
 	},
 	firefly: {
-		r: 0.55,
+		r: 0.42,
 		g: 1.0,
-		b: 0.45,
-		intensity: 0.5,
-		range: 4,
-		flickerAmp: 1.9,
+		b: 0.5,
+		intensity: 0.55,
+		range: 6,
+		flickerAmp: 1.4,
 	},
 };
 
@@ -68,18 +62,8 @@ export function spawnLight(
 	preset: LightPreset,
 	id: number,
 ): number {
-	const eid = addEntity(world);
-	addComponent(world, eid, Prop);
-	addComponent(world, eid, Transform3);
-	addComponent(world, eid, LightEmitter);
-	Prop.kind[eid] = kind;
-	Prop.ownerEid[eid] = ownerEid;
-	Transform3.px[eid] = pos[0];
-	Transform3.py[eid] = pos[1];
-	Transform3.pz[eid] = pos[2];
-	Transform3.dx[eid] = dir[0];
-	Transform3.dy[eid] = dir[1];
-	Transform3.dz[eid] = dir[2];
+	const eid = spawnPropBase(world, kind, ownerEid, pos, dir);
 	applyLight(eid, preset, id);
+	addComponent(world, eid, LightEmitter);
 	return eid;
 }

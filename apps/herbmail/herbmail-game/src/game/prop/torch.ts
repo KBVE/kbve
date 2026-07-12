@@ -1,15 +1,8 @@
-import {
-	addComponent,
-	addEntity,
-	LightEmitter,
-	MeshRef,
-	Prop,
-	Transform3,
-	type World,
-} from '../mecs/props';
+import { addComponent, LightEmitter, MeshRef, type World } from '../mecs/props';
 import { TILE } from '../config';
 import { FlameFx } from './components';
 import { MODEL_TORCH, PROP_TORCH } from './kinds';
+import { spawnPropBase } from './base';
 import { applyLight, LIGHT_PRESETS } from './lights';
 
 const MOUNT_H = 2.6;
@@ -77,27 +70,14 @@ export function spawnTorch(
 	dir: [number, number, number],
 	id: number,
 ): number {
-	const eid = addEntity(world);
-	addComponent(world, eid, Prop);
-	addComponent(world, eid, Transform3);
-	addComponent(world, eid, LightEmitter);
-	addComponent(world, eid, FlameFx);
-	addComponent(world, eid, MeshRef);
-
-	Prop.kind[eid] = PROP_TORCH;
-	Prop.ownerEid[eid] = ownerEid;
-
-	Transform3.px[eid] = pos[0];
-	Transform3.py[eid] = pos[1];
-	Transform3.pz[eid] = pos[2];
-	Transform3.dx[eid] = dir[0];
-	Transform3.dy[eid] = dir[1];
-	Transform3.dz[eid] = dir[2];
+	const eid = spawnPropBase(world, PROP_TORCH, ownerEid, pos, dir);
 
 	applyLight(eid, LIGHT_PRESETS.torch, id);
-
 	FlameFx.seed[eid] = (id % 97) * 1.7;
 	MeshRef.modelId[eid] = MODEL_TORCH;
 
+	addComponent(world, eid, LightEmitter);
+	addComponent(world, eid, FlameFx);
+	addComponent(world, eid, MeshRef);
 	return eid;
 }

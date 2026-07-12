@@ -1,8 +1,6 @@
 import {
 	addComponent,
-	addEntity,
 	LightEmitter,
-	Prop,
 	each,
 	Transform3,
 	type World,
@@ -10,16 +8,11 @@ import {
 import { playerAnchor } from '../render/playerAnchor';
 import { FireflyFx } from './components';
 import { PROP_FIREFLY } from './kinds';
+import { spawnPropBase } from './base';
+import { applyLight, LIGHT_PRESETS } from './lights';
 
 // Hoisted so the mecs `each` name-map is cached (zero per-frame allocation).
 const FLY_TERMS = [FireflyFx, Transform3];
-
-const FLY_R = 0.42;
-const FLY_G = 1.0;
-const FLY_B = 0.5;
-const BASE_INTENSITY = 0.55;
-const LIGHT_RANGE = 6;
-const FLICKER_AMP = 1.4;
 
 const BOB_R = 0.35;
 const BOB_Y = 0.28;
@@ -35,29 +28,7 @@ export function spawnFirefly(
 	home: [number, number, number],
 	seed: number,
 ): number {
-	const eid = addEntity(world);
-	addComponent(world, eid, Prop);
-	addComponent(world, eid, Transform3);
-	addComponent(world, eid, LightEmitter);
-	addComponent(world, eid, FireflyFx);
-
-	Prop.kind[eid] = PROP_FIREFLY;
-	Prop.ownerEid[eid] = ownerEid;
-
-	Transform3.px[eid] = home[0];
-	Transform3.py[eid] = home[1];
-	Transform3.pz[eid] = home[2];
-	Transform3.dx[eid] = 0;
-	Transform3.dy[eid] = 1;
-	Transform3.dz[eid] = 0;
-
-	LightEmitter.r[eid] = FLY_R;
-	LightEmitter.g[eid] = FLY_G;
-	LightEmitter.b[eid] = FLY_B;
-	LightEmitter.baseIntensity[eid] = BASE_INTENSITY;
-	LightEmitter.range[eid] = LIGHT_RANGE;
-	LightEmitter.flickerPhase[eid] = (seed * 12.9898) % (Math.PI * 2);
-	LightEmitter.flickerAmp[eid] = FLICKER_AMP;
+	const eid = spawnPropBase(world, PROP_FIREFLY, ownerEid, home, [0, 1, 0]);
 
 	FireflyFx.homeX[eid] = home[0];
 	FireflyFx.homeY[eid] = home[1];
@@ -66,7 +37,10 @@ export function spawnFirefly(
 	FireflyFx.vx[eid] = 0;
 	FireflyFx.vy[eid] = 0;
 	FireflyFx.vz[eid] = 0;
+	applyLight(eid, LIGHT_PRESETS.firefly, seed);
 
+	addComponent(world, eid, FireflyFx);
+	addComponent(world, eid, LightEmitter);
 	return eid;
 }
 
