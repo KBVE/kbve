@@ -24,6 +24,7 @@ enum DispatchPipeline {
   DISPATCH_PIPELINE_GODOT = 8;        // Godot game export (godot-ci docker)
   DISPATCH_PIPELINE_UNREAL_GAME = 9;  // UE standalone game build (vs server / vs plugin)
   DISPATCH_PIPELINE_BEVY_GAME = 10;   // Bevy game executable (vs library crate)
+  DISPATCH_PIPELINE_VITE_GAME = 11;   // Vite/Nx web game bundle → itch.io html5
 }
 
 // Language / framework that determines which CI toolchain is needed for tests.
@@ -43,8 +44,10 @@ enum TestFramework {
 }
 
 // Game-engine specific config — used by Unity / Godot / Unreal-Game / Bevy-Game
-// pipelines. One shared sub-message instead of per-engine fields keeps CiProject
-// flat; engine-specific knowledge lives in the per-engine workflow.
+// / Vite-Game pipelines. One shared sub-message instead of per-engine fields
+// keeps CiProject flat; engine-specific knowledge lives in the per-engine
+// workflow. Vite-Game reuses project_path (the Nx app dir) + build_targets
+// (["html5"]); version is unused (Vite/Nx, no engine pin).
 message GameEngineConfig {
   // Engine version pin. Examples:
   //   Unity:  "6000.0.30f1"
