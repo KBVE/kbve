@@ -47,6 +47,10 @@ export class ProceduralPose {
 		if (this.weight < 0.001) return;
 
 		this.head.getWorldPosition(this.headWorld);
+		// A look target coincident with the head yields a degenerate lookAt matrix →
+		// NaN quaternion that slerps into the bone and corrupts the pose for the rest
+		// of the session. Skip the frame instead.
+		if (this.headWorld.distanceToSquared(this.target) < 1e-6) return;
 		this.m.lookAt(this.headWorld, this.target, this.up);
 		this.desired.setFromRotationMatrix(this.m);
 		this.head.parent.getWorldQuaternion(this.parentInv).invert();

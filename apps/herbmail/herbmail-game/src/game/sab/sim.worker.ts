@@ -250,6 +250,12 @@ function syncPropColliders(): void {
 
 function addSector(d: SectorData): void {
 	if (!phys || sectorBodies.has(d.key)) return;
+	// A malformed tile buffer would read `undefined & SOLID === 0` and silently drop
+	// wall colliders (invisible non-solid walls). Reject it loudly instead.
+	if (d.tiles.length !== d.cols * d.rows) {
+		console.error('[sim] addSector: tile buffer size mismatch', d.key);
+		return;
+	}
 	const body = phys.createRigidBody(RAPIER.RigidBodyDesc.fixed());
 	const hx = TILE / 2;
 	const hy = WALL_H / 2;
