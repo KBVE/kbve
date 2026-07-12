@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-07-05T16:10:35.108Z
+ * Generated: 2026-07-12T16:21:08.587Z
  */
 
 import { z } from 'zod';
@@ -19,6 +19,7 @@ export const DispatchPipelines = [
 	'godot',
 	'unreal_game',
 	'bevy_game',
+	'vite_game',
 ] as const;
 
 export type DispatchPipelineValue = (typeof DispatchPipelines)[number];

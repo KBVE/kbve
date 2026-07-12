@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { Health, Prop } from '../mecs/props';
-import { PROP_CRATE } from '../prop/kinds';
+import { Health } from '../mecs/props';
 import { crackStage } from '../prop/crate';
 
 // Damage decals overlaid on a crate: a slightly-oversized cube carrying the crack
@@ -36,6 +35,8 @@ export function makeCrackDecal(): THREE.Mesh {
 	mesh.visible = false;
 	mesh.userData.crackStage = 0;
 	mesh.userData.crackDecal = true;
+	// DECAL_GEO is a shared module singleton; only the material is per-decal.
+	mesh.userData.sharedGeo = true;
 	return mesh;
 }
 
@@ -51,12 +52,7 @@ export function setCrackStage(decal: THREE.Mesh, stage: number): void {
 // Drive each live crate's crack decal from its Health. Cheap enough to run every
 // frame (setCrackStage no-ops when the stage is unchanged), so damage shows the
 // instant hp drops without a bump/reconcile.
-export function syncCrateDamage(
-	entries: Iterable<[number, THREE.Object3D]>,
-): void {
-	for (const [eid, group] of entries) {
-		if (Prop.kind[eid] !== PROP_CRATE) continue;
-		const decal = group.userData.crackDecalRef as THREE.Mesh | undefined;
-		if (decal) setCrackStage(decal, crackStage(Health.hp[eid]));
-	}
+export function applyCrateDamage(eid: number, group: THREE.Object3D): void {
+	const decal = group.userData.crackDecalRef as THREE.Mesh | undefined;
+	if (decal) setCrackStage(decal, crackStage(Health.hp[eid]));
 }

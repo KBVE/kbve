@@ -20,16 +20,23 @@ const CAP = 24;
 let records: PlacedRecord[] = [];
 let nextId = 1;
 
-// Removed-torch positions, so a despawned torch (procedural or placed) does not
-// respawn when its room streams back in. Keyed by rounded world position.
+// Removed-prop positions, so a despawned torch/crate/stone does not respawn when its
+// room streams back in. Keyed by rounded world position. FIFO-capped: on an endless
+// traverse the oldest entries (far-behind sectors you won't revisit soon) drop, so
+// this stays bounded — those sectors just reset their prop state if you return.
 const suppressed = new Set<string>();
+const SUPPRESS_CAP = 4096;
 
 function posKey(pos: [number, number, number]): string {
 	return `${Math.round(pos[0] * 10)}|${Math.round(pos[1] * 10)}|${Math.round(pos[2] * 10)}`;
 }
 
 export function suppressAt(pos: [number, number, number]): void {
-	suppressed.add(posKey(pos));
+	const key = posKey(pos);
+	suppressed.delete(key);
+	suppressed.add(key);
+	if (suppressed.size > SUPPRESS_CAP)
+		suppressed.delete(suppressed.values().next().value as string);
 }
 
 export function unsuppressAt(pos: [number, number, number]): void {

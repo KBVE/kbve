@@ -1,16 +1,14 @@
 import {
 	addComponent,
-	addEntity,
 	applyStats,
 	Collider,
 	MeshRef,
-	Prop,
-	Transform3,
 	type World,
 } from '../mecs/props';
 import { TILE } from '../config';
 import { hashInt } from '../geometry/rng';
 import { MODEL_CRATE, PROP_CRATE } from './kinds';
+import { spawnPropBase } from './base';
 
 // Crate origin sits at its geometry centre (BOUNDS on export); the model is 1.2m
 // tall, so lifting the mount half that height rests it on the floor (y = 0).
@@ -46,27 +44,14 @@ export function spawnCrate(
 	ownerEid: number,
 	pos: [number, number, number],
 ): number {
-	const eid = addEntity(world);
-	addComponent(world, eid, Prop);
-	addComponent(world, eid, Transform3);
-	addComponent(world, eid, MeshRef);
-	addComponent(world, eid, Collider);
-	applyStats(world, eid, { maxHp: MAX_CRATE_HP });
-
-	Prop.kind[eid] = PROP_CRATE;
-	Prop.ownerEid[eid] = ownerEid;
+	const eid = spawnPropBase(world, PROP_CRATE, ownerEid, pos, [0, 1, 0]);
 
 	Collider.hx[eid] = CRATE_HALF;
 	Collider.hz[eid] = CRATE_HALF;
-
-	Transform3.px[eid] = pos[0];
-	Transform3.py[eid] = pos[1];
-	Transform3.pz[eid] = pos[2];
-	Transform3.dx[eid] = 0;
-	Transform3.dy[eid] = 1;
-	Transform3.dz[eid] = 0;
-
 	MeshRef.modelId[eid] = MODEL_CRATE;
+	applyStats(world, eid, { maxHp: MAX_CRATE_HP });
 
+	addComponent(world, eid, MeshRef);
+	addComponent(world, eid, Collider);
 	return eid;
 }

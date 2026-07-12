@@ -15,7 +15,7 @@ import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
 import { useBodySkinMorph } from './body';
 import { makeFlameMaterial } from '../render/flameMaterial';
-import { setHeldLight, clearHeldLight } from '../render/heldLight';
+import { heldLight, setHeldLight, clearHeldLight } from '../render/heldLight';
 import {
 	HELD_ITEMS,
 	VERTICAL_GRIP,
@@ -27,6 +27,14 @@ import {
 const UP = new THREE.Vector3(0, 1, 0);
 const LAND_SPEED = 1.35;
 const GROUND_Y = -0.037;
+
+// The world is lit by LightSystem's PSX uniforms, but the character keeps its GLB
+// standard material, so it needs a real light to catch the same torch. This point
+// light mirrors heldLight (the held-torch flame) so the body is lit by the exact
+// source lighting the walls. Tune gain/reach/decay to match the wall falloff.
+const TORCH_LIGHT_GAIN = 4;
+const TORCH_LIGHT_REACH = 8;
+const TORCH_LIGHT_DECAY = 1.5;
 
 useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
@@ -105,6 +113,7 @@ export function Character({
 		color: [number, number, number];
 	} | null>(null);
 	const groupRef = useRef<THREE.Group>(null);
+	const torchLight = useRef<THREE.PointLight>(null);
 	const tRef = useRef(0);
 	const jumpRef = useRef({ wasGrounded: true, landUntil: 0, recover: false });
 
@@ -329,6 +338,20 @@ export function Character({
 
 		// Held torch: advance the flame and drive the light from the head anchor's
 		// world position (matrices are up to date after updateMatrixWorld above).
+		// Real point light for the standard-material body, tracking the same held
+		// torch that LightSystem feeds to the walls. Off when no torch is held.
+		const pl = torchLight.current;
+		if (pl) {
+			if (heldLight.on) {
+				pl.visible = true;
+				pl.position.copy(heldLight.pos);
+				pl.color.setRGB(heldLight.r, heldLight.g, heldLight.b);
+				pl.intensity = heldLight.intensity * TORCH_LIGHT_GAIN;
+			} else {
+				pl.visible = false;
+			}
+		}
+
 		const mats = heldMats.current;
 		if (mats) for (const m of mats) m.uniforms.uTime.value = tRef.current;
 		const anchor = heldAnchor.current;
@@ -356,8 +379,17 @@ export function Character({
 	});
 
 	return (
-		<group ref={groupRef} name="characterRoot" scale={scale}>
-			<primitive object={scene} />
-		</group>
+		<>
+			<group ref={groupRef} name="characterRoot" scale={scale}>
+				<primitive object={scene} />
+			</group>
+			<pointLight
+				ref={torchLight}
+				visible={false}
+				distance={TORCH_LIGHT_REACH}
+				decay={TORCH_LIGHT_DECAY}
+				castShadow={false}
+			/>
+		</>
 	);
 }

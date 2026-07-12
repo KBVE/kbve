@@ -3,7 +3,7 @@ import { Collider, Health, Prop, query, Transform3 } from '../mecs/props';
 import { getDungeon } from '../dungeon/store';
 import { PROP_STONE } from '../prop/kinds';
 import { registerInteract } from '../interact/registry';
-import { onContact } from './melee';
+import { onPropContact } from './melee';
 import { mineHit } from './mine';
 
 // Striking distance from the player to a stone's SURFACE for the [F] prompt — a
@@ -16,13 +16,7 @@ const MELEE_REACH = 1.2;
 // prompt provider that surfaces the closest live stone within reach.
 export function useStoneMine(): void {
 	useEffect(() => {
-		const off = onContact((c) => {
-			if (c.kind !== 'target' || !c.object) return;
-			const eid = (c.object as { userData: { eid?: number } }).userData
-				.eid;
-			if (eid === undefined || Prop.kind[eid] !== PROP_STONE) return;
-			mineHit(eid);
-		});
+		const off = onPropContact(PROP_STONE, (eid) => mineHit(eid));
 
 		const unregister = registerInteract((px, pz) => {
 			const world = getDungeon().world;

@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-07-11T09:43:41Z",
+  "generated_at": "2026-07-12T09:56:50Z",
   "summary": {
     "critical": 5,
     "high": 24,
     "medium": 54,
     "low": 8,
-    "info": 35
+    "info": 36
   },
   "ecosystems": {
     "npm": {
@@ -448,13 +448,13 @@
       ]
     },
     "cargo": {
-      "total": 60,
+      "total": 61,
       "severities": {
         "critical": 0,
         "high": 0,
         "medium": 25,
         "low": 0,
-        "info": 35
+        "info": 36
       },
       "advisories": [
         {
@@ -757,6 +757,13 @@
           "severity": "info",
           "package": "rustls-pemfile",
           "url": "https://github.com/rustls/pemfile/issues/61"
+        },
+        {
+          "id": "RUSTSEC-2026-0206",
+          "title": "`rustybuzz` is unmaintained",
+          "severity": "info",
+          "package": "rustybuzz",
+          "url": "https://github.com/harfbuzz/rustybuzz/issues/166"
         },
         {
           "id": "RUSTSEC-2021-0127",

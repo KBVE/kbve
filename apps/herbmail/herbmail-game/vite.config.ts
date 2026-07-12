@@ -13,6 +13,7 @@ const coiHeaders = {
 
 export default defineConfig({
 	root: __dirname,
+	base: './',
 	plugins: [react(), nxViteTsPaths()],
 	server: {
 		port: 4310,

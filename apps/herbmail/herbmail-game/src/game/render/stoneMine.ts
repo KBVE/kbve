@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { Health, Prop } from '../mecs/props';
-import { PROP_STONE } from '../prop/kinds';
+import { Health } from '../mecs/props';
 
 // Mined stones shrink in discrete stages as their Health drops, so a swing reads
 // as chipping the rock down. Full at hp 3, then 0.9 / 0.75 as it wears; it never
@@ -12,17 +11,11 @@ export function mineStage(hp: number): number {
 	return 0.6;
 }
 
-// Drive each live stone's scale from its Health every frame. Cheap: a cached
-// userData stage short-circuits when nothing changed, so the shrink shows the
-// instant hp drops without a reconcile.
-export function syncStoneMine(
-	entries: Iterable<[number, THREE.Object3D]>,
-): void {
-	for (const [eid, group] of entries) {
-		if (Prop.kind[eid] !== PROP_STONE) continue;
-		const s = mineStage(Health.hp[eid]);
-		if (group.userData.mineStage === s) continue;
-		group.userData.mineStage = s;
-		group.scale.setScalar(s);
-	}
+// Drive one live stone's scale from its Health. Cheap: a cached userData stage
+// short-circuits when nothing changed, so the shrink shows the instant hp drops.
+export function applyStoneMine(eid: number, group: THREE.Object3D): void {
+	const s = mineStage(Health.hp[eid]);
+	if (group.userData.mineStage === s) return;
+	group.userData.mineStage = s;
+	group.scale.setScalar(s);
 }

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {
 	hasComponent,
 	LightEmitter,
-	query,
+	each,
 	Transform3,
 	type World,
 } from '../mecs/props';
@@ -22,6 +22,8 @@ const CULL_SQ = CULL_RADIUS * CULL_RADIUS;
 const POINT_LIGHTS = 6;
 const POINT_SCALE = 3.0;
 const SHADOW_CASTERS = 2;
+// Hoisted so the mecs `each` name-map is cached (zero per-frame allocation).
+const LIGHT_TERMS = [LightEmitter, Transform3];
 
 interface Ranked {
 	x: number;
@@ -108,7 +110,7 @@ export class LightSystem {
 		ambient: number,
 	): void {
 		this.active.length = 0;
-		for (const eid of query(world, [LightEmitter, Transform3])) {
+		each(world, LIGHT_TERMS, (eid) => {
 			const firefly = hasComponent(world, eid, FireflyFx);
 			const dx = Transform3.dx[eid];
 			const dy = Transform3.dy[eid];
@@ -132,7 +134,7 @@ export class LightSystem {
 			const pdx = x - playerAnchor.pos.x;
 			const pdz = z - playerAnchor.pos.z;
 			const pd2 = pdx * pdx + pdz * pdz;
-			if (pd2 > CULL_SQ) continue;
+			if (pd2 > CULL_SQ) return;
 
 			const ddx = x - camera.position.x;
 			const ddy = y - camera.position.y;
@@ -149,7 +151,7 @@ export class LightSystem {
 			l.intensity = LightEmitter.baseIntensity[eid] * f;
 			l.tier = firefly ? 1 : 0;
 			this.active.push(l);
-		}
+		});
 
 		// Torch held in hand: always the nearest source (lights walls + character).
 		if (heldLight.on) {

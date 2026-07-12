@@ -1,7 +1,8 @@
 import { TILE } from '../config';
-import { SOLID, PILLAR } from '../geometry/grid';
+import { SOLID, PILLAR, DOORWAY } from '../geometry/grid';
+import { doorClosedAt } from '../door/doors';
 import { cellAtWorld } from './ecs';
-import { CELL } from './generate';
+import { CELL, type RoomDesc } from './generate';
 import { genSector } from './sector';
 import { getDungeon, DUNGEON_SEED } from './store';
 import { Collider, Transform3 } from '../mecs/props';
@@ -9,20 +10,44 @@ import { colliderAt } from '../prop/crateGrid';
 
 const COLUMN_R = 0.55;
 
-export function solidAtWorld(x: number, z: number): boolean {
-	const dw = getDungeon();
-	const { cx, cy } = cellAtWorld(x, z, TILE);
-	const eid = dw.ensureSectorAtCell(cx, cy);
-	const desc = dw.desc(eid);
-	if (!desc) return true;
+// Last resolved sector, cached so the movement hot path (up to 128 solidAtWorld
+// calls per fast-move frame) skips cellAtWorld's object + the sector-map string key
+// while the player stays inside one sector. Cleared when the dungeon is reseeded.
+let cDesc: RoomDesc | null = null;
+let cOC = 0;
+let cOR = 0;
+let cCols = 0;
+let cRows = 0;
 
+export function invalidateSolidCache(): void {
+	cDesc = null;
+}
+
+export function solidAtWorld(x: number, z: number): boolean {
 	const wc = Math.floor(x / TILE);
 	const wr = Math.floor(z / TILE);
-	const lc = wc - desc.originCol;
-	const lr = wr - desc.originRow;
+	let lc = wc - cOC;
+	let lr = wr - cOR;
+	let desc = cDesc;
+	if (!desc || lc < 0 || lc >= cCols || lr < 0 || lr >= cRows) {
+		const dw = getDungeon();
+		const { cx, cy } = cellAtWorld(x, z, TILE);
+		desc = dw.desc(dw.ensureSectorAtCell(cx, cy)) ?? null;
+		if (!desc) return true;
+		cDesc = desc;
+		cOC = desc.originCol;
+		cOR = desc.originRow;
+		cCols = desc.cols;
+		cRows = desc.rows;
+		lc = wc - cOC;
+		lr = wr - cOR;
+	}
 	if (lc < 0 || lc >= desc.cols || lr < 0 || lr >= desc.rows) return true;
 
 	const t = desc.tiles[lr * desc.cols + lc];
+	// A doorway gap blocks only while its door is spawned + locked; otherwise it's an
+	// open arch. (Connector gates carry no door → always passable.)
+	if (t & DOORWAY) return doorClosedAt(wc, wr);
 	// Sub-tile solids (pillars) block only within their radius; full-tile solids
 	// (walls) block the whole cell.
 	if (t & PILLAR) {
@@ -45,10 +70,16 @@ export function solidAtWorld(x: number, z: number): boolean {
 	return false;
 }
 
+let spawnCache: [number, number, number] | null = null;
+
+// Entrance-room centre. Memoized — genSector is a full BSP+corridor+lock build, and
+// this is read from component bodies (ThirdPersonPlayer, PhysicsBodies) on any render.
 export function dungeonSpawn(): [number, number, number] {
+	if (spawnCache) return spawnCache;
 	const s = genSector(DUNGEON_SEED, 0, 0);
 	const r = s.rooms[s.entrance];
 	const wx = (r.col0 + r.w / 2) * CELL * TILE;
 	const wz = (r.row0 + r.h / 2) * CELL * TILE;
-	return [wx, TILE / 2, wz];
+	spawnCache = [wx, TILE / 2, wz];
+	return spawnCache;
 }

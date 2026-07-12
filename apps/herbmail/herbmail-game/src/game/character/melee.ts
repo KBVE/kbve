@@ -1,3 +1,5 @@
+import { Prop } from '../mecs/props';
+
 export interface Contact {
 	point: [number, number, number];
 	kind: 'wall' | 'target';
@@ -37,4 +39,21 @@ export function onContact(f: (c: Contact) => void): () => void {
 
 export function emitContact(c: Contact): void {
 	for (const f of hitSubs) f(c);
+}
+
+/**
+ * Subscribe to melee contacts that hit a prop of a specific kind, resolving the
+ * hitbox object's ECS eid and filtering by Prop.kind. The callback gets a validated
+ * eid — the shared contact→eid→kind dance for breakable props.
+ */
+export function onPropContact(
+	kind: number,
+	fn: (eid: number) => void,
+): () => void {
+	return onContact((c) => {
+		if (c.kind !== 'target' || !c.object) return;
+		const eid = (c.object as { userData: { eid?: number } }).userData.eid;
+		if (eid === undefined || Prop.kind[eid] !== kind) return;
+		fn(eid);
+	});
 }

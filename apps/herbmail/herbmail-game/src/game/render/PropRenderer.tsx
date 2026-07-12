@@ -3,15 +3,22 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { getDungeon, usePropGen } from '../dungeon/store';
 import { useOcclusionField } from '../dungeon/occlusion';
-import { MODEL_URLS, MODEL_TORCH, MODEL_CRATE } from '../prop/kinds';
+import {
+	MODEL_URLS,
+	MODEL_TORCH,
+	MODEL_CRATE,
+	PROP_CRATE,
+	PROP_STONE,
+} from '../prop/kinds';
+import { Prop } from '../mecs/props';
 import { MeshPool, torchConfig, crateConfig, stoneConfig } from './MeshPool';
 import { FlamePool } from './FlamePool';
 import { FireflyPool } from './FireflyPool';
 import { FireflySystem } from '../prop/firefly';
 import { LightSystem } from './LightSystem';
 import { getDebrisPool } from './DebrisPool';
-import { syncCrateDamage } from './crateDecal';
-import { syncStoneMine } from './stoneMine';
+import { applyCrateDamage } from './crateDecal';
+import { applyStoneMine } from './stoneMine';
 
 const TORCH_URL = MODEL_URLS[MODEL_TORCH];
 const CRATE_URL = MODEL_URLS[MODEL_CRATE];
@@ -71,8 +78,13 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 		flamePool.tick(state.clock.elapsedTime, state.camera);
 		fireflyPool.tick(state.clock.elapsedTime);
 		debrisPool.tick(delta);
-		syncCrateDamage(meshPool.entries());
-		syncStoneMine(meshPool.entries());
+		// One pass over pooled meshes, dispatched by prop kind (crate crack decal /
+		// stone shrink) instead of two full walks.
+		for (const [eid, group] of meshPool.entries()) {
+			const kind = Prop.kind[eid];
+			if (kind === PROP_CRATE) applyCrateDamage(eid, group);
+			else if (kind === PROP_STONE) applyStoneMine(eid, group);
+		}
 	});
 
 	return (
