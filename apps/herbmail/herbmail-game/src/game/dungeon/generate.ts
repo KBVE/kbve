@@ -7,6 +7,7 @@ import {
 	cellIndex as sectorCellIndex,
 	OWNER_ROOM,
 	SIDE_N,
+	SIDE_E,
 	SIDE_S,
 	SIDE_W,
 	type Connector,
@@ -504,6 +505,41 @@ function genDoorways(
 	return out;
 }
 
+// Doors on a hash-selected subset of sector-border connector gates. Only the E and
+// S gates emit, so the smaller-coord sector of each shared border owns the single
+// leaf (its neighbour's mirrored W/N gate stays a plain arch). Narrows the 3-wide
+// gate carveConnectorGates opened down to its centre so a leaf seats in it.
+function genConnectorDoors(
+	tiles: Uint8Array,
+	cols: number,
+	connectors: Connector[],
+	seed: number,
+	sx: number,
+	sy: number,
+): DoorSlot[] {
+	const out: DoorSlot[] = [];
+	const mid = Math.floor(CELL / 2);
+	for (const c of connectors) {
+		if (c.side !== SIDE_E && c.side !== SIDE_S) continue;
+		if (hash01(sx, sy, ((seed | 0) ^ 0xc0d) + c.side) >= DOOR_KEEP)
+			continue;
+		const baseCol = c.lx * CELL;
+		const baseRow = c.ly * CELL;
+		if (c.side === SIDE_E) {
+			const tc = baseCol + CELL - 1;
+			for (let k = -GATE_HALF; k <= GATE_HALF; k++)
+				tiles[(baseRow + mid + k) * cols + tc] = k === 0 ? ARCH : WALL;
+			out.push({ lc: tc, lr: baseRow + mid, axis: 'x' });
+		} else {
+			const tr = baseRow + CELL - 1;
+			for (let k = -GATE_HALF; k <= GATE_HALF; k++)
+				tiles[tr * cols + baseCol + mid + k] = k === 0 ? ARCH : WALL;
+			out.push({ lc: baseCol + mid, lr: tr, axis: 'z' });
+		}
+	}
+	return out;
+}
+
 // One carved tile grid for a whole sector: a tile is FLOOR when its lattice cell
 // is owned by a room or corridor, else solid WALL rock. Walls, floors, coves and
 // niches all fall out of the geometry builders reading this grid. Openings between
@@ -540,6 +576,9 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 
 	carveConnectorGates(tiles, cols, sector.connectors);
 	const doorways = genDoorways(tiles, cols, sector.cellOwner, seed, sx, sy);
+	doorways.push(
+		...genConnectorDoors(tiles, cols, sector.connectors, seed, sx, sy),
+	);
 
 	const variant = Math.floor(hash01(sx, sy, seed | 0) * VARIANTS);
 	const torches = genTorchesGrid(tiles, cols, rows, variant);

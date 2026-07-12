@@ -53,7 +53,10 @@ export function roomDoors(desc: RoomDesc): DoorInfo[] {
 // opened stays open when its room re-mounts.
 const byKey = new Map<string, number>();
 const roomKeys = new Map<number, string[]>();
+// Opened doors persist across streaming so they stay open on re-mount. FIFO-capped
+// like prop suppression: far-behind doors drop and re-lock if you return much later.
 const unlocked = new Set<string>();
+const UNLOCK_CAP = 2048;
 
 export function spawnRoomDoors(roomEid: number): void {
 	const dw = getDungeon();
@@ -114,7 +117,10 @@ export function resetDoors(): void {
 function unlockDoor(key: string): void {
 	const eid = byKey.get(key);
 	if (eid !== undefined) Door.locked[eid] = 0;
+	unlocked.delete(key);
 	unlocked.add(key);
+	if (unlocked.size > UNLOCK_CAP)
+		unlocked.delete(unlocked.values().next().value as string);
 }
 
 // Doors expose themselves to the generic [F] prompt: nearest locked door within
