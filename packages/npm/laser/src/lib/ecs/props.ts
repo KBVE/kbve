@@ -38,6 +38,16 @@ export const Collider = {
 	hz: new Float32Array(MAX_ENTITIES),
 };
 
+// Procedural rock prop: seed drives deterministic shape, size is base radius in
+// metres, hardness scales hits-per-stage tuning, ore is a future drop type
+// (0 = none).
+export const Stone = {
+	seed: new Float32Array(MAX_ENTITIES),
+	size: new Float32Array(MAX_ENTITIES),
+	hardness: new Float32Array(MAX_ENTITIES),
+	ore: new Uint8Array(MAX_ENTITIES),
+};
+
 export const Prop = {
 	kind: new Uint8Array(MAX_ENTITIES),
 	ownerEid: new Int32Array(MAX_ENTITIES),

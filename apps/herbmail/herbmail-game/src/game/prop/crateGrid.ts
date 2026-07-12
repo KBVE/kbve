@@ -1,4 +1,4 @@
-import { Collider, Prop, query, Transform3, type World } from '@kbve/laser/ecs';
+import { Collider, Prop, query, Transform3, type World } from '../mecs/props';
 import { TILE } from '../config';
 
 // Broadphase index of solid props: maps the world tile a Collider prop stands on

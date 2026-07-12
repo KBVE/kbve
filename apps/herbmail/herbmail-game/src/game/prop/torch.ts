@@ -6,7 +6,7 @@ import {
 	Prop,
 	Transform3,
 	type World,
-} from '@kbve/laser/ecs';
+} from '../mecs/props';
 import { TILE } from '../config';
 import { FlameFx } from './components';
 import { MODEL_TORCH, PROP_TORCH } from './kinds';

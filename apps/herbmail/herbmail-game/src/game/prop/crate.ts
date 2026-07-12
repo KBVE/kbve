@@ -7,7 +7,7 @@ import {
 	Prop,
 	Transform3,
 	type World,
-} from '@kbve/laser/ecs';
+} from '../mecs/props';
 import { TILE } from '../config';
 import { hashInt } from '../geometry/rng';
 import { MODEL_CRATE, PROP_CRATE } from './kinds';

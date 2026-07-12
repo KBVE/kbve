@@ -7,29 +7,48 @@ export interface ArmorPiece {
 	slots: string[];
 }
 
+// The naked body: these meshes ARE the character, not armor, and stay visible no
+// matter what is unequipped. This GLB ships no separate skin base — the torso,
+// limbs, hands, feet and face below are the only body geometry — so an armor piece
+// must never own one, or removing it deletes the body and leaves a floating head.
+export const BODY_BASE = new Set([
+	'TORS',
+	'LEGL',
+	'LEGR',
+	'HIPS',
+	'HNDL',
+	'HNDR',
+	'FOTL',
+	'FOTR',
+	'HEAD',
+	'HAIR',
+	'EARL',
+	'EARR',
+	'EBRL',
+	'EBRR',
+	'EYEL',
+	'EYER',
+	'NOSE',
+	'TETH',
+	'TONG',
+]);
+
 /**
- * The knight is a removable layer over a permanent skin base. `SKIN_*` body
- * meshes + the head/face group are always visible; every knight slot below is
- * toggleable. Removing all pieces leaves the naked base in its underwear.
- * Toggling a piece off hides its slot meshes; the rig and clips are untouched.
+ * Removable knight armor layered over the permanent {@link BODY_BASE}. Every slot
+ * here is an `A`-prefixed overlay mesh; toggling a piece off hides only its plates
+ * (the rig and clips are untouched) and reveals the body beneath. Pieces with no
+ * dedicated armor mesh in this GLB (chest, legs, gauntlets, boots) are omitted —
+ * there is nothing to toggle for them.
  */
 export const ARMOR_PIECES: ArmorPiece[] = [
 	{ id: 'helmet', label: 'Helmet', slots: ['AHED', 'AFAC'] },
-	{ id: 'chest', label: 'Chestplate', slots: ['TORS'] },
 	{ id: 'backpack', label: 'Backpack', slots: ['ABAC'] },
 	{ id: 'pauldrons', label: 'Pauldrons', slots: ['ASHL', 'ASHR'] },
 	{ id: 'upperArms', label: 'Upper Arms', slots: ['AUPL', 'AUPR'] },
 	{ id: 'elbowGuards', label: 'Elbow Guards', slots: ['AEBL', 'AEBR'] },
 	{ id: 'bracers', label: 'Bracers', slots: ['ALWL', 'ALWR'] },
-	{ id: 'gauntlets', label: 'Gauntlets', slots: ['HNDL', 'HNDR'] },
-	{
-		id: 'faulds',
-		label: 'Faulds',
-		slots: ['HIPS', 'AHPF', 'AHPB', 'AHPL', 'AHPR'],
-	},
-	{ id: 'legs', label: 'Leg Armor', slots: ['LEGL', 'LEGR'] },
+	{ id: 'faulds', label: 'Faulds', slots: ['AHPF', 'AHPB', 'AHPL', 'AHPR'] },
 	{ id: 'kneeGuards', label: 'Knee Guards', slots: ['AKNL', 'AKNR'] },
-	{ id: 'boots', label: 'Boots', slots: ['FOTL', 'FOTR'] },
 ];
 
 const SLOT_BY_PIECE = new Map(ARMOR_PIECES.map((p) => [p.id, p.slots]));
@@ -69,7 +88,9 @@ export function hiddenSlots(): Set<string> {
 	const hidden = new Set<string>();
 	for (const p of ARMOR_PIECES) {
 		if (!equipped.has(p.id)) {
-			for (const s of SLOT_BY_PIECE.get(p.id)!) hidden.add(s);
+			for (const s of SLOT_BY_PIECE.get(p.id)!) {
+				if (!BODY_BASE.has(s)) hidden.add(s);
+			}
 		}
 	}
 	return hidden;

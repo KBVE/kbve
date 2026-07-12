@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { useThree, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { placeTorch, removeTorch } from '../dungeon/store';
-import { getEquippedId } from '../viewmodel/store';
+import { isHeld } from '../viewmodel/store';
 import { headDir } from './torch';
 import { MODEL_URLS } from './kinds';
 
@@ -100,8 +100,7 @@ export function TorchPlacer() {
 	}, [gltf.scene]);
 
 	useFrame(() => {
-		const active =
-			!!document.pointerLockElement && getEquippedId() === 'torch';
+		const active = !!document.pointerLockElement && isHeld('torch');
 		if (!active) {
 			ghost.visible = false;
 			last.current = null;
@@ -125,7 +124,7 @@ export function TorchPlacer() {
 	useEffect(() => {
 		const onDown = (e: MouseEvent) => {
 			if (!document.pointerLockElement) return;
-			if (getEquippedId() !== 'torch') return;
+			if (!isHeld('torch')) return;
 			if (e.button === 0) {
 				const p = last.current;
 				if (p && p.valid) placeTorch(p.pos, p.dir);
@@ -135,7 +134,7 @@ export function TorchPlacer() {
 			}
 		};
 		const onCtx = (e: MouseEvent) => {
-			if (document.pointerLockElement && getEquippedId() === 'torch')
+			if (document.pointerLockElement && isHeld('torch'))
 				e.preventDefault();
 		};
 		window.addEventListener('mousedown', onDown);

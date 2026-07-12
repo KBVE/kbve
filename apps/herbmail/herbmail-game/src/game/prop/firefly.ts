@@ -6,7 +6,7 @@ import {
 	query,
 	Transform3,
 	type World,
-} from '@kbve/laser/ecs';
+} from '../mecs/props';
 import { playerAnchor } from '../render/playerAnchor';
 import { FireflyFx } from './components';
 import { PROP_FIREFLY } from './kinds';

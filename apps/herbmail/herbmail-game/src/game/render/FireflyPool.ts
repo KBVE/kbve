@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { EntityPool, Transform3 } from '@kbve/laser/ecs';
+import { EntityPool } from '../mecs/pool';
+import { Transform3 } from '../mecs/props';
 import { FireflyFx } from '../prop/components';
 
 const BASE_SCALE = 0.34;

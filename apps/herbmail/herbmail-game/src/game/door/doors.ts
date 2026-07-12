@@ -1,16 +1,16 @@
-import { useSyncExternalStore } from 'react';
 import {
 	addComponent,
 	addEntity,
 	removeEntity,
 	Transform3,
-} from '@kbve/laser/ecs';
+} from '../mecs/props';
 import { ARCH } from '../geometry/grid';
 import { hash01 } from '../geometry/rng';
 import { TILE } from '../config';
 import { Door } from './components';
 import { CELL, type RoomDesc } from '../dungeon/generate';
 import { getDungeon } from '../dungeon/store';
+import { registerInteract, resetInteract } from '../interact/registry';
 
 const HALF = TILE / 2;
 const DOOR_KEEP = 0.5;
@@ -156,19 +156,18 @@ export function resetDoors(): void {
 	byKey.clear();
 	roomKeys.clear();
 	unlocked.clear();
-	active = null;
-	emitPrompt();
+	resetInteract();
 }
 
-let active: string | null = null;
-const promptListeners = new Set<() => void>();
-
-function emitPrompt(): void {
-	for (const l of promptListeners) l();
+function unlockDoor(key: string): void {
+	const eid = byKey.get(key);
+	if (eid !== undefined) Door.locked[eid] = 0;
+	unlocked.add(key);
 }
 
-// Nearest locked door within reach of the player -> the prompt target.
-export function refreshDoorPrompt(px: number, pz: number): void {
+// Doors expose themselves to the generic [F] prompt: nearest locked door within
+// reach becomes a candidate target that unlocks on interact.
+registerInteract((px, pz) => {
 	let best: string | null = null;
 	let bestD = DOOR_REACH * DOOR_REACH;
 	for (const [key, eid] of byKey) {
@@ -181,30 +180,14 @@ export function refreshDoorPrompt(px: number, pz: number): void {
 			best = key;
 		}
 	}
-	if (best !== active) {
-		active = best;
-		emitPrompt();
-	}
-}
-
-export function tryOpenActiveDoor(): void {
-	if (!active) return;
-	const eid = byKey.get(active);
-	if (eid !== undefined) Door.locked[eid] = 0;
-	unlocked.add(active);
-	active = null;
-	emitPrompt();
-}
-
-function subPrompt(cb: () => void): () => void {
-	promptListeners.add(cb);
-	return () => promptListeners.delete(cb);
-}
-
-function getActive(): string | null {
-	return active;
-}
-
-export function useActiveDoor(): string | null {
-	return useSyncExternalStore(subPrompt, getActive, getActive);
-}
+	if (best === null) return null;
+	const key = best;
+	return {
+		target: {
+			id: key,
+			verb: 'unlock the door',
+			interact: () => unlockDoor(key),
+		},
+		dist2: bestD,
+	};
+});

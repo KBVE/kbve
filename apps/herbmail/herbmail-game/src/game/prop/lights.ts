@@ -5,7 +5,7 @@ import {
 	Prop,
 	Transform3,
 	type World,
-} from '@kbve/laser/ecs';
+} from '../mecs/props';
 
 // A light source is pure ECS: any entity with LightEmitter + Transform3 is picked
 // up by LightSystem, regardless of what it is. Presets are just data, so torches,

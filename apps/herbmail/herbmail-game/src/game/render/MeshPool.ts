@@ -1,7 +1,9 @@
 import * as THREE from 'three';
-import { EntityPool, MeshRef, Transform3 } from '@kbve/laser/ecs';
+import { EntityPool } from '../mecs/pool';
+import { MeshRef, Stone, Transform3 } from '../mecs/props';
 import { TORCH_HEAD_LOCAL, TORCH_MODEL_SCALE } from '../prop/torchModel';
 import { MODEL_TORCH } from '../prop/kinds';
+import { stoneGeometry } from '../prop/stoneModel';
 import { makeCrackDecal } from './crateDecal';
 
 const HEAD_LOCAL = TORCH_HEAD_LOCAL;
@@ -27,16 +29,41 @@ function makeHolder(): THREE.Mesh {
 	return ring;
 }
 
+// Procedural stone lump depth. Geometry is built per-entity from the Stone seed;
+// each stone clones its material off a shared template so disposeObject can free
+// both the unique geometry and the clone without touching the shared textures.
+const LUMPINESS = 0.35;
+
+function rockTex(url: string, srgb: boolean): THREE.Texture {
+	const t = new THREE.TextureLoader().load(url);
+	t.magFilter = THREE.NearestFilter;
+	t.minFilter = THREE.NearestMipmapNearestFilter;
+	t.wrapS = THREE.RepeatWrapping;
+	t.wrapT = THREE.RepeatWrapping;
+	t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+	return t;
+}
+
+const darkRockDiff = rockTex('/textures/dark_rock_diff_256.png', true);
+const darkRockNor = rockTex('/textures/dark_rock_nor_256.png', false);
+const STONE_MAT = new THREE.MeshStandardMaterial({
+	map: darkRockDiff,
+	normalMap: darkRockNor,
+	roughness: 1,
+	metalness: 0,
+});
+
 // Per-model layout: torches mount to a wall (head faces the room, wood holder at
 // the base); crates stand upright on the floor and carry a melee hitbox so a
 // swing can break them. modelId indexes the config table passed to the pool.
 export interface ModelConfig {
-	base: THREE.Object3D;
+	base?: THREE.Object3D;
 	scale: number;
 	orient: 'head' | 'upright';
 	holder: boolean;
 	hitbox: boolean;
 	kind: string;
+	build?: (eid: number) => THREE.Object3D;
 	onCreate?: (group: THREE.Object3D) => void;
 }
 
@@ -63,6 +90,24 @@ export function crateConfig(base: THREE.Object3D): ModelConfig {
 			const decal = makeCrackDecal();
 			group.userData.crackDecalRef = decal;
 			group.add(decal);
+		},
+	};
+}
+
+export function stoneConfig(): ModelConfig {
+	return {
+		scale: 1,
+		orient: 'upright',
+		holder: false,
+		hitbox: true,
+		kind: 'stone',
+		build: (eid) => {
+			const mesh = new THREE.Mesh(
+				stoneGeometry(Stone.seed[eid], Stone.size[eid], LUMPINESS),
+				STONE_MAT.clone(),
+			);
+			mesh.userData.kind = 'stone';
+			return mesh;
 		},
 	};
 }
@@ -123,7 +168,10 @@ export class MeshPool extends EntityPool<THREE.Object3D> {
 	protected create(eid: number): THREE.Object3D {
 		const cfg =
 			this.configs[MeshRef.modelId[eid]] ?? this.configs[MODEL_TORCH];
-		const model = prep(cfg.base, cfg.kind);
+		const model = cfg.build
+			? cfg.build(eid)
+			: prep(cfg.base as THREE.Object3D, cfg.kind);
+		model.userData.kind = cfg.kind;
 		model.scale.setScalar(cfg.scale);
 
 		const group = new THREE.Group();

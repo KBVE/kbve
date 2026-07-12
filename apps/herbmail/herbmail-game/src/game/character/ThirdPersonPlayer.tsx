@@ -2,14 +2,15 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { solidAtWorld, dungeonSpawn } from '../dungeon/collision';
-import { refreshDoorPrompt, tryOpenActiveDoor } from '../door/doors';
+import { refreshPrompt, triggerActive } from '../interact/registry';
 import { TILE } from '../config';
 import { Character, type CharacterHandle } from './Character';
-import { useEquippedId } from '../viewmodel/store';
+import { useHands } from '../viewmodel/store';
 import { equipmentById } from '../viewmodel/equipment';
 import { SWING, triggerSwing } from './melee';
 import { useMelee } from './useMelee';
 import { useCrateBreak } from './useCrateBreak';
+import { useStoneMine } from './useStoneMine';
 import { tickPlayerStats } from './playerStats';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
 import { CharacterShadow } from './CharacterShadow';
@@ -92,8 +93,8 @@ interface Props {
 
 export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	const { camera, gl } = useThree();
-	const equippedId = useEquippedId();
-	const armed = equipmentById(equippedId).kind === 'weapon';
+	const hands = useHands();
+	const armed = !!hands.right && equipmentById(hands.right).kind === 'weapon';
 	const armedRef = useRef(armed);
 	useEffect(() => {
 		armedRef.current = armed;
@@ -101,6 +102,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	const handleRef = useRef<CharacterHandle | null>(null);
 	useMelee();
 	useCrateBreak();
+	useStoneMine();
 	const keys = useRef<Record<string, boolean>>({});
 	const fwd = useRef(new THREE.Vector3());
 	const right = useRef(new THREE.Vector3());
@@ -122,7 +124,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				e.preventDefault();
 				handleRef.current?.motor.jump();
 			}
-			if (e.code === 'KeyF') tryOpenActiveDoor();
+			if (e.code === 'KeyF') triggerActive();
 		};
 		const up = (e: KeyboardEvent) => (keys.current[e.code] = false);
 		const attack = (e: MouseEvent) => {
@@ -201,7 +203,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			dir.current.normalize().multiplyScalar(speed);
 		}
 		h.motor.setDesiredVelocity(dir.current.x, dir.current.z);
-		refreshDoorPrompt(h.motor.position.x, h.motor.position.z);
+		refreshPrompt(h.motor.position.x, h.motor.position.z);
 
 		pivot.current.copy(h.motor.position);
 		pivot.current.y += CAM_HEIGHT;
@@ -241,7 +243,8 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				url={url}
 				scale={scale}
 				armed={armed}
-				heldId={equippedId}
+				rightId={hands.right}
+				leftId={hands.left}
 				position={[sx, 0, sz]}
 				onReady={(h) => {
 					h.motor.mover = tryMove;

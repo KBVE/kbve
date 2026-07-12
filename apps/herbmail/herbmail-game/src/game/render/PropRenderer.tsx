@@ -4,13 +4,14 @@ import { useGLTF } from '@react-three/drei';
 import { getDungeon, usePropGen } from '../dungeon/store';
 import { useOcclusionField } from '../dungeon/occlusion';
 import { MODEL_URLS, MODEL_TORCH, MODEL_CRATE } from '../prop/kinds';
-import { MeshPool, torchConfig, crateConfig } from './MeshPool';
+import { MeshPool, torchConfig, crateConfig, stoneConfig } from './MeshPool';
 import { FlamePool } from './FlamePool';
 import { FireflyPool } from './FireflyPool';
 import { FireflySystem } from '../prop/firefly';
 import { LightSystem } from './LightSystem';
 import { getDebrisPool } from './DebrisPool';
 import { syncCrateDamage } from './crateDecal';
+import { syncStoneMine } from './stoneMine';
 
 const TORCH_URL = MODEL_URLS[MODEL_TORCH];
 const CRATE_URL = MODEL_URLS[MODEL_CRATE];
@@ -35,6 +36,7 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 			new MeshPool([
 				torchConfig(torchGltf.scene),
 				crateConfig(crateGltf.scene),
+				stoneConfig(),
 			]),
 		[torchGltf.scene, crateGltf.scene],
 	);
@@ -61,7 +63,6 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 		fireflySystem.tick(world, state.clock.elapsedTime, delta);
 		lightSystem.tick(
 			world,
-			state.scene,
 			state.camera,
 			state.clock.elapsedTime,
 			occRef.current,
@@ -71,6 +72,7 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 		fireflyPool.tick(state.clock.elapsedTime);
 		debrisPool.tick(delta);
 		syncCrateDamage(meshPool.entries());
+		syncStoneMine(meshPool.entries());
 	});
 
 	return (

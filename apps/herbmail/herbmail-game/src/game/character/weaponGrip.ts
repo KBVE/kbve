@@ -6,6 +6,7 @@ export interface GripTransform {
 
 export const WEAPON_GRIP = {
 	handBone: 'hand_r',
+	handBoneLeft: 'hand_l',
 	idleClip: 'Sword_Idle',
 	// gripY: point along the sword's local +Y (0=tip .. 0.944=pommel) that the
 	// hand grips. Handle sits ~0.85. Blade then extends the other way.

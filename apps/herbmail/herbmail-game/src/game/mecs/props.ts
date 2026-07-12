@@ -1,0 +1,119 @@
+import { createSabWorld, sabBytes, type SabWorld } from '@kbve/laser/mecs';
+import { makeBuffer } from '../sab/isolation';
+import { PROPS_SCHEMA, PROPS_CAP } from './propsSchema';
+
+// The dungeon's main-thread ECS world: rooms, props (torches, crates, stones,
+// fireflies), doors — everything that used to ride a bitecs world. One process
+// singleton (never reallocated, so the component accessors below stay valid); the
+// main thread is its sole structural writer. A thin bitecs-shaped shim
+// (addEntity/addComponent/query/…) lets the existing prop/room/door code migrate by
+// swapping only its import path. Query-based, layermask-ready, and — because it's a
+// mecs world over a shared buffer — the sim worker attaches a read-only view of it
+// (getPropsBuffer) to collide dynamic bodies against static prop footprints.
+const SCHEMA = PROPS_SCHEMA;
+
+export type World = SabWorld<typeof SCHEMA>;
+export const MAX_ENTITIES = PROPS_CAP;
+
+const buffer = makeBuffer(sabBytes(SCHEMA, MAX_ENTITIES));
+const world: World = createSabWorld(buffer, SCHEMA, MAX_ENTITIES);
+
+// The backing buffer (SharedArrayBuffer when cross-origin isolated), handed to the
+// sim worker so it can attach a reader over the same memory.
+export function getPropsBuffer(): ArrayBufferLike {
+	return buffer;
+}
+
+// Component accessors — SoA typed-array stores, same `.field[eid]` shape the old
+// bitecs components exposed. Stable because `world` is a singleton.
+export const Transform3 = world.stores.Transform3;
+export const Prop = world.stores.Prop;
+export const MeshRef = world.stores.MeshRef;
+export const Collider = world.stores.Collider;
+export const LightEmitter = world.stores.LightEmitter;
+export const Health = world.stores.Health;
+export const Stone = world.stores.Stone;
+export const FlameFx = world.stores.FlameFx;
+export const FireflyFx = world.stores.FireflyFx;
+export const RoomCell = world.stores.RoomCell;
+export const RoomDoors = world.stores.RoomDoors;
+export const RoomPhase = world.stores.RoomPhase;
+export const RoomTag = world.stores.RoomTag;
+export const Door = world.stores.Door;
+
+// Reverse map: component accessor object -> its schema name, so the bitecs-shaped
+// shim can translate `addComponent(world, eid, Transform3)` into `add(eid,'Transform3')`.
+type Comp = object;
+const NAME = new Map<Comp, keyof typeof SCHEMA>();
+for (const key of Object.keys(SCHEMA) as (keyof typeof SCHEMA)[]) {
+	NAME.set(world.stores[key] as Comp, key);
+}
+function nameOf(comp: Comp): keyof typeof SCHEMA {
+	const n = NAME.get(comp);
+	if (!n) throw new Error('mecs/props: unknown component passed to shim');
+	return n;
+}
+
+// --- bitecs-shaped shim (all bound to the singleton world) ---
+
+export function createWorld(): World {
+	return world;
+}
+export function addEntity(_w: World): number {
+	const eid = world.spawn();
+	if (eid < 0) throw new Error('mecs/props: entity capacity exhausted');
+	return eid;
+}
+export function addComponent(_w: World, eid: number, comp: Comp): void {
+	world.add(eid, nameOf(comp));
+}
+export function removeEntity(_w: World, eid: number): void {
+	world.despawn(eid);
+}
+export function hasComponent(_w: World, eid: number, comp: Comp): boolean {
+	return world.has(eid, nameOf(comp));
+}
+export function query(_w: World, terms: readonly Comp[]): number[] {
+	return world.query(terms.map(nameOf));
+}
+
+// Remove every entity carrying `comp` whose `field` equals `value` (e.g. all props
+// owned by a room that just unmounted). Collect-then-despawn.
+export function despawnWhere(
+	_w: World,
+	comp: Comp,
+	field: string,
+	value: number,
+): number {
+	const name = nameOf(comp);
+	const store = world.stores[name] as Record<string, { [i: number]: number }>;
+	const arr = store[field];
+	const doomed: number[] = [];
+	for (const eid of world.query([name])) {
+		if (arr[eid] === value) doomed.push(eid);
+	}
+	for (const eid of doomed) world.despawn(eid);
+	return doomed.length;
+}
+
+// Minimal Health-only stat seeding (props carry only HP). Mirrors the laser
+// applyStats surface the prop/stone spawners call.
+interface StatBlock {
+	hp?: number;
+	maxHp?: number;
+	hpRegen?: number;
+}
+export function applyStats(_w: World, eid: number, s: StatBlock): void {
+	if (s.maxHp === undefined && s.hp === undefined) return;
+	world.add(eid, 'Health');
+	const m = s.maxHp ?? s.hp ?? 0;
+	Health.hp[eid] = s.hp ?? m;
+	Health.maxHp[eid] = m;
+	Health.regen[eid] = s.hpRegen ?? 0;
+}
+
+// resetDungeon rebuilds the lattice from a new seed; wipe the shared world instead
+// of reallocating it, so the accessor exports above stay bound.
+export function resetPropsWorld(): void {
+	world.clear();
+}
