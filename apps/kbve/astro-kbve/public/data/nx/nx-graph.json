@@ -6559,6 +6559,25 @@
               "configurations": {},
               "parallelism": true
             },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "vitest run --config apps/herbmail/herbmail-game/vite.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "rebake": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/herbmail/herbmail-game",
+                "commands": [
+                  "bash art/character/rebake.sh"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "lfs-pull": {
               "executor": "nx:run-commands",
               "options": {
