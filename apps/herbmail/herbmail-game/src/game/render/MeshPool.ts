@@ -141,6 +141,9 @@ function prep(base: THREE.Object3D, kind: string): THREE.Object3D {
 			src.map.needsUpdate = true;
 		}
 		mesh.userData.kind = kind;
+		// clone() shares the GLTF geometry by reference across every prop instance;
+		// only the material above is a per-instance clone. Free just the material.
+		mesh.userData.sharedGeo = true;
 	});
 	return clone;
 }
@@ -148,10 +151,15 @@ function prep(base: THREE.Object3D, kind: string): THREE.Object3D {
 function disposeObject(obj: THREE.Object3D): void {
 	obj.traverse((o) => {
 		const mesh = o as THREE.Mesh;
-		if (mesh.isMesh && !mesh.userData.shared) {
-			mesh.geometry?.dispose();
-			(mesh.material as THREE.Material | undefined)?.dispose();
-		}
+		if (!mesh.isMesh) return;
+		// `shared`: geometry AND material are singletons (the torch ring) — free
+		// neither. `sharedGeo`: GLTF/decal geometry is shared across every clone but
+		// the material is a per-instance clone — free only the material. Untagged
+		// (stones): both are per-entity — free both. Freeing shared GLTF geometry on
+		// each prop despawn forced a full GPU re-upload every time a room streamed out.
+		if (mesh.userData.shared) return;
+		if (!mesh.userData.sharedGeo) mesh.geometry?.dispose();
+		(mesh.material as THREE.Material | undefined)?.dispose();
 	});
 }
 

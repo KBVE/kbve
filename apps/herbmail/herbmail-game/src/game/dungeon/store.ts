@@ -8,6 +8,7 @@ import {
 } from './ecs';
 import { SECTOR_TILES, type RoomDesc } from './generate';
 import { removeEntity, resetPropsWorld, Transform3 } from '../mecs/props';
+import { invalidateSolidCache } from './collision';
 import { spawnRoomProps, despawnRoomProps } from '../prop/spawn';
 import { spawnRoomDoors, despawnRoomDoors, resetDoors } from '../door/doors';
 import { spawnTorch } from '../prop/torch';
@@ -197,6 +198,7 @@ export function breakCrate(eid: number): void {
 export function resetDungeon(seed = DUNGEON_SEED): void {
 	seeded = true;
 	resetPropsWorld();
+	invalidateSolidCache();
 	dw = new DungeonWorld(seed);
 	prevMounted = new Set();
 	clearPlaced();

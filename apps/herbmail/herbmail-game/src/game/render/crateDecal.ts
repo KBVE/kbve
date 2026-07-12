@@ -35,6 +35,8 @@ export function makeCrackDecal(): THREE.Mesh {
 	mesh.visible = false;
 	mesh.userData.crackStage = 0;
 	mesh.userData.crackDecal = true;
+	// DECAL_GEO is a shared module singleton; only the material is per-decal.
+	mesh.userData.sharedGeo = true;
 	return mesh;
 }
 

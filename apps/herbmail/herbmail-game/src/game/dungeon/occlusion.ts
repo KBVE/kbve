@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { TILE } from '../config';
 import { OCCLUDES } from '../geometry/grid';
@@ -30,7 +30,7 @@ function makeTex(
 
 export function useOcclusionField(): OcclusionField {
 	const rooms = useActiveRooms();
-	return useMemo(() => {
+	const field = useMemo(() => {
 		if (!rooms.length) {
 			return {
 				tex: makeTex(new Uint8Array(1), 1, 1),
@@ -70,4 +70,10 @@ export function useOcclusionField(): OcclusionField {
 			size: new THREE.Vector2(cols, rows),
 		};
 	}, [rooms]);
+
+	// The DataTexture is GPU-resident (bound as a shader uniform); free the prior one
+	// when the room window changes, else each sector crossing leaks a texture.
+	useEffect(() => () => field.tex.dispose(), [field]);
+
+	return field;
 }
