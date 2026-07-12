@@ -4,16 +4,13 @@ import {
 	removeEntity,
 	Transform3,
 } from '../mecs/props';
-import { ARCH } from '../geometry/grid';
-import { hash01 } from '../geometry/rng';
 import { TILE } from '../config';
 import { Door } from './components';
-import { CELL, type RoomDesc } from '../dungeon/generate';
+import { type RoomDesc } from '../dungeon/generate';
 import { getDungeon } from '../dungeon/store';
 import { registerInteract, resetInteract } from '../interact/registry';
 
 const HALF = TILE / 2;
-const DOOR_KEEP = 0.5;
 const DOOR_REACH = 2.8;
 
 export interface DoorInfo {
@@ -30,69 +27,23 @@ export function doorKey(wc: number, wr: number): string {
 	return `${wc}|${wr}`;
 }
 
-// A door exists on a subset of open passages, decided by a symmetric hash over
-// the unordered cell pair so both rooms agree. Owner = the smaller cell, so only
-// one leaf is built per passage (the other side stays an open arch behind it).
-function edgeHasDoor(ax: number, ay: number, bx: number, by: number): boolean {
-	const first = ax < bx || (ax === bx && ay <= by);
-	const x1 = first ? ax : bx;
-	const y1 = first ? ay : by;
-	const x2 = first ? bx : ax;
-	const y2 = first ? by : ay;
-	const seed = getDungeon().seed;
-	return (
-		hash01(
-			seed ^ Math.imul(x1, 73856093) ^ Math.imul(x2, 83492791),
-			Math.imul(y1, 19349663) ^ Math.imul(y2, 2654435761),
-			7,
-		) < DOOR_KEEP
-	);
-}
-
-function ownsEdge(cx: number, cy: number, nx: number, ny: number): boolean {
-	return cx < nx || (cx === nx && cy < ny);
-}
-
-// Door for a local arch tile, or null if that arch has no owned door leaf.
-export function doorAtLocal(
-	desc: RoomDesc,
-	lc: number,
-	lr: number,
-): DoorInfo | null {
-	if (desc.tiles[lr * CELL + lc] !== ARCH) return null;
-	let dc = 0;
-	let dr = 0;
-	if (lr === 0) dr = -1;
-	else if (lr === CELL - 1) dr = 1;
-	else if (lc === 0) dc = -1;
-	else if (lc === CELL - 1) dc = 1;
-	else return null;
-
-	const ncx = desc.cx + dc;
-	const ncy = desc.cy + dr;
-	if (!edgeHasDoor(desc.cx, desc.cy, ncx, ncy)) return null;
-	if (!ownsEdge(desc.cx, desc.cy, ncx, ncy)) return null;
-
-	const wc = desc.originCol + lc;
-	const wr = desc.originRow + lr;
-	return {
-		key: doorKey(wc, wr),
-		wc,
-		wr,
-		lc,
-		lr,
-		axis: lr === 0 || lr === CELL - 1 ? 'z' : 'x',
-		variant: desc.variant,
-	};
-}
-
+// Doorways are decided at generation time (genDoorways carves the 1-wide arch and
+// records the gap); here we just lift each into a DoorInfo with world + local tile
+// coords. Sector-local, so no cross-sector ownership dance is needed.
 export function roomDoors(desc: RoomDesc): DoorInfo[] {
 	const out: DoorInfo[] = [];
-	for (let lr = 0; lr < CELL; lr++) {
-		for (let lc = 0; lc < CELL; lc++) {
-			const d = doorAtLocal(desc, lc, lr);
-			if (d) out.push(d);
-		}
+	for (const d of desc.doorways) {
+		const wc = desc.originCol + d.lc;
+		const wr = desc.originRow + d.lr;
+		out.push({
+			key: doorKey(wc, wr),
+			wc,
+			wr,
+			lc: d.lc,
+			lr: d.lr,
+			axis: d.axis,
+			variant: desc.variant,
+		});
 	}
 	return out;
 }
@@ -146,10 +97,11 @@ export function doorEid(key: string): number | undefined {
 	return byKey.get(key);
 }
 
-// Locked (or not-yet-spawned) reads as blocking; collision uses this.
-export function isDoorLocked(key: string): boolean {
-	const eid = byKey.get(key);
-	return eid === undefined ? true : Door.locked[eid] === 1;
+// True only when a spawned, still-locked door sits on this tile — collision blocks
+// it. No door (open arch, connector gate) or an unlocked one reads as passable.
+export function doorClosedAt(wc: number, wr: number): boolean {
+	const eid = byKey.get(doorKey(wc, wr));
+	return eid !== undefined && Door.locked[eid] === 1;
 }
 
 export function resetDoors(): void {

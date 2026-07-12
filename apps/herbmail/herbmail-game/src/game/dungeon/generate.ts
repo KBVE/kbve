@@ -5,10 +5,12 @@ import {
 	genSector,
 	SECTOR,
 	cellIndex as sectorCellIndex,
+	OWNER_ROOM,
 	SIDE_N,
 	SIDE_S,
 	SIDE_W,
 	type Connector,
+	type CellOwner,
 } from './sector';
 
 export const CELL = 6;
@@ -68,6 +70,15 @@ export interface ColumnSlot {
 	torch: boolean;
 }
 
+// A door threshold: a 1-wide arch gap punched through a cell-boundary wall. lc/lr
+// are sector-local tile coords of the gap; axis is the passage direction ('x' =
+// east-west, 'z' = north-south).
+export interface DoorSlot {
+	lc: number;
+	lr: number;
+	axis: 'x' | 'z';
+}
+
 export interface RoomDesc {
 	cx: number;
 	cy: number;
@@ -82,6 +93,7 @@ export interface RoomDesc {
 	torches: TorchSlot[];
 	columns: ColumnSlot[];
 	spawnSlots: SpawnSlot[];
+	doorways: DoorSlot[];
 }
 
 // Neighbour directions matching geometry DIRS order: N, S, W, E.
@@ -216,6 +228,7 @@ export function genRoom(seed: number, cx: number, cy: number): RoomDesc {
 		torches,
 		columns: [],
 		spawnSlots: [],
+		doorways: [],
 	};
 }
 
@@ -403,6 +416,94 @@ function genColumns(
 	return out;
 }
 
+const DOOR_KEEP = 0.5;
+
+// Symmetric keep-hash over an unordered world-cell pair, so a seam gets the same
+// verdict regardless of iteration order.
+function seamKept(
+	seed: number,
+	ax: number,
+	ay: number,
+	bx: number,
+	by: number,
+): boolean {
+	const first = ax < bx || (ax === bx && ay <= by);
+	const x1 = first ? ax : bx;
+	const y1 = first ? ay : by;
+	const x2 = first ? bx : ax;
+	const y2 = first ? by : ay;
+	return (
+		hash01(
+			Math.imul(x1, 73856093) ^ Math.imul(x2, 19349663),
+			Math.imul(y1, 83492791) ^ Math.imul(y2, 49979687),
+			(seed | 0) ^ 0xd00,
+		) < DOOR_KEEP
+	);
+}
+
+// Punch doorways on a hash-selected subset of passage seams — the boundary between
+// two adjacent owned cells with different owners where at least one is a room.
+// The 6-wide open seam is walled to a single centre ARCH tile (a real 1-wide
+// doorway a leaf can seat in); connectivity survives through the gap. Runs before
+// genColumns so columns never land on a fresh doorway wall.
+function genDoorways(
+	tiles: Uint8Array,
+	cols: number,
+	cellOwner: Map<number, CellOwner>,
+	seed: number,
+	sx: number,
+	sy: number,
+): DoorSlot[] {
+	const out: DoorSlot[] = [];
+	const mid = Math.floor(CELL / 2);
+	const isRoom = (o: CellOwner): boolean => o.kind === OWNER_ROOM;
+	const diff = (a: CellOwner, b: CellOwner): boolean =>
+		a.kind !== b.kind || a.id !== b.id;
+	const wcx = sx * SECTOR;
+	const wcy = sy * SECTOR;
+
+	for (let cy = 0; cy < SECTOR; cy++) {
+		for (let cx = 0; cx < SECTOR; cx++) {
+			const o = cellOwner.get(sectorCellIndex(cx, cy));
+			if (!o) continue;
+
+			const oe =
+				cx + 1 < SECTOR
+					? cellOwner.get(sectorCellIndex(cx + 1, cy))
+					: undefined;
+			if (
+				oe &&
+				diff(o, oe) &&
+				(isRoom(o) || isRoom(oe)) &&
+				seamKept(seed, wcx + cx, wcy + cy, wcx + cx + 1, wcy + cy)
+			) {
+				const bc = (cx + 1) * CELL;
+				for (let k = 0; k < CELL; k++)
+					tiles[(cy * CELL + k) * cols + bc] =
+						k === mid ? ARCH : WALL;
+				out.push({ lc: bc, lr: cy * CELL + mid, axis: 'x' });
+			}
+
+			const os =
+				cy + 1 < SECTOR
+					? cellOwner.get(sectorCellIndex(cx, cy + 1))
+					: undefined;
+			if (
+				os &&
+				diff(o, os) &&
+				(isRoom(o) || isRoom(os)) &&
+				seamKept(seed, wcx + cx, wcy + cy, wcx + cx, wcy + cy + 1)
+			) {
+				const br = (cy + 1) * CELL;
+				for (let k = 0; k < CELL; k++)
+					tiles[br * cols + cx * CELL + k] = k === mid ? ARCH : WALL;
+				out.push({ lc: cx * CELL + mid, lr: br, axis: 'z' });
+			}
+		}
+	}
+	return out;
+}
+
 // One carved tile grid for a whole sector: a tile is FLOOR when its lattice cell
 // is owned by a room or corridor, else solid WALL rock. Walls, floors, coves and
 // niches all fall out of the geometry builders reading this grid. Openings between
@@ -438,6 +539,7 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 	}
 
 	carveConnectorGates(tiles, cols, sector.connectors);
+	const doorways = genDoorways(tiles, cols, sector.cellOwner, seed, sx, sy);
 
 	const variant = Math.floor(hash01(sx, sy, seed | 0) * VARIANTS);
 	const torches = genTorchesGrid(tiles, cols, rows, variant);
@@ -457,5 +559,6 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		torches,
 		columns,
 		spawnSlots: [],
+		doorways,
 	};
 }

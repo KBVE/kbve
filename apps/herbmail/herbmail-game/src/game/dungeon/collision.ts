@@ -1,5 +1,6 @@
 import { TILE } from '../config';
-import { SOLID, PILLAR } from '../geometry/grid';
+import { SOLID, PILLAR, DOORWAY } from '../geometry/grid';
+import { doorClosedAt } from '../door/doors';
 import { cellAtWorld } from './ecs';
 import { CELL, type RoomDesc } from './generate';
 import { genSector } from './sector';
@@ -44,6 +45,9 @@ export function solidAtWorld(x: number, z: number): boolean {
 	if (lc < 0 || lc >= desc.cols || lr < 0 || lr >= desc.rows) return true;
 
 	const t = desc.tiles[lr * desc.cols + lc];
+	// A doorway gap blocks only while its door is spawned + locked; otherwise it's an
+	// open arch. (Connector gates carry no door → always passable.)
+	if (t & DOORWAY) return doorClosedAt(wc, wr);
 	// Sub-tile solids (pillars) block only within their radius; full-tile solids
 	// (walls) block the whole cell.
 	if (t & PILLAR) {
