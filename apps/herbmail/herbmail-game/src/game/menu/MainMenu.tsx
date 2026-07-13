@@ -42,7 +42,9 @@ function MenuButton({
 const wrap: React.CSSProperties = {
 	position: 'fixed',
 	inset: 0,
-	background: 'radial-gradient(circle at 50% 40%, #14141c, #060608)',
+	background:
+		'radial-gradient(circle at 50% 40%, #14141caa, #06060899), rgba(6,6,10,0.35)',
+	backdropFilter: 'blur(2px)',
 	color: '#e8e8ee',
 	font: '14px/1.5 ui-monospace, monospace',
 	display: 'flex',

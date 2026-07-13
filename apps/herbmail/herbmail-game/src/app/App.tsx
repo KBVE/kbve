@@ -16,7 +16,7 @@ import { LOADOUT } from '../game/viewmodel/equipment';
 import { setEquipped, useEquippedId } from '../game/viewmodel/store';
 import { InventoryPanel } from '../game/inventory/InventoryPanel';
 import { BodyMorphPanel } from '../game/inventory/BodyMorphPanel';
-import { toggleOpen } from '../game/inventory/store';
+import { toggleOpen, isOpen as isInventoryOpen } from '../game/inventory/store';
 import { CHARACTER_URL } from '../game/character/modelUrl';
 import { MainMenu } from '../game/menu/MainMenu';
 import { Codex } from '../game/menu/Codex';
@@ -34,6 +34,10 @@ export function App() {
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
 			if (e.code === 'Escape') {
+				if (isInventoryOpen()) {
+					toggleOpen();
+					return;
+				}
 				document.exitPointerLock();
 				setScreen('main');
 				return;
