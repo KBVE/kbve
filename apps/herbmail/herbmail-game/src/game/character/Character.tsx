@@ -10,7 +10,7 @@ import {
 	type MotorConfig,
 } from './CharacterMotor';
 import { ProceduralPose } from './ProceduralPose';
-import { ProceduralPlume } from './ProceduralPlume';
+import { EquipmentPhysics } from './equipmentPhysics';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
 import { useBodySkinMorph } from './body';
@@ -374,9 +374,9 @@ export function Character({
 		const animator = new CharacterAnimator(scene, gltf.animations);
 		const motor = new CharacterMotor(motorConfig);
 		const pose = new ProceduralPose(scene);
-		const plume = new ProceduralPlume(scene);
+		const equipment = new EquipmentPhysics(scene);
 		motor.position.set(position[0], position[1], position[2]);
-		return { animator, motor, pose, plume };
+		return { animator, motor, pose, equipment };
 	}, [scene, gltf]);
 
 	useEffect(() => {
@@ -445,7 +445,7 @@ export function Character({
 
 	useFrame((_, dtRaw) => {
 		const dt = Math.min(dtRaw, 0.05);
-		const { animator, motor, pose, plume } = rig;
+		const { animator, motor, pose, equipment } = rig;
 		tRef.current += dt;
 		drive?.(motor, tRef.current);
 		motor.update(dt);
@@ -543,7 +543,7 @@ export function Character({
 			g.rotation.y = motor.yaw;
 			g.updateMatrixWorld(true);
 		}
-		plume.update(dt);
+		equipment.update(dt);
 
 		// Held torch: advance the flame and drive the light from the head anchor's
 		// world position (matrices are up to date after updateMatrixWorld above).
