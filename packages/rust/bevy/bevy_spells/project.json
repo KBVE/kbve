@@ -1,0 +1,66 @@
+{
+	"name": "bevy_spells",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/bevy/bevy_spells/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p bevy_spells"],
+				"cwd": "packages/rust/bevy/bevy_spells"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p bevy_spells"],
+				"cwd": "packages/rust/bevy/bevy_spells"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo clippy -p bevy_spells -- -D warnings"],
+				"cwd": "packages/rust/bevy/bevy_spells"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo +nightly check -p bevy_spells --target wasm32-unknown-unknown"
+				],
+				"cwd": "packages/rust/bevy/bevy_spells"
+			}
+		},
+		"check-desktop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo check -p bevy_spells"],
+				"cwd": "packages/rust/bevy/bevy_spells"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"nx run bevy_spells:test",
+					"nx run bevy_spells:check-wasm",
+					"nx run bevy_spells:check-desktop"
+				]
+			}
+		},
+		"dry": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo publish -p bevy_spells --dry-run --allow-dirty"
+				],
+				"parallel": false
+			}
+		}
+	}
+}
