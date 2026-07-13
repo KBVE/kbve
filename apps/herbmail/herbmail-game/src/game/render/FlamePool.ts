@@ -3,6 +3,7 @@ import { EntityPool } from '../mecs/pool';
 import { Transform3 } from '../mecs/props';
 import { FlameFx } from '../prop/components';
 import { makeFlameMaterial } from './flameMaterial';
+import { buildEmbers } from './emberParticles';
 
 const WIDTH = 0.66;
 const HEIGHT = 1;
@@ -56,6 +57,11 @@ export class FlamePool extends EntityPool<FlameItem> {
 			mesh.renderOrder = 10;
 			inner.add(mesh);
 		}
+		// Embers ride the same shared uTime as the planes (tick advances it) and are
+		// culled with them at LOD range by the child-visibility loop below.
+		const embers = buildEmbers();
+		mats.push(embers.mat);
+		inner.add(embers.points);
 
 		outer.add(inner);
 		this.root.add(outer);
