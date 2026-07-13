@@ -86,7 +86,7 @@ fn setup_candles(
                     intensity: 4000.0,
                     radius: 0.1,
                     range: 6.0,
-                    shadows_enabled: false,
+                    shadow_maps_enabled: false,
                     ..default()
                 },
                 Transform::from_xyz(wx, candle_top + 0.3, wz),
@@ -114,7 +114,7 @@ fn animate_candles(
     }
 
     for mat_handle in &flame_q {
-        if let Some(mat) = fire_materials.get_mut(&mat_handle.0) {
+        if let Some(mut mat) = fire_materials.get_mut(&mat_handle.0) {
             mat.uniforms.time = t;
         }
     }

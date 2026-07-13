@@ -212,7 +212,7 @@ fn spawn_interaction_panel(mut commands: Commands) {
             panel.spawn((
                 Text::new("Object"),
                 TextFont {
-                    font_size: 16.0,
+                    font_size: bevy::text::FontSize::Px(16.0),
                     ..default()
                 },
                 TextColor(ui_color::TEXT_PRIMARY),
@@ -223,7 +223,7 @@ fn spawn_interaction_panel(mut commands: Commands) {
             panel.spawn((
                 Text::new("Description"),
                 TextFont {
-                    font_size: 12.0,
+                    font_size: bevy::text::FontSize::Px(12.0),
                     ..default()
                 },
                 TextColor(ui_color::TEXT_SECONDARY),
@@ -240,7 +240,7 @@ fn spawn_interaction_panel(mut commands: Commands) {
                 UiButtonConfig {
                     width: Val::Percent(100.0),
                     height: Val::Px(36.0),
-                    font_size: 14.0,
+                    font_size: bevy::text::FontSize::Px(14.0),
                     border_radius: 4.0,
                     kind: ButtonKind::Primary,
                 },

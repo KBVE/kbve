@@ -268,7 +268,7 @@ fn spawn_lighting(mut commands: Commands, day: Res<DayCycle>) {
         DirectionalLight {
             illuminance: params.illuminance,
             color: params.color,
-            shadows_enabled: true,
+            shadow_maps_enabled: true,
             ..default()
         },
         Transform::from_translation(sun_pos).looking_at(Vec3::ZERO, Vec3::Y),
@@ -475,7 +475,7 @@ fn tint_trees_for_daynight(
     let r = 0.18 + h * 0.92;
     let g = 0.20 + h * 0.90;
     let b = 0.28 + h * 0.75;
-    if let Some(mat) = materials.get_mut(&tile_mats.tree_body_mat) {
+    if let Some(mut mat) = materials.get_mut(&tile_mats.tree_body_mat) {
         mat.base_color = Color::srgb(r, g, b);
     }
 }
@@ -681,7 +681,7 @@ fn animate_wind_streaks(
 
         if alpha < 0.003 {
             *vis = Visibility::Hidden;
-            if let Some(mat) = materials.get_mut(&streak.mat_handle) {
+            if let Some(mut mat) = materials.get_mut(&streak.mat_handle) {
                 mat.base_color = Color::srgba(1.0, 1.0, 1.0, 0.0);
             }
             continue;
@@ -689,7 +689,7 @@ fn animate_wind_streaks(
         *vis = Visibility::Visible;
 
         // Set per-streak alpha
-        if let Some(mat) = materials.get_mut(&streak.mat_handle) {
+        if let Some(mut mat) = materials.get_mut(&streak.mat_handle) {
             mat.base_color = Color::srgba(1.0, 1.0, 1.0, alpha);
         }
 

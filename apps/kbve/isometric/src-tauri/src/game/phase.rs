@@ -141,7 +141,7 @@ fn spawn_connecting_overlay(mut commands: Commands) {
             root.spawn((
                 Text::new("Connecting..."),
                 TextFont {
-                    font_size: 32.0,
+                    font_size: bevy::text::FontSize::Px(32.0),
                     ..default()
                 },
                 TextColor(Color::srgba(0.9, 0.9, 0.95, 1.0)),
@@ -149,7 +149,7 @@ fn spawn_connecting_overlay(mut commands: Commands) {
             root.spawn((
                 Text::new("Establishing secure connection to server"),
                 TextFont {
-                    font_size: 14.0,
+                    font_size: bevy::text::FontSize::Px(14.0),
                     ..default()
                 },
                 TextColor(Color::srgba(0.6, 0.6, 0.65, 1.0)),

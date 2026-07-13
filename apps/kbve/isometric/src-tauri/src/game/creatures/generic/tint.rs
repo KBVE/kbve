@@ -40,7 +40,7 @@ pub fn tint_sprite_creatures(
             }
         };
 
-        if let Some(mat) = atlas_materials.get_mut(&entry.material) {
+        if let Some(mut mat) = atlas_materials.get_mut(&entry.material) {
             mat.tint = LinearRgba::new(r, g, b, alpha);
         }
     }

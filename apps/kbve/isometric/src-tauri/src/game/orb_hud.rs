@@ -203,7 +203,7 @@ fn update_orbs(
 
     // Update health orb
     for handle in &hp_query {
-        if let Some(mat) = orb_materials.get_mut(handle) {
+        if let Some(mut mat) = orb_materials.get_mut(handle) {
             mat.uniforms.fill = hp_fill;
             // Pulse glow when low health
             mat.uniforms.glow = if hp_fill < 0.2 { 0.8 } else { 0.45 };
@@ -213,14 +213,14 @@ fn update_orbs(
 
     // Update mana orb
     for handle in &mp_query {
-        if let Some(mat) = orb_materials.get_mut(handle) {
+        if let Some(mut mat) = orb_materials.get_mut(handle) {
             mat.uniforms.fill = mp_fill;
         }
     }
 
     // Update energy orb
     for handle in &ep_query {
-        if let Some(mat) = orb_materials.get_mut(handle) {
+        if let Some(mut mat) = orb_materials.get_mut(handle) {
             mat.uniforms.fill = ep_fill;
         }
     }

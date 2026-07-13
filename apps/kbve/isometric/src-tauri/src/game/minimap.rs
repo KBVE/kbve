@@ -156,9 +156,10 @@ fn redraw_minimap(
     let Ok(player_tf) = player_q.single() else {
         return;
     };
-    let Some(img) = images.get_mut(&handle.0) else {
+    let Some(mut img) = images.get_mut(&handle.0) else {
         return;
     };
+    let img = &mut *img;
 
     paint_background(img);
 

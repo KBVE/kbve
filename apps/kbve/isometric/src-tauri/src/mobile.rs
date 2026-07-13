@@ -191,9 +191,9 @@ fn create_render_resources<W>(window: &W) -> ManualRenderResources
 where
     W: HasWindowHandle + HasDisplayHandle + Send + Sync,
 {
-    let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
-        ..Default::default()
+        ..wgpu::InstanceDescriptor::new_without_display_handle()
     });
 
     let surface = instance
