@@ -23,6 +23,16 @@ concurrency:
 permissions:
     contents: read
 
+# Belt: make every cargo/rustup registry fetch in this workflow retry transient
+# network failures (e.g. "Could not resolve host: index.crates.io" on a runner
+# with a DNS blip). Suspenders: the cross-compile build steps below also wrap
+# their build command in a shell retry loop, since a hard DNS failure can abort
+# cargo before net.retry engages.
+env:
+    CARGO_NET_RETRY: '10'
+    CARGO_NET_TIMEOUT: '60'
+    RUSTUP_MAX_RETRIES: '10'
+
 jobs:
     verify:
         name: Verify (fmt + clippy + tests)
@@ -206,7 +216,14 @@ jobs:
                   targets: x86_64-unknown-linux-gnu
 
             - name: cargo build (release)
-              run: cargo build -p uniti --release --target x86_64-unknown-linux-gnu
+              run: |
+                  n=0
+                  until cargo build -p uniti --release --target x86_64-unknown-linux-gnu; do
+                      n=$((n + 1))
+                      [ "$n" -ge 4 ] && { echo "::error::cargo build failed after $n attempts"; exit 1; }
+                      echo "::warning::cargo build attempt $n failed (transient network?); retrying in 20s"
+                      sleep 20
+                  done
 
             - name: Upload Linux libuniti.so
               uses: actions/upload-artifact@v7
@@ -264,8 +281,14 @@ jobs:
                   ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
               run: |
                   cd packages/rust/bevy/uniti
-                  cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 \
-                      -o ./android-out build -p uniti --release
+                  n=0
+                  until cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 \
+                      -o ./android-out build -p uniti --release; do
+                      n=$((n + 1))
+                      [ "$n" -ge 4 ] && { echo "::error::cargo ndk build failed after $n attempts"; exit 1; }
+                      echo "::warning::cargo ndk build attempt $n failed (transient network?); retrying in 20s"
+                      sleep 20
+                  done
 
             - name: Upload Android per-ABI .so
               uses: actions/upload-artifact@v7
@@ -300,8 +323,14 @@ jobs:
             - name: cargo build (device + sim)
               run: |
                   cd packages/rust/bevy/uniti
-                  cargo build -p uniti --release --target aarch64-apple-ios
-                  cargo build -p uniti --release --target aarch64-apple-ios-sim
+                  n=0
+                  until cargo build -p uniti --release --target aarch64-apple-ios \
+                      && cargo build -p uniti --release --target aarch64-apple-ios-sim; do
+                      n=$((n + 1))
+                      [ "$n" -ge 4 ] && { echo "::error::cargo build (ios) failed after $n attempts"; exit 1; }
+                      echo "::warning::cargo build (ios) attempt $n failed (transient network?); retrying in 20s"
+                      sleep 20
+                  done
 
             - name: Build XCFramework
               run: |

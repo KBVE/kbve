@@ -12,6 +12,11 @@ concurrency:
 
 permissions: {}
 
+env:
+    CARGO_NET_RETRY: '10'
+    CARGO_NET_TIMEOUT: '60'
+    RUSTUP_MAX_RETRIES: '10'
+
 jobs:
     # ---------------------------------------------------------------------------
     # Guard: skip if triggered by a failed CI - Main run.
