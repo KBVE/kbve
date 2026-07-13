@@ -65,7 +65,7 @@ end
 
 local ORC_MAX_HEALTH = settings.startup["kbve-orc-max-health"]
 		and settings.startup["kbve-orc-max-health"].value
-	or 120
+	or 300
 
 local ORC_MELEE_DAMAGE = settings.startup["kbve-orc-melee-damage"]
 		and settings.startup["kbve-orc-melee-damage"].value

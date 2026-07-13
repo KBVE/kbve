@@ -35,12 +35,22 @@ local DEATH_CORPSES = {
 }
 
 local GIFT_VALUES = {
-	["raw-fish"]       = 3,
-	["coal"]           = 1,
-	["iron-plate"]     = 2,
-	["copper-plate"]   = 2,
-	["steel-plate"]    = 5,
-	[TRIBUTE_ITEM]     = 15,
+	["wood"]                    = 1,
+	["stone"]                   = 1,
+	["coal"]                    = 1,
+	["iron-ore"]                = 1,
+	["copper-ore"]              = 1,
+	["raw-fish"]                = 3,
+	["iron-plate"]              = 2,
+	["copper-plate"]            = 2,
+	["iron-gear-wheel"]         = 2,
+	["sulfur"]                  = 2,
+	["plastic-bar"]             = 3,
+	["steel-plate"]             = 5,
+	["firearm-magazine"]        = 3,
+	["piercing-rounds-magazine"] = 6,
+	["grenade"]                 = 8,
+	[TRIBUTE_ITEM]              = 15,
 }
 
 local REP_MIN = -100
@@ -141,6 +151,12 @@ end
 local function ensure_orc_force()
 	if not game.forces[ORC_FORCE] then
 		game.create_force(ORC_FORCE)
+	end
+	local orc_force = game.forces[ORC_FORCE]
+	local enemy = game.forces["enemy"]
+	if orc_force and orc_force.valid and enemy and enemy.valid then
+		orc_force.set_cease_fire("enemy", true)
+		enemy.set_cease_fire(ORC_FORCE, true)
 	end
 end
 

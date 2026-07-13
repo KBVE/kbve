@@ -75,7 +75,7 @@ data:extend({
 		type = "int-setting",
 		name = "kbve-orc-max-health",
 		setting_type = "startup",
-		default_value = 120,
+		default_value = 300,
 		minimum_value = 1,
 		maximum_value = 10000,
 		order = "z-a",
