@@ -34,8 +34,9 @@ use bevy_skills::{BevySkillsPlugin, GrantXpMsg, SkillDef, SkillId, SkillProfile,
 /// Server tick rate: 20 Hz (matching client).
 const TICK_DURATION: Duration = Duration::from_millis(50);
 
-/// Replication send interval — how often the server sends entity updates.
-const REPLICATION_SEND_INTERVAL: Duration = Duration::from_millis(100);
+// NOTE: lightyear 0.28 dropped the per-sender send-interval config (ReplicationSender
+// is now a bare marker). The former 100ms server send throttle is no longer applied
+// per-sender; revisit via 0.28 global replication config once netcode is runtime-verified.
 
 /// Default WebSocket listen address for the game server.
 const DEFAULT_WS_ADDR: &str = "0.0.0.0:5000";
@@ -1482,11 +1483,7 @@ fn server_debug_netcode_collection(
 fn handle_new_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
     let link_entity = trigger.entity;
     tracing::info!("[gameserver] NEW LINK — entity {link_entity:?}, adding ReplicationSender");
-    commands.entity(link_entity).insert(ReplicationSender::new(
-        REPLICATION_SEND_INTERVAL,
-        SendUpdatesMode::SinceLastAck,
-        false,
-    ));
+    commands.entity(link_entity).insert(ReplicationSender);
 }
 
 /// When a client's netcode handshake completes (Connected added), mark as
@@ -1524,11 +1521,7 @@ fn handle_new_connection(
     commands.entity(client_entity).insert((
         PendingAuth,
         ConnectedAt(time.elapsed_secs()),
-        ReplicationSender::new(
-            REPLICATION_SEND_INTERVAL,
-            SendUpdatesMode::SinceLastAck,
-            false,
-        ),
+        ReplicationSender,
     ));
     tracing::info!("[gameserver] PendingAuth + ReplicationSender inserted for {client_entity:?}");
 }
@@ -1783,7 +1776,7 @@ fn spawn_player(
             SkillProfile::default(),
             // Target a specific server entity — avoids .single() failure when
             // multiple Server entities exist (WS + WT).
-            Replicate::new(lightyear::prelude::ReplicationMode::Server(
+            Replicate::new(lightyear_replication::send::ReplicationMode::Server(
                 server_entity,
                 NetworkTarget::All,
             )),

@@ -15,7 +15,7 @@ path = "src/main.rs"
 simgrid = { path = "../../../../packages/rust/simgrid" }
 jedi = { path = "../../../../packages/rust/jedi", features = ["postgres", "valkey"] }
 async-trait = "0.1.88"
-bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
+bevy = { version = "0.19", default-features = false, features = ["bevy_state"] }
 axum = { version = "0.8.9", default-features = false, features = ["ws", "json", "http1", "tokio"] }
 tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "signal", "sync", "time", "net"] }
 tracing = "0.1"
