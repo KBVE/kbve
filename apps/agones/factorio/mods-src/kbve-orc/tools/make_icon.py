@@ -17,7 +17,7 @@ first animation frame. Emits:
 from __future__ import annotations
 
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
 SHEET = ROOT / "graphics" / "entity" / "orc" / "Idle_Armed_Body.png"
@@ -43,18 +43,34 @@ def write_mipmap_strip(tile: Image.Image, out_path: Path) -> None:
         f"wrote {out_path.relative_to(ROOT)}  ({canvas.size[0]}x{canvas.size[1]}, {MIPMAP_LEVELS} mipmaps)")
 
 
-def gold_tint(tile: Image.Image) -> Image.Image:
-    # Placeholder Tribute icon: same orc pose, tinted gold. Swap with proper
-    # art when available.
-    base = tile.convert("RGBA")
-    r, g, b, a = base.split()
-    tinted = Image.merge("RGB", (
-        r.point(lambda v: min(255, int(v * 1.25))),
-        g.point(lambda v: min(255, int(v * 1.05))),
-        b.point(lambda v: int(v * 0.6)),
-    ))
-    out = Image.new("RGBA", base.size)
-    out.paste(tinted, mask=a)
+def tribute_icon() -> Image.Image:
+    ss = 4
+    n = FRAME * ss
+    canvas = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+    cx, cy = n / 2, n * 0.52
+    w, top, bot = n * 0.34, n * 0.20, n * 0.86
+    girdle = n * 0.42
+    crown = cy - (bot - cy) * 0.55
+
+    gem = [(cx, top), (cx + w, crown), (cx + w * 0.62, girdle),
+           (cx, bot), (cx - w * 0.62, girdle), (cx - w, crown)]
+    draw.polygon(gem, fill=(214, 168, 46, 255),
+                 outline=(120, 84, 12, 255), width=max(2, ss))
+
+    draw.polygon([(cx, top), (cx + w, crown), (cx, girdle)],
+                 fill=(245, 208, 96, 255))
+    draw.polygon([(cx, top), (cx - w, crown), (cx, girdle)],
+                 fill=(196, 150, 40, 255))
+    draw.polygon([(cx, girdle), (cx + w * 0.62, girdle), (cx, bot)],
+                 fill=(168, 120, 24, 255))
+    draw.polygon([(cx, girdle), (cx - w * 0.62, girdle), (cx, bot)],
+                 fill=(140, 98, 18, 255))
+    draw.line([(cx - w * 0.5, top + (crown - top) * 0.5),
+               (cx - w * 0.2, top + (crown - top) * 0.9)],
+              fill=(255, 240, 190, 235), width=max(2, ss))
+
+    out = canvas.resize((FRAME, FRAME), Image.LANCZOS)
     return out
 
 
@@ -80,8 +96,8 @@ def main() -> int:
         tile.resize((144, 144), Image.LANCZOS).save(thumb_path, optimize=True)
         print(f"wrote {thumb_path.relative_to(ROOT)}  (144x144)")
 
-        write_mipmap_strip(gold_tint(tile), ROOT /
-                           "graphics" / "icon-tribute.png")
+    write_mipmap_strip(tribute_icon(), ROOT /
+                       "graphics" / "icon-tribute.png")
     return 0
 
 
