@@ -61,8 +61,6 @@ def main() -> int:
             zf.write(path, arcname)
             count += 1
 
-        # Factorio mod portal expects thumbnail.png at the zip root (outside
-        # the bundle folder). Write a second copy there if it exists.
         thumb = ROOT / "thumbnail.png"
         if thumb.exists():
             zf.write(thumb, "thumbnail.png")
