@@ -32,6 +32,7 @@ export const MeshRef = world.stores.MeshRef;
 export const Collider = world.stores.Collider;
 export const LightEmitter = world.stores.LightEmitter;
 export const Health = world.stores.Health;
+export const Burn = world.stores.Burn;
 export const Stone = world.stores.Stone;
 export const FlameFx = world.stores.FlameFx;
 export const FireflyFx = world.stores.FireflyFx;
@@ -69,6 +70,12 @@ export function addComponent(_w: World, eid: number, comp: Comp): void {
 }
 export function removeEntity(_w: World, eid: number): void {
 	world.despawn(eid);
+}
+export function removeComponent(_w: World, eid: number, comp: Comp): void {
+	world.remove(eid, nameOf(comp));
+}
+export function isAlive(_w: World, eid: number): boolean {
+	return world.isAlive(eid);
 }
 export function hasComponent(_w: World, eid: number, comp: Comp): boolean {
 	return world.has(eid, nameOf(comp));
