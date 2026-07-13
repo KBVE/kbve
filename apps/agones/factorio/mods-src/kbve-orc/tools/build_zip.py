@@ -20,10 +20,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 
-EXCLUDE_DIRS = {"tools", "tests", "dist",
+EXCLUDE_DIRS = {"tools", "tests", "dist", ".venv",
                 "__pycache__", ".git", ".nx", "node_modules"}
 EXCLUDE_SUFFIXES = {".py", ".pyc", ".opt"}
-EXCLUDE_NAMES = {".DS_Store", "project.json"}
+EXCLUDE_NAMES = {".DS_Store", "project.json", ".gitignore",
+                 "pyproject.toml", "uv.lock", ".python-version"}
 
 
 def included(path: Path) -> bool:
