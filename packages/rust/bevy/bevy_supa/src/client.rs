@@ -26,6 +26,7 @@ pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(15);
 /// Use [`SupaClient::new`] when you already have the URL + key, or
 /// [`SupaClient::from_env`] to read them from the process env.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Resource))]
 pub struct SupaClient {
     base_url: String,
     api_key: String,
