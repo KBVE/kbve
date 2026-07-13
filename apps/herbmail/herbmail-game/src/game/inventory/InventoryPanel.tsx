@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { COLS, ROWS, canPlace, rotate, type Rot } from './grid';
 import { itemDef } from './items';
 import {
+	autoEquip,
 	move,
 	rectOf,
 	sortInventory,
@@ -180,21 +181,42 @@ export function InventoryPanel() {
 							marginBottom: 10,
 						}}>
 						<span style={{ opacity: 0.7 }}>inventory</span>
-						<button
-							id="inv-sort-btn"
-							data-x-kbve={kbve('action', { name: 'auto-sort' })}
-							onClick={sortInventory}
-							style={{
-								font: '11px monospace',
-								color: '#c9c9d6',
-								background: 'rgba(255,255,255,0.06)',
-								border: '1px solid #444',
-								borderRadius: 4,
-								padding: '3px 9px',
-								cursor: 'pointer',
-							}}>
-							auto-sort
-						</button>
+						<div style={{ display: 'flex', gap: 6 }}>
+							<button
+								id="inv-auto-equip-btn"
+								data-x-kbve={kbve('action', {
+									name: 'auto-equip',
+								})}
+								onClick={autoEquip}
+								style={{
+									font: '11px monospace',
+									color: '#c9c9d6',
+									background: 'rgba(255,255,255,0.06)',
+									border: '1px solid #444',
+									borderRadius: 4,
+									padding: '3px 9px',
+									cursor: 'pointer',
+								}}>
+								auto-equip
+							</button>
+							<button
+								id="inv-sort-btn"
+								data-x-kbve={kbve('action', {
+									name: 'auto-sort',
+								})}
+								onClick={sortInventory}
+								style={{
+									font: '11px monospace',
+									color: '#c9c9d6',
+									background: 'rgba(255,255,255,0.06)',
+									border: '1px solid #444',
+									borderRadius: 4,
+									padding: '3px 9px',
+									cursor: 'pointer',
+								}}>
+								auto-sort
+							</button>
+						</div>
 					</div>
 
 					<div
