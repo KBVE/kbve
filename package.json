@@ -97,7 +97,7 @@
 		"lint-staged": "^16.4.0",
 		"mdream": "^1.4.1",
 		"monocart-reporter": "^2.9.19",
-		"nanostores": "^1.1.0",
+		"nanostores": "^1.4.0",
 		"nx": "23.0.1",
 		"openapi-typescript": "^7.13.0",
 		"postcss": "^8.5.3",
