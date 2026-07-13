@@ -211,7 +211,7 @@
 		"react-spring": "^10.0.3",
 		"react-unity-webgl": "^10.2.0",
 		"react-window": "^2.2.7",
-		"recharts": "^2.13.3",
+		"recharts": "^3.9.2",
 		"reflect-metadata": "^0.2.2",
 		"rehype-mermaid": "^3.0.0",
 		"rollup-plugin-copy": "^3.5.0",
