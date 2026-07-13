@@ -14,6 +14,8 @@ import {
 } from './journalNav';
 import { THEORY_NAV, THEORY_ROOT, buildTheoryBreadcrumb } from './theoryNav';
 import { MC_NAV, MC_ROOT, buildMcBreadcrumb } from '../mcdb/mcNav';
+import { NPC_ROOT, buildNpcNav, buildNpcBreadcrumb } from '../npcdb/npcNav';
+import { getCollection } from 'astro:content';
 
 const pathname = Astro.url.pathname;
 const isDashboard = pathname.startsWith('/dashboard');
@@ -22,6 +24,9 @@ const isApplication =
 const isJournal = pathname.startsWith('/journal/') && pathname !== '/journal/';
 const isTheory = pathname.startsWith('/theory/');
 const isMc = pathname.startsWith('/mc/');
+const isNpcdb = pathname.startsWith('/npcdb/');
+
+const npcNav = isNpcdb ? buildNpcNav(await getCollection('npcdb')) : [];
 
 const shell = isDashboard
 	? {
@@ -73,7 +78,17 @@ const shell = isDashboard
 							collapsible: true,
 							withToc: true,
 						}
-					: undefined;
+					: isNpcdb
+						? {
+								entries: npcNav,
+								root: NPC_ROOT,
+								menuLabel: 'NPC database',
+								navLabel: 'NPC Database',
+								crumbs: buildNpcBreadcrumb(npcNav, pathname),
+								collapsible: true,
+								withToc: true,
+							}
+						: undefined;
 
 const crumbs = shell?.crumbs ?? [];
 ---
