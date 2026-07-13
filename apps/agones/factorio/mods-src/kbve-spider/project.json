@@ -1,8 +1,8 @@
 {
 	"name": "kbve-spider",
-	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "apps/factorio/mods/kbve-spider",
+	"sourceRoot": "apps/agones/factorio/mods-src/kbve-spider",
 	"targets": {
 		"test": {
 			"executor": "nx:run-commands",
@@ -19,7 +19,7 @@
 				"commands": [
 					"uv run --quiet --project . python tools/test_mod.py"
 				],
-				"cwd": "apps/factorio/mods/kbve-spider",
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
 				"parallel": false
 			}
 		},
@@ -30,7 +30,7 @@
 				"commands": [
 					"uv run --quiet --project . python tools/bake_sheets.py --src ${SPIDER_SRC:-~/Downloads/Spider256} --out graphics/entity/spider"
 				],
-				"cwd": "apps/factorio/mods/kbve-spider",
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
 				"parallel": false
 			}
 		},
@@ -53,7 +53,7 @@
 				"commands": [
 					"uv run --quiet --project . python tools/build_zip.py"
 				],
-				"cwd": "apps/factorio/mods/kbve-spider",
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
 				"parallel": false
 			}
 		},
@@ -65,7 +65,7 @@
 				"commands": [
 					"uv run --quiet --project . python tools/test_mod.py"
 				],
-				"cwd": "apps/factorio/mods/kbve-spider",
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
 				"parallel": false
 			}
 		},
@@ -76,7 +76,7 @@
 				"commands": [
 					"uv run --quiet --project . python tools/optimize_pngs.py"
 				],
-				"cwd": "apps/factorio/mods/kbve-spider",
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
 				"parallel": false
 			}
 		},
@@ -88,7 +88,7 @@
 					"rm -rf dist",
 					"find graphics -name '*.png.opt' -delete"
 				],
-				"cwd": "apps/factorio/mods/kbve-spider",
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
 				"parallel": false
 			}
 		}
