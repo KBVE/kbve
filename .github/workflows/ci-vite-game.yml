@@ -217,3 +217,19 @@ jobs:
             version_toml_path: ${{ fromJSON(inputs.version).toml }}
         secrets:
             TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
+
+    track_build:
+        name: Track build
+        if: always() && needs.build.result != 'cancelled' && needs.build.result != 'skipped'
+        needs: [version_gate, build]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Vite Game'
+            job_name: ${{ fromJSON(inputs.engine).app_name }}
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.build.result }}
+            version: ${{ needs.version_gate.outputs.local_version }}
