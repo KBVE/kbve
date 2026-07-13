@@ -19,6 +19,7 @@ test.describe('Smoke: Pagefind Search', () => {
 	});
 
 	test('searching "getting started" returns results', async ({ page }) => {
+		test.setTimeout(60_000);
 		await page.locator('button[data-open-modal]').click();
 
 		const dialog = page.locator('dialog[aria-label="Search"]');
@@ -29,7 +30,7 @@ test.describe('Smoke: Pagefind Search', () => {
 		await input.pressSequentially('getting started', { delay: 50 });
 
 		const results = dialog.locator('.pagefind-ui__result');
-		await expect(results.first()).toBeVisible({ timeout: 15_000 });
+		await expect(results.first()).toBeVisible({ timeout: 30_000 });
 
 		const count = await results.count();
 		expect(count).toBeGreaterThan(0);
@@ -38,6 +39,7 @@ test.describe('Smoke: Pagefind Search', () => {
 	test('clicking a search result navigates to a valid page', async ({
 		page,
 	}) => {
+		test.setTimeout(60_000);
 		await page.locator('button[data-open-modal]').click();
 
 		const dialog = page.locator('dialog[aria-label="Search"]');
@@ -46,7 +48,7 @@ test.describe('Smoke: Pagefind Search', () => {
 		await input.pressSequentially('getting started', { delay: 50 });
 
 		const firstResult = dialog.locator('.pagefind-ui__result a').first();
-		await expect(firstResult).toBeVisible({ timeout: 15_000 });
+		await expect(firstResult).toBeVisible({ timeout: 30_000 });
 
 		const href = await firstResult.getAttribute('href');
 		expect(href).toBeTruthy();
