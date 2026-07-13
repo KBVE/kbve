@@ -2,8 +2,9 @@ import * as THREE from 'three';
 
 const ASSET_BASE = import.meta.env.BASE_URL;
 
-THREE.DefaultLoadingManager.setURLModifier((url) =>
+export const asset = (url: string): string =>
 	url.startsWith('/') && !url.startsWith('//')
 		? ASSET_BASE + url.slice(1)
-		: url,
-);
+		: url;
+
+THREE.DefaultLoadingManager.setURLModifier(asset);

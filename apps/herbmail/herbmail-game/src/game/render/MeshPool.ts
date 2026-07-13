@@ -7,12 +7,15 @@ import { MODEL_TORCH } from '../prop/kinds';
 import { stoneGeometry } from '../prop/stoneModel';
 import { hash01 } from '../geometry/rng';
 import { makeCrackDecal } from './crateDecal';
+import { asset } from '../assetBase';
 
 const HEAD_LOCAL = TORCH_HEAD_LOCAL;
 
 // Wooden ring bracket at the torch base where it meets the wall. Shared geometry
 // + material across every torch (never per-torch disposed — see disposeObject).
-const woodTex = new THREE.TextureLoader().load('/textures/wood_14_256_.png');
+const woodTex = new THREE.TextureLoader().load(
+	asset('/textures/wood_14_256_.png'),
+);
 woodTex.magFilter = THREE.NearestFilter;
 woodTex.minFilter = THREE.NearestMipmapNearestFilter;
 woodTex.wrapS = THREE.RepeatWrapping;
@@ -81,8 +84,8 @@ function rockTex(url: string, srgb: boolean): THREE.Texture {
 	return t;
 }
 
-const darkRockDiff = rockTex('/textures/dark_rock_diff_256.png', true);
-const darkRockNor = rockTex('/textures/dark_rock_nor_256.png', false);
+const darkRockDiff = rockTex(asset('/textures/dark_rock_diff_256.png'), true);
+const darkRockNor = rockTex(asset('/textures/dark_rock_nor_256.png'), false);
 const STONE_MAT = new THREE.MeshStandardMaterial({
 	map: darkRockDiff,
 	normalMap: darkRockNor,
