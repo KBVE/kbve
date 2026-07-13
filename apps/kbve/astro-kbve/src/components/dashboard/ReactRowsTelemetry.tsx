@@ -16,10 +16,10 @@ import {
 	CartesianGrid,
 	Cell,
 	ResponsiveContainer,
-	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts';
+import { ChartTooltip, POLL_MS } from './chartTheme';
 import {
 	$requestRate,
 	$requestRateStatus,
@@ -39,21 +39,12 @@ import {
 	type TelemetryRange,
 } from './rowsTelemetryService';
 
-const POLL_MS = 30_000;
-
 const STATUS_BAR_COLOR = (status: number): string => {
 	if (status >= 500) return '#ef4444';
 	if (status >= 400) return '#f59e0b';
 	if (status >= 300) return '#3b82f6';
 	if (status >= 200) return '#10b981';
 	return '#6b7280';
-};
-
-const tooltipStyle = {
-	background: 'var(--sl-color-bg-nav, #111)',
-	border: '1px solid var(--sl-color-gray-5, #262626)',
-	borderRadius: '0.375rem',
-	fontSize: '0.75rem',
 };
 
 function PanelShell({
@@ -192,8 +183,7 @@ export default function ReactRowsTelemetry() {
 								<YAxis
 									tick={{ fontSize: 10, fill: '#9ca3af' }}
 								/>
-								<Tooltip
-									contentStyle={tooltipStyle}
+								<ChartTooltip
 									labelFormatter={(v) =>
 										new Date(v as string).toLocaleString()
 									}
@@ -233,7 +223,7 @@ export default function ReactRowsTelemetry() {
 								<YAxis
 									tick={{ fontSize: 10, fill: '#9ca3af' }}
 								/>
-								<Tooltip contentStyle={tooltipStyle} />
+								<ChartTooltip />
 								<Bar dataKey="n">
 									{statusHistogram.map((s, i) => (
 										<Cell
