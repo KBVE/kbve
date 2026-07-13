@@ -678,6 +678,14 @@
 			"version_target": "packages/rust/bevy/bevy_skills/Cargo.toml"
 		},
 		{
+			"key": "bevy_spells_crate",
+			"package_name": "bevy_spells",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_spells/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-spells-crate.mdx",
+			"version_target": "packages/rust/bevy/bevy_spells/Cargo.toml"
+		},
+		{
 			"key": "bevy_statemachine_crate",
 			"package_name": "bevy_statemachine",
 			"version": "0.1.0",
@@ -1339,7 +1347,7 @@
 	"summary": {
 		"docker": 36,
 		"npm": 4,
-		"crates": 24,
+		"crates": 25,
 		"python": 2,
 		"unreal": 27,
 		"ue5_server": 1,
@@ -1348,6 +1356,6 @@
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 100
+		"total": 101
 	}
 }
