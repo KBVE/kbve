@@ -7,7 +7,7 @@ import {
 	type World,
 } from '../mecs/props';
 import { TILE } from '../config';
-import { hashInt } from '../geometry/rng';
+import { hash01, hashInt } from '../geometry/rng';
 import { MODEL_STONE, PROP_STONE } from './kinds';
 import { spawnPropBase } from './base';
 
@@ -46,7 +46,7 @@ export function spawnStone(
 	Stone.seed[eid] = seed;
 	Stone.size[eid] = size;
 	Stone.hardness[eid] = 1;
-	Stone.ore[eid] = 0;
+	Stone.ore[eid] = hash01(seed, 0xa1e, 0x5f) < 0.28 ? 1 : 0;
 	applyStats(world, eid, { maxHp: STONE_MAX_HP });
 
 	addComponent(world, eid, MeshRef);
