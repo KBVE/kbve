@@ -14,7 +14,9 @@ import { ProceduralPlume } from './ProceduralPlume';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
 import { useBodySkinMorph } from './body';
+import { triggerSwing } from './melee';
 import { makeFlameMaterial } from '../render/flameMaterial';
+import { buildEmbers } from '../render/emberParticles';
 import { heldLight, setHeldLight, clearHeldLight } from '../render/heldLight';
 import {
 	HELD_ITEMS,
@@ -27,6 +29,19 @@ import {
 const UP = new THREE.Vector3(0, 1, 0);
 const LAND_SPEED = 1.35;
 const GROUND_Y = -0.037;
+const BLOCK_CLIPS = ['Sword_Block', 'Idle_Shield_Loop'];
+const DEFAULT_BLOCK: BlockPose = {
+	clip: 'Sword_Block',
+	loop: false,
+	frac: 0.5,
+};
+const PUNCH_CHAIN = [
+	{ clip: 'Punch_Jab', hand: 'hand_l', ts: 1.35, out: 0.18 },
+	{ clip: 'Punch_Cross', hand: 'hand_r', ts: 1.3, out: 0.18 },
+	{ clip: 'Melee_Hook', hand: 'hand_r', ts: 1.15, out: 0.32 },
+];
+const PUNCH_WINDOW = 0.35;
+const PUNCH_REACH = 0.45;
 
 // The world is lit by LightSystem's PSX uniforms, but the character keeps its GLB
 // standard material, so it needs a real light to catch the same torch. This point
@@ -58,6 +73,10 @@ function buildFlame(gripScale: number): {
 		mesh.renderOrder = 10;
 		flame.add(mesh);
 	}
+	// Embers share the flame's uTime so the existing frame loop animates them too.
+	const embers = buildEmbers();
+	flame.add(embers.points);
+	mats.push(embers.mat);
 	return { flame, mats };
 }
 
@@ -68,11 +87,20 @@ function isUpperBone(name: string): boolean {
 	return UPPER_BONE.test(name);
 }
 
+export interface BlockPose {
+	clip: string;
+	loop: boolean;
+	frac?: number;
+}
+
 export interface CharacterHandle {
 	motor: CharacterMotor;
 	animator: CharacterAnimator;
 	pose: ProceduralPose;
 	attack: () => Promise<void>;
+	punch: () => void;
+	setBlocking: (b: boolean, pose?: BlockPose) => void;
+	isBlocking: () => boolean;
 }
 
 interface Props {
@@ -114,8 +142,19 @@ export function Character({
 	} | null>(null);
 	const groupRef = useRef<THREE.Group>(null);
 	const torchLight = useRef<THREE.PointLight>(null);
+	// One persistent flame reused across equips: built lazily, reparented to the
+	// live hand's anchor on equip, detached on unequip, disposed only on unmount.
+	const flamePool = useRef<{
+		flame: THREE.Group;
+		mats: THREE.ShaderMaterial[];
+	} | null>(null);
 	const tRef = useRef(0);
 	const jumpRef = useRef({ wasGrounded: true, landUntil: 0, recover: false });
+	const comboRef = useRef({ step: -1, until: 0 });
+	const blockRef = useRef<{ on: boolean; pose: BlockPose }>({
+		on: false,
+		pose: DEFAULT_BLOCK,
+	});
 
 	const scene = useMemo(() => {
 		const s = cloneSkinned(gltf.scene);
@@ -200,9 +239,10 @@ export function Character({
 				pivot.add(anchor);
 			}
 			if (cfg.flame && anchor) {
-				const built = buildFlame(cfg.scale);
-				flame = built.flame;
-				mats = built.mats;
+				if (!flamePool.current)
+					flamePool.current = buildFlame(cfg.scale);
+				flame = flamePool.current.flame;
+				mats = flamePool.current.mats;
 				anchor.add(flame);
 			}
 
@@ -214,10 +254,8 @@ export function Character({
 				heldLightCfg.current = cfg.light ?? null;
 			}
 
-			cleanups.push(() => {
-				hand.remove(pivot);
-				if (mats) for (const m of mats) m.dispose();
-			});
+			// Detach only — the pooled flame is reused, so it is not disposed here.
+			cleanups.push(() => hand.remove(pivot));
 		};
 
 		if (rightId) attachOne(WEAPON_GRIP.handBone, VERTICAL_GRIP, rightId);
@@ -233,6 +271,18 @@ export function Character({
 			clearHeldLight();
 		};
 	}, [scene, rightId, leftId, sword, torch]);
+
+	// Dispose the pooled flame once, when the character unmounts.
+	useEffect(
+		() => () => {
+			const p = flamePool.current;
+			if (p) {
+				for (const m of p.mats) m.dispose();
+				flamePool.current = null;
+			}
+		},
+		[],
+	);
 
 	const rig = useMemo(() => {
 		const animator = new CharacterAnimator(scene, gltf.animations);
@@ -254,6 +304,17 @@ export function Character({
 			attackClip,
 			isUpperBone,
 		);
+		const punchMasked = new Map<string, boolean>();
+		for (const p of PUNCH_CHAIN) {
+			if (animator.has(p.clip))
+				punchMasked.set(
+					p.clip,
+					animator.registerMasked(`${p.clip}_U`, p.clip, isUpperBone),
+				);
+		}
+		for (const clip of BLOCK_CLIPS)
+			if (animator.has(clip))
+				animator.registerMasked(`${clip}_B`, clip, isUpperBone);
 		const handle: CharacterHandle = {
 			motor,
 			animator,
@@ -264,6 +325,33 @@ export function Character({
 				hasUpper && (motor.gait !== 'idle' || motor.airborne)
 					? animator.playMaskedOnce('Attack_Upper')
 					: animator.playOnce(attackClip),
+			punch: () => {
+				if (blockRef.current.on) return;
+				const c = comboRef.current;
+				const now = tRef.current;
+				c.step = now < c.until ? Math.min(c.step + 1, 2) : 0;
+				const p = PUNCH_CHAIN[c.step];
+				if (!animator.has(p.clip)) return;
+				const masked = motor.gait !== 'idle' || motor.airborne;
+				if (masked && punchMasked.get(p.clip))
+					void animator.playMaskedOnce(
+						`${p.clip}_U`,
+						0.08,
+						p.ts,
+						p.out,
+					);
+				else void animator.playOnce(p.clip, 0.08, p.ts, p.out);
+				c.until = now + animator.duration(p.clip) / p.ts + PUNCH_WINDOW;
+				triggerSwing({ fistBone: p.hand, reach: PUNCH_REACH });
+			},
+			setBlocking: (b: boolean, pose?: BlockPose) => {
+				blockRef.current.on = b;
+				if (b) {
+					blockRef.current.pose = pose ?? DEFAULT_BLOCK;
+					comboRef.current.step = -1;
+				}
+			},
+			isBlocking: () => blockRef.current.on,
 		};
 		onReady?.(handle);
 		return () => animator.dispose();
@@ -321,6 +409,12 @@ export function Character({
 			animator.play('Walk_Loop');
 		} else {
 			animator.blend('Walk_Loop', 'Jog_Fwd_Loop', motor.runBlend);
+		}
+
+		const bp = blockRef.current.pose;
+		for (const clip of BLOCK_CLIPS) {
+			const on = blockRef.current.on && bp.clip === clip;
+			animator.holdMasked(`${clip}_B`, on, bp.loop, bp.frac ?? 0.5);
 		}
 
 		animator.update(dt);

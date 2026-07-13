@@ -2,12 +2,14 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { solidAt } from '../level';
-import { SWING, emitContact, subscribeSwing } from './melee';
+import { SWING, emitContact, subscribeSwing, type SwingSource } from './melee';
 
 export function useMelee(): void {
 	const scene = useThree((s) => s.scene);
 	const swingT = useRef(-1);
 	const hitDone = useRef(false);
+	const fist = useRef<string | null>(null);
+	const fistReach = useRef(0.4);
 
 	const s = useRef({
 		base: new THREE.Vector3(),
@@ -23,9 +25,11 @@ export function useMelee(): void {
 
 	useEffect(
 		() =>
-			subscribeSwing(() => {
+			subscribeSwing((src: SwingSource) => {
 				swingT.current = 0;
 				hitDone.current = false;
+				fist.current = src.fistBone ?? null;
+				fistReach.current = src.reach ?? 0.4;
 				resolve();
 			}),
 		[],
@@ -36,6 +40,7 @@ export function useMelee(): void {
 		const found: THREE.Object3D[] = [];
 		scene.traverse((o) => {
 			if (o.name === 'weaponPivot') pivot = o;
+			if (fist.current && o.name === fist.current) pivot = o;
 			if (o.userData.hitbox) found.push(o);
 		});
 		pivotRef.current = pivot;
@@ -57,10 +62,40 @@ export function useMelee(): void {
 		if (hitDone.current) return;
 
 		const pivot = pivotRef.current;
-		const inner = pivot?.children[0];
-		if (!pivot || !inner) return;
+		if (!pivot) return;
 
 		const st = s.current;
+
+		if (fist.current) {
+			pivot.getWorldPosition(st.base);
+			if (solidAt(st.base.x, st.base.z)) {
+				hitDone.current = true;
+				emitContact({
+					point: [st.base.x, st.base.y, st.base.z],
+					kind: 'wall',
+				});
+				return;
+			}
+			for (let j = 0; j < boxes.current.length; j++) {
+				if (
+					boxes.current[j].distanceToPoint(st.base) <=
+					fistReach.current
+				) {
+					hitDone.current = true;
+					emitContact({
+						point: [st.base.x, st.base.y, st.base.z],
+						kind: 'target',
+						object: targets.current[j],
+					});
+					return;
+				}
+			}
+			return;
+		}
+
+		const inner = pivot.children[0];
+		if (!inner) return;
+
 		pivot.getWorldPosition(st.base); // grip / hand
 		inner.localToWorld(st.tip.set(0, 0, 0)); // blade tip
 		// extend past the visual tip so slightly-far targets still connect
