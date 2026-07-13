@@ -26,7 +26,7 @@ serde = { version = "1", features = ["derive"] }
 bincode = { version = "2", features = ["serde"] }
 
 # Bevy plumbing — only when the `bevy-plugin` feature is on.
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
     "bevy_state",
 ], optional = true }
 bevy_tasker = { version = "0.1", path = "../bevy_tasker", optional = true }

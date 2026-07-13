@@ -47,7 +47,7 @@ reqwest = { version = "0.12", default-features = false, features = [
 
 # Bevy — only pulled in under the `bevy` feature. Game consumers that
 # want the plugin opt in; JNI consumers stay skinny.
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
     "bevy_state",
 ], optional = true }
 
