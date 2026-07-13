@@ -58,6 +58,14 @@ export function App() {
 						scene,
 						gl,
 					};
+					// Preventing the default on context loss lets the browser +
+					// three re-create the GL resources; without it the canvas stays
+					// black after a GPU reset / tab throttle (common on itch embeds).
+					gl.domElement.addEventListener(
+						'webglcontextlost',
+						(e) => e.preventDefault(),
+						false,
+					);
 				}}
 				style={{ imageRendering: 'pixelated' }}>
 				<color attach="background" args={['#0a0a0e']} />
