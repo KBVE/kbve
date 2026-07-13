@@ -1,8 +1,17 @@
 import { useMemo, useState } from 'react';
 import { CLIPS, CLIP_CATEGORIES, type ClipInfo } from './clips';
 import { bindingOf } from './controls';
-import { CodexViewer } from './CodexViewer';
+import { CodexViewer, REST_POSE } from './CodexViewer';
+import { CODEX_LOADOUTS } from './codexLoadouts';
+import { ARMOR_PIECES } from '../character/armor';
 import { setScreen } from './store';
+
+const REST: ClipInfo = { name: REST_POSE, duration: 0, category: 'Other' };
+const displayName = (c: ClipInfo) =>
+	c.name === REST_POSE ? 'Rest / T-Pose' : c.name;
+
+const setsEqual = (a: Set<string>, b: Set<string>) =>
+	a.size === b.size && [...a].every((x) => b.has(x));
 
 const wrap: React.CSSProperties = {
 	position: 'fixed',
@@ -18,6 +27,17 @@ const wrap: React.CSSProperties = {
 export function Codex() {
 	const [sel, setSel] = useState<ClipInfo>(CLIPS[0]);
 	const [q, setQ] = useState('');
+	const [equipped, setEquipped] = useState<Set<string>>(
+		() => new Set(CODEX_LOADOUTS[0].equipped),
+	);
+
+	const toggle = (pieceId: string) =>
+		setEquipped((prev) => {
+			const next = new Set(prev);
+			if (next.has(pieceId)) next.delete(pieceId);
+			else next.add(pieceId);
+			return next;
+		});
 
 	const groups = useMemo(() => {
 		const needle = q.trim().toLowerCase();
@@ -68,7 +88,13 @@ export function Codex() {
 			<div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
 				<div
 					style={{ width: 300, overflowY: 'auto', padding: '8px 0' }}>
-					{groups.map((g) => (
+					{[
+						{ cat: 'Pose', items: [REST] } as {
+							cat: string;
+							items: ClipInfo[];
+						},
+						...groups,
+					].map((g) => (
 						<div key={g.cat}>
 							<div
 								style={{
@@ -98,9 +124,11 @@ export function Codex() {
 												? '3px solid #7ab6ff'
 												: '3px solid transparent',
 										}}>
-										<span>{c.name}</span>
+										<span>{displayName(c)}</span>
 										<span style={{ opacity: 0.4 }}>
-											{c.duration.toFixed(1)}s
+											{c.name === REST_POSE
+												? 'hover'
+												: `${c.duration.toFixed(1)}s`}
 										</span>
 									</div>
 								);
@@ -118,7 +146,11 @@ export function Codex() {
 						borderLeft: '1px solid #ffffff18',
 					}}>
 					<div style={{ flex: 1, minHeight: 0 }}>
-						<CodexViewer clip={sel.name} />
+						<CodexViewer
+							clip={sel.name}
+							equipped={equipped}
+							onToggle={toggle}
+						/>
 					</div>
 					<div
 						style={{
@@ -126,10 +158,74 @@ export function Codex() {
 							borderTop: '1px solid #ffffff18',
 						}}>
 						<div style={{ fontSize: 16, marginBottom: 6 }}>
-							{sel.name}
+							{displayName(sel)}
+						</div>
+						<div
+							style={{
+								display: 'flex',
+								gap: 6,
+								margin: '4px 0 10px',
+								flexWrap: 'wrap',
+							}}>
+							{CODEX_LOADOUTS.map((l) => (
+								<button
+									key={l.id}
+									onClick={() =>
+										setEquipped(new Set(l.equipped))
+									}
+									style={{
+										...btn,
+										background: setsEqual(
+											equipped,
+											l.equipped,
+										)
+											? '#4a6a8a88'
+											: '#ffffff12',
+										borderColor: setsEqual(
+											equipped,
+											l.equipped,
+										)
+											? '#7ab6ff'
+											: '#ffffff22',
+									}}>
+									{l.label}
+								</button>
+							))}
+						</div>
+						<div
+							style={{
+								display: 'flex',
+								flexWrap: 'wrap',
+								gap: 4,
+								marginBottom: 10,
+								maxHeight: 96,
+								overflowY: 'auto',
+							}}>
+							{ARMOR_PIECES.map((p) => {
+								const on = equipped.has(p.id);
+								return (
+									<button
+										key={p.id}
+										onClick={() => toggle(p.id)}
+										style={{
+											...chip,
+											background: on
+												? '#2f4a2f88'
+												: '#4a2f2f55',
+											borderColor: on
+												? '#7ac77a88'
+												: '#c77a7a66',
+										}}>
+										{on ? '● ' : '○ '}
+										{p.label}
+									</button>
+								);
+							})}
 						</div>
 						<div style={{ opacity: 0.5, marginBottom: 10 }}>
-							{sel.category} · {sel.duration.toFixed(2)}s
+							{sel.name === REST_POSE
+								? 'Bind pose · hover a body part to identify it'
+								: `${sel.category} · ${sel.duration.toFixed(2)}s`}
 						</div>
 						<div
 							style={{
@@ -160,6 +256,15 @@ export function Codex() {
 		</div>
 	);
 }
+
+const chip: React.CSSProperties = {
+	border: '1px solid',
+	color: '#e8e8ee',
+	padding: '3px 8px',
+	borderRadius: 4,
+	cursor: 'pointer',
+	fontSize: 11,
+};
 
 const btn: React.CSSProperties = {
 	background: '#ffffff12',
