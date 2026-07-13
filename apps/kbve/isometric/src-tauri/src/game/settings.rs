@@ -235,7 +235,7 @@ fn spawn_settings_modal(commands: &mut Commands, settings: &GameSettings) {
                         header.spawn((
                             Text::new("Settings"),
                             TextFont {
-                                font_size: 18.0,
+                                font_size: bevy::text::FontSize::Px(18.0),
                                 ..default()
                             },
                             TextColor(ui_color::TEXT_PRIMARY),
@@ -248,7 +248,7 @@ fn spawn_settings_modal(commands: &mut Commands, settings: &GameSettings) {
                             UiButtonConfig {
                                 width: Val::Px(70.0),
                                 height: Val::Px(28.0),
-                                font_size: 12.0,
+                                font_size: bevy::text::FontSize::Px(12.0),
                                 border_radius: 4.0,
                                 kind: ButtonKind::Secondary,
                             },
@@ -285,7 +285,7 @@ fn spawn_settings_modal(commands: &mut Commands, settings: &GameSettings) {
                 panel.spawn((
                     Text::new("Transport"),
                     TextFont {
-                        font_size: 13.0,
+                        font_size: bevy::text::FontSize::Px(13.0),
                         ..default()
                     },
                     TextColor(ui_color::TEXT_SECONDARY),
@@ -306,7 +306,7 @@ fn spawn_settings_modal(commands: &mut Commands, settings: &GameSettings) {
                             UiButtonConfig {
                                 width: Val::Px(80.0),
                                 height: Val::Px(28.0),
-                                font_size: 11.0,
+                                font_size: bevy::text::FontSize::Px(11.0),
                                 border_radius: 4.0,
                                 kind: kind_for(settings.transport_override.is_none()),
                             },
@@ -318,7 +318,7 @@ fn spawn_settings_modal(commands: &mut Commands, settings: &GameSettings) {
                             UiButtonConfig {
                                 width: Val::Px(100.0),
                                 height: Val::Px(28.0),
-                                font_size: 11.0,
+                                font_size: bevy::text::FontSize::Px(11.0),
                                 border_radius: 4.0,
                                 kind: kind_for(
                                     settings.transport_override == Some(TransportKind::WebSocket),
@@ -332,7 +332,7 @@ fn spawn_settings_modal(commands: &mut Commands, settings: &GameSettings) {
                             UiButtonConfig {
                                 width: Val::Px(120.0),
                                 height: Val::Px(28.0),
-                                font_size: 11.0,
+                                font_size: bevy::text::FontSize::Px(11.0),
                                 border_radius: 4.0,
                                 kind: kind_for(
                                     settings.transport_override
@@ -345,7 +345,7 @@ fn spawn_settings_modal(commands: &mut Commands, settings: &GameSettings) {
                 panel.spawn((
                     Text::new(transport_label(&settings.transport_override)),
                     TextFont {
-                        font_size: 11.0,
+                        font_size: bevy::text::FontSize::Px(11.0),
                         ..default()
                     },
                     TextColor(ui_color::TEXT_SECONDARY),
@@ -385,7 +385,7 @@ fn volume_row(
             row.spawn((
                 Text::new(label.to_string()),
                 TextFont {
-                    font_size: 13.0,
+                    font_size: bevy::text::FontSize::Px(13.0),
                     ..default()
                 },
                 TextColor(ui_color::TEXT_SECONDARY),
@@ -405,7 +405,7 @@ fn volume_row(
                     UiButtonConfig {
                         width: Val::Px(28.0),
                         height: Val::Px(24.0),
-                        font_size: 14.0,
+                        font_size: bevy::text::FontSize::Px(14.0),
                         border_radius: 4.0,
                         kind: ButtonKind::Secondary,
                     },
@@ -414,7 +414,7 @@ fn volume_row(
                 controls.spawn((
                     Text::new(format!("{value:>3}%")),
                     TextFont {
-                        font_size: 12.0,
+                        font_size: bevy::text::FontSize::Px(12.0),
                         ..default()
                     },
                     TextColor(ui_color::TEXT_PRIMARY),
@@ -428,7 +428,7 @@ fn volume_row(
                     UiButtonConfig {
                         width: Val::Px(28.0),
                         height: Val::Px(24.0),
-                        font_size: 14.0,
+                        font_size: bevy::text::FontSize::Px(14.0),
                         border_radius: 4.0,
                         kind: ButtonKind::Secondary,
                     },

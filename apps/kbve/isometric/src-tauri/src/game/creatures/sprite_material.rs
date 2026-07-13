@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 use bevy::render::render_resource::{AsBindGroup, ShaderType};
-use bevy::render::storage::ShaderStorageBuffer;
+use bevy::render::storage::ShaderBuffer;
 use bevy::shader::ShaderRef;
 
 const SHADER_PATH: &str = "shaders/sprite_sheet.wgsl";
@@ -22,7 +22,7 @@ pub struct SpriteAtlasMaterial {
     pub atlas: Handle<Image>,
 
     #[storage(2, read_only)]
-    pub anim_data: Handle<ShaderStorageBuffer>,
+    pub anim_data: Handle<ShaderBuffer>,
 
     #[uniform(3)]
     pub atlas_grid: UVec2,

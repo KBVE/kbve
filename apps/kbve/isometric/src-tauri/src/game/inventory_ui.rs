@@ -148,7 +148,7 @@ fn spawn_inventory_ui(mut commands: Commands) {
             .with_child((
                 Text::new("Bag"),
                 TextFont {
-                    font_size: 11.0,
+                    font_size: bevy::text::FontSize::Px(11.0),
                     ..default()
                 },
                 TextColor(GOLD_TEXT),
@@ -173,7 +173,7 @@ fn spawn_inventory_ui(mut commands: Commands) {
                 grid_container.spawn((
                     Text::new("Inventory"),
                     TextFont {
-                        font_size: 11.0,
+                        font_size: bevy::text::FontSize::Px(11.0),
                         ..default()
                     },
                     TextColor(GOLD_TEXT),
@@ -214,7 +214,7 @@ fn spawn_inventory_ui(mut commands: Commands) {
                                 slot.spawn((
                                     Text::new(""),
                                     TextFont {
-                                        font_size: 16.0,
+                                        font_size: bevy::text::FontSize::Px(16.0),
                                         ..default()
                                     },
                                     TextColor(ui_color::TEXT_PRIMARY),
@@ -225,7 +225,7 @@ fn spawn_inventory_ui(mut commands: Commands) {
                                 slot.spawn((
                                     Text::new(""),
                                     TextFont {
-                                        font_size: 8.0,
+                                        font_size: bevy::text::FontSize::Px(8.0),
                                         ..default()
                                     },
                                     TextColor(ui_color::TEXT_SECONDARY),
@@ -236,7 +236,7 @@ fn spawn_inventory_ui(mut commands: Commands) {
                                 slot.spawn((
                                     Text::new(""),
                                     TextFont {
-                                        font_size: 8.0,
+                                        font_size: bevy::text::FontSize::Px(8.0),
                                         ..default()
                                     },
                                     TextColor(GOLD_TEXT),
@@ -370,7 +370,7 @@ fn spawn_slot_context_menu(
             menu.spawn((
                 Text::new(item_name),
                 TextFont {
-                    font_size: 12.0,
+                    font_size: bevy::text::FontSize::Px(12.0),
                     ..default()
                 },
                 TextColor(GOLD_TEXT),
@@ -408,7 +408,7 @@ fn spawn_action_button(parent: &mut ChildSpawnerCommands, label: &str, action: S
         .with_child((
             Text::new(label.to_string()),
             TextFont {
-                font_size: 11.0,
+                font_size: bevy::text::FontSize::Px(11.0),
                 ..default()
             },
             TextColor(ui_color::TEXT_PRIMARY),
@@ -531,7 +531,7 @@ fn spawn_inspect_modal(
                             header.spawn((
                                 Text::new(emoji),
                                 TextFont {
-                                    font_size: 22.0,
+                                    font_size: bevy::text::FontSize::Px(22.0),
                                     ..default()
                                 },
                                 TextColor(ui_color::TEXT_PRIMARY),
@@ -542,7 +542,7 @@ fn spawn_inspect_modal(
                         header.spawn((
                             Text::new(name),
                             TextFont {
-                                font_size: 16.0,
+                                font_size: bevy::text::FontSize::Px(16.0),
                                 ..default()
                             },
                             TextColor(GOLD_TEXT),
@@ -554,7 +554,7 @@ fn spawn_inspect_modal(
                     panel.spawn((
                         Text::new(description),
                         TextFont {
-                            font_size: 12.0,
+                            font_size: bevy::text::FontSize::Px(12.0),
                             ..default()
                         },
                         TextColor(ui_color::TEXT_PRIMARY),
@@ -566,7 +566,7 @@ fn spawn_inspect_modal(
                     panel.spawn((
                         Text::new(lore),
                         TextFont {
-                            font_size: 11.0,
+                            font_size: bevy::text::FontSize::Px(11.0),
                             ..default()
                         },
                         TextColor(ui_color::TEXT_SECONDARY),

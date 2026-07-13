@@ -32,6 +32,6 @@ tile-graph = []
 serde = { version = "1", features = ["derive"] }
 
 # Bevy — only pulled in under the `bevy` feature.
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
     "bevy_state",
 ], optional = true }

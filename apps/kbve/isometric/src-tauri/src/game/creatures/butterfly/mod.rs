@@ -397,7 +397,7 @@ pub(super) fn render_butterflies(
                     cr.phase,
                     bs.size_scale,
                 );
-                if let Some(mat) = materials.get_mut(&rd.mat_handle) {
+                if let Some(mut mat) = materials.get_mut(&rd.mat_handle) {
                     let mut c = mat.base_color.to_srgba();
                     c.alpha = df * 0.9 * progress;
                     mat.base_color = c.into();
@@ -416,7 +416,7 @@ pub(super) fn render_butterflies(
                     cr.phase,
                     bs.size_scale,
                 );
-                if let Some(mat) = materials.get_mut(&rd.mat_handle) {
+                if let Some(mut mat) = materials.get_mut(&rd.mat_handle) {
                     let mut c = mat.base_color.to_srgba();
                     c.alpha = df * 0.9;
                     mat.base_color = c.into();
@@ -435,7 +435,7 @@ pub(super) fn render_butterflies(
                     cr.phase,
                     bs.size_scale,
                 );
-                if let Some(mat) = materials.get_mut(&rd.mat_handle) {
+                if let Some(mut mat) = materials.get_mut(&rd.mat_handle) {
                     let mut c = mat.base_color.to_srgba();
                     c.alpha = df * 0.9 * (1.0 - progress);
                     mat.base_color = c.into();

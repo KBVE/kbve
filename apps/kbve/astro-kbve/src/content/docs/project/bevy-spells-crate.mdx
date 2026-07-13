@@ -1,0 +1,103 @@
+---
+title: bevy_spells — Proto-Driven Spell Registry Crate
+description: Proto-driven spell definitions for Bevy games — compiles spelldb.proto into typed Rust structs with a searchable SpellDb registry.
+sem: 1
+sidebar:
+    label: uevy spells
+tags:
+    - crates
+    - rust
+    - bevy
+key: bevy_spells_crate
+pipeline: crates
+package_name: bevy_spells
+version: "0.1.0"
+source_path: packages/rust/bevy/bevy_spells
+version_source: apps/kbve/astro-kbve/src/content/docs/project/bevy-spells-crate.mdx
+version_target: packages/rust/bevy/bevy_spells/Cargo.toml
+version_toml: packages/rust/bevy/bevy_spells/version.toml
+author: h0lybyte
+license: MIT
+status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the bevy_spells crate do?
+          answer: It compiles the shared spelldb.proto schema into typed Rust structs via prost and wraps them in a searchable SpellDb Bevy resource, so any game can load the same spell registry and query it by ref, ULID, school, or rarity.
+        - question: Where do bevy_spells spell definitions come from?
+          answer: The spelldb.proto file is the source of truth. Human-authored content lives in Astro MDX files under apps/kbve/astro-kbve/src/content/docs/spelldb, is codegen'd to spelldb-data.binpb, and SpellDb::from_bytes decodes that binary into proto structs at startup.
+        - question: Is bevy_spells tied to a specific game?
+          answer: No. It is game-agnostic — any Bevy game loads the same proto spell registry, keeping spell data consistent across the KBVE ecosystem, mirroring the bevy_items pattern.
+bento:
+    badge: crates · rust · bevy
+    title: Proto-driven spell registry for
+    accent: bevy_spells
+    lede: >-
+        Proto-driven spell definitions for Bevy games — compiles spelldb.proto into
+        typed Rust structs with a searchable SpellDb registry any game can load and
+        query.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_spells
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: database
+        title: One proto, every game
+        body: >-
+            spelldb.proto is the single source of truth — prost-build generates the
+            Rust structs at build time, human-authored Astro MDX content is codegen'd
+            to <strong>spelldb-data.binpb</strong>, and SpellDb::from_bytes() decodes
+            it at startup.
+    stats:
+        - { label: Language, value: Rust, icon: rust }
+        - { label: Version, value: "0.1.0", icon: package }
+        - { label: Schema, value: proto, icon: database }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Proto-driven schema
+          icon: database
+          body: "spelldb.proto is the single source of truth; prost-build generates the Rust spell structs at build time."
+        - title: Searchable SpellDb resource
+          icon: book
+          body: Query spells by ref, ULID, school, or rarity.
+        - title: Binary proto loading
+          icon: code
+          body: "SpellDb::from_bytes() decodes spelldb-data.binpb, the codegen output of the MDX spell catalog."
+        - title: Game-agnostic
+          icon: box
+          body: The same registry serves any Bevy game, mirroring the bevy_items item registry.
+        - title: Committed prost output
+          icon: package
+          body: "src/proto/spell.rs is committed; build.rs only recompiles the proto when BUILD_PROTO=1 is set."
+    usage:
+        label: Cargo.toml
+        lang: toml
+        code: |
+            [dependencies]
+            bevy_spells = { path = "packages/rust/bevy/bevy_spells" }
+    related:
+        - title: Bevy Items Crate
+          href: /project/bevy-items-crate
+          copy: The item-registry sibling that shares the proto-driven pattern.
+          icon: box
+        - title: Bevy Skills Crate
+          href: /project/bevy-skills-crate
+          copy: Skill progression layer that pairs with spells.
+          icon: book
+    features_heading: Features
+    related_heading: Related crates
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

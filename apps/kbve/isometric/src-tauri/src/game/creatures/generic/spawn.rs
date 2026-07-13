@@ -4,7 +4,7 @@ use bevy::camera::visibility::NoFrustumCulling;
 use bevy::light::NotShadowCaster;
 use bevy::mesh::MeshTag;
 use bevy::prelude::*;
-use bevy::render::storage::ShaderStorageBuffer;
+use bevy::render::storage::ShaderBuffer;
 
 use super::super::common::{CreaturePool, build_billboard_quad, hash_f32};
 use super::super::creature::{
@@ -23,7 +23,7 @@ pub fn spawn_sprite_creatures(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
-    mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
+    mut buffers: ResMut<Assets<ShaderBuffer>>,
     asset_server: Res<AssetServer>,
     _pool: Res<CreaturePool>,
     registry: Res<CreatureRegistry>,
@@ -61,7 +61,7 @@ pub fn spawn_sprite_creatures(
 
         let anim_data: Vec<SpriteAnimData> =
             (0..count).map(|_| SpriteAnimData::default()).collect();
-        let anim_buffer = buffers.add(ShaderStorageBuffer::from(anim_data.clone()));
+        let anim_buffer = buffers.add(ShaderBuffer::from(anim_data.clone()));
 
         let material = atlas_materials.add(SpriteAtlasMaterial {
             atlas: texture,

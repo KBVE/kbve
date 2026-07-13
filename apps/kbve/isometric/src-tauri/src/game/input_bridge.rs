@@ -155,6 +155,7 @@ fn inject_input_from_ipc(
             x: 0.0,
             y: frame.scroll_delta_y,
             window: window_entity,
+            phase: bevy::input::touch::TouchPhase::Moved,
         });
     }
 }

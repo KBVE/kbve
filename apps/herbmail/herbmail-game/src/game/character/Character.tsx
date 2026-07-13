@@ -29,6 +29,26 @@ import {
 const UP = new THREE.Vector3(0, 1, 0);
 const LAND_SPEED = 1.35;
 const GROUND_Y = -0.037;
+const SPINE_X = new THREE.Vector3(1, 0, 0);
+const SPINE_FLEX_DEFAULT = 4;
+const SPINE_FLEX_BY_CLIP: Record<string, number> = {
+	Idle_Loop: 4,
+	Walk_Loop: 6,
+	Jog_Fwd_Loop: 6,
+	Sprint_Loop: 6,
+	Sword_Idle: 8,
+};
+const SPINE_FLEX = [
+	{ bone: 'spine_01', frac: 0.85 },
+	{ bone: 'spine_02', frac: 0.15 },
+];
+const FINGER_RE = /^(index|middle|ring|pinky|thumb)_0\d_(l|r)$/;
+const HAND_OPEN = 0.72;
+const HAND_GRIP = 0.9;
+const _sf1 = new THREE.Quaternion();
+const _sf2 = new THREE.Quaternion();
+const _sf3 = new THREE.Quaternion();
+const _vel = new THREE.Vector3();
 const BLOCK_CLIPS = ['Sword_Block', 'Idle_Shield_Loop'];
 const DEFAULT_BLOCK: BlockPose = {
 	clip: 'Sword_Block',
@@ -55,6 +75,15 @@ useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
 
 const HELD_FLAME_SCALE = 0.24;
+// Reactive flame lean: the held flame is world-upright, but a fast hand motion
+// (thrust, swing) should make the fire drag behind and whip. We spring a tilt
+// toward the anchor's horizontal world velocity, negated so +Y bends away from
+// the motion. GAIN maps m/s → radians; K/D are the spring stiffness/damping
+// (under-damped for overshoot = whip); MAX clamps the tilt so it never inverts.
+const FLAME_LEAN_GAIN = 0.09;
+const FLAME_LEAN_K = 90;
+const FLAME_LEAN_D = 13;
+const FLAME_LEAN_MAX = 0.6;
 const flameGeo = new THREE.PlaneGeometry(0.66, 1);
 
 function buildFlame(gripScale: number): {
@@ -136,6 +165,15 @@ export function Character({
 	const heldMats = useRef<THREE.ShaderMaterial[] | null>(null);
 	const heldPos = useRef(new THREE.Vector3());
 	const heldQuat = useRef(new THREE.Quaternion());
+	// Flame-lean physics: last anchor world pos, spring tilt state (rad) + its
+	// velocity, and scratch objects reused per frame to avoid per-frame allocs.
+	const flamePrev = useRef<THREE.Vector3 | null>(null);
+	const leanRef = useRef({ x: 0, z: 0, vx: 0, vz: 0 });
+	const leanTilt = useRef(new THREE.Quaternion());
+	const leanEuler = useRef(new THREE.Euler());
+	// Smoothed flame world-velocity, fed to the ember shader so sparks streak
+	// (drag opposite the motion) when the torch is moved quickly.
+	const flameVel = useRef(new THREE.Vector3());
 	const heldLightCfg = useRef<{
 		intensity: number;
 		color: [number, number, number];
@@ -165,6 +203,42 @@ export function Character({
 	}, [gltf]);
 	useCharacterParts(scene);
 	useBodySkinMorph(scene);
+	const spineBones = useMemo(
+		() =>
+			SPINE_FLEX.map((s) => ({
+				bone: scene.getObjectByName(s.bone) as THREE.Bone | null,
+				frac: s.frac,
+			})).filter((s) => s.bone),
+		[scene],
+	);
+	const fingerBones = useMemo(() => {
+		const grip: Record<string, THREE.Quaternion> = {};
+		const idle = gltf.animations.find((a) => a.name === 'Idle_Loop');
+		for (const t of idle?.tracks ?? []) {
+			if (!t.name.endsWith('.quaternion')) continue;
+			const name = t.name.slice(0, -'.quaternion'.length);
+			if (!FINGER_RE.test(name)) continue;
+			const v = t.values;
+			grip[name] = new THREE.Quaternion(v[0], v[1], v[2], v[3]);
+		}
+		const out: {
+			bone: THREE.Bone;
+			rest: THREE.Quaternion;
+			grip: THREE.Quaternion;
+			side: string;
+		}[] = [];
+		scene.traverse((o) => {
+			const m = FINGER_RE.exec(o.name);
+			if (m)
+				out.push({
+					bone: o as THREE.Bone,
+					rest: (o as THREE.Bone).quaternion.clone(),
+					grip: grip[o.name] ?? (o as THREE.Bone).quaternion.clone(),
+					side: m[2],
+				});
+		});
+		return out;
+	}, [scene, gltf]);
 
 	// Generic held-item attach: everything is driven by the HELD_ITEMS registry, so
 	// a new object is a config entry, not new code. Grips the handle end, applies
@@ -268,6 +342,9 @@ export function Character({
 			heldFlame.current = null;
 			heldMats.current = null;
 			heldLightCfg.current = null;
+			flamePrev.current = null;
+			leanRef.current.x = leanRef.current.z = 0;
+			leanRef.current.vx = leanRef.current.vz = 0;
 			clearHeldLight();
 		};
 	}, [scene, rightId, leftId, sword, torch]);
@@ -396,11 +473,7 @@ export function Character({
 		if (jumping) {
 			// jump state already selected
 		} else if (gait === 'idle') {
-			const holding = !!(rightId || leftId);
-			const idle =
-				holding && animator.has(WEAPON_GRIP.idleClip)
-					? WEAPON_GRIP.idleClip
-					: 'Idle_Loop';
+			const idle = 'Idle_Loop';
 			// Snap out of the landing pose fast; the drawn-out default
 			// crossfade is what read as a laggy tail.
 			animator.play(idle, j.recover ? { fade: 0.14 } : {});
@@ -418,6 +491,25 @@ export function Character({
 		}
 
 		animator.update(dt);
+		const flexDeg =
+			SPINE_FLEX_BY_CLIP[animator.current()] ?? SPINE_FLEX_DEFAULT;
+		if (flexDeg !== 0) {
+			const rad = (flexDeg * Math.PI) / 180;
+			for (const s of spineBones) {
+				const bone = s.bone!;
+				bone.getWorldQuaternion(_sf1);
+				_sf2.setFromAxisAngle(SPINE_X, rad * s.frac);
+				_sf1.premultiply(_sf2);
+				bone.parent!.getWorldQuaternion(_sf3).invert();
+				bone.quaternion.copy(_sf3.multiply(_sf1));
+				bone.updateWorldMatrix(false, false);
+			}
+		}
+		for (const f of fingerBones) {
+			const holds = f.side === 'r' ? !!rightId : !!leftId;
+			if (holds) f.bone.quaternion.slerp(f.grip, HAND_GRIP);
+			else f.bone.quaternion.slerp(f.rest, HAND_OPEN);
+		}
 		pose.lookAt(lookTarget);
 		pose.update(dt);
 
@@ -447,7 +539,13 @@ export function Character({
 		}
 
 		const mats = heldMats.current;
-		if (mats) for (const m of mats) m.uniforms.uTime.value = tRef.current;
+		if (mats)
+			for (const m of mats) {
+				m.uniforms.uTime.value = tRef.current;
+				// Only the ember material carries uVel; sparks drag on flame motion.
+				if (m.uniforms.uVel)
+					m.uniforms.uVel.value.copy(flameVel.current);
+			}
 		const anchor = heldAnchor.current;
 		if (anchor) {
 			anchor.getWorldPosition(heldPos.current);
@@ -463,12 +561,58 @@ export function Character({
 					lc.color[2],
 				);
 			}
-			// Keep the flame world-upright (fire rises up) regardless of torch tilt.
+			// Keep the flame world-upright (fire rises up) regardless of torch tilt,
+			// then spring a reactive lean on top so a fast swing whips the fire.
 			const fl = heldFlame.current;
 			if (fl) {
 				anchor.getWorldQuaternion(heldQuat.current);
 				fl.quaternion.copy(heldQuat.current.invert());
+
+				const prev = flamePrev.current;
+				const ln = leanRef.current;
+				if (prev && dt > 1e-4) {
+					const vx = (heldPos.current.x - prev.x) / dt;
+					const vy = (heldPos.current.y - prev.y) / dt;
+					const vz = (heldPos.current.z - prev.z) / dt;
+					// Smoothed world velocity drives the ember drag (sparks trail behind
+					// fast motion); the same vx/vz feed the flame lean.
+					flameVel.current.lerp(
+						_vel.set(vx, vy, vz),
+						Math.min(1, 12 * dt),
+					);
+					// Fire drags opposite the motion: +X push tilts the tip to -X
+					// (rotation about +Z), +Z push tilts it to -Z (about -X).
+					const tgtZ = THREE.MathUtils.clamp(
+						vx * FLAME_LEAN_GAIN,
+						-FLAME_LEAN_MAX,
+						FLAME_LEAN_MAX,
+					);
+					const tgtX = THREE.MathUtils.clamp(
+						-vz * FLAME_LEAN_GAIN,
+						-FLAME_LEAN_MAX,
+						FLAME_LEAN_MAX,
+					);
+					ln.vx +=
+						(tgtX - ln.x) * FLAME_LEAN_K * dt -
+						ln.vx * FLAME_LEAN_D * dt;
+					ln.vz +=
+						(tgtZ - ln.z) * FLAME_LEAN_K * dt -
+						ln.vz * FLAME_LEAN_D * dt;
+					ln.x += ln.vx * dt;
+					ln.z += ln.vz * dt;
+					leanEuler.current.set(ln.x, 0, ln.z, 'XYZ');
+					leanTilt.current.setFromEuler(leanEuler.current);
+					// Apply in world space: local = anchorⁿ¹ · tilt (multiply, not pre-).
+					fl.quaternion.multiply(leanTilt.current);
+				}
+				(flamePrev.current ??= new THREE.Vector3()).copy(
+					heldPos.current,
+				);
+			} else {
+				flameVel.current.multiplyScalar(Math.max(0, 1 - 8 * dt));
 			}
+		} else {
+			flameVel.current.multiplyScalar(Math.max(0, 1 - 8 * dt));
 		}
 	});
 

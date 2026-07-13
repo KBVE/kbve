@@ -232,7 +232,7 @@ fn spawn_toast_pool(mut commands: Commands) {
                         panel.spawn((
                             Text::new(""),
                             TextFont {
-                                font_size: 13.0,
+                                font_size: bevy::text::FontSize::Px(13.0),
                                 ..default()
                             },
                             TextColor(ui_color::TEXT_PRIMARY),

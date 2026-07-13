@@ -14,9 +14,9 @@ pub struct CustomRendererPlugin {
 
 impl Plugin for CustomRendererPlugin {
     fn build(&self, app: &mut bevy::app::App) {
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
-            ..Default::default()
+            ..wgpu::InstanceDescriptor::new_without_display_handle()
         });
 
         let surface = instance
