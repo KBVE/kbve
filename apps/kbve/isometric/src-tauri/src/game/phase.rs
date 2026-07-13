@@ -94,7 +94,7 @@ impl Plugin for PhasePlugin {
             Update,
             probe_transport.run_if(
                 in_state(GamePhase::Title)
-                    .and(|pf: Res<PreFlight>| pf.transport == TransportKind::Unknown),
+                    .and_then(|pf: Res<PreFlight>| pf.transport == TransportKind::Unknown),
             ),
         );
 

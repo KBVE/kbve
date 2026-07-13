@@ -67,7 +67,7 @@ impl Plugin for OrbHudPlugin {
         app.add_systems(
             Update,
             update_orbs.run_if(
-                in_state(GamePhase::Playing).and(resource_changed::<super::state::PlayerState>),
+                in_state(GamePhase::Playing).and_then(resource_changed::<super::state::PlayerState>),
             ),
         );
     }
