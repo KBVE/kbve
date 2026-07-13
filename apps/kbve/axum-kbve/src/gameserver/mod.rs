@@ -775,6 +775,7 @@ fn run_bevy_app(
 
     // Minimal headless Bevy — no window, no renderer
     app.add_plugins(MinimalPlugins);
+    app.add_plugins(bevy::state::app::StatesPlugin);
     app.add_plugins(bevy::transform::TransformPlugin);
 
     // avian3d physics (headless — disable transform sync plugins,
