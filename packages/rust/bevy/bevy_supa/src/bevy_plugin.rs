@@ -29,16 +29,13 @@
 //! }
 //! ```
 
-use bevy::ecs::resource::Resource;
 use bevy::prelude::*;
 
 use crate::client::SupaClient;
 
-// Make SupaClient a Bevy Resource under the `bevy` feature. Wrapping in
-// a newtype is tempting, but leaving the Resource impl on SupaClient
-// itself means game code uses the same type as JNI / CLI consumers —
-// no shim, no awkward `.0`.
-impl Resource for SupaClient {}
+// SupaClient derives Resource under the `bevy` feature (see client.rs), so
+// game code uses the same type as JNI / CLI consumers — no newtype shim.
+// Bevy 0.19 requires Resource: Component, which the derive supplies.
 
 /// Plugin that inserts a [`SupaClient`] resource into the Bevy world.
 ///
