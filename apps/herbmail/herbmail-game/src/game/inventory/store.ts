@@ -208,18 +208,8 @@ reconcileEquip([]);
 subscribeHeld(() => reconcileEquip(getHeld()));
 
 // Armor starts unequipped: every piece sits in the grid, the player gears up by
-// equipping onto the paperdoll. Exception until the arm-skin re-bake lands: the
-// knight outfit has no arm under-layer, so the arm chain spawns equipped to avoid
-// a bare-arm gap. Drop ARM_NO_SKIN once character-anim.glb carries SUPL/SLW* skin.
-const ARM_NO_SKIN = [
-	'upperArmL',
-	'upperArmR',
-	'elbowL',
-	'elbowR',
-	'bracerL',
-	'bracerR',
-];
+// equipping onto the paperdoll. The bare skin + underwear base (SKIN_* meshes)
+// shows through, so stripping everything leaves the underwear-clad body.
 setAllArmor(false);
-for (const id of ARM_NO_SKIN) setArmor(id, true);
 reconcileArmor(getEquipped());
 subscribeArmor(() => reconcileArmor(getEquipped()));

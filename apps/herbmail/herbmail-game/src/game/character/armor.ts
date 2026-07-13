@@ -7,19 +7,25 @@ export interface ArmorPiece {
 	slots: string[];
 }
 
-// The naked body: these meshes ARE the character, not armor, and stay visible no
-// matter what is unequipped. This GLB ships no separate skin base — the torso,
-// limbs, hands, feet and face below are the only body geometry — so an armor piece
-// must never own one, or removing it deletes the body and leaves a floating head.
+// The naked body: the human-species skin (SKIN_* nodes baked in by
+// attach_skin_body.py) plus 38WRAP underwear and the face. These ARE the
+// character and stay visible no matter what is unequipped — every knight mesh is
+// a removable overlay layered on top. An armor piece must never own one of these,
+// or removing it would delete the body.
 export const BODY_BASE = new Set([
-	'TORS',
-	'LEGL',
-	'LEGR',
-	'HIPS',
-	'HNDL',
-	'HNDR',
-	'FOTL',
-	'FOTR',
+	'SKIN_TORS',
+	'SKIN_HIPS',
+	'SKIN_LEGL',
+	'SKIN_LEGR',
+	'SKIN_HNDL',
+	'SKIN_HNDR',
+	'SKIN_FOTL',
+	'SKIN_FOTR',
+	'SKIN_AUPL',
+	'SKIN_AUPR',
+	'SKIN_ALWL',
+	'SKIN_ALWR',
+	'SKIN_WRAP',
 	'HEAD',
 	'HAIR',
 	'EARL',
@@ -31,27 +37,21 @@ export const BODY_BASE = new Set([
 	'NOSE',
 	'TETH',
 	'TONG',
-	// Arm skin. The knight outfit ships no arm under-layer, so the human-species
-	// arm (SIDEKICK slots 11AUPL/12AUPR/13ALWL/14ALWR) is baked in as the base and
-	// renamed to these S* nodes — the raw tokens collide with the knight armor
-	// (AUP*/ALW*), so the skin must carry a distinct name to survive armor hiding.
-	'SUPL',
-	'SUPR',
-	'SLWL',
-	'SLWR',
 ]);
 
 /**
- * Removable knight armor layered over the permanent {@link BODY_BASE}. Every slot
- * here is an `A`-prefixed overlay mesh; toggling a piece off hides only its plates
- * (the rig and clips are untouched) and reveals the body beneath. Pieces with no
- * dedicated armor mesh in this GLB (chest, legs, gauntlets, boots) are omitted —
- * there is nothing to toggle for them.
+ * Removable knight layer over the permanent {@link BODY_BASE}. Toggling a piece
+ * off hides its meshes (rig and clips untouched) and reveals the bare skin +
+ * underwear beneath. `A`-prefixed slots are the armor plates; the raw knight body
+ * meshes (TORS/HIPS/LEGL·R/HNDL·R/FOTL·R) are the outfit's clothed torso, hips,
+ * legs, hands and feet — now removable so stripping everything leaves the
+ * underwear-clad body.
  */
 export const ARMOR_PIECES: ArmorPiece[] = [
 	{ id: 'helmet', label: 'Helmet', slots: ['AHED'] },
 	{ id: 'eyePatch', label: 'Eye Patch', slots: ['AFAC'] },
 	{ id: 'backpack', label: 'Backpack', slots: ['ABAC'] },
+	{ id: 'chest', label: 'Chest', slots: ['TORS'] },
 	{ id: 'pauldronL', label: 'Pauldron (L)', slots: ['ASHL'] },
 	{ id: 'pauldronR', label: 'Pauldron (R)', slots: ['ASHR'] },
 	{ id: 'upperArmL', label: 'Upper Arm (L)', slots: ['AUPL'] },
@@ -60,12 +60,19 @@ export const ARMOR_PIECES: ArmorPiece[] = [
 	{ id: 'elbowR', label: 'Elbow Guard (R)', slots: ['AEBR'] },
 	{ id: 'bracerL', label: 'Bracer (L)', slots: ['ALWL'] },
 	{ id: 'bracerR', label: 'Bracer (R)', slots: ['ALWR'] },
+	{ id: 'gauntletL', label: 'Gauntlet (L)', slots: ['HNDL'] },
+	{ id: 'gauntletR', label: 'Gauntlet (R)', slots: ['HNDR'] },
+	{ id: 'hips', label: 'Hips', slots: ['HIPS'] },
 	{ id: 'fauldFront', label: 'Fauld (Front)', slots: ['AHPF'] },
 	{ id: 'fauldBack', label: 'Fauld (Back)', slots: ['AHPB'] },
 	{ id: 'fauldLeft', label: 'Fauld (Left)', slots: ['AHPL'] },
 	{ id: 'fauldRight', label: 'Fauld (Right)', slots: ['AHPR'] },
+	{ id: 'legL', label: 'Leg (L)', slots: ['LEGL'] },
+	{ id: 'legR', label: 'Leg (R)', slots: ['LEGR'] },
 	{ id: 'kneeL', label: 'Knee Guard (L)', slots: ['AKNL'] },
 	{ id: 'kneeR', label: 'Knee Guard (R)', slots: ['AKNR'] },
+	{ id: 'bootL', label: 'Boot (L)', slots: ['FOTL'] },
+	{ id: 'bootR', label: 'Boot (R)', slots: ['FOTR'] },
 ];
 
 const SLOT_BY_PIECE = new Map(ARMOR_PIECES.map((p) => [p.id, p.slots]));

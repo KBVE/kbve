@@ -13,22 +13,10 @@ describe('armor inventory bridge', () => {
 		}
 	});
 
-	it('skinned pieces start in the grid; the arm chain spawns equipped', () => {
-		const armNoSkin = new Set([
-			'upperArmL',
-			'upperArmR',
-			'elbowL',
-			'elbowR',
-			'bracerL',
-			'bracerR',
-		]);
+	it('every armor piece starts unequipped in the grid', () => {
 		for (const id of ARMOR_ITEM_IDS) {
-			if (armNoSkin.has(id)) {
-				expect(getEquipped().has(id)).toBe(true);
-				expect(inGrid(id)).toBe(false);
-			} else {
-				expect(inGrid(id)).toBe(true);
-			}
+			expect(getEquipped().has(id)).toBe(false);
+			expect(inGrid(id)).toBe(true);
 		}
 	});
 
