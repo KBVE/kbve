@@ -124,10 +124,15 @@ void main() {
 	color = mix(color, uHot, smoothstep(0.53, 0.61, heat));
 	color = mix(color, uCore, smoothstep(0.76, 0.84, heat));
 
-	float fringeAlpha = smoothstep(0.02, 0.28, flame);
-	float alpha = mix(0.42, 1.0, fringeAlpha);
+	// Additive output: brightness carries the fire, not opacity. Energy ramps with
+	// heat and blooms hard in the core so overlapping planes stack into a hot centre
+	// while the fringe stays a soft glow. shape fades the silhouette edge.
+	float shape = smoothstep(0.02, 0.30, flame);
+	float energy = 0.6 + heat * 0.85;
+	energy += smoothstep(0.6, 0.95, heat) * 0.7;
+	vec3 emit = color * energy;
 
-	gl_FragColor = vec4(color, alpha);
+	gl_FragColor = vec4(emit, shape);
 }
 `;
 
@@ -139,6 +144,7 @@ export function makeFlameMaterial(
 		vertexShader: VERT,
 		fragmentShader: FRAG,
 		transparent: true,
+		blending: THREE.AdditiveBlending,
 		depthWrite: false,
 		depthTest: true,
 		side: THREE.DoubleSide,
@@ -154,6 +160,6 @@ export function makeFlameMaterial(
 			uGlow: { value: new THREE.Color(0x9f210e) },
 		},
 	});
-	material.alphaToCoverage = true;
+	material.alphaToCoverage = false;
 	return material;
 }

@@ -4,14 +4,15 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { solidAtWorld, dungeonSpawn } from '../dungeon/collision';
 import { refreshPrompt, triggerActive } from '../interact/registry';
 import { TILE } from '../config';
-import { Character, type CharacterHandle } from './Character';
+import { Character, type CharacterHandle, type BlockPose } from './Character';
 import { useHands } from '../viewmodel/store';
 import { equipmentById } from '../viewmodel/equipment';
 import { SWING, triggerSwing } from './melee';
 import { useMelee } from './useMelee';
 import { useCrateBreak } from './useCrateBreak';
 import { useStoneMine } from './useStoneMine';
-import { tickPlayerStats } from './playerStats';
+import { PlayerStats, spend, tickPlayerStats } from './playerStats';
+import { isOpen as isInventoryOpen } from '../inventory/store';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
 import { CharacterShadow } from './CharacterShadow';
 
@@ -26,6 +27,13 @@ const CAM_FOLLOW = 12;
 const LOOK_SENS = 0.002;
 const LOOK_FOLLOW = 14;
 const PITCH_MAX = 1.4;
+const RUN_EP_COST = 25;
+const RUN_EP_RECOVER = 30;
+// Always-on EP regen means the pool never reads exactly 0 mid-sprint (it hovers at
+// one frame of regen). Latch exhaustion at a small floor above that.
+const RUN_EP_EMPTY = 1;
+const ATTACK_EP_WEAPON = 15;
+const ATTACK_EP_PUNCH = 8;
 
 // Exact first-wall distance along the camera boom via grid DDA (tile-by-tile),
 // ~1-2 tile checks vs a fixed 0.1 march — and no stair-step camera pop.
@@ -99,6 +107,18 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	useEffect(() => {
 		armedRef.current = armed;
 	}, [armed]);
+	const blockPoseRef = useRef<BlockPose>({
+		clip: 'Sword_Block',
+		loop: false,
+		frac: 0.5,
+	});
+	useEffect(() => {
+		const left = hands.left ? equipmentById(hands.left) : null;
+		blockPoseRef.current =
+			left && left.kind === 'shield'
+				? { clip: 'Idle_Shield_Loop', loop: true }
+				: { clip: 'Sword_Block', loop: false, frac: 0.5 };
+	}, [hands]);
 	const handleRef = useRef<CharacterHandle | null>(null);
 	useMelee();
 	useCrateBreak();
@@ -110,6 +130,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	const pivot = useRef(new THREE.Vector3());
 	const desired = useRef(new THREE.Vector3());
 	const shoulder = useRef(1);
+	const exhausted = useRef(false);
 	const targetYaw = useRef(0);
 	const targetPitch = useRef(0);
 	const curYaw = useRef(0);
@@ -119,6 +140,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 
 	useEffect(() => {
 		const down = (e: KeyboardEvent) => {
+			if (isInventoryOpen()) return;
 			keys.current[e.code] = true;
 			if (e.code === 'Space') {
 				e.preventDefault();
@@ -128,10 +150,18 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		};
 		const up = (e: KeyboardEvent) => (keys.current[e.code] = false);
 		const attack = (e: MouseEvent) => {
-			if (e.button !== 0 || !document.pointerLockElement) return;
+			if (!document.pointerLockElement) return;
 			const h = handleRef.current;
 			if (!h) return;
+			if (e.button === 2) {
+				h.setBlocking(true, blockPoseRef.current);
+				return;
+			}
+			if (e.button !== 0 || h.isBlocking()) return;
 			if (armedRef.current) {
+				if (PlayerStats.ep.value[PlayerStats.eid] < ATTACK_EP_WEAPON)
+					return;
+				spend(PlayerStats.ep, ATTACK_EP_WEAPON);
 				// step-in: forward impulse -> legs walk (no slide); masked swing
 				// plays over the stepping legs.
 				const m = h.motor;
@@ -143,8 +173,24 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				void h.animator.playMaskedOnce('Attack_Upper');
 				triggerSwing();
 			} else {
-				void h.attack();
+				if (PlayerStats.ep.value[PlayerStats.eid] < ATTACK_EP_PUNCH)
+					return;
+				spend(PlayerStats.ep, ATTACK_EP_PUNCH);
+				h.punch();
 			}
+		};
+		const release = (e: MouseEvent) => {
+			if (e.button === 2) handleRef.current?.setBlocking(false);
+		};
+		const noContext = (e: Event) => e.preventDefault();
+		// Losing focus / pointer lock never fires keyup or mouseup, so held keys and
+		// the RMB block would stay stuck (walk forever, permablock). Clear them.
+		const reset = () => {
+			keys.current = {};
+			handleRef.current?.setBlocking(false);
+		};
+		const onLockChange = () => {
+			if (document.pointerLockElement !== dom) reset();
 		};
 		// Mouse look drives a TARGET yaw/pitch; the camera eases toward it each
 		// frame (see useFrame) so the crosshair glides instead of snapping 1:1.
@@ -162,25 +208,46 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		window.addEventListener('keydown', down);
 		window.addEventListener('keyup', up);
 		window.addEventListener('mousedown', attack);
+		window.addEventListener('mouseup', release);
 		window.addEventListener('mousemove', move);
+		window.addEventListener('blur', reset);
+		document.addEventListener('pointerlockchange', onLockChange);
 		dom.addEventListener('click', lock);
+		dom.addEventListener('contextmenu', noContext);
 		return () => {
 			window.removeEventListener('keydown', down);
 			window.removeEventListener('keyup', up);
 			window.removeEventListener('mousedown', attack);
+			window.removeEventListener('mouseup', release);
 			window.removeEventListener('mousemove', move);
+			window.removeEventListener('blur', reset);
+			document.removeEventListener('pointerlockchange', onLockChange);
 			dom.removeEventListener('click', lock);
+			dom.removeEventListener('contextmenu', noContext);
 		};
 	}, [gl]);
 
-	useFrame((_, dt) => {
+	useFrame((_, dtRaw) => {
+		// A backgrounded tab balloons dt to multiple seconds on return; a single huge
+		// step defeats the sub-stepped collision (tunnels through walls). Clamp it.
+		const dt = Math.min(dtRaw, 0.05);
 		tickPlayerStats(dt);
 		const h = handleRef.current;
 		if (!h) return;
 		const k = keys.current;
-		const f = (k['KeyW'] ? 1 : 0) - (k['KeyS'] ? 1 : 0);
-		const s = (k['KeyD'] ? 1 : 0) - (k['KeyA'] ? 1 : 0);
-		const run = k['ShiftLeft'] || k['ShiftRight'];
+		const menu = isInventoryOpen();
+		const f = menu ? 0 : (k['KeyW'] ? 1 : 0) - (k['KeyS'] ? 1 : 0);
+		const s = menu ? 0 : (k['KeyD'] ? 1 : 0) - (k['KeyA'] ? 1 : 0);
+		const moving = f !== 0 || s !== 0;
+		const wantRun = !menu && (k['ShiftLeft'] || k['ShiftRight']);
+		// Exhaustion hysteresis: emptying EP locks out sprint until it climbs
+		// back past RUN_EP_RECOVER — otherwise the always-on regen would let a
+		// one-frame sliver re-trigger running every tick.
+		const ep = PlayerStats.ep.value[PlayerStats.eid];
+		if (ep <= RUN_EP_EMPTY) exhausted.current = true;
+		else if (ep >= RUN_EP_RECOVER) exhausted.current = false;
+		const running = wantRun && moving && !exhausted.current;
+		if (running) spend(PlayerStats.ep, RUN_EP_COST * dt);
 
 		// Ease camera orientation toward the mouse target (frame-rate independent).
 		const look = 1 - Math.exp(-LOOK_FOLLOW * dt);
@@ -198,7 +265,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			.set(0, 0, 0)
 			.addScaledVector(fwd.current, f)
 			.addScaledVector(right.current, s);
-		const speed = run ? 4.5 : 1.8;
+		const speed = (running ? 4.5 : 1.8) * (h.isBlocking() ? 0.55 : 1);
 		if (dir.current.lengthSq() > 0) {
 			dir.current.normalize().multiplyScalar(speed);
 		}

@@ -19,15 +19,20 @@ export const SWING = {
 	stepSpeed: 3.2,
 };
 
-const swingSubs = new Set<() => void>();
+export interface SwingSource {
+	fistBone?: string;
+	reach?: number;
+}
+
+const swingSubs = new Set<(s: SwingSource) => void>();
 const hitSubs = new Set<(c: Contact) => void>();
 
 /** Fire when an attack starts; the melee hook runs a swing from here. */
-export function triggerSwing(): void {
-	for (const f of swingSubs) f();
+export function triggerSwing(source: SwingSource = {}): void {
+	for (const f of swingSubs) f(source);
 }
 
-export function subscribeSwing(f: () => void): () => void {
+export function subscribeSwing(f: (s: SwingSource) => void): () => void {
 	swingSubs.add(f);
 	return () => swingSubs.delete(f);
 }

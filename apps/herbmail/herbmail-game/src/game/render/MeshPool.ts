@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { EntityPool } from '../mecs/pool';
 import { MeshRef, Stone, Transform3 } from '../mecs/props';
 import { TORCH_HEAD_LOCAL, TORCH_MODEL_SCALE } from '../prop/torchModel';
+import { MOUNT_OFF } from '../prop/torch';
 import { MODEL_TORCH } from '../prop/kinds';
 import { stoneGeometry } from '../prop/stoneModel';
+import { hash01 } from '../geometry/rng';
 import { makeCrackDecal } from './crateDecal';
 
 const HEAD_LOCAL = TORCH_HEAD_LOCAL;
@@ -24,7 +26,6 @@ const HOLDER_MAT = new THREE.MeshStandardMaterial({
 
 function makeHolder(): THREE.Mesh {
 	const ring = new THREE.Mesh(HOLDER_GEO, HOLDER_MAT);
-	ring.position.z = 0.3;
 	ring.userData.shared = true;
 	return ring;
 }
@@ -51,6 +52,14 @@ const STONE_MAT = new THREE.MeshStandardMaterial({
 	normalMap: darkRockNor,
 	roughness: 1,
 	metalness: 0,
+});
+const ORE_MAT = new THREE.MeshStandardMaterial({
+	map: darkRockDiff,
+	normalMap: darkRockNor,
+	roughness: 0.55,
+	metalness: 0.6,
+	emissive: new THREE.Color(0x2b5f7a),
+	emissiveIntensity: 0.5,
 });
 
 // Per-model layout: torches mount to a wall (head faces the room, wood holder at
@@ -94,6 +103,50 @@ export function crateConfig(base: THREE.Object3D): ModelConfig {
 	};
 }
 
+function buildStone(eid: number): THREE.Object3D {
+	const seed = Stone.seed[eid];
+	const size = Stone.size[eid];
+	const ore = Stone.ore[eid] > 0;
+	const group = new THREE.Group();
+
+	const main = new THREE.Mesh(
+		stoneGeometry(seed, size, LUMPINESS),
+		STONE_MAT.clone(),
+	);
+	main.userData.kind = 'stone';
+	group.add(main);
+
+	const satellites = 1 + Math.floor(hash01(seed, 71, 5) * 3);
+	for (let i = 0; i < satellites; i++) {
+		const ss = size * (0.28 + hash01(seed, 200 + i * 13, 41) * 0.24);
+		const ang = hash01(seed, 300 + i * 13, 9) * Math.PI * 2;
+		const dist = size * (0.85 + hash01(seed, 400 + i * 13, 3) * 0.5);
+		const oreSat = ore && i === 0;
+		const chunk = new THREE.Mesh(
+			stoneGeometry(seed + 1013 + i * 97, ss, LUMPINESS * 1.2),
+			(oreSat ? ORE_MAT : STONE_MAT).clone(),
+		);
+		chunk.position.set(Math.cos(ang) * dist, 0, Math.sin(ang) * dist);
+		chunk.rotation.y = ang;
+		chunk.userData.kind = 'stone';
+		group.add(chunk);
+	}
+
+	if (ore) {
+		const vein = new THREE.Mesh(
+			stoneGeometry(seed + 7001, size * 0.5, LUMPINESS * 1.4),
+			ORE_MAT.clone(),
+		);
+		vein.position.set(0, size * 0.3, 0);
+		vein.scale.set(1, 0.6, 1);
+		vein.userData.kind = 'stone';
+		group.add(vein);
+	}
+
+	group.userData.kind = 'stone';
+	return group;
+}
+
 export function stoneConfig(): ModelConfig {
 	return {
 		scale: 1,
@@ -101,14 +154,7 @@ export function stoneConfig(): ModelConfig {
 		holder: false,
 		hitbox: true,
 		kind: 'stone',
-		build: (eid) => {
-			const mesh = new THREE.Mesh(
-				stoneGeometry(Stone.seed[eid], Stone.size[eid], LUMPINESS),
-				STONE_MAT.clone(),
-			);
-			mesh.userData.kind = 'stone';
-			return mesh;
-		},
+		build: (eid) => buildStone(eid),
 	};
 }
 
@@ -126,24 +172,34 @@ function delight(mat: THREE.MeshStandardMaterial): void {
 	mat.needsUpdate = true;
 }
 
+// Prep the base GLTF's materials in place, once. Every prop of this model is
+// identical, so delight + nearest filtering only needs to happen on the single
+// shared material — clones reference it, never re-clone or re-upload it.
+function prepBase(base: THREE.Object3D): void {
+	base.traverse((o) => {
+		const mesh = o as THREE.Mesh;
+		if (!mesh.isMesh || mesh.userData.prepped) return;
+		const mat = mesh.material as THREE.MeshStandardMaterial;
+		delight(mat);
+		if (mat.map) {
+			mat.map.magFilter = THREE.NearestFilter;
+			mat.map.minFilter = THREE.NearestMipmapNearestFilter;
+			mat.map.needsUpdate = true;
+		}
+		mesh.userData.prepped = true;
+	});
+}
+
 function prep(base: THREE.Object3D, kind: string): THREE.Object3D {
+	prepBase(base);
 	const clone = base.clone(true);
 	clone.traverse((o) => {
 		const mesh = o as THREE.Mesh;
 		if (!mesh.isMesh) return;
-		const src = (mesh.material = (
-			mesh.material as THREE.MeshStandardMaterial
-		).clone());
-		delight(src);
-		if (src.map) {
-			src.map.magFilter = THREE.NearestFilter;
-			src.map.minFilter = THREE.NearestMipmapNearestFilter;
-			src.map.needsUpdate = true;
-		}
 		mesh.userData.kind = kind;
-		// clone() shares the GLTF geometry by reference across every prop instance;
-		// only the material above is a per-instance clone. Free just the material.
-		mesh.userData.sharedGeo = true;
+		// clone() shares BOTH the GLTF geometry and the prepped material by
+		// reference across every prop instance — free neither on despawn.
+		mesh.userData.shared = true;
 	});
 	return clone;
 }
@@ -152,11 +208,12 @@ function disposeObject(obj: THREE.Object3D): void {
 	obj.traverse((o) => {
 		const mesh = o as THREE.Mesh;
 		if (!mesh.isMesh) return;
-		// `shared`: geometry AND material are singletons (the torch ring) — free
-		// neither. `sharedGeo`: GLTF/decal geometry is shared across every clone but
-		// the material is a per-instance clone — free only the material. Untagged
-		// (stones): both are per-entity — free both. Freeing shared GLTF geometry on
-		// each prop despawn forced a full GPU re-upload every time a room streamed out.
+		// `shared`: geometry AND material are singletons (the torch ring, and every
+		// prepped GLTF prop — clones reference one material) — free neither.
+		// `sharedGeo`: geometry shared across clones but the material is a per-instance
+		// clone (the crack decal) — free only the material. Untagged (stones): both are
+		// per-entity — free both. Freeing a shared resource on each despawn forced a
+		// full GPU re-upload every time a room streamed out.
 		if (mesh.userData.shared) return;
 		if (!mesh.userData.sharedGeo) mesh.geometry?.dispose();
 		(mesh.material as THREE.Material | undefined)?.dispose();
@@ -195,12 +252,22 @@ export class MeshPool extends EntityPool<THREE.Object3D> {
 				Transform3.dx[eid],
 				Transform3.dy[eid],
 				Transform3.dz[eid],
-			).normalize();
+			);
+			// A zero direction (dir never written) normalizes to (0,0,0) →
+			// setFromUnitVectors yields a NaN quaternion that corrupts the instance.
+			if (dir.lengthSq() < 1e-6) dir.set(0, 0, 1);
+			else dir.normalize();
 			group.quaternion.setFromUnitVectors(HEAD_LOCAL, dir);
+
+			if (cfg.holder) {
+				const holder = makeHolder();
+				const horiz = Math.hypot(dir.x, dir.z);
+				holder.position.z = horiz > 1e-4 ? -MOUNT_OFF / horiz : 0;
+				group.add(holder);
+			}
 		}
 
 		group.add(model);
-		if (cfg.holder) group.add(makeHolder());
 		cfg.onCreate?.(group);
 		group.traverse((o) => (o.userData.eid = eid));
 		if (cfg.hitbox) group.userData.hitbox = true;

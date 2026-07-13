@@ -31,6 +31,14 @@ export const BODY_BASE = new Set([
 	'NOSE',
 	'TETH',
 	'TONG',
+	// Arm skin. The knight outfit ships no arm under-layer, so the human-species
+	// arm (SIDEKICK slots 11AUPL/12AUPR/13ALWL/14ALWR) is baked in as the base and
+	// renamed to these S* nodes — the raw tokens collide with the knight armor
+	// (AUP*/ALW*), so the skin must carry a distinct name to survive armor hiding.
+	'SUPL',
+	'SUPR',
+	'SLWL',
+	'SLWR',
 ]);
 
 /**
@@ -41,14 +49,23 @@ export const BODY_BASE = new Set([
  * there is nothing to toggle for them.
  */
 export const ARMOR_PIECES: ArmorPiece[] = [
-	{ id: 'helmet', label: 'Helmet', slots: ['AHED', 'AFAC'] },
+	{ id: 'helmet', label: 'Helmet', slots: ['AHED'] },
+	{ id: 'eyePatch', label: 'Eye Patch', slots: ['AFAC'] },
 	{ id: 'backpack', label: 'Backpack', slots: ['ABAC'] },
-	{ id: 'pauldrons', label: 'Pauldrons', slots: ['ASHL', 'ASHR'] },
-	{ id: 'upperArms', label: 'Upper Arms', slots: ['AUPL', 'AUPR'] },
-	{ id: 'elbowGuards', label: 'Elbow Guards', slots: ['AEBL', 'AEBR'] },
-	{ id: 'bracers', label: 'Bracers', slots: ['ALWL', 'ALWR'] },
-	{ id: 'faulds', label: 'Faulds', slots: ['AHPF', 'AHPB', 'AHPL', 'AHPR'] },
-	{ id: 'kneeGuards', label: 'Knee Guards', slots: ['AKNL', 'AKNR'] },
+	{ id: 'pauldronL', label: 'Pauldron (L)', slots: ['ASHL'] },
+	{ id: 'pauldronR', label: 'Pauldron (R)', slots: ['ASHR'] },
+	{ id: 'upperArmL', label: 'Upper Arm (L)', slots: ['AUPL'] },
+	{ id: 'upperArmR', label: 'Upper Arm (R)', slots: ['AUPR'] },
+	{ id: 'elbowL', label: 'Elbow Guard (L)', slots: ['AEBL'] },
+	{ id: 'elbowR', label: 'Elbow Guard (R)', slots: ['AEBR'] },
+	{ id: 'bracerL', label: 'Bracer (L)', slots: ['ALWL'] },
+	{ id: 'bracerR', label: 'Bracer (R)', slots: ['ALWR'] },
+	{ id: 'fauldFront', label: 'Fauld (Front)', slots: ['AHPF'] },
+	{ id: 'fauldBack', label: 'Fauld (Back)', slots: ['AHPB'] },
+	{ id: 'fauldLeft', label: 'Fauld (Left)', slots: ['AHPL'] },
+	{ id: 'fauldRight', label: 'Fauld (Right)', slots: ['AHPR'] },
+	{ id: 'kneeL', label: 'Knee Guard (L)', slots: ['AKNL'] },
+	{ id: 'kneeR', label: 'Knee Guard (R)', slots: ['AKNR'] },
 ];
 
 const SLOT_BY_PIECE = new Map(ARMOR_PIECES.map((p) => [p.id, p.slots]));
@@ -99,6 +116,10 @@ export function hiddenSlots(): Set<string> {
 function subscribe(cb: () => void) {
 	listeners.add(cb);
 	return () => listeners.delete(cb);
+}
+
+export function subscribeArmor(cb: () => void) {
+	return subscribe(cb);
 }
 
 export function useEquippedArmor() {

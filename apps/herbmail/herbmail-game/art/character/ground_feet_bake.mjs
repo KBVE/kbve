@@ -10,9 +10,9 @@ const _H=new THREE.Vector3(),_K=new THREE.Vector3(),_A=new THREE.Vector3(),_T=ne
 const FWD=new THREE.Vector3(0,0,1);
 function aim(b,cw,dw){b.getWorldPosition(_bw);_cur.copy(cw).sub(_bw);_des.copy(dw).sub(_bw);if(_cur.lengthSq()<1e-10||_des.lengthSq()<1e-10)return;_cur.normalize();_des.normalize();_q.setFromUnitVectors(_cur,_des);b.getWorldQuaternion(_wq);_q.multiply(_wq);b.parent.getWorldQuaternion(_pq).invert();b.quaternion.copy(_pq.multiply(_q));b.updateWorldMatrix(false,true);}
 function setWQ(b,q){b.parent.getWorldQuaternion(_pq).invert();b.quaternion.copy(_pq.multiply(q));b.updateWorldMatrix(false,true);}
-function legIK(L,ah,flatQ){
+function legIK(L,ah,flatQ,tx,tz){
   L.hip.getWorldPosition(_H);L.knee.getWorldPosition(_K);L.ankle.getWorldPosition(_A);
-  _T.set(_A.x,ah,_A.z);
+  _T.set(tx==null?_A.x:tx,ah,tz==null?_A.z:tz);
   const l1=_K.distanceTo(_H),l2=_A.distanceTo(_K); let d=_H.distanceTo(_T); d=Math.max(Math.abs(l1-l2)+1e-3,Math.min(l1+l2-1e-3,d));
   _dir.copy(_T).sub(_H).normalize(); _pole.copy(FWD); _pole.addScaledVector(_dir,-_pole.dot(_dir)); if(_pole.lengthSq()<1e-6)_pole.set(0,0,1); _pole.normalize();
   const ck=THREE.MathUtils.clamp((l1*l1+d*d-l2*l2)/(2*l1*d),-1,1),ang=Math.acos(ck);
@@ -38,7 +38,9 @@ const idle=gltf.animations.find(a=>a.name==='Idle_Loop');
 mx.stopAllAction();mx.clipAction(idle).reset().play();mx.setTime(0.5*idle.duration+1e-4);sc.updateMatrixWorld(true);
 const AH=Math.min(...legs.map(l=>{l.ankle.getWorldPosition(_tmp);return _tmp.y;}));
 const flat=legs.map(l=>l.ankle.getWorldQuaternion(new THREE.Quaternion()));
-console.log('idle ankle height (target)=',AH.toFixed(4));
+const idleAnchor=legs.map(l=>{l.ankle.getWorldPosition(_tmp);return {x:_tmp.x,z:_tmp.z};});
+const ANCHOR=process.env.ANCHOR_IDLE==='1';
+console.log('idle ankle height (target)=',AH.toFixed(4),ANCHOR?'ANCHOR_IDLE':'');
 for(const clipName of CLIPS){
   const c=gltf.animations.find(a=>a.name.startsWith(clipName));
   const anim=json.animations.find(a=>a.name.startsWith(clipName));
@@ -50,9 +52,15 @@ for(const clipName of CLIPS){
   mx.stopAllAction();const act=mx.clipAction(c);act.reset().play();
   const bones={thigh_l:bn.thigh_l,calf_l:bn.calf_l,foot_l:bn.foot_l,thigh_r:bn.thigh_r,calf_r:bn.calf_r,foot_r:bn.foot_r};
   const buf={}; for(const k in outAcc) buf[k]=accF32(outAcc[k].output);
+  const lock=legs.map(()=>({x:0,z:0}));
+  if(ANCHOR){lock[0].x=idleAnchor[0].x;lock[0].z=idleAnchor[0].z;lock[1].x=idleAnchor[1].x;lock[1].z=idleAnchor[1].z;}
+  else{
+    for(let fi=0;fi<times.length;fi++){mx.setTime(times[fi]+1e-5);sc.updateMatrixWorld(true);legs.forEach((l,li)=>{l.ankle.getWorldPosition(_tmp);lock[li].x+=_tmp.x;lock[li].z+=_tmp.z;});}
+    lock.forEach(p=>{p.x/=times.length;p.z/=times.length;});
+  }
   for(let fi=0;fi<times.length;fi++){
     mx.setTime(times[fi]+1e-5);sc.updateMatrixWorld(true);
-    legIK(legs[0],AH,flat[0]); legIK(legs[1],AH,flat[1]);
+    legIK(legs[0],AH,flat[0],lock[0].x,lock[0].z); legIK(legs[1],AH,flat[1],lock[1].x,lock[1].z);
     for(const k in bones){
       const qq=bones[k].quaternion;const o=fi*4;
       let x=qq.x,y=qq.y,z=qq.z,w=qq.w;

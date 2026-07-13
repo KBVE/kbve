@@ -92,18 +92,27 @@ export class CharacterAnimator {
 	}
 
 	/** Play a one-shot clip over the base; resolves when it finishes. */
-	playOnce(name: string, fade = 0.12): Promise<void> {
+	playOnce(
+		name: string,
+		fade = 0.12,
+		timeScale = 1,
+		fadeOut = fade,
+	): Promise<void> {
 		const action = this.actions.get(name);
 		if (!action) return Promise.resolve();
 		return new Promise((resolve) => {
 			const onFinished = (e: { action: THREE.AnimationAction }) => {
 				if (e.action !== action) return;
 				this.mixer.removeEventListener('finished', onFinished);
-				action.fadeOut(fade);
+				action.fadeOut(fadeOut);
 				resolve();
 			};
 			this.mixer.addEventListener('finished', onFinished);
-			action.reset().setLoop(THREE.LoopOnce, 1).setEffectiveWeight(1);
+			action
+				.reset()
+				.setLoop(THREE.LoopOnce, 1)
+				.setEffectiveWeight(1)
+				.setEffectiveTimeScale(timeScale);
 			action.clampWhenFinished = true;
 			action.fadeIn(fade).play();
 		});
@@ -156,19 +165,61 @@ export class CharacterAnimator {
 		return true;
 	}
 
+	/**
+	 * Hold a masked overlay on/off (a guard the legs keep walking under). `loop`
+	 * plays a seamless guard clip; otherwise it freezes at `frac`. Idempotent —
+	 * safe to call every frame.
+	 */
+	holdMasked(
+		name: string,
+		on: boolean,
+		loop = true,
+		frac = 0.5,
+		fade = 0.15,
+	): void {
+		const action = this.masked.get(name);
+		if (!action) return;
+		if (on) {
+			if (action.isRunning() && action.getEffectiveWeight() > 0.99)
+				return;
+			action.reset().setEffectiveWeight(1);
+			if (loop) {
+				action.setLoop(THREE.LoopRepeat, Infinity);
+			} else {
+				action.setLoop(THREE.LoopOnce, 1);
+				action.clampWhenFinished = true;
+				action.time = frac * action.getClip().duration;
+				action.paused = true;
+			}
+			action.fadeIn(fade).play();
+		} else if (action.isRunning()) {
+			action.paused = false;
+			action.fadeOut(fade);
+		}
+	}
+
 	/** Fire a masked one-shot over the base; resolves when it finishes. */
-	playMaskedOnce(name: string, fade = 0.12): Promise<void> {
+	playMaskedOnce(
+		name: string,
+		fade = 0.12,
+		timeScale = 1,
+		fadeOut = fade,
+	): Promise<void> {
 		const action = this.masked.get(name);
 		if (!action) return Promise.resolve();
 		return new Promise((resolve) => {
 			const onFinished = (e: { action: THREE.AnimationAction }) => {
 				if (e.action !== action) return;
 				this.mixer.removeEventListener('finished', onFinished);
-				action.fadeOut(fade);
+				action.fadeOut(fadeOut);
 				resolve();
 			};
 			this.mixer.addEventListener('finished', onFinished);
-			action.reset().setLoop(THREE.LoopOnce, 1).setEffectiveWeight(1);
+			action
+				.reset()
+				.setLoop(THREE.LoopOnce, 1)
+				.setEffectiveWeight(1)
+				.setEffectiveTimeScale(timeScale);
 			action.clampWhenFinished = false;
 			action.fadeIn(fade).play();
 		});
