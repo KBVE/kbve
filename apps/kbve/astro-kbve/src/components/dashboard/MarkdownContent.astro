@@ -20,6 +20,7 @@ import {
 	buildItemNav,
 	buildItemBreadcrumb,
 } from '../itemdb/itemNav';
+import { MAP_ROOT, buildMapNav, buildMapBreadcrumb } from '../mapdb/mapNav';
 import { getCollection } from 'astro:content';
 
 const pathname = Astro.url.pathname;
@@ -31,9 +32,11 @@ const isTheory = pathname.startsWith('/theory/');
 const isMc = pathname.startsWith('/mc/');
 const isNpcdb = pathname.startsWith('/npcdb/');
 const isItemdb = pathname.startsWith('/itemdb/');
+const isMapdb = pathname.startsWith('/mapdb/');
 
 const npcNav = isNpcdb ? buildNpcNav(await getCollection('npcdb')) : [];
 const itemNav = isItemdb ? buildItemNav(await getCollection('itemdb')) : [];
+const mapNav = isMapdb ? buildMapNav(await getCollection('mapdb')) : [];
 
 const shell = isDashboard
 	? {
@@ -108,7 +111,20 @@ const shell = isDashboard
 									collapsible: true,
 									withToc: true,
 								}
-							: undefined;
+							: isMapdb
+								? {
+										entries: mapNav,
+										root: MAP_ROOT,
+										menuLabel: 'Map database',
+										navLabel: 'Map Database',
+										crumbs: buildMapBreadcrumb(
+											mapNav,
+											pathname,
+										),
+										collapsible: true,
+										withToc: true,
+									}
+								: undefined;
 
 const crumbs = shell?.crumbs ?? [];
 ---

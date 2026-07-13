@@ -1,0 +1,228 @@
+---
+title: 'Map Database'
+description: The KBVE map database — every world object, structure, settlement, and resource node placed across our game worlds.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    label: MapDB
+    order: 1
+id: '00000000000000000000MAPDB0'
+ref: 'mapdb-index'
+name: 'MapDB Index'
+type: 'landmark'
+sub_kind: 'index'
+drafted: true
+tags:
+    - games
+    - mapdb
+    - database
+ogTitle: KBVE Map Database — World Objects, Settlements & Resources
+ogDescription: Browse the KBVE map database — a shared catalog of world objects, buildings, settlements, landmarks, and resource nodes with placement, rendering, and harvest data used across our game worlds.
+ogImage: https://images.unsplash.com/photo-1524661135-423995f22d0b?fit=crop&w=1400&h=700&q=75
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Map Database
+          path: /mapdb/
+    faq:
+        - question: What is the KBVE map database?
+          answer: A shared, versioned catalog of every placeable world object across our game worlds — buildings, settlements, arenas, landmarks, resource nodes, NPC markers, and props — with placement, rendering, and harvest data. It is generated from MDX source in the monorepo and served both as pages and as a JSON API.
+        - question: How are map objects organized?
+          answer: Objects are grouped by type — settlement, building, arena, landmark, resource node, npc marker, and prop. Use the sidebar or the type directory on this page to browse every object in a type.
+        - question: Can I use the map data in my own tools?
+          answer: Yes. The full catalog is available as JSON at /api/mapdb.json, keyed by id, ref, and name. Draft entries are excluded from the API output.
+        - question: What is a resource node?
+          answer: A harvestable world object — an ore vein, tree, or deposit — with a harvest yield, harvest time, and spawn rules that drive gathering in-game.
+---
+
+import BentoShell from '@/components/hero/BentoShell.astro';
+import MapTypeDirectory from '@/components/mapdb/MapTypeDirectory.astro';
+
+export const backdrop = 'https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2400&auto=format&fit=crop';
+
+export const faqs = [
+	{ q: 'What is the KBVE map database?', a: 'A shared, versioned catalog of every placeable world object across our game worlds — buildings, settlements, arenas, landmarks, resource nodes, NPC markers, and props — with placement, rendering, and harvest data. It is generated from MDX source in the monorepo and served both as pages and as a JSON API.' },
+	{ q: 'How are map objects organized?', a: 'Objects are grouped by type — settlement, building, arena, landmark, resource node, npc marker, and prop. Use the sidebar or the type directory on this page to browse every object in a type.' },
+	{ q: 'Can I use the map data in my own tools?', a: 'Yes. The full catalog is available as JSON at /api/mapdb.json, keyed by id, ref, and name. Draft entries are excluded from the API output.', href: '/api/mapdb.json', link: 'View the JSON API' },
+	{ q: 'What is a resource node?', a: 'A harvestable world object — an ore vein, tree, or deposit — with a harvest yield, harvest time, and spawn rules that drive gathering in-game.' },
+];
+
+export const related = [
+	{ href: '/itemdb/', title: 'Item database', copy: 'Items harvested from resource nodes and stored in world containers.', icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z' },
+	{ href: '/npcdb/', title: 'NPC database', copy: 'Creatures and humanoids that spawn at npc markers on the map.', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8z' },
+	{ href: '/api/mapdb.json', title: 'JSON API', copy: 'The full catalog as machine-readable JSON, keyed by id, ref, and name.', icon: 'M16 18l6-6-6-6M8 6l-6 6 6 6' },
+];
+
+<div class="map-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE map database">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 20 3 17V4l6 3 6-3 6 3v13l-6-3-6 3zM9 7v13M15 4v13" /></svg>
+					<span>kbve mapdb · shared catalog</span>
+				</span>
+				<h1 class="bento-title">
+					The KBVE
+					<span class="bento-title__accent">Map Database.</span>
+				</h1>
+				<p class="bento-lede">
+					Every world object across our games — buildings, settlements,
+					arenas, landmarks, resource nodes, and props — one versioned
+					catalog with placement, rendering, and harvest data, served
+					as pages and a JSON API.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#directory">
+						Browse the catalog
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/api/mapdb.json">JSON API</a>
+					<a class="bento-btn bento-btn--ghost" href="#faq">FAQ</a>
+				</div>
+			</div>
+
+			<div class="bento-cell bento-card bento-card--glass map-hub__intro">
+				<h2 class="bento-rulecard__title">Grouped by type</h2>
+				<p class="bento-rulecard__desc">
+					Objects are organized by type — settlements, buildings,
+					arenas, landmarks, resource nodes, and more. Use the sidebar
+					to jump to any object, or scroll the directory below to
+					browse a whole type at once.
+				</p>
+			</div>
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#directory">Directory</a>
+			<a class="bento-chip" href="#faq">FAQ</a>
+			<a class="bento-chip" href="#related">Related</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="directory" eyebrow="Every object" heading="Browse by type">
+	<MapTypeDirectory />
+</BentoShell>
+
+<BentoShell id="faq" eyebrow="FAQ" heading="Frequently asked questions">
+	<div class="bento-faq">
+		{faqs.map((f, i) => (
+			<details class="bento-faq__cell" name="map-faq">
+				<summary class="bento-faq__question">
+					<span class="bento-faq__index">{String(i + 1).padStart(2, '0')}</span>
+					<span class="bento-faq__label">{f.q}</span>
+					<span class="bento-faq__chevron bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+					</span>
+				</summary>
+				<div class="bento-faq__answer">
+					<p>{f.a}</p>
+					{f.href && <a class="bento-faq__link" href={f.href}>{f.link} →</a>}
+				</div>
+			</details>
+		))}
+	</div>
+</BentoShell>
+
+<BentoShell id="related" eyebrow="Keep going" heading="Related databases">
+	<div class="bento-board bento-board--cols-3">
+		{related.map((r) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={r.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+</div>
+
+<style is:global>{`
+	.map-hub {
+		--bento-accent: #14b8a6;
+		--bento-accent-2: #2dd4bf;
+	}
+	.map-hub .map-hub__intro {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		justify-content: center;
+	}
+	.map-hub .bento-faq {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1px;
+		background-color: var(--bento-hairline);
+	}
+	.map-hub .bento-faq__cell { background-color: var(--bento-cell-bg); }
+	.map-hub .bento-faq__question {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1.125rem 1.5rem;
+		cursor: pointer;
+		list-style: none;
+		user-select: none;
+	}
+	.map-hub .bento-faq__question::-webkit-details-marker { display: none; }
+	.map-hub .bento-faq__index {
+		flex-shrink: 0;
+		font-size: 0.625rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-gray-4);
+	}
+	.map-hub .bento-faq__label {
+		flex: 1;
+		min-width: 0;
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+	.map-hub .bento-faq__chevron {
+		flex-shrink: 0;
+		transition: transform 220ms ease, color 220ms ease;
+	}
+	.map-hub .bento-faq__cell[open] .bento-faq__chevron {
+		transform: rotate(180deg);
+		color: var(--sl-color-accent-high);
+	}
+	.map-hub .bento-faq__cell[open] .bento-faq__index { color: var(--sl-color-accent-high); }
+	.map-hub .bento-faq__answer { padding: 0 1.5rem 1.25rem 3.125rem; }
+	.map-hub .bento-faq__answer p {
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-3);
+		max-width: 34rem;
+	}
+	.map-hub .bento-faq__link {
+		display: inline-block;
+		margin-top: 0.625rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-accent-high);
+		text-decoration: none;
+	}
+	.map-hub .bento-faq__link:hover { text-decoration: underline; }
+	@media (max-width: 768px) {
+		.map-hub .bento-faq { grid-template-columns: 1fr; }
+		.map-hub .bento-faq__answer { padding-left: 1.5rem; }
+	}
+`}</style>
