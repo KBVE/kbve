@@ -7,7 +7,8 @@ import { applyLight, LIGHT_PRESETS } from './lights';
 
 const MOUNT_H = 2.6;
 const PITCH = 0.85;
-const OFF = 0.08;
+export const MOUNT_OFF = 0.08;
+const OFF = MOUNT_OFF;
 
 const DIRS: [number, number][] = [
 	[0, -1],
