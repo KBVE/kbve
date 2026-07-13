@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { EntityPool } from '../mecs/pool';
-import { MeshRef, Stone, Transform3 } from '../mecs/props';
+import { Collider, MeshRef, Stone, Transform3 } from '../mecs/props';
 import { TORCH_HEAD_LOCAL, TORCH_MODEL_SCALE } from '../prop/torchModel';
 import { MOUNT_OFF } from '../prop/torch';
 import { MODEL_TORCH } from '../prop/kinds';
@@ -30,6 +30,42 @@ function makeHolder(): THREE.Mesh {
 	return ring;
 }
 
+function makeBlobTexture(): THREE.Texture {
+	const s = 64;
+	const cv = document.createElement('canvas');
+	cv.width = s;
+	cv.height = s;
+	const ctx = cv.getContext('2d');
+	if (!ctx) return new THREE.Texture();
+	const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+	g.addColorStop(0, 'rgba(0,0,0,0.55)');
+	g.addColorStop(0.6, 'rgba(0,0,0,0.28)');
+	g.addColorStop(1, 'rgba(0,0,0,0)');
+	ctx.fillStyle = g;
+	ctx.fillRect(0, 0, s, s);
+	const tex = new THREE.CanvasTexture(cv);
+	tex.colorSpace = THREE.SRGBColorSpace;
+	return tex;
+}
+
+const BLOB_GEO = new THREE.CircleGeometry(1, 20);
+const BLOB_MAT = new THREE.MeshBasicMaterial({
+	map: makeBlobTexture(),
+	transparent: true,
+	depthWrite: false,
+	opacity: 1,
+});
+
+function makeBlobShadow(radius: number): THREE.Mesh {
+	const blob = new THREE.Mesh(BLOB_GEO, BLOB_MAT);
+	blob.rotation.x = -Math.PI / 2;
+	blob.scale.setScalar(Math.max(radius, 0.25) * 1.7);
+	blob.renderOrder = 1;
+	blob.raycast = () => undefined;
+	blob.userData.shared = true;
+	return blob;
+}
+
 // Procedural stone lump depth. Geometry is built per-entity from the Stone seed;
 // each stone clones its material off a shared template so disposeObject can free
 // both the unique geometry and the clone without touching the shared textures.
@@ -52,6 +88,7 @@ const STONE_MAT = new THREE.MeshStandardMaterial({
 	normalMap: darkRockNor,
 	roughness: 1,
 	metalness: 0,
+	vertexColors: true,
 });
 const ORE_MAT = new THREE.MeshStandardMaterial({
 	map: darkRockDiff,
@@ -60,7 +97,17 @@ const ORE_MAT = new THREE.MeshStandardMaterial({
 	metalness: 0.6,
 	emissive: new THREE.Color(0x2b5f7a),
 	emissiveIntensity: 0.5,
+	vertexColors: true,
 });
+const CRYSTAL_MAT = new THREE.MeshStandardMaterial({
+	color: new THREE.Color(0x1c3d4a),
+	roughness: 0.25,
+	metalness: 0.4,
+	emissive: new THREE.Color(0x4fb6d6),
+	emissiveIntensity: 0.9,
+	flatShading: true,
+});
+const CRYSTAL_GEO = new THREE.OctahedronGeometry(1, 0);
 
 // Per-model layout: torches mount to a wall (head faces the room, wood holder at
 // the base); crates stand upright on the floor and carry a melee hitbox so a
@@ -141,6 +188,29 @@ function buildStone(eid: number): THREE.Object3D {
 		vein.scale.set(1, 0.6, 1);
 		vein.userData.kind = 'stone';
 		group.add(vein);
+
+		const shards = 3 + Math.floor(hash01(seed, 511, 7) * 4);
+		for (let i = 0; i < shards; i++) {
+			const ang = hash01(seed, 600 + i * 17, 23) * Math.PI * 2;
+			const pitch = 0.15 + hash01(seed, 610 + i * 17, 5) * 0.8;
+			const rad = size * (0.35 + hash01(seed, 620 + i * 17, 11) * 0.4);
+			const len = size * (0.18 + hash01(seed, 630 + i * 17, 3) * 0.28);
+			const wide = len * (0.3 + hash01(seed, 640 + i * 17, 9) * 0.25);
+			const cx = Math.cos(ang) * rad * Math.cos(pitch);
+			const cz = Math.sin(ang) * rad * Math.cos(pitch);
+			const cy = size * (0.15 + Math.sin(pitch) * 0.7);
+			const shard = new THREE.Mesh(CRYSTAL_GEO, CRYSTAL_MAT.clone());
+			shard.position.set(cx, cy, cz);
+			shard.scale.set(wide, len, wide);
+			shard.rotation.set(
+				(hash01(seed, 650 + i * 17, 2) - 0.5) * 1.1,
+				ang,
+				(hash01(seed, 660 + i * 17, 4) - 0.5) * 1.1,
+			);
+			shard.userData.kind = 'stone';
+			shard.userData.sharedGeo = true;
+			group.add(shard);
+		}
 	}
 
 	group.userData.kind = 'stone';
@@ -269,6 +339,11 @@ export class MeshPool extends EntityPool<THREE.Object3D> {
 
 		group.add(model);
 		cfg.onCreate?.(group);
+		if (cfg.hitbox) {
+			const blob = makeBlobShadow(Collider.hx[eid] || cfg.scale);
+			blob.position.y = 0.02;
+			group.add(blob);
+		}
 		group.traverse((o) => (o.userData.eid = eid));
 		if (cfg.hitbox) group.userData.hitbox = true;
 
