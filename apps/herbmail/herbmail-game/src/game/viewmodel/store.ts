@@ -43,6 +43,12 @@ function subscribe(cb: () => void) {
 	return () => listeners.delete(cb);
 }
 
+// Notify on any held-items change (equip/unequip/swap). Used by the inventory to
+// pull equipped items out of the grid and return them when taken off.
+export function subscribeHeld(cb: () => void) {
+	return subscribe(cb);
+}
+
 export function useHeld() {
 	return useSyncExternalStore(subscribe, getHeld, getHeld);
 }

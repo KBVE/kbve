@@ -5,6 +5,7 @@ import { getDebrisPool } from '../render/DebrisPool';
 import { getSimBridge } from '../sab/simBridge';
 import { PROP_CRATE } from '../prop/kinds';
 import { onPropContact } from './melee';
+import { addLoot } from '../inventory/store';
 
 const HIT_PUFF = 3;
 
@@ -24,6 +25,7 @@ export function useCrateBreak(): void {
 				if (Health.hp[eid] <= 0) {
 					getDebrisPool().burst(pos);
 					getSimBridge().shatter(pos[0], pos[1], pos[2]);
+					addLoot('wood');
 					breakCrate(eid);
 				} else {
 					getDebrisPool().burst(pos, HIT_PUFF);
