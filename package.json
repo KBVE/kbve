@@ -182,7 +182,7 @@
 		"expo-web-browser": "~56.0.5",
 		"fastnoise-lite": "1.1.1",
 		"flatbuffers": "^25.2.10",
-		"framer-motion": "^12.34.3",
+		"framer-motion": "^12.42.2",
 		"grid-engine": "^2.52.1",
 		"gsap": "^3.15.0",
 		"guacamole-common-js": "^1.5.0",
