@@ -84,6 +84,12 @@ const SLOT_BY_PIECE = new Map(ARMOR_PIECES.map((p) => [p.id, p.slots]));
 const SKIN_COVERED_BY = new Map<string, string>([
 	['HNDL', 'SKIN_HNDL'],
 	['HNDR', 'SKIN_HNDR'],
+	['TORS', 'SKIN_TORS'],
+	['HIPS', 'SKIN_HIPS'],
+	['LEGL', 'SKIN_LEGL'],
+	['LEGR', 'SKIN_LEGR'],
+	['FOTL', 'SKIN_FOTL'],
+	['FOTR', 'SKIN_FOTR'],
 ]);
 
 let equipped = new Set(ARMOR_PIECES.map((p) => p.id));
@@ -116,11 +122,32 @@ export function getEquipped() {
 	return equipped;
 }
 
-/** Slot-mesh names currently hidden (owned by un-equipped pieces). */
-export function hiddenSlots(): Set<string> {
+const PIECE_BY_SLOT = new Map<string, string>();
+for (const p of ARMOR_PIECES)
+	for (const s of p.slots) PIECE_BY_SLOT.set(s, p.id);
+
+// Bare-skin twin mesh → the piece that covers it, so clicking exposed skin (a
+// gauntlet that was toggled off) re-equips the covering piece rather than
+// dead-ending on a mesh that has vanished.
+const PIECE_BY_SKIN = new Map<string, string>();
+for (const [slot, skin] of SKIN_COVERED_BY) {
+	const pid = PIECE_BY_SLOT.get(slot);
+	if (pid) PIECE_BY_SKIN.set(skin, pid);
+}
+
+/** Armor piece id a hovered/clicked mesh belongs to (its slot, or the skin it
+ *  covers), or null for un-equippable body meshes. */
+export function pieceForMesh(name: string | undefined): string | null {
+	if (!name) return null;
+	return PIECE_BY_SLOT.get(name) ?? PIECE_BY_SKIN.get(name) ?? null;
+}
+
+/** Slot-mesh names hidden for a given equipped set: un-equipped pieces plus the
+ *  SKIN_ twins covered by the pieces that ARE equipped. */
+export function hiddenSlotsFor(equippedSet: Set<string>): Set<string> {
 	const hidden = new Set<string>();
 	for (const p of ARMOR_PIECES) {
-		if (!equipped.has(p.id)) {
+		if (!equippedSet.has(p.id)) {
 			for (const s of SLOT_BY_PIECE.get(p.id)!) {
 				if (!BODY_BASE.has(s)) hidden.add(s);
 			}
@@ -132,6 +159,11 @@ export function hiddenSlots(): Set<string> {
 		}
 	}
 	return hidden;
+}
+
+/** Slot-mesh names currently hidden (owned by un-equipped pieces). */
+export function hiddenSlots(): Set<string> {
+	return hiddenSlotsFor(equipped);
 }
 
 function subscribe(cb: () => void) {

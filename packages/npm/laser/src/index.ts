@@ -98,6 +98,29 @@ export type {
 	ContextGuardHandlers,
 } from './lib/webgl/context-guard';
 
+// WebGL — Parallax / Silhouette Occlusion Mapping (POM / SPOM) primitives
+export {
+	createPomUniforms,
+	toThreeUniforms,
+	POM_DEFAULTS,
+	POM_MAX_STEPS,
+	POM_VARYINGS,
+	DERIVE_TANGENT,
+	POM_MARCH,
+	SPOM_SILHOUETTE,
+	POM_SELF_SHADOW,
+	HEIGHT_HELPERS,
+	POM_SOURCE_BRICK,
+	POM_SOURCE_LUMA,
+	POM_SOURCE_MAP,
+	POM_WGSL_STUB,
+} from './lib/webgl/pom';
+export type {
+	PomUniformValues,
+	PomConfig,
+	PomMaterialType,
+} from './lib/webgl/pom';
+
 // ECS (bitecs) — full re-export of bitecs core API
 export * from './lib/ecs/bitecs';
 

@@ -112,6 +112,21 @@ jobs:
                   chmod 600 "$HOME/.netrc"
                   git lfs install --local
 
+            - name: Pull vite-game LFS blobs
+              run: |
+                  CFG=$(git ls-files -- '**/.lfsconfig' | grep "^${PROJECT_PATH}/" | head -1)
+                  if [ -z "$CFG" ]; then
+                    echo "::error::No nested .lfsconfig under ${PROJECT_PATH} — cannot resolve per-game LFS endpoint"
+                    exit 1
+                  fi
+                  URL=$(git config -f "$CFG" lfs.url)
+                  if [ -z "$URL" ]; then
+                    echo "::error::$CFG has no lfs.url"
+                    exit 1
+                  fi
+                  echo "::notice::Pulling LFS for ${PROJECT_PATH} from $URL"
+                  git -c lfs.url="$URL" lfs pull -I "${PROJECT_PATH}/**"
+
             - name: Setup Node.js ${{ env.NODE_VERSION }}
               uses: actions/setup-node@v6
               with:
@@ -146,6 +161,12 @@ jobs:
               run: |
                   if [ ! -f "dist/${PROJECT_PATH}/index.html" ]; then
                     echo "::error::Build output missing dist/${PROJECT_PATH}/index.html"
+                    exit 1
+                  fi
+                  STUBS=$(grep -rl 'git-lfs.github.com/spec' "dist/${PROJECT_PATH}" || true)
+                  if [ -n "$STUBS" ]; then
+                    echo "::error::LFS pointer stubs shipped in build output — assets were not smudged. Offending files:"
+                    echo "$STUBS"
                     exit 1
                   fi
                   ls -la "dist/${PROJECT_PATH}"
