@@ -13,6 +13,7 @@ import { useCrateBreak } from './useCrateBreak';
 import { useStoneMine } from './useStoneMine';
 import { PlayerStats, spend, tickPlayerStats } from './playerStats';
 import { isOpen as isInventoryOpen } from '../inventory/store';
+import { isPlaying } from '../menu/store';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
 import { CharacterShadow } from './CharacterShadow';
 
@@ -140,7 +141,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 
 	useEffect(() => {
 		const down = (e: KeyboardEvent) => {
-			if (isInventoryOpen()) return;
+			if (!isPlaying() || isInventoryOpen()) return;
 			keys.current[e.code] = true;
 			if (e.code === 'Space') {
 				e.preventDefault();
@@ -234,6 +235,10 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		tickPlayerStats(dt);
 		const h = handleRef.current;
 		if (!h) return;
+		if (!isPlaying()) {
+			h.motor.setDesiredVelocity(0, 0);
+			return;
+		}
 		const k = keys.current;
 		const menu = isInventoryOpen();
 		const f = menu ? 0 : (k['KeyW'] ? 1 : 0) - (k['KeyS'] ? 1 : 0);
