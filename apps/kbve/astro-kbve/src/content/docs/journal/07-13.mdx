@@ -68,6 +68,51 @@ import BentoProse from '@/components/hero/BentoProse.astro';
     I will loop through them all, and see if I can quickly clean up any that might be in the way of our repo.
 
 
+### Torch Prop
+
+-   12:12PM
+
+    The torch needs to be an item that the player holds in their hand, but can also be mounted on the wall.
+    We could also update it so that the torch's flame adjusts when I go to swing, that way the flame feels a bit more dynamic.
+
+### Bevy 0.19
+
+-   12:31PM
+
+    We just upgraded the core of bevy to v0.19, which comes with wGPU v0.29 , a decent blocked this past couple months.
+    Thus with all that updated, we should have a new inputs system and a couple other improvements in the multi threading!
+    With that said, we will need to update all of the crates that were using an older version of bevy.
+    Afterwards we will prepare for the pnpm upgrade.
+
+### Shadow Reduction
+
+-   01:32PM
+
+    Lowering the shadow system a bit because there might be too much going on, causing some lag and FPS drop.
+    This will be easier for us to look through and understand once we get more content in the game.
+
+### Uniti Crate
+
+-   01:41PM
+
+    Since we are bumping the bevy up to v0.19, we will have to double check the uniti crate, making sure that there will not be any issues with the FFI.
+    I suppose the only downside of using the rust abstractions will be when we have to make calls from various end points.
+
+  
+### Herbmail Low Poly Shields
+
+-   02:05PM
+
+    Adding about 20 low poly shields to the game, then we can look at adding our first batch of enemies to the game.
+    I might do a classic model first, then look at maybe the billboard approach for some optimized creatures later on.
+
+
+### Nx v23.0.2 Upgrade
+
+-   03:35PM
+
+    Upgrading the Nx to the latest minor version, I will then update Astro and finally loop back around and do a pnpm upgrade.
+
 </BentoProse>
 
 

@@ -45,6 +45,8 @@ const SPINE_FLEX = [
 const FINGER_RE = /^(index|middle|ring|pinky|thumb)_0\d_(l|r)$/;
 const HAND_OPEN = 0.72;
 const HAND_GRIP = 0.9;
+const ARM_Z = new THREE.Vector3(0, 0, 1);
+const ARM_HANG_DEG = 11 as number;
 const _sf1 = new THREE.Quaternion();
 const _sf2 = new THREE.Quaternion();
 const _sf3 = new THREE.Quaternion();
@@ -209,6 +211,13 @@ export function Character({
 				bone: scene.getObjectByName(s.bone) as THREE.Bone | null,
 				frac: s.frac,
 			})).filter((s) => s.bone),
+		[scene],
+	);
+	const upperArms = useMemo(
+		() => ({
+			r: scene.getObjectByName('upperarm_r') as THREE.Bone | null,
+			l: scene.getObjectByName('upperarm_l') as THREE.Bone | null,
+		}),
 		[scene],
 	);
 	const fingerBones = useMemo(() => {
@@ -504,6 +513,20 @@ export function Character({
 				bone.quaternion.copy(_sf3.multiply(_sf1));
 				bone.updateWorldMatrix(false, false);
 			}
+		}
+		if (ARM_HANG_DEG !== 0) {
+			const rad = (ARM_HANG_DEG * Math.PI) / 180;
+			const hang = (bone: THREE.Bone | null, sign: number) => {
+				if (!bone) return;
+				bone.getWorldQuaternion(_sf1);
+				_sf2.setFromAxisAngle(ARM_Z, rad * sign);
+				_sf1.premultiply(_sf2);
+				bone.parent!.getWorldQuaternion(_sf3).invert();
+				bone.quaternion.copy(_sf3.multiply(_sf1));
+				bone.updateWorldMatrix(false, true);
+			};
+			if (!rightId) hang(upperArms.r, 1);
+			if (!leftId) hang(upperArms.l, -1);
 		}
 		for (const f of fingerBones) {
 			const holds = f.side === 'r' ? !!rightId : !!leftId;

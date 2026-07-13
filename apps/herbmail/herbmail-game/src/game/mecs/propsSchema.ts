@@ -25,6 +25,7 @@ export const PROPS_SCHEMA = {
 		flickerAmp: 'f32',
 	},
 	Health: { hp: 'f32', maxHp: 'f32', regen: 'f32' },
+	Burn: { dps: 'f32', remaining: 'f32', acc: 'f32', flameEid: 'i32' },
 	Stone: { seed: 'f32', size: 'f32', hardness: 'f32', ore: 'u8' },
 	FlameFx: { seed: 'f32' },
 	FireflyFx: {

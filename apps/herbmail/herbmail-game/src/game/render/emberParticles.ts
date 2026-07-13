@@ -14,6 +14,7 @@ precision highp float;
 
 uniform float uTime;
 uniform float uSize;
+uniform vec3 uVel;
 
 attribute float aSeed;
 
@@ -35,6 +36,11 @@ void main() {
 	pos.x = sx * 0.10 + 0.12 * sin(uTime * 2.0 + aSeed * 10.0) * life;
 	pos.z = sz * 0.10 + 0.10 * cos(uTime * 1.7 + aSeed * 8.0) * life;
 	pos.y = 0.28 + life * 1.25;
+
+	// Drag: older sparks lag further behind the flame's motion, so a fast swing
+	// smears the ember cloud into a trailing streak. The group is world-upright,
+	// so world velocity maps straight onto the local axes.
+	pos -= uVel * (life * life) * 0.11;
 
 	vec4 mv = modelViewMatrix * vec4(pos, 1.0);
 	gl_Position = projectionMatrix * mv;
@@ -94,6 +100,7 @@ export function buildEmbers(): {
 		uniforms: {
 			uTime: { value: 0 },
 			uSize: { value: EMBER_SIZE },
+			uVel: { value: new THREE.Vector3() },
 			uHot: { value: new THREE.Color(0xffd36b) },
 			uCool: { value: new THREE.Color(0xd23a12) },
 		},

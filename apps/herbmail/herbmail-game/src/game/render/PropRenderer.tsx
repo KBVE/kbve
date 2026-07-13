@@ -19,6 +19,7 @@ import { LightSystem } from './LightSystem';
 import { getDebrisPool } from './DebrisPool';
 import { applyCrateDamage } from './crateDecal';
 import { applyStoneMine } from './stoneMine';
+import { burnTick } from '../prop/burn';
 
 const TORCH_URL = MODEL_URLS[MODEL_TORCH];
 const CRATE_URL = MODEL_URLS[MODEL_CRATE];
@@ -75,6 +76,9 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 			occRef.current,
 			ambient,
 		);
+		// Burn DoT ages active fires (spawning/ despawning FlameFx victims); reconcile
+		// the flame pool only when that set actually changed.
+		if (burnTick(delta)) flamePool.reconcile(world);
 		flamePool.tick(state.clock.elapsedTime, state.camera);
 		fireflyPool.tick(state.clock.elapsedTime);
 		debrisPool.tick(delta);

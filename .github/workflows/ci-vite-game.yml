@@ -180,3 +180,19 @@ jobs:
                   itchGameId: ${{ fromJSON(inputs.publish).itch_game }}
                   buildChannel: ${{ fromJSON(inputs.publish).itch_channel != '' && fromJSON(inputs.publish).itch_channel || 'html5' }}
                   buildNumber: ${{ needs.version_gate.outputs.local_version }}
+
+    post_publish_sync:
+        name: Post-publish version sync
+        needs: [version_gate, build, itch]
+        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.itch.result == 'success' || needs.itch.result == 'skipped') && fromJSON(inputs.version).toml != '' }}
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        uses: KBVE/kbve/.github/workflows/utils-post-publish.yml@main
+        with:
+            app_name: ${{ fromJSON(inputs.engine).app_name }}
+            version: ${{ fromJSON(inputs.version).manifest }}
+            version_toml_path: ${{ fromJSON(inputs.version).toml }}
+        secrets:
+            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}

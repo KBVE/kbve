@@ -41,7 +41,7 @@ impl SurfaceRenderer for BevyRenderer {
         self.height = height.max(1);
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), super::RenderError> {
         if self.paused {
             return Ok(());
         }

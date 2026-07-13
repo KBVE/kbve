@@ -6,6 +6,8 @@ import { getSimBridge } from '../sab/simBridge';
 import { PROP_CRATE } from '../prop/kinds';
 import { onPropContact } from './melee';
 import { addLoot } from '../inventory/store';
+import { applyBurn } from '../prop/burn';
+import { getEquippedId } from '../viewmodel/store';
 
 const HIT_PUFF = 3;
 
@@ -16,6 +18,12 @@ export function useCrateBreak(): void {
 	useEffect(
 		() =>
 			onPropContact(PROP_CRATE, (eid) => {
+				// A torch doesn't smash — it sets the crate alight (DoT) instead of
+				// chipping. Any other weapon deals the usual instant hit.
+				if (getEquippedId() === 'torch') {
+					applyBurn(eid);
+					return;
+				}
 				const pos: [number, number, number] = [
 					Transform3.px[eid],
 					Transform3.py[eid],

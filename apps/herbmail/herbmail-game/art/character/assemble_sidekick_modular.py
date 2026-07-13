@@ -9,9 +9,12 @@ parts_dir, tex_dir, out = argv[0], argv[1], argv[2]
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
 # Body armor comes from the knight outfit; head/face/eyes from the human
-# species; hair from a civilian set. Species body (naked torso/limbs) is
-# skipped — the armor covers it. Each entry becomes its own named mesh so the
-# game can toggle equipment per slot.
+# species; hair from a civilian set. Most naked torso/limbs are skipped — the
+# knight outfit ships its own under-armor body layer. Exception: the knight set
+# has NO arm under-layer, so removing arm armor exposed a gap. The human species
+# arm parts below fill it (see BODY_BASE in src/game/character/armor.ts). Each
+# entry becomes its own named mesh so the game can toggle equipment per slot.
+#
 INCLUDE = {
     # slot: filename substring
     "SK_FANT_KNGT_17_": "outfit",           # all knight body + A* attachments
@@ -25,7 +28,22 @@ INCLUDE = {
     "SK_HUMN_BASE_01_35NOSE": "skin",
     "SK_HUMN_BASE_01_36TETH": "skin",
     "SK_HUMN_BASE_01_37TONG": "skin",
+    # Human arm skin: fills the gap the knight outfit leaves. Its raw tokens
+    # (AUPL/AUPR/ALWL/ALWR) collide with the knight armor arm meshes, so
+    # SKIN_ARM_RENAME below maps them to distinct S* nodes kept in BODY_BASE.
+    "SK_HUMN_BASE_01_11AUPL": "skin",
+    "SK_HUMN_BASE_01_12AUPR": "skin",
+    "SK_HUMN_BASE_01_13ALWL": "skin",
+    "SK_HUMN_BASE_01_14ALWR": "skin",
     "SK_SCFI_CIVL_09_02HAIR": "outfit",
+}
+
+# Skin-arm token -> distinct node name (raw tokens clash with knight armor).
+SKIN_ARM_RENAME = {
+    "AUPL": "SUPL",
+    "AUPR": "SUPR",
+    "ALWL": "SLWL",
+    "ALWR": "SLWR",
 }
 
 
@@ -76,6 +94,8 @@ for fbx in sorted(glob.glob(os.path.join(parts_dir, "*.fbx"))):
     arm = next((o for o in new if o.type == "ARMATURE"), None)
     ms = [o for o in new if o.type == "MESH"]
     slot = slot_of(base)
+    if kind == "skin" and slot in SKIN_ARM_RENAME:
+        slot = SKIN_ARM_RENAME[slot]
     for i, m in enumerate(ms):
         m.data.materials.clear()
         m.data.materials.append(mat)

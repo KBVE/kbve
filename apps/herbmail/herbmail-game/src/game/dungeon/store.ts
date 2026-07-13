@@ -13,6 +13,7 @@ import { spawnRoomProps, despawnRoomProps } from '../prop/spawn';
 import { spawnRoomDoors, despawnRoomDoors, resetDoors } from '../door/doors';
 import { spawnTorch } from '../prop/torch';
 import { spawnCrate } from '../prop/crate';
+import { resetBurn } from '../prop/burn';
 import { PROP_CRATE } from '../prop/kinds';
 import { rebuildCrateGrid } from '../prop/crateGrid';
 import {
@@ -198,6 +199,7 @@ export function breakCrate(eid: number): void {
 export function resetDungeon(seed = DUNGEON_SEED): void {
 	seeded = true;
 	resetPropsWorld();
+	resetBurn();
 	invalidateSolidCache();
 	dw = new DungeonWorld(seed);
 	prevMounted = new Set();

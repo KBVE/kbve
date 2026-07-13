@@ -111,9 +111,7 @@ pub unsafe extern "C" fn kbve_wgpu_render(surface: *mut WgpuSurface) -> i32 {
     };
     match surface.renderer.render() {
         Ok(()) => RenderStatus::Ok as i32,
-        Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-            RenderStatus::SurfaceLost as i32
-        }
+        Err(crate::renderer::RenderError::SurfaceLost) => RenderStatus::SurfaceLost as i32,
         Err(err) => {
             log::warn!("kbve_wgpu_render: {err}");
             RenderStatus::Error as i32

@@ -16,26 +16,37 @@ import { LOADOUT } from '../game/viewmodel/equipment';
 import { setEquipped, useEquippedId } from '../game/viewmodel/store';
 import { InventoryPanel } from '../game/inventory/InventoryPanel';
 import { BodyMorphPanel } from '../game/inventory/BodyMorphPanel';
-import { toggleOpen } from '../game/inventory/store';
-
-// Dev cache-bust: browsers cache /models/*.glb by URL, so a re-baked model can
-// serve stale for hours. A per-load query forces a fresh fetch in dev only.
-const CHARACTER_URL = `/models/character-anim.glb${
-	import.meta.env.DEV ? `?v=${Date.now()}` : ''
-}`;
+import { toggleOpen, isOpen as isInventoryOpen } from '../game/inventory/store';
+import { CHARACTER_URL } from '../game/character/modelUrl';
+import { MainMenu } from '../game/menu/MainMenu';
+import { Codex } from '../game/menu/Codex';
+import { SettingsPanel } from '../game/menu/SettingsPanel';
+import { useScreen, setScreen, isPlaying } from '../game/menu/store';
+import { usePsx } from '../game/menu/settingsStore';
 
 export function App() {
-	const [psx] = useState({ ...PSX_DEFAULTS });
+	const psx = usePsx();
+	const screen = useScreen();
 	const [aim, setAim] = useState<string | null>(null);
 	const [debug, setDebug] = useState(false);
 	const equippedId = useEquippedId();
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
+			if (e.code === 'Escape') {
+				if (isInventoryOpen()) {
+					toggleOpen();
+					return;
+				}
+				document.exitPointerLock();
+				setScreen('main');
+				return;
+			}
 			if (e.code === 'Backquote') setDebug((d) => !d);
 
 			const el = e.target as HTMLElement;
 			if (el?.tagName === 'INPUT') return;
+			if (!isPlaying()) return;
 
 			if (e.code === 'KeyI') {
 				const open = toggleOpen();
@@ -92,28 +103,35 @@ export function App() {
 				<CratePlacer />
 				<AimReticle onAim={setAim} />
 			</Canvas>
-			<Hud kind={aim} equippedId={equippedId} />
-			<PlayerBars />
-			<InteractPrompt />
-			<InventoryPanel />
-			{debug && <HeldGripDebug />}
-			{debug && <BodyMorphPanel />}
-			<div
-				style={{
-					position: 'fixed',
-					inset: 0,
-					display: 'flex',
-					alignItems: 'flex-end',
-					justifyContent: 'center',
-					padding: '2rem',
-					pointerEvents: 'none',
-					color: '#c9c9d6',
-					font: '13px monospace',
-					textShadow: '0 1px 2px #000',
-				}}>
-				click to look · WASD move · F unlock door · LMB mount torch · R
-				reload · 1-3 equip · I inventory · ` debug
-			</div>
+			{screen === 'playing' && (
+				<>
+					<Hud kind={aim} equippedId={equippedId} />
+					<PlayerBars />
+					<InteractPrompt />
+					<InventoryPanel />
+					{debug && <HeldGripDebug />}
+					{debug && <BodyMorphPanel />}
+					<div
+						style={{
+							position: 'fixed',
+							inset: 0,
+							display: 'flex',
+							alignItems: 'flex-end',
+							justifyContent: 'center',
+							padding: '2rem',
+							pointerEvents: 'none',
+							color: '#c9c9d6',
+							font: '13px monospace',
+							textShadow: '0 1px 2px #000',
+						}}>
+						click to look · WASD move · F unlock door · LMB mount
+						torch · R reload · 1-3 equip · I inventory · Esc menu
+					</div>
+				</>
+			)}
+			{screen === 'main' && <MainMenu />}
+			{screen === 'codex' && <Codex />}
+			{screen === 'settings' && <SettingsPanel />}
 		</>
 	);
 }
