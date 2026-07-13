@@ -15,10 +15,10 @@ import {
 	AreaChart,
 	CartesianGrid,
 	ResponsiveContainer,
-	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts';
+import { AXIS_STROKE, ChartTooltip, GRID_STROKE } from './chartTheme';
 import {
 	fetchAlerts,
 	fetchPodMetrics,
@@ -57,15 +57,8 @@ const tickFormatter = (t: number) =>
 const tooltipLabelFormatter = (t: number) =>
 	new Date(t * 1000).toLocaleString();
 
-const tooltipStyle = {
-	background: 'var(--sl-color-bg-nav, #111)',
-	border: '1px solid var(--sl-color-gray-5, #262626)',
-	borderRadius: '8px',
-	color: 'var(--sl-color-text, #e6edf3)',
-};
-
-const axisStroke = 'var(--sl-color-gray-3, #8b949e)';
-const gridStroke = 'var(--sl-color-gray-5, #262626)';
+const axisStroke = AXIS_STROKE;
+const gridStroke = GRID_STROKE;
 
 function formatBytesAbs(bytes: number | null): string {
 	if (bytes == null) return '--';
@@ -699,8 +692,7 @@ export default function ReactArgoGrafanaPanel({
 											formatBytesAbs(v)
 										}
 									/>
-									<Tooltip
-										contentStyle={tooltipStyle}
+									<ChartTooltip
 										labelFormatter={tooltipLabelFormatter}
 										formatter={(v: number, n: string) =>
 											n === 'CPU'
@@ -767,8 +759,7 @@ export default function ReactArgoGrafanaPanel({
 											formatBytes(v).replace('/s', '')
 										}
 									/>
-									<Tooltip
-										contentStyle={tooltipStyle}
+									<ChartTooltip
 										labelFormatter={tooltipLabelFormatter}
 										formatter={(v: number) =>
 											formatBytes(v)

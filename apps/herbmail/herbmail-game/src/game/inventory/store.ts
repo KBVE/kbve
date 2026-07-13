@@ -8,8 +8,9 @@ import {
 	type Rect,
 	type Rot,
 } from './grid';
-import { ARMOR_ITEM_IDS, itemDef } from './items';
-import { getHeld, subscribeHeld } from '../viewmodel/store';
+import { ARMOR_ITEM_IDS, isArmorItem, itemDef } from './items';
+import { getHeld, setEquipped, subscribeHeld } from '../viewmodel/store';
+import { slotOf, type HandSlot } from '../viewmodel/equipment';
 import {
 	getEquipped,
 	setAllArmor,
@@ -201,6 +202,27 @@ export function reconcileArmor(equippedIds: Set<string>): void {
 		}
 	}
 	if (changed) emit();
+}
+
+export function autoEquip(): void {
+	const worn = getEquipped();
+	const taken = new Set<HandSlot>();
+	for (const id of getHeld()) {
+		const s = slotOf(id);
+		if (s) taken.add(s);
+	}
+	for (const p of [...items]) {
+		if (isArmorItem(p.itemId)) {
+			if (!worn.has(p.itemId)) setArmor(p.itemId, true);
+			continue;
+		}
+		const def = itemDef(p.itemId);
+		if (!def?.equipId) continue;
+		const slot = slotOf(def.equipId);
+		if (!slot || taken.has(slot)) continue;
+		taken.add(slot);
+		setEquipped(def.equipId);
+	}
 }
 
 // Seed the grid with every owned equippable (nothing held at boot).

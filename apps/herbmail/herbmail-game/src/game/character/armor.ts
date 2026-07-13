@@ -77,6 +77,15 @@ export const ARMOR_PIECES: ArmorPiece[] = [
 
 const SLOT_BY_PIECE = new Map(ARMOR_PIECES.map((p) => [p.id, p.slots]));
 
+// An equipped overlay slot fully encloses its SKIN_ twin, so the bare skin mesh
+// underneath must be hidden — otherwise both skinned meshes occupy the same
+// space and z-fight (skin colormap bleeding through the gauntlet). The skin twin
+// returns to visible when the covering piece is unequipped.
+const SKIN_COVERED_BY = new Map<string, string>([
+	['HNDL', 'SKIN_HNDL'],
+	['HNDR', 'SKIN_HNDR'],
+]);
+
 let equipped = new Set(ARMOR_PIECES.map((p) => p.id));
 const listeners = new Set<() => void>();
 
@@ -114,6 +123,11 @@ export function hiddenSlots(): Set<string> {
 		if (!equipped.has(p.id)) {
 			for (const s of SLOT_BY_PIECE.get(p.id)!) {
 				if (!BODY_BASE.has(s)) hidden.add(s);
+			}
+		} else {
+			for (const s of SLOT_BY_PIECE.get(p.id)!) {
+				const skin = SKIN_COVERED_BY.get(s);
+				if (skin) hidden.add(skin);
 			}
 		}
 	}

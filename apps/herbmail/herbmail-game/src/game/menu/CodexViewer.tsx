@@ -4,12 +4,14 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { CHARACTER_URL } from '../character/modelUrl';
+import { useCharacterParts } from '../character/useCharacterParts';
 
 function Model({ clip }: { clip: string }) {
 	const gltf = useGLTF(CHARACTER_URL);
 	const group = useRef<THREE.Group>(null);
 	const scene = useMemo(() => cloneSkinned(gltf.scene), [gltf]);
 	const mixer = useMemo(() => new THREE.AnimationMixer(scene), [scene]);
+	useCharacterParts(scene);
 
 	useEffect(() => {
 		mixer.stopAllAction();
