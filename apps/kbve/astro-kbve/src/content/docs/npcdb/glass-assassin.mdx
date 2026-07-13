@@ -1,5 +1,9 @@
 ---
 title: 'Glass Assassin'
+template: splash
+sidebar:
+    label: 'Glass Assassin'
+    hidden: true
 description: |
     A humanoid figure made of living glass that strikes with lethal precision, its transparent body nearly invisible.
 ref: 'glass-assassin'
@@ -91,7 +95,10 @@ faction:
     faction_id: 'crystal-order'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A humanoid figure made of living glass that strikes with lethal precision, its transparent body nearly invisible.
+
+</NpcLeaf>

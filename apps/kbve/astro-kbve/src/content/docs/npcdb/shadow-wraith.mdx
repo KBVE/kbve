@@ -1,5 +1,9 @@
 ---
 title: 'Shadow Wraith'
+template: splash
+sidebar:
+    label: 'Shadow Wraith'
+    hidden: true
 description: |
     A ghostly figure that phases through walls, delivering devastating blows from the darkness.
 ref: 'shadow-wraith'
@@ -91,7 +95,10 @@ faction:
     faction_id: 'shadow-court'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A ghostly figure that phases through walls, delivering devastating blows from the darkness.
+
+</NpcLeaf>

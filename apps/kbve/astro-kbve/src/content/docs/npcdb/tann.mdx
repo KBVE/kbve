@@ -1,5 +1,9 @@
 ---
 title: 'Tann'
+template: splash
+sidebar:
+    label: 'Tann'
+    hidden: true
 description: |
     Sci-fi field engineer. Roams the perimeter with a torch in one hand and a multitool in the other, patching wall plates and rotating burned-out turrets.
 ref: 'tann'
@@ -40,7 +44,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Sci-fi field engineer. Patches wall plates and turrets.
+
+</NpcLeaf>

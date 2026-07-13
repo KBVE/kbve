@@ -1,5 +1,9 @@
 ---
 title: 'Knight'
+template: splash
+sidebar:
+    label: 'Knight'
+    hidden: true
 description: |
     Heavy-armoured Player melee. Slow, hard-hitting, soaks damage for the army line.
 ref: 'knight'
@@ -45,7 +49,10 @@ equipment:
         item_ref: 'iron-armor'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Heavy-armoured Player melee. Slow, hard-hitting, soaks damage for the army line.
+
+</NpcLeaf>

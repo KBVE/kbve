@@ -1,5 +1,9 @@
 ---
 title: 'Mushroom Sprite'
+template: splash
+sidebar:
+    label: 'Mushroom Sprite'
+    hidden: true
 description: |
     A tiny fungal creature that bounces erratically, releasing clouds of irritating spores.
 ref: 'mushroom-sprite'
@@ -74,7 +78,10 @@ abilities:
       damage: 4
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A tiny fungal creature that bounces erratically, releasing clouds of irritating spores.
+
+</NpcLeaf>

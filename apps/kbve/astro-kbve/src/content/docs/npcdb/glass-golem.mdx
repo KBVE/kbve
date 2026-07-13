@@ -1,5 +1,9 @@
 ---
 title: 'Glass Golem'
+template: splash
+sidebar:
+    label: 'Glass Golem'
+    hidden: true
 description: |
     An enormous golem of fused glass that towers over all challengers, its body a maze of razor-sharp edges.
 ref: 'glass-golem'
@@ -100,7 +104,10 @@ faction:
     faction_id: 'crystal-order'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 An enormous golem of fused glass that towers over all challengers, its body a maze of razor-sharp edges.
+
+</NpcLeaf>

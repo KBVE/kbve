@@ -1,5 +1,9 @@
 ---
 title: 'Evee The BarKeep'
+template: splash
+sidebar:
+    label: 'Evee The BarKeep'
+    hidden: true
 description: |
     Cloud City tavern keeper. Pours drinks, trades goods, and knows every rumor that drifts through the floating district. The first friendly face most travelers meet.
 ref: 'barkeep'
@@ -57,6 +61,8 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
+</NpcLeaf>

@@ -1,5 +1,9 @@
 ---
 title: 'Fire Imp'
+template: splash
+sidebar:
+    label: 'Fire Imp'
+    hidden: true
 description: |
     A small demonic creature wreathed in flame, cackling as it hurls fireballs at anything that moves.
 ref: 'fire-imp'
@@ -86,7 +90,10 @@ abilities:
       damage: 8
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A small demonic creature wreathed in flame, cackling as it hurls fireballs at anything that moves.
+
+</NpcLeaf>

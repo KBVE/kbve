@@ -1,5 +1,9 @@
 ---
 title: 'Void Walker'
+template: splash
+sidebar:
+    label: 'Void Walker'
+    hidden: true
 description: |
     A being that exists between planes, striking from impossible angles with reality-bending attacks.
 ref: 'void-walker'
@@ -91,7 +95,10 @@ faction:
     faction_id: 'shadow-court'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A being that exists between planes, striking from impossible angles with reality-bending attacks.
+
+</NpcLeaf>

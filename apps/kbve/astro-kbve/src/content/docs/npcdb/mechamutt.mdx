@@ -1,5 +1,9 @@
 ---
 title: 'Mechamutt'
+template: splash
+sidebar:
+    label: 'Mechamutt'
+    hidden: true
 description: |
     A scrappy salvage-built robot dog with a wagging antenna tail and a bark that crackles with static.
 ref: 'mechamutt'
@@ -172,7 +176,10 @@ credits: |
     By Screen Smith
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A scrappy salvage-built robot dog with a wagging antenna tail and a bark that crackles with static.
+
+</NpcLeaf>
