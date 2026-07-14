@@ -876,7 +876,8 @@
             "weight": 3
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -994,7 +995,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -1211,7 +1213,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -1491,7 +1494,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -1928,7 +1932,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -2513,7 +2518,8 @@
             "weight": 3
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -2541,7 +2547,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -2568,7 +2575,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -2596,7 +2604,8 @@
             "weight": 3
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -2747,7 +2756,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -2775,7 +2785,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -2803,7 +2814,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -2863,7 +2875,8 @@
       "action": "equip",
       "equipment": {
         "slot": "head"
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -3595,7 +3608,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -4018,7 +4032,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -4066,7 +4081,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -4373,7 +4389,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -5335,7 +5352,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -5864,7 +5882,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6238,7 +6257,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6373,7 +6393,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6401,7 +6422,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6430,7 +6452,8 @@
           }
         },
         "movement_penalty": 1
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6458,7 +6481,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6486,7 +6510,8 @@
             "weight": 4
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6514,7 +6539,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6542,7 +6568,8 @@
             "weight": 4
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6570,7 +6597,8 @@
             "weight": 4
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6598,7 +6626,8 @@
             "weight": 2
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6626,7 +6655,8 @@
             "weight": 4
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6654,7 +6684,8 @@
             "weight": 4
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -6682,7 +6713,8 @@
             "weight": 3
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
@@ -7109,7 +7141,8 @@
             "weight": 1
           }
         }
-      }
+      },
+      "has_img": true
     },
     {
       "template": "splash",
