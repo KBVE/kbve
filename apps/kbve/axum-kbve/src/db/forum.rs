@@ -271,7 +271,7 @@ impl ForumService {
         if deduped.len() > 100 {
             deduped.truncate(100);
         }
-        let in_list = format!("({})", deduped.join(","));
+        let in_filter = format!("in.({})", deduped.join(","));
 
         let url = format!("{}/spaces", self.client.config().rest_url());
         let headers = self.client.rpc_headers(SCHEMA)?;
@@ -281,7 +281,7 @@ impl ForumService {
             .client()
             .get(&url)
             .headers(headers)
-            .query(&[("select", "*"), ("id", format!("in.{}", in_list).as_str())])
+            .query(&[("select", "*"), ("id", in_filter.as_str())])
             .send()
             .await
             .map_err(|e| format!("forum.spaces network error: {}", e))?;

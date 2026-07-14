@@ -12,6 +12,7 @@ import { ARMOR_ITEM_IDS, isArmorItem, itemDef } from './items';
 import { getHeld, setEquipped, subscribeHeld } from '../viewmodel/store';
 import { slotOf, type HandSlot } from '../viewmodel/equipment';
 import {
+	PIECE_BY_ID,
 	getEquipped,
 	setAllArmor,
 	setArmor,
@@ -205,15 +206,25 @@ export function reconcileArmor(equippedIds: Set<string>): void {
 }
 
 export function autoEquip(): void {
-	const worn = getEquipped();
 	const taken = new Set<HandSlot>();
 	for (const id of getHeld()) {
 		const s = slotOf(id);
 		if (s) taken.add(s);
 	}
+	// One piece per body location: first grid item wins its slotKey, later ones
+	// stay in the grid instead of evicting what auto-equip just put on.
+	const wornKeys = new Set<string>();
+	for (const id of getEquipped()) {
+		const piece = PIECE_BY_ID.get(id);
+		if (piece) wornKeys.add(piece.slotKey);
+	}
 	for (const p of [...items]) {
 		if (isArmorItem(p.itemId)) {
-			if (!worn.has(p.itemId)) setArmor(p.itemId, true);
+			const piece = PIECE_BY_ID.get(p.itemId);
+			if (piece && !wornKeys.has(piece.slotKey)) {
+				wornKeys.add(piece.slotKey);
+				setArmor(p.itemId, true);
+			}
 			continue;
 		}
 		const def = itemDef(p.itemId);

@@ -19,6 +19,9 @@ const CACHE_TTL: Duration = Duration::from_secs(300);
 const CACHE_MAX_SIZE: usize = 10_000;
 const CLEANUP_INTERVAL: Duration = Duration::from_secs(60);
 const EVICTION_BATCH: usize = CACHE_MAX_SIZE / 10;
+// Short-TTL tombstones for known-missing usernames so an unauthenticated
+// `/@bogus` flood can't re-run the full 2-RPC enrichment pipeline on every hit.
+const NEGATIVE_TTL: Duration = Duration::from_secs(30);
 
 type ProfileKey = String;
 
@@ -74,6 +77,7 @@ pub struct CacheStats {
 pub struct ProfileCache {
     entries: Arc<DashMap<ProfileKey, CacheEntry>>,
     inflight: Arc<DashMap<ProfileKey, Arc<Mutex<()>>>>,
+    negative: Arc<DashMap<ProfileKey, Instant>>,
     counters: Arc<CacheCounters>,
 }
 
@@ -99,6 +103,7 @@ impl ProfileCache {
         Self {
             entries: Arc::new(DashMap::with_capacity(1024)),
             inflight: Arc::new(DashMap::with_capacity(256)),
+            negative: Arc::new(DashMap::with_capacity(256)),
             counters: Arc::new(CacheCounters::default()),
         }
     }
@@ -160,6 +165,10 @@ impl ProfileCache {
             return Some(profile);
         }
 
+        if self.is_negative_cached(&key) {
+            return None;
+        }
+
         let lock = self
             .inflight
             .entry(key.clone())
@@ -187,11 +196,26 @@ impl ProfileCache {
         match loader(key.clone()).await {
             Some(profile) => {
                 let arc = Arc::new(profile);
+                self.negative.remove(&key);
                 self.insert_arc(key, Arc::clone(&arc));
                 Some(arc)
             }
-            None => None,
+            None => {
+                self.negative.insert(key, Instant::now());
+                None
+            }
         }
+    }
+
+    fn is_negative_cached(&self, key: &str) -> bool {
+        if let Some(at) = self.negative.get(key) {
+            if at.elapsed() <= NEGATIVE_TTL {
+                return true;
+            }
+            drop(at);
+            self.negative.remove(key);
+        }
+        false
     }
 
     #[allow(dead_code)]
@@ -203,6 +227,7 @@ impl ProfileCache {
     #[allow(dead_code)]
     pub fn invalidate_by_key(&self, key: &str) {
         self.entries.remove(key);
+        self.negative.remove(key);
     }
 
     #[allow(dead_code)]
@@ -273,6 +298,8 @@ impl ProfileCache {
                 .fetch_add(removed, Ordering::Relaxed);
             tracing::debug!(removed, "cleaned expired profile cache entries");
         }
+
+        self.negative.retain(|_, at| at.elapsed() <= NEGATIVE_TTL);
     }
 
     fn evict_lru(&self, count: usize) {

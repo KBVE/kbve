@@ -3,6 +3,13 @@
 use reqwest::{Client, header::HeaderMap, header::HeaderValue};
 use std::time::Duration;
 
+/// Build a `HeaderValue`, mapping the (rare) invalid-byte case to an error
+/// instead of panicking — a secret with a stray `\n`/`\r` must not crash the
+/// request thread.
+fn header_value(s: &str) -> Result<HeaderValue, String> {
+    HeaderValue::from_str(s).map_err(|_| "invalid header value".to_string())
+}
+
 /// Supabase configuration loaded from environment
 #[derive(Clone)]
 pub struct SupabaseConfig {
@@ -88,25 +95,22 @@ impl SupabaseClient {
 
     /// Build headers for read operations (using anon key)
     #[allow(dead_code)]
-    pub fn read_headers(&self) -> HeaderMap {
+    pub fn read_headers(&self) -> Result<HeaderMap, String> {
         let mut headers = HeaderMap::new();
-        headers.insert(
-            "apikey",
-            HeaderValue::from_str(&self.config.anon_key).unwrap(),
-        );
+        headers.insert("apikey", header_value(&self.config.anon_key)?);
         headers.insert(
             "Authorization",
-            HeaderValue::from_str(&format!("Bearer {}", self.config.anon_key)).unwrap(),
+            header_value(&format!("Bearer {}", self.config.anon_key))?,
         );
-        headers
+        Ok(headers)
     }
 
     /// Build headers for read operations with a specific schema
     #[allow(dead_code)]
-    pub fn read_headers_with_schema(&self, schema: &str) -> HeaderMap {
-        let mut headers = self.read_headers();
-        headers.insert("Accept-Profile", HeaderValue::from_str(schema).unwrap());
-        headers
+    pub fn read_headers_with_schema(&self, schema: &str) -> Result<HeaderMap, String> {
+        let mut headers = self.read_headers()?;
+        headers.insert("Accept-Profile", header_value(schema)?);
+        Ok(headers)
     }
 
     /// Build headers for write operations (using service role key)
@@ -118,10 +122,10 @@ impl SupabaseClient {
             .ok_or("Service role key not configured")?;
 
         let mut headers = HeaderMap::new();
-        headers.insert("apikey", HeaderValue::from_str(service_key).unwrap());
+        headers.insert("apikey", header_value(service_key)?);
         headers.insert(
             "Authorization",
-            HeaderValue::from_str(&format!("Bearer {}", service_key)).unwrap(),
+            header_value(&format!("Bearer {}", service_key))?,
         );
         headers.insert("Content-Type", HeaderValue::from_static("application/json"));
         Ok(headers)
@@ -130,8 +134,8 @@ impl SupabaseClient {
     /// Build headers for write operations with a specific schema
     pub fn write_headers_with_schema(&self, schema: &str) -> Result<HeaderMap, String> {
         let mut headers = self.write_headers()?;
-        headers.insert("Content-Profile", HeaderValue::from_str(schema).unwrap());
-        headers.insert("Accept-Profile", HeaderValue::from_str(schema).unwrap());
+        headers.insert("Content-Profile", header_value(schema)?);
+        headers.insert("Accept-Profile", header_value(schema)?);
         Ok(headers)
     }
 
@@ -143,20 +147,21 @@ impl SupabaseClient {
     /// Build headers for RPC calls using a user's JWT token
     /// This allows auth.uid() to work in the RPC function
     #[allow(dead_code)]
-    pub fn rpc_headers_with_user_token(&self, schema: &str, user_token: &str) -> HeaderMap {
+    pub fn rpc_headers_with_user_token(
+        &self,
+        schema: &str,
+        user_token: &str,
+    ) -> Result<HeaderMap, String> {
         let mut headers = HeaderMap::new();
-        headers.insert(
-            "apikey",
-            HeaderValue::from_str(&self.config.anon_key).unwrap(),
-        );
+        headers.insert("apikey", header_value(&self.config.anon_key)?);
         headers.insert(
             "Authorization",
-            HeaderValue::from_str(&format!("Bearer {}", user_token)).unwrap(),
+            header_value(&format!("Bearer {user_token}"))?,
         );
         headers.insert("Content-Type", HeaderValue::from_static("application/json"));
-        headers.insert("Content-Profile", HeaderValue::from_str(schema).unwrap());
-        headers.insert("Accept-Profile", HeaderValue::from_str(schema).unwrap());
-        headers
+        headers.insert("Content-Profile", header_value(schema)?);
+        headers.insert("Accept-Profile", header_value(schema)?);
+        Ok(headers)
     }
 
     /// Get the Edge Functions base URL

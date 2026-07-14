@@ -345,6 +345,17 @@ pub(crate) async fn me_bids(headers: HeaderMap, Query(q): Query<BidsQuery>) -> R
     }
 }
 
+fn reject_non_positive(field: &str) -> Response {
+    (
+        axum::http::StatusCode::BAD_REQUEST,
+        Json(serde_json::json!({
+            "error": "invalid_argument",
+            "message": format!("{field} must be a positive integer"),
+        })),
+    )
+        .into_response()
+}
+
 /// `POST /api/v1/market/listings` — create a listing. Returns the new
 /// listing_id. Idempotent on `idempotency_key` — replays return the same id.
 #[utoipa::path(
@@ -371,14 +382,17 @@ pub(crate) async fn create_listing(
     };
     if let Some(q) = body.qty {
         if q <= 0 {
-            return (
-                axum::http::StatusCode::BAD_REQUEST,
-                Json(serde_json::json!({
-                    "error": "invalid_argument",
-                    "message": "qty must be a positive integer",
-                })),
-            )
-                .into_response();
+            return reject_non_positive("qty");
+        }
+    }
+    // Prices are optional but must be positive when present; the SQL guards
+    // this too, but a negative price must never reach escrow arithmetic.
+    for (field, val) in [
+        ("buy_now_price", body.buy_now_price),
+        ("min_bid", body.min_bid),
+    ] {
+        if matches!(val, Some(v) if v <= 0) {
+            return reject_non_positive(field);
         }
     }
     let client = match get_wallet_client() {
@@ -430,6 +444,9 @@ pub(crate) async fn place_bid(
         Ok(id) => id,
         Err(resp) => return resp,
     };
+    if body.amount <= 0 {
+        return reject_non_positive("amount");
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),

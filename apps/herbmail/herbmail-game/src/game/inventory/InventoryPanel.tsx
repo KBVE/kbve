@@ -11,7 +11,7 @@ import {
 	type PlacedItem,
 } from './store';
 import { setEquipped } from '../viewmodel/store';
-import { setArmor } from '../character/armor';
+import { PIECE_BY_ID, setArmor } from '../character/armor';
 import { isArmorItem } from './items';
 import { Paperdoll } from './Paperdoll';
 import { kbve } from './tags';
@@ -62,7 +62,7 @@ export function InventoryPanel() {
 				) as HTMLElement | null
 			)?.closest('[data-armor-slot]') as HTMLElement | null;
 			const slotId = slot?.dataset.armorSlot;
-			if (slotId && slotId === drag.itemId) {
+			if (slotId && PIECE_BY_ID.get(drag.itemId)?.slotKey === slotId) {
 				setArmor(drag.itemId, true);
 				setDrag(null);
 				return;
