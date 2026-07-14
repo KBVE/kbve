@@ -13,6 +13,7 @@ import { ProceduralPose } from './ProceduralPose';
 import { EquipmentPhysics } from './equipmentPhysics';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
+import { getEquipped, useEquippedArmor } from './armor';
 import { useBodySkinMorph } from './body';
 import { triggerSwing } from './melee';
 import { makeFlameMaterial } from '../render/flameMaterial';
@@ -374,10 +375,15 @@ export function Character({
 		const animator = new CharacterAnimator(scene, gltf.animations);
 		const motor = new CharacterMotor(motorConfig);
 		const pose = new ProceduralPose(scene);
-		const equipment = new EquipmentPhysics(scene);
+		const equipment = new EquipmentPhysics(scene, getEquipped());
 		motor.position.set(position[0], position[1], position[2]);
 		return { animator, motor, pose, equipment };
 	}, [scene, gltf]);
+
+	const equippedArmor = useEquippedArmor();
+	useEffect(() => {
+		rig.equipment.setEquipped(equippedArmor);
+	}, [rig, equippedArmor]);
 
 	useEffect(() => {
 		const { animator, motor, pose } = rig;

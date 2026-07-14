@@ -49,7 +49,7 @@ function Model({
 	useFrame((_, dt) => {
 		mixer.update(dt);
 	});
-	useEquipmentPhysics(scene);
+	useEquipmentPhysics(scene, equipped);
 
 	return (
 		<primitive
