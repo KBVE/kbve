@@ -322,6 +322,9 @@ importers:
       three-csg-ts:
         specifier: ^3.2.0
         version: 3.2.0(@types/three@0.176.0)(three@0.184.0)
+      three-mesh-bvh:
+        specifier: ^0.9.11
+        version: 0.9.11(three@0.184.0)
       three-spritetext:
         specifier: ^1.9.6
         version: 1.9.6(three@0.184.0)
@@ -15085,6 +15088,11 @@ packages:
 
   three-mesh-bvh@0.8.3:
     resolution: {integrity: sha512-4G5lBaF+g2auKX3P0yqx+MJC6oVt6sB5k+CchS6Ob0qvH0YIhuUk1eYr7ktsIpY+albCqE80/FVQGV190PmiAg==}
+    peerDependencies:
+      three: '>= 0.159.0'
+
+  three-mesh-bvh@0.9.11:
+    resolution: {integrity: sha512-PtGT02vWRQiP6szrcorR1GEClhHSr/+O45pyH/cQ8sY+UOlicecuUVjAHmIsbIri3ZO/8WTWBq3h7227F/TVBw==}
     peerDependencies:
       three: '>= 0.159.0'
 
@@ -35336,6 +35344,10 @@ snapshots:
       three: 0.184.0
 
   three-mesh-bvh@0.8.3(three@0.184.0):
+    dependencies:
+      three: 0.184.0
+
+  three-mesh-bvh@0.9.11(three@0.184.0):
     dependencies:
       three: 0.184.0
 
