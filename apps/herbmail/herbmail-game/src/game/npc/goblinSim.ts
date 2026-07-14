@@ -22,8 +22,19 @@ const IDLE_CHANCE = 0.35;
 // no chasing through rock), with hysteresis so goblins don't strobe at the rim.
 const AGGRO_COST = 7;
 const DEAGGRO_COST = 11;
-const STOP_DIST = 1.1;
 const BEELINE_COST = 2;
+// Near the player the goblin falls into a gravity-well orbit instead of
+// pressing into melee range (they're curious, not hostile yet): a radial
+// spring toward ORBIT_R plus a tangential drift that occasionally reverses.
+const APPROACH_DIST = 3.4;
+const ORBIT_R = 2.1;
+const RADIAL_GAIN = 1.1;
+const TANGENT_FRAC = 0.75;
+const ORBIT_FLIP_MIN = 2.5;
+const ORBIT_FLIP_MAX = 6;
+// Desired velocity is low-passed before integrating — raw steering flips
+// (orbit reversal, separation sign changes) otherwise read as jitter.
+const VEL_SMOOTH = 5;
 // Separation steering: soft repulsion between bodies before the hard pushout,
 // so goblins flow around each other instead of grinding circle-to-circle.
 const SEP_RADIUS = 0.9;
@@ -38,6 +49,8 @@ interface NpcRuntime {
 	walkSpeed: number;
 	chaseSpeed: number;
 	aggro: boolean;
+	orbitDir: number;
+	orbitUntil: number;
 }
 const runtime = new Map<number, NpcRuntime>();
 
@@ -70,6 +83,8 @@ export function spawnGoblin(
 		walkSpeed,
 		chaseSpeed,
 		aggro: false,
+		orbitDir: Math.random() < 0.5 ? 1 : -1,
+		orbitUntil: 0,
 	});
 	return eid;
 }
@@ -142,12 +157,26 @@ export function npcSystem(world: World, t: number, dt: number): void {
 			const tx = playerAnchor.pos.x - p.x;
 			const tz = playerAnchor.pos.z - p.z;
 			const pd = Math.hypot(tx, tz);
-			if (pd <= STOP_DIST) {
-				// In melee reach: hold position, keep facing the player.
-				vx = 0;
-				vz = 0;
-				Transform3.dx[eid] = tx;
-				Transform3.dz[eid] = tz;
+			if (pd <= APPROACH_DIST) {
+				// Gravity-well orbit: spring toward the preferred ring (in
+				// when far, out when crowding) plus a tangential drift that
+				// occasionally reverses — a curious circling, not an attack.
+				if (t >= rt.orbitUntil) {
+					rt.orbitUntil =
+						t +
+						ORBIT_FLIP_MIN +
+						Math.random() * (ORBIT_FLIP_MAX - ORBIT_FLIP_MIN);
+					if (Math.random() < 0.4) rt.orbitDir = -rt.orbitDir;
+				}
+				const nx = tx / Math.max(pd, 0.001);
+				const nz = tz / Math.max(pd, 0.001);
+				const radial = Math.max(
+					-rt.walkSpeed,
+					Math.min(rt.walkSpeed, (pd - ORBIT_R) * RADIAL_GAIN),
+				);
+				const tang = rt.walkSpeed * TANGENT_FRAC * rt.orbitDir;
+				vx = nx * radial - nz * tang;
+				vz = nz * radial + nx * tang;
 			} else if (flow.cost <= BEELINE_COST) {
 				// Same/adjacent tile: steer straight at the player instead of
 				// the field's staircase quantization.
@@ -187,6 +216,11 @@ export function npcSystem(world: World, t: number, dt: number): void {
 				vz = (vz / len) * speed;
 			}
 		}
+		// Low-pass the commanded velocity so steering flips ease instead of
+		// snapping (the visible jitter when several forces disagree).
+		const k = 1 - Math.exp(-VEL_SMOOTH * dt);
+		vx = Wander.vx[eid] + (vx - Wander.vx[eid]) * k;
+		vz = Wander.vz[eid] + (vz - Wander.vz[eid]) * k;
 		Wander.vx[eid] = vx;
 		Wander.vz[eid] = vz;
 
