@@ -854,6 +854,33 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Campaign Pack",
+        "hidden": true
+      },
+      "description": "A campaign pack of oiled canvas and brass buckles, rigged to sit above the sword arm. Rattles only when empty.\n",
+      "ref": "campaign-pack",
+      "key": 603,
+      "id": "01KXFBEGM0FHS9EVQTRM0V955G",
+      "name": "Campaign Pack",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 45,
+      "emoji": "🎒",
+      "action": "equip",
+      "equipment": {
+        "slot": "back",
+        "bonuses": {
+          "extra": {
+            "weight": 3
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Campfire Kit",
         "hidden": true
       },
@@ -940,6 +967,34 @@
       "max_stack": 1,
       "buy_price": 0,
       "tradeable": false
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Cargo Slacks",
+        "hidden": true
+      },
+      "description": "Reinforced work trousers with more pockets than contents. The waistband hides a wire loop nobody asks about.\n",
+      "ref": "cargo-slacks",
+      "key": 623,
+      "id": "01KXFBEGM2NSNMQ0Z3RPFP5SH1",
+      "name": "Cargo Slacks",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 45,
+      "emoji": "👖",
+      "action": "equip",
+      "equipment": {
+        "slot": "legs",
+        "bonuses": {
+          "armor": 1,
+          "extra": {
+            "weight": 1
+          }
+        }
+      }
     },
     {
       "template": "splash",
@@ -1128,6 +1183,34 @@
       "compress": {
         "target_ref": "meal",
         "ratio": 100
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Circuit Jacket",
+        "hidden": true
+      },
+      "description": "A padded utility jacket threaded with dead circuitry that still glows when it rains. Warm, tough, and louder in color than in fact.\n",
+      "ref": "circuit-jacket",
+      "key": 619,
+      "id": "01KXFBEGM2N7Q99WN237XBRPC1",
+      "name": "Circuit Jacket",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 95,
+      "emoji": "🧥",
+      "action": "equip",
+      "equipment": {
+        "slot": "chest",
+        "bonuses": {
+          "armor": 1,
+          "extra": {
+            "weight": 2
+          }
+        }
       }
     },
     {
@@ -1381,6 +1464,34 @@
       "tags": [
         "isometric"
       ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Crest Helmet",
+        "hidden": true
+      },
+      "description": "An armored helmet with a bristling sensor crest that reads as plumage at parade distance. Full head coverage, minor ego coverage.\n",
+      "ref": "crest-helmet",
+      "key": 630,
+      "id": "01KXFBEGM3DAR9YZKRTK0N9G56",
+      "name": "Crest Helmet",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "rare",
+      "buy_price": 160,
+      "emoji": "⛑️",
+      "action": "equip",
+      "equipment": {
+        "slot": "head",
+        "bonuses": {
+          "armor": 2,
+          "extra": {
+            "weight": 2
+          }
+        }
+      }
     },
     {
       "template": "splash",
@@ -1791,6 +1902,33 @@
       "stackable": true,
       "max_stack": 30,
       "buy_price": 1
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Filter Mask",
+        "hidden": true
+      },
+      "description": "A snug half-mask with twin cartridge filters. The air tastes like plastic, which beats tasting like the district.\n",
+      "ref": "filter-mask",
+      "key": 617,
+      "id": "01KXFBEGM2H82QW7QX3GBXGV0V",
+      "name": "Filter Mask",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 25,
+      "emoji": "😷",
+      "action": "equip",
+      "equipment": {
+        "slot": "head",
+        "bonuses": {
+          "extra": {
+            "weight": 1
+          }
+        }
+      }
     },
     {
       "template": "splash",
@@ -2352,6 +2490,117 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Grinning Gourd Helm",
+        "hidden": true
+      },
+      "description": "A carved gourd helm with a grin that does not move and eyes that seem to. Smells of candle smoke that nobody lit.\n",
+      "ref": "grinning-gourd-helm",
+      "key": 633,
+      "id": "01KXFBEGM39HQA0JPZMWDT98YN",
+      "name": "Grinning Gourd Helm",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "rare",
+      "buy_price": 175,
+      "emoji": "🎃",
+      "action": "equip",
+      "equipment": {
+        "slot": "head",
+        "bonuses": {
+          "armor": 2,
+          "extra": {
+            "weight": 3
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Grip Gloves",
+        "hidden": true
+      },
+      "description": "Fitted work gloves with tacky palms that hold a ladder rung, a thrown line, or a bad idea equally well.\n",
+      "ref": "grip-gloves",
+      "key": 622,
+      "id": "01KXFBEGM2TK9NGT6Z4177DN43",
+      "name": "Grip Gloves",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 35,
+      "emoji": "🧤",
+      "action": "equip",
+      "equipment": {
+        "slot": "hands",
+        "bonuses": {
+          "armor": 1,
+          "extra": {
+            "weight": 1
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Hardcase Pouches",
+        "hidden": true
+      },
+      "description": "Three rigid lockable cases riding the back and both hips. What they hold survives; whether you do is separate.\n",
+      "ref": "hardcase-pouches",
+      "key": 631,
+      "id": "01KXFBEGM3DN76CBB0TYC2F52G",
+      "name": "Hardcase Pouches",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 65,
+      "emoji": "🧰",
+      "action": "equip",
+      "equipment": {
+        "slot": "legs",
+        "bonuses": {
+          "extra": {
+            "weight": 2
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Hardpoint Shoulders",
+        "hidden": true
+      },
+      "description": "Heavy articulated shoulder armor pair with mounting rails for gear that has not been invented yet.\n",
+      "ref": "hardpoint-shoulders",
+      "key": 632,
+      "id": "01KXFBEGM36ME6G8NFP92QCCE1",
+      "name": "Hardpoint Shoulders",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "rare",
+      "buy_price": 120,
+      "emoji": "🛡️",
+      "action": "equip",
+      "equipment": {
+        "slot": "chest",
+        "bonuses": {
+          "armor": 3,
+          "extra": {
+            "weight": 3
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Herb",
         "hidden": true
       },
@@ -2475,27 +2724,83 @@
     {
       "template": "splash",
       "sidebar": {
-        "label": "Grinning Gourd Helm",
+        "label": "Impact Elbow Pads",
         "hidden": true
       },
-      "description": "A carved gourd helm with a grin that does not move and eyes that seem to. Smells of candle smoke that nobody lit.\n",
-      "ref": "horr01-villain-helm",
-      "key": 633,
-      "id": "01KXFBEGM39HQA0JPZMWDT98YN",
-      "name": "Grinning Gourd Helm",
+      "description": "Strap-on elbow pair, scuffed white at the point of every lesson learned sliding.\n",
+      "ref": "impact-elbow-pads",
+      "key": 628,
+      "id": "01KXFBEGM3549STW6B4RYKHDAZ",
+      "name": "Impact Elbow Pads",
       "type_flags": 514,
       "consumable": false,
       "stackable": false,
-      "rarity": "rare",
-      "buy_price": 175,
-      "emoji": "🎃",
+      "rarity": "common",
+      "buy_price": 25,
+      "emoji": "🦾",
       "action": "equip",
       "equipment": {
-        "slot": "head",
+        "slot": "hands",
         "bonuses": {
-          "armor": 2,
+          "armor": 1,
           "extra": {
-            "weight": 3
+            "weight": 1
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Impact Knee Pads",
+        "hidden": true
+      },
+      "description": "Ratchet-strap knee pair, the uniform of everyone who works low and gets up slow.\n",
+      "ref": "impact-knee-pads",
+      "key": 629,
+      "id": "01KXFBEGM35YXPYHJSGR3CDAJ6",
+      "name": "Impact Knee Pads",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 25,
+      "emoji": "🦵",
+      "action": "equip",
+      "equipment": {
+        "slot": "legs",
+        "bonuses": {
+          "armor": 1,
+          "extra": {
+            "weight": 1
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Impact Shoulder Pads",
+        "hidden": true
+      },
+      "description": "Molded polymer shoulder pair that turns a doorframe collision into a sound effect.\n",
+      "ref": "impact-shoulder-pads",
+      "key": 627,
+      "id": "01KXFBEGM2EGGJYW693H99X0NW",
+      "name": "Impact Shoulder Pads",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 40,
+      "emoji": "🛡️",
+      "action": "equip",
+      "equipment": {
+        "slot": "chest",
+        "bonuses": {
+          "armor": 1,
+          "extra": {
+            "weight": 1
           }
         }
       }
@@ -2537,6 +2842,28 @@
         }
       ],
       "has_img": true
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Ion Blue Hair",
+        "hidden": true
+      },
+      "description": "A swept synth-dyed cut in reactor blue. Holds its shape in wind, rain and moderate decompression.\n",
+      "ref": "ion-blue-hair",
+      "key": 615,
+      "id": "01KXFBEGM2BBFS0QAZ03PKB2T4",
+      "name": "Ion Blue Hair",
+      "type_flags": 524290,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 15,
+      "emoji": "💇",
+      "action": "equip",
+      "equipment": {
+        "slot": "head"
+      }
     },
     {
       "template": "splash",
@@ -2858,397 +3185,6 @@
         }
       ],
       "has_img": true
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Backpack",
-        "hidden": true
-      },
-      "description": "A campaign pack of oiled canvas and brass buckles, rigged to sit above the sword arm. Rattles only when empty.\n",
-      "ref": "kngt-backpack",
-      "key": 603,
-      "id": "01KXFBEGM0FHS9EVQTRM0V955G",
-      "name": "Knight Backpack",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 45,
-      "emoji": "🎒",
-      "action": "equip",
-      "equipment": {
-        "slot": "back",
-        "bonuses": {
-          "extra": {
-            "weight": 3
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Sabatons",
-        "hidden": true
-      },
-      "description": "Plated boots that make stepping on things a tactic. Break in the leather before the leather breaks you.\n",
-      "ref": "kngt-boots",
-      "key": 614,
-      "id": "01KXFBEGM1PWT3E718RFZQ1XAC",
-      "name": "Knight Sabatons",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 70,
-      "emoji": "🥾",
-      "action": "equip",
-      "equipment": {
-        "slot": "feet",
-        "bonuses": {
-          "armor": 2,
-          "extra": {
-            "weight": 4
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Bracers",
-        "hidden": true
-      },
-      "description": "Forearm steel worn in pairs, scarred by every parry that would otherwise be a scar of your own.\n",
-      "ref": "kngt-bracers",
-      "key": 608,
-      "id": "01KXFBEGM16KN4CNGK1PC2278A",
-      "name": "Knight Bracers",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 40,
-      "emoji": "🦾",
-      "action": "equip",
-      "equipment": {
-        "slot": "hands",
-        "bonuses": {
-          "armor": 2,
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Chestplate",
-        "hidden": true
-      },
-      "description": "A fitted breastplate that turns a spear thrust into a bad bruise. Cold in the morning, an oven by noon, worth it at all hours.\n",
-      "ref": "kngt-chest",
-      "key": 604,
-      "id": "01KXFBEGM0XYT1VDYGSBAC7W70",
-      "name": "Knight Chestplate",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 140,
-      "emoji": "🛡️",
-      "action": "equip",
-      "equipment": {
-        "slot": "chest",
-        "bonuses": {
-          "armor": 4,
-          "extra": {
-            "weight": 6
-          }
-        },
-        "movement_penalty": 1
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Elbow Guards",
-        "hidden": true
-      },
-      "description": "Small cupped couters for both elbows. The difference between blocking a blow and dropping your sword.\n",
-      "ref": "kngt-elbow-guards",
-      "key": 607,
-      "id": "01KXFBEGM1SYAKA7HXQ9FSXK80",
-      "name": "Knight Elbow Guards",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 30,
-      "emoji": "🦾",
-      "action": "equip",
-      "equipment": {
-        "slot": "hands",
-        "bonuses": {
-          "armor": 2,
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Eye Patch",
-        "hidden": true
-      },
-      "description": "Boiled leather on a waxed cord. Proof that something happened, and that you are still here to not talk about it.\n",
-      "ref": "kngt-eye-patch",
-      "key": 602,
-      "id": "01KXFBEGM016HQ7DD3KG84JWB5",
-      "name": "Knight Eye Patch",
-      "type_flags": 524290,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 10,
-      "emoji": "🏴‍☠️",
-      "action": "equip",
-      "equipment": {
-        "slot": "head",
-        "bonuses": {
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Fauld Set",
-        "hidden": true
-      },
-      "description": "Four hinged plates ringing the hips — front, back and both flanks. They swing with the stride and close ranks when it stops.\n",
-      "ref": "kngt-fauld-set",
-      "key": 611,
-      "id": "01KXFBEGM1RHJR3X96YW33PW5E",
-      "name": "Knight Fauld Set",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 80,
-      "emoji": "🛡️",
-      "action": "equip",
-      "equipment": {
-        "slot": "legs",
-        "bonuses": {
-          "armor": 4,
-          "extra": {
-            "weight": 4
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Gauntlets",
-        "hidden": true
-      },
-      "description": "Articulated steel gloves that let you catch a blade and keep the fingers you did it with.\n",
-      "ref": "kngt-gauntlets",
-      "key": 609,
-      "id": "01KXFBEGM1AXMMEAPSG93Q83PN",
-      "name": "Knight Gauntlets",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 60,
-      "emoji": "🧤",
-      "action": "equip",
-      "equipment": {
-        "slot": "hands",
-        "bonuses": {
-          "armor": 2,
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Helmet",
-        "hidden": true
-      },
-      "description": "A visored steel helm with a padded liner that smells faintly of every soldier who wore it before you. The slit narrows the world to what matters.\n",
-      "ref": "kngt-helmet",
-      "key": 601,
-      "id": "01KXFBEGKZTW4YXHPW58XM7ZSH",
-      "name": "Knight Helmet",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 90,
-      "emoji": "🪖",
-      "action": "equip",
-      "equipment": {
-        "slot": "head",
-        "bonuses": {
-          "armor": 3,
-          "extra": {
-            "weight": 4
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Tassets",
-        "hidden": true
-      },
-      "description": "A skirted hip harness that guards the belt line, where mail ends and regret begins.\n",
-      "ref": "kngt-hips",
-      "key": 610,
-      "id": "01KXFBEGM12NRWN6TT8FBSMSP9",
-      "name": "Knight Tassets",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 65,
-      "emoji": "🛡️",
-      "action": "equip",
-      "equipment": {
-        "slot": "legs",
-        "bonuses": {
-          "armor": 2,
-          "extra": {
-            "weight": 3
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Knee Guards",
-        "hidden": true
-      },
-      "description": "Poleyn pair for the knees, the joint every low blow is aimed at and every stair regrets.\n",
-      "ref": "kngt-knee-guards",
-      "key": 613,
-      "id": "01KXFBEGM1AKYE9SSRKNW2XR4X",
-      "name": "Knight Knee Guards",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 30,
-      "emoji": "🦵",
-      "action": "equip",
-      "equipment": {
-        "slot": "legs",
-        "bonuses": {
-          "armor": 2,
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Greaves",
-        "hidden": true
-      },
-      "description": "Shin-to-thigh plate for both legs. Loud on cobbles, silent on grass, appreciated everywhere in between.\n",
-      "ref": "kngt-legs",
-      "key": 612,
-      "id": "01KXFBEGM1AND3T0XSCAC2WRXZ",
-      "name": "Knight Greaves",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 75,
-      "emoji": "🦵",
-      "action": "equip",
-      "equipment": {
-        "slot": "legs",
-        "bonuses": {
-          "armor": 4,
-          "extra": {
-            "weight": 4
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Pauldrons",
-        "hidden": true
-      },
-      "description": "Matched shoulder plates that shrug off downward cuts. Sized as a pair; a lone pauldron is a story nobody wants to tell.\n",
-      "ref": "kngt-pauldrons",
-      "key": 605,
-      "id": "01KXFBEGM1ETWN528P4482BJCP",
-      "name": "Knight Pauldrons",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 70,
-      "emoji": "🛡️",
-      "action": "equip",
-      "equipment": {
-        "slot": "chest",
-        "bonuses": {
-          "armor": 3,
-          "extra": {
-            "weight": 4
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Knight Arm Guards",
-        "hidden": true
-      },
-      "description": "Curved plates strapped over both upper arms, hinged to let the shoulders keep their full swing.\n",
-      "ref": "kngt-upper-arms",
-      "key": 606,
-      "id": "01KXFBEGM1GHQKTS3KR8FXEE4J",
-      "name": "Knight Arm Guards",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 40,
-      "emoji": "💪",
-      "action": "equip",
-      "equipment": {
-        "slot": "chest",
-        "bonuses": {
-          "armor": 2,
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
     },
     {
       "template": "splash",
@@ -3633,6 +3569,33 @@
         }
       ],
       "has_img": true
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Mag Sneakers",
+        "hidden": true
+      },
+      "description": "Low-profile runners with induction soles that grip deck plating. Squeak on tile like anything else.\n",
+      "ref": "mag-sneakers",
+      "key": 625,
+      "id": "01KXFBEGM2C8FT10BWEQDRTV5S",
+      "name": "Mag Sneakers",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 50,
+      "emoji": "👟",
+      "action": "equip",
+      "equipment": {
+        "slot": "feet",
+        "bonuses": {
+          "extra": {
+            "weight": 1
+          }
+        }
+      }
     },
     {
       "template": "splash",
@@ -4032,6 +3995,34 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Optic Visor",
+        "hidden": true
+      },
+      "description": "A wraparound headset with a tinted band that promises augmented readouts and delivers excellent shade.\n",
+      "ref": "optic-visor",
+      "key": 616,
+      "id": "01KXFBEGM2M7Y4YP24AZDBMHC9",
+      "name": "Optic Visor",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 55,
+      "emoji": "🥽",
+      "action": "equip",
+      "equipment": {
+        "slot": "head",
+        "bonuses": {
+          "armor": 1,
+          "extra": {
+            "weight": 1
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Pack",
         "hidden": true
       },
@@ -4048,6 +4039,33 @@
       "buy_price": 150,
       "container": {
         "added_slots": 8
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Padded Sleeves",
+        "hidden": true
+      },
+      "description": "Quilted sleeve pair that clips to any jacket, rated for road rash and low-grade plasma splash.\n",
+      "ref": "padded-sleeves",
+      "key": 620,
+      "id": "01KXFBEGM26JBWDBNDS4Q24226",
+      "name": "Padded Sleeves",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 30,
+      "emoji": "💪",
+      "action": "equip",
+      "equipment": {
+        "slot": "chest",
+        "bonuses": {
+          "extra": {
+            "weight": 1
+          }
+        }
       }
     },
     {
@@ -4329,6 +4347,33 @@
           ]
         }
       ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Pouch Rig",
+        "hidden": true
+      },
+      "description": "A four-pouch belt rig — front, back, both hips — for everything a jumpsuit forgot. Contents shift; the rig never does.\n",
+      "ref": "pouch-rig",
+      "key": 626,
+      "id": "01KXFBEGM2KZ4CXZKFM2TYEA29",
+      "name": "Pouch Rig",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 40,
+      "emoji": "👝",
+      "action": "equip",
+      "equipment": {
+        "slot": "legs",
+        "bonuses": {
+          "extra": {
+            "weight": 2
+          }
+        }
+      }
     },
     {
       "template": "splash",
@@ -5206,496 +5251,6 @@
     {
       "template": "splash",
       "sidebar": {
-        "label": "Utility Cuffs",
-        "hidden": true
-      },
-      "description": "Forearm cuff pair with tool loops and a dent where a wrench lives. The left one has a screen that shows the time, occasionally.\n",
-      "ref": "scifi09-cuffs",
-      "key": 621,
-      "id": "01KXFBEGM2X37CN3WC55AK837S",
-      "name": "Utility Cuffs",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 25,
-      "emoji": "⌚",
-      "action": "equip",
-      "equipment": {
-        "slot": "hands",
-        "bonuses": {
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Impact Elbow Pads",
-        "hidden": true
-      },
-      "description": "Strap-on elbow pair, scuffed white at the point of every lesson learned sliding.\n",
-      "ref": "scifi09-elbow-pads",
-      "key": 628,
-      "id": "01KXFBEGM3549STW6B4RYKHDAZ",
-      "name": "Impact Elbow Pads",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 25,
-      "emoji": "🦾",
-      "action": "equip",
-      "equipment": {
-        "slot": "hands",
-        "bonuses": {
-          "armor": 1,
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Grip Gloves",
-        "hidden": true
-      },
-      "description": "Fitted work gloves with tacky palms that hold a ladder rung, a thrown line, or a bad idea equally well.\n",
-      "ref": "scifi09-gloves",
-      "key": 622,
-      "id": "01KXFBEGM2TK9NGT6Z4177DN43",
-      "name": "Grip Gloves",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 35,
-      "emoji": "🧤",
-      "action": "equip",
-      "equipment": {
-        "slot": "hands",
-        "bonuses": {
-          "armor": 1,
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Ion Blue Hair",
-        "hidden": true
-      },
-      "description": "A swept synth-dyed cut in reactor blue. Holds its shape in wind, rain and moderate decompression.\n",
-      "ref": "scifi09-hair",
-      "key": 615,
-      "id": "01KXFBEGM2BBFS0QAZ03PKB2T4",
-      "name": "Ion Blue Hair",
-      "type_flags": 524290,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 15,
-      "emoji": "💇",
-      "action": "equip",
-      "equipment": {
-        "slot": "head"
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Circuit Jacket",
-        "hidden": true
-      },
-      "description": "A padded utility jacket threaded with dead circuitry that still glows when it rains. Warm, tough, and louder in color than in fact.\n",
-      "ref": "scifi09-jacket",
-      "key": 619,
-      "id": "01KXFBEGM2N7Q99WN237XBRPC1",
-      "name": "Circuit Jacket",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 95,
-      "emoji": "🧥",
-      "action": "equip",
-      "equipment": {
-        "slot": "chest",
-        "bonuses": {
-          "armor": 1,
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Impact Knee Pads",
-        "hidden": true
-      },
-      "description": "Ratchet-strap knee pair, the uniform of everyone who works low and gets up slow.\n",
-      "ref": "scifi09-knee-pads",
-      "key": 629,
-      "id": "01KXFBEGM35YXPYHJSGR3CDAJ6",
-      "name": "Impact Knee Pads",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 25,
-      "emoji": "🦵",
-      "action": "equip",
-      "equipment": {
-        "slot": "legs",
-        "bonuses": {
-          "armor": 1,
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Filter Mask",
-        "hidden": true
-      },
-      "description": "A snug half-mask with twin cartridge filters. The air tastes like plastic, which beats tasting like the district.\n",
-      "ref": "scifi09-mask",
-      "key": 617,
-      "id": "01KXFBEGM2H82QW7QX3GBXGV0V",
-      "name": "Filter Mask",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 25,
-      "emoji": "😷",
-      "action": "equip",
-      "equipment": {
-        "slot": "head",
-        "bonuses": {
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Shin Wraps",
-        "hidden": true
-      },
-      "description": "Zip-on lower-leg wraps in matched pair, sealing trouser to boot against dust, sparks and opinion.\n",
-      "ref": "scifi09-pant-legs",
-      "key": 624,
-      "id": "01KXFBEGM200CKKBGYB1X4WF4N",
-      "name": "Shin Wraps",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 20,
-      "emoji": "🦵",
-      "action": "equip",
-      "equipment": {
-        "slot": "legs",
-        "bonuses": {
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Cargo Slacks",
-        "hidden": true
-      },
-      "description": "Reinforced work trousers with more pockets than contents. The waistband hides a wire loop nobody asks about.\n",
-      "ref": "scifi09-pants",
-      "key": 623,
-      "id": "01KXFBEGM2NSNMQ0Z3RPFP5SH1",
-      "name": "Cargo Slacks",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 45,
-      "emoji": "👖",
-      "action": "equip",
-      "equipment": {
-        "slot": "legs",
-        "bonuses": {
-          "armor": 1,
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Pouch Rig",
-        "hidden": true
-      },
-      "description": "A four-pouch belt rig — front, back, both hips — for everything a jumpsuit forgot. Contents shift; the rig never does.\n",
-      "ref": "scifi09-pouch-set",
-      "key": 626,
-      "id": "01KXFBEGM2KZ4CXZKFM2TYEA29",
-      "name": "Pouch Rig",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 40,
-      "emoji": "👝",
-      "action": "equip",
-      "equipment": {
-        "slot": "legs",
-        "bonuses": {
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Impact Shoulder Pads",
-        "hidden": true
-      },
-      "description": "Molded polymer shoulder pair that turns a doorframe collision into a sound effect.\n",
-      "ref": "scifi09-shoulder-pads",
-      "key": 627,
-      "id": "01KXFBEGM2EGGJYW693H99X0NW",
-      "name": "Impact Shoulder Pads",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 40,
-      "emoji": "🛡️",
-      "action": "equip",
-      "equipment": {
-        "slot": "chest",
-        "bonuses": {
-          "armor": 1,
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Padded Sleeves",
-        "hidden": true
-      },
-      "description": "Quilted sleeve pair that clips to any jacket, rated for road rash and low-grade plasma splash.\n",
-      "ref": "scifi09-sleeves",
-      "key": 620,
-      "id": "01KXFBEGM26JBWDBNDS4Q24226",
-      "name": "Padded Sleeves",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 30,
-      "emoji": "💪",
-      "action": "equip",
-      "equipment": {
-        "slot": "chest",
-        "bonuses": {
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Mag Sneakers",
-        "hidden": true
-      },
-      "description": "Low-profile runners with induction soles that grip deck plating. Squeak on tile like anything else.\n",
-      "ref": "scifi09-sneakers",
-      "key": 625,
-      "id": "01KXFBEGM2C8FT10BWEQDRTV5S",
-      "name": "Mag Sneakers",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "common",
-      "buy_price": 50,
-      "emoji": "👟",
-      "action": "equip",
-      "equipment": {
-        "slot": "feet",
-        "bonuses": {
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Tech Pack",
-        "hidden": true
-      },
-      "description": "A hard-shell backpack humming with a power cell of undocumented provenance. Warm against the spine on cold nights.\n",
-      "ref": "scifi09-tech-pack",
-      "key": 618,
-      "id": "01KXFBEGM2284DFA2YCTMCHWWW",
-      "name": "Tech Pack",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 85,
-      "emoji": "🔋",
-      "action": "equip",
-      "equipment": {
-        "slot": "back",
-        "bonuses": {
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Optic Visor",
-        "hidden": true
-      },
-      "description": "A wraparound headset with a tinted band that promises augmented readouts and delivers excellent shade.\n",
-      "ref": "scifi09-visor",
-      "key": 616,
-      "id": "01KXFBEGM2M7Y4YP24AZDBMHC9",
-      "name": "Optic Visor",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 55,
-      "emoji": "🥽",
-      "action": "equip",
-      "equipment": {
-        "slot": "head",
-        "bonuses": {
-          "armor": 1,
-          "extra": {
-            "weight": 1
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Crest Helmet",
-        "hidden": true
-      },
-      "description": "An armored helmet with a bristling sensor crest that reads as plumage at parade distance. Full head coverage, minor ego coverage.\n",
-      "ref": "scifi10-helmet",
-      "key": 630,
-      "id": "01KXFBEGM3DAR9YZKRTK0N9G56",
-      "name": "Crest Helmet",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "rare",
-      "buy_price": 160,
-      "emoji": "⛑️",
-      "action": "equip",
-      "equipment": {
-        "slot": "head",
-        "bonuses": {
-          "armor": 2,
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Hardcase Pouches",
-        "hidden": true
-      },
-      "description": "Three rigid lockable cases riding the back and both hips. What they hold survives; whether you do is separate.\n",
-      "ref": "scifi10-pouch-set",
-      "key": 631,
-      "id": "01KXFBEGM3DN76CBB0TYC2F52G",
-      "name": "Hardcase Pouches",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "uncommon",
-      "buy_price": 65,
-      "emoji": "🧰",
-      "action": "equip",
-      "equipment": {
-        "slot": "legs",
-        "bonuses": {
-          "extra": {
-            "weight": 2
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
-        "label": "Hardpoint Shoulders",
-        "hidden": true
-      },
-      "description": "Heavy articulated shoulder armor pair with mounting rails for gear that has not been invented yet.\n",
-      "ref": "scifi10-shoulders",
-      "key": 632,
-      "id": "01KXFBEGM36ME6G8NFP92QCCE1",
-      "name": "Hardpoint Shoulders",
-      "type_flags": 514,
-      "consumable": false,
-      "stackable": false,
-      "rarity": "rare",
-      "buy_price": 120,
-      "emoji": "🛡️",
-      "action": "equip",
-      "equipment": {
-        "slot": "chest",
-        "bonuses": {
-          "armor": 3,
-          "extra": {
-            "weight": 3
-          }
-        }
-      }
-    },
-    {
-      "template": "splash",
-      "sidebar": {
         "label": "Shadow Cloak",
         "hidden": true
       },
@@ -5753,6 +5308,33 @@
         },
         "special": "crit_bonus",
         "special_value": 0.05
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Shin Wraps",
+        "hidden": true
+      },
+      "description": "Zip-on lower-leg wraps in matched pair, sealing trouser to boot against dust, sparks and opinion.\n",
+      "ref": "shin-wraps",
+      "key": 624,
+      "id": "01KXFBEGM200CKKBGYB1X4WF4N",
+      "name": "Shin Wraps",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 20,
+      "emoji": "🦵",
+      "action": "equip",
+      "equipment": {
+        "slot": "legs",
+        "bonuses": {
+          "extra": {
+            "weight": 1
+          }
+        }
       }
     },
     {
@@ -6260,6 +5842,33 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Tech Pack",
+        "hidden": true
+      },
+      "description": "A hard-shell backpack humming with a power cell of undocumented provenance. Warm against the spine on cold nights.\n",
+      "ref": "tech-pack",
+      "key": 618,
+      "id": "01KXFBEGM2284DFA2YCTMCHWWW",
+      "name": "Tech Pack",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 85,
+      "emoji": "🔋",
+      "action": "equip",
+      "equipment": {
+        "slot": "back",
+        "bonuses": {
+          "extra": {
+            "weight": 2
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Teleport Rune",
         "hidden": true
       },
@@ -6607,6 +6216,33 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Utility Cuffs",
+        "hidden": true
+      },
+      "description": "Forearm cuff pair with tool loops and a dent where a wrench lives. The left one has a screen that shows the time, occasionally.\n",
+      "ref": "utility-cuffs",
+      "key": 621,
+      "id": "01KXFBEGM2X37CN3WC55AK837S",
+      "name": "Utility Cuffs",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 25,
+      "emoji": "⌚",
+      "action": "equip",
+      "equipment": {
+        "slot": "hands",
+        "bonuses": {
+          "extra": {
+            "weight": 1
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Vampire Blood Champagne",
         "hidden": true
       },
@@ -6709,6 +6345,343 @@
         },
         "special": "life_steal",
         "special_value": 0.2
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Arm Guards",
+        "hidden": true
+      },
+      "description": "Curved plates strapped over both upper arms, hinged to let the shoulders keep their full swing.\n",
+      "ref": "vanguard-arm-guards",
+      "key": 606,
+      "id": "01KXFBEGM1GHQKTS3KR8FXEE4J",
+      "name": "Vanguard Arm Guards",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 40,
+      "emoji": "💪",
+      "action": "equip",
+      "equipment": {
+        "slot": "chest",
+        "bonuses": {
+          "armor": 2,
+          "extra": {
+            "weight": 2
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Bracers",
+        "hidden": true
+      },
+      "description": "Forearm steel worn in pairs, scarred by every parry that would otherwise be a scar of your own.\n",
+      "ref": "vanguard-bracers",
+      "key": 608,
+      "id": "01KXFBEGM16KN4CNGK1PC2278A",
+      "name": "Vanguard Bracers",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 40,
+      "emoji": "🦾",
+      "action": "equip",
+      "equipment": {
+        "slot": "hands",
+        "bonuses": {
+          "armor": 2,
+          "extra": {
+            "weight": 2
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Breastplate",
+        "hidden": true
+      },
+      "description": "A fitted breastplate that turns a spear thrust into a bad bruise. Cold in the morning, an oven by noon, worth it at all hours.\n",
+      "ref": "vanguard-breastplate",
+      "key": 604,
+      "id": "01KXFBEGM0XYT1VDYGSBAC7W70",
+      "name": "Vanguard Breastplate",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 140,
+      "emoji": "🛡️",
+      "action": "equip",
+      "equipment": {
+        "slot": "chest",
+        "bonuses": {
+          "armor": 4,
+          "extra": {
+            "weight": 6
+          }
+        },
+        "movement_penalty": 1
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Elbow Guards",
+        "hidden": true
+      },
+      "description": "Small cupped couters for both elbows. The difference between blocking a blow and dropping your sword.\n",
+      "ref": "vanguard-elbow-guards",
+      "key": 607,
+      "id": "01KXFBEGM1SYAKA7HXQ9FSXK80",
+      "name": "Vanguard Elbow Guards",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 30,
+      "emoji": "🦾",
+      "action": "equip",
+      "equipment": {
+        "slot": "hands",
+        "bonuses": {
+          "armor": 2,
+          "extra": {
+            "weight": 2
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Faulds",
+        "hidden": true
+      },
+      "description": "Four hinged plates ringing the hips — front, back and both flanks. They swing with the stride and close ranks when it stops.\n",
+      "ref": "vanguard-faulds",
+      "key": 611,
+      "id": "01KXFBEGM1RHJR3X96YW33PW5E",
+      "name": "Vanguard Faulds",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 80,
+      "emoji": "🛡️",
+      "action": "equip",
+      "equipment": {
+        "slot": "legs",
+        "bonuses": {
+          "armor": 4,
+          "extra": {
+            "weight": 4
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Gauntlets",
+        "hidden": true
+      },
+      "description": "Articulated steel gloves that let you catch a blade and keep the fingers you did it with.\n",
+      "ref": "vanguard-gauntlets",
+      "key": 609,
+      "id": "01KXFBEGM1AXMMEAPSG93Q83PN",
+      "name": "Vanguard Gauntlets",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 60,
+      "emoji": "🧤",
+      "action": "equip",
+      "equipment": {
+        "slot": "hands",
+        "bonuses": {
+          "armor": 2,
+          "extra": {
+            "weight": 2
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Greaves",
+        "hidden": true
+      },
+      "description": "Shin-to-thigh plate for both legs. Loud on cobbles, silent on grass, appreciated everywhere in between.\n",
+      "ref": "vanguard-greaves",
+      "key": 612,
+      "id": "01KXFBEGM1AND3T0XSCAC2WRXZ",
+      "name": "Vanguard Greaves",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 75,
+      "emoji": "🦵",
+      "action": "equip",
+      "equipment": {
+        "slot": "legs",
+        "bonuses": {
+          "armor": 4,
+          "extra": {
+            "weight": 4
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Helm",
+        "hidden": true
+      },
+      "description": "A visored steel helm with a padded liner that smells faintly of every soldier who wore it before you. The slit narrows the world to what matters.\n",
+      "ref": "vanguard-helm",
+      "key": 601,
+      "id": "01KXFBEGKZTW4YXHPW58XM7ZSH",
+      "name": "Vanguard Helm",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 90,
+      "emoji": "🪖",
+      "action": "equip",
+      "equipment": {
+        "slot": "head",
+        "bonuses": {
+          "armor": 3,
+          "extra": {
+            "weight": 4
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Knee Guards",
+        "hidden": true
+      },
+      "description": "Poleyn pair for the knees, the joint every low blow is aimed at and every stair regrets.\n",
+      "ref": "vanguard-knee-guards",
+      "key": 613,
+      "id": "01KXFBEGM1AKYE9SSRKNW2XR4X",
+      "name": "Vanguard Knee Guards",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 30,
+      "emoji": "🦵",
+      "action": "equip",
+      "equipment": {
+        "slot": "legs",
+        "bonuses": {
+          "armor": 2,
+          "extra": {
+            "weight": 2
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Pauldrons",
+        "hidden": true
+      },
+      "description": "Matched shoulder plates that shrug off downward cuts. Sized as a pair; a lone pauldron is a story nobody wants to tell.\n",
+      "ref": "vanguard-pauldrons",
+      "key": 605,
+      "id": "01KXFBEGM1ETWN528P4482BJCP",
+      "name": "Vanguard Pauldrons",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 70,
+      "emoji": "🛡️",
+      "action": "equip",
+      "equipment": {
+        "slot": "chest",
+        "bonuses": {
+          "armor": 3,
+          "extra": {
+            "weight": 4
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Sabatons",
+        "hidden": true
+      },
+      "description": "Plated boots that make stepping on things a tactic. Break in the leather before the leather breaks you.\n",
+      "ref": "vanguard-sabatons",
+      "key": 614,
+      "id": "01KXFBEGM1PWT3E718RFZQ1XAC",
+      "name": "Vanguard Sabatons",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 70,
+      "emoji": "🥾",
+      "action": "equip",
+      "equipment": {
+        "slot": "feet",
+        "bonuses": {
+          "armor": 2,
+          "extra": {
+            "weight": 4
+          }
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Vanguard Tassets",
+        "hidden": true
+      },
+      "description": "A skirted hip harness that guards the belt line, where mail ends and regret begins.\n",
+      "ref": "vanguard-tassets",
+      "key": 610,
+      "id": "01KXFBEGM12NRWN6TT8FBSMSP9",
+      "name": "Vanguard Tassets",
+      "type_flags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "uncommon",
+      "buy_price": 65,
+      "emoji": "🛡️",
+      "action": "equip",
+      "equipment": {
+        "slot": "legs",
+        "bonuses": {
+          "armor": 2,
+          "extra": {
+            "weight": 3
+          }
+        }
       }
     },
     {
@@ -7110,6 +7083,33 @@
       "stackable": true,
       "max_stack": 30,
       "buy_price": 4
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Worn Eye Patch",
+        "hidden": true
+      },
+      "description": "Boiled leather on a waxed cord. Proof that something happened, and that you are still here to not talk about it.\n",
+      "ref": "worn-eye-patch",
+      "key": 602,
+      "id": "01KXFBEGM016HQ7DD3KG84JWB5",
+      "name": "Worn Eye Patch",
+      "type_flags": 524290,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "common",
+      "buy_price": 10,
+      "emoji": "🏴‍☠️",
+      "action": "equip",
+      "equipment": {
+        "slot": "head",
+        "bonuses": {
+          "extra": {
+            "weight": 1
+          }
+        }
+      }
     },
     {
       "template": "splash",

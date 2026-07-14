@@ -11,11 +11,7 @@ const SCIFI = bySet('SCFI09');
 const SCIFI_VARIANT = [
 	...SCIFI.filter(
 		(id) =>
-			![
-				'scifi09-visor',
-				'scifi09-shoulder-pads',
-				'scifi09-pouch-set',
-			].includes(id),
+			!['optic-visor', 'impact-shoulder-pads', 'pouch-rig'].includes(id),
 	),
 	...bySet('SCFI10'),
 ];
@@ -23,11 +19,11 @@ const SCIFI_VARIANT = [
 // The clothed starter kit every player gets for free: the outfit's body meshes
 // (torso, hips, legs, hands, feet) with none of the knight plate on top.
 const FREE = [
-	'kngt-chest',
-	'kngt-hips',
-	'kngt-legs',
-	'kngt-gauntlets',
-	'kngt-boots',
+	'vanguard-breastplate',
+	'vanguard-tassets',
+	'vanguard-greaves',
+	'vanguard-gauntlets',
+	'vanguard-sabatons',
 ];
 
 export interface CodexLoadout {
@@ -48,8 +44,8 @@ export const CODEX_LOADOUTS: CodexLoadout[] = [
 		id: 'villain',
 		label: 'Villain',
 		equipped: new Set([
-			...FREE.filter((id) => id !== 'kngt-chest'),
-			'horr01-villain-helm',
+			...FREE.filter((id) => id !== 'vanguard-breastplate'),
+			'grinning-gourd-helm',
 		]),
 	},
 	{ id: 'free', label: 'Free / Standard', equipped: new Set(FREE) },
@@ -57,6 +53,6 @@ export const CODEX_LOADOUTS: CodexLoadout[] = [
 	{
 		id: 'helmetOff',
 		label: 'Helmet Off',
-		equipped: new Set(KNIGHT.filter((id) => id !== 'kngt-helmet')),
+		equipped: new Set(KNIGHT.filter((id) => id !== 'vanguard-helm')),
 	},
 ];
