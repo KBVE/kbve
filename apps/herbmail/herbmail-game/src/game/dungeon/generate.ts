@@ -442,11 +442,12 @@ function seamKept(
 	);
 }
 
-// Punch doorways on a hash-selected subset of passage seams — the boundary between
-// two adjacent owned cells with different owners where at least one is a room.
-// The 6-wide open seam is walled to a single centre ARCH tile (a real 1-wide
-// doorway a leaf can seat in); connectivity survives through the gap. Runs before
-// genColumns so columns never land on a fresh doorway wall.
+// Seal every passage seam — the boundary between two adjacent owned cells with
+// different owners where at least one is a room. The 6-wide open seam is walled
+// to a single centre ARCH tile (a real 1-wide doorway), so rooms are fully
+// enclosed and can't be walked around; connectivity survives through the gap.
+// The seam hash now only picks which arches get a door leaf (DoorSlot). Runs
+// before genColumns so columns never land on a fresh doorway wall.
 function genDoorways(
 	tiles: Uint8Array,
 	cols: number,
@@ -472,33 +473,25 @@ function genDoorways(
 				cx + 1 < SECTOR
 					? cellOwner.get(sectorCellIndex(cx + 1, cy))
 					: undefined;
-			if (
-				oe &&
-				diff(o, oe) &&
-				(isRoom(o) || isRoom(oe)) &&
-				seamKept(seed, wcx + cx, wcy + cy, wcx + cx + 1, wcy + cy)
-			) {
+			if (oe && diff(o, oe) && (isRoom(o) || isRoom(oe))) {
 				const bc = (cx + 1) * CELL;
 				for (let k = 0; k < CELL; k++)
 					tiles[(cy * CELL + k) * cols + bc] =
 						k === mid ? ARCH : WALL;
-				out.push({ lc: bc, lr: cy * CELL + mid, axis: 'x' });
+				if (seamKept(seed, wcx + cx, wcy + cy, wcx + cx + 1, wcy + cy))
+					out.push({ lc: bc, lr: cy * CELL + mid, axis: 'x' });
 			}
 
 			const os =
 				cy + 1 < SECTOR
 					? cellOwner.get(sectorCellIndex(cx, cy + 1))
 					: undefined;
-			if (
-				os &&
-				diff(o, os) &&
-				(isRoom(o) || isRoom(os)) &&
-				seamKept(seed, wcx + cx, wcy + cy, wcx + cx, wcy + cy + 1)
-			) {
+			if (os && diff(o, os) && (isRoom(o) || isRoom(os))) {
 				const br = (cy + 1) * CELL;
 				for (let k = 0; k < CELL; k++)
 					tiles[br * cols + cx * CELL + k] = k === mid ? ARCH : WALL;
-				out.push({ lc: cx * CELL + mid, lr: br, axis: 'z' });
+				if (seamKept(seed, wcx + cx, wcy + cy, wcx + cx, wcy + cy + 1))
+					out.push({ lc: cx * CELL + mid, lr: br, axis: 'z' });
 			}
 		}
 	}
