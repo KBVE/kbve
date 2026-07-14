@@ -15,6 +15,9 @@ export interface ArmorPiece {
 	/** Body location for mutual exclusion — one equipped piece per slotKey. */
 	slotKey: string;
 	set: PartSet;
+	/** Extra base meshes this piece fully encloses (hidden while worn), on top
+	 *  of the slotKey's own coverage — e.g. full helms swallow the HAIR. */
+	covers?: string[];
 	stats?: ArmorStats;
 }
 
@@ -63,6 +66,7 @@ export const ARMOR_PIECES: ArmorPiece[] = [
 		slots: ['AHED'],
 		slotKey: 'AHED',
 		set: 'KNGT',
+		covers: ['HAIR', 'SCFI09_HAIR'],
 		stats: { armor: 3, weight: 4 },
 	},
 	{
@@ -473,6 +477,7 @@ export const ARMOR_PIECES: ArmorPiece[] = [
 		slots: ['SCFI10_AHED'],
 		slotKey: 'AHED',
 		set: 'SCFI10',
+		covers: ['HAIR', 'SCFI09_HAIR'],
 		stats: { armor: 2, weight: 2 },
 	},
 	{
@@ -522,6 +527,7 @@ export const ARMOR_PIECES: ArmorPiece[] = [
 		slots: ['HORR01_AHED'],
 		slotKey: 'AHED',
 		set: 'HORR01',
+		covers: ['HAIR', 'SCFI09_HAIR'],
 		stats: { armor: 2, weight: 3 },
 	},
 ];
@@ -642,6 +648,7 @@ export function hiddenSlotsFor(equippedSet: Set<string>): Set<string> {
 		} else {
 			const base = BASE_COVERED_BY_KEY.get(p.slotKey);
 			if (base) hidden.add(base);
+			for (const c of p.covers ?? []) hidden.add(c);
 		}
 	}
 	return hidden;
