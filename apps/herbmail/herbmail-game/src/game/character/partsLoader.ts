@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from './meshopt';
 import type { PartSet } from './armor';
 
 const SET_URL: Record<Exclude<PartSet, 'KNGT'>, string> = {
@@ -8,15 +9,22 @@ const SET_URL: Record<Exclude<PartSet, 'KNGT'>, string> = {
 	HORR01: '/models/parts/horr-viln01.glb',
 };
 
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const cache = new Map<string, Promise<THREE.Object3D>>();
 
 function loadSet(set: Exclude<PartSet, 'KNGT'>): Promise<THREE.Object3D> {
 	let p = cache.get(set);
 	if (!p) {
-		p = new GLTFLoader().loadAsync(SET_URL[set]).then((g) => g.scene);
+		p = loader.loadAsync(SET_URL[set]).then((g) => g.scene);
 		cache.set(set, p);
 	}
 	return p;
+}
+
+/** Warm the part-set cache during idle time so on-equip loads never hitch. */
+export function preloadPartSets(): void {
+	for (const set of Object.keys(SET_URL) as (keyof typeof SET_URL)[])
+		void loadSet(set);
 }
 
 /**

@@ -2,6 +2,8 @@
 import { defineConfig, type Plugin } from 'vite';
 import path from 'node:path';
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
@@ -80,6 +82,60 @@ function iconStudioWriter(): Plugin {
 	};
 }
 
+// Post-build gltfpack pass (meshopt EXT_meshopt_compression) over the copied
+// public/ models. Sources in public/models stay uncompressed LFS truth; only
+// dist output is packed. -kn keeps node/mesh names (armor slots + bone lookups
+// key on them), -ke keeps extras. LFS pointer stubs (offline build) are skipped.
+function gltfpackModels(): Plugin {
+	let outDir = '';
+	return {
+		name: 'gltfpack-models',
+		apply: 'build',
+		configResolved(config) {
+			outDir = path.resolve(config.root, config.build.outDir);
+		},
+		closeBundle() {
+			const cli = createRequire(import.meta.url).resolve(
+				'gltfpack/cli.js',
+			);
+			const glbs: string[] = [];
+			const walk = (dir: string) => {
+				if (!fs.existsSync(dir)) return;
+				for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+					const p = path.join(dir, e.name);
+					if (e.isDirectory()) walk(p);
+					else if (e.name.endsWith('.glb')) glbs.push(p);
+				}
+			};
+			walk(path.join(outDir, 'models'));
+			for (const f of glbs) {
+				const head = Buffer.alloc(4);
+				const fd = fs.openSync(f, 'r');
+				fs.readSync(fd, head, 0, 4, 0);
+				fs.closeSync(fd);
+				if (head.toString('latin1') !== 'glTF') {
+					console.warn(`gltfpack: skipping non-GLB (LFS stub?) ${f}`);
+					continue;
+				}
+				const before = fs.statSync(f).size;
+				const tmp = `${f}.pack.glb`;
+				const run = spawnSync(
+					process.execPath,
+					[cli, '-i', f, '-o', tmp, '-cc', '-kn', '-ke'],
+					{ stdio: 'inherit' },
+				);
+				if (run.status !== 0 || !fs.existsSync(tmp))
+					throw new Error(`gltfpack failed on ${f}`);
+				fs.renameSync(tmp, f);
+				const after = fs.statSync(f).size;
+				console.log(
+					`gltfpack: ${path.relative(outDir, f)} ${(before / 1024).toFixed(0)}K -> ${(after / 1024).toFixed(0)}K`,
+				);
+			}
+		},
+	};
+}
+
 // Cross-origin isolation enables SharedArrayBuffer (worker/GPU shared memory).
 // Dev + preview set the headers directly; the built bundle relies on
 // coi-serviceworker.js (public/) so the itch upload is isolated on any static host.
@@ -91,7 +147,7 @@ const coiHeaders = {
 export default defineConfig({
 	root: __dirname,
 	base: './',
-	plugins: [react(), nxViteTsPaths(), iconStudioWriter()],
+	plugins: [react(), nxViteTsPaths(), iconStudioWriter(), gltfpackModels()],
 	resolve: {
 		alias: [itemdbDataAlias, itemdbSchemaAlias],
 	},

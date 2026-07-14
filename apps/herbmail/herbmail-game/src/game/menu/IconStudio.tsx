@@ -147,6 +147,7 @@ function Stage({ piece, ghost, snapRequest, onSnapshot }: StageProps) {
 		});
 		const rt = new THREE.WebGLRenderTarget(ICON_SIZE, ICON_SIZE, {
 			samples: 4,
+			colorSpace: THREE.SRGBColorSpace,
 		});
 		const cam = (camera as THREE.PerspectiveCamera).clone();
 		cam.aspect = 1;
