@@ -1,0 +1,140 @@
+---
+interface Row {
+	id: number;
+	name: string;
+	slug: string;
+	icon: string;
+	members: boolean;
+	value: number;
+	highalch: number | null;
+	limit: number | null;
+	slot?: string;
+}
+
+interface Props {
+	item: Row;
+}
+
+const { item } = Astro.props;
+const ICON_BASE = 'https://oldschool.runescape.wiki/images/';
+const iconUrl = (icon: string): string =>
+	ICON_BASE + encodeURIComponent((icon ?? '').replace(/ /g, '_'));
+const formatGP = (v: number | null | undefined): string =>
+	v === null || v === undefined || v === 0 ? '—' : v.toLocaleString();
+---
+
+<a href={`/osrs/${item.slug}/`} class="osrs-cat-row">
+	<img
+		src={iconUrl(item.icon)}
+		alt=""
+		loading="lazy"
+		width={32}
+		height={32}
+		class="osrs-cat-row__icon"
+	/>
+	<div class="osrs-cat-row__body">
+		<div class="osrs-cat-row__top">
+			<span class="osrs-cat-row__name">{item.name}</span>
+			{
+				item.members && (
+					<span class="osrs-cat-row__tag osrs-cat-row__tag--p2p">
+						P2P
+					</span>
+				)
+			}
+			{
+				item.slot && (
+					<span class="osrs-cat-row__tag osrs-cat-row__tag--slot">
+						{item.slot}
+					</span>
+				)
+			}
+		</div>
+		<div class="osrs-cat-row__meta">
+			<span>id {item.id}</span>
+			<span>value {formatGP(item.value)}</span>
+			{
+				item.highalch !== null && (
+					<span>alch {formatGP(item.highalch)}</span>
+				)
+			}
+			{item.limit !== null && <span>ge {formatGP(item.limit)}</span>}
+		</div>
+	</div>
+</a>
+
+<style>
+	.osrs-cat-row {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		padding: 0.55rem 0.7rem;
+		border: 1px solid var(--bento-hairline);
+		border-radius: 10px;
+		text-decoration: none;
+		color: inherit;
+		background: color-mix(in srgb, var(--sl-color-white) 2%, transparent);
+		transition:
+			background-color 140ms ease,
+			border-color 140ms ease;
+	}
+
+	.osrs-cat-row:hover {
+		background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+		border-color: var(--sl-color-accent);
+	}
+
+	.osrs-cat-row__icon {
+		width: 2rem;
+		height: 2rem;
+		flex: none;
+		object-fit: contain;
+	}
+
+	.osrs-cat-row__body {
+		min-width: 0;
+		flex: 1;
+	}
+
+	.osrs-cat-row__top {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.osrs-cat-row__name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-weight: 600;
+		font-size: 0.85rem;
+	}
+
+	.osrs-cat-row__tag {
+		flex: none;
+		border-radius: 5px;
+		padding: 0.05rem 0.3rem;
+		font-size: 0.6rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.osrs-cat-row__tag--p2p {
+		background: color-mix(in srgb, #f59e0b 22%, transparent);
+		color: #fbbf24;
+	}
+
+	.osrs-cat-row__tag--slot {
+		background: color-mix(in srgb, #38bdf8 20%, transparent);
+		color: #7dd3fc;
+	}
+
+	.osrs-cat-row__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 0.1rem;
+		font-size: 0.68rem;
+		color: var(--sl-color-gray-3);
+	}
+</style>

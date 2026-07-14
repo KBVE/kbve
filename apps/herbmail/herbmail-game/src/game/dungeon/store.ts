@@ -32,7 +32,14 @@ export const MOUNT_MARGIN = VIEW_RANGE + SECTOR_SPAN * 0.25;
 let dw = new DungeonWorld(DUNGEON_SEED);
 let active: ActiveRoom[] = [];
 let prevMounted = new Set<number>();
+let mountedEids: number[] = [];
 let lastMountKey = '';
+
+// Sector eids currently mounted — per-frame systems scope their entity
+// iteration to these buckets via eachOwned instead of scanning the world.
+export function getMountedEids(): readonly number[] {
+	return mountedEids;
+}
 const listeners = new Set<() => void>();
 let propGen = 0;
 const propListeners = new Set<() => void>();
@@ -132,6 +139,7 @@ function rebuild(x: number, z: number, sx: number, sy: number): void {
 		}
 	}
 	prevMounted = mset;
+	mountedEids = mounted;
 	evictFarRooms(sx, sy, mset);
 
 	active = mounted.map((eid) => {

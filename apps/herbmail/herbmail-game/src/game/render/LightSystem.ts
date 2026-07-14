@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {
 	hasComponent,
 	LightEmitter,
-	each,
+	eachOwned,
 	Transform3,
 	type World,
 } from '../mecs/props';
@@ -125,13 +125,14 @@ export class LightSystem {
 
 	tick(
 		world: World,
+		mounted: readonly number[],
 		camera: THREE.Camera,
 		time: number,
 		occ: OcclusionField,
 		ambient: number,
 	): void {
 		this.active.length = 0;
-		each(world, LIGHT_TERMS, (eid) => {
+		const gather = (eid: number) => {
 			const firefly = hasComponent(world, eid, FireflyFx);
 			const dx = Transform3.dx[eid];
 			const dy = Transform3.dy[eid];
@@ -172,7 +173,8 @@ export class LightSystem {
 			l.intensity = LightEmitter.baseIntensity[eid] * f;
 			l.tier = firefly ? 1 : 0;
 			this.active.push(l);
-		});
+		};
+		for (const sector of mounted) eachOwned(sector, LIGHT_TERMS, gather);
 
 		// Torch held in hand: always the nearest source (lights walls + character).
 		if (heldLight.on) {
