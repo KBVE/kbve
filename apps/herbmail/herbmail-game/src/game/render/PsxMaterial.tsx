@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { shaderMaterial } from '@react-three/drei';
 import { extend, type ThreeElement } from '@react-three/fiber';
+import { HEIGHT_HELPERS, POM_MARCH, SPOM_SILHOUETTE } from '@kbve/laser';
 import { FOG, TILE } from '../config';
 
 const blankTex = new THREE.DataTexture(
@@ -22,6 +23,7 @@ const vertex = /* glsl */ `
 	varying float vW;
 	varying vec3 vWorld;
 	varying vec3 vNormal;
+	varying vec3 vPomView;
 
 	void main() {
 		vec4 pos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -39,6 +41,12 @@ const vertex = /* glsl */ `
 		vW = pos.w;
 		vWorld = (modelMatrix * vec4(position, 1.0)).xyz;
 			vNormal = mat3(modelMatrix) * normal;
+
+		vec3 Nw = normalize(vNormal);
+		vec3 up = abs(Nw.y) > 0.999 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 1.0, 0.0);
+		vec3 Tw = normalize(cross(up, Nw));
+		vec3 Bw = cross(Nw, Tw);
+		vPomView = (cameraPosition - vWorld) * mat3(Tw, Bw, Nw);
 
 		gl_Position = pos;
 	}
@@ -59,6 +67,11 @@ const fragment = /* glsl */ `
 	uniform float uFogFar;
 	uniform float uAffine;
 	uniform float uAmbient;
+	uniform float uPom;
+	uniform float uPomScale;
+	uniform float uPomMin;
+	uniform float uPomMax;
+	uniform float uSilhouette;
 		uniform float uOcclude;
 	uniform int uLightCount;
 	uniform vec3 uLightPos[MAX_LIGHTS];
@@ -68,6 +81,16 @@ const fragment = /* glsl */ `
 	varying float vW;
 	varying vec3 vWorld;
 	varying vec3 vNormal;
+	varying vec3 vPomView;
+
+	${HEIGHT_HELPERS}
+
+	float pomSampleDepth(vec2 uv) {
+		return pomDepthFromLuma(uMap, uv);
+	}
+
+	${POM_MARCH}
+	${SPOM_SILHOUETTE}
 
 	float tileAtWorld(vec2 p) {
 		vec2 local = (p - uGridOrigin) / GRID_TILE;
@@ -94,7 +117,21 @@ const fragment = /* glsl */ `
 
 
 	void main() {
-		vec2 uv = mix(vUvCorrect, vUvAffine / vW, uAffine);
+		vec2 uv;
+		if (uPom > 0.5) {
+			// Distance-LOD: fade relief to flat as fog swallows the surface.
+			float lod = 1.0 - clamp((vW - uFogNear) / (uFogFar - uFogNear), 0.0, 1.0);
+			float hitDepth;
+			// POM runs on perspective-correct UV — affine warp would swim.
+			uv = pomMarch(
+				vUvCorrect, vPomView,
+				uPomScale * lod, uPomMin, mix(uPomMin, uPomMax, lod),
+				hitDepth
+			);
+			if (uSilhouette > 0.5 && pomSilhouetteClip(uv, vec4(0.0, 0.0, 1.0, 1.0))) discard;
+		} else {
+			uv = mix(vUvCorrect, vUvAffine / vW, uAffine);
+		}
 		vec4 tex = texture2D(uMap, uv);
 
 		vec3 light = vec3(uAmbient);
@@ -133,6 +170,11 @@ const PsxMaterialBase = shaderMaterial(
 		uFogNear: FOG.near,
 		uFogFar: FOG.far,
 		uAmbient: 0.12,
+		uPom: 0,
+		uPomScale: 0.06,
+		uPomMin: 6,
+		uPomMax: 24,
+		uSilhouette: 0,
 		uOcclude: 1,
 		uMapTex: blankTex,
 		uGridOrigin: new THREE.Vector2(0, 0),

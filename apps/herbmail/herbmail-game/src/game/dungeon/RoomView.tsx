@@ -65,6 +65,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 							uSnap={snap}
 							uAffine={affine}
 							uRes={res}
+							uPom={1}
 						/>
 					)}
 				/>
@@ -81,6 +82,7 @@ export function RoomView({ desc, snap, affine }: Props) {
 							uSnap={snap}
 							uAffine={affine}
 							uRes={res}
+							uPom={1}
 						/>
 					)}
 				/>
