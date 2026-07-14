@@ -13,6 +13,11 @@ import {
 	buildJournalBreadcrumb,
 } from './journalNav';
 import { THEORY_NAV, THEORY_ROOT, buildTheoryBreadcrumb } from './theoryNav';
+import {
+	GAMING_NAV,
+	GAMING_ROOT,
+	buildGamingBreadcrumb,
+} from '../gaming/gamingNav';
 import { MC_NAV, MC_ROOT, buildMcBreadcrumb } from '../mcdb/mcNav';
 import { NPC_ROOT, buildNpcNav, buildNpcBreadcrumb } from '../npcdb/npcNav';
 import {
@@ -29,6 +34,11 @@ const isApplication =
 	pathname.startsWith('/application/') && pathname !== '/application/';
 const isJournal = pathname.startsWith('/journal/') && pathname !== '/journal/';
 const isTheory = pathname.startsWith('/theory/');
+// Game sections that live at their own top-level URL but belong under Gaming.
+const isGaming =
+	pathname.startsWith('/gaming/') ||
+	pathname.startsWith('/osrs/') ||
+	pathname.startsWith('/arcade/');
 const isMc = pathname.startsWith('/mc/');
 const isNpcdb = pathname.startsWith('/npcdb/');
 const isItemdb = pathname.startsWith('/itemdb/');
@@ -78,53 +88,66 @@ const shell = isDashboard
 						collapsible: true,
 						withToc: true,
 					}
-				: isMc
+				: isGaming
 					? {
-							entries: MC_NAV,
-							root: MC_ROOT,
-							menuLabel: 'Minecraft database',
-							navLabel: 'Minecraft',
-							crumbs: buildMcBreadcrumb(pathname),
-							collapsible: true,
+							entries: GAMING_NAV,
+							root: GAMING_ROOT,
+							menuLabel: 'Games',
+							navLabel: 'Gaming',
+							crumbs: buildGamingBreadcrumb(pathname),
+							collapsible: false,
 							withToc: true,
 						}
-					: isNpcdb
+					: isMc
 						? {
-								entries: npcNav,
-								root: NPC_ROOT,
-								menuLabel: 'NPC database',
-								navLabel: 'NPC Database',
-								crumbs: buildNpcBreadcrumb(npcNav, pathname),
+								entries: MC_NAV,
+								root: MC_ROOT,
+								menuLabel: 'Minecraft database',
+								navLabel: 'Minecraft',
+								crumbs: buildMcBreadcrumb(pathname),
 								collapsible: true,
 								withToc: true,
 							}
-						: isItemdb
+						: isNpcdb
 							? {
-									entries: itemNav,
-									root: ITEM_ROOT,
-									menuLabel: 'Item database',
-									navLabel: 'Item Database',
-									crumbs: buildItemBreadcrumb(
-										itemNav,
+									entries: npcNav,
+									root: NPC_ROOT,
+									menuLabel: 'NPC database',
+									navLabel: 'NPC Database',
+									crumbs: buildNpcBreadcrumb(
+										npcNav,
 										pathname,
 									),
 									collapsible: true,
 									withToc: true,
 								}
-							: isMapdb
+							: isItemdb
 								? {
-										entries: mapNav,
-										root: MAP_ROOT,
-										menuLabel: 'Map database',
-										navLabel: 'Map Database',
-										crumbs: buildMapBreadcrumb(
-											mapNav,
+										entries: itemNav,
+										root: ITEM_ROOT,
+										menuLabel: 'Item database',
+										navLabel: 'Item Database',
+										crumbs: buildItemBreadcrumb(
+											itemNav,
 											pathname,
 										),
 										collapsible: true,
 										withToc: true,
 									}
-								: undefined;
+								: isMapdb
+									? {
+											entries: mapNav,
+											root: MAP_ROOT,
+											menuLabel: 'Map database',
+											navLabel: 'Map Database',
+											crumbs: buildMapBreadcrumb(
+												mapNav,
+												pathname,
+											),
+											collapsible: true,
+											withToc: true,
+										}
+									: undefined;
 
 const crumbs = shell?.crumbs ?? [];
 ---

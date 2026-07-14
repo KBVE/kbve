@@ -1,9 +1,11 @@
 ---
 title: BitCraft
 description: |
-  Dive into the immersive world of BitCraft, a sandbox MMORPG that blends survival, crafting, and community-driven gameplay. 
-  Explore vast procedurally generated landscapes, master intricate crafting systems, and build thriving civilizations with other players. 
+  Dive into the immersive world of BitCraft, a sandbox MMORPG that blends survival, crafting, and community-driven gameplay.
+  Explore vast procedurally generated landscapes, master intricate crafting systems, and build thriving civilizations with other players.
   Stay updated with the latest game features, strategies, and community events to enhance your BitCraft adventure.
+template: splash
+tableOfContents: false
 sidebar:
   label: BitCraft
   order: 6
@@ -14,10 +16,43 @@ tags:
   - MMORPG
   - sandbox
   - crafting
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'gaming · sandbox mmo'
+    title: 'Bit'
+    accent: Craft.
+    lede: 'Survival, crafting, and community in a procedurally generated sandbox MMO. A starter guide to your first skills, food loop, and early goals.'
+    ctas:
+        - label: Starter guide
+          href: '#guides'
+          primary: true
+        - label: All guides
+          href: /gaming/
+    related:
+        - title: 'RimWorld'
+          copy: 'Colony survival tips and a curated mod list.'
+          href: /gaming/rimworld/
+          icon: gears
+        - title: 'Gaming hub'
+          copy: 'Every KBVE game guide in one place.'
+          href: /gaming/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1581276879432-15e50529f34b?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#34d399'
+        btn_fg: '#14091f'
 ---
 
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Guides
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="guides" heading="Guides">
 
 ### Starter Guide
 
@@ -33,3 +68,7 @@ The crawdads will be used to turn into bait.
 
 Your first couple goals should be getting a personal cache, a raft and upgrading your cart.
 How you reach these goals are up to you but they are core parts of the game and should be done asap!
+
+</BentoProse>
+
+</BentoDoc>

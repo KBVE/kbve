@@ -87,6 +87,7 @@ export const isMcActive = (pathname: string, href: string): boolean =>
 
 export const buildMcBreadcrumb = (pathname: string): BreadcrumbCrumb[] => {
 	const crumbs = buildBreadcrumbIn(MC_NAV, MC_ROOT, pathname);
+	crumbs.unshift({ label: 'Gaming', href: '/gaming/' });
 	const match = findActiveIn(MC_NAV, MC_ROOT.href, pathname);
 	const path = normalize(pathname);
 	if (match && normalize(match.item.href) !== path) {
