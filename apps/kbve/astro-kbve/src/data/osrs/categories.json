@@ -31,7 +31,19 @@
 			"label": "Ammunition",
 			"group": "Gear",
 			"accent": "0 80% 62%",
-			"blurb": "Arrows, bolts, darts, and thrown ammunition."
+			"blurb": "Arrows, bolts, darts, javelins, cannonballs, and thrown ammunition.",
+			"subgroups": [
+				{ "label": "Arrows", "match": ["arrow"] },
+				{ "label": "Bolts", "match": ["bolt"] },
+				{ "label": "Darts", "match": ["dart"] },
+				{ "label": "Knives", "match": ["knife", "knives"] },
+				{ "label": "Javelins", "match": ["javelin"] },
+				{
+					"label": "Throwing Axes",
+					"match": ["thrownaxe", "throwing axe"]
+				},
+				{ "label": "Cannonballs", "match": ["cannonball"] }
+			]
 		},
 		{
 			"slug": "prayer",

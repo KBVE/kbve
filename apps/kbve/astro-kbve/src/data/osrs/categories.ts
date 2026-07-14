@@ -7,6 +7,11 @@ export interface OsrsCategoryGroup {
 	icon: string;
 }
 
+export interface OsrsSubgroup {
+	label: string;
+	match: string[];
+}
+
 export interface OsrsCategory {
 	slug: string;
 	tag: OsrsTag;
@@ -14,6 +19,7 @@ export interface OsrsCategory {
 	group: string;
 	accent: string;
 	blurb: string;
+	subgroups?: OsrsSubgroup[];
 }
 
 export const OSRS_CATEGORY_GROUPS: OsrsCategoryGroup[] = raw.groups;
