@@ -43,6 +43,7 @@ export function buildArches(grid: Grid, variant = 0): THREE.BufferGeometry {
 		const g = new THREE.ExtrudeGeometry(shape, {
 			depth,
 			bevelEnabled: false,
+			curveSegments: 6,
 		});
 		scaleUV(g, 1 / TILE);
 		g.translate(0, 0, -depth / 2);

@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { COVE_R, TILE, WALL_H, WALL_SEG } from '../config';
+import { COVE_R, TILE, WALL_H } from '../config';
 import { exposedFaces, faceMatrix } from './faces';
 import { ARCH, gridTile, type Grid } from './grid';
 
-const ARC_SEG = 8;
+const ARC_SEG = 4;
+const LAT_SEG = 1;
 const HALF = TILE / 2;
 const Z_OFF = 0.03;
 
@@ -20,16 +21,16 @@ function coveProfile(): THREE.BufferGeometry {
 		const angle = Math.PI - t * (Math.PI / 2);
 		const z = R + R * Math.cos(angle) + Z_OFF;
 		const y = cy + R * Math.sin(angle);
-		for (let w = 0; w <= WALL_SEG; w++) {
-			const x = -HALF + (w / WALL_SEG) * TILE;
+		for (let w = 0; w <= LAT_SEG; w++) {
+			const x = -HALF + (w / LAT_SEG) * TILE;
 			pos.push(x, y, z);
-			uv.push(w / WALL_SEG, t);
+			uv.push(w / LAT_SEG, t);
 		}
 	}
 
-	const stride = WALL_SEG + 1;
+	const stride = LAT_SEG + 1;
 	for (let a = 0; a < ARC_SEG; a++) {
-		for (let w = 0; w < WALL_SEG; w++) {
+		for (let w = 0; w < LAT_SEG; w++) {
 			const i0 = a * stride + w;
 			const i1 = i0 + 1;
 			const i2 = i0 + stride;

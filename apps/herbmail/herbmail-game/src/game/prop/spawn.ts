@@ -15,13 +15,14 @@ import { spawnCrate } from './crate';
 import { scatterDecor } from './decor';
 import { PROP_CANDLE, PROP_CRATE } from './kinds';
 import { placedForSector, isSuppressed } from './placed';
-import { TILE, WALL_H } from '../config';
+import { TILE } from '../config';
 import { FLOOR } from '../geometry/grid';
 import { columnShaftRadius } from '../geometry';
 import { hash01 } from '../geometry/rng';
 import type { RoomDesc } from '../dungeon/generate';
 
 const NICHE_Y = 1.3;
+const COL_TORCH_H = 2.6;
 const COL_TORCH_DIRS: [number, number][] = [
 	[0, -1],
 	[0, 1],
@@ -97,7 +98,7 @@ export function spawnRoomProps(dw: DungeonWorld, roomEid: number): void {
 		const r = columnShaftRadius(c.style) + 0.05;
 		const pos: [number, number, number] = [
 			(wc + 0.5) * TILE + nx * r,
-			WALL_H * 0.5,
+			COL_TORCH_H,
 			(wr + 0.5) * TILE + nz * r,
 		];
 		if (isSuppressed(pos)) continue;
