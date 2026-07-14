@@ -1,7 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { psxMaterialRegistry } from '../render/PsxMaterial';
 import { usePsx } from '../menu/settingsStore';
+import { getDungeon } from '../dungeon/store';
+import { SECTOR_TILES } from '../dungeon/generate';
+import { SOLID, DOORWAY, PILLAR } from '../geometry/grid';
+import { doorClosedAt } from '../door/doors';
+import { TILE } from '../config';
 
 interface StatsSnapshot {
 	fps: number;
@@ -18,6 +23,8 @@ interface StatsSnapshot {
 	camX: number;
 	camY: number;
 	camZ: number;
+	camDX: number;
+	camDZ: number;
 }
 
 const snapshot: StatsSnapshot = {
@@ -35,6 +42,8 @@ const snapshot: StatsSnapshot = {
 	camX: 0,
 	camY: 0,
 	camZ: 0,
+	camDX: 0,
+	camDZ: -1,
 };
 
 export function StatsProbe() {
@@ -65,9 +74,91 @@ export function StatsProbe() {
 		snapshot.camX = p.x;
 		snapshot.camY = p.y;
 		snapshot.camZ = p.z;
+		const e = state.camera.matrixWorld.elements;
+		snapshot.camDX = -e[8];
+		snapshot.camDZ = -e[10];
 		gl.info.reset();
 	}, 2);
 	return null;
+}
+
+const MAP_PX = 192;
+const SPAN = SECTOR_TILES * TILE;
+
+// Top-down tile map of the current sector: walls grey, floor dark, arches
+// amber (red while locked), pillars dotted, player as a facing wedge. Redrawn
+// on the same 250ms cadence as the stat rows — debug aid, not a HUD feature.
+function DebugMinimap() {
+	const ref = useRef<HTMLCanvasElement>(null);
+	useEffect(() => {
+		const px = MAP_PX / SECTOR_TILES;
+		const id = setInterval(() => {
+			const ctx = ref.current?.getContext('2d');
+			if (!ctx) return;
+			const sx = Math.floor(snapshot.camX / SPAN);
+			const sy = Math.floor(snapshot.camZ / SPAN);
+			const dw = getDungeon();
+			const eid = dw.sectorEidAt(sx, sy);
+			const desc = eid === undefined ? undefined : dw.desc(eid);
+			ctx.fillStyle = '#000';
+			ctx.fillRect(0, 0, MAP_PX, MAP_PX);
+			if (desc) {
+				for (let r = 0; r < desc.rows; r++) {
+					for (let c = 0; c < desc.cols; c++) {
+						const t = desc.tiles[r * desc.cols + c];
+						if (t & DOORWAY) {
+							ctx.fillStyle = doorClosedAt(
+								desc.originCol + c,
+								desc.originRow + r,
+							)
+								? '#c0392b'
+								: '#d98e2b';
+						} else if (t & SOLID && !(t & PILLAR)) {
+							ctx.fillStyle = '#3a3a44';
+						} else if (t & PILLAR) {
+							ctx.fillStyle = '#6a6a7a';
+						} else {
+							ctx.fillStyle = '#14141c';
+						}
+						ctx.fillRect(c * px, r * px, px, px);
+					}
+				}
+			}
+			const mx = ((snapshot.camX - sx * SPAN) / SPAN) * MAP_PX;
+			const mz = ((snapshot.camZ - sy * SPAN) / SPAN) * MAP_PX;
+			const a = Math.atan2(snapshot.camDX, -snapshot.camDZ);
+			ctx.save();
+			ctx.translate(mx, mz);
+			ctx.rotate(a);
+			ctx.fillStyle = '#7ab6ff';
+			ctx.beginPath();
+			ctx.moveTo(0, -6);
+			ctx.lineTo(4, 4);
+			ctx.lineTo(-4, 4);
+			ctx.closePath();
+			ctx.fill();
+			ctx.restore();
+			ctx.fillStyle = '#c9c9d6';
+			ctx.font = '9px monospace';
+			ctx.fillText(`sector ${sx},${sy}`, 4, MAP_PX - 4);
+		}, 250);
+		return () => clearInterval(id);
+	}, []);
+	return (
+		<canvas
+			ref={ref}
+			width={MAP_PX}
+			height={MAP_PX}
+			style={{
+				display: 'block',
+				marginTop: 8,
+				border: '1px solid #333',
+				borderRadius: 4,
+				width: MAP_PX,
+				height: MAP_PX,
+			}}
+		/>
+	);
 }
 
 const fmt = (n: number) =>
@@ -129,6 +220,7 @@ export function DebugStats() {
 					<span>{value}</span>
 				</div>
 			))}
+			<DebugMinimap />
 		</div>
 	);
 }
