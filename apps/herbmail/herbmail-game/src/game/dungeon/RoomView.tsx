@@ -97,13 +97,7 @@ export function RoomView({ desc, snap, affine, mats }: Props) {
 			/>
 
 			{doors.map((d) => (
-				<DoorLeaf
-					key={d.key}
-					door={d}
-					snap={snap}
-					affine={affine}
-					res={res}
-				/>
+				<DoorLeaf key={d.key} door={d} snap={snap} res={res} />
 			))}
 		</group>
 	);

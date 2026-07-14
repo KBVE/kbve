@@ -8,6 +8,7 @@ import { useDungeonTextures, type WallMaps } from '../textures';
 export interface DungeonMaterials {
 	walls: PsxMaterialImpl[];
 	arch: PsxMaterialImpl;
+	trim: PsxMaterialImpl;
 	floor: PsxMaterialImpl;
 	ceiling: PsxMaterialImpl;
 	cove: PsxMaterialImpl;
@@ -67,7 +68,16 @@ export function useDungeonMaterials(
 			walls: tex.walls.map((w) =>
 				makeMat({ ...wallUniforms(w), uPom: 1 }),
 			),
-			arch: makeMat({ uMap: tex.arch, uTint: tint(TINT.arch) }),
+			arch: makeMat({
+				...wallUniforms(tex.arch),
+				uPom: 1,
+				uTint: tint(TINT.arch),
+			}),
+			trim: makeMat({
+				...wallUniforms(tex.trim),
+				uPom: 1,
+				uTint: tint(TINT.trim),
+			}),
 			floor: makeMat({ uMap: tex.floor, uTint: tint(TINT.floor) }),
 			ceiling: makeMat({ uMap: tex.ceiling, uTint: tint(TINT.ceiling) }),
 			cove: makeMat(
@@ -79,11 +89,15 @@ export function useDungeonMaterials(
 				{ doubleSide: true, polygonOffsetFactor: -4 },
 			),
 			bayFrame: makeMat(
-				{ uMap: tex.arch, uTint: tint(TINT.bay), uOcclude: 0 },
+				{ uMap: tex.arch.color, uTint: tint(TINT.bay), uOcclude: 0 },
 				{ doubleSide: true, polygonOffsetFactor: -3 },
 			),
 			bayBack: makeMat(
-				{ uMap: tex.arch, uTint: tint(TINT.bayBack), uOcclude: 0 },
+				{
+					uMap: tex.arch.color,
+					uTint: tint(TINT.bayBack),
+					uOcclude: 0,
+				},
 				{ doubleSide: true },
 			),
 		};
@@ -93,6 +107,7 @@ export function useDungeonMaterials(
 		const all = [
 			...mats.walls,
 			mats.arch,
+			mats.trim,
 			mats.floor,
 			mats.ceiling,
 			mats.cove,
@@ -113,6 +128,7 @@ export function useDungeonMaterials(
 			for (const m of [
 				...mats.walls,
 				mats.arch,
+				mats.trim,
 				mats.floor,
 				mats.ceiling,
 				mats.cove,

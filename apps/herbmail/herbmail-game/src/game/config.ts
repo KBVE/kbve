@@ -24,6 +24,7 @@ export const TINT = {
 	bay: [0.72, 0.7, 0.72],
 	bayBack: [0.6, 0.57, 0.6],
 	door: [0.85, 0.82, 0.78],
+	trim: [0.92, 0.92, 0.95],
 } as const;
 
 export const TEXTURES = {
@@ -46,9 +47,21 @@ export const TEXTURES = {
 	],
 	floor: '/textures/Horror_Floor_01-256x256.png',
 	ceiling: '/textures/Horror_Metal_01-256x256.png',
-	arch: '/textures/Horror_Stone_01-256x256.png',
-	door: '/textures/wood_13_256_.png',
-	doorAlt: '/textures/wood_14_256_.png',
+	arch: {
+		color: '/textures/door/viking_color.png',
+		normal: '/textures/door/viking_normal.png',
+		har: '/textures/door/viking_har.png',
+	},
+	trim: {
+		color: '/textures/door/marble1_color.png',
+		normal: '/textures/door/marble1_normal.png',
+		har: '/textures/door/marble1_har.png',
+	},
+	door: {
+		color: '/textures/door/wood17_color.png',
+		normal: '/textures/door/wood17_normal.png',
+		har: '/textures/door/wood17_har.png',
+	},
 } as const;
 
 export const PSX_DEFAULTS = {
