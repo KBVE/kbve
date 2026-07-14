@@ -1,5 +1,9 @@
 ---
 title: 'Kress'
+template: splash
+sidebar:
+    label: 'Kress'
+    hidden: true
 description: |
     Sci-fi fleet dispatcher. Runs the colony's autonomous vehicle grid from a console hub — registration, dispatch, retreat orders. Calm voice, fast hands.
 ref: 'kress'
@@ -56,7 +60,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Sci-fi fleet dispatcher. Runs the autonomous vehicle grid.
+
+</NpcLeaf>

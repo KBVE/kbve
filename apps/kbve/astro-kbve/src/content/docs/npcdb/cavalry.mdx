@@ -1,5 +1,9 @@
 ---
 title: 'Cavalry'
+template: splash
+sidebar:
+    label: 'Cavalry'
+    hidden: true
 description: |
     Player mounted melee — fast charger, mid HP, club loadout. Recruited from Stables (Barracks T1 variant 1) for 10 Coin + 4 Timber + 2 Carrot. Damage scales with MovementModifier.SpeedMul via the cavalry charge bonus, capped at 2.0× under stacked Stables auras.
 ref: 'cavalry'
@@ -43,7 +47,10 @@ equipment:
           item_ref: 'chain-mail'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Player mounted melee. Fast charger, damage scales with movement speed via the cavalry charge bonus.
+
+</NpcLeaf>

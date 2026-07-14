@@ -1096,7 +1096,7 @@ EOF
             ;;
         herbmail)
             url="https://git.kbve.com/KBVE/herbmail.git/info/lfs"
-            path_prefix="apps/herbmail/herbmail-game/public"
+            path_prefix="apps/herbmail/herbmail-game"
             ;;
         *)
             echo "Unknown game '$game'. Known: chuck, rareicon, rentearth, arpg, cryptothrone, cleanroom, herbmail" >&2

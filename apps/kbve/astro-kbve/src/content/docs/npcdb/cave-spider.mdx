@@ -1,5 +1,9 @@
 ---
 title: 'Cave Spider'
+template: splash
+sidebar:
+    label: 'Cave Spider'
+    hidden: true
 description: |
     A pale spider that lurks in dungeon shadows, striking first with venomous fangs.
 ref: 'cave-spider'
@@ -78,7 +82,10 @@ abilities:
       cooldown_turns: 2
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A pale spider that lurks in dungeon shadows, striking first with venomous fangs.
+
+</NpcLeaf>

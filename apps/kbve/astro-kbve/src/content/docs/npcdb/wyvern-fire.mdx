@@ -1,5 +1,9 @@
 ---
 title: 'Fire Wyvern'
+template: splash
+sidebar:
+    label: 'Fire Wyvern'
+    hidden: true
 description: |
     A wyvern wreathed in heat-shimmer, embers curling from its wingtips as it wheels over the grass. It roams the surface but never aggresses.
 ref: 'wyvern_fire'
@@ -42,7 +46,10 @@ faction:
     faction_id: 'neutral'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A wyvern wreathed in heat-shimmer, embers curling from its wingtips as it wheels over the grass.
+
+</NpcLeaf>

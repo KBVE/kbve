@@ -1,5 +1,9 @@
 ---
 title: 'Bandit'
+template: splash
+sidebar:
+    label: 'Bandit'
+    hidden: true
 description: |
     Hostile humanoid raider. Tougher and slower than the Goblin, prefers smashing buildings over chasing units. Spawns from Bandit Camps; drops Coin so the Looter job has reason to follow raids around.
 ref: 'bandit'
@@ -41,7 +45,10 @@ equipment:
         item_ref: 'hood'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Hostile humanoid raider. Spawns from Bandit Camps, prefers smashing buildings, drops Coin on death.
+
+</NpcLeaf>

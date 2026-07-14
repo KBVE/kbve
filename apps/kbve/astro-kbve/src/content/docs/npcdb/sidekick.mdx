@@ -1,5 +1,9 @@
 ---
 title: 'Sidekick'
+template: splash
+sidebar:
+    label: 'Sidekick'
+    hidden: true
 description: |
     The base human character used across herbmail-game — both the player avatar and the template every humanoid NPC is built from. A SIDEKICK modular skin body wearing removable knight armor over its underwear layer.
 ref: 'sidekick'
@@ -31,9 +35,9 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
 
 ## Overview
 
@@ -129,3 +133,5 @@ panel exposes them as sliders. Each character/NPC can therefore carry its own bu
   base — recolor via the species colormap or split the mesh to drop it.
 - The Starter pack is a single species mesh; extra species (sci-fi civilian,
   horror villain) exist as separate part sets but aren't wired in.
+
+</NpcLeaf>

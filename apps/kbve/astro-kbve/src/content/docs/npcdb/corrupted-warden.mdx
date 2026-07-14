@@ -1,5 +1,9 @@
 ---
 title: 'Corrupted Warden'
+template: splash
+sidebar:
+    label: 'Corrupted Warden'
+    hidden: true
 description: |
     Once a noble guardian, now twisted by dark energy into a relentless engine of destruction.
 ref: 'corrupted-warden'
@@ -99,7 +103,10 @@ faction:
     faction_id: 'deep-wardens'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Once a noble guardian, now twisted by dark energy into a relentless engine of destruction.
+
+</NpcLeaf>

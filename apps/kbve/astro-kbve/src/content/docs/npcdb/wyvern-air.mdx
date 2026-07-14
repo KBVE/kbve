@@ -1,5 +1,9 @@
 ---
 title: 'Air Wyvern'
+template: splash
+sidebar:
+    label: 'Air Wyvern'
+    hidden: true
 description: |
     A lithe sky-wyvern with translucent wings that hum with rushing wind, drifting in lazy spirals over the open grass. It roams the surface but never aggresses.
 ref: 'wyvern_air'
@@ -42,7 +46,10 @@ faction:
     faction_id: 'neutral'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A lithe sky-wyvern with translucent wings that hum with rushing wind, drifting in lazy spirals over the open grass.
+
+</NpcLeaf>

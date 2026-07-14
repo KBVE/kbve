@@ -15,6 +15,12 @@ import {
 import { THEORY_NAV, THEORY_ROOT, buildTheoryBreadcrumb } from './theoryNav';
 import { MC_NAV, MC_ROOT, buildMcBreadcrumb } from '../mcdb/mcNav';
 import { NPC_ROOT, buildNpcNav, buildNpcBreadcrumb } from '../npcdb/npcNav';
+import {
+	ITEM_ROOT,
+	buildItemNav,
+	buildItemBreadcrumb,
+} from '../itemdb/itemNav';
+import { MAP_ROOT, buildMapNav, buildMapBreadcrumb } from '../mapdb/mapNav';
 import { getCollection } from 'astro:content';
 
 const pathname = Astro.url.pathname;
@@ -25,8 +31,12 @@ const isJournal = pathname.startsWith('/journal/') && pathname !== '/journal/';
 const isTheory = pathname.startsWith('/theory/');
 const isMc = pathname.startsWith('/mc/');
 const isNpcdb = pathname.startsWith('/npcdb/');
+const isItemdb = pathname.startsWith('/itemdb/');
+const isMapdb = pathname.startsWith('/mapdb/');
 
 const npcNav = isNpcdb ? buildNpcNav(await getCollection('npcdb')) : [];
+const itemNav = isItemdb ? buildItemNav(await getCollection('itemdb')) : [];
+const mapNav = isMapdb ? buildMapNav(await getCollection('mapdb')) : [];
 
 const shell = isDashboard
 	? {
@@ -88,7 +98,33 @@ const shell = isDashboard
 								collapsible: true,
 								withToc: true,
 							}
-						: undefined;
+						: isItemdb
+							? {
+									entries: itemNav,
+									root: ITEM_ROOT,
+									menuLabel: 'Item database',
+									navLabel: 'Item Database',
+									crumbs: buildItemBreadcrumb(
+										itemNav,
+										pathname,
+									),
+									collapsible: true,
+									withToc: true,
+								}
+							: isMapdb
+								? {
+										entries: mapNav,
+										root: MAP_ROOT,
+										menuLabel: 'Map database',
+										navLabel: 'Map Database',
+										crumbs: buildMapBreadcrumb(
+											mapNav,
+											pathname,
+										),
+										collapsible: true,
+										withToc: true,
+									}
+								: undefined;
 
 const crumbs = shell?.crumbs ?? [];
 ---

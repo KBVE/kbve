@@ -1,5 +1,9 @@
 ---
 title: 'Soldier'
+template: splash
+sidebar:
+    label: 'Soldier'
+    hidden: true
 description: |
     Standard Player infantry. Balanced stats, the workhorse of every Barracks roster.
 ref: 'soldier'
@@ -45,7 +49,10 @@ equipment:
         item_ref: 'chain-mail'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Standard Player infantry. Balanced stats, the workhorse of every Barracks roster.
+
+</NpcLeaf>
