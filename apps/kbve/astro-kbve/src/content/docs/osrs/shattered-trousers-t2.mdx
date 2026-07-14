@@ -12,9 +12,69 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Shattered trousers (t2) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - name: Shattered hood (t2)
+      relationship: set-piece
+    - name: Shattered top (t2)
+      relationship: set-piece
+    - name: Shattered cape (t2)
+      relationship: set-piece
+    - name: Shattered boots (t2)
+      relationship: set-piece
+    - name: Shattered trousers (t1)
+      relationship: downgrade
+    - name: Shattered trousers (t3)
+      relationship: upgrade
+  about: "Shattered trousers (t2) is a cosmetic legs slot piece of the tier 2 Shattered Relic Hunter outfit, purchased for 3,000 League points from the Leagues Reward Shop and tradeable on the Grand Exchange."
+  market_strategy:
+    notes:
+      - "No GE buy limit listed; pricing follows Leagues nostalgia cycles and fashionscape demand."
+      - "Cosmetic-only stats (+0 across the board); collectors and set completers drive volume."
+  trading_tips:
+    - "Originally cost 3,000 League points from the Leagues Reward Shop; resupply is gated by future Leagues events."
+    - "Pair with the matching hood, top, cape, and boots for the complete tier 2 Shattered Relic Hunter look."
+  history:
+    - date: "2022-03-16"
+      description: "Released as part of the PvP Arena: Rewards Beta update via the Leagues Reward Shop."
+  properties:
+    release_date: "2022-03-16"
+    update: "PvP Arena: Rewards Beta"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

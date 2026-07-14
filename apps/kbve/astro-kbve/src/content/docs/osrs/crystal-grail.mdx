@@ -12,9 +12,52 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: null
-  about: "Crystal grail is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-07-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  equipment:
+    slot: weapon
+    weapon_type: goblet
+    attack_speed: null
+    weight: 0.001
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  drop_table:
+    sources:
+      - source: Rabbit (Prifddinas)
+        quantity: "1"
+        rarity: Uncommon
+  related_items:
+    - item_name: Ale of the gods
+      slug: ale-of-the-gods
+      relationship: alternative
+      description: Similar drunken-sway cosmetic effect
+  about: "The Crystal grail is a purely cosmetic weapon-slot item dropped by the Rabbit in the Elven rabbit cave north of Prifddinas, accessible after completing Song of the Elves. While wielded it causes the player to sway as if drunk, mirroring the visual gimmick of the ale of the gods."
+  market_strategy:
+    notes:
+      - "Cosmetic-only with no combat stats"
+      - "No Grand Exchange buy limit"
+      - "Supply gated behind Song of the Elves completion"
+  trading_tips:
+    - Niche cosmetic; price moves with meme cycles and content creator videos
+    - Rabbit hunting trips inject supply unpredictably
+  history:
+    - date: "2019-07-25"
+      description: "Added to the game with the Song of the Elves update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

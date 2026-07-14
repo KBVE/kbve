@@ -1,5 +1,6 @@
 ---
 title: Furnace
+template: splash
 description: |
     Minecraft Furnace — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 196
     ref: furnace
     slug: furnace
+    content_rev: 1
     display_name: Furnace
     material: stone
     hardness: 3.5
     blast_resistance: 3.5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: furnace
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - utility
+        - smelting
+    about:
+        description: |
+            The Furnace is a utility block used to smelt ores and cook food
+            by combining fuel with a smeltable item. It processes one item
+            about every 10 seconds and emits light while active.
+        lore: |
+            One of Minecraft's oldest blocks, added in Java Edition Indev
+            (February 2010). It has anchored early-game progression for over
+            a decade.
+    uses:
+        - title: Smelting and Cooking
+          detail: |
+              Place fuel in the bottom slot and a smeltable item in the top
+              to melt ores into ingots, cook food, or bake clay and sand.
+        - title: Experience Source
+          detail: |
+              Collecting smelted items grants stored experience that has
+              accumulated in the furnace.
+    found_in:
+        - location: Crafting
+          detail: Eight stone-tier blocks (cobblestone, blackstone, or cobbled deepslate) arranged around an empty center.
+        - location: Villages
+          detail: Generates in villages, notably in armorer, weaponsmith, and toolsmith houses.
+    faq:
+        - question: What tool do I need to break a furnace?
+          answer: |
+              A pickaxe of any tier (wooden or better). Breaking it without a
+              pickaxe drops nothing.
+        - question: How much light does a furnace give off?
+          answer: |
+              A furnace emits a light level of 13 while it is actively
+              smelting, along with smoke and flame particles.
+        - question: What can I use as fuel?
+          answer: |
+              Coal, charcoal, wood, planks, lava buckets, and many other
+              flammable items work; a single piece of coal smelts eight items.
     data_version: "1.21.5"
 ---
 

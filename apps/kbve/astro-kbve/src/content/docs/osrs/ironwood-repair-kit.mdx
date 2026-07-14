@@ -1,6 +1,6 @@
 ---
 title: Ironwood repair kit | OSRS Price Data
-description: "Ironwood repair kit: An excellent boat repair kit made from ironwood.. High alch: 2,400 GP, GE limit: 13,000."
+description: "Ironwood repair kit: An excellent boat repair kit made from ironwood. High alch: 2,400 GP, GE limit: 13,000."
 osrs:
   id: 31979
   name: Ironwood repair kit
@@ -12,9 +12,66 @@ osrs:
   lowalch: 1600
   highalch: 2400
   limit: 13000
-  about: "Ironwood repair kit is a members-only item in Old School RuneScape. High alchemy value: 2,400 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ironwood
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Apply
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: construction
+      level: 80
+      xp: 300
+      materials:
+        - item_name: Ironwood plank
+          quantity: 1
+        - item_name: Runite nails
+          quantity: 10
+        - item_name: Swamp paste
+          quantity: 5
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 3
+  drop_table:
+    sources:
+      - source: Opulent salvage
+        quantity: "1"
+        rarity: 10/424
+      - source: Vampyre kraken
+        quantity: "1"
+        rarity: 4/120
+      - source: Veiled kraken
+        quantity: "1"
+        rarity: 5/272
+  related_items:
+    - item_name: Ironwood plank
+      slug: ironwood-plank
+      relationship: component
+      description: Primary material for crafting the kit
+    - item_name: Runite nails
+      slug: runite-nails
+      relationship: component
+      description: Fastener component for the kit
+  about: "Ironwood repair kit is a members Sailing consumable applied to a boat to restore 45 health while sailing. Multiple players can apply kits simultaneously for faster repairs, and crewmates with higher Deckhandiness restore more hull per kit."
+  market_strategy:
+    notes:
+      - "Demand scales with Sailing skill engagement"
+      - "Construction recipe yields 3 per action for solid margin"
+      - "Kraken drop tables suppress price spikes"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

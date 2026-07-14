@@ -1,6 +1,6 @@
 ---
 title: Dragon sq shield | OSRS Price Data
-description: "Dragon sq shield is a members shield slot item requiring 60 Defence. High alch: 300,000 GP, GE limit: 70."
+description: "Dragon sq shield: An ancient and powerful looking Dragon Square shield. High alch: 300,000 GP, GE limit: 70."
 osrs:
   id: 1187
   name: Dragon sq shield
@@ -12,9 +12,33 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2003-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    weight: 2.721
+    weapon_type: null
+    attack_speed: null
+    weight: 3.175
+    requirements:
+      defence: 60
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,59 +56,48 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 60
-  quest_requirements:
-    - quest_name: Legends' Quest
-      quest_id: 81
-      required: true
-      notes: Required to combine shield halves
-  special_features:
-    - name: Two-Piece Assembly
-      description: Created by combining dragon sq shield left half and right half
+  recipes:
+    - skill: smithing
+      level: 60
+      xp: 75
+      materials:
+        - item_name: Shield left half
+          quantity: 1
+        - item_name: Shield right half
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
-    - item_id: 2366
-      item_name: Dragon sq shield left half
-      slug: dragon-sq-shield-left-half
+    - item_name: Shield left half
+      slug: shield-left-half
       relationship: component
-      description: Required to create shield
-    - item_id: 2368
-      item_name: Dragon sq shield right half
-      slug: dragon-sq-shield-right-half
+      description: "Left half required to assemble the shield."
+    - item_name: Shield right half
+      slug: shield-right-half
       relationship: component
-      description: Required to create shield
-    - item_id: 11284
-      item_name: Dragonfire shield
+      description: "Right half required to assemble the shield."
+    - item_name: Dragonfire shield
       slug: dragonfire-shield
       relationship: upgrade
-      description: Better melee shield
-    - item_id: 12954
-      item_name: Dragon defender
+      description: "Stronger melee shield with dragonfire protection."
+    - item_name: Dragon defender
       slug: dragon-defender
       relationship: alternative
-      description: Offensive alternative
+      description: "Offensive defender alternative for melee."
   about: |-
-    Defensive Shield:
-    - Good defensive stats for level 60 gear
-    - Outclassed by Dragonfire shield and defenders
-
-    Mostly Cosmetic:
-    - Popular for fashionscape
-    - Classic dragon equipment look
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +50 |
-    | Slash | +52 |
-    | Crush | +48 |
-    | Ranged | +50 |
-
-    - One of the rarest shield combinations in game
-    - Left half is much rarer than right half
-    - Dragon defender provides better offensive stats
-    - Mostly used for collection/fashionscape
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Dragon sq shield is a members shield-slot item requiring 60 Defence and completion of Legends' Quest to wield. It is forged by combining the dragon shield left and right halves at any anvil with a hammer (60 Smithing, 75 XP). It offers strong level-60 melee defence but does not protect against dragonfire.
+  market_strategy:
+    notes:
+      - "Mostly held for fashionscape and completion; outclassed by Dragonfire shield."
+      - "Left half is much rarer than the right; component prices drive set value."
+  trading_tips:
+    - "Buy halves separately when one side's spread is wider than the assembled shield."
+    - "Reverse the Smithing recipe by selling assembled shields when halves are cheap."
+  history:
+    - date: "2003-08-20"
+      description: "Released as part of the Legends' Quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

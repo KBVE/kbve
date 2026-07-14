@@ -5,12 +5,63 @@ import {
   extractToken,
   jsonResponse,
   parseJwt,
-  requireServiceRole,
 } from "../_shared/supabase.ts";
 import {
   enforceBodySizeLimit,
   requireJsonContentType,
 } from "../_shared/validators.ts";
+
+interface JwtClaimsLite {
+  role?: string;
+  owned_guilds?: unknown;
+  sub?: string;
+}
+
+function ownsGuild(claims: JwtClaimsLite, serverId: string): boolean {
+  const og = claims.owned_guilds;
+  if (!Array.isArray(og)) return false;
+  return og.some((g) =>
+    typeof g === "string" && /^[0-9]{17,20}$/.test(g) && g === serverId
+  );
+}
+
+const USER_SMOKE_COOLDOWN_MS = 15_000;
+const USER_SMOKE_WINDOW_MS = 60 * 60 * 1000;
+const USER_SMOKE_MAX_PER_HOUR = 20;
+const USER_SMOKE_PER_PAGE_CAP = 30;
+const USER_SMOKE_MAX_PAGES_CAP = 1;
+const userSmokeCooldown = new Map<string, number>();
+const userSmokeHistory = new Map<string, number[]>();
+
+function checkUserSmokeRateLimit(
+  userSub: string,
+  guildId: string,
+): { ok: true } | { ok: false; retryAfterMs: number; reason: string } {
+  const cdKey = `${userSub}:${guildId}`;
+  const now = Date.now();
+  const last = userSmokeCooldown.get(cdKey) ?? 0;
+  if (now - last < USER_SMOKE_COOLDOWN_MS) {
+    return {
+      ok: false,
+      retryAfterMs: USER_SMOKE_COOLDOWN_MS - (now - last),
+      reason: "cooldown",
+    };
+  }
+  const hist = (userSmokeHistory.get(cdKey) ?? []).filter(
+    (t) => now - t < USER_SMOKE_WINDOW_MS,
+  );
+  if (hist.length >= USER_SMOKE_MAX_PER_HOUR) {
+    return {
+      ok: false,
+      retryAfterMs: USER_SMOKE_WINDOW_MS - (now - hist[0]),
+      reason: "hourly_limit",
+    };
+  }
+  hist.push(now);
+  userSmokeHistory.set(cdKey, hist);
+  userSmokeCooldown.set(cdKey, now);
+  return { ok: true };
+}
 
 interface BackfillRequest {
   owner: string;
@@ -43,6 +94,7 @@ interface GitHubIssueResp {
 const REPO_RE = /^[A-Za-z0-9._-]{1,100}$/;
 const DEFAULT_PER_PAGE = 100;
 const DEFAULT_MAX_PAGES = 10;
+const MAX_BACKFILL_ISSUES = 50;
 
 function isValidSegment(s: unknown): s is string {
   return typeof s === "string" && REPO_RE.test(s);
@@ -101,6 +153,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  try {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
   }
@@ -116,9 +169,21 @@ serve(async (req) => {
   } catch {
     return jsonResponse({ error: "authorization required" }, 401);
   }
-  const claims = await parseJwt(token).catch(() => ({}));
-  const denied = requireServiceRole(claims);
-  if (denied) return denied;
+  const claims = (await parseJwt(token).catch(() => ({}))) as JwtClaimsLite;
+  const isServiceRole = claims.role === "service_role";
+  const isUserToken =
+    typeof claims.role === "string" &&
+    claims.role !== "service_role" &&
+    Array.isArray(claims.owned_guilds);
+  if (!isServiceRole && !isUserToken) {
+    return jsonResponse(
+      {
+        error:
+          "Access denied: requires service_role or an authenticated Discord-linked user token",
+      },
+      403,
+    );
+  }
 
   let body: BackfillRequest;
   try {
@@ -136,8 +201,8 @@ serve(async (req) => {
     return jsonResponse({ error: "state must be open|closed|all" }, 400);
   }
 
-  const perPage = Math.min(Math.max(body.per_page ?? DEFAULT_PER_PAGE, 1), 100);
-  const maxPages = Math.min(Math.max(body.max_pages ?? DEFAULT_MAX_PAGES, 1), 50);
+  let perPage = Math.min(Math.max(body.per_page ?? DEFAULT_PER_PAGE, 1), 100);
+  let maxPages = Math.min(Math.max(body.max_pages ?? DEFAULT_MAX_PAGES, 1), 50);
 
   const guildId = (body.guild_id ?? Deno.env.get("GH_BACKFILL_DEFAULT_GUILD_ID") ?? "").trim();
   if (!SNOWFLAKE_RE.test(guildId)) {
@@ -148,6 +213,41 @@ serve(async (req) => {
       },
       400,
     );
+  }
+
+  if (!isServiceRole && !ownsGuild(claims, guildId)) {
+    return jsonResponse(
+      {
+        error:
+          "JWT owned_guilds claim does not include this guild_id. Re-bootstrap or sign in with Discord.",
+      },
+      403,
+    );
+  }
+
+  if (!isServiceRole) {
+    const userSub = typeof claims.sub === "string" ? claims.sub : "";
+    if (!userSub) {
+      return jsonResponse(
+        { error: "Authenticated user token missing sub claim" },
+        401,
+      );
+    }
+    const rate = checkUserSmokeRateLimit(userSub, guildId);
+    if (!rate.ok) {
+      return jsonResponse(
+        {
+          error:
+            rate.reason === "cooldown"
+              ? `Wait ${Math.ceil(rate.retryAfterMs / 1000)}s between smoke runs`
+              : `Hourly smoke-test limit of ${USER_SMOKE_MAX_PER_HOUR} per guild exceeded — retry in ${Math.ceil(rate.retryAfterMs / 60_000)}m`,
+          retry_after_ms: rate.retryAfterMs,
+        },
+        429,
+      );
+    }
+    perPage = Math.min(perPage, USER_SMOKE_PER_PAGE_CAP);
+    maxPages = Math.min(maxPages, USER_SMOKE_MAX_PAGES_CAP);
   }
 
   const sb = createServiceClient();
@@ -185,6 +285,7 @@ serve(async (req) => {
   }
 
   let upserted = 0;
+  let processed = 0;
   let page = 1;
   let lastRateLimitRemaining: number | null = null;
 
@@ -195,7 +296,7 @@ serve(async (req) => {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("gh-backfill fetch error:", msg);
-      return jsonResponse({ error: "GitHub fetch failed", detail: msg }, 502);
+      return jsonResponse({ error: "GitHub fetch failed" }, 502);
     }
 
     lastRateLimitRemaining = result.rateLimitRemaining;
@@ -203,6 +304,8 @@ serve(async (req) => {
     if (result.rows.length === 0) break;
 
     for (const issue of result.rows) {
+      if (processed >= MAX_BACKFILL_ISSUES) break;
+      processed++;
       const labels = (issue.labels ?? []).map((l) => ({ name: l.name, color: l.color }));
       const assignees = (issue.assignees ?? []).map((a) => ({ login: a.login }));
       const { error } = await sb.schema("gh").rpc("upsert_issue", {
@@ -231,6 +334,7 @@ serve(async (req) => {
       upserted++;
     }
 
+    if (processed >= MAX_BACKFILL_ISSUES) break;
     if (result.rows.length < perPage) break;
     page++;
   }
@@ -247,4 +351,8 @@ serve(async (req) => {
     },
     200,
   );
+  } catch (e) {
+    console.error("gh-backfill: unhandled error:", e);
+    return jsonResponse({ error: "Internal error" }, 500);
+  }
 });

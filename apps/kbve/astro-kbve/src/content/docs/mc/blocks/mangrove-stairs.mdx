@@ -1,5 +1,6 @@
 ---
 title: Mangrove Stairs
+template: splash
 description: |
     Minecraft Mangrove Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 488
     ref: mangrove_stairs
     slug: mangrove-stairs
+    content_rev: 1
     display_name: Mangrove Stairs
     material: wood
     hardness: 2
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Mangrove Stairs let mobs and players change elevation without
+            jumping, and are crafted from mangrove planks. They share the
+            wooden stair shape and collision behavior of every other wood
+            variant in the game.
+        lore: |
+            Mangrove stairs were added in Java Edition 1.19 with the rest
+            of the mangrove wood set introduced by the Wild Update.
+    uses:
+        - title: Building & Traversal
+          ref: mangrove_planks
+          detail: |
+              Placed to create walkable slopes on builds, roofs, and
+              decorative staircases matching mangrove-themed structures.
+    found_in:
+        - location: Crafting only
+          detail: |
+              Craft from 6 Mangrove Planks in a stair-shaped pattern to
+              yield 4 stairs; not found naturally generated in structures.
+    faq:
+        - question: What tool mines Mangrove Stairs fastest?
+          answer: |
+              An axe, though any tool or bare hands will break it since it
+              has no minimum tool tier requirement.
+        - question: Do Mangrove Stairs stack with other wood stairs?
+          answer: |
+              No, each wood type's stairs are a distinct block, though all
+              share the same crafting ratio and shape.
+        - question: Is Mangrove Stairs flammable?
+          answer: |
+              Yes, like all wooden blocks it can catch fire and burn away
+              if exposed to flames or lava.
+        - question: Can mobs path over Mangrove Stairs?
+          answer: |
+              Yes, most mobs and players can walk up stairs without
+              jumping, same as any other stair block.
     data_version: "1.21.5"
 ---
 

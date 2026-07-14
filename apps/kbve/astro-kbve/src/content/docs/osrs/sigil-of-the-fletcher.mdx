@@ -12,9 +12,59 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of the fletcher is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: sigil
+    tier: mid
+  properties:
+    release_date: "2021-08-25"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    worn_options: []
+    alchable: true
+    destroy: "Destroy"
+  passive_effects:
+    - name: Instant Fletching
+      description: When attuned, processes all logs or bolt tips at once when fletching, effectively giving instant batch completion.
+  drop_table:
+    sources:
+      - source: Most monsters (Deadman Mode drop table)
+        quantity: "1"
+        rarity: Very Rare
+  related_items:
+    - item_name: Sigil of the smith
+      slug: sigil-of-the-smith
+      relationship: alternative
+      description: Tier 1 skilling sigil for Smithing
+    - item_name: Sigil of the cook
+      slug: sigil-of-the-cook
+      relationship: alternative
+      description: Tier 1 skilling sigil for Cooking
+  about: |-
+    The Sigil of the fletcher is a Tier 1 skilling sigil exclusive to Deadman: Reborn seasonal events. The un-attuned version is tradeable on the Grand Exchange while the attuned version is permanently bound to the player.
+
+    Once attuned, the sigil causes all logs or bolt tips in a player's inventory to be processed at once when fletching, dramatically accelerating bulk Fletching training during a Deadman season.
+  market_strategy:
+    notes:
+      - "Only obtainable during Deadman: Reborn events"
+      - "Low GE buy limit (10) and small Deadman supply keep price volatile"
+      - "Attune locks the sigil permanently — verify before binding"
+  trading_tips:
+    - Track Deadman season schedule for supply spikes
+    - Sell un-attuned during the event when demand peaks
+  history:
+    - date: "2021-08-25"
+      description: "Released as part of the Deadman: Reborn update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

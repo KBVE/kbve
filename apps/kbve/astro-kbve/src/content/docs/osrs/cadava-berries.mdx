@@ -12,13 +12,57 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  related_items: []
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: berry
+    tier: low
+  properties:
+    release_date: "4 January 2001"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: true
+    weight: 0.007
+    options: ["Eat", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Cadava potion
+      slug: cadava-potion
+      relationship: product
+      description: Brewed by the Apothecary using these berries plus a limpwurt root for the Romeo & Juliet quest.
+    - item_name: Cadavaberry seed
+      slug: cadavaberry-seed
+      relationship: component
+      description: Planted in a bush patch at level 22 Farming to grow cadava berries.
+    - item_name: Reduced cadava potion
+      slug: reduced-cadava-potion
+      relationship: product
+      description: Watered-down variant produced for the Plague City quest.
   about: |-
     > _"Some cadava berries."_
 
-    Cadava berries are a quest item used in Romeo & Juliet to create a cadava potion. They're poisonous if eaten (deal 1 damage). Also used in the Plague City quest.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Cadava berries are a poisonous quest item used in Romeo & Juliet to make a cadava potion at the Apothecary and in Plague City for the reduced cadava potion. They can be picked from wild cadava bushes near south-east Varrock or farmed at level 22 Farming using a cadavaberry seed.
+  market_strategy:
+    notes:
+      - "GE buy limit was raised from 200 to 600 per 4 hours in September 2020."
+      - "Demand spikes during quest catch-up events but supply is steady from Farming yields."
+      - "Low alch values make this a margin/flipping item, not a high alch target."
+  trading_tips:
+    - "Stock up before mass questing weekends — Romeo & Juliet drives bursts of demand."
+    - "Farmers list patch yields in waves; buy when GE depth is deep, list when shallow."
+    - "Avoid eating — cadava berries deal 1 damage on consumption."
+  history:
+    - date: "4 January 2001"
+      description: "Item released as 'Cadaver berries' (original spelling)."
+    - date: "1 December 2004"
+      description: "Renamed from 'Cadaver berries' to 'Cadava berries'."
+    - date: "1 September 2020"
+      description: "Grand Exchange buy limit raised from 200 to 600 per 4 hours."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

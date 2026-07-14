@@ -33,7 +33,7 @@ import { fetchVmQuote } from './ideService';
 import {
 	VmCostBreakdownSchema,
 	type VmCostBreakdown,
-} from '../../../../../../packages/data/codegen/generated/vm-schema';
+} from '@kbve/proto/vm-schema';
 
 function formatCredits(n: number): string {
 	return n.toLocaleString();

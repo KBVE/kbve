@@ -1,5 +1,6 @@
 ---
 title: Potted White Tulip
+template: splash
 description: |
     Minecraft Potted White Tulip — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 399
     ref: potted_white_tulip
     slug: potted-white-tulip
+    content_rev: 1
     display_name: Potted White Tulip
     material: stone
     hardness: 0
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: white_tulip
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted White Tulip is a decorative flower pot holding a White
+            Tulip. Despite the name, the flower yields light gray dye rather
+            than white dye when crafted.
+        lore: |
+            White Tulip is one of four tulip colors found in plains and
+            flower forest biomes, alongside red, pink, and orange variants.
+    uses:
+        - title: Light Gray Dye
+          ref: light_gray_dye
+          detail: |
+              Crafts into Light Gray Dye — not White Dye, despite the
+              flower's name.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              An ingredient in Suspicious Stew recipes, which applies the
+              Weakness effect for 7 seconds.
+    found_in:
+        - location: Plains, sunflower plains, flower forest
+          detail: White Tulip generates naturally as ground-cover flora in these overworld biomes.
+        - location: Woodland mansion
+          detail: Potted red and white tulips can be found already placed as room decoration.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool or bare hands break it instantly — hardness is 0.
+        - question: What does breaking it drop?
+          answer: |
+              It drops both a Flower Pot and a White Tulip as separate items.
+        - question: What color dye does White Tulip make?
+          answer: |
+              Light gray dye, not white — a common point of confusion given
+              the flower's name.
+        - question: Can I find this potted arrangement pre-placed?
+          answer: |
+              Yes, woodland mansions sometimes generate with potted white
+              (and red) tulips as room decoration.
     data_version: "1.21.5"
 ---
 

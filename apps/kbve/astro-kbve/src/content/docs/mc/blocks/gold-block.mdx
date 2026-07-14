@@ -1,5 +1,6 @@
 ---
 title: Block of Gold
+template: splash
 description: |
     Minecraft Block of Gold — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,78 @@ mc_block:
     id: 173
     ref: gold_block
     slug: gold-block
+    content_rev: 1
     display_name: Block of Gold
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gold_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            The Block of Gold is a storage block that compacts nine gold
+            ingots into a single block. It can only be mined with an iron
+            pickaxe or better, and drops itself when broken with a
+            sufficient tool.
+        lore: |
+            Present since the earliest days of Minecraft Classic, the Block
+            of Gold became famous through the "Tower of Pimps" tradition in
+            Achievement Hunter's Let's Play series.
+    uses:
+        - title: Gold Ingot storage
+          ref: gold_ingot
+          detail: |
+              Craft nine gold ingots into a block for compact storage, and
+              reverse the recipe to retrieve the nine ingots later.
+        - title: Beacon base
+          ref: beacon
+          detail: |
+              Blocks of gold form part of a beacon pyramid, either alone or
+              mixed with iron, emerald, diamond, or netherite blocks, to
+              power the beacon's effects.
+    found_in:
+        - location: Ocean Monuments
+          detail: Eight blocks of gold form the central room of every ocean monument.
+        - location: Bastion Remnants
+          detail: Found in various bastion remnant chests in the Nether.
+        - location: Ruined Portals
+          detail: A small number generate as part of ruined portal loot and structure.
+    faq:
+        - question: What tool do I need to mine a Block of Gold?
+          answer: |
+              An iron pickaxe or better. Mining with stone, wood, or gold
+              pickaxes (or bare hands) destroys the block with no drop.
+        - question: Do Piglins care about gold blocks?
+          answer: |
+              Yes. Piglins are attracted to blocks of gold and will stop to
+              inspect them, similar to other gold items.
+        - question: Can I use gold blocks to power a beacon?
+          answer: |
+              Yes. A pyramid of gold blocks (or mixed with iron, emerald,
+              diamond, or netherite blocks) beneath a beacon activates its
+              power tiers.
+        - question: How do I get the gold ingots back out?
+          answer: |
+              Craft the block in a crafting table to reverse the recipe and
+              recover all nine gold ingots.
     data_version: "1.21.5"
 ---
 

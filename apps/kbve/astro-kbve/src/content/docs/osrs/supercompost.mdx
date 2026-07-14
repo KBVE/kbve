@@ -1,6 +1,6 @@
 ---
 title: Supercompost | OSRS Price Data
-description: "Supercompost: Super-good for the smallest or largest of plants.. High alch: 51 GP, GE limit: 2,000."
+description: "Supercompost reduces disease 4/5 per stage and raises minimum herb yield to 5. High alch: 51 GP, GE limit: 2,000."
 osrs:
   id: 6034
   name: Supercompost
@@ -12,51 +12,76 @@ osrs:
   lowalch: 34
   highalch: 51
   limit: 2000
-  item_id: 6034
-  type: farming_material
-  tradeable: true
-  weight: 3
-  buy_limit: 2000
-  requirements:
-    skills: []
-  obtaining:
-    primary:
-      method: Compost Bin
-      details: Fill with 15 suitable items (watermelons, herbs)
-    upgrade:
-      method: Compost Potion
-      details: Upgrade regular compost
-    shop:
-      name: Farmer Gricoller's Rewards
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: farming
+    tier: mid
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Disease reduction
+      description: Reduces crop disease chance by 4/5 per growth stage versus normal compost.
+    - name: Yield boost
+      description: Raises minimum herb yield to 5 and provides 26 Farming XP per bucket applied.
+  recipes:
+    - skill: farming
+      level: 1
+      xp: 26
+      materials:
+        - item_name: Compost
+          quantity: 1
+        - item_name: Saltpetre
+          quantity: 3
+      tools:
+        - Compost bin
+      output_quantity: 1
+  shops:
+    - shop_name: Farmer Gricoller's Rewards
+      location: Hosidius
       price: 5
-    drops:
-      - Zygomites
-      - Wilderness bosses
-  usage:
-    farming:
-      disease_reduction: 5/128
-      yield_increase: true
+      currency: Farming Reward Points
+      stock: 0
   related_items:
-    - slug: ultracompost
-      name: Ultracompost
-      relation: higher_tier
-    - slug: compost-potion
-      name: Compost potion
-      relation: upgrade_method
+    - item_name: Compost
+      slug: compost
+      relationship: downgrade
+      description: Base tier compost
+    - item_name: Ultracompost
+      slug: ultracompost
+      relationship: upgrade
+      description: Higher tier compost using volcanic ash
+    - item_name: Compost potion
+      slug: compost-potion
+      relationship: alternative
+      description: Upgrade method for regular compost
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Farming Material |
-    | Tradeable | Yes |
-    | Weight | 3 kg |
-    | Requirements | None |
+    > _"Super-good for the smallest or largest of plants."_
 
-    Reduces crop disease rate to 5/128.
-
-    Increases herb yield compared to regular compost.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Supercompost is made by filling a compost bin with 15 high-tier produce (watermelons, pineapples, herbs, oranges, papayas) or by combining 3 saltpetre with regular compost. Applying it requires only level 1 Farming and grants 26 XP per bucket.
+  market_strategy:
+    notes:
+      - "Demand follows farm-run cadence; bulk listings move quickly during herb XP events."
+      - "Watermelon farming pipelines feed into supercompost crafting."
+  trading_tips:
+    - Buy from Farmer Gricoller for 5 points and resell when GE prints above 75 gp.
+    - Stockpile during weekday lulls for weekend bot-buyer demand.
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

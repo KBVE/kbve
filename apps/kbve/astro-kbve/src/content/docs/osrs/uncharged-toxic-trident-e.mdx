@@ -12,9 +12,97 @@ osrs:
   lowalch: 43200
   highalch: 64800
   limit: 8
-  about: "Uncharged toxic trident (e) is a members-only item in Old School RuneScape. High alchemy value: 64,800 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magic weapon
+    tier: high
+  properties:
+    release_date: "2018-02-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Check
+      - Dismantle
+      - Drop
+    worn_options:
+      - Check
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: powered_staff
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      magic: 78
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 25
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 15
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Venomous strike
+      description: Has a 25 percent chance to inflict venom on the target when attacking with a charged trident.
+  recipes:
+    - skill: crafting
+      level: 59
+      xp: 100
+      materials:
+        - item_name: Uncharged trident (e)
+          quantity: 1
+        - item_name: Magic fang
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Trident of the swamp (e)
+      slug: trident-of-the-swamp-e
+      relationship: upgrade
+      description: Charged form with death runes, chaos runes, fire runes, and Zulrah scales
+    - item_name: Uncharged trident (e)
+      slug: uncharged-trident-e
+      relationship: downgrade
+      description: Pre-fang enhanced trident base
+    - item_name: Magic fang
+      slug: magic-fang
+      relationship: component
+      description: Zulrah-only upgrade material
+  about: |-
+    The uncharged toxic trident (e) is the dormant form of the trident of the swamp (e), released in February 2018 as part of the enhanced trident update. Created at level 59 Crafting by combining an uncharged trident (e) with a magic fang, it serves as the storage form when discharged. Charging it requires death runes, chaos runes, fire runes, and Zulrah scales, and the charged variant has a 25 percent chance to inflict venom.
+  market_strategy:
+    notes:
+      - "Buy limit of 8 caps speculative inventory size"
+      - "Demand driven by Zulrah farmers and CoX teams"
+      - "Magic fang price is the dominant cost component"
+      - "Price typically tracks Zulrah scale supply trends"
+      - "Charging margin is the primary flip signal"
+  trading_tips:
+    - Watch magic fang price as a leading indicator
+    - Flip into Magic XP event windows for demand bursts
+    - Hold during scale shortage cycles for upside
+  history:
+    - date: "2018-02-08"
+      description: "Released alongside the enhanced trident update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

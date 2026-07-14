@@ -1,5 +1,6 @@
 ---
 title: Oak Leaves
+template: splash
 description: |
     Minecraft Oak Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 88
     ref: oak_leaves
     slug: oak-leaves
+    content_rev: 1
     display_name: Oak Leaves
     material: leaves
     hardness: 0.2
@@ -24,10 +26,80 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: oak_sapling
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: stick
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: apple
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - hoe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Oak Leaves form the canopy of oak trees, generating naturally
+            around logs during world generation and tree growth. They
+            decay over time when no log is within range unless placed
+            directly by a player.
+        lore: |
+            Leaves have represented tree foliage since Minecraft's earliest
+            versions, with oak being the original wood type before other
+            tree species were added.
+    uses:
+        - title: Sapling Source
+          ref: oak_sapling
+          detail: |
+              Breaking leaves without Silk Touch has a small chance to
+              drop an oak sapling, which can be replanted to grow a new
+              oak tree.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Leaves can be placed in a composter to build up compost,
+              eventually yielding bone meal.
+    found_in:
+        - location: Oak Trees
+          detail: Generates as the leafy canopy on every naturally grown oak tree.
+        - location: Player-grown saplings
+          detail: |
+              Planting an oak sapling near light and space grows a new
+              tree with matching leaves.
+    faq:
+        - question: What tool do I need to mine Oak Leaves?
+          answer: |
+              None — any tool or bare hands work, but a hoe breaks them
+              fastest.
+        - question: How do I get a leaf block instead of a sapling?
+          answer: |
+              Break the leaves with a Silk Touch-enchanted tool or shears
+              to collect the leaves block itself.
+        - question: Can Oak Leaves drop apples?
+          answer: |
+              Yes — oak and dark oak leaves have a small chance (about
+              0.5%) to drop an apple when broken without Silk Touch.
+        - question: Why do my placed leaves disappear?
+          answer: |
+              Leaves not placed by a player decay when no log block is
+              within about 6 blocks (Java Edition); player-placed leaves
+              never decay.
     data_version: "1.21.5"
 ---
 

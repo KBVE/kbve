@@ -12,9 +12,84 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 150
-  about: "Villager hat (pink) is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: low
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      price: 240
+      currency: Trading sticks
+      stock: 1
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative (Karamja gloves)
+      location: Tai Bwo Wannai
+      price: 200
+      currency: Trading sticks
+      stock: 1
+  related_items:
+    - item_name: Villager robe (pink)
+      slug: villager-robe-pink
+      relationship: set-piece
+      description: Matching pink villager robe
+    - item_name: Villager sandals (pink)
+      slug: villager-sandals-pink
+      relationship: set-piece
+      description: Matching pink villager sandals
+  about: |-
+    The Villager hat (pink) is a cosmetic head piece sold by Gabooty's Tai Bwo Wannai Cooperative in Tai Bwo Wannai for 240 trading sticks (or 200 with Karamja gloves 1 or better). It provides no combat bonuses and is intended purely for fashionscape.
+
+    The hat can be stored in the magic wardrobe of a player-owned house Costume Room and forms part of the broader pink villager outfit available through the same shop.
+  market_strategy:
+    notes:
+      - "Fashionscape piece with limited combat utility"
+      - "Trading-sticks gate keeps supply modest"
+      - "Costume Room storage adds collector demand"
+  trading_tips:
+    - Stack trading sticks from Tai Bwo Wannai Cleanup before buying
+    - Karamja gloves 1+ saves 40 sticks per hat
+  history:
+    - date: "2005-08-09"
+      description: "Released as part of the Tai Bwo Wannai cosmetic outfits."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

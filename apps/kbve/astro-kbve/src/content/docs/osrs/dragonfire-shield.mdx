@@ -12,34 +12,100 @@ osrs:
   lowalch: 800000
   highalch: 1200000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragonhide
+    tier: high
+  properties:
+    release_date: "18 June 2007"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 7.257
+    options:
+      - Wield
+      - Inspect
+      - Drop
+    worn_options:
+      - Activate
+      - Check
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    type: dragonfire shield
-    tradeable: true
+    weapon_type: null
+    attack_speed: null
     weight: 7.257
     requirements:
       defence: 75
-    stats:
-      defence_stab: 20
-      defence_slash: 25
-      defence_crush: 22
-      defence_magic: 10
-      defence_ranged: 22
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: -5
+    defence_bonus:
+      stab: 20
+      slash: 25
+      crush: 22
+      magic: 10
+      ranged: 22
+    other_bonus:
       strength: 7
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 90
+      xp: 2000
+      materials:
+        - item_name: Anti-dragon shield
+          quantity: 1
+        - item_name: Draconic visage
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  passive_effects:
+    - name: Dragonfire protection
+      description: "Provides full protection against dragonfire equivalent to an anti-dragon shield, plus partial protection against icy breath from wyverns."
+    - name: Charged special attack
+      description: "When charged with up to 50 charges, the shield can be activated to unleash a dragonfire blast dealing up to 25 damage with a roughly 1:56 cooldown."
   related_items:
-    - item_id: 11286
-      item_name: Draconic visage
+    - item_name: Draconic visage
       slug: draconic-visage
       relationship: component
-      description: Required to create dragonfire shield
-    - item_id: 1540
-      item_name: Anti-dragon shield
+      description: Required component obtained from steel and higher dragons
+    - item_name: Anti-dragon shield
       slug: anti-dragon-shield
       relationship: component
-      description: Base shield for creating dragonfire shield
-  about: Absorbs dragonfire. Charges increase defence bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Base shield combined with the visage at level 90 Smithing
+    - item_name: Ancient wyvern shield
+      slug: ancient-wyvern-shield
+      relationship: alternative
+      description: Higher tier magic-leaning dragonfire shield alternative
+  about: |-
+    Dragonfire shield is a high-tier shield created at level 90 Smithing by combining an anti-dragon shield with a draconic visage on an anvil, requiring completion of Dragon Slayer I. The shield offers strong defensive bonuses, a passive dragonfire protection equivalent to the anti-dragon shield, and a charged dragonfire blast special attack.
+  market_strategy:
+    notes:
+      - "High alch 1.2M gp - frequently sustained above alch price"
+      - "Visage drop scarcity sets the floor price"
+      - "Buy limit 8 every 4 hours - thin liquidity"
+  trading_tips:
+    - Track draconic visage GE price as the leading indicator
+    - Uncharged version only is tradeable - empty charges before listing
+  history:
+    - date: "18 June 2007"
+      description: "Dragonfire shield released alongside the draconic visage drop."
+    - date: "26 February 2014"
+      description: "Released in Old School RuneScape after a developer poll."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

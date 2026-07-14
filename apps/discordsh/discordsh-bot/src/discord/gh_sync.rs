@@ -6,9 +6,9 @@ use kbve::entity::client::vault::VaultClient;
 use kbve::{CachedIssue, GithubStore, UndeliveredEvent};
 use poise::serenity_prelude as serenity;
 use serde::Deserialize;
-use serenity::builder::{CreateForumPost, CreateMessage};
+use serenity::builder::{CreateForumPost, CreateMessage, EditThread};
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 
 use crate::state::AppState;
 
@@ -129,6 +129,19 @@ pub fn spawn_gh_sync_worker(
         warn!("gh sync: SUPABASE_URL/SERVICE_ROLE_KEY missing, multi-guild routing disabled");
         return;
     };
+    if app
+        .gh_sync_worker_started
+        .compare_exchange(
+            false,
+            true,
+            std::sync::atomic::Ordering::AcqRel,
+            std::sync::atomic::Ordering::Acquire,
+        )
+        .is_err()
+    {
+        debug!("gh sync worker already running; skipping duplicate spawn");
+        return;
+    }
     let cfg = GhSyncConfig::from_env();
     info!(
         poll_secs = cfg.poll.as_secs(),
@@ -150,6 +163,11 @@ async fn run_loop(
     cfg: GhSyncConfig,
 ) {
     let routes: Arc<RwLock<RoutingTable>> = Arc::new(RwLock::new(RoutingTable::default()));
+
+    if backfill_on_start_enabled() {
+        backfill_closed_threads(&store, &http).await;
+    }
+
     loop {
         tokio::time::sleep(cfg.poll).await;
 
@@ -358,8 +376,33 @@ async fn dispatch(
 
     match ev.event_type.as_str() {
         "opened" => ensure_thread(store, http, route, &issue).await,
-        "closed" | "reopened" | "commented" | "labeled" | "assigned" | "unassigned"
-        | "unlabeled" | "edited" | "renamed" => post_into_thread(http, &issue, ev).await,
+        "commented" => {
+            if comment_is_mirrored(store, ev).await {
+                debug!(
+                    number = ev.number,
+                    "gh sync: comment originated from reverse sync — skipping echo"
+                );
+                return Ok(());
+            }
+            post_into_thread(http, &issue, ev).await
+        }
+        "closed" => {
+            post_into_thread(http, &issue, ev).await?;
+            set_thread_archived(http, &issue, true).await;
+            Ok(())
+        }
+        "reopened" => {
+            set_thread_archived(http, &issue, false).await;
+            post_into_thread(http, &issue, ev).await
+        }
+        "deleted" | "transferred" => {
+            post_into_thread(http, &issue, ev).await?;
+            set_thread_archived(http, &issue, true).await;
+            Ok(())
+        }
+        "labeled" | "assigned" | "unassigned" | "unlabeled" | "edited" | "renamed" => {
+            post_into_thread(http, &issue, ev).await
+        }
         _ => {
             debug!(
                 event = %ev.event_type,
@@ -367,6 +410,162 @@ async fn dispatch(
                 "gh sync: event type not mirrored — dropping"
             );
             Ok(())
+        }
+    }
+}
+
+/// Echo guard: a "commented" event whose GitHub comment id is already mapped in
+/// gh.comment_mirror originated from the reverse-sync path; re-posting it would
+/// duplicate the user's own thread reply. Fails open (posts) on lookup error.
+async fn comment_is_mirrored(store: &Arc<GithubStore>, ev: &UndeliveredEvent) -> bool {
+    let Some(comment_id) = ev
+        .payload
+        .get("comment")
+        .and_then(|c| c.get("id"))
+        .and_then(|id| id.as_i64())
+    else {
+        return false;
+    };
+    match store.is_github_comment_mirrored(comment_id).await {
+        Ok(mirrored) => mirrored,
+        Err(e) => {
+            warn!(error = %e, comment_id, "gh sync: echo-guard lookup failed, posting anyway");
+            false
+        }
+    }
+}
+
+fn lock_on_close_enabled() -> bool {
+    matches!(
+        std::env::var("GH_SYNC_LOCK_ON_CLOSE").ok().as_deref(),
+        Some("1") | Some("true") | Some("on")
+    )
+}
+
+fn backfill_on_start_enabled() -> bool {
+    matches!(
+        std::env::var("GH_SYNC_BACKFILL_ON_START").ok().as_deref(),
+        Some("1") | Some("true") | Some("on")
+    )
+}
+
+/// One-shot reverse-sync reconcile run at worker start when
+/// `GH_SYNC_BACKFILL_ON_START` is set. Archives (and locks, if
+/// `GH_SYNC_LOCK_ON_CLOSE`) the threads of issues that are already closed —
+/// these closed before VS6 was live so no `closed` webhook will ever fire for
+/// them. Idempotent against already-archived threads. Best-effort; unset the
+/// env after a clean run so a restart does not re-archive a thread a human has
+/// since manually reopened.
+async fn backfill_closed_threads(store: &Arc<GithubStore>, http: &Arc<serenity::Http>) {
+    const CAP: u32 = 1000;
+    let rows = match store.list_closed_issue_threads(CAP).await {
+        Ok(r) => r,
+        Err(e) => {
+            warn!(error = %e, "gh sync: backfill list_closed_issue_threads failed");
+            return;
+        }
+    };
+    if rows.is_empty() {
+        info!("gh sync: backfill — no closed-issue threads to reconcile");
+        return;
+    }
+    warn!(
+        count = rows.len(),
+        "gh sync: BACKFILL running — archiving closed-issue threads; unset GH_SYNC_BACKFILL_ON_START after this completes"
+    );
+    for issue in &rows {
+        set_thread_archived(http, issue, true).await;
+    }
+    if rows.len() as u32 == CAP {
+        warn!(
+            cap = CAP,
+            "gh sync: backfill hit cap — more closed threads may remain, rerun"
+        );
+    }
+    info!(archived = rows.len(), "gh sync: backfill complete");
+}
+
+/// Mirror GitHub issue state onto the forum thread (close→archive[+lock],
+/// reopen→unarchive+unlock). Event-driven only (never a reconcile loop), so a
+/// human who manually re-opens a thread is not repeatedly re-archived.
+///
+/// On close the archive and lock are SEPARATE best-effort calls: the archive
+/// lands first, then (if `GH_SYNC_LOCK_ON_CLOSE`) a second call re-asserts
+/// archived + adds the lock, so a lock failure (e.g. missing MANAGE_THREADS)
+/// never costs us the archive. All steps log + continue without failing the
+/// event delivery.
+async fn set_thread_archived(http: &Arc<serenity::Http>, issue: &CachedIssue, archived: bool) {
+    let Some(thread_id) = issue.discord_thread_id else {
+        return;
+    };
+    let thread = serenity::ChannelId::new(thread_id as u64);
+
+    if !archived {
+        // Reopen: unarchive + unlock in one call.
+        edit_thread_step(
+            http,
+            thread,
+            EditThread::new().archived(false).locked(false),
+            issue.number,
+            thread_id,
+            "unarchive",
+        )
+        .await;
+        return;
+    }
+
+    // Close: archive first so it lands even if a later lock is rejected.
+    let archived_ok = edit_thread_step(
+        http,
+        thread,
+        EditThread::new().archived(true),
+        issue.number,
+        thread_id,
+        "archive",
+    )
+    .await;
+
+    // Then try to lock (re-assert archived so the thread stays archived).
+    if archived_ok && lock_on_close_enabled() {
+        edit_thread_step(
+            http,
+            thread,
+            EditThread::new().archived(true).locked(true),
+            issue.number,
+            thread_id,
+            "lock",
+        )
+        .await;
+    }
+}
+
+async fn edit_thread_step(
+    http: &Arc<serenity::Http>,
+    thread: serenity::ChannelId,
+    builder: EditThread<'_>,
+    number: u32,
+    thread_id: i64,
+    step: &str,
+) -> bool {
+    match thread.edit_thread(&**http, builder).await {
+        Ok(_) => {
+            debug!(
+                number,
+                thread = thread_id,
+                step,
+                "gh sync: thread lifecycle step ok"
+            );
+            true
+        }
+        Err(e) => {
+            warn!(
+                error = %e,
+                number,
+                thread = thread_id,
+                step,
+                "gh sync: thread lifecycle step failed (missing MANAGE_THREADS?)"
+            );
+            false
         }
     }
 }

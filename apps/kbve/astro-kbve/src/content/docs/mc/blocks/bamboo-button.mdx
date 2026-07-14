@@ -1,5 +1,6 @@
 ---
 title: Bamboo Button
+template: splash
 description: |
     Minecraft Bamboo Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 420
     ref: bamboo_button
     slug: bamboo-button
+    content_rev: 1
     display_name: Bamboo Button
     material: redstone
     hardness: 0.5
@@ -24,10 +26,56 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Bamboo Button is a monostable redstone component crafted from
+            Bamboo Planks. Pressing it emits a redstone pulse for 1.5
+            seconds, and it can be triggered by players, arrows, or tridents.
+        lore: |
+            Added alongside the rest of the bamboo wood set in Java Edition
+            1.20, following the pattern of every other wood-type button.
+    uses:
+        - title: Redstone Circuits
+          ref: redstone_dust
+          detail: |
+              Wire to doors, dispensers, or other mechanisms as a quick,
+              projectile-triggerable power source.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Smelts 0.5 items per button when used as furnace fuel.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from a single Bamboo Plank.
+    faq:
+        - question: What tool mines Bamboo Button fastest?
+          answer: |
+              An axe. It can also be mined by hand instantly since its
+              hardness is very low.
+        - question: Can projectiles trigger Bamboo Button?
+          answer: |
+              Yes. Arrows and tridents can activate it in addition to
+              players, unlike stone buttons.
+        - question: How long does Bamboo Button stay powered?
+          answer: |
+              1.5 seconds per press, the same duration as every other
+              wooden button.
+        - question: Is Bamboo Button flammable?
+          answer: |
+              Yes. It can catch fire like other bamboo wood items if
+              exposed to nearby flames.
     data_version: "1.21.5"
 ---
 

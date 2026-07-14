@@ -12,78 +12,95 @@ osrs:
   lowalch: 7050
   highalch: 10575
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: enchanted dragonstone
+    tier: mid-high
+  properties:
+    release_date: "2004-04-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - Wear
+      - Features
+      - Rub
+      - Drop
+    alchable: true
+    destroy: "You will lose any remaining charges. Are you sure you want to drop it?"
   equipment:
     slot: ring
-    type: teleport_jewelry
-    tradeable: true
     weight: 0.006
-  effect:
-    teleports:
-      - destination: Grand Exchange
-      - destination: Falador Park
-      - destination: Miscellania
-      - destination: Dondakan's mine
-    charges: 5
-    recharge: Fountain of Rune
-    drop_table_boost: true
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: magic
       level: 68
       xp: 78
       materials:
-        - item_id: 2550
-          item_name: Ring of dueling(8)
+        - item_name: Ring of wealth
           quantity: 1
-        - item_id: 1615
-          item_name: Dragonstone
+        - item_name: Cosmic rune
           quantity: 1
-      note: Enchant Dragonstone ring
-  construction:
-    ornate_jewellery_box:
-      quantity: "8"
-      level: 91
+        - item_name: Earth rune
+          quantity: 15
+        - item_name: Water rune
+          quantity: 15
+        - item_name: Law rune
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  charges:
+    type: teleport
+    description: "Five charges that teleport to Grand Exchange, Falador Park, Miscellania, or Dondakan's mine. Recharge at the Fountain of Rune in the Wilderness."
   related_items:
-    - item_id: 2572
-      item_name: Ring of wealth
+    - item_name: Ring of wealth
       slug: ring-of-wealth
       relationship: variant
-      description: Uncharged version
-    - item_id: 8784
-      item_name: Gold leaf
-      slug: gold-leaf
+      description: Uncharged base version produced after the last charge is used.
+    - item_name: Ring of wealth (i)
+      slug: ring-of-wealth-i
+      relationship: upgrade
+      description: Imbued Wilderness variant with permanent benefits.
+    - item_name: Dragonstone
+      slug: dragonstone
       relationship: component
-      description: For ornate jewellery box
-    - item_id: 1712
-      item_name: Amulet of glory(4)
-      slug: amulet-of-glory-4
-      relationship: alternative
-      description: Also used in jewellery box
-  about: |-
-    | Destination | Uses |
-    |-------------|------|
-    | Grand Exchange | Banking, trading |
-    | Falador Park | Tree patch |
-    | Miscellania | Kingdom management |
-    | Dondakan's mine | Gold mining |
-
-    Charges: 5 teleports per ring
-
-    Recharge: Fountain of Rune (Wilderness)
-
-    Required for POH upgrade:
-    - 8x Ring of wealth (5)
-    - 8x Amulet of glory(4)
-    - 2x Gold leaf
-    - 91 Construction
-
-    Provides unlimited teleports to all locations from POH.
+      description: Gem combined with a gold bar to craft the base ring before enchantment.
+  about: "Ring of wealth (5) is the fully charged form of the ring of wealth, granting five Fountain of Rune teleports plus automatic coin pickup and improved rare drop table odds while equipped. Players craft the uncharged ring at 50 Crafting, enchant it via Enchant Level 5 at 68 Magic, then top up charges at the Fountain of Rune. Eight charged rings are also required for the ornate jewellery box in player owned house Construction."
   market_strategy:
     notes:
-      - Buy in bulk for ornate jewellery box
-      - Popular for ironman accounts
-      - GE teleport is highly useful
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "High GE buy limit of 10,000 keeps supply elastic for flippers."
+      - "Construction demand for ornate jewellery box sets the price floor."
+      - "PvP and Wilderness activity adjusts short term flow."
+  trading_tips:
+    - Charge rings from scratch when uncharged ring plus Dragonstone is cheaper than buying charged.
+    - Buy bulk during Construction bonus events for ornate jewellery box installs.
+    - Track Wilderness updates that change Fountain of Rune access for price swings.
+  history:
+    - date: "2004-04-20"
+      description: "Ring of wealth originally released with the OSRS gem and jewellery system."
+    - date: "2016-08-18"
+      description: "Gained automatic coin pickup and enhanced rare drop table odds."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

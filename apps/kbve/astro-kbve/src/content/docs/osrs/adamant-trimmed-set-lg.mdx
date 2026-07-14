@@ -12,9 +12,58 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: 8
-  about: "Adamant trimmed set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 4,800 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour set
+    tier: mid
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Adamant full helm (t)
+      slug: adamant-full-helm-t
+      relationship: set-piece
+      description: "Helm component of the trimmed set"
+    - item_name: Adamant platebody (t)
+      slug: adamant-platebody-t
+      relationship: set-piece
+      description: "Platebody component of the trimmed set"
+    - item_name: Adamant platelegs (t)
+      slug: adamant-platelegs-t
+      relationship: set-piece
+      description: "Platelegs component of the trimmed set"
+    - item_name: Adamant kiteshield (t)
+      slug: adamant-kiteshield-t
+      relationship: set-piece
+      description: "Kiteshield component of the trimmed set"
+  about: |-
+    The Adamant trimmed set (lg) is an item-set obtained by exchanging the four trimmed adamant pieces with a Grand Exchange clerk via the right-click Sets option. It contains an adamant full helm (t), platebody (t), platelegs (t), and kiteshield (t).
+
+    The set exists primarily as a convenience for buying or selling the full kit in one Grand Exchange listing rather than handling four separate items.
+  market_strategy:
+    notes:
+      - "Set provides a price premium over the individual components"
+      - "Convenience listing for collectors and PKers"
+      - "Free-to-play armour with steady but low volume"
+  trading_tips:
+    - Compare set price vs. sum of components for arbitrage opportunities
+    - GE limit of 8 caps short-term flipping volume
+  history:
+    - date: "2015-02-26"
+      description: "Item set added to the game alongside the Grand Exchange set exchange feature."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

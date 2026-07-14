@@ -1,5 +1,6 @@
 ---
 title: Small Dripleaf
+template: splash
 description: |
     Minecraft Small Dripleaf — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 1055
     ref: small_dripleaf
     slug: small-dripleaf
+    content_rev: 1
     display_name: Small Dripleaf
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: small_dripleaf
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Small Dripleaf is a two-block-tall cave plant that generates in
+            lush caves. It breaks instantly with any tool but only drops
+            an item when harvested with shears; any other tool or bare
+            hands destroys it with no drop.
+        lore: |
+            Introduced with the lush caves biome in the Caves & Cliffs
+            Update (1.17), it was first shown off at Minecraft Live 2020
+            as part of the update's cave vegetation showcase.
+    uses:
+        - title: Big Dripleaf Growth
+          ref: big_dripleaf
+          detail: |
+              Applying bone meal transforms a small dripleaf into a tall
+              big dripleaf, a springy platform block used for vertical
+              traversal in caves.
+    found_in:
+        - location: Lush Caves
+          detail: Generates naturally on moss, clay, and various soil blocks within the lush caves biome, including underwater.
+        - location: Wandering Traders
+          detail: Occasionally sold in pairs by wandering traders for one emerald.
+    faq:
+        - question: What tool do I need to collect a Small Dripleaf?
+          answer: |
+              Shears. Mining it with anything else, including bare hands,
+              destroys the plant instantly with no drop.
+        - question: Can I farm Small Dripleaf with bone meal?
+          answer: |
+              No, bone meal converts it directly into a big dripleaf
+              instead of duplicating it, so the plant is consumed in the
+              transformation rather than multiplied.
+        - question: Where does Small Dripleaf naturally generate?
+          answer: |
+              Exclusively in the lush caves biome, often alongside moss
+              and spore blossoms, including in shallow water.
+        - question: Is Small Dripleaf flammable?
+          answer: |
+              Yes, like most plant blocks it can catch fire and burn when
+              exposed to flames or lava.
     data_version: "1.21.5"
 ---
 

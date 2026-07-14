@@ -1,6 +1,6 @@
 ---
 title: Sturdy harness | OSRS Price Data
-description: "Sturdy harness: I can use this to combine the forestry kit and log basket into one tool.. High alch: 3,000 GP."
+description: "Sturdy harness: I can use this to combine the forestry kit and log basket into one tool. High alch: 3,000 GP."
 osrs:
   id: 28149
   name: Sturdy harness
@@ -11,85 +11,95 @@ osrs:
   value: 5000
   lowalch: 2000
   highalch: 3000
-  limit: null
-  item:
+  limit: 0
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
     type: material
+    tier: mid-high
+  properties:
+    release_date: "2023-08-30"
+    update: Forestry Part 2
     tradeable: false
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.907
+    options:
+      - "Use"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: smithing
       level: 75
-      requirements:
-        woodcutting: 75
+      xp: 60
       materials:
-        - item_id: 28151
-          item_name: Log brace
+        - item_name: Log brace
           quantity: 1
-        - item_id: 1539
-          item_name: Steel nails
+        - item_name: Steel nails
           quantity: 45
-        - item_id: 954
-          item_name: Rope
+        - item_name: Rope
           quantity: 2
-        - item_id: 2361
-          item_name: Adamantite bar
+        - item_name: Adamantite bar
           quantity: 3
-      product: Sturdy harness
-      product_id: 28149
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      notes: "Also requires 75 Woodcutting; smithed at any anvil."
     - skill: crafting
+      level: 1
+      xp: 0
       materials:
-        - item_id: 28136
-          item_name: Forestry kit
+        - item_name: Forestry kit
           quantity: 1
-        - item_id: 28140
-          item_name: Log basket
+        - item_name: Log basket
           quantity: 1
-        - item_id: 28149
-          item_name: Sturdy harness
+        - item_name: Sturdy harness
           quantity: 1
-      product: Forestry basket
-      product_id: 28142
+      tools: []
+      output_quantity: 1
+      notes: "Combines Forestry kit and Log basket into a single Forestry basket; reversible from the basket settings menu."
   related_items:
-    - item_id: 28136
-      item_name: Forestry kit
+    - item_name: Forestry kit
       slug: forestry-kit
       relationship: component
-      description: Combine material for Forestry basket
-    - item_id: 28140
-      item_name: Log basket
+      description: "Combine material for the Forestry basket."
+    - item_name: Log basket
       slug: log-basket
       relationship: component
-      description: Combine material for Forestry basket
-    - item_id: 28142
-      item_name: Forestry basket
+      description: "Combine material for the Forestry basket."
+    - item_name: Forestry basket
       slug: forestry-basket
       relationship: product
-      description: Created combined storage item
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | No |
-    | Weight | 0.907 kg |
-
-    Requirements: 75 Smithing, 75 Woodcutting
-
-    Materials:
-    - 1 Log brace
-    - 45 Steel nails
-    - 2 Ropes
-    - 3 Adamantite bars
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Forestry basket | Forestry kit + Log basket + Sturdy harness |
-
-    Combination is reversible via Forestry basket settings.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Combined Woodcutting storage and tool created using the harness."
+    - item_name: Forestry shop
+      slug: forestry-shop
+      relationship: alternative
+      description: "Shop where the recipe parts are unlocked via Forestry events."
+  about: "Sturdy harness is an untradeable crafting material used to combine the Forestry kit and Log basket into a Forestry basket - a single-slot, in-inventory Woodcutting upgrade. The harness is hand-smithed by the player at 75 Smithing with 75 Woodcutting, using a Log brace, steel nails, rope and adamantite bars. Combining the three items is reversible through the Forestry basket settings menu."
+  market_strategy:
+    notes:
+      - "Untradeable; cannot be flipped on the GE."
+      - "Demand is one-and-done per account that wants a Forestry basket."
+      - "Material cost is recovered once the combined basket frees an inventory slot."
+  trading_tips:
+    - "Always craft on-demand; never stockpile (untradeable)."
+    - "Source adamantite bars in bulk when smithing the harness."
+    - "If the Forestry basket has been disbanded, the harness drops back into your inventory."
+  history:
+    - date: "2023-08-30"
+      description: "Released with Forestry Part 2 as the combine material for the Forestry basket."
+    - date: "2023-09-13"
+      description: "Combine recipe clarified to be reversible from the basket settings menu."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

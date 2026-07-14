@@ -13,8 +13,55 @@ osrs:
   highalch: 120
   limit: 25000
   about: "Aether catalyst is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 25,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: catalyst
+    tier: high
+  properties:
+    release_date: "2024-10-23"
+    quest_item: false
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    destroy_action: drop
+    options:
+      - drop
+  drop_table:
+    sources:
+      - source: Amoxliatl
+        source_id: 13837
+        combat_level: 115
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Hueycoatl
+        source_id: 14013
+        combat_level: 723
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 565
+      item_name: Blood rune
+      slug: blood-rune
+      relationship: component
+      description: Pairs with catalyst in spellbook augments
+    - item_id: 30772
+      item_name: Sun-kissed bones
+      slug: sun-kissed-bones
+      relationship: alternative
+      description: Alternate Varlamore reward drop
+  market_strategy:
+    notes:
+      - "Newer Varlamore drop"
+      - "Used in Aether spell augments"
+      - "High volume from Hueycoatl farming"
+      - "Price tracks PvM popularity"
+  trading_tips:
+    - "Buying tip: dip-buy after Hueycoatl mass-farm streams"
+    - "Selling tip: list during high-end magic content updates"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

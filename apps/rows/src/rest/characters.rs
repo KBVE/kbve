@@ -1,18 +1,17 @@
+//! Character persistence routes (`/api/Characters/*`, `/api/Status/*`). Read routes are tenant-gated
+//! (`require_customer_guid`); write routes (stats, positions, logout) additionally require a valid
+//! `x-service-key` and are only callable by the trusted UE dedicated server.
+
 use super::HandlerState;
 use crate::error::{ApiResult, SuccessResponse};
 use crate::middleware::{extract_customer_guid, require_customer_guid};
 use crate::models::CustomDataRows;
 use axum::{Json, Router, extract::State, http::HeaderMap, middleware, routing::post};
 use serde::Deserialize;
+use utoipa::ToSchema;
 
 pub(super) fn character_persistence_routes(hs: HandlerState) -> Router {
-    Router::new()
-        .route("/api/Characters/GetByName", post(get_char_by_name))
-        .route("/api/Characters/GetCustomData", post(get_custom_data))
-        .route(
-            "/api/Characters/AddOrUpdateCustomData",
-            post(add_or_update_custom_data),
-        )
+    let server = Router::new()
         .route(
             "/api/Characters/UpdateCharacterStats",
             post(update_character_stats),
@@ -22,21 +21,41 @@ pub(super) fn character_persistence_routes(hs: HandlerState) -> Router {
             post(update_all_positions),
         )
         .route("/api/Characters/PlayerLogout", post(player_logout))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            super::require_service_key,
+        ));
+
+    server
+        .route("/api/Characters/GetByName", post(get_char_by_name))
+        .route("/api/Characters/GetCustomData", post(get_custom_data))
+        .route(
+            "/api/Characters/AddOrUpdateCustomData",
+            post(add_or_update_custom_data),
+        )
         .route(
             "/api/Status/GetCharacterStatuses",
             post(get_character_statuses),
         )
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct CharNameDto {
+pub(crate) struct CharNameDto {
     character_name: String,
 }
 
-async fn get_char_by_name(
+/// Fetches a character by name within the tenant.
+#[utoipa::path(post, path = "/api/Characters/GetByName", tag = "characters",
+    request_body = inline(CharNameDto),
+    responses((status = 200, description = "Character", body = crate::models::Character))
+)]
+pub(crate) async fn get_char_by_name(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
@@ -49,7 +68,12 @@ async fn get_char_by_name(
     Ok(Json(ch))
 }
 
-async fn get_custom_data(
+/// Returns all custom-data key/value rows for a character.
+#[utoipa::path(post, path = "/api/Characters/GetCustomData", tag = "characters",
+    request_body = inline(CharNameDto),
+    responses((status = 200, description = "Custom-data rows", body = crate::models::CustomDataRows))
+)]
+pub(crate) async fn get_custom_data(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
@@ -62,27 +86,42 @@ async fn get_custom_data(
     Ok(Json(CustomDataRows { rows: data }))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct UpdatePositionsDto {
+pub(crate) struct UpdatePositionsDto {
     serialized_player_location_data: String,
     #[allow(dead_code)]
     map_name: String,
 }
 
-async fn update_all_positions(
+/// Bulk position update from the dedicated server. Requires `x-service-key`. The
+/// `serializedPlayerLocationData` field uses the OWS wire format
+/// `CharName:X:Y:Z:RX:RY:RZ|CharName2:...`.
+#[utoipa::path(post, path = "/api/Characters/UpdateAllPlayerPositions", tag = "characters",
+    request_body = inline(UpdatePositionsDto),
+    responses(
+        (status = 200, description = "Update result", body = SuccessResponse),
+        (status = 401, description = "Missing or invalid x-service-key"),
+    )
+)]
+pub(crate) async fn update_all_positions(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<UpdatePositionsDto>,
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
 
-    // Wire format from OWS: `CharName:X:Y:Z:RX:RY:RZ|CharName2:...`
-    let mut updated = 0u32;
-    let mut failed = 0u32;
-    for entry in body.serialized_player_location_data.split('|') {
+    // Wire format from OWS: `CharName:X:Y:Z:RX:RY:RZ|CharName2:...`. Parse every entry first, then
+    // flush the whole batch in one DB round-trip instead of one UPDATE per player.
+    let data = &body.serialized_player_location_data;
+    let mut rows: Vec<crate::repo::PositionRow<'_>> = Vec::new();
+    let mut malformed = 0u32;
+    for entry in data.split('|').filter(|e| !e.is_empty()) {
         let mut it = entry.splitn(8, ':');
-        let Some(char_name) = it.next() else { continue };
+        let Some(char_name) = it.next() else {
+            malformed += 1;
+            continue;
+        };
         let (Some(sx), Some(sy), Some(sz), Some(srx), Some(sry), Some(srz)) = (
             it.next(),
             it.next(),
@@ -91,6 +130,7 @@ async fn update_all_positions(
             it.next(),
             it.next(),
         ) else {
+            malformed += 1;
             continue;
         };
         let (Ok(x), Ok(y), Ok(z), Ok(rx), Ok(ry), Ok(rz)) = (
@@ -101,45 +141,58 @@ async fn update_all_positions(
             sry.parse::<f64>(),
             srz.parse::<f64>(),
         ) else {
+            malformed += 1;
             continue;
         };
-
-        if let Err(e) = hs
-            .svc
-            .update_position(customer_guid, char_name, x, y, z, rx, ry, rz)
-            .await
-        {
-            tracing::warn!(char_name, error = %e, "position update failed");
-            failed += 1;
-        } else {
-            updated += 1;
-        }
+        rows.push(crate::repo::PositionRow {
+            char_name,
+            x,
+            y,
+            z,
+            rx,
+            ry,
+            rz,
+        });
     }
 
-    if failed > 0 {
+    let updated = match hs.svc.update_positions(customer_guid, &rows).await {
+        Ok(n) => n,
+        Err(e) => {
+            tracing::warn!(error = %e, "bulk position update failed");
+            return Json(SuccessResponse::err(e.to_string()));
+        }
+    };
+
+    if malformed > 0 {
         Json(SuccessResponse::err(format!(
-            "{failed} position updates failed, {updated} succeeded"
+            "{malformed} malformed position entries skipped, {updated} rows updated"
         )))
     } else {
         Json(SuccessResponse::ok())
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct AddCustomDataWrapper {
+pub(crate) struct AddCustomDataWrapper {
+    #[schema(inline)]
     add_or_update_custom_character_data: AddCustomDataPayload,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct AddCustomDataPayload {
+pub(crate) struct AddCustomDataPayload {
     character_name: String,
     custom_field_name: String,
     field_value: String,
 }
 
-async fn add_or_update_custom_data(
+/// Upserts a single custom-data field on a character.
+#[utoipa::path(post, path = "/api/Characters/AddOrUpdateCustomData", tag = "characters",
+    request_body = inline(AddCustomDataWrapper),
+    responses((status = 200, description = "Upsert result", body = SuccessResponse))
+)]
+pub(crate) async fn add_or_update_custom_data(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<AddCustomDataWrapper>,
@@ -163,7 +216,7 @@ async fn add_or_update_custom_data(
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct UpdateStatsDto {
+pub(crate) struct UpdateStatsDto {
     #[serde(alias = "charName", alias = "CharName")]
     character_name: String,
     // C# OWS posts each stat as a top-level field; flatten captures them as a JSON map.
@@ -171,7 +224,17 @@ struct UpdateStatsDto {
     stats: serde_json::Value,
 }
 
-async fn update_character_stats(
+/// Persists arbitrary character stats from the dedicated server. Requires `x-service-key`. The body
+/// is `{ "characterName": "...", <statName>: <value>, ... }` — stat fields are flattened into a JSON
+/// map alongside `characterName`.
+#[utoipa::path(post, path = "/api/Characters/UpdateCharacterStats", tag = "characters",
+    request_body = serde_json::Value,
+    responses(
+        (status = 200, description = "Update result", body = SuccessResponse),
+        (status = 401, description = "Missing or invalid x-service-key"),
+    )
+)]
+pub(crate) async fn update_character_stats(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<UpdateStatsDto>,
@@ -194,7 +257,15 @@ async fn update_character_stats(
     }
 }
 
-async fn player_logout(
+/// Marks a character offline. Requires `x-service-key`.
+#[utoipa::path(post, path = "/api/Characters/PlayerLogout", tag = "characters",
+    request_body = inline(CharNameDto),
+    responses(
+        (status = 200, description = "Logout result", body = SuccessResponse),
+        (status = 401, description = "Missing or invalid x-service-key"),
+    )
+)]
+pub(crate) async fn player_logout(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
@@ -213,7 +284,12 @@ async fn player_logout(
     }
 }
 
-async fn get_character_statuses(
+/// Returns online/offline status rows for a character.
+#[utoipa::path(post, path = "/api/Status/GetCharacterStatuses", tag = "characters",
+    request_body = inline(CharNameDto),
+    responses((status = 200, description = "Character status rows", body = [crate::models::CharacterStatus]))
+)]
+pub(crate) async fn get_character_statuses(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,

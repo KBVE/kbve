@@ -12,73 +12,97 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: nails
-    tier: iron
-  smithing:
-    level: 19
-    xp: 25
-    bars: 1
-    nails_per_bar: 15
-  construction:
-    bend_rate: High
-    min_level: 1
+    tier: low
+  properties:
+    release_date: "2005-05-17"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: smithing
       level: 19
       xp: 25
       materials:
         - item_name: Iron bar
-          item_id: 2351
           quantity: 1
-      product: Iron nails
-      product_id: 4820
-      product_quantity: 15
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 15
+  shops:
+    - shop_name: Sawmill
+      location: Sawmill
+      price: 5
+      currency: coins
+      stock: 1000
+    - shop_name: Woodcutting Guild Shop
+      location: Woodcutting Guild
+      price: 5
+      currency: coins
+      stock: 1000
+    - shop_name: Prifddinas Construction Shop
+      location: Prifddinas
+      price: 5
+      currency: coins
+      stock: 1000
+    - shop_name: Auburnvale Construction Shop
+      location: Auburnvale
+      price: 5
+      currency: coins
+      stock: 1000
+    - shop_name: Port Piscarilius Construction Shop
+      location: Port Piscarilius
+      price: 4
+      currency: coins
+      stock: 500
+    - shop_name: Shipyard Construction Shop
+      location: Shipyard
+      price: 5
+      currency: coins
+      stock: 1000
   related_items:
-    - item_id: 2351
-      item_name: Iron bar
+    - item_name: Iron bar
       slug: iron-bar
       relationship: component
-      description: Smelting material
-    - item_id: 4819
-      item_name: Bronze nails
+      description: "Smelted to make 15 nails per bar"
+    - item_name: Bronze nails
       slug: bronze-nails
       relationship: downgrade
-      description: Higher bend rate
-    - item_id: 1539
-      item_name: Steel nails
+      description: "Highest bend rate, cheaper tier"
+    - item_name: Steel nails
       slug: steel-nails
       relationship: upgrade
-      description: Most common nails
-    - item_id: 960
-      item_name: Plank
+      description: "Medium bend rate, recommended Construction nail"
+    - item_name: Plank
       slug: plank
       relationship: component
-      description: Used with planks
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Bend rate | High |
-    | Construction level | 1+ |
-    | Used with | Planks |
-
-    Note: Iron nails still have a high bend rate. Consider steel nails instead.
-
-    | Nails | Bend Rate |
-    |-------|-----------|
-    | Bronze | Highest |
-    | Iron | High |
-    | Steel | Medium |
-    | Mithril | Low |
-    | Adamantite | Very Low |
-    | Rune | Never bends |
+      description: "Used together with planks for Construction builds"
+  about: "Iron nails are used in Construction to attach planks. They have a high bend rate compared to steel, mithril, and higher tier nails, so most builders skip them in favour of steel."
   market_strategy:
     notes:
-      - Slightly better than bronze nails
-      - Still bends frequently
-      - Steel nails recommended for training
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheap nails but bend frequently when hammered into planks"
+      - "Steel nails are the standard pick for serious Construction training"
+      - "Buyable in bulk from Sawmill and other Construction shops"
+  history:
+    - date: "2026-05-27"
+      description: "Item graphically updated to better match other iron items."
+    - date: "2005-07-05"
+      description: "Item value increased from 0 to 4 coins."
+    - date: "2005-05-17"
+      description: "Item released to the game."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

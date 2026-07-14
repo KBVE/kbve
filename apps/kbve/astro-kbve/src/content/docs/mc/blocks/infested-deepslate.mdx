@@ -1,5 +1,6 @@
 ---
 title: Infested Deepslate
+template: splash
 description: |
     Minecraft Infested Deepslate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1079
     ref: infested_deepslate
     slug: infested-deepslate
+    content_rev: 1
     display_name: Infested Deepslate
     material: stone
     hardness: 1.5
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: deepslate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Infested Deepslate generates as an ore-like blob within
+            mountain biome deepslate layers, disguised as ordinary
+            deepslate. Breaking one without Silk Touch destroys it and
+            releases a hostile silverfish.
+        lore: |
+            It was added alongside deepslate in the Caves & Cliffs Part II
+            update, extending the silverfish's hiding spots into the
+            deep underground and mountain peaks.
+    uses:
+        - title: Silk Touch Harvesting
+          ref: deepslate
+          detail: |
+              Mining with Silk Touch converts it into plain deepslate,
+              usable for building and further crafting into cobbled
+              deepslate.
+    found_in:
+        - location: Mountain Biomes
+          detail: Generates as blobs within Windswept Hills, Meadows, Groves, Snowy Slopes, and Stony Peaks biomes.
+        - location: Deepslate Layers
+          detail: Found embedded in deepslate terrain roughly at Y=-64 to Y=63 where mountain generation intersects the deep layers.
+    faq:
+        - question: What happens if I mine it without Silk Touch?
+          answer: |
+              The block breaks, drops nothing, and an aggressive
+              silverfish spawns and attacks immediately.
+        - question: Where does Infested Deepslate generate?
+          answer: |
+              As hidden ore-like blobs in the deepslate portions of
+              mountain biomes such as windswept hills and stony peaks.
+        - question: Is it harder to mine than Infested Stone?
+          answer: |
+              Yes, at 1.5 hardness it takes longer to break than the
+              0.75-hardness stone and stone brick variants, though still
+              no minimum tool tier is required.
+        - question: Does explosion breaking still spawn silverfish?
+          answer: |
+              No. Since version 1.15, destroying infested blocks with
+              explosions no longer spawns silverfish.
     data_version: "1.21.5"
 ---
 

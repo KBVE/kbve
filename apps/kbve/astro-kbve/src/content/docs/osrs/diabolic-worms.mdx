@@ -12,9 +12,60 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 8000
-  about: "Diabolic worms is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 8,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: fishing bait
+    tier: mid
+  properties:
+    release_date: "2025-05-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Yama
+        quantity: "90"
+        rarity: 7/95.11
+      - source: Yama Contract
+        quantity: "250"
+        rarity: Always
+  related_items:
+    - item_name: Sandworms
+      slug: sandworms
+      relationship: downgrade
+      description: Cheaper anglerfish bait without the speed effect
+    - item_name: Raw anglerfish
+      slug: raw-anglerfish
+      relationship: product
+      description: Fish caught using diabolic worms as bait
+    - item_name: Tackle box
+      slug: tackle-box
+      relationship: alternative
+      description: Stores diabolic worms with other fishing bait
+  about: "Diabolic worms are bait dropped by Yama (CB 1238) in the Demonic Pacts content, used for catching raw anglerfish. Consuming a worm gives the next catch roll a 50% chance to trigger one tick faster, raising success rate from ~14% to ~40% at 99 Fishing in exchange for reduced xp (120 to 79.2 per catch)."
+  market_strategy:
+    notes:
+      - "Price tracks Yama kill volume and anglerfish demand for raids and ToB scaling."
+      - "Stackable and 0kg weight, so demand spikes after Yama updates or anglerfish meta shifts."
+      - "Yama Contract grants 250 per completion, providing steady supply for the GE."
+  trading_tips:
+    - Buy when Yama is freshly content-active and supply outpaces demand; sell ahead of raid events.
+    - Compare break-even xp vs sandworms — for xp goals, sandworms are cheaper; for gp/hr fishing, worms win.
+    - High daily volume (~360k) supports fast bulk flips within the 8,000 buy limit.
+  history:
+    - date: "2025-05-14"
+      description: "Released via the Yama update"
+    - date: "2025-05-29"
+      description: "Added to tackle box storage"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

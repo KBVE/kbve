@@ -1,0 +1,213 @@
+---
+import { getCollection } from 'astro:content';
+
+const MONTHS = [
+	'January',
+	'February',
+	'March',
+	'April',
+	'May',
+	'June',
+	'July',
+	'August',
+	'September',
+	'October',
+	'November',
+	'December',
+];
+
+const posts = await getCollection(
+	'docs',
+	(entry) =>
+		entry.id.startsWith('journal/') &&
+		!entry.id.endsWith('index') &&
+		/^journal\/\d{2}-\d{2}$/.test(entry.id),
+);
+
+interface ArchiveRow {
+	href: string;
+	title: string;
+	description: string;
+	day: number;
+}
+
+const byMonth = new Map<number, ArchiveRow[]>();
+
+for (const entry of posts) {
+	const [mm, dd] = entry.id.replace('journal/', '').split('-');
+	const month = Number(mm);
+	const day = Number(dd);
+	if (!month || !day) continue;
+	const rows = byMonth.get(month) ?? [];
+	rows.push({
+		href: `/${entry.id}/`,
+		title: entry.data.title,
+		description: (entry.data.description ?? '').trim(),
+		day,
+	});
+	byMonth.set(month, rows);
+}
+
+const currentMonth = new Date().getMonth() + 1;
+const monthOrder = Array.from(byMonth.keys()).sort((a, b) => {
+	const ra = (currentMonth - a + 12) % 12;
+	const rb = (currentMonth - b + 12) % 12;
+	return ra - rb;
+});
+
+for (const rows of byMonth.values()) {
+	rows.sort((a, b) => b.day - a.day);
+}
+
+const total = posts.length;
+---
+
+<section class="blogarc not-content">
+	<div class="blogarc__intro">
+		<h2 class="blogarc__title">Journal archive</h2>
+		<span class="blogarc__count">{total} entries</span>
+	</div>
+	{
+		monthOrder.map((month) => (
+			<div class="blogarc__group">
+				<div class="blogarc__head">
+					<h3 class="blogarc__heading">{MONTHS[month - 1]}</h3>
+					<span class="blogarc__meta">
+						{byMonth.get(month)!.length} days
+					</span>
+				</div>
+				<div class="blogarc__grid">
+					{byMonth.get(month)!.map((row) => (
+						<a
+							href={row.href}
+							class="blogarc__card"
+							data-astro-prefetch>
+							<span class="blogarc__day">
+								{MONTHS[month - 1].slice(0, 3)} {row.day}
+							</span>
+							<span class="blogarc__name">{row.title}</span>
+							{row.description && (
+								<span class="blogarc__desc">
+									{row.description}
+								</span>
+							)}
+						</a>
+					))}
+				</div>
+			</div>
+		))
+	}
+</section>
+
+<style>
+	.blogarc {
+		display: flex;
+		flex-direction: column;
+		gap: 2.5rem;
+		margin: 2.5rem 0;
+	}
+
+	.blogarc__intro {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.blogarc__title {
+		margin: 0;
+		font-size: 1.4rem;
+		font-weight: 700;
+		color: var(--sl-color-white, #fff);
+	}
+
+	.blogarc__count {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	.blogarc__head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-bottom: 0.6rem;
+		margin-bottom: 1rem;
+		border-bottom: 1px solid
+			color-mix(
+				in oklab,
+				var(--sl-color-text-accent, #c9a56a) 30%,
+				transparent
+			);
+	}
+
+	.blogarc__heading {
+		margin: 0;
+		font-size: 1.15rem;
+		font-weight: 700;
+		color: var(--sl-color-text-accent, #c9a56a);
+	}
+
+	.blogarc__meta {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	.blogarc__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+		gap: 0.6rem;
+	}
+
+	.blogarc__card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		padding: 0.85rem 1rem;
+		border-radius: 10px;
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		background: var(--sl-color-bg-nav, #111);
+		text-decoration: none;
+		transition:
+			border-color 180ms ease,
+			transform 180ms ease;
+	}
+
+	.blogarc__card:hover {
+		border-color: color-mix(
+			in oklab,
+			var(--sl-color-text-accent, #c9a56a) 55%,
+			transparent
+		);
+		transform: translateY(-2px);
+	}
+
+	.blogarc__day {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--sl-color-text-accent, #c9a56a);
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	}
+
+	.blogarc__name {
+		font-size: 0.9rem;
+		font-weight: 700;
+		color: var(--sl-color-white, #fff);
+	}
+
+	.blogarc__desc {
+		font-size: 0.78rem;
+		line-height: 1.4;
+		color: var(--sl-color-gray-3, #8b949e);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+</style>

@@ -28,11 +28,26 @@ services:
         ports:
             - '54322:5432'
         environment:
-            POSTGRES_USER: postgres
+            # supabase/postgres' migrate.sh authenticates as
+            # supabase_admin via pg_hba's scram entry — initdb must
+            # use that user or migrate.sh can't log in. POSTGRES_DB
+            # creates the `supabase` DB at initdb time so migrate.sh
+            # can apply its bundled migrations against it.
+            POSTGRES_USER: supabase_admin
             POSTGRES_PASSWORD: postgres
             POSTGRES_DB: supabase
         volumes:
-            - ./init:/docker-entrypoint-initdb.d
+            # Mount individual KBVE init scripts with a zz_ prefix so they
+            # sort AFTER supabase's bundled migrate.sh (which processes the
+            # baked-in init-scripts/ + migrations/ subdirs that create the
+            # real auth.*, storage.*, extensions, pgsodium, vault, etc.).
+            # DO NOT bind ./init over the whole /docker-entrypoint-initdb.d
+            # — that masks supabase's own setup and leaves us with no auth
+            # schema, no extensions schema, no pgsodium key.
+            - ./init/00-roles.sql:/docker-entrypoint-initdb.d/zz_00-roles.sql:ro
+            - ./init/01-supabase-runtime-stubs.sql:/docker-entrypoint-initdb.d/zz_01-supabase-runtime-stubs.sql:ro
+            - ./init/03-n8n-stub.sql:/docker-entrypoint-initdb.d/zz_03-n8n-stub.sql:ro
+            - ./init/04-profile-stub.sql:/docker-entrypoint-initdb.d/zz_04-profile-stub.sql:ro
             - pgdata:/var/lib/postgresql/data
         healthcheck:
             test: ['CMD-SHELL', 'pg_isready -U postgres']

@@ -12,28 +12,51 @@ osrs:
   lowalch: 676
   highalch: 1014
   limit: 125
+  material:
+    type: mithril
+    tier: mid
   equipment:
     slot: weapon
-    type: battleaxe
-    tradeable: true
+    weapon_type: battleaxe
+    attack_speed: 6
     weight: 2.267
     requirements:
       attack: 20
-    stats:
-      attack_stab: -2
-      attack_slash: 22
-      attack_crush: 17
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: -2
+      slash: 22
+      crush: 17
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 29
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  shops:
+    - shop_name: "Bob's Brilliant Axes"
+      location: Lumbridge
+    - shop_name: "Brian's Battleaxe Bazaar"
+      location: Port Sarim
+    - shop_name: Gulluck and Sons
+      location: Grand Tree
+  recipes:
+    - skill: Smithing
+      level: 60
+      experience: 150
+      materials:
+        - item_name: Mithril bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
     - item_id: 1371
       item_name: Adamant battleaxe
@@ -45,8 +68,36 @@ osrs:
       slug: mithril-sword
       relationship: alternative
       description: Better accuracy alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Mithril battleaxe is a F2P two-handed-style slash weapon smithed from 3 mithril bars at level 60 Smithing. Provides +22 slash attack and +29 strength, requiring 20 Attack to wield. Common drop from various low-mid tier monsters.
+  market_strategy:
+    notes:
+      - Mid-tier F2P battleaxe with steady commodity demand
+      - "Smithing profit/loss tied to mithril bar GE price"
+      - Buy limit 125 per 4 hours
+  trading_tips:
+    - Compare smithing cost vs GE price before crafting for profit
+    - Stock during Smithing skill competitions for resale
+  history:
+    - date: "2001-01-04"
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

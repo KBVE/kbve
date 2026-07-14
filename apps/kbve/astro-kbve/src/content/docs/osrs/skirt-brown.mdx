@@ -1,6 +1,6 @@
 ---
 title: Skirt (brown) | OSRS Price Data
-description: "Skirt (brown): A brown skirt. Size small!. High alch: 210 GP, GE limit: 150."
+description: "Skirt (brown): A brown skirt. Size small! High alch: 210 GP, GE limit: 150."
 osrs:
   id: 5048
   name: Skirt (brown)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 140
   highalch: 210
   limit: 150
-  about: "Skirt (brown) is a members-only item in Old School RuneScape. High alchemy value: 210 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: legs
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Drunken man
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 5046
+      item_name: Shirt (yellow)
+      slug: shirt-yellow
+      relationship: set-piece
+      description: Matching cosmetic torso from the same drunken man drop
+    - item_id: 5050
+      item_name: Skirt (pink)
+      slug: skirt-pink
+      relationship: variant
+      description: Same skirt model in a different colour
+  about: |-
+    > _"A brown skirt. Size small!"_
+
+    Skirt (brown) is a cosmetic legs slot item dropped by the Drunken man in Port Sarim. It has no combat stats and is collected mostly for fashionscape outfits or the Random Outfit costume sets.
+  market_strategy:
+    notes:
+      - "Tiny GE buy limit (150) keeps even small flips meaningful for fashionscape collectors."
+      - "Demand is event-driven; gear shows up on streams or Twitter and the price moves."
+      - "Drop rate from Drunken man is uncommon so supply ramp is slow."
+  trading_tips:
+    - "Track fashionscape contest cycles - listings clear fast during voting weeks."
+    - "Sell in singles to capture top of book rather than bulk listing."
+  history:
+    - date: "2003-08-26"
+      description: "Skirt (brown) released as part of the Random Events expansion adding the Drunken man encounter."
+  properties:
+    release_date: "2003-08-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Iron arrowtips | OSRS Price Data
-description: "Iron arrowtips: I can make some arrows with these.. High alch: 1 GP, GE limit: 10,000."
+description: "Iron arrowtips: I can make some arrows with these. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 40
   name: Iron arrowtips
@@ -12,23 +12,73 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: ammunition
+    tier: low
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 20
+      xp: 25
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 15
+    - skill: fletching
+      level: 15
+      xp: 2.5
+      materials:
+        - item_name: Iron arrowtips
+          quantity: 1
+        - item_name: Headless arrow
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 39
-      item_name: Bronze arrowtips
+    - item_name: Bronze arrowtips
       slug: bronze-arrowtips
-      relationship: variant
-      description: Lower tier arrowtips
-    - item_id: 41
-      item_name: Steel arrowtips
+      relationship: downgrade
+      description: "Lower-tier arrowtip; predecessor in the smithing progression."
+    - item_name: Steel arrowtips
       slug: steel-arrowtips
-      relationship: variant
-      description: Higher tier arrowtips
-  about: |-
-    > _"I can make some arrows with these."_
-
-    Iron arrowtips are members-only Fletching supplies. Attach to headless arrows at 15 Fletching to create iron arrows.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: upgrade
+      description: "Higher-tier arrowtip; next step in the smithing progression."
+    - item_name: Iron arrow
+      slug: iron-arrow
+      relationship: product
+      description: "Final fletched arrow created by attaching iron arrowtips to headless arrows."
+    - item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: "Smithed at level 20 into 15 iron arrowtips per bar."
+  about: "Iron arrowtips are Smithing intermediates produced at 20 Smithing from a single iron bar (yielding 15 tips for 25 XP), then attached to headless arrows at 15 Fletching to make iron arrows. They sit one rung above bronze on the arrowtip ladder and are typically generated in bulk during low-level Smithing or Fletching grinds."
+  market_strategy:
+    notes:
+      - "Price floor is anchored to (iron bar cost / 15) and the finished iron-arrow GE price."
+      - "Heavy supply from low-level Smithers keeps margins thin - flip in volume only."
+      - "Demand cycles with low-level ranger gear and Fletching cape grinders."
+  trading_tips:
+    - "Compare bar-to-tip arbitrage: 15 tips vs 1 iron bar tells you the smithing margin."
+    - "Watch headless arrow + iron arrow prices for fletch-flip windows."
+  history:
+    - date: "2002-03-25"
+      description: "Released alongside the iron arrow Smithing/Fletching recipe."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -78,8 +78,6 @@ namespace RareIcon
 
         public void Dispose() => _disposables?.Dispose();
 
-        // -- Public host / join API --
-
         /// <summary>Host a PvE co-op match. Lobby is friends-only by default; pass any int seed (or null to roll). Auto-transitions UI to <see cref="AppInterfaceState.Lobby"/> on success.</summary>
         public void HostPvECoop(int? seed = null) => Host(GameMode.PvECoop, seed);
 
@@ -118,7 +116,7 @@ namespace RareIcon
             }
             catch
             {
-                // Steamworks not initialised yet — silent no-op.
+
             }
         }
 
@@ -162,10 +160,8 @@ namespace RareIcon
             _lobby.SetData(LobbyDataKeys.Mode,    ((byte)_mode.Value).ToString());
             _lobby.SetData(LobbyDataKeys.Seed,    _session.Seed.CurrentValue.ToString());
             _lobby.SetData(LobbyDataKeys.Started, "1");
-            // Self-transition still flows through OnData when Steam echoes.
-        }
 
-        // -- Steam callbacks --
+        }
 
         void OnCreated(SteamLobbyCreatedMessage msg)
         {
@@ -191,8 +187,6 @@ namespace RareIcon
 
             _appState.EnterLobby();
 
-            // If we joined late while the match is already running, jump
-            // straight into world gen instead of sitting in the lobby UI.
             if (_lobby.GetData(LobbyDataKeys.Started) == "1")
                 BeginRun();
         }
@@ -297,9 +291,7 @@ namespace RareIcon
 
         void OnData(SteamLobbyDataChangedMessage _)
         {
-            // Started flag is the only field that auto-triggers a state
-            // transition; mode + seed updates are read on demand when the
-            // host clicks Start.
+
             if (_matchStarting) return;
             if (_lobby.GetData(LobbyDataKeys.Started) != "1") return;
 

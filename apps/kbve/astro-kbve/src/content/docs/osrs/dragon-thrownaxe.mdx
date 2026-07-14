@@ -12,9 +12,23 @@ osrs:
   lowalch: 300
   highalch: 450
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2018-07-26"
+    tradeable: true
+    stackable: true
+    noteable: false
+    quest_item: false
   equipment:
     slot: weapon
     attack_speed: 3
+    weight: 0.3
+    requirements:
+      ranged: 61
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,17 +46,14 @@ osrs:
       ranged_strength: 47
       magic_damage: 0
       prayer: 0
-    requirements:
-      ranged: 61
-    weight: 0.3
   special_attack:
     name: Draconic Puncture
     energy: 25
-    description: Attack speed changed to 2 tick (1.2s) for 6 seconds.
+    description: "Attack speed changed to 2 tick (1.2s) for 6 seconds."
   drop_table:
     sources:
       - source: Chambers of Xeric
-        quantity: 50-100
+        quantity: "1"
         rarity: uncommon
         members_only: true
   related_items:
@@ -72,11 +83,9 @@ osrs:
     - 25% cost allows 4 specs per bar
   market_strategy:
     notes:
-      - CoX-only drop — supply tied to raid activity
-      - Consumed as ammo (stackable thrown weapon)
-      - PvP niche demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "CoX-only drop — supply tied to raid activity"
+      - "Consumed as ammo (stackable thrown weapon)"
+      - "PvP niche demand"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

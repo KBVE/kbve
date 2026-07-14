@@ -12,58 +12,83 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: herblore-secondary
+    tier: mid
   properties:
+    release_date: "2004-09-07"
     tradeable: true
-    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.5
-  skilling_sources:
+    options:
+      - Drop
+    alchable: false
+    destroy: "How am I supposed to eat that?!"
+  drop_table:
+    sources:
+      - source: Kalphite Queen
+        quantity: "100"
+        rarity: Common (noted)
+      - source: Undead Druid
+        quantity: "1"
+        rarity: Uncommon
+      - source: Tombs of Amascut chest
+        quantity: "1"
+        rarity: Common (noted)
+  recipes:
     - skill: farming
       level: 64
-      xp: 25
-  recipes:
+      xp: 68
+      materials:
+        - item_name: Cactus seed
+          quantity: 1
+      tools:
+        - Seed dibber
+        - Cactus patch
+      output_quantity: 1
     - skill: herblore
       level: 76
       xp: 172.5
       materials:
         - item_name: Lantadyme potion (unf)
-          item_id: 2483
           quantity: 1
         - item_name: Potato cactus
-          item_id: 3138
           quantity: 1
-      product: Magic potion(3)
-      product_id: 3040
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 3040
-      item_name: Magic potion(4)
-      slug: magic-potion-4
+    - item_name: Magic potion(3)
+      slug: magic-potion-3
       relationship: product
-      description: Primary use
-    - item_id: 2481
-      item_name: Lantadyme
-      slug: lantadyme
+      description: Primary Herblore product made with potato cactus.
+    - item_name: Lantadyme potion (unf)
+      slug: lantadyme-potion-unf
       relationship: component
-      description: Partner herb
-    - item_id: 5280
-      item_name: Cactus seed
+      description: Partner unfinished potion for magic potions.
+    - item_name: Cactus seed
       slug: cactus-seed
       relationship: component
-      description: Farming source
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Herblore Secondary |
-    | Tradeable | Yes |
-    | Weight | 0.5 kg |
-
-    Secondary ingredient for:
-    - Magic potion (with lantadyme potion unf)
-    - Celastrus seed protection (8 cacti)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Farming source planted in cactus patches.
+    - item_name: Battlemage potion(3)
+      slug: battlemage-potion-3
+      relationship: product
+      description: Alternate product using cadantine + potato cactus.
+  about: "Potato cactus is a Herblore secondary harvested from cactus farming patches at Farming level 64 or looted from Kalphite Lair spawns and various boss drop tables. Players combine it with a lantadyme potion (unf) at Herblore level 76 for 172.5 experience to make a magic potion(3), and also use it as the secondary in battlemage potions. Released 7 September 2004 alongside the cactus farming patch update."
+  market_strategy:
+    notes:
+      - "Bulk supply driven by Kalphite Queen and Tombs of Amascut noted drops."
+      - "Demand scales with magic potion and battlemage potion consumption at Nightmare/PvP."
+  trading_tips:
+    - Track lantadyme potion (unf) vs magic potion(3) spread - potato cactus margin moves with it.
+  history:
+    - date: "2004-09-07"
+      description: Added with the cactus farming patch and magic potion Herblore recipe.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,35 +12,35 @@ osrs:
   lowalch: 24000
   highalch: 36000
   limit: 125
+  material:
+    type: bone
+    tier: mid
   equipment:
-    slot: 2h
-    type: crush_weapon
-    attack_style: melee
+    slot: weapon
+    weapon_type: bludgeon
     attack_speed: 7
-    tradeable: true
     weight: 3.628
     requirements:
       attack: 40
-    stats:
-      attack_stab: -4
-      attack_slash: 50
-      attack_crush: 65
-      magic_attack: -4
+    attack_bonus:
+      stab: -4
+      slash: 50
+      crush: 65
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
       strength: 70
-      ranged_def: -1
-  special_effect:
-    name: F2P BiS Crush
-    description: Best crush weapon in free-to-play, effective against rune armour
-    notes:
-      - Can cut spider webs with slash attack
   drop_table:
     sources:
-      - source: Chest (Obor's lair)
-        rate: 1/118
-        notes: Use giant key on chest after killing Obor
-  market:
-    buy_limit: 125
-    price_estimate: 1300000
+      - source: "Chest (Obor's lair)"
+        quantity: "1"
+        rarity: 1/118
   related_items:
     - item_id: 7416
       item_name: Obor
@@ -56,27 +56,42 @@ osrs:
       item_name: Rune 2h sword
       slug: rune-2h-sword
       relationship: alternative
-      description: F2P alternative
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | -4 |
-    | Slash | +50 |
-    | Crush | +65 |
-    | Magic | -4 |
-    | Strength | +70 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Ranged | -1 |
-
-    Attack Speed: 7-tick (4.2s)
-
-    F2P BiS crush weapon. Effective against rune armour.
-
-    Can cut spider webs with slash attack.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: F2P melee alternative
+  about: "Hill giant club is the free-to-play best-in-slot crush two-hander, dropped from the chest in Obor's lair at a 1/118 rate when opened with a giant key. Strong against rune-armoured targets thanks to its +65 crush and +70 strength bonuses."
+  market_strategy:
+    notes:
+      - Buy limit 125 per 4 hours
+      - F2P BiS crush weapon supports stable demand
+      - Supply paced by Obor key generation
+  trading_tips:
+    - Track Obor key drop volume from hill giant kills
+    - Premium peaks during F2P-focused leagues or events
+  history:
+    - date: "2016-10-06"
+      description: Released with The Hill Giant Boss update.
+    - date: "2025-06-25"
+      description: Drop relocated from Obor directly to the chest reward in his lair.
+    - date: "2025-11-26"
+      description: Running animation updated.
+  properties:
+    release_date: "2016-10-06"
+    update: The Hill Giant Boss
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

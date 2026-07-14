@@ -1,0 +1,55 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "ProceduralMeshComponent.h"
+
+struct KBVEWORLD_API FKBVEWorldChunkMesh
+{
+	static constexpr int32 BlobVersion = 3;
+
+	int32 CellsPerEdge = 32;
+	float CellSize     = 200.f;
+	TArray<FVector>          Vertices;
+	TArray<int32>            Triangles;
+	TArray<FVector>          Normals;
+	TArray<FVector2D>        UVs;
+	TArray<FProcMeshTangent> Tangents;
+
+	static void Generate(FKBVEWorldChunkMesh& OutMesh, const FIntPoint& Coord, int32 CellsPerEdge, float CellSize, float EdgeSkirtDepth, TFunctionRef<float(float, float)> Height);
+
+	bool IsValidMesh() const
+	{
+		return Vertices.Num() > 0 && Triangles.Num() > 0
+			&& Normals.Num() == Vertices.Num()
+			&& UVs.Num() == Vertices.Num()
+			&& Tangents.Num() == Vertices.Num();
+	}
+
+	void Serialize(FArchive& Ar)
+	{
+		int32 Version = BlobVersion;
+		Ar << Version;
+		if (Ar.IsLoading() && Version != BlobVersion)
+		{
+			Vertices.Reset();
+			Triangles.Reset();
+			return;
+		}
+		Ar << CellsPerEdge;
+		Ar << CellSize;
+		Ar << Vertices;
+		Ar << Triangles;
+		Ar << Normals;
+		Ar << UVs;
+		int32 TangentCount = Tangents.Num();
+		Ar << TangentCount;
+		if (Ar.IsLoading()) Tangents.SetNumUninitialized(TangentCount);
+		for (int32 i = 0; i < TangentCount; ++i)
+		{
+			Ar << Tangents[i].TangentX;
+			uint8 FlipBin = Tangents[i].bFlipTangentY ? 1 : 0;
+			Ar << FlipBin;
+			if (Ar.IsLoading()) Tangents[i].bFlipTangentY = (FlipBin != 0);
+		}
+	}
+};

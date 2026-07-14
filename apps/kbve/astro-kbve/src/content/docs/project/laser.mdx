@@ -1,23 +1,117 @@
 ---
-title: Laser
-description: |
-    Laser utility package for KBVE.
+title: "Laser — Phaser + React Three Fiber Integration for React 19"
+description: Laser is a lightweight TypeScript layer that embeds Phaser games and React Three Fiber scenes in React 19 apps via hooks, components, and a shared event bus.
+sem: 1
 sidebar:
     label: Laser
     order: 61
 tags:
     - npm
+    - typescript
+    - phaser
+    - react
+    - gamedev
 key: laser
 pipeline: npm
 package_name: laser
-version: "0.1.0"
+version: "0.1.5"
 source_path: packages/npm/laser
 version_toml: packages/npm/laser/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the Laser package?
+          answer: Laser is a lightweight integration layer that embeds Phaser games and React Three Fiber (R3F) scenes inside React 19 applications, providing hooks, components, and a shared event bus for building hybrid 2D/3D game UIs.
+        - question: What does Laser provide for Phaser and R3F?
+          answer: For Phaser it exposes a PhaserGame component with ref access, a usePhaserGame context hook, and usePhaserEvent for event subscriptions. For R3F it provides a Stage component and a useGameLoop hook for frame-synced game logic.
+        - question: What peer dependencies does Laser need?
+          answer: Laser needs react and react-dom (>= 18). Phaser (>= 3.80) is optional for Phaser features, and three (>= 0.160) with @react-three/fiber and @react-three/drei is optional for R3F features — install only the ones you use.
+bento:
+    badge: npm · typescript · phaser · react · gamedev
+    title: Phaser + R3F for React 19 —
+    accent: Laser
+    lede: >-
+        A lightweight integration layer for Phaser and React Three Fiber (R3F) in
+        React 19 applications. It provides React hooks and components for
+        embedding Phaser games and R3F scenes with a shared event bus, used
+        across KBVE's browser games as the glue between the game canvas and the
+        React tree.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/npm/laser
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Usage
+          href: "#usage"
+    aside:
+        icon: zap
+        title: Hybrid 2D/3D UIs
+        body: >-
+            A shared LaserEventBus decouples communication between the Phaser and
+            R3F layers, so 2D game canvases and 3D scenes stay wired to the same
+            React tree.
+        points:
+            - <strong>Peers</strong> — react/react-dom (>= 18), required.
+            - <strong>Optional</strong> — Phaser (>= 3.80), three (>= 0.160) + fiber/drei.
+    stats:
+        - { label: Language, value: TypeScript, icon: code }
+        - { label: Registry, value: npm, icon: package }
+        - { label: Targets, value: Phaser + R3F, icon: render }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Phaser integration
+          icon: box
+          body: A PhaserGame component with ref-based access, a usePhaserGame context hook, and usePhaserEvent for subscribing to Phaser events.
+        - title: React Three Fiber integration
+          icon: render
+          body: A Stage component and a useGameLoop hook for frame-synced game logic.
+        - title: Shared event bus
+          icon: network
+          body: LaserEventBus for decoupled communication between the Phaser and R3F layers.
+        - title: TypeScript-first
+          icon: code
+          body: Full type definitions with exported types for configs, events, and geometry primitives.
+    related:
+        - title: Droid
+          href: /project/droid/
+          copy: Sibling KBVE npm package managing web, shared, and service workers.
+          icon: gears
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-Laser utility package.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="usage" eyebrow="Install & import" heading="Usage">
+
+```bash
+npm install @kbve/laser
+```
+
+```tsx
+import {
+	PhaserGame,
+	usePhaserEvent,
+	Stage,
+	useGameLoop,
+	laserEvents,
+} from '@kbve/laser';
+```
+
+</BentoProse>
+
+</BentoDoc>

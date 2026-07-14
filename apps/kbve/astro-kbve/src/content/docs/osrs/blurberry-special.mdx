@@ -12,9 +12,78 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Blurberry special is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cocktail
+    tier: mid
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 37
+      xp: 150
+      materials:
+        - item_name: Vodka
+          quantity: 1
+        - item_name: Brandy
+          quantity: 1
+        - item_name: Gin
+          quantity: 1
+        - item_name: Orange chunks
+          quantity: 1
+        - item_name: Lemon chunks
+          quantity: 1
+        - item_name: Lemon slices
+          quantity: 1
+        - item_name: Lime slices
+          quantity: 1
+        - item_name: Equa leaves
+          quantity: 1
+      tools:
+        - Cocktail shaker
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Restores 7 hitpoints when consumed."
+        duration: 0
+      - description: "Raises Strength by 5 percent plus 2 levels."
+        duration: 0
+      - description: "Lowers Attack by 2 percent minus 3 levels."
+        duration: 0
+  related_items:
+    - item_name: Blurberry cocktail
+      slug: blurberry-cocktail
+      relationship: alternative
+      description: "Lower-tier cocktail from the same bar"
+    - item_name: Drunk dragon
+      slug: drunk-dragon
+      relationship: alternative
+      description: "Other Gnome Stronghold cocktail recipe"
+  about: "Blurberry special is a Gnome Stronghold cocktail mixed at Blurberry Bar with 37 Cooking for 150 experience. It restores 7 hitpoints and provides a temporary Strength boost paired with an Attack reduction. It is also given to Harold during the Death Plateau quest to win the dice game."
+  market_strategy:
+    notes:
+      - "Demand is primarily Cooking trainers chasing XP and Death Plateau questers."
+      - "Margins are slim - cocktail ingredient costs dominate the price."
+  trading_tips:
+    - "Buy a small stock for Death Plateau and Tourist Trap-era questing accounts."
+    - "Daily volume is low; place limit orders rather than market-buying."
+  history:
+    - date: "2002-12-12"
+      description: "Released with the Gnome Cooking update at Blurberry Bar."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

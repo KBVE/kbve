@@ -12,77 +12,106 @@ osrs:
   lowalch: 24000
   highalch: 36000
   limit: 70
-  item_id: 6568
-  type: equipment
   equipment:
     slot: cape
-    type: melee_cape
-    tradeable: true
-    weight: 0.9
-    buy_limit: 70
-    requirements:
-      skills: []
-    stats:
-      defence_stab: 9
-      defence_slash: 9
-      defence_crush: 9
-      defence_magic: 9
-      defence_ranged: 9
-  obtaining:
-    drops:
-      - source: TzHaar-Ket
-        combat_level: 149/221
-        rate: 1/512
-      - source: TzHaar-Xil
-        combat_level: 133
-        rate: 1/2,048
-      - source: TzHaar-Mej
-        combat_level: 103
-        rate: 1/4,096
-    shop:
-      name: TzHaar-Hur-Tel's Equipment Store
+    weight: 1.814
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 9
+      slash: 9
+      crush: 9
+      magic: 9
+      ranged: 9
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: TzHaar-Ket (149)
+        quantity: "1"
+        rarity: 1/512
+      - source: TzHaar-Ket (221)
+        quantity: "1"
+        rarity: 1/512
+      - source: TzHaar-Xil (133)
+        quantity: "1"
+        rarity: 1/2048
+      - source: TzHaar-Mej (103)
+        quantity: "1"
+        rarity: 1/4096
+  shops:
+    - shop_name: TzHaar-Hur-Tel's Equipment Store
+      location: Mor Ul Rek
+      price: 90000
+      currency: Tokkul
+      discount_price: 78000
+      discount_requirement: Karamja gloves
+    - shop_name: TzHaar-Hur-Zal's Equipment Store
       location: Mor Ul Rek
       price: 90000
       currency: Tokkul
       discount_price: 78000
       discount_requirement: Karamja gloves
   related_items:
-    - slug: fire-cape
-      name: Fire cape
-      relation: upgrade
-    - slug: infernal-cape
-      name: Infernal cape
-      relation: best_upgrade
-    - slug: obsidian-platebody
-      name: Obsidian platebody
-      relation: set_piece
-    - slug: toktz-ket-xil
-      name: Toktz-ket-xil
-      relation: obsidian_shield
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +9 |
-    | Slash defence | +9 |
-    | Crush defence | +9 |
-    | Magic defence | +9 |
-    | Ranged defence | +9 |
-
-    Best For:
-    - Pre-Fire cape option
-    - No skill requirements
-    - Budget defensive cape
-
-    Upgrade Path:
-    - Fire cape - Fight Caves reward (+4 str)
-    - Infernal cape - Inferno reward (+8 str)
+    - item_id: 6570
+      item_name: Fire cape
+      slug: fire-cape
+      relationship: upgrade
+      description: Fight Caves reward with +4 strength
+    - item_id: 21295
+      item_name: Infernal cape
+      slug: infernal-cape
+      relationship: upgrade
+      description: Inferno reward with +8 strength
+    - item_id: 21301
+      item_name: Obsidian platebody
+      slug: obsidian-platebody
+      relationship: set-piece
+      description: Member of the obsidian armour set
+    - item_id: 6524
+      item_name: Toktz-ket-xil
+      slug: toktz-ket-xil
+      relationship: alternative
+      description: Obsidian shield from the same shop
+  about: "Obsidian cape is the unrequired pre-Fire cape defensive cape with +9 to every defence style, sold for 90,000 Tokkul at the TzHaar equipment shops."
   market_strategy:
     notes:
-      - Popular for F2P-style builds
-      - No requirements makes it accessible
-      - Farm TzHaar for Tokkul if patient
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Popular for F2P-style and Tokkul farming builds
+      - No skill requirements widens the buyer pool
+      - Supply driven by TzHaar drops and Tokkul exchange
+  trading_tips:
+    - Wear Karamja gloves for the 78,000 Tokkul discount
+    - Cheaper than fire cape but lacks offensive bonus
+  history:
+    - date: "2005-10-04"
+      description: Released with the TzHaar Fight Caves update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-10-04"
+    update: TzHaar Fight Caves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

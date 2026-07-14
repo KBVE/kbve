@@ -12,9 +12,34 @@ osrs:
   lowalch: 17000
   highalch: 25500
   limit: 18000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mystic
+    tier: mid-high
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
   equipment:
     slot: weapon
+    weapon_type: staff
     attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 40
+      magic: 40
     attack_bonus:
       stab: 10
       slash: -1
@@ -32,66 +57,26 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 40
-      magic: 40
-    weight: 2.267
   related_items:
-    - item_id: 1403
-      item_name: Mystic water staff
+    - item_name: Mystic water staff
       slug: mystic-water-staff
-      relationship: set-piece
+      relationship: variant
       description: Water elemental mystic staff
-    - item_id: 1407
-      item_name: Mystic earth staff
+    - item_name: Mystic earth staff
       slug: mystic-earth-staff
-      relationship: set-piece
+      relationship: variant
       description: Earth elemental mystic staff
-    - item_id: 3054
-      item_name: Mystic lava staff
+    - item_name: Mystic lava staff
       slug: mystic-lava-staff
       relationship: upgrade
-      description: Earth+Fire combination staff
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +14 |
-    | Crush | +40 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Magic | +14 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +50 |
-
-    Requirements: 40 Attack, 40 Magic
-
-    Provides unlimited fire runes — the most universally useful elemental staff:
-    - High Level Alchemy — saves 5 fire runes per cast (most popular use)
-    - Superheat Item — saves 4 fire runes per cast
-    - All fire spells — saves runes for combat magic
-    - Autocast with standard spellbook
-
-    | Staff | Element | Notable Use |
-    |-------|---------|-------------|
-    | Mystic fire | Fire | High Alch, fire spells |
-    | Mystic water | Water | Water spells, ice barrage combo |
-    | Mystic earth | Earth | Earth spells |
-    | Mystic air | Air | Air spells, Charge Orb |
-    | Mystic mud | Water+Earth | Lunar spells, barrage |
-    | Mystic lava | Earth+Fire | Superheat, Enchant |
-
-    All share identical stats (+14 magic atk/def, +40 crush, +50 str). The difference is which rune(s) they provide.
+      description: Earth and Fire combination staff
+  about: "Mystic fire staff is a members magic weapon requiring 40 Attack and 40 Magic to wield. It provides an unlimited supply of fire runes, making it ideal for High Level Alchemy, Superheat Item, and all fire-based combat spells. It shares the +14 magic attack/defence, +40 crush, and +50 melee strength stats with every other mystic elemental staff."
   market_strategy:
     notes:
-      - Thormac upgrade profitable with diary discounts
-      - Multiple boss drop sources
-      - Most popular mystic staff due to fire rune utility
-      - High volume — frequently alched
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Thormac upgrade profitable with diary discounts"
+      - "Multiple boss drop sources"
+      - "Most popular mystic staff due to fire rune utility"
+      - "High volume frequently alched"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

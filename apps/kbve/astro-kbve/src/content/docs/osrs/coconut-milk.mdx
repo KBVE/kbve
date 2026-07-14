@@ -15,6 +15,14 @@ osrs:
   material:
     type: herblore_base
     tier: mid
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    options:
+      - Drink
+      - Drop
+    worn_options: []
   recipes:
     - skill: crafting
       level: 0
@@ -28,7 +36,7 @@ osrs:
           quantity: 1
       product: Coconut milk
       product_id: 5935
-      product_quantity: 1
+      output_quantity: 1
       byproduct: Coconut shell
       byproduct_id: 5978
       members_only: true
@@ -47,6 +55,7 @@ osrs:
           quantity: 1
       product: Antidote++(3)
       product_id: 5954
+      output_quantity: 1
       members_only: true
   related_items:
     - item_id: 5976
@@ -79,25 +88,22 @@ osrs:
     - 1 Coconut milk (vial)
     - 1 Coconut shell (supercompost material)
   market_strategy:
-    title: Profit Chain
-    steps:
-      - order: 1
-        action: Coconut (crack) -> Half coconut
-      - order: 2
-        action: Half coconut + Vial -> Coconut milk + Shell
-      - order: 3
-        action: Coconut milk -> Antidote++
     notes:
-      - Coconuts from palm tree farming
-      - Also from Tai Bwo Wannai cleanup
-      - Kingdom of Miscellania (hardwood workers)
-      - Coconut shell makes supercompost
-      - Added value from byproduct
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Coconuts from palm tree farming"
+      - "Also from Tai Bwo Wannai cleanup"
+      - "Kingdom of Miscellania (hardwood workers)"
+      - "Coconut shell makes supercompost"
+      - "Added value from byproduct"
+  trading_tips:
+    - "Step 1: Coconut crack into Half coconut"
+    - "Step 2: Half coconut plus Vial into Coconut milk plus Shell"
+    - "Step 3: Coconut milk into Antidote plus plus"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

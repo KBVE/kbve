@@ -12,64 +12,80 @@ osrs:
   lowalch: 2000000
   highalch: 3000000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: powered staff
+    tier: high
+  properties:
+    release_date: "2018-06-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.5
+    options:
+      - Wield
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: powered staff
-    tradeable: true
+    weapon_type: powered_staff
+    attack_speed: 4
     weight: 1.5
     requirements:
       magic: 82
-    stats:
-      attack_magic: 25
-      attack_ranged: -4
-      defence_stab: 2
-      defence_slash: 3
-      defence_crush: 1
-      defence_magic: 15
-  passive_effect:
+    attack_bonus:
+      magic: 25
+      ranged: -4
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 15
+    other_bonus: {}
+  charges:
+    type: Blood runes
+    description: "Holds up to 20,000 charges. Each cast consumes 3 blood runes (approximately 618 gp per cast). Full charge costs around 12.4M gp."
+  special_attack:
     name: Life Leech
-    description: 1/6 chance (~16.6%) to heal half the damage dealt. Averages ~8.3% healing per damage overall.
-  charging:
-    cost_per_charge: 3
-    rune_type: Blood rune
-    max_charges: 20000
-    cost_per_cast: 618
+    description: "1/6 chance (~16.6%) on a successful hit to heal the user for half the damage dealt, averaging ~8.3% healing per damage."
+    energy: 0
+  drop_table:
+    sources:
+      - source: Theatre of Blood
+        quantity: "1"
+        rarity: 1/86 (per completion)
   related_items:
-    - item_id: 22486
-      item_name: Scythe of vitur
+    - item_name: Scythe of vitur
       slug: scythe-of-vitur
       relationship: alternative
-      description: ToB melee weapon
-    - item_id: 12899
-      item_name: Trident of the swamp
+      description: ToB melee megarare drop
+    - item_name: Trident of the swamp
       slug: trident-of-the-swamp
       relationship: downgrade
       description: Budget alternative powered staff
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Magic | +25 |
-    | Ranged | -4 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +2 |
-    | Slash | +3 |
-    | Crush | +1 |
-    | Magic | +15 |
-
-    Life Leech: 1/6 chance (~16.6%) to heal half the damage dealt. Averages ~8.3% healing per damage overall.
-
-    Built-in Spell: 4-tick attack speed, 7-tile range. No runes required to cast but consumes charges.
-
-    | Cost | Result |
-    |------|--------|
-    | 3 Blood runes | 1 charge |
-    | Max charges | 20,000 |
-
-    ~618 gp per cast. Full charge: ~12.4M gp.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Holy sanguinesti staff
+      slug: holy-sanguinesti-staff
+      relationship: upgrade
+      description: Cosmetic ornament-kit variant
+  about: "Sanguinesti staff (uncharged) is a powered staff drop from the Theatre of Blood, requiring 82 Magic to wield. Its built-in Life Leech spell hits at 4-tick speed with a 7-tile range and has a 1/6 chance to heal half the damage dealt. The uncharged form is the tradeable shell; charge with blood runes to use."
+  market_strategy:
+    notes:
+      - "Price tracks ToB completion rate and blood rune cost; cheaper blood runes raise effective demand."
+      - "Buy limit of 8 per 4h means flipping is capital-intensive; price moves on supply from new ToB drops."
+      - "Charged version is untradeable, so the uncharged shell is the only liquid form."
+  trading_tips:
+    - Track ToB raid popularity (e.g., after balance changes) for supply shifts.
+    - Compare against trident of the swamp for budget builds and against scythe for high-end alternatives.
+    - Margins are wide in absolute gp but small in percent; use limit orders.
+  history:
+    - date: "2018-06-07"
+      description: "Released with the Theatre of Blood"
+    - date: "2022-05-04"
+      description: "Magic requirement increased from 75 to 82"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

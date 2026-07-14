@@ -12,9 +12,69 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Grid master altar icon scroll is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2025-10-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  shops:
+    - shop_name: Events Reward Shop
+      location: Grid Master community event
+      price: 6000
+      currency: Event points
+      stock: 1
+  recipes:
+    - skill: construction
+      level: 45
+      xp: 180
+      materials:
+        - item_name: Grid master altar icon scroll
+          quantity: 1
+        - item_name: Oak plank
+          quantity: 3
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Grid master torch scroll
+      slug: grid-master-torch-scroll
+      relationship: alternative
+      description: "Sibling Grid Master event reward for POH torch decoration"
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: "Construction material combined with the scroll"
+  about: |-
+    Cosmetic POH construction scroll purchased from the Events Reward Shop for 6,000 event points during the Grid Master community event. Combine with 3 oak planks at level 45 Construction (180 xp) to build a Grid Master Icon in a chapel's icon hotspot. Not alchemisable.
+  market_strategy:
+    notes:
+      - "Event-limited supply - new stock only during Grid Master events"
+      - "Demand driven by POH chapel completionists"
+      - "Base value 2.5M reflects scarcity, GE trades well below until events end"
+      - "No buy limit reported - bulk buyers can accumulate"
+  trading_tips:
+    - "Stock up during event windows when participants flood the GE"
+    - "Sell post-event when supply tightens"
+    - "Compare against Grid master torch scroll - they often move together"
+  history:
+    - date: "2025-10-15"
+      description: "Released as a Grid Master community event reward"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

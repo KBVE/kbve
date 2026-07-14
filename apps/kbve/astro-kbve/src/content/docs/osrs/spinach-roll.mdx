@@ -12,9 +12,54 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 50
-  about: "Spinach roll is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 50 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.1
+    options:
+      - Eat
+      - Drop
+    alchable: true
+  drop_table:
+    sources:
+      - source: Crystal chest
+        quantity: "1"
+        rarity: 34/128
+      - source: Mysterious Old Man
+        quantity: "1"
+        rarity: 14/150
+      - source: Rick Turpentine
+        quantity: "1"
+        rarity: 14/150
+      - source: Christmas cracker
+        quantity: "1"
+        rarity: Always
+  shops:
+    - shop_name: Rasolo the Wandering Merchant
+      location: South of Baxtorian Falls
+      price: 2
+      currency: Coins
+      stock: 1
+  about: "Spinach roll is a free-to-play food item in Old School RuneScape that heals 2 Hitpoints when eaten. It cannot be cooked or made by players and is acquired exclusively as a drop from a handful of monsters, the Crystal chest, and Christmas crackers."
+  market_strategy:
+    notes:
+      - "Free-to-play tradeable food"
+      - "Heals only 2 HP so demand is novelty/collector driven"
+      - "Limited supply since players cannot cook it"
+      - "Buy limit of 50 caps flipping volume"
+  trading_tips:
+    - Stock is driven by Crystal chest looters and Christmas cracker drops
+    - Price tends to drift upward over time as items are consumed
+  history:
+    - date: "2001-01-04"
+      description: "Added to the game."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

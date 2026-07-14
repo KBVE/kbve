@@ -1,6 +1,6 @@
 ---
 title: Empty plant pot | OSRS Price Data
-description: "Empty plant pot: An empty plant pot.. High alch: 1 GP, GE limit: 10,000."
+description: "Empty plant pot: An empty plant pot. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 5350
   name: Empty plant pot
@@ -12,9 +12,80 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Empty plant pot is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    use: Fill with dirt and a tree seed to create a sapling
+    tool_required: Gardening trowel
+  recipes:
+    - skill: Crafting
+      level: 1
+      materials:
+        - item_name: Unfired plant pot
+          quantity: 1
+      tools:
+        - Pottery oven
+      output_quantity: 1
+  shops:
+    - shop_name: "Lyra's Farming Shop"
+      location: Falador
+      stock: 30
+      price: 1
+    - shop_name: "Heskel's Farming Shop"
+      location: Falador
+      stock: 30
+      price: 1
+    - shop_name: "Sarah's Farming Shop"
+      location: North Falador
+      stock: 30
+      price: 1
+    - shop_name: "Farming Guild Shop"
+      location: Farming Guild
+      stock: 50
+      price: 1
+  related_items:
+    - item_id: 5352
+      item_name: Plant pot (unfired)
+      slug: plant-pot-unfired
+      relationship: component
+      description: Fire on a pottery oven to make the empty plant pot
+    - item_id: 5354
+      item_name: Plant pot
+      slug: plant-pot
+      relationship: upgrade
+      description: Plant pot filled with dirt
+  about: "The empty plant pot is a members-only Farming utility purchased cheaply at farming shops and used to grow tree saplings after filling with dirt and adding a seed."
+  market_strategy:
+    notes:
+      - Practically priced at shop value with massive volume
+      - Bulk buying drains shop stock fast at peak hours
+      - Farming runs consume thousands per week from active players
+      - Buy limit 10,000 covers typical sapling production cycles
+      - Profit margins exist only against shop price not GE flips
+  trading_tips:
+    - Stack from multiple farming shops to clear large orders
+    - Barbarian Training farming subquest auto-discards empties when planting
+    - Track sapling demand cycles tied to Farming XP events
+  history:
+    - date: "2005-07-11"
+      update: "Farming Skill"
+      description: Empty plant pot released alongside the Farming skill launch.
+    - date: "2024-02-21"
+      description: Barbarian Training farming unlock now auto-destroys empty pots when planting trees.
+  properties:
+    release_date: "2005-07-11"
+    update: "Farming Skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

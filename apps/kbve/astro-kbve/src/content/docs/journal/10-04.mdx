@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&c
 description: October 4th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 4,'
+    accent: every year.
+    lede: 'The October 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 3'
+          href: /journal/10-03/
+        - label: 'Oct 5 →'
+          href: /journal/10-05/
+    related:
+        - title: 'Previous · Oct 3'
+          copy: 'Step back a day to the October 3rd log.'
+          href: /journal/10-03/
+          icon: calendar
+        - title: 'Next · Oct 5'
+          copy: 'Jump ahead to the October 5th log.'
+          href: /journal/10-05/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693298661836-1206649639ef?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity 6 CVE
 
@@ -23,7 +64,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Now we are reaching around 200FPS, but that might be also because we lowered the amount of entities on the map.
     I will have to loop back around and see if there are any other issues that we might need to resolve.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Dashboard**
 
@@ -46,3 +95,7 @@ The other option would be to github or image proxy the avatar before loading it 
 We could also just disable avatars?
 
 As for the Bio, I am thinking that keeping the limit to 225 characters and make the regex limit the type of characters that can be passed through.
+
+</BentoProse>
+
+</BentoDoc>

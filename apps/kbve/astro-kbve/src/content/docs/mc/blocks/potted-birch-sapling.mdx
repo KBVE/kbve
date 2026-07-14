@@ -1,5 +1,6 @@
 ---
 title: Potted Birch Sapling
+template: splash
 description: |
     Minecraft Potted Birch Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,58 @@ mc_block:
     id: 384
     ref: potted_birch_sapling
     slug: potted-birch-sapling
+    content_rev: 1
     display_name: Potted Birch Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: birch_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Birch Sapling is a decorative pot arrangement holding a
+            single birch sapling. It breaks instantly with any tool or by
+            hand, returning both the pot and the sapling.
+        lore: |
+            Woodland mansions generate several potted birch saplings as set
+            dressing in their dining room and bedroom layouts.
+    found_in:
+        - location: Woodland Mansions
+          detail: Generates in the "Large dining room" and "Master bedroom" rooms.
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with a Birch Sapling places it inside.
+    faq:
+        - question: What does breaking Potted Birch Sapling drop?
+          answer: |
+              Both the Flower Pot and one Birch Sapling item, obtained
+              instantly with any tool or bare hands.
+        - question: Can Potted Birch Sapling grow into a tree?
+          answer: |
+              No. Only birch saplings planted directly on soil, not the
+              potted decorative form, can grow into a birch tree.
+        - question: Where do I normally get Birch Saplings?
+          answer: |
+              From birch leaf decay, wandering trader trades, or by planting
+              and growing your own birch trees.
     data_version: "1.21.5"
 ---
 

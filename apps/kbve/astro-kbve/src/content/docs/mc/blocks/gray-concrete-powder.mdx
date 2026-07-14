@@ -1,5 +1,6 @@
 ---
 title: Gray Concrete Powder
+template: splash
 description: |
     Minecraft Gray Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 701
     ref: gray_concrete_powder
     slug: gray-concrete-powder
+    content_rev: 1
     display_name: Gray Concrete Powder
     material: dirt
     hardness: 0.5
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+        - gravity_affected
+    about:
+        description: |
+            Gray Concrete Powder is a gravity-affected block crafted from
+            gray dye, sand, and gravel. It falls like sand and instantly
+            solidifies into solid Gray Concrete on contact with any water.
+        lore: |
+            Concrete powder was teased by developer Jeb in February 2017
+            and shipped in Java Edition 1.12.
+    uses:
+        - title: Gray Concrete
+          ref: gray_concrete
+          detail: |
+              Touching flowing water, a water source, or a waterlogged
+              block instantly converts the powder into solid Gray Concrete
+              in place.
+    found_in:
+        - location: Crafting
+          detail: 1 gray dye + 4 sand + 4 gravel (shapeless) yields 8 concrete powder blocks.
+        - location: Wandering trader & piglin bartering
+          detail: Sand and gravel from trading make the recipe fully renewable.
+    faq:
+        - question: What tool do I need to mine Gray Concrete Powder?
+          answer: |
+              Any tool works and it always drops itself; a shovel is
+              simply fastest.
+        - question: Why did my Gray Concrete Powder turn solid?
+          answer: |
+              It touched water — flowing water, a source block, or a
+              waterlogged block — which instantly hardens it into Gray
+              Concrete.
+        - question: Does rain or a splash potion turn it into concrete?
+          answer: |
+              No, only direct contact with a water block or waterlogged
+              block triggers the transformation.
+        - question: Does Gray Concrete Powder fall like sand?
+          answer: |
+              Yes, it is affected by gravity and falls until it lands on a
+              solid block, just like sand and gravel.
     data_version: "1.21.5"
 ---
 

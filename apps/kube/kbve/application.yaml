@@ -1,24 +1,33 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kbve
-  namespace: argocd
+    name: kbve
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: 'apps/kube/kbve'
+        kbve.com/manifest-path: 'apps/kube/kbve/manifest'
+        kbve.com/application-file: 'apps/kube/kbve/application.yaml'
+        kbve.com/managed-by: 'argocd'
+        kbve.com/schema-version: 'v1'
+        kbve.com/category: 'application'
+        kbve.com/stack: 'core'
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/KBVE/kbve
-    targetRevision: HEAD
-    path: apps/kube/kbve/manifest
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: kbve
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - RespectIgnoreDifferences=true
-    - Replace=false
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: HEAD
+        path: apps/kube/kbve/manifest
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kbve
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - PrunePropagationPolicy=foreground
+            - PruneLast=true
+            - RespectIgnoreDifferences=true
+            - Replace=false

@@ -12,9 +12,67 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Wizard blizzard is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cocktail
+    tier: low
+  properties:
+    release_date: "12 December 2002"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 18
+      xp: 110
+      materials:
+        - item_name: Mixed blizzard
+          quantity: 1
+        - item_name: Pineapple chunks
+          quantity: 1
+        - item_name: Lime slices
+          quantity: 1
+      tools:
+        - Cocktail glass
+      output_quantity: 1
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Drinky Store
+      location: Tai Bwo Wannai
+      price: 30
+      currency: Trading sticks
+      stock: 3
+  related_items:
+    - item_name: Mixed blizzard
+      slug: mixed-blizzard
+      relationship: component
+      description: "Base mix before garnishing"
+  about: |-
+    > *"This looks like a strange mix."*
+
+    The Wizard blizzard is a Gnome Cooking cocktail crafted at Cooking 18. Drinking it restores 5 Hitpoints, boosts Strength by floor(Strength x 6 / 100) + 1, and lowers Attack by floor(Attack x 2 / 100) + 3. The Strength boost is one of the cheapest available, which is what keeps the cocktail relevant.
+
+    The base Mixed blizzard requires two vodka, one gin, one orange, one lime, and one lemon. Garnishing it with pineapple chunks and lime slices finishes the cocktail.
+  market_strategy:
+    notes:
+      - "Niche demand: low-level Strength boost for budget pures"
+      - "Cocktail glass + Gnome Cooking ingredients drive feedstock price"
+  trading_tips:
+    - "Karamja Gabooty's stock at 30 trading sticks is the floor competitor"
+    - "Flips well in pure-account meta cycles; otherwise thin volume"
+  history:
+    - date: "12 December 2002"
+      description: "Released as part of Gnome Cooking"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -73,6 +73,10 @@ enum Commands {
         container: String,
         #[arg(long, default_value = "180")]
         delete_timeout: u64,
+        #[arg(long)]
+        watch: bool,
+        #[arg(long, default_value = "15")]
+        interval: u64,
     },
 }
 
@@ -390,12 +394,12 @@ async fn cmd_guest_exec(
     }
 }
 
-async fn cmd_rotate_gameserver(
+async fn rotate_once(
     namespace: &str,
     gameserver: &str,
     container: &str,
     delete_timeout: u64,
-) -> ExitCode {
+) -> Result<(), String> {
     let gs_ref = format!("gs/{gameserver}");
     let pod_ref = format!("pod/{gameserver}");
     let image_path =
@@ -437,43 +441,93 @@ async fn cmd_rotate_gameserver(
 
     tracing::info!("desired={desired} running={running} state={state}");
 
-    if desired.is_empty() || running.is_empty() {
-        tracing::info!("missing gs or pod — nothing to rotate");
-        return ExitCode::SUCCESS;
+    if desired.is_empty() {
+        tracing::info!("missing gs — nothing to rotate");
+        return Ok(());
     }
-    if desired == running {
-        tracing::info!("images match — no rotation needed");
-        return ExitCode::SUCCESS;
-    }
-    if state != "Ready" && state != "Allocated" {
-        tracing::info!("gs not Ready/Allocated (state={state}) — skipping rotate");
-        return ExitCode::SUCCESS;
-    }
-
-    tracing::info!("image drift detected: {running} -> {desired}; rotating");
 
     let timeout_arg = format!("--timeout={delete_timeout}s");
     let wrapper_timeout = Duration::from_secs(delete_timeout.saturating_add(30));
-    match kubectl_output_with_timeout(
-        &[
-            "-n",
-            namespace,
-            "delete",
-            &gs_ref,
-            &timeout_arg,
-            "--ignore-not-found",
-        ],
-        wrapper_timeout,
-    )
-    .await
-    {
-        Ok(_) => {
-            tracing::info!("delete sent; ArgoCD selfHeal will recreate from {desired}");
-            ExitCode::SUCCESS
+    let delete_args = [
+        "-n",
+        namespace,
+        "delete",
+        &gs_ref,
+        &timeout_arg,
+        "--ignore-not-found",
+    ];
+
+    if state == "Unhealthy" && running.is_empty() {
+        tracing::warn!("gs Unhealthy with no pod — recovering by deleting gs");
+        kubectl_output_with_timeout(&delete_args, wrapper_timeout)
+            .await
+            .map_err(|e| format!("recovery delete failed: {e}"))?;
+        tracing::info!("delete sent; ArgoCD selfHeal will recreate from {desired}");
+        return Ok(());
+    }
+
+    if running.is_empty() {
+        tracing::info!("missing pod (state={state}) — nothing to rotate");
+        return Ok(());
+    }
+    if desired == running {
+        tracing::info!("images match — no rotation needed");
+        return Ok(());
+    }
+    if state != "Ready" && state != "Allocated" {
+        tracing::info!("gs not Ready/Allocated (state={state}) — skipping rotate");
+        return Ok(());
+    }
+
+    tracing::info!("image drift detected: {running} -> {desired}; rotating");
+    kubectl_output_with_timeout(&delete_args, wrapper_timeout)
+        .await
+        .map_err(|e| format!("delete failed: {e}"))?;
+    tracing::info!("delete sent; ArgoCD selfHeal will recreate from {desired}");
+    Ok(())
+}
+
+const HEARTBEAT_PATH: &str = "/tmp/.rotator-heartbeat";
+
+fn touch_heartbeat() {
+    if let Err(e) = std::fs::write(HEARTBEAT_PATH, b"ok") {
+        tracing::warn!("heartbeat write failed: {e}");
+    }
+}
+
+async fn cmd_rotate_gameserver(
+    namespace: &str,
+    gameserver: &str,
+    container: &str,
+    delete_timeout: u64,
+    watch: bool,
+    interval: u64,
+) -> ExitCode {
+    if !watch {
+        return match rotate_once(namespace, gameserver, container, delete_timeout).await {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(e) => {
+                tracing::error!("{e}");
+                ExitCode::FAILURE
+            }
+        };
+    }
+
+    tracing::info!("watchdog start: interval={interval}s gs={gameserver} ns={namespace}");
+    let beat = interval.max(1);
+    tokio::spawn(async move {
+        let mut ticker = tokio::time::interval(Duration::from_secs(beat));
+        loop {
+            touch_heartbeat();
+            ticker.tick().await;
         }
-        Err(e) => {
-            tracing::error!("delete failed: {e}");
-            ExitCode::FAILURE
+    });
+
+    let mut ticker = tokio::time::interval(Duration::from_secs(interval.max(1)));
+    loop {
+        ticker.tick().await;
+        if let Err(e) = rotate_once(namespace, gameserver, container, delete_timeout).await {
+            tracing::error!("rotate pass failed: {e}");
         }
     }
 }
@@ -502,6 +556,18 @@ async fn main() -> ExitCode {
             gameserver,
             container,
             delete_timeout,
-        } => cmd_rotate_gameserver(&namespace, &gameserver, &container, delete_timeout).await,
+            watch,
+            interval,
+        } => {
+            cmd_rotate_gameserver(
+                &namespace,
+                &gameserver,
+                &container,
+                delete_timeout,
+                watch,
+                interval,
+            )
+            .await
+        }
     }
 }

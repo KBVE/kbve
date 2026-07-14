@@ -1,5 +1,6 @@
 ---
 title: Budding Amethyst
+template: splash
 description: |
     Minecraft Budding Amethyst — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 938
     ref: budding_amethyst
     slug: budding-amethyst
+    content_rev: 1
     display_name: Budding Amethyst
     material: stone
     hardness: 1.5
@@ -27,7 +29,43 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - pickaxe_mineable
+        - amethyst_geode
+        - grows_crystals
+        - unobtainable
+    about:
+        description: |
+            Budding amethyst is the generative core of an amethyst geode,
+            slowly growing amethyst buds on its faces that mature into
+            amethyst clusters. It cannot be obtained in Survival even with
+            Silk Touch — mining it destroys the block and drops nothing.
+        lore: |
+            It was intentionally made unobtainable so players return to the
+            same geode to harvest, rather than carrying the farm home.
+    uses:
+        - title: Growing Amethyst
+          detail: |
+              Amethyst buds sprout on budding amethyst and pass through
+              small, medium, and large stages before becoming clusters
+              that drop amethyst shards when mined.
+    found_in:
+        - location: Amethyst Geodes
+          detail: Replaces about 8.3% of the amethyst in the innermost layer of a geode.
+    faq:
+        - question: Can I harvest budding amethyst?
+          answer: |
+              No. It cannot be obtained in Survival even with Silk Touch,
+              and it drops nothing when broken.
+        - question: How do I farm amethyst shards then?
+          answer: |
+              Leave the budding amethyst in place and repeatedly harvest
+              the fully grown clusters it produces, ideally with a
+              non-Silk-Touch pickaxe to maximize shard drops.
+        - question: Does it grow buds on every side?
+          answer: |
+              Yes — buds can form on any exposed face, as long as the
+              adjacent space is air or water.
     data_version: "1.21.5"
 ---
 

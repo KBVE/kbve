@@ -1,6 +1,6 @@
 ---
 title: Light orb | OSRS Price Data
-description: "Light orb: A component of cave goblin Magic.. High alch: 210 GP, GE limit: 10,000."
+description: "Light orb is a Crafting product used to repair Dorgesh-Kaan lamps. High alch: 210 GP, GE limit: 10,000."
 osrs:
   id: 10973
   name: Light orb
@@ -12,9 +12,66 @@ osrs:
   lowalch: 140
   highalch: 210
   limit: 10000
-  about: "Light orb is a members-only item in Old School RuneScape. High alchemy value: 210 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: glass
+    tier: mid
+  properties:
+    release_date: "2007-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 87
+      xp: 104
+      materials:
+        - item_name: Empty light orb
+          quantity: 1
+        - item_name: Cave goblin wire
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Empty light orb
+      slug: empty-light-orb
+      relationship: component
+      description: Unwired glass orb used to craft the finished light orb
+    - item_name: Cave goblin wire
+      slug: cave-goblin-wire
+      relationship: component
+      description: Mined and smithed wire required to finish the orb
+  passive_effects:
+    - name: Dorgesh-Kaan lamp repair
+      description: Used on broken magical lamps in Dorgesh-Kaan to grant 500 Crafting XP and 250 Firemaking XP per repair.
+  about: |-
+    The light orb is a Crafting product fitted to broken magical lamps throughout Dorgesh-Kaan, the cave goblin city. Repairing a lamp requires 52 Crafting and 52 Firemaking and rewards experience in both skills. They are also required as part of Sherlock's elite and master clue scroll challenges.
+
+    Crafting one yields 104 Crafting XP at level 87 Crafting, consuming an empty light orb and a cave goblin wire.
+  market_strategy:
+    notes:
+      - "Stable demand from Dorgesh-Kaan agility/lamp runners"
+      - "Useful Crafting XP per orb at higher levels"
+      - "Spread is thin — moves quickly at margin"
+  trading_tips:
+    - Buy in bulk when repairing lamps for Crafting/Firemaking XP
+    - Compare against the cost of empty light orb plus cave goblin wire
+    - Required for elite and master Sherlock clue steps
+  history:
+    - date: "2024-05-08"
+      description: "Firemaking XP from lamp repair adjusted to 50% of crafting XP; bonus XP frequency improved."
+    - date: "2007-03-20"
+      description: "Added with the cave goblin city of Dorgesh-Kaan."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

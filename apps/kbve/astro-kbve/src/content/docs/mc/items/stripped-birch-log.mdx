@@ -1,5 +1,6 @@
 ---
 title: Stripped Birch Log
+template: splash
 description: |
     Minecraft Stripped Birch Log — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 150
     ref: stripped_birch_log
     slug: stripped-birch-log
+    content_rev: 1
     display_name: Stripped Birch Log
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Stripped Birch Log is created by using an axe on a Birch Log while sneaking, permanently removing its bark to expose the pale wood underneath. It shares the same hardness and blast resistance as the unstripped log and is fully interchangeable with it in furnaces, crafting tables, and building projects.
+            Beyond raw building use, it is a key ingredient for birch planks, stripped birch wood, hanging signs, shelves, campfires, and smokers, making it a staple resource once a player starts customizing their base's look.
+        lore: |
+            Bark once removed never grows back, leaving the pale striped grain as a permanent record of the woodcutter's axe.
+    faq:
+        - question: How do I get a Stripped Birch Log?
+          answer: |
+              Equip an axe, sneak, and use it on a placed Birch Log (or Birch Wood) to strip the bark and convert it into a Stripped Birch Log.
+        - question: Can I turn a Stripped Birch Log back into a regular Birch Log?
+          answer: |
+              No. Stripping is a one-way transformation — once the bark is removed there is no way to restore the original log texture.
+        - question: What can I craft with Stripped Birch Log?
+          answer: |
+              It crafts into 4 birch planks, converts to Stripped Birch Wood, and is used in recipes for campfires, smokers, hanging signs, and shelves.
+        - question: Does Stripped Birch Log work as furnace fuel?
+          answer: |
+              Yes, like all overworld log and wood variants it burns as furnace fuel, smelting a small number of items per log.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

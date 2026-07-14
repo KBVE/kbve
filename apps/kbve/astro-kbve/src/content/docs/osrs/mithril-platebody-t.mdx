@@ -1,6 +1,6 @@
 ---
 title: Mithril platebody (t) | OSRS Price Data
-description: "Mithril platebody (t): Mithril platebody with trim.. High alch: 3,120 GP, GE limit: 8."
+description: "Mithril platebody (t) is a free-to-play trimmed body armour from medium treasure trails. High alch: 3,120 GP, GE limit: 8."
 osrs:
   id: 12287
   name: Mithril platebody (t)
@@ -12,9 +12,80 @@ osrs:
   lowalch: 2080
   highalch: 3120
   limit: 8
-  about: "Mithril platebody (t) is a free-to-play item in Old School RuneScape. High alchemy value: 3,120 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: body
+    weight: 8.618
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 46
+      slash: 44
+      crush: 38
+      magic: -6
+      ranged: 44
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_id: 1121
+      item_name: Mithril platebody
+      slug: mithril-platebody
+      relationship: variant
+      description: Standard untrimmed mithril platebody.
+    - item_id: 12283
+      item_name: Mithril platebody (g)
+      slug: mithril-platebody-g
+      relationship: variant
+      description: Gold-trimmed cosmetic variant.
+  about: "Mithril platebody (t) is a trimmed cosmetic version of the mithril platebody obtained as a medium treasure trail reward."
+  market_strategy:
+    notes:
+      - Pure cosmetic value over standard mithril platebody
+      - Limited supply from medium clue rewards
+      - Buy limit 8 restricts large flips
+  trading_tips:
+    - Compare against god-themed mithril variants for fashionscape demand
+    - Volume is thin; use limit orders
+  history:
+    - date: "2014-06-12"
+      description: "Released in the Treasure Trail Expansion update."
+    - date: "2021-04-01"
+      description: "Ranged attack bonus decreased from -10 to -15."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 8.618
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

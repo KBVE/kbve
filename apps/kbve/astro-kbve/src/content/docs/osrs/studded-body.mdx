@@ -12,9 +12,33 @@ osrs:
   lowalch: 340
   highalch: 510
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: leather
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
-    type: ranged_armour
+    weapon_type: ranged_armour
+    attack_speed: null
+    weight: 5.443
+    requirements:
+      ranged: 20
+      defence: 20
     attack_bonus:
       stab: 0
       slash: 0
@@ -28,87 +52,74 @@ osrs:
       magic: 8
       ranged: 25
     other_bonus:
-      melee_strength: 0
+      strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      ranged: 20
-      defence: 20
-    weight: 5.443
   recipes:
     - skill: crafting
       level: 41
       xp: 40
       materials:
         - item_name: Leather body
-          item_id: 1129
           quantity: 1
         - item_name: Steel studs
-          item_id: 2370
           quantity: 1
-      product: Studded body
-      product_id: 1133
-      product_quantity: 1
-      ticks: 3
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
+  shops:
+    - shop_name: Horvik's Armour Shop
+      location: Varrock
+      price: 850
+      currency: Coins
+      stock: 0
+    - shop_name: Hickton's Archery Emporium
+      location: Catherby
+      price: 850
+      currency: Coins
+      stock: 0
+    - shop_name: Aaron's Archery Appendages
+      location: Ranging Guild
+      price: 850
+      currency: Coins
+      stock: 0
   related_items:
-    - item_id: 1129
-      item_name: Leather body
+    - item_name: Leather body
       slug: leather-body
       relationship: component
-      description: Base armour before studding
-    - item_id: 2370
-      item_name: Steel studs
+      description: Base armour studded into the upgraded body
+    - item_name: Steel studs
       slug: steel-studs
       relationship: component
-      description: Studs added to leather body
-    - item_id: 1097
-      item_name: Studded chaps
+      description: Studs added to the leather body
+    - item_name: Studded chaps
       slug: studded-chaps
-      relationship: alternative
-      description: Matching leg slot armour
-    - item_id: 1131
-      item_name: Hardleather body
+      relationship: set-piece
+      description: Matching leg slot studded armour
+    - item_name: Hardleather body
       slug: hardleather-body
       relationship: downgrade
-      description: Lower tier ranged body
-    - item_id: 1135
-      item_name: Green d'hide body
+      description: Lower-tier F2P ranged body
+    - item_name: Green d'hide body
       slug: green-dhide-body
       relationship: upgrade
-      description: Next tier ranged body (40 Ranged)
-  about: |-
-    | Stat | Attack | Defence |
-    |------|--------|---------|
-    | Stab | 0 | +18 |
-    | Slash | 0 | +25 |
-    | Crush | 0 | +22 |
-    | Magic | -4 | +8 |
-    | Ranged | +8 | +25 |
-
-    Requirements: 20 Ranged, 20 Defence | Weight: 5.44 kg
-
-    The studded body is the best F2P ranged body armour, sitting between the hardleather body and the members-only green d'hide body:
-
-    | Armour | Ranged Atk | Ranged Def | Req |
-    |--------|-----------|-----------|-----|
-    | Hardleather body | +8 | +15 | 1 Ranged, 10 Def |
-    | Studded body | +8 | +25 | 20 Ranged, 20 Def |
-    | Green d'hide body | +15 | +40 | 40 Ranged (P2P) |
-
-    The studded body is essential F2P ranged gear:
-    - Best ranged body available to free players
-    - PKing standard for F2P ranged builds
-    - PvM solid early-game ranged defence
-    - Affordable and easy to replace
+      description: Next-tier ranged body unlocked at 40 Ranged on members
+  about: "Studded body is the strongest F2P ranged body armour, sitting between the hardleather body and the members-only green d'hide body. Crafted at 41 Crafting from a leather body and steel studs for 40 XP, it requires 20 Ranged and 20 Defence to equip. With +25 ranged defence and +8 ranged attack it anchors most F2P ranged PvM and PKing loadouts. Vendor sources include Horvik's, Hickton's, and Aaron's archery shops, all stocking it for 850 coins."
   market_strategy:
     notes:
-      - Very low GE price (~353 gp), high alch at 510 gp provides small margin
-      - F2P demand keeps volume steady (~1,800 units daily)
-      - Crafting profit is minimal but positive after GE tax
-      - Steel studs are the bottleneck material
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Very low GE price (~353 gp); high alch at 510 gp leaves a small margin after nature runes"
+      - "F2P PKing demand keeps volume steady around 1,800 units daily"
+      - "Crafting profit is minimal but positive after GE tax when steel studs are cheap"
+      - "Steel studs supply is the bottleneck on crafted output"
+  trading_tips:
+    - Watch steel stud price - they drive crafted body margin entirely
+    - Buy from vendor shops if GE listings spike above 850 coins
+    - Alch only when GE price falls more than nature rune cost below high alch
+  history:
+    - date: "2004-03-29"
+      description: Released alongside the original Ranged armour line.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

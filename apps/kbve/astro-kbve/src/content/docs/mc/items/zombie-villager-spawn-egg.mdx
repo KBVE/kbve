@@ -1,5 +1,6 @@
 ---
 title: Zombie Villager Spawn Egg
+template: splash
 description: |
     Minecraft Zombie Villager Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 1147
     ref: zombie_villager_spawn_egg
     slug: zombie-villager-spawn-egg
+    content_rev: 1
     display_name: Zombie Villager Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Zombie Villager Spawn Egg is a Creative-mode-only item that instantly
+            spawns a Zombie Villager, the undead form of a villager. It is obtained
+            solely through the Creative inventory, pick block, or commands, never
+            through Survival gameplay.
+        lore: |
+            Zombie Villagers are corrupted villagers that can be redeemed back to
+            normal with a Splash Potion of Weakness followed by a golden apple.
+    faq:
+        - question: How do you obtain a Zombie Villager Spawn Egg?
+          answer: |
+              Only in Creative mode, via the inventory or by pick-blocking an existing
+              zombie villager, or with a command like
+              /give @s zombie_villager_spawn_egg — it cannot be found in Survival.
+        - question: Can a spawned Zombie Villager be cured back to a villager?
+          answer: |
+              Yes — the curing mechanic works on eggs-spawned zombie villagers the
+              same as naturally spawned ones: weaken it with a Splash Potion of
+              Weakness, then feed it a golden apple and wait for it to convert.
+        - question: What profession does the resulting zombie villager have?
+          answer: |
+              A zombie villager spawned this way is generic with no profession, unlike
+              zombie villagers naturally converted from an existing profession-bearing
+              villager which retain their trade appearance.
+        - question: Does the egg differ from the regular Zombie Spawn Egg?
+          answer: |
+              It behaves identically as an item (Creative-only, one-click spawn) but
+              produces a Zombie Villager mob instead of a plain Zombie, with distinct
+              texture, sounds, and the ability to be cured.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,0 +1,20 @@
+apiVersion: autoscaling.agones.dev/v1
+kind: FleetAutoscaler
+metadata:
+    name: cryptothrone-server-autoscaler
+    namespace: cryptothrone
+    labels:
+        app: cryptothrone-server
+        app.kubernetes.io/part-of: cryptothrone
+spec:
+    fleetName: cryptothrone-server
+    policy:
+        type: Buffer
+        buffer:
+            bufferSize: 1
+            minReplicas: 1
+            maxReplicas: 1
+    sync:
+        type: FixedInterval
+        fixedInterval:
+            seconds: 30

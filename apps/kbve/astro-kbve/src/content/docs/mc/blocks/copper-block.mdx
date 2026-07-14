@@ -1,5 +1,6 @@
 ---
 title: Block of Copper
+template: splash
 description: |
     Minecraft Block of Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 966
     ref: copper_block
     slug: copper-block
+    content_rev: 1
     display_name: Block of Copper
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: copper_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            A Block of Copper is the compact storage form of 9 copper
+            ingots, doubling as a decorative building material that
+            oxidizes over time through four visual stages unless waxed with
+            honeycomb.
+        lore: |
+            Copper blocks arrived in the Caves & Cliffs update as the first
+            vanilla building block to weather and change color naturally
+            after placement.
+    uses:
+        - title: Copper Ingot Storage
+          ref: copper_ingot
+          detail: |
+              Crafted from 9 copper ingots in a 3x3 grid and can be
+              uncrafted back into ingots, giving a compact 9:1 storage
+              ratio.
+        - title: Copper Bulb / Grate
+          ref: copper_bulb
+          detail: |
+              Used as the base material to craft copper bulbs and copper
+              grates, and can be cut into slabs, stairs, and doors at a
+              stonecutter.
+    found_in:
+        - location: Crafted only
+          detail: Not found naturally generated; obtained by smelting raw copper ore into ingots and crafting them into a block.
+        - location: Copper Golem builds
+          detail: Used as a structural component when building a copper golem.
+    faq:
+        - question: What tool do I need to mine a Block of Copper?
+          answer: |
+              A stone pickaxe or better. Mining with wood, gold, or bare
+              hands destroys the block with no drop.
+        - question: Does a Block of Copper oxidize over time?
+          answer: |
+              Yes, unless waxed. It progresses through Exposed, Weathered,
+              and Oxidized stages, each changing its color and texture.
+        - question: How do I stop it from oxidizing?
+          answer: |
+              Apply honeycomb to create a waxed copper block, which locks it
+              at its current oxidation stage permanently.
+        - question: Can I reverse oxidation?
+          answer: |
+              Yes. An axe scrapes off one oxidation stage per use, and
+              lightning strikes can also de-oxidize nearby copper blocks.
     data_version: "1.21.5"
 ---
 

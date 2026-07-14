@@ -1,6 +1,6 @@
 ---
 title: Roast bird meat | OSRS Price Data
-description: "Roast bird meat: A nicely roasted bird.. High alch: 10 GP, GE limit: 6,000."
+description: "Roast bird meat: heals 6 Hitpoints, cooked from skewered bird meat at 11 Cooking over a fire (needs 20 Firemaking). High alch: 10 GP, GE limit: 6,000."
 osrs:
   id: 9980
   name: Roast bird meat
@@ -12,9 +12,78 @@ osrs:
   lowalch: 6
   highalch: 10
   limit: 6000
-  about: "Roast bird meat is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about:
+    text: "Roast bird meat is a low-level food that heals 6 Hitpoints, cooked from skewered bird meat over a fire. The skewered meat comes from the Hunter skill via bird snaring, so roast bird meat is a natural by-product of early Hunter training and a cheap source of healing for low-level combat."
+    sections:
+      - heading: How to cook roast bird meat
+        anchor: cooking
+        body: "Cook skewered bird meat on a fire (not a range) at 11 Cooking for 62.5 Cooking experience; you also need 20 Firemaking to light the fire, though Firemaking gives no experience here. It can burn at low levels, with the chance falling as Cooking rises and burning stopping entirely at level 99."
+      - heading: Where bird meat comes from
+        anchor: obtaining
+        body: "Raw bird meat is caught with bird snares through the Hunter skill. Skewering it on an iron spit produces skewered bird meat, which is then roasted over a fire. This makes roast bird meat a convenient food to bank while training Hunter on birds in the Feldip Hills and similar areas."
+  food:
+    heals: 6
+    type: meat
+    cooking_level: 11
+    cooking_xp: 62.5
+    burn_level: 99
+  recipes:
+    - skill: cooking
+      level: 11
+      xp: 62.5
+      facility: Fire
+      product: Roast bird meat
+      materials:
+        - item_name: Skewered bird meat
+          quantity: 1
+  related_items:
+    - item_name: Skewered bird meat
+      slug: skewered-bird-meat
+      relationship: component
+      description: Cooked over a fire to make roast bird meat
+    - item_name: Raw bird meat
+      slug: raw-bird-meat
+      relationship: component
+      description: Caught via Hunter bird snares; skewered before cooking
+    - item_name: Iron spit
+      slug: iron-spit
+      relationship: component
+      description: Used to skewer raw bird meat before roasting
+  trading_tips:
+    - "Mostly a Hunter by-product, so supply tracks bird-snaring activity"
+    - "Low heal and value — used for early training, not high-level food"
+  trivia:
+    - "Roast bird meat is cooked over a fire rather than on a range."
+    - "Its raw form is obtained from bird snaring in the Hunter skill."
+    - "Cooking it requires 20 Firemaking to light the fire, but Firemaking grants no XP for it."
+  faq:
+    - question: How much does roast bird meat heal?
+      answer: "It heals 6 Hitpoints when eaten."
+    - question: How do you cook roast bird meat?
+      answer: "Cook skewered bird meat on a fire at 11 Cooking for 62.5 experience. You also need 20 Firemaking to light the fire."
+    - question: Where does bird meat come from?
+      answer: "Raw bird meat is caught with bird snares in the Hunter skill, then skewered on an iron spit before being roasted."
+    - question: At what level do you stop burning roast bird meat?
+      answer: "Burning stops entirely at level 99 Cooking, with the chance to burn decreasing steadily as your Cooking level rises."
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    edible: true
+    members: true
+    weight: 0.4
+    options:
+      - Eat
+      - Drop
+    alchable: true
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Roast_bird_meat"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  url: https://kbve.com/osrs/roast-bird-meat/
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

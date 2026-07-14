@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Open URL in Browser
+Comment=Prompt for a URL and open it in CloakBrowser
+Exec=/home/kasm-user/scripts/launch-url.sh
+Icon=web-browser
+Terminal=false
+Categories=Network;WebBrowser;
+StartupNotify=true

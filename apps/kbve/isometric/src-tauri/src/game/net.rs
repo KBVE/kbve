@@ -26,7 +26,7 @@ use bevy_kbve_net::{
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
-use super::creatures::{Creature, CreaturePoolIndex, CreatureState, RenderKind};
+use super::creatures::{Creature, CreatureState, RenderKind};
 use super::inventory::ItemKind;
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
@@ -610,7 +610,7 @@ fn poll_go_online_request(
     addr: Res<GameServerAddr>,
     profile: Res<super::client_profile::ClientProfile>,
     mut pending_auth: ResMut<PendingAuth>,
-    mut pending_token: ResMut<PendingTokenFetch>,
+    pending_token: ResMut<PendingTokenFetch>,
 ) {
     if !GO_ONLINE_REQUESTED.swap(false, Ordering::AcqRel) {
         return;
@@ -706,7 +706,7 @@ fn poll_go_online_request(
             info!("[net] desktop: fetching token from {token_url} (remote server)");
             match ureq::post(&token_url)
                 .header("Content-Type", "application/json")
-                .send_json(&serde_json::json!({
+                .send_json(serde_json::json!({
                     "jwt": jwt_body,
                     "transport": transport_hint,
                 })) {
@@ -818,6 +818,7 @@ fn poll_go_online_request(
 
     #[cfg(target_arch = "wasm32")]
     {
+        let mut pending_token = pending_token;
         pending_token.in_flight = true;
 
         let jwt_for_fetch = jwt.unwrap_or_default();
@@ -1046,7 +1047,7 @@ fn send_auth_on_connect(
 fn receive_auth_response(
     mut commands: Commands,
     mut my_player_id: ResMut<MyPlayerId>,
-    mut next_phase: ResMut<NextState<super::phase::GamePhase>>,
+    _next_phase: ResMut<NextState<super::phase::GamePhase>>,
     phase: Res<State<super::phase::GamePhase>>,
     mut query: Query<(
         Entity,
@@ -1171,7 +1172,7 @@ fn spawn_remote_player_visuals(
             .with_child((
                 Text2d::new(""),
                 TextFont {
-                    font_size: 24.0,
+                    font_size: bevy::text::FontSize::Px(24.0),
                     ..default()
                 },
                 TextColor(Color::WHITE),

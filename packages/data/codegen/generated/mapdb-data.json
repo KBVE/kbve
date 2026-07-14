@@ -142,6 +142,56 @@
       }
     },
     {
+      "id": "01KVV0AF8RDMV29GQY5CKT18FP",
+      "ref": "campfire",
+      "drafted": false,
+      "name": "Campfire",
+      "description": "A placed campfire — blocks its tile, warms the ring around it, and burns anything forced onto the embers.",
+      "type": "WORLD_OBJECT_PROP",
+      "subKind": "campfire",
+      "img": "/assets/arcade/arpg/environment/hazards/campfire/campfire-Sheet.png",
+      "interactable": false,
+      "destructible": false,
+      "blocksMovement": true,
+      "placedEffects": [
+        {
+          "status": "regen",
+          "magnitude": 3,
+          "periodTicks": 20,
+          "range": 2
+        },
+        {
+          "status": "burning",
+          "magnitude": 8,
+          "periodTicks": 20,
+          "range": 0
+        }
+      ],
+      "credits": "Campfire sprite by Rodwan - https://rodwan.itch.io/isometric-asset-campfire\n"
+    },
+    {
+      "id": "01KW1TG5WKB7VXY9F7X1NHA5TP",
+      "ref": "candelabrum",
+      "drafted": false,
+      "name": "Candelabrum Stand",
+      "description": "A placed floor candelabrum — blocks its tile and steadies the mana of anyone in its candlelight ring.",
+      "type": "WORLD_OBJECT_PROP",
+      "subKind": "candelabrum",
+      "img": "/assets/arcade/arpg/environment/lightsources/candelabrum-stand/Anim_Infernus_Lightsources_1.png",
+      "interactable": false,
+      "destructible": false,
+      "blocksMovement": true,
+      "placedEffects": [
+        {
+          "status": "mana_regen",
+          "magnitude": 2,
+          "periodTicks": 20,
+          "range": 2
+        }
+      ],
+      "credits": "Candelabrum Stand artwork by Infernus PVGames\n"
+    },
+    {
       "id": "01KPTS5CHATHAX6Z8XFNC5X88J",
       "ref": "capital",
       "drafted": false,

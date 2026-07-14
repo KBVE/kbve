@@ -1,138 +1,73 @@
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
     name: observability-ch-setup-script
     namespace: vector
+    labels:
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 data:
-    setup.sh: |
-        #!/bin/sh
-        set -eu
-
-        echo "Verifying ClickHouse connectivity..."
-        CH_TEST=$(curl -sf --max-time 10 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "SELECT 1" 2>&1) || {
-          echo "ERROR: Cannot connect to ClickHouse at ${CLICKHOUSE_ENDPOINT}"
-          exit 1
-        }
-        echo "ClickHouse connection OK."
-
-        echo "Creating observability database..."
-        curl -sf --max-time 10 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "CREATE DATABASE IF NOT EXISTS observability ON CLUSTER 'cluster'" || {
-          echo "ERROR: Failed to create observability database"
-          exit 1
-        }
-        echo "Database 'observability' ready."
-
-        echo "Creating logs_raw table (ReplicatedMergeTree)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
-        CREATE TABLE IF NOT EXISTS observability.logs_raw ON CLUSTER 'cluster'
-        (
-            timestamp       DateTime64(3, 'UTC'),
-            service         LowCardinality(String),
-            level           LowCardinality(String),
-            message         String,
-            metadata        String DEFAULT '{}',
-            pod_name        String DEFAULT '',
-            pod_namespace   LowCardinality(String) DEFAULT '',
-            ingested_at     DateTime64(3, 'UTC') DEFAULT now64(3)
-        )
-        ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/observability/logs_raw', '{replica}')
-        ORDER BY (service, timestamp)
-        PARTITION BY toYYYYMMDD(timestamp)
-        TTL toDateTime(timestamp) + INTERVAL 8 DAY
-        " || {
-          echo "ERROR: Failed to create logs_raw table"
-          exit 1
-        }
-        echo "Table 'observability.logs_raw' ready."
-
-        echo "Enforcing 8-day TTL on existing logs_raw (no-op on fresh table)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "ALTER TABLE observability.logs_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 8 DAY" || {
-          echo "ERROR: Failed to apply TTL to logs_raw"
-          exit 1
-        }
-        echo "TTL on 'observability.logs_raw' enforced at 8 days."
-
-        echo "Creating logs_distributed table (Distributed)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
-        CREATE TABLE IF NOT EXISTS observability.logs_distributed ON CLUSTER 'cluster'
-        AS observability.logs_raw
-        ENGINE = Distributed('cluster', 'observability', 'logs_raw', rand())
-        " || {
-          echo "ERROR: Failed to create logs_distributed table"
-          exit 1
-        }
-        echo "Table 'observability.logs_distributed' ready."
-
-        echo "Creating alerts_raw table (ReplicatedMergeTree, 30d TTL)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
-        CREATE TABLE IF NOT EXISTS observability.alerts_raw ON CLUSTER 'cluster'
-        (
-            timestamp       DateTime64(3, 'UTC'),
-            status          LowCardinality(String),
-            alertname       LowCardinality(String),
-            severity        LowCardinality(String) DEFAULT '',
-            namespace       LowCardinality(String) DEFAULT '',
-            pod             String DEFAULT '',
-            service         LowCardinality(String) DEFAULT '',
-            summary         String DEFAULT '',
-            description     String DEFAULT '',
-            labels          String DEFAULT '{}',
-            annotations     String DEFAULT '{}',
-            fingerprint     String,
-            starts_at       DateTime64(3, 'UTC'),
-            ends_at         Nullable(DateTime64(3, 'UTC')),
-            generator_url   String DEFAULT '',
-            source          LowCardinality(String) DEFAULT 'webhook',
-            ingested_at     DateTime64(3, 'UTC') DEFAULT now64(3)
-        )
-        ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/observability/alerts_raw', '{replica}')
-        ORDER BY (timestamp, alertname, fingerprint)
-        PARTITION BY toYYYYMMDD(timestamp)
-        TTL toDateTime(timestamp) + INTERVAL 30 DAY
-        " || {
-          echo "ERROR: Failed to create alerts_raw table"
-          exit 1
-        }
-        echo "Table 'observability.alerts_raw' ready."
-
-        echo "Enforcing 30-day TTL on alerts_raw..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "ALTER TABLE observability.alerts_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 30 DAY" || {
-          echo "ERROR: Failed to apply TTL to alerts_raw"
-          exit 1
-        }
-        echo "TTL on 'observability.alerts_raw' enforced at 30 days."
-
-        echo "Creating alerts_distributed table (Distributed)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
-        CREATE TABLE IF NOT EXISTS observability.alerts_distributed ON CLUSTER 'cluster'
-        AS observability.alerts_raw
-        ENGINE = Distributed('cluster', 'observability', 'alerts_raw', cityHash64(fingerprint))
-        " || {
-          echo "ERROR: Failed to create alerts_distributed table"
-          exit 1
-        }
-        echo "Table 'observability.alerts_distributed' ready."
-
-        echo ""
-        echo "Observability schema setup complete."
-
+    setup.sh:
+        "#!/bin/sh\nset -eu\n\necho \"Verifying ClickHouse connectivity...\"\n\
+        CH_TEST=$(curl -sf --max-time 10 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"SELECT 1\" 2>&1) || {\n  echo \"ERROR: Cannot connect to ClickHouse\
+        \ at ${CLICKHOUSE_ENDPOINT}\"\n  exit 1\n}\necho \"ClickHouse connection OK.\"\
+        \n\necho \"Creating observability database...\"\ncurl -sf --max-time 10 \\\n \
+        \ \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"CREATE DATABASE IF NOT EXISTS observability ON CLUSTER 'cluster'\"\
+        \ || {\n  echo \"ERROR: Failed to create observability database\"\n  exit 1\n\
+        }\necho \"Database 'observability' ready.\"\n\necho \"Creating logs_raw table\
+        \ (ReplicatedMergeTree)...\"\ncurl -sf --max-time 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"\nCREATE TABLE IF NOT EXISTS observability.logs_raw ON CLUSTER 'cluster'\n\
+        (\n    timestamp       DateTime64(3, 'UTC'),\n    service         LowCardinality(String),\n\
+        \    level           LowCardinality(String),\n    message         String,\n  \
+        \  metadata        String DEFAULT '{}',\n    pod_name        String DEFAULT '',\n\
+        \    pod_namespace   LowCardinality(String) DEFAULT '',\n    ingested_at     DateTime64(3,\
+        \ 'UTC') DEFAULT now64(3)\n)\nENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/observability/logs_raw',\
+        \ '{replica}')\nORDER BY (service, timestamp)\nPARTITION BY toYYYYMMDD(timestamp)\n\
+        TTL toDateTime(timestamp) + INTERVAL 8 DAY\n\" || {\n  echo \"ERROR: Failed to\
+        \ create logs_raw table\"\n  exit 1\n}\necho \"Table 'observability.logs_raw'\
+        \ ready.\"\n\necho \"Enforcing 8-day TTL on existing logs_raw (no-op on fresh\
+        \ table)...\"\ncurl -sf --max-time 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"ALTER TABLE observability.logs_raw ON CLUSTER 'cluster' MODIFY TTL\
+        \ toDateTime(timestamp) + INTERVAL 8 DAY\" || {\n  echo \"ERROR: Failed to apply\
+        \ TTL to logs_raw\"\n  exit 1\n}\necho \"TTL on 'observability.logs_raw' enforced\
+        \ at 8 days.\"\n\necho \"Creating logs_distributed table (Distributed)...\"\n\
+        curl -sf --max-time 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"\nCREATE TABLE IF NOT EXISTS observability.logs_distributed ON CLUSTER\
+        \ 'cluster'\nAS observability.logs_raw\nENGINE = Distributed('cluster', 'observability',\
+        \ 'logs_raw', rand())\n\" || {\n  echo \"ERROR: Failed to create logs_distributed\
+        \ table\"\n  exit 1\n}\necho \"Table 'observability.logs_distributed' ready.\"\
+        \n\necho \"Creating alerts_raw table (ReplicatedMergeTree, 30d TTL)...\"\ncurl\
+        \ -sf --max-time 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"\nCREATE TABLE IF NOT EXISTS observability.alerts_raw ON CLUSTER\
+        \ 'cluster'\n(\n    timestamp       DateTime64(3, 'UTC'),\n    status        \
+        \  LowCardinality(String),\n    alertname       LowCardinality(String),\n    severity\
+        \        LowCardinality(String) DEFAULT '',\n    namespace       LowCardinality(String)\
+        \ DEFAULT '',\n    pod             String DEFAULT '',\n    service         LowCardinality(String)\
+        \ DEFAULT '',\n    summary         String DEFAULT '',\n    description     String\
+        \ DEFAULT '',\n    labels          String DEFAULT '{}',\n    annotations     String\
+        \ DEFAULT '{}',\n    fingerprint     String,\n    starts_at       DateTime64(3,\
+        \ 'UTC'),\n    ends_at         Nullable(DateTime64(3, 'UTC')),\n    generator_url\
+        \   String DEFAULT '',\n    source          LowCardinality(String) DEFAULT 'webhook',\n\
+        \    ingested_at     DateTime64(3, 'UTC') DEFAULT now64(3)\n)\nENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/observability/alerts_raw',\
+        \ '{replica}')\nORDER BY (timestamp, alertname, fingerprint)\nPARTITION BY toYYYYMMDD(timestamp)\n\
+        TTL toDateTime(timestamp) + INTERVAL 30 DAY\n\" || {\n  echo \"ERROR: Failed to\
+        \ create alerts_raw table\"\n  exit 1\n}\necho \"Table 'observability.alerts_raw'\
+        \ ready.\"\n\necho \"Enforcing 30-day TTL on alerts_raw...\"\ncurl -sf --max-time\
+        \ 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"ALTER TABLE observability.alerts_raw ON CLUSTER 'cluster' MODIFY\
+        \ TTL toDateTime(timestamp) + INTERVAL 30 DAY\" || {\n  echo \"ERROR: Failed to\
+        \ apply TTL to alerts_raw\"\n  exit 1\n}\necho \"TTL on 'observability.alerts_raw'\
+        \ enforced at 30 days.\"\n\necho \"Creating alerts_distributed table (Distributed)...\"\
+        \ncurl -sf --max-time 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"\nCREATE TABLE IF NOT EXISTS observability.alerts_distributed ON\
+        \ CLUSTER 'cluster'\nAS observability.alerts_raw\nENGINE = Distributed('cluster',\
+        \ 'observability', 'alerts_raw', cityHash64(fingerprint))\n\" || {\n  echo \"\
+        ERROR: Failed to create alerts_distributed table\"\n  exit 1\n}\necho \"Table\
+        \ 'observability.alerts_distributed' ready.\"\n\necho \"\"\necho \"Observability\
+        \ schema setup complete.\"\n"
 ---
 apiVersion: batch/v1
 kind: Job
@@ -142,9 +77,13 @@ metadata:
     labels:
         app: observability-ch-setup
         component: vector
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        kbve.sh/last-updated: '2026-05-11'
+        kbve.sh/last-updated: '2026-06-25'
         argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
     ttlSecondsAfterFinished: 86400
     backoffLimit: 3
@@ -157,7 +96,9 @@ spec:
             containers:
                 - name: setup
                   image: curlimages/curl:8.12.1
-                  command: ['/bin/sh', '/scripts/setup.sh']
+                  command:
+                      - /bin/sh
+                      - /scripts/setup.sh
                   env:
                       - name: CLICKHOUSE_ENDPOINT
                         valueFrom:
@@ -165,10 +106,7 @@ spec:
                                 name: clickhouse-vector-credentials
                                 key: endpoint
                       - name: CLICKHOUSE_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: clickhouse-vector-credentials
-                                key: username
+                        value: kbve_ingest
                       - name: CLICKHOUSE_PASSWORD
                         valueFrom:
                             secretKeyRef:
@@ -180,11 +118,11 @@ spec:
                         readOnly: true
                   resources:
                       requests:
-                          memory: '32Mi'
-                          cpu: '50m'
+                          memory: 32Mi
+                          cpu: 50m
                       limits:
-                          memory: '64Mi'
-                          cpu: '100m'
+                          memory: 64Mi
+                          cpu: 100m
                   securityContext:
                       runAsNonRoot: true
                       runAsUser: 1000
@@ -197,4 +135,4 @@ spec:
                 - name: setup-script
                   configMap:
                       name: observability-ch-setup-script
-                      defaultMode: 0555
+                      defaultMode: 365

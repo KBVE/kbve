@@ -1,5 +1,6 @@
 ---
 title: Snowball
+template: splash
 description: |
     Minecraft Snowball — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 954
     ref: snowball
     slug: snowball
+    content_rev: 1
     display_name: Snowball
     category: block
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Snowballs are throwable projectile items obtained by breaking snow blocks or snow layers
+            with a shovel. When thrown, they deal 3 HP of damage specifically to blazes while dealing
+            no damage but knockback to other mobs, and four snowballs can be crafted into a snow block.
+        lore: |
+            Snow golems hurl these icy projectiles as their primary ranged attack, dropping a handful
+            more whenever one is defeated.
+    faq:
+        - question: How many snowballs stack in one slot?
+          answer: |
+              Snowballs stack up to 16 per inventory slot, unlike most other throwable items.
+        - question: What happens when I throw a snowball at a mob?
+          answer: |
+              It deals 3 HP of damage to blazes specifically, while other mobs take no damage but are
+              still knocked back.
+        - question: Can dispensers use snowballs?
+          answer: |
+              Yes, dispensers can fire snowballs with slightly randomized velocity, behaving much like
+              a player's throw.
+        - question: Do snowballs have any special mob interactions?
+          answer: |
+              They can be fed to ghastlings to speed up their growth into a happy ghast.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

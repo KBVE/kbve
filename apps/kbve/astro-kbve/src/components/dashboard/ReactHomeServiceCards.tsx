@@ -158,14 +158,14 @@ function ServiceCard({
 				display: 'flex',
 				flexDirection: 'column',
 				gridColumn: span ? `span ${span}` : undefined,
-				borderRadius: 12,
-				border: `1px solid ${hovered ? 'var(--sl-color-gray-4, #4b5563)' : 'var(--sl-color-gray-5, #262626)'}`,
-				background: 'var(--sl-color-bg-nav, #111)',
+				borderRadius: 'var(--bento-radius, 0.625rem)',
+				border: `1px solid ${hovered ? 'var(--sl-color-accent-high)' : 'var(--bento-hairline-strong)'}`,
+				background: 'var(--bento-cell-bg, var(--sl-color-black))',
 				overflow: 'hidden',
-				transition: 'border-color 0.2s, box-shadow 0.2s',
+				transition: 'border-color 0.22s ease, box-shadow 0.22s ease',
 				boxShadow: hovered
-					? '0 8px 24px rgba(0, 0, 0, 0.3)'
-					: '0 2px 8px rgba(0, 0, 0, 0.15)',
+					? 'var(--bento-shadow), var(--bento-glow)'
+					: 'var(--bento-shadow)',
 			}}>
 			{/* Accent strip */}
 			<div
@@ -243,7 +243,7 @@ function ServiceCard({
 			<div
 				style={{
 					padding: '0.75rem 1.25rem',
-					borderTop: '1px solid var(--sl-color-gray-5, #262626)',
+					borderTop: '1px solid var(--bento-hairline)',
 					display: 'flex',
 					justifyContent: 'space-between',
 					alignItems: 'center',
@@ -281,7 +281,7 @@ function ServiceCard({
 						display: 'flex',
 						alignItems: 'center',
 						gap: 4,
-						color: 'var(--sl-color-accent, #06b6d4)',
+						color: 'var(--sl-color-accent-high, #06b6d4)',
 						fontSize: '0.8rem',
 						fontWeight: 600,
 						textDecoration: 'none',

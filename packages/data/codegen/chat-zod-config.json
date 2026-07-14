@@ -1,0 +1,29 @@
+{
+	"include": ["kbve.chat.ChatEnvelope"],
+
+	"numericEnums": [
+		{
+			"name": "ChatKind",
+			"sourceEnum": "kbve.chat.ChatKind",
+			"typeName": "ChatKindValue",
+			"zodSchemaName": "ChatKindSchema"
+		},
+		{
+			"name": "Platform",
+			"sourceEnum": "kbve.chat.Platform",
+			"typeName": "PlatformValue",
+			"zodSchemaName": "PlatformSchema"
+		}
+	],
+
+	"fieldOverrides": {
+		"kbve.chat.ChatEnvelope.kind": "ChatKindSchema",
+		"kbve.chat.ChatEnvelope.platform": "PlatformSchema",
+		"kbve.chat.ChatEnvelope.sender": "z.string().max(128)",
+		"kbve.chat.ChatEnvelope.channel": "z.string().max(64)",
+		"kbve.chat.ChatEnvelope.content": "z.string()",
+		"kbve.chat.ChatEnvelope.payload": "z.record(z.string(), z.unknown()).optional()",
+		"kbve.chat.ChatEnvelope.timestamp_ms": "z.number().int().optional()",
+		"kbve.chat.ChatEnvelope.custom_kind": "z.string().max(64).optional()"
+	}
+}

@@ -1,5 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[cfg(feature = "mobile")]
+fn main() {}
+
+#[cfg(not(feature = "mobile"))]
 fn main() {
     use avian3d::prelude::*;
     use bevy::prelude::*;
@@ -55,7 +59,6 @@ fn main() {
 
     app.add_plugins(
         TauriPlugin::new(|builder| {
-            use tauri::Manager;
             builder
                 .plugin(tauri_plugin_opener::init())
                 .plugin(tauri_plugin_deep_link::init())

@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { preflight, withCors } from "../_shared/cors.ts";
 import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
+import { logError } from "../_shared/logging.ts";
+import { rateLimit, rateLimitKey } from "../_shared/ratelimit.ts";
+import { loadEnv, validateJwtSecret } from "../_shared/env.ts";
 import {
   extractToken,
   type GuildVaultRequest,
@@ -9,6 +12,13 @@ import {
   requireUserToken,
 } from "./_shared.ts";
 import { handleTokens, TOKEN_ACTIONS } from "./tokens.ts";
+
+const env = loadEnv([
+  "SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "JWT_SECRET",
+]);
+validateJwtSecret(env.JWT_SECRET);
 
 // ---------------------------------------------------------------------------
 // Guild Vault Edge Function — Router
@@ -42,11 +52,7 @@ function buildHelpText(): string {
   return commands.join(", ");
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
+async function handleRequest(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
   }
@@ -58,7 +64,6 @@ serve(async (req) => {
     const token = extractToken(req);
     const claims = await parseJwt(token);
 
-    // Guild vault: authenticated users only (no service_role)
     const denied = requireUserToken(claims);
     if (denied) return denied;
 
@@ -66,6 +71,12 @@ serve(async (req) => {
     if (!sub || typeof sub !== "string") {
       return jsonResponse({ error: "JWT is missing sub claim" }, 401);
     }
+
+    const rl = rateLimit(
+      rateLimitKey("guild-vault", req, sub),
+      { limit: 60, windowMs: 60_000 },
+    );
+    if (rl) return rl;
 
     const sizeErr = enforceBodySizeLimit(req);
     if (sizeErr) return sizeErr;
@@ -117,15 +128,22 @@ serve(async (req) => {
       userId: sub,
     });
   } catch (err) {
-    console.error("guild-vault error:", err);
+    logError("guild-vault", err);
     const rawMessage = err instanceof Error
       ? err.message
       : "Internal server error";
     const isAuthError =
       rawMessage.includes("authorization") || rawMessage.includes("JWT");
     if (isAuthError) {
-      return jsonResponse({ error: rawMessage }, 401);
+      return jsonResponse({ error: "Unauthorized" }, 401);
     }
     return jsonResponse({ error: "Internal server error" }, 500);
   }
+}
+
+serve(async (req): Promise<Response> => {
+  if (req.method === "OPTIONS") {
+    return preflight(req);
+  }
+  return withCors(await handleRequest(req), req);
 });

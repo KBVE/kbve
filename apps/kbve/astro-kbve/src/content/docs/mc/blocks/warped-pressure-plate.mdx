@@ -1,5 +1,6 @@
 ---
 title: Warped Pressure Plate
+template: splash
 description: |
     Minecraft Warped Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 847
     ref: warped_pressure_plate
     slug: warped-pressure-plate
+    content_rev: 1
     display_name: Warped Pressure Plate
     material: redstone
     hardness: 0.5
@@ -24,10 +26,59 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - redstone_component
+    about:
+        description: |
+            A Warped Pressure Plate is a redstone input built from Warped
+            Planks that emits a signal of maximum strength when any entity
+            steps on it, deactivating automatically once nothing remains on
+            top.
+        lore: |
+            Wood pressure plates were among the earliest redstone components
+            added to Minecraft, and the Nether wood variant inherits fire
+            immunity from its planks.
+    uses:
+        - title: Redstone Triggers
+          ref: warped_planks
+          detail: |
+              Place atop doors, dispensers, or piston mechanisms to trigger
+              them when a player or mob walks over the plate.
+        - title: Mob and Player Traps
+          ref: tripwire_hook
+          detail: |
+              Used in farms and traps to detect entities without needing
+              line-of-sight sensors.
+    found_in:
+        - location: Crafted from Warped Planks
+          detail: Two Warped Planks placed side by side craft one Warped Pressure Plate.
+    faq:
+        - question: What triggers a Warped Pressure Plate?
+          answer: |
+              Any entity — players, mobs, items, or arrows — stepping on it
+              activates a redstone signal of strength 15.
+        - question: Does it need Silk Touch to drop?
+          answer: |
+              No. It always drops itself when broken with any tool, and no
+              minimum tool tier is required.
+        - question: Can it burn in fire or lava?
+          answer: |
+              No. Because it is crafted from Warped Planks, it shares the
+              fire immunity of Nether wood.
+        - question: How is it different from other wood pressure plates?
+          answer: |
+              Functionally identical to every wooden pressure plate — the
+              only differences are its texture and its immunity to fire.
     data_version: "1.21.5"
 ---
 

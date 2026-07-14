@@ -1,5 +1,6 @@
 ---
 title: Villager Spawn Egg
+template: splash
 description: |
     Minecraft Villager Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 1135
     ref: villager_spawn_egg
     slug: villager-spawn-egg
+    content_rev: 1
     display_name: Villager Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Villagers are humanoid passive mobs that inhabit villages across many biomes, wearing profession-based clothing and trading emeralds for goods with players. This spawn egg allows players to place a villager directly rather than relying on natural village spawns.
+            They breed to expand their population, gossip and trade gifts with each other, and can level up trades by completing transactions with players.
+        lore: |
+            These resourceful inhabitants of the Overworld's settlements wear the garb of their trades, from farmers tending crops to librarians guarding knowledge, and eagerly exchange goods with travelers who earn their trust.
+    faq:
+        - question: Where do villagers naturally spawn?
+          answer: |
+              Villagers can be found in villages, which generate in biomes such as plains, snowy plains, savannas, deserts, taigas, and snowy taigas. They also appear in igloo basements and can be obtained by curing zombie villagers with weakness potions and golden apples.
+        - question: What determines a villager's profession?
+          answer: |
+              Villagers claim job site blocks to adopt one of 13 available professions, and their outfit varies according to their occupation and the biome they spawned or bred in.
+        - question: How does the trading system work?
+          answer: |
+              Players trade emeralds for profession-specific items. Completing a trade increases a villager's professional level and unlocks better trades, with supply restocks occurring twice daily when the villager works at its job site.
+        - question: Can villagers breed, and what's required?
+          answer: |
+              Yes. Adult villagers breed depending on the time of day and need to be willing, which requires sufficient food in their inventory; baby villagers need beds with at least two empty blocks above them.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

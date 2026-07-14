@@ -1,4 +1,3 @@
-# ServiceMonitor: scrape n8n main instance metrics
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -12,7 +11,7 @@ spec:
         matchLabels:
             app: n8n
     endpoints:
-        - port: http
+        - port: gate-metrics
           interval: 30s
           path: /metrics
 ---

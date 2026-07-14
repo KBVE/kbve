@@ -1,0 +1,160 @@
+name: CI - React Native iOS
+
+run-name: 'CI - React Native iOS / ${{ inputs.task }}'
+
+on:
+    workflow_dispatch:
+        inputs:
+            task:
+                description: 'build | mac-setup'
+                required: false
+                type: choice
+                default: build
+                options:
+                    - build
+                    - mac-setup
+            app_path:
+                description: '[build] Path to React Native app'
+                required: false
+                type: string
+                default: 'apps/kbve/kbve-react-native'
+            scheme:
+                description: '[build] Xcode scheme name'
+                required: false
+                type: string
+                default: 'kbvereactnative'
+            configuration:
+                description: '[build] Build configuration'
+                required: false
+                type: choice
+                default: Release
+                options:
+                    - Debug
+                    - Release
+            skip_signing:
+                description: '[build] Build unsigned (no code signing)'
+                required: false
+                type: boolean
+                default: true
+
+permissions:
+    contents: write
+    packages: write
+    issues: write
+    pull-requests: write
+    actions: write
+
+jobs:
+    build:
+        name: Build React Native iOS
+        if: inputs.task == 'build'
+        runs-on: macos-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v7
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              working-directory: ${{ inputs.app_path }}
+              run: npm ci
+
+            - name: Install CocoaPods dependencies
+              working-directory: ${{ inputs.app_path }}
+              run: |
+                  echo "::group::Running Expo prebuild"
+                  npx expo prebuild --platform ios --clean
+                  echo "::endgroup::"
+
+                  echo "::group::Installing CocoaPods"
+                  cd ios
+                  pod install
+                  echo "::endgroup::"
+
+            - name: Build unsigned iOS app
+              if: inputs.skip_signing == true
+              working-directory: ${{ inputs.app_path }}/ios
+              run: |
+                  echo "::group::Building unsigned iOS app"
+                  echo "⚠️  Code signing disabled - unsigned build"
+
+                  xcodebuild \
+                    -workspace *.xcworkspace \
+                    -scheme "${{ inputs.scheme }}" \
+                    -configuration "${{ inputs.configuration }}" \
+                    -sdk iphonesimulator \
+                    -arch x86_64 \
+                    -derivedDataPath ./build \
+                    CODE_SIGN_IDENTITY="" \
+                    CODE_SIGNING_REQUIRED=NO \
+                    CODE_SIGNING_ALLOWED=NO \
+                    build
+
+                  echo "::endgroup::"
+                  echo "✅ Unsigned build completed"
+
+            - name: Build signed iOS app
+              if: inputs.skip_signing == false
+              working-directory: ${{ inputs.app_path }}/ios
+              env:
+                  APPLE_CERT_DATA: ${{ secrets.APPLE_CERT_DATA }}
+                  APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+                  PROVISIONING_PROFILE_DATA: ${{ secrets.PROVISIONING_PROFILE_DATA }}
+              run: |
+                  echo "::group::Setting up code signing"
+
+                  # TODO: Setup code signing certificates and provisioning profiles
+                  # This section needs to be completed once Apple Developer certificates are available
+
+                  echo "::error::Code signing not yet configured"
+                  echo "::notice::Required secrets: APPLE_CERT_DATA, APPLE_CERT_PASSWORD, PROVISIONING_PROFILE_DATA"
+                  exit 1
+
+                  echo "::endgroup::"
+
+            - name: Upload build artifacts
+              if: inputs.skip_signing == true
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ios-unsigned-build
+                  path: ${{ inputs.app_path }}/ios/build/Build/Products/${{ inputs.configuration }}-iphonesimulator/*.app
+                  retention-days: 7
+
+    mac_setup:
+        name: Mac VM Setup
+        if: inputs.task == 'mac-setup'
+        runs-on: macos-latest
+
+        steps:
+            - name: Verify macOS environment
+              run: |
+                  echo "::group::System information"
+                  sw_vers
+                  echo "::endgroup::"
+
+                  echo "::group::Xcode information"
+                  xcodebuild -version
+                  xcrun --show-sdk-path --sdk iphoneos
+                  echo "::endgroup::"
+
+                  echo "::group::Node.js information"
+                  node --version
+                  npm --version
+                  echo "::endgroup::"
+
+                  echo "::group::CocoaPods information"
+                  pod --version || echo "CocoaPods not installed"
+                  echo "::endgroup::"
+
+            - name: Install required tools
+              run: |
+                  echo "::group::Installing CocoaPods"
+                  sudo gem install cocoapods
+                  echo "::endgroup::"
+
+                  echo "✅ macOS runner setup complete"

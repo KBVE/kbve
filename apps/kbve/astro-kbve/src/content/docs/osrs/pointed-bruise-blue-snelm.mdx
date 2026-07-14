@@ -12,9 +12,85 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Pointed bruise blue snelm is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: snail-shell
+    tier: low
+  properties:
+    release_date: "2004-10-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 7
+      slash: 8
+      crush: 6
+      magic: -1
+      ranged: 7
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 32.5
+      materials:
+        - item_name: Blamish blue shell (pointed)
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Round bruise blue snelm
+      slug: round-bruise-blue-snelm
+      relationship: variant
+      description: Rounded shell variant
+    - item_name: Blamish blue shell (pointed)
+      slug: blamish-blue-shell-pointed
+      relationship: component
+      description: Raw shell crafted into the snelm
+    - item_name: Pointed myre snelm
+      slug: pointed-myre-snelm
+      relationship: alternative
+      description: Other pointed snelm variant
+  about: "Pointed bruise blue snelm is a head slot helmet crafted from a Blamish blue shell (pointed) using a chisel at 15 Crafting. It reduces damage taken from snails by 12 and provides surprisingly competitive low-level melee defence. Released with the Morytania Expansion."
+  market_strategy:
+    notes:
+      - "Supply driven by Mort Myre snail kills and crafting alts"
+      - "Buy limit (150) caps flips meaningfully"
+      - "Demand is low outside collection log hunters"
+  trading_tips:
+    - Margin tends to widen during snail farming events
+    - Stockpile during double XP for crafting alt dumps
+  history:
+    - date: "2004-10-14"
+      description: "Released with the Morytania Expansion."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

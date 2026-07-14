@@ -1,6 +1,6 @@
 ---
 title: Hosidius scarf | OSRS Price Data
-description: "Hosidius scarf: A green scarf adorned with an ornamental leaf.. High alch: 6,000 GP, GE limit: 4."
+description: "Hosidius scarf: A green scarf adorned with an ornamental leaf. High alch: 6,000 GP, GE limit: 4."
 osrs:
   id: 19946
   name: Hosidius scarf
@@ -12,9 +12,85 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 4
-  about: "Hosidius scarf is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: neck
+    weight: 0.5
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - item_id: 19943
+      item_name: Lovakengj scarf
+      slug: lovakengj-scarf
+      relationship: variant
+      description: Lovakengj house scarf variant.
+    - item_id: 19949
+      item_name: Piscarilius scarf
+      slug: piscarilius-scarf
+      relationship: variant
+      description: Piscarilius house scarf variant.
+    - item_id: 19952
+      item_name: Shayzien scarf
+      slug: shayzien-scarf
+      relationship: variant
+      description: Shayzien house scarf variant.
+    - item_id: 19955
+      item_name: Arceuus scarf
+      slug: arceuus-scarf
+      relationship: variant
+      description: Arceuus house scarf variant.
+  about: "Hosidius scarf is a cosmetic elite clue neck reward representing the Hosidius region, with no favour or skill requirement to wear."
+  market_strategy:
+    notes:
+      - Supply is gated by elite clue completion rates, supporting a healthy premium over alch.
+      - House scarves attract Zeah completionists building full collections.
+  trading_tips:
+    - Compare against other house scarves; demand rotates with content updates.
+    - Hold during elite clue droughts to capture price spikes.
+  history:
+    - date: "2016-07-06"
+      description: Added to the game with the Treasure Trail Expansion update.
+    - date: "2019-01-10"
+      description: Renamed from Hosidius house scarf to Hosidius scarf.
+  properties:
+    release_date: "2016-07-06"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

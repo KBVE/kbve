@@ -1,5 +1,6 @@
 ---
 title: Glowstone Dust
+template: splash
 description: |
     Minecraft Glowstone Dust — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 994
     ref: glowstone_dust
     slug: glowstone-dust
+    content_rev: 1
     display_name: Glowstone Dust
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Glowstone Dust is a luminous crafting material harvested from the Nether. Mining a
+            glowstone block without Silk Touch drops 2-4 dust, and Fortune boosts the yield
+            further, while witches can also drop it on defeat.
+        lore: |
+            A faintly glowing yellow powder that carries the light of the Nether within it.
+    faq:
+        - question: How do I get Glowstone Dust?
+          answer: |
+              Mine glowstone blocks in the Nether with any tool other than a Silk Touch pickaxe
+              to get 2-4 dust per block, or defeat a witch for a chance at a drop.
+        - question: What is Glowstone Dust used for?
+          answer: |
+              It crafts glowstone blocks and spectral arrows, and it is a key brewing ingredient
+              that boosts a potion's potency while shortening its duration.
+        - question: How does Glowstone Dust affect potions?
+          answer: |
+              Adding it to a brewed potion upgrades it to its Tier II strength, such as turning a
+              Potion of Strength into Strength II, at the cost of a shorter effect window.
+        - question: Is Glowstone Dust renewable?
+          answer: |
+              Yes, it is fully renewable through repeated Nether mining, witch drops, and trading
+              with cleric villagers.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Team-35 cape | OSRS Price Data
-description: "Team-35 cape: Ooohhh look at the pretty colours.... High alch: 30 GP, GE limit: 150."
+description: "Team-35 cape: Ooohhh look at the pretty colours... High alch: 30 GP, GE limit: 150."
 osrs:
   id: 4383
   name: Team-35 cape
@@ -12,9 +12,70 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-35 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Edward's Wilderness Cape Shop
+      location: Near Rogues' Castle, Wilderness
+      price: 50
+      currency: coins
+      stock: 100
+  related_items:
+    - item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: Another numbered team cape variant
+    - item_name: Team-50 cape
+      slug: team-50-cape
+      relationship: variant
+      description: Highest-numbered team cape variant
+  about: "Team-35 cape is a free-to-play cape sold by Edward's Wilderness Cape Shop. Wearing matching team capes causes fellow wearers to appear as blue dots on the minimap and shifts the Attack option to right-click, supporting PvP team identification."
+  market_strategy:
+    notes:
+      - "Cheap shop restock supports steady supply"
+      - "Casual PvP cosmetic with low demand"
+      - "High alch margin negligible without nature rune discount"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

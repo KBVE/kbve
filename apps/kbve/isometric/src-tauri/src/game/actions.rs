@@ -91,18 +91,10 @@ impl Default for SmokeUniforms {
     }
 }
 
-#[derive(Asset, TypePath, AsBindGroup, Clone)]
+#[derive(Asset, TypePath, AsBindGroup, Clone, Default)]
 pub struct SmokeMaterial {
     #[uniform(0)]
     pub uniforms: SmokeUniforms,
-}
-
-impl Default for SmokeMaterial {
-    fn default() -> Self {
-        Self {
-            uniforms: SmokeUniforms::default(),
-        }
-    }
 }
 
 impl Material for SmokeMaterial {
@@ -501,7 +493,7 @@ fn animate_smoke_particles(
         };
         transform.scale = Vec3::splat(scale_curve);
 
-        if let Some(mat) = smoke_materials.get_mut(&particle.material_handle) {
+        if let Some(mut mat) = smoke_materials.get_mut(&particle.material_handle) {
             mat.uniforms.progress = t;
         }
 

@@ -1,5 +1,6 @@
 ---
 title: Horn Coral Block
+template: splash
 description: |
     Minecraft Horn Coral Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 628
     ref: horn_coral_block
     slug: horn-coral-block
+    content_rev: 1
     display_name: Horn Coral Block
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Horn Coral Block is a yellow decorative block that generates
+            naturally in coral reefs within warm ocean biomes. It must stay
+            adjacent to water or it dries into a dead coral block within a few
+            seconds, so it can only be collected with a Silk Touch tool.
+        lore: |
+            A vivid golden reef formation that withers to gray stone the moment the tide abandons it.
+    faq:
+        - question: How do you obtain a Horn Coral Block?
+          answer: |
+              Mine it with a pickaxe enchanted with Silk Touch; otherwise it drops
+              as a dead coral block instead. Wandering traders also sell it.
+        - question: Why does my Horn Coral Block turn gray?
+          answer: |
+              A coral block needs at least one of its six adjacent blocks to be
+              water or waterlogged, or it dies and becomes a dead coral block
+              within a few seconds.
+        - question: Can a dead Horn Coral Block be revived?
+          answer: |
+              No, once a coral block dries out and turns into its dead variant,
+              the transformation is permanent.
+        - question: What is the Horn Coral Block used for?
+          answer: |
+              It is primarily a decorative underwater building block, and living
+              coral blocks can also host sea pickles.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

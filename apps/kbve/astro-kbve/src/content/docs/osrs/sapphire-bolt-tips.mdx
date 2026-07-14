@@ -12,9 +12,78 @@ osrs:
   lowalch: 6
   highalch: 10
   limit: 11000
-  about: "Sapphire bolt tips is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: "fletching"
+      level: 56
+      xp: 4
+      materials:
+        - item_name: "Sapphire"
+          quantity: 1
+      tools:
+        - "Chisel"
+      output_quantity: 12
+  drop_table:
+    sources:
+      - source: "Hydra"
+        quantity: "1"
+        rarity: "Common"
+      - source: "Vorkath"
+        quantity: "1"
+        rarity: "Common"
+      - source: "Vyrewatch"
+        quantity: "1"
+        rarity: "Common"
+      - source: "Hallowed Sepulchre (floor 5)"
+        quantity: "1"
+        rarity: "Common"
+  related_items:
+    - item_name: "Sapphire"
+      slug: "sapphire"
+      relationship: "component"
+      description: "Cut with a chisel into 12 bolt tips at 56 Fletching"
+    - item_name: "Mithril bolts (unf)"
+      slug: "mithril-bolts-unf"
+      relationship: "component"
+      description: "Combined with sapphire bolt tips to produce sapphire bolts"
+    - item_name: "Sapphire bolts"
+      slug: "sapphire-bolts"
+      relationship: "product"
+      description: "Bolts produced by attaching sapphire bolt tips"
+    - item_name: "Sapphire dragon bolts"
+      slug: "sapphire-dragon-bolts"
+      relationship: "product"
+      description: "Dragon variant produced by attaching tips to dragon bolts"
+    - item_name: "Emerald bolt tips"
+      slug: "emerald-bolt-tips"
+      relationship: "upgrade"
+      description: "Higher tier bolt tip"
+  about: "Sapphire bolt tips are produced by using a chisel on a cut sapphire at 56 Fletching, yielding 12 tips per gem for 4 XP. They attach to mithril bolts to create sapphire bolts (or to dragon bolts for sapphire dragon bolts), which can then be enchanted via Enchant Crossbow Bolt."
+  market_strategy:
+    notes:
+      - "Pricing tracks the spread between cut sapphires and finished sapphire bolts."
+      - "Massive buy limit of 11,000 and 600k+ daily volume make this a high-liquidity flip."
+      - "Drop sources (Vorkath, Hydra) keep supply elevated; price floor is close to alch value."
+  trading_tips:
+    - "Mid-tier Fletching XP flow — buy sapphires on dips and chisel to tips for both XP and resale."
+    - "Watch Vorkath/Hydra meta shifts that change drop influx into the GE."
+  history:
+    - date: "2006-07-31"
+      description: "Added with the gem-tipped crossbow bolt expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

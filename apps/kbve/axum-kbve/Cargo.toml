@@ -1,8 +1,9 @@
 [package]
 name = "axum-kbve"
 authors = ["kbve", "h0lybyte"]
-version = "1.0.180"
+version = "1.0.233"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 
 [dependencies]
@@ -13,7 +14,7 @@ serde_json = "1.0"
 # RCON allowlist (packages/data/rcon/commands.yaml) baked via include_str! at compile time.
 serde_yaml = "0.9"
 tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { version = "0.6.8", features = [
+tower-http = { version = "0.7.0", features = [
     "compression-full",
     "limit",
     "trace",
@@ -24,11 +25,11 @@ tower-http = { version = "0.6.8", features = [
 tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-axum = { version = "0.8.5", features = ["ws", "macros"] }
+axum = { version = "0.8.9", features = ["ws", "macros"] }
 axum-server = { version = "0.8", features = ["tls-rustls"] }
 rustls = { version = "0.23", default-features = false, features = ["ring"] }
 rustls-pemfile = "2"
-axum-extra = { version = "0.12.1", features = ["cookie"] }
+axum-extra = { version = "0.12.6", features = ["cookie"] }
 askama = "0.16.0"
 socket2 = "0.6.1"
 num_cpus = "1.17.0"
@@ -59,13 +60,13 @@ regex = "1.11"
 lru = "0.18"
 
 # Game server (headless Bevy + avian3d + lightyear)
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
     "bevy_state",
     "bevy_render",
     "bevy_asset",
 ] }
-avian3d = { version = "0.5", default-features = false, features = ["3d", "f32", "parry-f32", "serialize"] }
-lightyear = { version = "0.26", default-features = false, features = [
+avian3d = { version = "0.7", default-features = false, features = ["3d", "f32", "parry-f32", "serialize"] }
+lightyear = { version = "0.28", default-features = false, features = [
     "server",
     "replication",
     "prediction",
@@ -80,7 +81,8 @@ lightyear = { version = "0.26", default-features = false, features = [
 ] }
 base64 = "0.22"
 rand = "0.10"
-lightyear_avian3d = { version = "0.26", default-features = false, features = ["3d"] }
+lightyear_avian3d = { version = "0.28", default-features = false, features = ["3d"] }
+lightyear_replication = { version = "0.28", default-features = false, features = ["server"] }
 bevy_kbve_net = { path = "../../../packages/rust/bevy/bevy_kbve_net", features = ["npcdb", "creatures"] }
 bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory" }
 bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
@@ -90,7 +92,7 @@ tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
 webpki-roots = "0.26"
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi", features = ["clickhouse"] }
+jedi = { path = "../../../packages/rust/jedi", features = ["clickhouse", "forgejo", "postgres", "valkey"] }
 kbve = { path = "../../../packages/rust/kbve", features = ["wallet"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
@@ -99,10 +101,11 @@ hmac = "0.12"
 sha2 = "0.10"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.6", optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
 
 [build-dependencies]
 prost-build = "0.14"
+serde_json = "1.0"
 
 [dev-dependencies]
 serial_test = "3"

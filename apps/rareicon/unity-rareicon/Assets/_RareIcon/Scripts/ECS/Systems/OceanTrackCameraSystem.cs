@@ -51,8 +51,7 @@ namespace RareIcon
 
             if (_oceanMat != null)
             {
-                // Wave cells are world-space anchored so they don't swim on zoom: UVScale maps the
-                // viewport-filling quad to 0.8wu cells, WorldOffset cancels camera motion.
+
                 float height = orthoSize * 2f * 1.5f;
                 float width = height * cam.aspect;
                 float entityScale = math.max(width, height);

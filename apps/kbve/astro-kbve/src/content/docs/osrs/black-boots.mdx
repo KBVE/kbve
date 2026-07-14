@@ -1,6 +1,6 @@
 ---
 title: Black boots | OSRS Price Data
-description: "Black boots: These will protect my feet.. High alch: 345 GP, GE limit: 125."
+description: "Black boots are members feet armour requiring 10 Defence. High alch: 345 GP, GE limit: 125."
 osrs:
   id: 4125
   name: Black boots
@@ -12,9 +12,89 @@ osrs:
   lowalch: 230
   highalch: 345
   limit: 125
-  about: "Black boots is a members-only item in Old School RuneScape. High alchemy value: 345 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: leather
+    tier: low
+  properties:
+    release_date: "2005-01-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 1.36
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 7
+      slash: 8
+      crush: 9
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Bloodveld
+        quantity: "1"
+        rarity: 1/128
+      - source: Mutated bloodveld
+        quantity: "1"
+        rarity: 1/128
+      - source: Insatiable bloodveld
+        quantity: "1"
+        rarity: 1/64
+      - source: Insatiable mutated bloodveld
+        quantity: "1"
+        rarity: 1/64
+  related_items:
+    - item_name: Climbing boots
+      slug: climbing-boots
+      relationship: alternative
+      description: Common cheap feet slot upgrade for low Defence
+    - item_name: Mithril boots
+      slug: mithril-boots
+      relationship: upgrade
+      description: Smithable metal boots in the same tier window
+  about: |-
+    Black boots are a low-tier feet armour with mid-range slash and crush defence. They are dropped by bloodvelds inside the Slayer Tower and from the Catacombs of Kourend variants, and have no equivalent Smithing recipe.
+
+    With only 10 Defence required to wear, they slot into early melee setups but offer no offensive bonuses and carry small magic and ranged accuracy penalties.
+  market_strategy:
+    notes:
+      - "Supply comes entirely from bloodveld Slayer tasks"
+      - "Demand stays low — primarily collection log and ironman ironman ironman cosmetic use"
+      - "Tight spread on GE around the low alch price"
+  trading_tips:
+    - Cheaper than mithril boots for the lower-Defence niche
+    - Skip if Slayer level can already access better defensive options
+  history:
+    - date: "2005-01-26"
+      description: "Added to the game with the Slayer skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Blue Banner
+template: splash
 description: |
     Minecraft Blue Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 558
     ref: blue_wall_banner
     slug: blue-wall-banner
+    content_rev: 1
     display_name: Blue Banner
     material: wood
     hardness: 1
@@ -24,10 +26,61 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - non_solid
+    about:
+        description: |
+            The Blue Banner (wall variant) is the auto-placed form of a
+            Blue Banner when it is hung on a vertical surface instead of
+            standing on the ground. It always drops itself as an item when
+            broken, regardless of tool.
+        lore: |
+            Banners were added in the Bountiful Update (1.8) as a way for
+            players to display custom heraldry crafted from patterns and
+            dyes.
+    uses:
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              A banner can be combined with a shield at an anvil or crafting
+              table to transfer its pattern onto the shield's face.
+        - title: Loom Patterning
+          ref: loom
+          detail: |
+              Dyes and banner pattern items are combined with a banner at a
+              loom to add up to six layered emblem designs.
+    found_in:
+        - location: Crafting
+          detail: Made from six matching-color wool and a stick in a banner-shaped pattern.
+        - location: Villager trades
+          detail: Shepherd and cartographer villagers sell banners for emeralds.
+    faq:
+        - question: What tool do I need to mine a banner?
+          answer: |
+              None required — any tool or bare hands break it instantly and
+              it always drops itself.
+        - question: Why is this called a "wall banner"?
+          answer: |
+              It's the block state Minecraft uses automatically when a
+              banner is placed against a wall instead of standing on the
+              floor; both states drop the same Blue Banner item.
+        - question: Do banners burn?
+          answer: |
+              No, banners themselves are not flammable, though nearby lava
+              can still ignite adjacent air blocks.
+        - question: How many pattern layers can a banner have?
+          answer: |
+              Up to six layers can be applied via repeated loom crafting.
     data_version: "1.21.5"
 ---
 

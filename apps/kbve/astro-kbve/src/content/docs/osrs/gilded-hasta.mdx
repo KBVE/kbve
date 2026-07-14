@@ -1,6 +1,6 @@
 ---
 title: Gilded hasta | OSRS Price Data
-description: "Gilded hasta: A rune-tipped, one-handed hasta, with gold plate.. High alch: 12,480 GP, GE limit: 70."
+description: "Gilded hasta: A rune-tipped, one-handed hasta, with gold plate. High alch: 12,480 GP, GE limit: 70."
 osrs:
   id: 20161
   name: Gilded hasta
@@ -12,9 +12,111 @@ osrs:
   lowalch: 8320
   highalch: 12480
   limit: 70
-  about: "Gilded hasta is a members-only item in Old School RuneScape. High alchemy value: 12,480 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: gilded
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - "Wield"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    > *"A rune-tipped, one-handed hasta, with gold plate."*
+
+    The gilded hasta is the rune-tier hasta dressed in a gold-plated finish, an aesthetic-only twist on the standard rune hasta whose combat stats are identical. It is one of the rarest gilded weapons in Old School RuneScape, dropped only from Treasure Trail reward caskets at Hard, Elite, and Master tiers, and it cannot be poisoned despite the underlying weapon being a spear. Wielding it requires 40 Attack along with the Barbarian Training prerequisite from Tai Bwo Wannai for hasta usage, making it a flex item for early-to-mid game adventurers who want to swing a six-figure flair piece while training Slayer or doing Barbarian Assault.
+  equipment:
+    slot: weapon
+    attack_speed: 4
+    requirements:
+      Attack: 40
+    attack_bonus:
+      stab: 36
+      slash: 36
+      crush: 36
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -10
+      slash: -10
+      crush: -9
+      magic: 0
+      ranged: -10
+    other_bonus:
+      strength: 42
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: master
+    casket: Reward casket (master)
+    rarity: 1/149,776
+    members: true
+    notes: "Gilded hasta is shared across Hard (1/35,750), Elite (1/32,257.5), and Master (1/149,776) Treasure Trail reward pools; cataloging it under master since master caskets list it alongside the other gilded weapon set."
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        location: Treasure Trails
+        quantity: "1"
+        rarity: 1/35,750
+        members: true
+        notes: "Shared rare from the hard clue reward pool alongside the rest of the gilded armour set."
+      - source: Reward casket (elite)
+        location: Treasure Trails
+        quantity: "1"
+        rarity: 1/32,257.5
+        members: true
+        notes: "Slightly better odds at the elite tier; appears alongside other elite-tier gilded weapons."
+      - source: Reward casket (master)
+        location: Treasure Trails
+        quantity: "1"
+        rarity: 1/149,776
+        members: true
+        notes: "Rarest tier in absolute odds; only obtained as a master clue gilded weapon roll."
+  history:
+    - date: "2016-07-06"
+      update: Old School Bounds
+      description: "Added with the Old School Bounds patch alongside other rune-tier gilded weapons such as the gilded scimitar and gilded boots."
+    - date: "2017-04-19"
+      update: GE price adjustment
+      description: "Grand Exchange guide price was manually corrected after gilded weapons were used to inflate trade-screen scams."
+  related_items:
+    - item_id: 11889
+      item_name: Rune hasta
+      slug: rune-hasta
+      relationship: variant
+      description: "Untrimmed rune-tier base weapon with identical combat stats; can be poisoned, unlike the gilded version."
+    - item_id: 20153
+      item_name: Gilded spear
+      slug: gilded-spear
+      relationship: variant
+      description: "Two-handed gilded spear counterpart with similar gilded styling from the same clue pool."
+    - item_id: 20155
+      item_name: Gilded scimitar
+      slug: gilded-scimitar
+      relationship: alternative
+      description: "Companion gilded weapon from the same Hard/Elite/Master clue rare pool."
+  market_strategy:
+    notes:
+      - "Low buy limit of 70 and rare clue supply create volatile spikes whenever a clue-focused update or relic launches."
+      - "Treat the gilded hasta as a long-hold flex asset rather than a flip target; price drift trends upward over years."
+      - "High alch return of 12,480 gp is meaningless at GE price: never high-alch this weapon."
+  trading_tips:
+    - "Watch Leagues and DMM events: gilded clue rares typically rip 20-40% when clue traffic spikes."
+    - "Pair sales with offering the rest of the gilded set in bulk listings: collectors hunt for matching kits."
+    - "Use the GE guide price as a floor reference: panic sellers occasionally undercut by 5-10% on weekends."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

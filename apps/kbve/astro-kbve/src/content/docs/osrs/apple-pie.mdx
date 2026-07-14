@@ -12,9 +12,71 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 10000
-  about: "Apple pie is a free-to-play item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 14
+    bites: 2
+    per_bite: 7
+  recipes:
+    - skill: Cooking
+      level: 30
+      experience: 130
+      materials:
+        - item_name: Uncooked apple pie
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+      notes: "100% success at Cooking 63; leaves pie dish."
+  shops:
+    - shop_name: Pie Shop
+      location: "Cooks' Guild"
+      stock: 3
+      price: 30
+    - shop_name: Legends Guild General Store
+      location: "Legends' Guild"
+      stock: 5
+      price: 46
+    - shop_name: "Yarnio's Baked Goods"
+      location: Cam Torum
+      stock: 5
+      price: 30
+  drop_table:
+    sources:
+      - source: Frost dragon
+        quantity: "1"
+        rarity: "5/130"
+  history:
+    - date: "2015-02-26"
+      description: Half-eaten version made untradeable on the Grand Exchange.
+    - date: "2016-05-26"
+      description: Half pie was recoloured with the release of Botanical pie.
+    - date: "2016-06-23"
+      description: Half pie was reverted to its original appearance.
+  about: "Apple pie is a free-to-play food cooked at level 30 Cooking from an uncooked apple pie, granting 130 XP and healing 14 Hitpoints across two bites."
+  market_strategy:
+    notes:
+      - Stocked by Pie Shop and Yarnio's at 30 gp, well below GE price for arbitrage.
+      - F2P-tradeable food with broad demand from low-level skillers.
+  trading_tips:
+    - Buy in bulk from Pie Shop or Yarnio's Baked Goods and flip on the GE.
+    - Cooking from uncooked pies is unprofitable at current GE prices.
+  properties:
+    release_date: "2001-03-17"
+    update: "This week's update"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.45
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

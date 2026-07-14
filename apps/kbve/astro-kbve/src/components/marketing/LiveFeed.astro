@@ -1,0 +1,10 @@
+---
+import type { ComponentProps } from 'react';
+import { LiveFeed } from '@kbve/rn-astro';
+type Props = ComponentProps<typeof LiveFeed>;
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<LiveFeed client:only="react" {...props} />
+</div>

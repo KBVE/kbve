@@ -1,20 +1,73 @@
 ---
 title: Bucket of water | OSRS Price Data
-description: "Bucket of water: It's a bucket of water.. High alch: 3 GP, GE limit: 13,000."
+description: "Bucket of water: It's a bucket of water. High alch: 3 GP, GE limit: 13,000."
 osrs:
   id: 1929
   name: Bucket of water
   slug: bucket-of-water
-  examine: It's a bucket of water.
+  examine: "It's a bucket of water."
   members: false
   icon: Bucket of water.png
   value: 6
   lowalch: 2
   highalch: 3
   limit: 13000
-  about: "Bucket of water is a free-to-play item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 3
+  about: "Bucket of water is a free-to-play utility item created by using a bucket on any water source. It softens clay, fills watering cans, is required in many quests, and supports brewing and farming activities."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: liquid
+    tier: basic
+  recipes:
+    - item_name: Bucket of water
+      skill: none
+      level: 1
+      xp: 0
+      tools:
+        - Water source
+      materials:
+        - item_name: Bucket
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Bucket
+      relationship: component
+    - item_name: Soft clay
+      relationship: alternative
+    - item_name: Watering can
+      relationship: alternative
+    - item_name: Jug of water
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "summary: \"Cheap consumable with steady demand from Crafting/Farming and quest paths.\""
+      - "buy_strategy: \"Fill personally from any sink/well if making in bulk; GE bids at low price fill near-instantly.\""
+      - "sell_strategy: \"Flip in bulk during Crafting events when soft clay demand spikes.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Cheapest method: take a bucket to a sink and fill it yourself — zero gold cost beyond bucket value."
+    - "Stack purchases up to 13,000 per 4h limit when prepping for soft clay or compost runs."
+    - "Required for multiple quests including Plague City, Clock Tower, and Demon Slayer — keep extras on quest accounts."
+  history:
+    - date: "2001-01-04"
+      description: "Released with the original RuneScape Classic launch utility items."
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  drop_table: []
+  shops: []
+  special_attack:
+    has_special: false
+  charges:
+    has_charges: false
+  potion:
+    is_potion: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

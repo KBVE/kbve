@@ -7,13 +7,76 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import worker from '@astropub/worker';
 import mermaid from 'astro-mermaid';
+import { unified } from '@astrojs/markdown-remark';
 import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
+import { readFileSync } from 'node:fs';
+import https from 'node:https';
+import { fileURLToPath } from 'node:url';
+
+const DROID_SRC = fileURLToPath(
+	new URL('../../../packages/npm/droid/src/index.ts', import.meta.url),
+);
+const ASTRO_PKG_SRC = fileURLToPath(
+	new URL('../../../packages/npm/astro/src/index.ts', import.meta.url),
+);
+
+const DASH_PROXY_PREFIX = '/__dashproxy';
+
+function dashProxyDevIntegration() {
+	const attach = (server) => {
+		console.log('[dash-proxy] dev proxy registered →', DASH_PROXY_PREFIX);
+		server.middlewares.use((req, res, next) => {
+			if (!req.url?.startsWith(DASH_PROXY_PREFIX + '/')) {
+				return next();
+			}
+			const path = req.url.slice(DASH_PROXY_PREFIX.length);
+			const upstream = https.request(
+				{
+					hostname: 'kbve.com',
+					port: 443,
+					path,
+					method: req.method,
+					headers: { ...req.headers, host: 'kbve.com' },
+				},
+				(upRes) => {
+					res.writeHead(upRes.statusCode || 502, upRes.headers);
+					upRes.pipe(res);
+				},
+			);
+			upstream.on('error', (err) => {
+				console.error('[dash-proxy] error', err.message);
+				res.statusCode = 502;
+				res.end('dash proxy error');
+			});
+			req.pipe(upstream);
+		});
+	};
+	return {
+		name: 'kbve-dash-proxy-dev',
+		hooks: {
+			'astro:server:setup': ({ server }) => attach(server),
+		},
+	};
+}
+import { fileURLToPath } from 'node:url';
+
+// Inlined into <head> so it runs before the (edge-injected, async) ad script.
+// Neutralizes malvertising forced redirects without removing AdSense.
+const redirectGuard = readFileSync(
+	fileURLToPath(new URL('./src/lib/redirect-guard.js', import.meta.url)),
+	'utf-8',
+);
 
 export default defineConfig({
 	site: 'https://kbve.com',
 	output: 'static',
 	trailingSlash: 'always',
 	outDir: '../../../dist/apps/astro-kbve',
+	redirects: {
+		'/application/rn-web/': '/application/rn/',
+		'/dashboard/profile/': '/dashboard/account/',
+		'/settings/': '/dashboard/account/',
+	},
 	image: {
 		domains: ['images.unsplash.com'],
 	},
@@ -27,22 +90,11 @@ export default defineConfig({
 		prefetchAll: true,
 		defaultStrategy: 'hover',
 	},
-	redirects: {
-		'/account': '/dashboard/account/',
-		'/account/': '/dashboard/account/',
-		'/profile': '/dashboard/profile/',
-		'/profile/': '/dashboard/profile/',
-		'/profile/account': '/dashboard/account/',
-		'/profile/account/': '/dashboard/account/',
-		'/profile/market': '/dashboard/market/',
-		'/profile/market/': '/dashboard/market/',
-		'/dashboard/rows': '/dashboard/gameops/rows/',
-		'/dashboard/rows/': '/dashboard/gameops/rows/',
-	},
 	markdown: {
-		rehypePlugins: [rehypeLinkAttrs],
+		processor: unified({ rehypePlugins: [rehypeLinkAttrs] }),
 	},
 	integrations: [
+		dashProxyDevIntegration(),
 		worker(),
 		mermaid({
 			theme: 'forest',
@@ -55,17 +107,11 @@ export default defineConfig({
 			iconPacks: [
 				{
 					name: 'logos',
-					loader: () =>
-						fetch(
-							'https://unpkg.com/@iconify-json/logos@1/icons.json',
-						).then((res) => res.json()),
+					url: 'https://unpkg.com/@iconify-json/logos@1/icons.json',
 				},
 				{
 					name: 'iconoir',
-					loader: () =>
-						fetch(
-							'https://unpkg.com/@iconify-json/iconoir@1/icons.json',
-						).then((res) => res.json()),
+					url: 'https://unpkg.com/@iconify-json/iconoir@1/icons.json',
 				},
 			],
 		}),
@@ -102,8 +148,15 @@ export default defineConfig({
 				Head: './src/components/navigation/Head.astro',
 				Header: './src/components/navigation/Header.astro',
 				Sidebar: './src/components/navigation/Sidebar.astro',
+				MarkdownContent:
+					'./src/components/dashboard/MarkdownContent.astro',
 			},
 			head: [
+				{
+					// Ad redirect guard — must execute before any ad script.
+					tag: 'script',
+					content: redirectGuard,
+				},
 				{
 					tag: 'meta',
 					attrs: {
@@ -198,6 +251,7 @@ export default defineConfig({
 					collapsed: true,
 					items: [
 						{ label: 'Overview', link: '/dashboard/', attrs: { 'data-auth-visibility': 'auth' } },
+						{ label: 'Portal', link: '/dashboard/portal/', attrs: { 'data-auth-visibility': 'staff' } },
 						{
 							label: 'Account',
 							collapsed: true,
@@ -324,6 +378,10 @@ export default defineConfig({
 							label: 'NpcDB',
 							items: [{ autogenerate: { directory: 'npcdb' } }],
 						},
+						{
+							label: 'TileDB',
+							items: [{ autogenerate: { directory: 'tiledb' } }],
+						},
 					],
 				},
 				{
@@ -369,15 +427,38 @@ export default defineConfig({
 			},
 		}),
 	],
-	experimental: {
-		queuedRendering: {
-			enabled: true,
-			poolSize: 3000,
-			contentCache: true,
-		},
-	},
 	vite: {
 		plugins: [tailwindcss()],
+		esbuild: { keepNames: true },
+		define: {
+			'process.env.JEST_WORKER_ID': 'undefined',
+			__DEV__: 'false',
+			global: 'globalThis',
+		},
+		resolve: {
+			alias: [
+				{ find: /^react-native$/, replacement: 'react-native-web' },
+				{ find: /^@kbve\/droid$/, replacement: DROID_SRC },
+				{ find: /^@kbve\/astro$/, replacement: ASTRO_PKG_SRC },
+			],
+			dedupe: [
+				'@kbve/droid',
+				'@kbve/astro',
+				'nanostores',
+				'@nanostores/persistent',
+			],
+			extensions: [
+				'.web.tsx',
+				'.web.ts',
+				'.web.jsx',
+				'.web.js',
+				'.tsx',
+				'.ts',
+				'.jsx',
+				'.js',
+				'.json',
+			],
+		},
 		build: {
 			rollupOptions: {
 				// noVNC CJS has broken top-level await; guacamole-common-js is
@@ -387,9 +468,44 @@ export default defineConfig({
 			},
 		},
 		optimizeDeps: {
-			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
-			esbuildOptions: {
-				supported: { 'top-level-await': true },
+			include: [
+				'react-native-web',
+				'react-native-reanimated',
+				'react-native-worklets',
+				'react-native-svg',
+				'react-native-gesture-handler',
+					'@scalar/api-reference',
+			],
+			exclude: [
+				'fsevents',
+				'@novnc/novnc',
+				'guacamole-common-js',
+				'expo-modules-core',
+				'@kbve/droid',
+				'@kbve/astro',
+			],
+			rolldownOptions: {
+				transform: {
+					define: {
+						'process.env.JEST_WORKER_ID': 'undefined',
+						__DEV__: 'false',
+						global: 'globalThis',
+					},
+				},
+				moduleTypes: { '.js': 'jsx' },
+				resolve: {
+					extensions: [
+						'.web.tsx',
+						'.web.ts',
+						'.web.jsx',
+						'.web.js',
+						'.tsx',
+						'.ts',
+						'.jsx',
+						'.js',
+						'.json',
+					],
+				},
 			},
 		},
 		ssr: {

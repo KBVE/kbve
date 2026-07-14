@@ -12,30 +12,91 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 8
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: cloth
+    tier: cosmetic
+    primary_material: cloth
   equipment:
     slot: legs
+    weight: 2.7
+    tradeable: true
     requirements:
       prayer: 20
-    other_bonus:
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 4
+      defence_ranged: 0
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 5
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Easy
-        drop_rate: 1/1,404
-        description: Rare reward from easy clue scrolls
+  treasure_trail:
+    tier: easy
+    drop_rate: "1/1,404"
+    description: "Rare reward from Reward casket (easy)."
   related_items:
     - item_id: 10460
       item_name: Zamorak robe top
       slug: zamorak-robe-top
       relationship: set-piece
-      description: Matching Zamorak vestment top
+      description: Matching Zamorak vestment top.
+    - item_id: 10466
+      item_name: Zamorak mitre
+      slug: zamorak-mitre
+      relationship: set-piece
+      description: Head slot piece of the vestment set.
+    - item_id: 10464
+      item_name: Zamorak cloak
+      slug: zamorak-cloak
+      relationship: set-piece
+      description: Cape slot piece of the vestment set.
+    - item_id: 10472
+      item_name: Zamorak crozier
+      slug: zamorak-crozier
+      relationship: set-piece
+      description: Weapon slot piece of the vestment set.
   about: |-
-    > *"Leggings from the Zamorak Vestments."*
+    Leggings from the Zamorak Vestments.
 
     The Zamorak robe legs are the legs piece of the Zamorak vestment set, obtained from easy treasure trails. They provide a +5 Prayer bonus and require 20 Prayer to equip. Part of the god vestment sets, useful in the God Wars Dungeon for Zamorak protection.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Prayer | 20 |
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Magic | +4 |
+    | Prayer | +5 |
+  market_strategy:
+    notes:
+      - "Drop rate of 1/1,404 from easy clues throttles supply"
+      - "Pieces sell as a set premium when complete"
+      - "Useful for Zamorak protection in GWD"
+  trading_tips:
+    - Buy individual pieces when undervalued, sell as a vestment set.
+    - GE buy limit of 8 every 4 hours restricts flips.
+    - Track easy clue completion volume for supply shifts.
+  history:
+    - date: "2006-12-05"
+      description: "Released as part of the god vestment sets."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

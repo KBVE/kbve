@@ -1,6 +1,6 @@
 ---
 title: Bracelet mould | OSRS Price Data
-description: "Bracelet mould: Used to make gold bracelets.. High alch: 3 GP, GE limit: 40."
+description: "Bracelet mould is a members Crafting tool used to make gold and silver bracelets. High alch: 3 GP, GE limit: 40."
 osrs:
   id: 11065
   name: Bracelet mould
@@ -12,9 +12,75 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 40
-  about: "Bracelet mould is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mould
+    tier: low
+  properties:
+    release_date: "2007-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  shops:
+    - shop_name: Dommik's Crafting Store
+      location: Al Kharid
+      price: 8
+      currency: coins
+      stock: 2
+    - shop_name: Rommik's Crafty Supplies
+      location: Rimmington
+      price: 8
+      currency: coins
+      stock: 2
+    - shop_name: Hamab's Crafting Emporium
+      location: Ape Atoll
+      price: 8
+      currency: coins
+      stock: 2
+    - shop_name: Jamila's Craft Stall
+      location: Sophanem
+      price: 8
+      currency: coins
+      stock: 2
+  related_items:
+    - item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Used with the mould at a furnace to craft bracelets
+    - item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: Alternative metal for silver bracelets
+    - item_name: Ring mould
+      slug: ring-mould
+      relationship: alternative
+      description: Equivalent mould for ring crafting
+    - item_name: Necklace mould
+      slug: necklace-mould
+      relationship: alternative
+      description: Equivalent mould for necklace crafting
+  about: "Bracelet mould is a Crafting tool used at a furnace to shape gold or silver bars into bracelets. Players combine the mould with a bar (and optional gem) to produce the bracelet, used in enchantment recipes and combat or skilling utility jewelry. It is stocked by Crafting shops across the game, including Dommik's in Al Kharid and Rommik's in Rimmington, and is permanent once obtained. Most players buy one and keep it forever; market demand is driven by new accounts and ironmen losing or replacing theirs."
+  market_strategy:
+    notes:
+      - "One-time purchase for most players"
+      - "Limited 40 buy limit caps speculation"
+      - "Supply from shop restocks keeps price near floor"
+      - "Niche premium when crafting bracelet meta updates land"
+  trading_tips:
+    - Buy from shops at 8 GP and resell on GE
+    - Watch for Crafting skill update announcements
+  history:
+    - date: "2007-04-30"
+      description: Released with bracelet crafting expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

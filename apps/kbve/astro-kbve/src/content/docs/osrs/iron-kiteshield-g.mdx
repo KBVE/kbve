@@ -12,9 +12,79 @@ osrs:
   lowalch: 96
   highalch: 144
   limit: 4
-  about: "Iron kiteshield (g) is a free-to-play item in Old School RuneScape. High alchemy value: 144 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Iron
+    tier: low
+  equipment:
+    slot: shield
+    weapon_type: shield
+    weight: 5.443
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -2
+    defence_bonus:
+      stab: 8
+      slash: 10
+      crush: 9
+      magic: -1
+      ranged: 9
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  related_items:
+    - name: Iron kiteshield
+      relationship: variant
+    - name: Iron kiteshield (t)
+      relationship: variant
+    - name: Steel kiteshield (g)
+      relationship: alternative
+  about: "Iron kiteshield (g) is a gold-trimmed cosmetic variant of the iron kiteshield obtained from easy reward caskets. It carries identical defensive bonuses to the plain version with a slightly improved ranged attack penalty and is free-to-play tradeable."
+  market_strategy:
+    notes:
+      - "Only obtainable from easy clue scroll caskets at roughly a 1/1,404 roll."
+      - "Free-to-play tradeable so demand spikes around F2P cosmetic events."
+      - "Low buy limit (4 per 4h) means thin spreads but easy daily flips."
+  trading_tips:
+    - "Stockpile during easy clue scroll meta updates and resell to cosmetics collectors."
+    - "Watch GE volume for casket loot dumps that briefly depress the price."
+  history:
+    - date: "2014-06-12"
+      description: "Released with the Treasure Trails Expansion as a rare easy clue reward."
+  properties:
+    release_date: "2014-06-12"
+    update: "Treasure Trails Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

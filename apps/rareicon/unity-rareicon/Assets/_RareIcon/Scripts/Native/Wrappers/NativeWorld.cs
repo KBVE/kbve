@@ -90,8 +90,6 @@ namespace RareIcon.Native
             }
         }
 
-        // -- Hex queries --
-
         /// <summary>
         /// True if the world store has any saved state for this chunk.
         /// Cheap fast-path for chunk load — skip per-hex queries if false.
@@ -123,8 +121,6 @@ namespace RareIcon.Native
         {
             if (IsValid) Uniti.uniti_world_save_hex(_handle, q, r, res);
         }
-
-        // -- Unit queries --
 
         /// <summary>
         /// Push a ghost unit into the store. Chunk is derived from the
@@ -191,8 +187,6 @@ namespace RareIcon.Native
                     _handle, cx, cy, ptr, (uint)buffer.Length);
             }
         }
-
-        // -- Building ghost persistence --
 
         /// <summary>Push an unloaded building into the store. Chunk is derived from the building's root hex by the Rust side via the same floor-div math as units + hexes.</summary>
         public void SaveBuilding(FfiUnloadedBuilding building)
@@ -275,8 +269,6 @@ namespace RareIcon.Native
                     _handle, ptr, (uint)buffer.Length);
             }
         }
-
-        // -- Lifecycle --
 
         public void Dispose()
         {

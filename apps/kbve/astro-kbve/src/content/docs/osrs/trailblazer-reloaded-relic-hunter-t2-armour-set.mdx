@@ -12,9 +12,51 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: null
-  about: "Trailblazer reloaded relic hunter (t2) armour set is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour set
+    tier: mid
+  properties:
+    release_date: "2023-11-15"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options: ["Drop"]
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Trailblazer reloaded headband (t2)
+      slug: trailblazer-reloaded-headband-t2
+      relationship: set-piece
+      description: Head slot piece
+    - item_name: Trailblazer reloaded top (t2)
+      slug: trailblazer-reloaded-top-t2
+      relationship: set-piece
+      description: Body slot piece
+    - item_name: Trailblazer reloaded trousers (t2)
+      slug: trailblazer-reloaded-trousers-t2
+      relationship: set-piece
+      description: Legs slot piece
+    - item_name: Trailblazer reloaded boots (t2)
+      slug: trailblazer-reloaded-boots-t2
+      relationship: set-piece
+      description: Feet slot piece
+  about: "The Trailblazer reloaded relic hunter (t2) armour set bundles four cosmetic Trailblazer Reloaded League pieces into one tradeable package via the Grand Exchange Sets clerk. Useful for shuffling the cosmetic set between players without juggling individual slots."
+  market_strategy:
+    notes:
+      - "Set premium vs combined components varies; compare set price to sum of pieces."
+      - "Use the GE clerk Sets tab to pack or unpack."
+  history:
+    - date: "2023-11-15"
+      description: Item added to the game.
+    - date: "2023-11-29"
+      description: Became obtainable through the Grand Exchange clerk.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -13,8 +13,65 @@ osrs:
   highalch: 19200
   limit: 8
   about: "Gold locks is a members-only item in Old School RuneScape. High alchemy value: 19,200 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-01-27"
+    weight: 0.283
+    tradeable: true
+    equipable: false
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+  material:
+    type: misc
+    tier: gold
+  drop_table:
+    - source: "Gold chest (Shades of Mort'ton)"
+      quantity: "1"
+      rarity: "1/60"
+      notes: "Drop rate varies by chest color: red 1/63, crimson 1/61, brown 1/62, black 1/60, purple 1/59. Ring of Wealth improves odds."
+  recipes:
+    - item_name: "Gold coffin"
+      tools:
+        - "Broken coffin"
+        - "Speak to Dampe"
+      materials:
+        - item_name: "Gold locks"
+          quantity: 1
+        - item_name: "Broken coffin"
+          quantity: 1
+      output_quantity: 1
+      notes: "Dampe attaches the lock to a broken coffin to create a gold coffin. Reversible via Remove-lock option."
+  relationships:
+    - item_name: "Gold coffin"
+      relationship: component
+      notes: "Combined with broken coffin via Dampe to create gold coffin."
+    - item_name: "Bronze locks"
+      relationship: alternative
+      notes: "Lower-tier lock variant from Shades of Mort'ton."
+    - item_name: "Steel locks"
+      relationship: alternative
+      notes: "Mid-tier lock variant from Shades of Mort'ton."
+    - item_name: "Black locks"
+      relationship: alternative
+      notes: "High-tier lock variant from Shades of Mort'ton."
+    - item_name: "Silver locks"
+      relationship: alternative
+      notes: "High-tier lock variant from Shades of Mort'ton."
+  history:
+    - date: "2021-01-27"
+      description: "Released with the Shades of Mort'ton Rework update."
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Acquire from Shades of Mort'ton gold chests or buy on Grand Exchange when prices are below high alch.\""
+      - "sell_strategy: \"Sell to coffin crafters or list on Grand Exchange; small daily volume so price patience helps.\""
+      - "profit_potential: \"Limited; primarily used as a crafting component for gold coffins.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Daily volume is around 557 trades — set realistic prices and wait."
+    - "Buy limit is only 8 per 4 hours, restricting flip volume."
+    - "Value is tied to demand for gold coffins from Shades of Mort'ton players."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

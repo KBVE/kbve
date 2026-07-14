@@ -1,5 +1,6 @@
 ---
 title: Brown Terracotta
+template: splash
 description: |
     Minecraft Brown Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 464
     ref: brown_terracotta
     slug: brown-terracotta
+    content_rev: 1
     display_name: Brown Terracotta
     material: stone
     hardness: 1.25
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Brown Terracotta is the dyed form of terracotta, a hardened clay
+            block with strong blast resistance for its low hardness. It
+            requires at least a wooden pickaxe to drop and always yields
+            itself when mined with a valid tool.
+        lore: |
+            Terracotta (formerly called hardened clay) was expanded with
+            full dye-color variants in Java Edition 1.8, turning a plain
+            building material into a full decorative palette.
+    uses:
+        - title: Building material
+          ref: brown_terracotta
+          detail: |
+              Used as a durable, blast-resistant decorative block for walls,
+              floors, and roofs, and to build the classic banded terracotta
+              patterns seen in badlands builds.
+    found_in:
+        - location: Badlands biomes
+          detail: Naturally generates in layered bands of dyed terracotta throughout badlands and eroded badlands.
+        - location: Desert villages
+          detail: Used in some desert village houses, lamps, and meeting points.
+        - location: Furnace + crafting table
+          detail: Smelt clay into plain terracotta, then craft with brown dye (1 dye + 8 terracotta yields 8 blocks).
+    faq:
+        - question: What tool do I need to mine Brown Terracotta?
+          answer: |
+              At least a wooden pickaxe. Mining it without any pickaxe drops
+              nothing.
+        - question: Is Brown Terracotta flammable?
+          answer: |
+              No. It does not burn or ignite from fire or lava.
+        - question: How is it different from plain clay?
+          answer: |
+              Terracotta is far more blast resistant (4.2 versus clay's 0.6)
+              and does not need to be crafted back into a usable block after
+              smelting.
+        - question: Can I get Brown Terracotta as loot?
+          answer: |
+              It mainly comes from crafting terracotta with brown dye, since
+              natural badlands bands are randomized colors rather than a
+              guaranteed brown source.
     data_version: "1.21.5"
 ---
 

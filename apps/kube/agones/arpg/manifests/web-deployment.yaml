@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: arpg-web
+    namespace: arpg
+    labels:
+        app: arpg-web
+        app.kubernetes.io/part-of: arpg
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: arpg-web
+    template:
+        metadata:
+            labels:
+                app: arpg-web
+                app.kubernetes.io/part-of: arpg
+        spec:
+            containers:
+                - name: arpg-web
+                  image: ghcr.io/kbve/arpg-web:0.1.27
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: http
+                        containerPort: 5402
+                        protocol: TCP
+                  readinessProbe:
+                      httpGet:
+                          path: /index.html
+                          port: 5402
+                      initialDelaySeconds: 3
+                      periodSeconds: 10
+                  livenessProbe:
+                      httpGet:
+                          path: /index.html
+                          port: 5402
+                      initialDelaySeconds: 5
+                      periodSeconds: 20
+                  resources:
+                      requests:
+                          cpu: 25m
+                          memory: 32Mi
+                      limits:
+                          cpu: 250m
+                          memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: arpg-web
+    namespace: arpg
+    labels:
+        app: arpg-web
+        app.kubernetes.io/part-of: arpg
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        app: arpg-web
+    ports:
+        - name: http
+          port: 5402
+          targetPort: 5402
+          protocol: TCP

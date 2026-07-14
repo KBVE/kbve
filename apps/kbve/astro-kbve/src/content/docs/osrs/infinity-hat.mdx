@@ -1,6 +1,6 @@
 ---
 title: Infinity hat | OSRS Price Data
-description: "Infinity hat is a members head slot item. High alch: 10,200 GP, GE limit: 125."
+description: "Infinity hat is a members head slot item requiring 50 Magic and 25 Defence. High alch: 10,200 GP, GE limit: 125."
 osrs:
   id: 6918
   name: Infinity hat
@@ -12,56 +12,105 @@ osrs:
   lowalch: 6800
   highalch: 10200
   limit: 125
-  item_id: 6918
-  type: equipment
-  tradeable: true
-  weight: 0.453
-  buy_limit: 125
+  material:
+    type: cloth
+    tier: high
   equipment:
     slot: head
-    type: magic_helm
+    weight: 0.453
     requirements:
-      skills:
-        - skill: magic
-          level: 50
-        - skill: defence
-          level: 25
-    stats:
-      attack_magic: 6
-      defence_magic: 6
-  obtaining:
-    minigame:
-      name: Mage Training Arena
-      points_required:
-        telekinetic: 350
-        alchemist: 400
-        enchantment: 4000
-        graveyard: 350
+      magic: 50
+      defence: 25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 6
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 6
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+  set_bonus:
+    set_name: Infinity robes
+    pieces_required: 5
+    description: Full set rewarded from Mage Training Arena point thresholds; worn as a high-magic mage robe set.
+    pieces:
+      - 6918
+      - 6916
+      - 6924
+      - 6922
+      - 6920
+  drop_table:
+    sources:
+      - source: Mage Training Arena rewards
+        quantity: "1"
+        rarity: always
+        members_only: true
   related_items:
-    - slug: infinity-top
-      name: Infinity top
-      relation: set_piece
-    - slug: infinity-bottoms
-      name: Infinity bottoms
-      relation: set_piece
-    - slug: infinity-boots
-      name: Infinity boots
-      relation: set_piece
-    - slug: infinity-gloves
-      name: Infinity gloves
-      relation: set_piece
-    - slug: ancestral-hat
-      name: Ancestral hat
-      relation: best_upgrade
-  about: |-
-    The full Infinity set includes:
-    - Infinity hat
-    - Infinity top
-    - Infinity bottoms
-    - Infinity boots
-    - Infinity gloves
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 6916
+      item_name: Infinity top
+      slug: infinity-top
+      relationship: set-piece
+      description: Body slot of the Infinity set
+    - item_id: 6924
+      item_name: Infinity bottoms
+      slug: infinity-bottoms
+      relationship: set-piece
+      description: Legs slot of the Infinity set
+    - item_id: 6922
+      item_name: Infinity boots
+      slug: infinity-boots
+      relationship: set-piece
+      description: Feet slot of the Infinity set
+    - item_id: 6920
+      item_name: Infinity gloves
+      slug: infinity-gloves
+      relationship: set-piece
+      description: Hands slot of the Infinity set
+    - item_id: 21018
+      item_name: Ancestral hat
+      slug: ancestral-hat
+      relationship: upgrade
+      description: Top-tier magic head slot with damage bonus
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Supply gated by Mage Training Arena point grinders"
+      - "Premium over Mystic hat for the magic attack bonus"
+      - "Outclassed by Ancestral hat for end-game PvM mages"
+  trading_tips:
+    - Wait for Bond-week MTA spikes for cheap fills
+    - Hold during Inferno meta updates that boost magic gear demand
+    - Use the GE for high-volume trades — buy limit of 125 throttles flips
+  about: Infinity hat is the head slot of the Infinity robes set, claimed from the Mage Training Arena reward shop and worn as a strong mid-tier mage helmet with magic attack and defence bonuses.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2005-08-22"
+      description: "Infinity hat released alongside the Mage Training Arena minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

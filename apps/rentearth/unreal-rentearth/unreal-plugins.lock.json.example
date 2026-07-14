@@ -1,0 +1,8 @@
+{
+	"engine": "5.8.0",
+	"plugins": [
+		{ "name": "KBVEZstd", "version": "1.5.7" },
+		{ "name": "KBVEYYJson", "version": "0.12.0" },
+		{ "name": "UEDevOps", "version": "0.1.0" }
+	]
+}

@@ -1,5 +1,6 @@
 ---
 title: Spruce Fence
+template: splash
 description: |
     Minecraft Spruce Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 605
     ref: spruce_fence
     slug: spruce-fence
+    content_rev: 1
     display_name: Spruce Fence
     material: wood
     hardness: 2
@@ -21,13 +23,67 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - waterloggable
+    about:
+        description: |
+            Spruce Fence is a wooden barrier one and a half blocks tall that
+            keeps mobs and players contained while letting arrows and line
+            of sight pass through the gaps.
+        lore: |
+            Fences originally required six sticks in a 2x3 crafting grid
+            before the 1.8 update changed the recipe to use planks and sticks.
+    uses:
+        - title: Animal Enclosures
+          ref: lead
+          detail: |
+              Forms secure pens for tamed animals; a Lead can be attached to
+              a fence post to tether a mob in place.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Overworld wood fences like Spruce Fence smelt as furnace fuel
+              at a rate of 1.5 items per block burned.
+    found_in:
+        - location: Crafting
+          detail: |
+              Crafted from 4 Spruce Planks and 2 Sticks on a crafting table
+              to yield 3 Spruce Fences.
+        - location: Taiga Villages
+          detail: |
+              Generates as fencing around farms, paddocks, and yards in
+              spruce taiga village structures.
+    faq:
+        - question: Does Spruce Fence connect to other fence types?
+          answer: |
+              It visually connects to other Spruce Fences and fence gates,
+              but not to fences made of different wood types or nether brick.
+        - question: Can Spruce Fence be waterlogged?
+          answer: |
+              Yes, it can be placed in water and remain waterlogged, keeping
+              the water source in the same space.
+        - question: Is Spruce Fence affected by Fortune?
+          answer: |
+              No. It always drops exactly one fence block regardless of
+              enchantments.
+        - question: Can mobs jump over a Spruce Fence?
+          answer: |
+              Most mobs cannot, since fences are one and a half blocks tall,
+              though some entities like spiders can climb over them.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Green Concrete Powder
+template: splash
 description: |
     Minecraft Green Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 707
     ref: green_concrete_powder
     slug: green-concrete-powder
+    content_rev: 1
     display_name: Green Concrete Powder
     material: dirt
     hardness: 0.5
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+        - gravity_affected
+    about:
+        description: |
+            A gravity-affected block crafted from green dye, sand, and
+            gravel. It falls like sand and solidifies into green concrete
+            on contact with water.
+        lore: |
+            Announced by Jeb in February 2017, concrete powder was added
+            in Java Edition 1.12 and became renewable once piglins began
+            bartering gravel in 1.16.
+    uses:
+        - title: Green Concrete
+          ref: green_concrete
+          detail: |
+              Touching any water source, flowing water, or waterlogged
+              block instantly converts the powder into solid green
+              concrete.
+    found_in:
+        - location: Crafting
+          detail: Combine 1 green dye with 4 sand and 4 gravel to craft 8 green concrete powder.
+    faq:
+        - question: What tool mines green concrete powder fastest?
+          answer: |
+              A shovel is fastest, though it can also be broken by hand or
+              with any other tool.
+        - question: Why did my concrete powder disappear and turn to concrete?
+          answer: |
+              Concrete powder converts to concrete instantly on contact
+              with any water source, flowing water, or waterlogged block.
+        - question: Does rain convert concrete powder to concrete?
+          answer: |
+              No. Only direct contact with a water block or waterlogged
+              block triggers the conversion, not rain or splash potions.
+        - question: Is green concrete powder affected by gravity?
+          answer: |
+              Yes. Like sand and gravel, it falls if unsupported and can
+              suffocate entities it lands on.
     data_version: "1.21.5"
 ---
 

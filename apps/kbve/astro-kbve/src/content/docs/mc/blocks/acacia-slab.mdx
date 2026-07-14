@@ -1,5 +1,6 @@
 ---
 title: Acacia Slab
+template: splash
 description: |
     Minecraft Acacia Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 571
     ref: acacia_slab
     slug: acacia-slab
+    content_rev: 1
     display_name: Acacia Slab
     material: wood
     hardness: 2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Acacia Slab is a half-height building block crafted from
+            acacia planks, used for detailed roofing and flooring. Two
+            slabs placed in the same space combine into a full block.
+        lore: |
+            Single slabs are semi-transparent to light in some versions,
+            while a combined double slab behaves as a fully opaque block.
+    uses:
+        - title: Chiseled Bookshelf
+          ref: chiseled_bookshelf
+          detail: |
+              Acacia slabs combine with acacia planks and books to craft a
+              chiseled bookshelf for book storage and display.
+        - title: Composter
+          ref: composter
+          detail: |
+              Wooden slabs are one of several crafting ingredients used to
+              build a composter.
+    found_in:
+        - location: Crafted from Acacia Planks
+          detail: Three acacia planks craft six acacia slabs.
+        - location: Villages, mansions, and shipwrecks
+          detail: Generates in some savanna village buildings, woodland mansions, and shipwrecks.
+    faq:
+        - question: What is the best tool to mine Acacia Slab?
+          answer: |
+              An axe is fastest, though any tool or bare hands will still
+              break and drop it.
+        - question: Does it require a specific tool tier?
+          answer: |
+              No. It always drops when broken, regardless of tool.
+        - question: Can Acacia Slab burn?
+          answer: |
+              Yes, it is flammable with about a 5-minute burn time, unlike
+              Crimson and Warped slabs.
+        - question: How do two slabs become a full block?
+          answer: |
+              Placing one slab on top of a matching slab in the same
+              position combines them into a full double-slab block.
     data_version: "1.21.5"
 ---
 

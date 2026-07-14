@@ -12,13 +12,69 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 40
-  related_items: []
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Jatix's Herblore Shop
+      location: Taverley
+      price: 4
+      currency: coins
+      stock: 5
+    - shop_name: Myths' Guild Herbalist
+      location: Myths' Guild
+      price: 4
+      currency: coins
+      stock: 5
+    - shop_name: Prifddinas Herbal Supplies
+      location: Prifddinas
+      price: 4
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Mortar and pestle
+      slug: mortar-and-pestle
+      relationship: alternative
+      description: Identical-function variant
+    - item_name: Vial
+      slug: vial
+      relationship: component
+      description: Companion Herblore tool
   about: |-
     > _"I can grind things for potions in this."_
 
-    The pestle and mortar is an essential Herblore tool used to crush ingredients into powders and pastes. Required for 20+ quests. Auto-grinds all matching items in inventory when used. Cannot be stored in a tool belt.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The pestle and mortar is an essential Herblore tool used to crush ingredients into powders and pastes. Required for 20+ quests. Auto-grinds matching items in inventory every 3 ticks, eliminating manual repetition. Cannot be stored in a tool belt.
+  market_strategy:
+    notes:
+      - "Universal Herblore tool demand"
+      - "Shop price 4gp anchors floor"
+      - "Buy limit 40 caps speculation"
+      - "Quest requirement broad demand"
+      - "Stable low-value commodity"
+  trading_tips:
+    - Margins are minimal vs shop
+    - Most players buy from shop, not GE
+    - Volume tied to Herblore training streams
+  history:
+    - date: "2002-02-27"
+      description: Released with Herblore skill.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

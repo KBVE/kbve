@@ -50,7 +50,7 @@ const SPECIALS: Record<string, string> = {
 	rose_bush: 'rose_bush_bottom',
 	peony: 'peony_bottom',
 	sunflower: 'sunflower_bottom',
-	pitcher_plant: 'pitcher_plant_top',
+	pitcher_plant: 'pitcher_plant',
 	end_portal_frame: 'end_portal_frame_top',
 	end_portal: 'end_stone',
 	bell: 'bell_bottom',
@@ -170,6 +170,13 @@ const SPECIALS: Record<string, string> = {
 	suspicious_sand: 'sand',
 	test_block: 'barrier',
 	honey_block: 'honey_block_top',
+	skeleton_skull: 'bone_block_top',
+	wither_skeleton_skull: 'soul_sand',
+	dragon_head: 'dragon_egg',
+	zombie_head: 'rotten_flesh',
+	creeper_head: 'moss_block',
+	piglin_head: 'gold_block',
+	player_head: 'carved_pumpkin',
 };
 
 export function resolveBaseRef(ref: string): string | null {
@@ -184,6 +191,20 @@ export function resolveBaseRef(ref: string): string | null {
 
 	if (r === 'heavy_weighted_pressure_plate') return 'iron_block';
 	if (r === 'light_weighted_pressure_plate') return 'gold_block';
+	if (r === 'respawn_anchor') return 'respawn_anchor_top';
+	if (r === 'sculk_sensor') return 'sculk_sensor_top';
+	if (r === 'reinforced_deepslate') return 'reinforced_deepslate_top';
+	if (r === 'lodestone') return 'lodestone_top';
+	if (r === 'crafting_table') return 'crafting_table_front';
+	if (r === 'furnace') return 'furnace_front';
+	if (r === 'enchanting_table') return 'enchanting_table_top';
+	if (r === 'hopper') return 'hopper_top';
+	if (r === 'dispenser') return 'dispenser_front';
+	if (r === 'piston') return 'piston_side';
+	if (r === 'observer') return 'observer_front';
+	if (r === 'tnt') return 'tnt_side';
+	if (r === 'chest') return 'oak_planks';
+	if (r === 'ender_chest') return 'obsidian';
 	if (r === 'petrified_oak_slab') return 'oak_planks';
 	if (r === 'purpur_slab' || r === 'purpur_stairs') return 'purpur_block';
 	if (
@@ -270,6 +291,9 @@ export function resolveBaseRef(ref: string): string | null {
 	m = r.match(/^(.+?)_(wall_)?banner$/);
 	if (m) return `${m[1]}_wool`;
 
+	m = r.match(/^(.+?)_wall_(head|skull)$/);
+	if (m) return `${m[1]}_${m[2]}`;
+
 	if (Object.prototype.hasOwnProperty.call(SPECIALS, r)) return SPECIALS[r];
 
 	if (r.startsWith('potted_')) return 'flower_pot';
@@ -290,7 +314,7 @@ function resolveTerminal(ref: string): string {
 }
 
 export function mcTextureUrls(ref: string, category?: string | null): Pair {
-	const clean = ref.replace(/^minecraft:/, '').toLowerCase();
+	const clean = ref.replace(/^[a-z_]+:/, '').toLowerCase();
 	const effective = resolveTerminal(clean);
 	const isBlockish = category ? BLOCK_CATEGORIES.has(category) : false;
 	if (isBlockish) {

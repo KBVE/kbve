@@ -1,5 +1,6 @@
 ---
 title: Chiseled Sandstone
+template: splash
 description: |
     Minecraft Chiseled Sandstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 107
     ref: chiseled_sandstone
     slug: chiseled-sandstone
+    content_rev: 1
     display_name: Chiseled Sandstone
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_sandstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - renewable
+    about:
+        description: |
+            Chiseled Sandstone is a decorative sandstone variant carved with
+            an ornamental pattern that resembles a Creeper's face. It behaves
+            structurally like plain sandstone but is used purely for detail
+            work in desert-themed builds.
+        lore: |
+            Its carved face is a well-known nod to the Creeper, one of
+            Minecraft's original hostile mobs, hidden in plain sight on a
+            common desert building block.
+    uses:
+        - title: Sandstone Slabs & Stairs
+          ref: sandstone_slab
+          detail: |
+              Craft into sandstone slabs (6 per block) or sandstone stairs
+              (4 per block) alongside plain sandstone, though the chiseled
+              face is lost once recut.
+    found_in:
+        - location: Desert Pyramids
+          detail: Used decoratively in desert temple architecture.
+        - location: Warm Ocean Ruins & Trial Chambers
+          detail: Generates as part of underwater ruin and trial chamber structures.
+        - location: Crafting or Stonecutter
+          detail: Craft from 2 sandstone slabs, or cut from sandstone with a stonecutter.
+    faq:
+        - question: What tool do I need to mine Chiseled Sandstone?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining by hand or with the
+              wrong tool yields nothing.
+        - question: Is Chiseled Sandstone renewable?
+          answer: |
+              Yes. Sand is renewable via gravel/sand duplication and
+              sandstone is smelted from sand, so an unlimited supply of
+              chiseled sandstone can always be crafted.
+        - question: What is depicted in the carving?
+          answer: |
+              A stylized Creeper face, a piece of Minecraft trivia fans have
+              noted since the block's introduction.
+        - question: Can I get it back to plain sandstone?
+          answer: |
+              No direct recipe reverses it, but you can always craft or
+              stonecut a fresh batch of plain sandstone separately.
     data_version: "1.21.5"
 ---
 

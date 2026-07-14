@@ -1,5 +1,6 @@
 ---
 title: Quartz Stairs
+template: splash
 description: |
     Minecraft Quartz Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 449
     ref: quartz_stairs
     slug: quartz-stairs
+    content_rev: 1
     display_name: Quartz Stairs
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: quartz_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Quartz Stairs are the stair variant of Block of Quartz, giving
+            builders sloped quartz surfaces for roofs, staircases, and
+            detail work. They come in straight, inner-corner, and
+            outer-corner shapes depending on placement.
+        lore: |
+            Added in Java Edition 1.5 (snapshot 13w02a) as part of the
+            original quartz block family, the same update that added
+            regular and chiseled quartz block.
+    uses:
+        - title: Decorative Building
+          ref: quartz_stairs
+          detail: |
+              Purely a construction block used for slopes and stair
+              details; it has no further crafting recipes.
+    found_in:
+        - location: Crafting Table
+          detail: Craft 6 of any Quartz Block variant in a staircase pattern to yield 4 Quartz Stairs.
+        - location: Stonecutter
+          detail: Cut 1 Block of Quartz into 1 Quartz Stairs.
+    faq:
+        - question: What tool do I need to mine Quartz Stairs?
+          answer: |
+              Any pickaxe, starting with wood — mining without a pickaxe
+              drops nothing.
+        - question: Are Quartz Stairs waterloggable?
+          answer: |
+              Yes, they can hold water in their lower half like other
+              stair blocks.
+        - question: Do Quartz Stairs generate naturally?
+          answer: |
+              No, they are only obtained through crafting or stonecutting
+              and never appear in natural structures.
+        - question: What shapes can Quartz Stairs take?
+          answer: |
+              Straight, inner corner, and outer corner shapes, determined
+              automatically by adjacent stair placement.
     data_version: "1.21.5"
 ---
 

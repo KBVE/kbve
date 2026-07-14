@@ -9,12 +9,50 @@ osrs:
   members: false
   icon: Stronghold notes.png
   value: 2
-  lowalch: 1
+  lowalch: null
   highalch: 1
   limit: 15
-  about: "Stronghold notes is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: book
+    tier: low
+  drop_table:
+    sources:
+      - source: Dead explorer (Solztun) inside Stronghold of Security entrance
+        quantity: "1"
+        rarity: Always
+      - source: Player-owned house bookshelves
+        quantity: "1"
+        rarity: Always
+  related_items: []
+  about: "Stronghold notes is a free-to-play informational item taken from the dead explorer Solztun just inside the Stronghold of Security entrance west of Varrock. It describes the four levels of the dungeon, the creatures within, and the navigation tips compiled from his expedition."
+  market_strategy:
+    notes:
+      - Supply is essentially infinite via the in-dungeon corpse and PoH bookshelves
+      - Demand is purely from lorehounds and completionists
+      - Buy limit of 15 per 4 hours caps speculative purchases
+  trading_tips:
+    - Pickup from Solztun is faster than buying for most players
+    - Holding inventory rarely pays off given trivial demand
+  history:
+    - date: "2006-07-04"
+      description: Released as part of the Security and free-to-play update introducing the Stronghold of Security.
+  properties:
+    release_date: "2006-07-04"
+    update: Stronghold of Security
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Read
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

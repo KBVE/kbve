@@ -12,9 +12,91 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 5
-  about: "Twisted hat (t2) is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid-high
+  properties:
+    release_date: "16 January 2020"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Twisted League hub
+      price: 2500
+      currency: League points
+      stock: 1
+  related_items:
+    - item_name: Twisted coat (t2)
+      slug: twisted-coat-t2
+      relationship: set-piece
+      description: "Body piece of the Twisted Relic Hunter (t2) outfit"
+    - item_name: Twisted trousers (t2)
+      slug: twisted-trousers-t2
+      relationship: set-piece
+      description: "Leg piece of the Twisted Relic Hunter (t2) outfit"
+    - item_name: Twisted boots (t2)
+      slug: twisted-boots-t2
+      relationship: set-piece
+      description: "Foot piece of the Twisted Relic Hunter (t2) outfit"
+    - item_name: Twisted hat (t1)
+      slug: twisted-hat-t1
+      relationship: downgrade
+      description: "Lower-tier Twisted Relic Hunter hat variant"
+    - item_name: Twisted hat (t3)
+      slug: twisted-hat-t3
+      relationship: upgrade
+      description: "Higher-tier Twisted Relic Hunter hat variant"
+  about: |-
+    Twisted hat (t2) is the head piece of the tier-2 Twisted Relic Hunter outfit, awarded for finishing the Twisted League with a qualifying point total and purchased from the Leagues Reward Shop.
+
+    Purely cosmetic with all combat bonuses at zero; can be stored in a costume room's armour case as part of the full set.
+  market_strategy:
+    notes:
+      - "Capped supply from a one-off league event"
+      - "Long-term appreciation play on retired league cosmetics"
+  trading_tips:
+    - Demand spikes during new league announcements
+    - Pair flips with the matching coat/trousers/boots set
+  history:
+    - date: "16 January 2020"
+      description: "Released with the Twisted League rewards shop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

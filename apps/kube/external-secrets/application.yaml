@@ -1,20 +1,28 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: external-secrets
-  namespace: argocd
+    name: external-secrets
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/external-secrets
+        kbve.com/manifest-path: apps/kube/external-secrets/manifests
+        kbve.com/application-file: kube/external-secrets/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: security
+        kbve.com/stack: core
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/kbve/kbve
-    targetRevision: main
-    path: apps/kube/external-secrets/manifests
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: external-secrets-system
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
-    syncOptions:
-      - CreateNamespace=true
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/external-secrets/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: external-secrets-system
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true

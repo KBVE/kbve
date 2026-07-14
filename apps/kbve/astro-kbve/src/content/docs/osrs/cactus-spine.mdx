@@ -12,57 +12,76 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  item_id: 6016
-  type: farming_product
-  tradeable: true
-  weight: 0.028
-  buy_limit: 11000
-  requirements:
-    skills:
-      - skill: farming
-        level: 55
-        context: to harvest
-  obtaining:
-    primary:
-      method: Farming
-      details: Harvest from cactus patches
-      locations:
-        - Al Kharid
-        - Farming Guild
-      yield: ~10 spines per harvest
-      regrowth: 75 minutes
-    other_sources:
-      - source: Nature implings
-        requirements: Hunter 58-68
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: herblore secondary
+    tier: mid
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
       - source: Kalphite Queen
-        quantity: 10 noted
-      - source: Tombs of Amascut chests
-  usage:
-    herblore: Weapon poison+ ingredient
-    farming: Yew tree protection payment (10 spines)
+        quantity: "1"
+        rarity: "3/126"
+      - source: Nature impling
+        quantity: "1"
+        rarity: "1/10"
+      - source: Tombs of Amascut
+        quantity: "1"
+        rarity: "3/27"
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 190
+      materials:
+        - item_name: Weapon poison(+) (unf)
+          quantity: 1
+        - item_name: Cactus spine
+          quantity: 1
+      tools:
+        - Coconut milk
+      output_quantity: 1
   related_items:
-    - slug: weapon-poison-plus
-      name: Weapon poison+
-      relation: herblore_product
-    - slug: cactus-seed
-      name: Cactus seed
-      relation: farming_source
-    - slug: yew-seed
-      name: Yew seed
-      relation: protection_target
+    - item_name: Weapon poison+
+      slug: weapon-poison-plus
+      relationship: product
+      description: "Primary herblore product using cactus spine"
+    - item_name: Cactus seed
+      slug: cactus-seed
+      relationship: component
+      description: "Farming source - grows into cactus that yields spines"
+    - item_name: Yew seed
+      slug: yew-seed
+      relationship: alternative
+      description: "Cactus spines used as protection payment for yew tree patches"
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Farming Product |
-    | Tradeable | Yes |
-    | Weight | 0.028 kg |
+    Cactus spine is a herblore secondary obtained by harvesting cactus patches at level 55 Farming. It is the primary ingredient for weapon poison+, combined with coconut milk at 73 Herblore.
 
-    Herblore: Weapon poison+ ingredient
-
-    Farming: Yew tree protection payment (10 spines)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Cactus patches grow in Al Kharid and the Farming Guild, yielding around ten spines per harvest at level 99 with a 75-minute regrowth cycle. Drops also come from the Kalphite Queen, Nature implings, and Tombs of Amascut chests.
+  market_strategy:
+    notes:
+      - "Stable herblore secondary with consistent weapon poison+ demand"
+      - "Farming Guild patch enables high-yield runs"
+      - "Profitable money-making at 55+ Farming"
+  trading_tips:
+    - Harvest in bulk from multiple cactus patches to maximize per-run yield
+    - Sell to herblore-tier players crafting weapon poison+
+  history:
+    - date: "2005-07-11"
+      description: "Item added to the game with the Farming skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

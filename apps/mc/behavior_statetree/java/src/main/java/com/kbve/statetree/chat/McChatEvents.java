@@ -49,6 +49,9 @@ public final class McChatEvents {
     /** Opaque native handle. Zero means the bridge is disabled. */
     private static final AtomicLong HANDLE = new AtomicLong(0);
 
+    /** Set on SERVER_STOPPING so a late connect result is torn down, not leaked. */
+    private static volatile boolean closed = false;
+
     private McChatEvents() {}
 
     /**
@@ -56,10 +59,15 @@ public final class McChatEvents {
      * connection on server start. Call once from {@code onInitialize}.
      */
     public static void register() {
-        // Open the IRC connection when the server starts, not at class
-        // load time, so failures don't block mod boot and env vars are
-        // evaluated with the container's final environment.
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> openConnection());
+        // Connect on a background thread: the native connect blocks its
+        // caller, and hanging the Server thread inside SERVER_STARTED
+        // would stall the tick loop and every later lifecycle callback
+        // (Agones Ready, NPC AI runtime).
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            Thread t = new Thread(McChatEvents::openConnection, "kbve-irc-connect");
+            t.setDaemon(true);
+            t.start();
+        });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> closeConnection());
 
         // Player death — emit on final death tick.
@@ -113,10 +121,19 @@ public final class McChatEvents {
             return;
         }
         HANDLE.set(handle);
+        if (closed) {
+            long h = HANDLE.getAndSet(0L);
+            if (h != 0L) {
+                ChatBridge.disconnect(h);
+            }
+            LOGGER.info("[chat] IRC connect completed after shutdown — discarded");
+            return;
+        }
         LOGGER.info("[chat] Connected to IRC {}:{} as {} ({})", host, port, nick, channels);
     }
 
     private static void closeConnection() {
+        closed = true;
         long h = HANDLE.getAndSet(0L);
         if (h != 0L) {
             ChatBridge.disconnect(h);

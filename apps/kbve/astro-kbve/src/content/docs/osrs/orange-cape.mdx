@@ -12,9 +12,78 @@ osrs:
   lowalch: 12
   highalch: 19
   limit: 150
-  about: "Orange cape is a free-to-play item in Old School RuneScape. High alchemy value: 19 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-12-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  equipment:
+    slot: cape
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 2.5
+      materials:
+        - item_name: Blue cape
+          quantity: 1
+        - item_name: Orange dye
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Orange dye
+      slug: orange-dye
+      relationship: component
+      description: Applied to a coloured cape to produce the orange cape
+    - item_name: Red cape
+      slug: red-cape
+      relationship: alternative
+      description: Another low-tier coloured cape
+    - item_name: Yellow cape
+      slug: yellow-cape
+      relationship: alternative
+      description: Another low-tier coloured cape
+  about: "Orange cape is a free-to-play cosmetic cape produced by applying orange dye to one of the base coloured capes. It carries small slash, crush, and ranged defence bonuses but is most commonly traded as a dye-flipping target for early Crafting XP and fashionscape."
+  market_strategy:
+    notes:
+      - "Supply is gated by orange dye crafting; price tends to lag base cape volumes"
+      - "Buy limit of 150 is small enough to make dye flipping a low-risk daily routine"
+      - "Free-to-play accessibility broadens the buyer pool but caps the upside"
+  trading_tips:
+    - Flip blue capes plus orange dye into orange capes for steady Crafting XP and small margins
+    - List at the daily high before weekend fashionscape events when fashion items spike
+    - Avoid overbuying because daily volume rarely exceeds 400 capes
+  history:
+    - date: "2001-12-08"
+      description: "Added to the game as part of the original coloured cape lineup."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

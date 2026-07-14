@@ -1,6 +1,6 @@
 ---
 title: Watermelon | OSRS Price Data
-description: "Watermelon: A juicy watermelon.. High alch: 28 GP, GE limit: 11,000."
+description: "Watermelon: A juicy watermelon. Allotment-grown crop used for supercompost, scarecrows, summer pies, and watermelon slices. High alch: 28 GP, GE limit: 11,000."
 osrs:
   id: 5982
   name: Watermelon
@@ -12,48 +12,67 @@ osrs:
   lowalch: 19
   highalch: 28
   limit: 11000
-  item:
-    type: crop
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2005-07-11"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.113
-  farming:
-    level: 47
-    patch_type: allotment
-  uses:
-    - name: Composting
-      description: Used to make supercompost
-    - name: Cooking
-      description: Ingredient for summer pies
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Catherby seed market
+      location: Catherby
+      price: 48
+      currency: Coins
+      stock: 0
+    - shop_name: Alice's farming shop
+      location: South of East Ardougne
+      price: 48
+      currency: Coins
+      stock: 0
+    - shop_name: Heskel's Farming Supplies
+      location: Civitas illa Fortis
+      price: 48
+      currency: Coins
+      stock: 0
   related_items:
-    - item_id: 5321
-      item_name: Watermelon seed
+    - item_name: Watermelon seed
       slug: watermelon-seed
-      relationship: alternative
-      description: Farming source
-    - item_id: 6034
-      item_name: Supercompost
+      relationship: component
+      description: Planted in allotments to grow watermelons.
+    - item_name: Supercompost
       slug: supercompost
       relationship: product
-      description: Primary use
-    - item_id: 7218
-      item_name: Summer pie
+      description: 15 watermelons in a compost bin make supercompost.
+    - item_name: Summer pie
       slug: summer-pie
-      relationship: alternative
-      description: Cooking use
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Farming Product |
-    | Tradeable | Yes |
-    | Weight | 0.113 kg |
-    | Requirements | 47 Farming |
-
-    Composting: Used to make supercompost
-
-    Cooking: Ingredient for summer pies
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: product
+      description: Watermelon is the headline ingredient in summer pies.
+    - item_name: Watermelon slice
+      slug: watermelon-slice
+      relationship: product
+      description: Using a knife slices a watermelon into 3 healing slices.
+  about: "Watermelon is a members-only allotment crop introduced with the Farming update. It grows from a watermelon seed at 47 Farming and yields fruit used for supercompost, scarecrows, summer pies, and sliced into watermelon slices that heal 1 + 5 percent of base Hitpoints per slice."
+  market_strategy:
+    notes:
+      - "Allotment seed runs drive most supply; flips depend on supercompost demand."
+      - "Summer pie chefs absorb the higher-quality stock."
+  trading_tips:
+    - Stack up to 11,000 per 4 hours when summer pie meta returns.
+    - Use the 48 gp shop floor as a sanity check against under-priced GE listings.
+  history:
+    - date: "2005-07-11"
+      description: "Watermelon released with the Farming skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

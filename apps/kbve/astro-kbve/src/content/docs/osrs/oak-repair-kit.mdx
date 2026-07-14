@@ -1,6 +1,6 @@
 ---
 title: Oak repair kit | OSRS Price Data
-description: "Oak repair kit: A boat repair kit made from oak.. High alch: 240 GP, GE limit: 13,000."
+description: "Oak repair kit: A boat repair kit made from oak. High alch: 240 GP, GE limit: 13,000."
 osrs:
   id: 31967
   name: Oak repair kit
@@ -12,9 +12,78 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 13000
-  about: "Oak repair kit is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    weight: 0.5
+    release_date: '2025-11-19'
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: misc
+    tier: oak
+    primary_resource: oak plank
+  recipes:
+    - skill: Construction
+      level: 19
+      xp: 90
+      output_quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      facility: Shipwrights' workbench
+      materials:
+        - item_name: Oak plank
+          quantity: 2
+        - item_name: Iron nails
+          quantity: 10
+        - item_name: Swamp paste
+          quantity: 5
+  passive_effects:
+    - name: Boat Repair
+      description: Restores 10 hitpoints to a boat when applied during ship combat. Crewmates with sufficient Deckhandiness can heal additional amounts per kit.
+  related_items:
+    - item_id: 31965
+      item_name: Wooden repair kit
+      slug: wooden-repair-kit
+      relationship: alternative
+      description: Lower-tier wooden boat repair kit.
+    - item_id: 31969
+      item_name: Teak repair kit
+      slug: teak-repair-kit
+      relationship: alternative
+      description: Higher-tier teak boat repair kit.
+  history:
+    - date: '2025-11-19'
+      description: "Oak repair kit was released as part of the Sailing skill content update."
+  about: |-
+    > *"A boat repair kit made from oak."*
+
+    The Oak repair kit is a consumable used during ship combat to restore 10 hitpoints to a damaged boat. It is the second tier in the boat repair kit progression.
+
+    | Detail | Value |
+    |--------|-------|
+    | Skill | Construction 19 |
+    | XP | 90 per action |
+    | Output | 2 kits |
+    | Facility | Shipwrights' workbench |
+    | Materials | 2 Oak planks, 10 Iron nails, 5 Swamp paste |
+
+    Players apply this item to boats during ship combat to restore 10 hitpoints. Multiple players can use them simultaneously for faster repairs.
+  market_strategy:
+    notes:
+      - "Steady demand from Sailing skillers and ship combat content"
+      - "Mid-tier kit with reliable buy-side liquidity"
+      - "High GE limit of 13,000 supports bulk flipping"
+      - "Members only item"
+  trading_tips:
+    - Track oak plank and swamp paste prices since they drive the kit's cost floor.
+    - Bulk buy near release-dip lows and resell during peak Sailing hours.
+    - GE limit of 13,000 supports volume trading without scaling overhead.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

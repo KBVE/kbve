@@ -1,5 +1,6 @@
 ---
 title: Fire Coral Fan
+template: splash
 description: |
     Minecraft Fire Coral Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 743
     ref: fire_coral_fan
     slug: fire-coral-fan
+    content_rev: 1
     display_name: Fire Coral Fan
     material: stone
     hardness: 0
@@ -23,11 +25,56 @@ mc_block:
     light_opacity: 1
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: fire_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+        - coral
+    about:
+        description: |
+            Fire Coral Fan is a non-solid, living coral decoration that
+            grows on the top or sides of blocks in warm ocean coral reefs.
+            It requires constant water contact and dies almost immediately
+            if exposed to air, turning into Dead Fire Coral Fan.
+        lore: |
+            Coral fans were added alongside coral blocks in the Update
+            Aquatic to add fine detail and color variety to ocean reef
+            generation.
+    uses:
+        - title: Decoration
+          ref: dead_fire_coral_fan
+          detail: |
+              Purely decorative; used to detail reef builds and aquariums,
+              turning into its dead counterpart once removed from water.
+    found_in:
+        - location: Warm Ocean coral reefs
+          detail: Naturally generates on top of and around blocks within warm ocean reef structures.
+        - location: Bone meal growth
+          detail: Bone meal used underwater in warm oceans has a chance to grow new coral fans, making them renewable.
+    faq:
+        - question: Do I need Silk Touch to keep it alive?
+          answer: |
+              Yes. Breaking it any other way destroys it instantly with no
+              drop; only Silk Touch yields the living fan block.
+        - question: Why did my coral fan turn gray?
+          answer: |
+              It lost water contact. Live coral fans die and become Dead
+              Fire Coral Fan within seconds if not touching water.
+        - question: Can pistons move Fire Coral Fan?
+          answer: |
+              No. Pistons destroy live coral fans instead of pushing them.
+        - question: Is it solid?
+          answer: |
+              No, it is a non-solid decoration — entities can walk through
+              it despite its visual shape.
     data_version: "1.21.5"
 ---
 

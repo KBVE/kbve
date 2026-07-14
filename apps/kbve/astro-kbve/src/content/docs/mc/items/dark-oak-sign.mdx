@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Sign
+template: splash
 description: |
     Minecraft Dark Oak Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 932
     ref: dark_oak_sign
     slug: dark-oak-sign
+    content_rev: 1
     display_name: Dark Oak Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Dark Oak Sign is a non-solid block crafted from dark oak planks and
+            a stick, letting players write up to four lines of customizable text.
+            It can be placed on top of or attached to the side of other blocks, and
+            water or lava flows around it without breaking it.
+        lore: |
+            Signs come in thirteen wood varieties, and the dark oak version shares
+            its dark, weathered grain with the rest of the dark oak block family.
+    faq:
+        - question: How do I craft a Dark Oak Sign?
+          answer: |
+              Combine dark oak planks with a stick on a crafting table to produce
+              three signs at once.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, right-clicking an unwaxed sign lets you re-edit its text; applying
+              honeycomb waxes and locks the sign against further edits.
+        - question: Does a Dark Oak Sign burn in fire?
+          answer: |
+              No, all overworld sign types are non-flammable and will not burn even
+              when exposed to nearby fire or lava.
+        - question: Can I add color or glow effects to the text?
+          answer: |
+              Yes, dyes change the text color and a glow ink sac makes the text glow,
+              even in dark areas.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,6 +1,6 @@
 {
 	"name": "@kbve/laser",
-	"version": "0.1.0",
+	"version": "0.1.5",
 	"description": "Phaser + React Three Fiber integration layer for React 19",
 	"keywords": [
 		"phaser",
@@ -44,7 +44,8 @@
 		"@react-three/fiber": ">=9.0.0",
 		"@react-three/drei": ">=10.0.0",
 		"bitecs": ">=0.4.0",
-		"@phaserjs/rapier-connector": ">=1.0.0"
+		"@phaserjs/rapier-connector": ">=1.0.0",
+		"fastnoise-lite": ">=1.1.0"
 	},
 	"peerDependenciesMeta": {
 		"phaser": {
@@ -63,6 +64,9 @@
 			"optional": true
 		},
 		"@phaserjs/rapier-connector": {
+			"optional": true
+		},
+		"fastnoise-lite": {
 			"optional": true
 		}
 	},

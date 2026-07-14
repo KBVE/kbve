@@ -1,5 +1,6 @@
 ---
 title: Stripped Spruce Wood
+template: splash
 description: |
     Minecraft Stripped Spruce Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 80
     ref: stripped_spruce_wood
     slug: stripped-spruce-wood
+    content_rev: 1
     display_name: Stripped Spruce Wood
     material: wood
     hardness: 2
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_spruce_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Stripped Spruce Wood shows the stripped, bark-free texture on
+            all six faces, unlike Stripped Spruce Log which keeps bark
+            rings on its ends. It is crafted from four matching stripped
+            logs and used purely as a decorative building block.
+        lore: |
+            The all-sides "wood" blocks were added in Java Edition 1.14 to
+            give builders a bark-free block without exposed log rings.
+    uses:
+        - title: Spruce Planks
+          ref: spruce_planks
+          detail: |
+              Can be crafted into planks and used as furnace fuel exactly
+              like a regular spruce wood block.
+        - title: Building material
+          ref: stripped_spruce_wood
+          detail: |
+              Popular for cabin roofs, log-post fences, and pillar
+              cladding where a bark-free wood texture is desired on every side.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from four Stripped Spruce Logs arranged in a 2x2 grid.
+        - location: Taiga biomes
+          detail: Also created directly by stripping a placed Spruce Wood block with an axe.
+    faq:
+        - question: How is Stripped Spruce Wood different from Stripped Spruce Log?
+          answer: |
+              Wood blocks are stripped on every face, while logs keep the
+              bark-ring pattern on the top and bottom.
+        - question: What does it drop when mined?
+          answer: |
+              Always one Stripped Spruce Wood, unaffected by Silk Touch or
+              Fortune.
+        - question: Is it flammable?
+          answer: |
+              Yes, like all overworld wood blocks it can catch fire and
+              burn away.
+        - question: What is the fastest way to mine it?
+          answer: |
+              An axe, though it can be broken with any tool or bare hands.
     data_version: "1.21.5"
 ---
 

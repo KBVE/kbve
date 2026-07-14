@@ -12,9 +12,69 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Waterskin(4) is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  charges:
+    max_charges: 4
+    charge_type: water_doses
+    recharge_method: Refill at most water sources in the Kharidian Desert and across Gielinor
+  shops:
+    - shop_name: "Shantay's Shanty"
+      location: Shantay Pass
+      price: 30
+  drop_table:
+    sources:
+      - source: Kalphite Worker
+        quantity: "1"
+        rarity: Common
+      - source: Kalphite Soldier
+        quantity: "1"
+        rarity: Common
+      - source: Lizard
+        quantity: "1"
+        rarity: Common
+  related_items:
+    - item_name: Waterskin(0)
+      slug: waterskin-0
+      relationship: variant
+      description: Empty waterskin
+    - item_name: Waterskin(1)
+      slug: waterskin-1
+      relationship: variant
+      description: One dose remaining
+    - item_name: Waterskin(2)
+      slug: waterskin-2
+      relationship: variant
+      description: Two doses remaining
+    - item_name: Waterskin(3)
+      slug: waterskin-3
+      relationship: variant
+      description: Three doses remaining
+  about: "Waterskin(4) is a full four-dose waterskin used to stave off dehydration while traversing the Kharidian Desert."
+  market_strategy:
+    notes:
+      - Steady demand from desert questers and Pyramid Plunder runners
+      - Refillable at most water sources since 2013, capping price ceiling
+      - Buy limit of 2,000 supports bulk supply for desert content
+  history:
+    - date: "2003-04-14"
+      description: Released with the Tourist Trap quest update.
+    - date: "2013-07-26"
+      description: Waterskins became refillable at most water sources across Gielinor.
+  properties:
+    release_date: "2003-04-14"
+    update: "Tourist Trap Quest Online!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

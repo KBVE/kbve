@@ -12,22 +12,88 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: low
+  properties:
+    release_date: "2004-10-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 9.071
     requirements:
       defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 21
+      slash: 20
+      crush: 19
+      magic: -4
+      ranged: 20
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
   related_items:
-    - item_id: 3473
-      item_name: Black plateskirt (g)
+    - item_name: Black plateskirt (g)
       slug: black-plateskirt-g
       relationship: variant
       description: Gold-trimmed variant
+    - item_name: Black plateskirt
+      slug: black-plateskirt
+      relationship: variant
+      description: Standard untrimmed black plateskirt
   about: |-
-    > *"Black plateskirt with trim."*
-
-    The black plateskirt (t) is a trimmed cosmetic variant of the black plateskirt. Same stats as black platelegs with slightly less weight, requiring 10 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The black plateskirt (t) is a trimmed cosmetic variant of the black plateskirt, dropped exclusively from easy-tier Treasure Trail reward caskets. It carries the same stats as black platelegs but with slightly less weight, requiring 10 Defence to wear. Trimmed cosmetics like this remain popular F2P clue-hunter rewards.
+  market_strategy:
+    notes:
+      - "Easy clue reward with consistent supply trickle"
+      - "Buy limit of 8 caps flip volume per cycle"
+      - "Demand mostly driven by F2P fashion-scape collectors"
+      - "Price floor rises slowly with general inflation"
+      - "Watch easy clue rate update news for supply shocks"
+  trading_tips:
+    - Stagger sub-mid offers across multiple 4-hour cycles
+    - Pair-flip with matching black trim set pieces
+    - Avoid loading inventory near high alch ceiling
+  history:
+    - date: "2004-10-26"
+      description: "Released as a Treasure Trails clue scroll reward."
+    - date: "2021-04-21"
+      description: "Ranged defence bonus adjusted from -7 to -11."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

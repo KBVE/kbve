@@ -12,9 +12,55 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 11000
-  about: "Ugthanki meat is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.6
+    options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 40
+      materials:
+        - item_name: Raw ugthanki meat
+          quantity: 1
+      tools:
+        - Range or fire
+      output_quantity: 1
+  related_items:
+    - item_name: Raw ugthanki meat
+      slug: raw-ugthanki-meat
+      relationship: component
+      description: Cooked into ugthanki meat at any Cooking level.
+    - item_name: Ugthanki kebab
+      slug: ugthanki-kebab
+      relationship: product
+      description: Combined with chopped tomato, chopped onion, and pitta bread to make the powerful kebab.
+  about: "Ugthanki meat is the cooked form of raw ugthanki meat, prepared on a range or fire from Cooking level 1 for 40 experience. While only healing 3 Hitpoints when eaten directly, it is the headline ingredient in the ugthanki kebab recipe, where it ultimately restores 19 Hitpoints per kebab."
+  market_strategy:
+    notes:
+      - "GE buy limit is 11,000 every 4 hours, so this is comfortably stockable for cooking flips."
+      - "Cooked ugthanki meat usually trades well below raw, making it a losing flip for pure cooks."
+      - "Demand is driven almost entirely by ugthanki kebab assemblers rather than direct food eaters."
+  trading_tips:
+    - Buy cooked meat in bulk when raw prices spike to skip the burn risk.
+    - List slightly under GE mid for fast fills since volume is thin.
+    - Pair the buy order with chopped tomato, chopped onion, and pitta bread for kebab assembly.
+  history:
+    - date: "2003-04-14"
+      description: "Added to the game alongside the Gertrude's Cat quest era cooking content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

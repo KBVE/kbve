@@ -12,9 +12,61 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 40
-  about: "Flamtaer hammer is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Flamtaer hammer is a members-only tool in Old School RuneScape used in the Shades of Mort'ton minigame to speed up temple reconstruction by approximately 75%, acting as an invisible +40 Crafting boost. High alchemy value: 6,000 coins. Grand Exchange buy limit: 40 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-10-26"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 1.36
+  shops:
+    - shop_name: "Razmire General Store"
+      location: "Mort'ton"
+      price: 13000
+      stock: 0
+    - shop_name: "Rasolo the Wandering Merchant"
+      location: "South of Baxtorian Falls"
+      price: 20000
+      stock: 1
+  drop_table:
+    - source: "Bronze chest (Shades of Mort'ton)"
+      level: null
+      quantity: "1"
+      rarity: "Rare"
+    - source: "Steel chest (Shades of Mort'ton)"
+      level: null
+      quantity: "1"
+      rarity: "Uncommon"
+    - source: "Black chest (Shades of Mort'ton)"
+      level: null
+      quantity: "1"
+      rarity: "Uncommon"
+    - source: "Silver chest (Shades of Mort'ton)"
+      level: null
+      quantity: "1"
+      rarity: "Uncommon"
+    - source: "Gold chest (Shades of Mort'ton)"
+      level: null
+      quantity: "1"
+      rarity: "Uncommon"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy on the Grand Exchange near 5,244 coins; far cheaper than the Razmire General Store at 13,000.\""
+      - "sell_strategy: \"Sell when Shades of Mort'ton activity spikes; price tends to climb during minigame events.\""
+      - "price_trend: \"stable\""
+      - "investment_potential: \"low\""
+  trading_tips:
+    - "Always pick this up over a regular hammer for Shades of Mort'ton runs; the speed boost outweighs the cost."
+    - "Stock occasionally drops from shade chests, providing free supply for active runners."
+    - "Avoid buying from Rasolo at 20,000 coins; the GE undercuts by a wide margin."
+  history:
+    - date: "2004-10-26"
+      description: "Released with the Shades of Mort'ton minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

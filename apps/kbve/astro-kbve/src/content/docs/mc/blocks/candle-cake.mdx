@@ -1,5 +1,6 @@
 ---
 title: Cake with Candle
+template: splash
 description: |
     Minecraft Cake with Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 920
     ref: candle_cake
     slug: candle-cake
+    content_rev: 1
     display_name: Cake with Candle
     material: stone
     hardness: 0.5
@@ -27,7 +29,45 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Candle is formed by placing a candle of any color on
+            top of an uneaten cake. The candle can be lit with flint and
+            steel and burns above the cake's surface without harming it.
+        lore: |
+            The combination lets players turn any cake into a small
+            centerpiece, complete with a lit candle, without losing any
+            slices of the cake itself.
+    uses:
+        - title: Decoration
+          ref: candle
+          detail: |
+              Provides a lightable centerpiece, commonly used for
+              celebration or birthday builds since eating the cake does
+              not remove the candle.
+    found_in:
+        - location: Player-built structures
+          detail: Created only by placing a candle on a cake block; it does not generate naturally.
+    faq:
+        - question: What drops when I break a Cake with Candle?
+          answer: |
+              Nothing. Like a plain cake, it cannot be recollected even
+              with Silk Touch — breaking it destroys both the cake and
+              the candle.
+        - question: Can I still eat the cake with the candle on it?
+          answer: |
+              No. Once a candle is placed on a cake, the cake can no
+              longer be eaten; it becomes purely decorative until broken.
+        - question: Does the candle go out if I break the cake?
+          answer: |
+              Breaking the block destroys both parts together, so there
+              is nothing left to relight.
+        - question: Can I use any candle color on a cake?
+          answer: |
+              Yes. Any of the sixteen dyed candles, or the plain candle,
+              can be placed on an uneaten cake.
     data_version: "1.21.5"
 ---
 

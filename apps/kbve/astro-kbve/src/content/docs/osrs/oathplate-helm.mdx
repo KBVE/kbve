@@ -12,9 +12,109 @@ osrs:
   lowalch: 80000
   highalch: 120000
   limit: null
-  about: "Oathplate helm is a members-only item in Old School RuneScape. High alchemy value: 120,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "14 May 2025"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
+    requirements:
+      defence: 78
+    attack_bonus:
+      stab: 0
+      slash: 10
+      crush: 0
+      magic: -2
+      ranged: -7
+    defence_bonus:
+      stab: 50
+      slash: 72
+      crush: 45
+      magic: 0
+      ranged: 50
+    other_bonus:
+      strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Yama
+        quantity: "1"
+        rarity: 1/600
+      - source: Yama Contract
+        quantity: "1"
+        rarity: Always
+      - source: Forgotten lockbox
+        quantity: "1"
+        rarity: 1/403
+  recipes:
+    - skill: smithing
+      level: 83
+      xp: 0
+      materials:
+        - item_name: Infernal plate
+          quantity: 9
+      tools:
+        - Chasm of Fire anvil
+      output_quantity: 1
+  passive_effects:
+    - name: Highest slash defence helmet
+      description: "Provides +72 slash defence, the highest of any helmet in the game."
+    - name: Shardable
+      description: "Can be disassembled into 50 oathplate shards at the Ancient Forge in God Wars Dungeon."
+  related_items:
+    - item_name: Oathplate chest
+      slug: oathplate-chest
+      relationship: set-piece
+      description: Body slot piece of the oathplate set.
+    - item_name: Oathplate legs
+      slug: oathplate-legs
+      relationship: set-piece
+      description: Legs slot piece of the oathplate set.
+    - item_name: Infernal plate
+      slug: infernal-plate
+      relationship: component
+      description: Smithing material combined to craft the oathplate helm.
+    - item_name: Oathplate shards
+      slug: oathplate-shards
+      relationship: component
+      description: Output of disassembly used to barter for other oathplate pieces.
+    - item_name: Warrior helm
+      slug: warrior-helm
+      relationship: alternative
+      description: Prior slash-defence king before oathplate helm released.
+  about: "Oathplate helm is a high-tier melee helmet released alongside the Yama boss. It carries the highest slash defence of any helm and is a centerpiece of the oathplate armour set, with both drop and Smithing acquisition paths."
+  market_strategy:
+    notes:
+      - "Volume reacts sharply to Yama buffs or nerfs; high-end PvM gear shifts within hours of patches."
+      - "Smithing route at 83 caps secondary supply; the infernal plate floor is the real cost driver."
+  trading_tips:
+    - "Track Yama kill volume on the wiki and OSRS chat-channel logs to time entries."
+    - "Disassemble vs sell - check shard prices weekly before listing the helm."
+  history:
+    - date: "14 May 2025"
+      description: "Released with the Yama boss content drop and the oathplate armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Jungle Sapling
+template: splash
 description: |
     Minecraft Jungle Sapling — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 52
     ref: jungle_sapling
     slug: jungle-sapling
+    content_rev: 1
     display_name: Jungle Sapling
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Jungle Sapling is a non-solid block that grows into a jungle tree when planted on dirt or
+            moss with adequate light. It drops from jungle leaves with only a 2.5% chance, making it
+            rarer to obtain than most other sapling types.
+        lore: |
+            Jungle Saplings can grow into either a single small tree or a massive 2x2 jungle tree if four
+            saplings are planted together in a square.
+    faq:
+        - question: How do I get a Jungle Sapling?
+          answer: |
+              Break jungle leaves for a small chance to drop one, buy one from a wandering trader for 5
+              emeralds, or find it in village chests.
+        - question: How do I grow a giant jungle tree?
+          answer: |
+              Plant four Jungle Saplings together in a 2x2 square on dirt or moss with enough vertical
+              space and light; this produces a large jungle tree instead of a small one.
+        - question: Can bone meal speed up growth?
+          answer: |
+              Yes, applying bone meal to a Jungle Sapling instantly advances its growth stage, often
+              growing the tree immediately.
+        - question: What else can I do with Jungle Saplings besides planting them?
+          answer: |
+              They can be placed in flower pots for decoration, used as furnace fuel, or added to a
+              composter for a chance to raise its level.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

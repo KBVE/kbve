@@ -1,5 +1,6 @@
 ---
 title: Bucket of Cod
+template: splash
 description: |
     Minecraft Bucket of Cod — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 959
     ref: cod_bucket
     slug: cod-bucket
+    content_rev: 1
     display_name: Bucket of Cod
     category: food
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A bucket of cod holds a live cod fish and its water source in a single, non-stackable
+            item, obtained by using a water bucket on a swimming cod or by trading with a novice
+            fisherman villager. Using the bucket again releases both the water and the fish unharmed.
+        lore: |
+            A portable aquarium that lets a fisherman carry the ocean's bounty from sea to shore.
+    faq:
+        - question: How do you get a bucket of cod?
+          answer: |
+              Use a water bucket directly on a cod fish, or trade 3 emeralds with a novice-level
+              fisherman villager.
+        - question: What happens when you place a bucket of cod?
+          answer: |
+              It places a water source block and spawns the cod back into the world, unharmed.
+        - question: Do bucketed cod despawn after being released?
+          answer: |
+              No, cod that were caught and released from a bucket do not despawn like naturally
+              spawned fish can.
+        - question: Can dispensers use a bucket of cod?
+          answer: |
+              Yes, a dispenser can empty a bucket of cod to spawn the fish and water, but it cannot
+              scoop a fish back up with an empty water bucket.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

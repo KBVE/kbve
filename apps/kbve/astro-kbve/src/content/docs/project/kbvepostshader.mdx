@@ -1,0 +1,138 @@
+---
+title: KBVEPostShader — Stylized UE5 Post-Process
+description: Stylized Unreal Engine 5 post-process — anisotropic Kuwahara oil-paint smear, cel banding, and depth-driven ink outlines for a Breath of the Wild / Ghibli look.
+sem: 1
+sidebar:
+    label: KBVEPostShader
+    order: 90
+tags:
+    - unreal
+    - rendering
+key: ue_kbvepostshader
+pipeline: unreal
+plugin_name: KBVEPostShader
+plugin_path: packages/unreal/KBVEPostShader
+version: "0.1.0"
+source_path: packages/unreal/KBVEPostShader
+version_toml: packages/unreal/KBVEPostShader/version.toml
+author: h0lybyte
+license: KBVE
+status: active
+min_engine_version: "5.7"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What look does KBVEPostShader produce?
+          answer: A painterly Breath of the Wild / Studio Ghibli style — anisotropic Kuwahara oil-paint smear, cel luminance banding, and depth-driven ink outlines.
+        - question: How is the effect rendered?
+          answer: It runs as chained RDG passes from an FSceneViewExtension inserted after the tonemapper, gated by CVars and off by default.
+        - question: How do I enable and tune it?
+          answer: Set r.KBVEPost.Enable to 1 and adjust CVars like r.KBVEPost.Radius and r.KBVEPost.OilStrength; the same defaults are exposed under Project Settings, KBVE, KBVE Post Shader.
+bento:
+    badge: unreal · rendering
+    title: Stylized post-process
+    accent: KBVEPostShader
+    lede: >-
+        A stylized post-process pipeline targeting a painterly Breath of the
+        Wild / Studio Ghibli look — anisotropic Kuwahara oil-paint smear, cel
+        luminance banding, and depth-driven ink outlines, run as chained RDG
+        passes after the tonemapper and off by default.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEPostShader
+          primary: true
+          external: true
+        - label: Pipeline
+          href: "#pipeline"
+        - label: CVars
+          href: "#cvars"
+    aside:
+        icon: render
+        title: RDG scene view extension
+        body: >-
+            It runs as chained RDG passes from a <code>FSceneViewExtension</code>,
+            inserted after the tonemapper, gated by CVars and off by default.
+            Defaults also live under Project Settings → KBVE → KBVE Post Shader.
+        points:
+            - <strong>Enable</strong> — <code>r.KBVEPost.Enable 1</code>.
+            - <strong>Target</strong> — desktop SM5+, BotW-tuned defaults.
+    stats:
+        - { label: Plugin, value: KBVEPostShader, icon: render }
+        - { label: Min engine, value: UE 5.7, icon: gears }
+        - { label: Stage, value: Post-tonemap, icon: camera }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Structure tensor flow
+          icon: sensor
+          body: RGB Sobel resolved into a local flow tangent plus anisotropy that orients the smear.
+        - title: Anisotropic Kuwahara
+          icon: render
+          body: An 8-sector generalized Kuwahara over a flow-oriented ellipse produces the oil-paint base.
+        - title: Ink & cel composite
+          icon: camera
+          body: Depth-driven ink outlines, cel luminance banding with preserved hue, and warm saturation.
+        - title: CVar-gated, off by default
+          icon: settings
+          body: Every knob is a CVar mirrored under Project Settings; the effect ships disabled until enabled.
+    related:
+        - title: KBVEWorld
+          href: /project/kbveworld/
+          copy: Procedural world toolkit whose scenes this post-process styles.
+          icon: map
+        - title: KBVEEvents
+          href: /project/kbveevents/
+          copy: Typed event bus used across KBVE Unreal plugins.
+          icon: message
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="pipeline" eyebrow="RDG passes" heading="Pipeline">
+
+1. **Structure tensor** — RGB Sobel resolved into a local flow tangent + anisotropy.
+2. **Anisotropic Kuwahara** — 8-sector generalized Kuwahara over a flow-oriented ellipse → oil-paint base.
+3. **Composite** — ink outlines from scene **depth** + painted-luma discontinuities, cel banding (hue preserved), warm saturation, darkened by the ink mask.
+
+</BentoProse>
+
+<BentoProse id="cvars" eyebrow="Tuning" heading="CVars">
+
+| CVar | Default | Purpose |
+|------|---------|---------|
+| `r.KBVEPost.Enable` | `0` | Master on/off. |
+| `r.KBVEPost.Radius` | `6` | Kuwahara sample radius. |
+| `r.KBVEPost.OilStrength` | `0.85` | Blend original → Kuwahara. |
+| `r.KBVEPost.Bands` | `5` | Cel luminance bands. |
+| `r.KBVEPost.EdgeStrength` | `1.4` | Ink outline darkening. |
+| `r.KBVEPost.EdgeThreshold` | `0.15` | Discontinuity threshold. |
+| `r.KBVEPost.Saturation` | `1.15` | Painterly saturation. |
+
+Defaults also live in **Project Settings → KBVE → KBVE Post Shader**.
+
+```bash
+r.KBVEPost.Enable 1
+r.KBVEPost.Radius 8
+```
+
+</BentoProse>
+
+<BentoProse id="status" eyebrow="Roadmap" heading="Status">
+
+P1: the core trio (structure tensor + anisotropic Kuwahara + cel/ink composite), BotW-tuned defaults, desktop SM5+. P2 will add GBuffer-normal outlines, a warm palette LUT, canvas overlay, flow warp, and Ghibli/BotW presets.
+
+</BentoProse>
+
+</BentoDoc>

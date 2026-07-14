@@ -24,19 +24,21 @@ controllerServiceAccount:
     name: arc-controller
     namespace: arc-systems
 
-# Canary capacity — keep low until workflows are migrated. Bump
-# in step with traffic as the upstream arc-runner-set drains.
+# Hosts all lightweight UE workflow jobs (Fork Guard, version gates,
+# releases, version-sync PRs, Win VM boot) so no UE job touches a
+# GitHub-hosted runner. Sized for concurrent game+server dispatch.
 minRunners: 0
-maxRunners: 3
+maxRunners: 2
 
 template:
     metadata:
         annotations:
             kbve.com/restart-trigger: '20260504-canary-bootstrap'
     spec:
+        serviceAccountName: arc-vm-starter
         initContainers:
             - name: init-dind-externals
-              image: ghcr.io/kbve/arc-runner:0.1.3
+              image: ghcr.io/kbve/arc-runner:0.1.6
               command:
                   [
                       'cp',
@@ -50,10 +52,8 @@ template:
                     mountPath: /home/runner/tmpDir
         containers:
             - name: runner
-              image: ghcr.io/kbve/arc-runner:0.1.3
-              # No `command:` override — the image bakes in the
-              # sudoers entry, so the upstream entrypoint
-              # (/home/runner/run.sh) Just Works.
+              image: ghcr.io/kbve/arc-runner:0.1.6
+              command: ['/home/runner/run.sh']
               env:
                   - name: DOCKER_HOST
                     value: tcp://localhost:2376

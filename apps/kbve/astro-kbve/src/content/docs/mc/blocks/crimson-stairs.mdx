@@ -1,5 +1,6 @@
 ---
 title: Crimson Stairs
+template: splash
 description: |
     Minecraft Crimson Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 854
     ref: crimson_stairs
     slug: crimson-stairs
+    content_rev: 1
     display_name: Crimson Stairs
     material: nether
     hardness: 2
@@ -21,13 +23,59 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Crimson Stairs are the stepped variant of Crimson Planks, used
+            to build sloped surfaces and rooflines. Like all crimson wood,
+            it is immune to fire and does not burn in lava.
+        lore: |
+            Introduced with the Nether Update (1.16) as part of the
+            crimson wood set themed around the Crimson Forest biome.
+    uses:
+        - title: Building & Roofing
+          ref: crimson_stairs
+          detail: |
+              Placed to form ramps, staircases, and angled roof sections;
+              pairs with Crimson Slabs for smooth transitions and can be
+              waterlogged for fluid-control builds.
+    found_in:
+        - location: Crafted from Crimson Planks
+          detail: Six crimson planks in a staircase pattern yield four crimson stairs at a crafting table.
+        - location: Bastion Remnants
+          detail: Used decoratively in bastion remnant structures built from crimson wood.
+    faq:
+        - question: What tool do I need to mine Crimson Stairs?
+          answer: |
+              Any tool works. An axe breaks it fastest, but there is no
+              minimum tool tier required to get the drop.
+        - question: Does Crimson Stairs catch fire?
+          answer: |
+              No. Crimson and Warped wood are non-flammable in Java
+              Edition, so they survive lava exposure and cannot be set
+              alight by fire spread.
+        - question: What does mining Crimson Stairs drop?
+          answer: |
+              It always drops itself, one stair block per block mined,
+              unaffected by Fortune or Silk Touch.
+        - question: Can Crimson Stairs be waterlogged?
+          answer: |
+              Yes. Like other stairs, they can hold water in their
+              non-solid corner while remaining passable, useful for
+              redstone and fluid-control builds.
     data_version: "1.21.5"
 ---
 

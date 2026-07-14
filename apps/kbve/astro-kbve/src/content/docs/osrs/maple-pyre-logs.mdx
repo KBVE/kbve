@@ -12,12 +12,77 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 11000
-  about: "Maple pyre logs is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: log
+    tier: mid
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: firemaking
+      level: 1
+      xp: 15
+      materials:
+        - item_name: Maple logs
+          quantity: 1
+        - item_name: Sacred oil(3)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Maple logs
+      slug: maple-logs
+      relationship: component
+      description: Base log
+    - item_name: Sacred oil(3)
+      slug: sacred-oil-3
+      relationship: component
+      description: Oil applied to prepare the pyre log
+    - item_name: Willow pyre logs
+      slug: willow-pyre-logs
+      relationship: downgrade
+      description: Lower-tier pyre log
+    - item_name: Yew pyre logs
+      slug: yew-pyre-logs
+      relationship: upgrade
+      description: Higher-tier pyre log
+  about: |-
+    Maple pyre logs are maple logs treated with three doses of sacred oil for use at the Shades of Mort'ton funeral pyre. They require 50 Firemaking to light at a pyre and grant Firemaking + Prayer XP when used to cremate shade remains.
+
+    Cremation XP yields (Firemaking / Prayer):
+    - Loar remains: 175 / 34
+    - Phrin remains: 175 / 46.5
+    - Riyl remains: 175 / 61.5
+  market_strategy:
+    notes:
+      - "Creation typically runs at a loss; demand is from Shades of Mort'ton runners"
+      - "Sacred oil supply controls cost basis"
+      - "Make-All update (2024-07-31) reduced bottlenecks for prep"
+  trading_tips:
+    - Buy bulk maple logs + sacred oil when both dip; profit only on margin spikes
+    - Better to use yourself for Prayer XP than flip — net loss most weeks
+  history:
+    - date: "2004-10-18"
+      description: "Released with the Shades of Mort'ton minigame."
+    - date: "2024-07-31"
+      description: "Firemaking XP for creation standardised to 5 XP per sacred oil dose and a Make-All menu was added."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

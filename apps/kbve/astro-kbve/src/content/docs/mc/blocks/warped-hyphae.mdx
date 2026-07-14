@@ -1,5 +1,6 @@
 ---
 title: Warped Hyphae
+template: splash
 description: |
     Minecraft Warped Hyphae — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 823
     ref: warped_hyphae
     slug: warped-hyphae
+    content_rev: 1
     display_name: Warped Hyphae
     material: nether
     hardness: 2
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_hyphae
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+    about:
+        description: |
+            Warped Hyphae is the bark-textured equivalent of Warped Stem,
+            with the stem's outer texture wrapped on all six faces. It is
+            used mainly as a compact building block and can be stripped.
+        lore: |
+            Added with the Nether Update's warped wood set (1.16), hyphae
+            gives builders an all-bark block distinct from the Overworld's
+            wood blocks.
+    uses:
+        - title: Stripped Warped Hyphae
+          ref: stripped_warped_hyphae
+          detail: |
+              Stripping Warped Hyphae with an axe converts it to Stripped
+              Warped Hyphae, removing the bark pattern for a cleaner look.
+    found_in:
+        - location: Crafted
+          detail: Made from four Warped Stems at a crafting table, yielding three Warped Hyphae.
+        - location: Warped Forest
+          detail: Large warped stems generated as part of huge fungi occasionally expose hyphae-textured bark.
+    faq:
+        - question: Can Warped Hyphae be used as furnace fuel?
+          answer: |
+              No. Unlike Overworld wood blocks, Nether hyphae cannot be
+              burned as furnace fuel.
+        - question: Does Warped Hyphae burn in lava or fire?
+          answer: |
+              No. It is completely non-flammable, like all Nether wood
+              blocks.
+        - question: What is the difference between Warped Stem and Warped Hyphae?
+          answer: |
+              Warped Stem shows end-grain rings on its top and bottom
+              faces, while Warped Hyphae has the bark texture on all six
+              faces.
+        - question: What tool should I use to mine it?
+          answer: |
+              An axe mines it fastest, though any tool or bare hands will
+              break it and drop the block itself.
     data_version: "1.21.5"
 ---
 

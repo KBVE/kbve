@@ -1,6 +1,6 @@
 ---
 title: Mithril kiteshield (g) | OSRS Price Data
-description: "Mithril kiteshield (g): Mithril kiteshield with gold trim.. High alch: 1,326 GP, GE limit: 8."
+description: "Mithril kiteshield (g): Mithril kiteshield with gold trim. High alch: 1,326 GP, GE limit: 8."
 osrs:
   id: 12281
   name: Mithril kiteshield (g)
@@ -12,9 +12,78 @@ osrs:
   lowalch: 884
   highalch: 1326
   limit: 8
-  about: "Mithril kiteshield (g) is a free-to-play item in Old School RuneScape. High alchemy value: 1,326 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: shield
+    weight: 4.535
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -2
+    defence_bonus:
+      stab: 18
+      slash: 22
+      crush: 20
+      magic: -1
+      ranged: 20
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  drop_table:
+    sources:
+      - source: Medium Treasure Trail reward casket
+        quantity: "1"
+        rarity: 1/1133
+  related_items:
+    - item_id: 1199
+      item_name: Mithril kiteshield
+      slug: mithril-kiteshield
+      relationship: variant
+      description: Untrimmed mithril kiteshield
+    - item_id: 12283
+      item_name: Mithril kiteshield (t)
+      slug: mithril-kiteshield-t
+      relationship: variant
+      description: Mithril kiteshield with white trim
+  about: "Mithril kiteshield (g) is a gold-trimmed cosmetic variant of the mithril kiteshield, awarded from medium Treasure Trail reward caskets at a 1/1,133 chance. It shares stats with the standard shield except for slightly improved ranged attack penalty."
+  market_strategy:
+    notes:
+      - Buy limit 8 per 4 hours
+      - Supply driven entirely by medium clue scrolls
+      - Cosmetic premium over base mithril kiteshield
+  trading_tips:
+    - Track medium-clue completion volume for supply
+    - Premium narrows when clue events run
+  history:
+    - date: "2014-06-12"
+      description: Released with the Treasure Trail Expansion update.
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 4.535
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

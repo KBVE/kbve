@@ -12,9 +12,49 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  about: "Efh salt is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Efh salt is a blue mineable salt from the Salt Mine beneath Weiss, unlocked after Making Friends with My Arm. Burned with Te and Urt salts at Weiss fire pits and used in icy basalt crafting and Portal Nexus attunements. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-09-06"
+    tradeable: true
+    equipable: false
+    stackable: true
+    noteable: false
+    quest_item: false
+    destroy: "Drop"
+    weight: 0
+  material:
+    type: misc
+    primary: mineral
+    tier: standard
+  recipes:
+    - item_name: Icy basalt
+      tools: ["Basalt"]
+      materials:
+        - item_name: Efh salt
+          quantity: 3
+        - item_name: Te salt
+          quantity: 1
+        - item_name: Basalt
+          quantity: 1
+      output_quantity: 1
+      skill: Magic
+      level: 82
+      xp: 32
+      notes: "Created by casting Spellbook Swap-style fire pit interaction; used in Lunar spellcasting."
+  market_strategy:
+    notes:
+      - "buy_range: \"100 - 130 gp\""
+      - "sell_range: \"120 - 150 gp\""
+      - "Demand spikes around Construction Portal Nexus builds requiring 3,000 efh salt per teleport configuration; flip in bulk when prices dip."
+  trading_tips:
+    - "Watch Construction update news for Portal Nexus demand spikes."
+    - "Buy in bulk after weekend mining bursts when supply floods the GE."
+    - "Pair flips with Te and Urt salts since the trio is bought together."
+  history:
+    - date: "2018-09-06"
+      description: "Released alongside the Making Friends with My Arm quest and the Weiss Salt Mine."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

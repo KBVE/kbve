@@ -1,5 +1,6 @@
 ---
 title: Wooden Shovel
+template: splash
 description: |
     Minecraft Wooden Shovel — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 859
     ref: wooden_shovel
     slug: wooden-shovel
+    content_rev: 1
     display_name: Wooden Shovel
     category: tool
     rarity: common
@@ -35,6 +37,24 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The wooden shovel is an early-game tool crafted from planks and a stick, used to break dirt, sand, and gravel faster than by hand. It can also turn dirt-family blocks into dirt paths and extinguish campfires with a right-click. With only 59 uses in Java Edition it represents the lowest tier of shovel and deals minimal attack damage.
+        lore: |
+            A humble tool that marks every player's first steps into efficient resource gathering.
+    faq:
+        - question: How do you craft a wooden shovel?
+          answer: |
+              Combine any type of planks with two sticks in a crafting table using the shovel pattern: one plank on top with two sticks forming the handle below it.
+        - question: What's special about using a wooden shovel on dirt blocks?
+          answer: |
+              Using (not digging) the shovel on a dirt-family block instantly flattens it into a dirt path, consuming one point of durability in the process.
+        - question: Can wooden shovels be repaired?
+          answer: |
+              Yes. Repair one with planks on an anvil, or combine two damaged wooden shovels together to restore durability while keeping any enchantments.
+        - question: Why keep a wooden shovel after the early game?
+          answer: |
+              Wooden shovels can be burned as furnace fuel, smelting one item each, making them a handy way to dispose of spare tools instead of leaving them in storage.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

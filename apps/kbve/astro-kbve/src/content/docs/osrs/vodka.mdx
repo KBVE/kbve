@@ -1,6 +1,6 @@
 ---
 title: Vodka | OSRS Price Data
-description: "Vodka: An absolutely clear spirit.. High alch: 3 GP, GE limit: 13,000."
+description: "Vodka: An absolutely clear spirit. High alch: 3 GP, GE limit: 13,000."
 osrs:
   id: 2015
   name: Vodka
@@ -12,9 +12,68 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 13000
-  about: "Vodka is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: drink
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Drunken man
+        quantity: "1"
+        rarity: Common
+      - source: Drink troll
+        quantity: "1"
+        rarity: 1/10
+  shops:
+    - shop_name: Blurberry Bar
+      location: Grand Tree
+      price: 5
+      currency: Coins
+      stock: 2
+    - shop_name: Asyff's Bar
+      location: Pollnivneach
+      price: 5
+      currency: Coins
+      stock: 2
+  related_items:
+    - item_name: Beer
+      slug: beer
+      relationship: alternative
+      description: Cheaper, weaker brewed alternative
+    - item_name: Whisky
+      slug: whisky
+      relationship: alternative
+      description: Alternative spirit drink
+  about: |
+    Vodka is a members-only spirit served at bars across Gielinor. Drinking it heals 5 Hitpoints, temporarily boosting Strength while lowering Attack. It's primarily used as a quest ingredient and in Gnome Restaurant cocktail recipes rather than for combat training.
+  market_strategy:
+    notes:
+      - "Steady demand from cocktail crafters and questers"
+      - "Low margin per unit but consistent volume"
+      - "Profit comes from buying bulk at shop price vs GE flip"
+  trading_tips:
+    - Cocktail-tier ingredient for Cooking 18-37
+    - Required for King's Ransom and Eadgar's Ruse
+    - Used in Potion of sealegs recipe
+  history:
+    - date: "2002-12-12"
+      description: "Vodka introduced as a bar-served spirit."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

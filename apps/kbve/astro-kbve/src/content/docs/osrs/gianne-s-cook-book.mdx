@@ -12,9 +12,60 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Gianne's cook book is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: book
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.51
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Grand Tree Groceries
+      location: Grand Tree
+      price: 2
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Toad batta
+      slug: toad-batta
+      relationship: product
+      description: "Gnome dish recipe contained in the book"
+    - item_name: Chocolate bomb
+      slug: chocolate-bomb
+      relationship: product
+      description: "Gnome dish recipe contained in the book"
+    - item_name: Worm hole
+      slug: worm-hole
+      relationship: product
+      description: "Gnome dish recipe contained in the book"
+  about: |-
+    Gianne's cook book is a reference guide for gnome cuisine in Old School RuneScape. It contains instructions for preparing dishes like chocolate bombs, worm holes, battas, and crunchies, all integral to the Gnome Restaurant minigame.
+
+    Players can obtain the book from Aluft Gianne, Hudo the grocer at the Grand Tree, or from their player-owned house bookcase after completing the cooking tutorial.
+  market_strategy:
+    notes:
+      - "Low-value reference item rarely flipped at scale"
+      - "Cheap to buy from Grand Tree Groceries (2 coins)"
+      - "GE limit of 15 caps speculation potential"
+  trading_tips:
+    - Buy directly from the shop rather than the GE for the lowest price
+    - Useful for gnome cooking minigame participants
+  history:
+    - date: "2002-12-12"
+      description: "Item added to the game with the Gnome Restaurant activity."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

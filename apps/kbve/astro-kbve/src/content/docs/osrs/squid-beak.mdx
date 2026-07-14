@@ -1,6 +1,6 @@
 ---
 title: Squid beak | OSRS Price Data
-description: "Squid beak: The beak of a squid.. High alch: 3,000 GP."
+description: "Squid beak: The beak of a squid. High alch: 3,000 GP."
 osrs:
   id: 31572
   name: Squid beak
@@ -12,9 +12,63 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: null
-  about: "Squid beak is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: fletching
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Raw swordtip squid
+        quantity: "1"
+        rarity: "1/1024"
+      - source: Raw jumbo squid
+        quantity: "1"
+        rarity: "1/512"
+  related_items:
+    - item_name: Camphor blowpipe (empty)
+      slug: camphor-blowpipe-empty
+      relationship: product
+      description: "Fletched with the beak at 58 Fletching"
+    - item_name: Ironwood blowpipe (empty)
+      slug: ironwood-blowpipe-empty
+      relationship: product
+      description: "Fletched with the beak at 72 Fletching"
+    - item_name: Rosewood blowpipe (empty)
+      slug: rosewood-blowpipe-empty
+      relationship: product
+      description: "Fletched with the beak at 84 Fletching"
+  about: |-
+    > _"The beak of a squid."_
+
+    Squid beak is a Fletching ingredient introduced with the wooden blowpipe rework. Rolls off raw swordtip squid (1/1,024) and raw jumbo squid (1/512) while fishing or cooking. Used to fletch camphor, ironwood, and rosewood blowpipes. No GE buy limit and not currently tradeable through restricted accounts.
+  market_strategy:
+    notes:
+      - "Demand floor set by blowpipe fletching profit"
+      - "Drop rates were corrected on 2025-11-20 right after release"
+      - "Watch raw squid catch rates for supply spikes"
+  trading_tips:
+    - "Compare empty blowpipe GE prices against beak cost"
+    - "Jumbo squid yields beaks at double the swordtip rate"
+  history:
+    - date: "2025-11-19"
+      description: "Released as part of the wooden blowpipe Fletching update"
+    - date: "2025-11-20"
+      description: "Drop rates from raw squid corrected after launch"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

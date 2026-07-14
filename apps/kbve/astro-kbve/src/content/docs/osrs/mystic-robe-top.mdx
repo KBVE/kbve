@@ -1,6 +1,6 @@
 ---
 title: Mystic robe top | OSRS Price Data
-description: "Mystic robe top is a members body slot item requiring 20 Defence. High alch: 72,000 GP, GE limit: 125."
+description: "Mystic robe top is a members body slot item requiring 40 Magic and 20 Defence. +20 magic attack. High alch: 72,000 GP, GE limit: 125."
 osrs:
   id: 4091
   name: Mystic robe top
@@ -12,8 +12,34 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mystic
+    tier: mid
+  properties:
+    release_date: "2005-01-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
+    requirements:
+      magic: 40
+      defence: 20
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,60 +57,57 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      magic: 40
-      defence: 20
+  drop_table:
+    sources:
+      - source: Kraken
+        quantity: "1"
+        rarity: 1/128
+      - source: Corporeal Beast
+        quantity: "1"
+        rarity: 18/512
+      - source: Callisto
+        quantity: "1"
+        rarity: 2/126
+      - source: Vet'ion
+        quantity: "1"
+        rarity: 2/126
+  shops:
+    - shop_name: Wizards' Guild Magic Store
+      location: Yanille
+      price: 120000
+      currency: Coins
+      stock: 2
   related_items:
-    - item_id: 4101
-      item_name: Mystic robe top (dark)
+    - item_name: Mystic robe top (dark)
       slug: mystic-robe-top-dark
       relationship: variant
-      description: Dark recolor (same stats)
-    - item_id: 4093
-      item_name: Mystic robe bottom
+      description: Dark recoloured cosmetic variant with identical stats
+    - item_name: Mystic robe bottom
       slug: mystic-robe-bottom
       relationship: set-piece
-      description: Matching leg piece
+      description: Matching leg piece in the mystic set
+    - item_name: Ahrim's robetop
+      slug: ahrims-robetop
+      relationship: upgrade
+      description: Higher-tier 70 Magic/70 Defence top with +30 magic attack
   about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +20 |
+    > *"The upper half of a magical robe."*
 
-    | Defence | Value |
-    |---------|-------|
-    | Magic | +20 |
+    The mystic robe top is the body piece of the mystic robes set, providing +20 magic attack and +20 magic defence at only 40 Magic and 20 Defence. It is the standard mid-game magic body slot before progressing to Ahrim's, Infinity, or Ancestral.
 
-    Requirements: 40 Magic, 20 Defence
-
-    | Variant | Source | Stats |
-    |---------|--------|-------|
-    | Mystic robe top (blue) | Slayer monsters, shops | Identical |
-    | Mystic robe top (dark) | Slayer monsters | Identical |
-    | Mystic robe top (light) | Aberrant spectres | Identical |
-    | Mystic robe top (dusk) | Hallowed Sepulchre | Identical |
-
-    All variants share identical stats — the difference is purely cosmetic. Dark and dusk variants trade at a premium for fashionscape.
-
-    | Stat | Mystic Top | Splitbark Body | Ahrim's Robetop | Infinity Top |
-    |------|-----------|----------------|-----------------|-------------|
-    | Magic Atk | +20 | +10 | +30 | +22 |
-    | Stab Def | 0 | +36 | 0 | 0 |
-    | Magic Def | +20 | +15 | +30 | +22 |
-    | Req | 40 Mage/20 Def | 40 Mage/40 Def | 70 Mage/70 Def | 50 Mage/25 Def |
-
-    The mystic robe top offers the best magic bonus at 40 Magic without requiring significant Defence. Splitbark trades magic power for melee defence.
-
-    - Standard magic top for Barrows runs
-    - Budget magic gear for Slayer tasks
-    - Common PKing item (cheap to risk)
-    - Stepping stone before Ahrim's or Ancestral
+    Stats are identical across the blue, dark, dusk, and light variants — the difference is purely cosmetic, with the dark and dusk versions trading at a premium for fashionscape.
   market_strategy:
     notes:
-      - High supply from Slayer drops
-      - Very affordable for its magic bonus
-      - Dark/dusk variants trade at premium
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Strong steady supply from Slayer monsters and Wilderness bosses"
+      - "Affordable mid-game body slot for magic"
+      - "Dark/dusk variants trade at premium for fashionscape"
+      - "Common stepping stone before Ahrim's or Ancestral"
+  trading_tips:
+    - Buy after major bossing rebalance patches when supply spikes
+    - Pair with mystic bottom for full-set flips
+  history:
+    - date: "2005-01-26"
+      description: "Added to the game with the original mystic set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

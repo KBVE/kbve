@@ -12,9 +12,84 @@ osrs:
   lowalch: 884
   highalch: 1326
   limit: 8
-  about: "Mithril kiteshield (t) is a free-to-play item in Old School RuneScape. High alchemy value: 1,326 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 4.535
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 18
+      slash: 20
+      crush: 19
+      magic: -1
+      ranged: 19
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Mithril kiteshield
+      slug: mithril-kiteshield
+      relationship: variant
+      description: Untrimmed base version with identical stats
+    - item_name: Mithril kiteshield (g)
+      slug: mithril-kiteshield-g
+      relationship: variant
+      description: Gold-trimmed cosmetic variant
+  about: "Mithril kiteshield (t) is a team-trimmed cosmetic variant of the standard mithril kiteshield. It has identical stats to the untrimmed version, requires 20 Defence, and is obtained exclusively from easy Treasure Trail reward caskets."
+  market_strategy:
+    notes:
+      - "Purely cosmetic over the untrimmed mithril kiteshield"
+      - "Demand driven by fashion and collectors, not combat utility"
+      - "Easy clue scroll supply directly impacts price floor"
+      - "Trimmed variants typically command a fashion premium"
+  trading_tips:
+    - "Compare price against the regular mithril kiteshield to gauge cosmetic premium"
+    - "Buy limit of 8 makes large flips slow even with healthy spread"
+  history:
+    - date: "2007-08-15"
+      description: "Mithril kiteshield (t) released alongside the trimmed armour set rewards refresh."
+  properties:
+    release_date: "2007-08-15"
+    update: Treasure Trails Trimmed Armour
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 4.535
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

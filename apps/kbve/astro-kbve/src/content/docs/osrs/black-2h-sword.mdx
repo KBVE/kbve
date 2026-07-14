@@ -1,6 +1,6 @@
 ---
 title: Black 2h sword | OSRS Price Data
-description: "Black 2h sword is a F2P two-handed weapon requiring 10 Attack. High alch: 1,152 GP, GE limit: 125."
+description: "Black 2h sword is a F2P two-handed slash weapon requiring 10 Attack. High alch: 1,152 GP, GE limit: 125."
 osrs:
   id: 1313
   name: Black 2h sword
@@ -12,41 +12,92 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 125
+  material:
+    type: metal
+    tier: mid
   equipment:
     slot: 2h
-    type: two-handed sword
-    tradeable: true
+    weapon_type: 2h_sword
+    attack_speed: 7
     weight: 3.628
     requirements:
       attack: 10
-    stats:
-      attack_stab: -4
-      attack_slash: 27
-      attack_crush: 21
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: -4
+      slash: 27
+      crush: 21
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
       strength: 26
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  shops:
+    - shop_name: Gaius' Two Handed Shop
+      location: Taverley
+      stock: 1
+  drop_table:
+    sources:
+      - source: Treasure Trails reward casket
+        quantity: "1"
+        rarity: uncommon
+      - source: Shades of Mort'ton minigame reward
+        quantity: "1"
+        rarity: varies
   related_items:
     - item_id: 1315
       item_name: Mithril 2h sword
       slug: mithril-2h-sword
       relationship: upgrade
       description: Higher tier 2h sword
+    - item_id: 1311
+      item_name: Steel 2h sword
+      slug: steel-2h-sword
+      relationship: downgrade
+      description: Lower tier 2h sword
     - item_id: 1297
       item_name: Black longsword
       slug: black-longsword
       relationship: alternative
-      description: One-handed alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: One-handed black sword
+  about: "Black 2h sword is the highest-tier two-handed sword usable on F2P at 10 Attack; it cannot be smithed and is bought from Gaius' shop or Observatory Quest."
+  market_strategy:
+    notes:
+      - 125 limit gives modest daily flip ceiling
+      - F2P pure demand at 10 Attack pure builds
+      - Track Gaius' shop restock for entry price
+  trading_tips:
+    - Buy near low alch to floor downside
+    - Sell during F2P leagues and events
+  history:
+    - date: "2002-02-27"
+      description: Released as the F2P black two-handed sword option.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: Black equipment release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

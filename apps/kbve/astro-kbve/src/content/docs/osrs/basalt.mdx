@@ -12,9 +12,69 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 10000
-  about: "Basalt is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: stone
+    tier: low
+  recipes:
+    - name: Icy basalt
+      materials:
+        - item_name: Basalt
+          quantity: 1
+        - item_name: Efh salt
+          quantity: 3
+        - item_name: Te salt
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - name: Stony basalt
+      materials:
+        - item_name: Basalt
+          quantity: 1
+        - item_name: Urt salt
+          quantity: 3
+        - item_name: Te salt
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Icy basalt
+      relationship: product
+    - name: Stony basalt
+      relationship: product
+    - name: Te salt
+      relationship: component
+    - name: Efh salt
+      relationship: component
+    - name: Urt salt
+      relationship: component
+  about: "Basalt is a members-only crushed rock mined from basalt rocks in the Salt Mine (72 Mining required). It is used with salts to craft icy basalt and stony basalt and is required in bulk to attune Portal Nexus rooms in a player-owned house."
+  market_strategy:
+    notes:
+      - Mined in the Salt Mine after completion of Making Friends with My Arm
+      - Bulk consumed for Portal Nexus and Portal Chamber attunements
+      - Combined with salts to make icy and stony basalt
+  trading_tips:
+    - Watch demand spike when players construct Portal Nexus rooms
+    - Stockpile during low-volume periods for resale to Construction trainers
+  history:
+    - date: "2018-09-06"
+      description: Released alongside Making Friends with My Arm, Deadman Autumn Finals and Full Mobile Launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-09-06"
+    update: "Making Friends With My Arm, Deadman Autumn Finals and Full Mobile Launch"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

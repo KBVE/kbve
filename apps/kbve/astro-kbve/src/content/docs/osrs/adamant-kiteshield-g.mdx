@@ -12,22 +12,83 @@ osrs:
   lowalch: 2176
   highalch: 3264
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.896
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 5.896
     requirements:
       defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -2
+    defence_bonus:
+      stab: 27
+      slash: 31
+      crush: 29
+      magic: -1
+      ranged: 29
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/1133
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - item_id: 2603
-      item_name: Adamant kiteshield (t)
+    - item_name: Adamant kiteshield
+      slug: adamant-kiteshield
+      relationship: variant
+      description: Untrimmed base version with identical stats
+    - item_name: Adamant kiteshield (t)
       slug: adamant-kiteshield-t
       relationship: variant
-      description: Trimmed variant
-  about: |-
-    > *"Adamant kiteshield with gold trim."*
-
-    The adamant kiteshield (g) is a gold-trimmed cosmetic variant of the standard adamant kiteshield. Identical stats, requiring 30 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Team-trimmed cosmetic variant
+  about: "Adamant kiteshield (g) is a gold-trimmed cosmetic variant of the standard adamant kiteshield. It has identical stats to the untrimmed version, requires 30 Defence, and is obtained exclusively from medium Treasure Trail reward caskets."
+  market_strategy:
+    notes:
+      - "Purely cosmetic over the untrimmed kiteshield"
+      - "Demand driven by fashion and collectors, not combat utility"
+      - "Medium clue scroll supply directly impacts price floor"
+      - "Trimmed variants typically command a fashion premium"
+  trading_tips:
+    - "Compare price against the regular adamant kiteshield to gauge cosmetic premium"
+    - "Stock during medium clue scroll content shifts that change drop supply"
+  history:
+    - date: "2004-05-05"
+      description: "Adamant kiteshield (g) released as part of the gold-trim armour set rewards."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

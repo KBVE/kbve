@@ -1,6 +1,6 @@
 ---
 title: Teleport to house (tablet) | OSRS Price Data
-description: "Teleport to house (tablet): A teleport to one's own house.. High alch: 1 GP, GE limit: 15,000."
+description: "Teleport to house (tablet): A teleport to one's own house. High alch: 1 GP, GE limit: 15,000."
 osrs:
   id: 8013
   name: Teleport to house (tablet)
@@ -12,85 +12,64 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15000
-  item:
-    type: teleport_tablet
+  about: "Teleport to house (tablet) breaks to teleport the user directly to their player-owned house portal with no runes equipped. Members-only. GE limit 15,000."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
     tradeable: true
+    equipable: false
+    stackable: false
+    noteable: false
+    destroy: "Drop"
+    quest_item: false
     weight: 0
-  magic:
-    spell: Teleport to House
-  effect:
-    teleport: true
-    destination: Player-owned house
+  material:
+    type: tablet
+    tier: standard
   recipes:
-    - skill: magic
+    - item_name: "Teleport to house (tablet)"
+      skill: "Magic"
       level: 40
       xp: 30
+      tools:
+        - "Mahogany eagle lectern (POH)"
       materials:
-        - item_name: Soft clay
-          item_id: 1761
+        - item_name: "Soft clay"
           quantity: 1
-        - item_name: Law rune
-          item_id: 563
+        - item_name: "Law rune"
           quantity: 1
-        - item_name: Air rune
-          item_id: 556
+        - item_name: "Air rune"
           quantity: 1
-        - item_name: Earth rune
-          item_id: 557
+        - item_name: "Earth rune"
           quantity: 1
-      product: Teleport to house
-      product_id: 8013
-      product_quantity: 1
-      facility: Lectern (POH)
-      members_only: true
+      output_quantity: 1
   related_items:
     - item_id: 11740
       item_name: Scroll of redirection
       slug: scroll-of-redirection
-      relationship: upgrade
-      description: Redirects tablet to other locations
+      relationship: variant
+      description: Redirects this tablet to alternate house portal locations
     - item_id: 563
       item_name: Law rune
       slug: law-rune
       relationship: component
-      description: Crafting material
+      description: Required rune component
     - item_id: 1761
       item_name: Soft clay
       slug: soft-clay
       relationship: component
-      description: Tablet base
-  about: |-
-    Teleport to POH:
-    - Teleports to your player-owned house portal
-    - One-click teleport without runes
-    - Popular for quick banking and POH utilities
-
-    POH Portal Locations:
-    - Rimmington (default)
-    - Taverley
-    - Pollnivneach
-    - Hosidius
-    - Rellekka
-    - Brimhaven
-    - Yanille
-    - Prifddinas (75 Construction)
-
-    Use Scroll of redirection to redirect tablets:
-
-    | Destination | Requirements |
-    |-------------|--------------|
-    | Various house portals | 50 Construction |
-    | Prifddinas | 75 Construction, Song of the Elves |
-
-    NMZ Points: 775 per scroll
+      description: Tablet base material
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Construction skill and player-owned house teleport tablets."
+  trading_tips:
+    - "Make in bulk at a POH lectern for repeatable Magic XP and consistent flip margin."
+    - "Demand spikes during PvM seasonal events; pair with Scroll of redirection for alternative teleports."
   market_strategy:
     notes:
-      - Essential utility item
-      - Cheaper than casting spell repeatedly
-      - Make in bulk at POH lectern for profit
-      - Popular for PvM banking
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "relationship: \"component\""
+      - "Essential utility tablet; price is bounded by law rune cost plus a fixed convenience premium."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

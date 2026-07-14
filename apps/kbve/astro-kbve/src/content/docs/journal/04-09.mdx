@@ -9,15 +9,52 @@ description: |
     9th of April.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 9,'
+    accent: every year.
+    lede: 'The April 9th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Apr 8'
+          href: /journal/04-08/
+        - label: 'Apr 10 →'
+          href: /journal/04-10/
+    related:
+        - title: 'Previous · Apr 8'
+          copy: 'Step back a day to the April 8th log.'
+          href: /journal/04-08/
+          icon: calendar
+        - title: 'Next · Apr 10'
+          copy: 'Jump ahead to the April 10th log.'
+          href: /journal/04-10/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1712251351568-1c56602c31aa?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Market Tar Rifts
 
@@ -54,8 +91,15 @@ import { Adsense } from '@/components/astropad';
 
     Looks like we were running priest and mage this time, but I think the combo should be tested in the future.
 
-## 2024
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Discord App Pitch
 
@@ -212,3 +256,7 @@ Then under our custom flags, we will add the `-py` to the rest of the commands:
 ```
 
 So now we can just call the `-py` flag to help automatically setup the environments, making it easier for us to build and rotate around the different projects.
+
+</BentoProse>
+
+</BentoDoc>

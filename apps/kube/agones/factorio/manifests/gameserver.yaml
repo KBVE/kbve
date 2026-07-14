@@ -51,7 +51,7 @@ spec:
                       sizeLimit: 1Gi
             containers:
                 - name: factorio
-                  image: ghcr.io/kbve/agones-factorio:0.0.12
+                  image: ghcr.io/kbve/agones-factorio:0.0.13
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: FACTORIO_RCON_PASSWORD
@@ -127,7 +127,7 @@ spec:
                               command:
                                   - /usr/local/bin/agones-shim-prestop
                 - name: factorio-relay
-                  image: ghcr.io/kbve/agones-factorio-relay:0.0.6
+                  image: ghcr.io/kbve/agones-factorio-relay:0.0.7
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: FACTORIO_CONSOLE_LOG
@@ -161,6 +161,28 @@ spec:
                         value: '60'
                       - name: RUST_LOG
                         value: 'info,agones_factorio_relay=debug'
+                      - name: FACTORIO_SCENARIO_DEFAULT
+                        value: 'kbve'
+                      - name: CLICKHOUSE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: endpoint
+                                optional: true
+                      - name: CLICKHOUSE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: username
+                                optional: true
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: password
+                                optional: true
+                      - name: CLICKHOUSE_DATABASE
+                        value: 'gameops'
                   volumeMounts:
                       - name: log-spool
                         mountPath: /shared/log

@@ -1,5 +1,6 @@
 ---
 title: Mangrove Log
+template: splash
 description: |
     Minecraft Mangrove Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 57
     ref: mangrove_log
     slug: mangrove-log
+    content_rev: 1
     display_name: Mangrove Log
     material: wood
     hardness: 2
@@ -24,10 +26,57 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Mangrove Log is the trunk wood of the mangrove tree, generating
+            as thick tangles of roots and stems above the water in mangrove
+            swamps. It behaves like other logs, burning readily and
+            stripping into Stripped Mangrove Log when hit with an axe.
+        lore: |
+            Mangrove wood was added in Java Edition 1.19 as part of the
+            Wild Update's mangrove swamp biome.
+    uses:
+        - title: Mangrove Planks
+          ref: mangrove_planks
+          detail: |
+              Crafting one Mangrove Log yields four Mangrove Planks, the
+              base ingredient for mangrove furniture, tools, and building
+              blocks.
+        - title: Stripped Mangrove Log
+          ref: stripped_mangrove_log
+          detail: Right-clicking with an axe strips the bark for a cleaner look.
+    found_in:
+        - location: Mangrove Swamp
+          detail: Generates as the trunks and roots of mangrove trees throughout the biome.
+    faq:
+        - question: What is the best tool to mine Mangrove Log?
+          answer: |
+              An axe is fastest, but any tool or even bare hands can break
+              it since there is no tool tier requirement.
+        - question: Does Mangrove Log burn?
+          answer: |
+              Yes, it is flammable and will catch fire from lava or nearby
+              flames like most Overworld wood.
+        - question: Can I strip a Mangrove Log?
+          answer: |
+              Yes, using an axe on it produces a Stripped Mangrove Log with
+              the same properties but a cleaner texture.
+        - question: Is Mangrove Log renewable?
+          answer: |
+              Yes, mangrove trees regrow from planted propagules, making the
+              wood a fully renewable resource.
     data_version: "1.21.5"
 ---
 

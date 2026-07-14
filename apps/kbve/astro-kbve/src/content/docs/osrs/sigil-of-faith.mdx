@@ -1,6 +1,6 @@
 ---
 title: Sigil of faith | OSRS Price Data
-description: "Sigil of faith: A power enhancing sigil not yet attuned to you."
+description: "Sigil of faith: A power enhancing sigil not yet attuned to you. Deadman Mode sigil that boosts Prayer point regeneration from potions."
 osrs:
   id: 28520
   name: Sigil of faith
@@ -12,9 +12,51 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of faith is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2023-08-23"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    worn_options: []
+    alchable: false
+    destroy: "You will lose this sigil if you destroy it. You must unattune the sigil first."
+  passive_effects:
+    - name: Faithful Recovery (Annihilation)
+      description: "Doubles Prayer points restored from Prayer-restoring potions."
+    - name: Faithful Recovery (Armageddon)
+      description: "40 percent chance to double Prayer points restored from Prayer-restoring potions."
+    - name: Faithful Recovery (Apocalypse)
+      description: "20 percent chance to double Prayer points restored from Prayer-restoring potions."
+  related_items:
+    - item_name: Sigil of resilience
+      slug: sigil-of-resilience
+      relationship: alternative
+      description: Defensive Deadman sigil unlocked via the same skull shop.
+    - item_name: Sigil of restoration
+      slug: sigil-of-restoration
+      relationship: alternative
+      description: Stat-restoration Deadman sigil from the same event pool.
+  about: "Sigil of faith is one of the unlockable power sigils introduced with the Deadman: Apocalypse tournament. Players must first unattune the sigil before it can be destroyed. It is generally only obtainable during active Deadman Mode events and may not be tradeable depending on the season."
+  market_strategy:
+    notes:
+      - "Only available during seasonal Deadman events; outside windows it is effectively unobtainable."
+      - "Value resets each season because the sigil pool is event-bound."
+  trading_tips:
+    - Stockpile or unlock during active Deadman seasons before the event ends.
+    - Decide whether to attune or trade based on the current event's economy.
+  history:
+    - date: "2023-08-23"
+      description: "Sigil of faith added with the Deadman: Apocalypse tournament."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

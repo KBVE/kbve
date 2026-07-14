@@ -12,110 +12,99 @@ osrs:
   lowalch: 80000
   highalch: 120000
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
   material:
     type: gem
-    tier: highest
-  crafting:
-    cutting_level: 67
-    cutting_xp: 167.5
+    tier: high
+  properties:
+    release_date: "2005-10-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
   shops:
-    - shop_name: TzHaar shops
+    - shop_name: TzHaar-Hur gem shop
+      location: Mor Ul Rek
       price: 300000
       currency: Tokkul
+      stock: 0
   drop_table:
     sources:
       - source: Tekton
-        source_id: 7540
-        combat_level: 0
         quantity: "1"
         rarity: 1/450
-        members_only: true
       - source: Zulrah
-        source_id: 2042
-        combat_level: 725
         quantity: "1"
-        rarity: rare
-        members_only: true
+        rarity: 1/1024
       - source: Skotizo
-        source_id: 7286
-        combat_level: 321
         quantity: "1"
-        rarity: rare
-        members_only: true
+        rarity: 1/256
   recipes:
     - skill: crafting
       level: 67
       xp: 115
       materials:
         - item_name: Onyx
-          item_id: 6573
           quantity: 1
         - item_name: Gold bar
-          item_id: 2357
           quantity: 1
-      product: Onyx ring
-      product_id: 6575
-      product_quantity: 1
-      facility: Furnace
-      members_only: true
+      tools:
+        - Furnace
+      output_quantity: 1
     - skill: crafting
       level: 90
       xp: 165
       materials:
         - item_name: Onyx
-          item_id: 6573
           quantity: 1
         - item_name: Gold bar
-          item_id: 2357
           quantity: 1
-      product: Onyx amulet (u)
-      product_id: 6579
-      product_quantity: 1
-      facility: Furnace
-      members_only: true
+      tools:
+        - Furnace
+      output_quantity: 1
   related_items:
-    - item_id: 6585
-      item_name: Amulet of fury
+    - item_name: Amulet of fury
       slug: amulet-of-fury
       relationship: product
-      description: Best product
-    - item_id: 19496
-      item_name: Zenyte
+      description: Hybrid amulet crafted from onyx and gold bar
+    - item_name: Zenyte
       slug: zenyte
-      relationship: alternative
-      description: Higher tier gem
-    - item_id: 19529
-      item_name: Zenyte shard
+      relationship: upgrade
+      description: Next-tier gem made by combining onyx with a zenyte shard
+    - item_name: Zenyte shard
       slug: zenyte-shard
       relationship: component
-      description: Zenyte creation
-    - item_id: 9245
-      item_name: Onyx bolts (e)
+      description: Combined with onyx to produce zenyte
+    - item_name: Onyx bolts (e)
       slug: onyx-bolts-e
       relationship: product
-      description: PvP bolts
-  about: |-
-    | Item | Effect |
-    |------|--------|
-    | Ring of stone | Transform to rock |
-    | Berserker necklace | +5 obsidian damage |
-    | Amulet of fury | Best-in-slot hybrid amulet |
-    | Regen bracelet | 2x HP regen |
+      description: PvP-grade enchanted bolts using onyx bolt tips
+  about: "Onyx is a high-tier gem used in some of the most valuable jewellery in Old School RuneScape. It can be cut into onyx jewellery such as the Amulet of fury, Berserker necklace, and Ring of stone, or combined with a zenyte shard at the Wall of Flames to produce zenyte. Onyx bolt tips fletched from the gem create the popular onyx bolts (e) used in PvP. Drops come from high-level bosses including Tekton, Zulrah, and Skotizo, while TzHaar gem shops sell cut onyx for 300,000 Tokkul."
   market_strategy:
     notes:
-      - Amulet of fury demand
-      - TzHaar shop alternative
-      - Zenyte creation component
-      - Amulet of fury crafting
-      - Zenyte creation
-      - Onyx bolt tips
-      - Berserker necklace
-      - TzHaar shop if Tokkul rich
-      - Raids drops add supply
-      - Required for zenyte gems
-      - High alch fury for profit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Amulet of fury demand pulls onyx supply whenever the BIS hybrid amulet trends"
+      - "TzHaar Tokkul stockpiles can be liquidated into onyx when GE price spikes"
+      - "Zenyte crafting at 98 Crafting consumes onyx + zenyte shard, linking the two markets"
+      - "Raids and Zulrah drops are the main organic supply faucet"
+  trading_tips:
+    - Convert excess Tokkul into onyx during price spikes rather than hoarding currency
+    - Watch zenyte shard supply - a glut there increases zenyte-bound onyx demand
+    - Crafting onyx into amulet of fury can be profitable when GE prices diverge
+  history:
+    - date: "2005-10-04"
+      description: Released with the TzHaar update and added as a TzHaar gem shop offering.
+    - date: "2007-12-04"
+      description: Used in the introduction of the Amulet of fury.
+    - date: "2018-01-04"
+      description: Became a key ingredient for zenyte gems with the Dragon Slayer II rewards.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

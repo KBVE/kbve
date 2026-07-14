@@ -12,24 +12,90 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.4
     requirements:
       prayer: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 3
+      ranged: 3
     other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - item_id: 12265
-      item_name: Bandos robe top
+    - item_name: Bandos robe top
       slug: bandos-robe-top
       relationship: set-piece
-      description: Bandos vestment body
-  about: |-
-    > *"A Bandos cloak."*
-
-    The Bandos cloak is the cape piece of the Bandos vestment set. It provides a +3 Prayer bonus and requires 40 Prayer to equip. Counts as a Bandosian item in the God Wars Dungeon. Required for certain master clue steps.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Body slot piece of the Bandos vestment set
+    - item_name: Bandos robe legs
+      slug: bandos-robe-legs
+      relationship: set-piece
+      description: Legs slot piece of the Bandos vestment set
+    - item_name: Bandos mitre
+      slug: bandos-mitre
+      relationship: set-piece
+      description: Head slot piece of the Bandos vestment set
+    - item_name: Bandos stole
+      slug: bandos-stole
+      relationship: set-piece
+      description: Neck slot piece of the Bandos vestment set
+  about: "The Bandos cloak is the cape component of the Bandos vestment set, obtained as a rare reward from medium Treasure Trails at a 1/1,133 rate. Requiring 40 Prayer to wear, it offers a +3 Prayer bonus, light defensive stats and counts as a Bandosian item in the God Wars Dungeon. It is also required for certain master clue scroll steps and is a popular cosmetic for Bandos-themed setups."
+  market_strategy:
+    notes:
+      - "Supply is gated by medium clue completions"
+      - "Demand spikes during master clue step popularity"
+      - "Tiny 8 buy limit makes large flips slow"
+  trading_tips:
+    - Watch medium clue boost events for short-term supply increases
+    - Stack multiple buy limits across the day if accumulating a set
+    - Cross-check pricing against the rest of the Bandos vestment set
+  history:
+    - date: "2014-06-12"
+      description: "Added to the game as part of the God Wars vestment sets update."
+    - date: "2014-08-14"
+      description: "Added to medium clue scroll rewards after being initially omitted."
+    - date: "2015-08-13"
+      description: "Graphical fix applied to the cloak's appearance."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

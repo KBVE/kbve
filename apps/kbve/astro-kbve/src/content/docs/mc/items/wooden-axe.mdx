@@ -1,5 +1,6 @@
 ---
 title: Wooden Axe
+template: splash
 description: |
     Minecraft Wooden Axe — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 861
     ref: wooden_axe
     slug: wooden-axe
+    content_rev: 1
     display_name: Wooden Axe
     category: tool
     rarity: common
@@ -38,6 +40,31 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Wooden Axe is the earliest-tier axe, crafted from wooden planks and sticks. It
+            chops wood-related blocks faster than bare hands, strips logs, removes wax or reduces
+            oxidization on copper, and can serve as a weak melee weapon that disables shields.
+        lore: |
+            A crude but effective tool of splintered timber, the first edge most survivors ever
+            swing.
+    faq:
+        - question: How do I strip a log with a wooden axe?
+          answer: |
+              Use the axe on a log, wood block, or bamboo block to convert it into its stripped
+              variant, consuming 1 durability point.
+        - question: How much combat damage does the wooden axe deal?
+          answer: |
+              In Java Edition it deals 7 attack damage with a 0.8 attack speed; Bedrock Edition
+              deals 4 damage with no attack cooldown.
+        - question: Can I repair a wooden axe?
+          answer: |
+              Yes, combine it with wooden planks at an anvil, or combine two damaged wooden axes
+              together to merge their durability plus a small bonus.
+        - question: Does the wooden axe disable shields?
+          answer: |
+              Yes, hitting a blocking player with an axe disables their shield briefly, though the
+              exact mechanics differ slightly between Java and Bedrock editions.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

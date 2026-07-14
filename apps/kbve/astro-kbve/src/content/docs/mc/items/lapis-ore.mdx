@@ -1,5 +1,6 @@
 ---
 title: Lapis Lazuli Ore
+template: splash
 description: |
     Minecraft Lapis Lazuli Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 76
     ref: lapis_ore
     slug: lapis-ore
+    content_rev: 1
     display_name: Lapis Lazuli Ore
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Lapis lazuli ore is a mineral block that generates in the Overworld
+            between Y-levels -32 and 32 with a second concentration near Y-64. It
+            requires a stone pickaxe or better and drops 4-9 lapis lazuli used for
+            enchanting and blue dye.
+        lore: |
+            Veins of deep azure stone that miners once prized as highly as the gem
+            it resembles.
+    faq:
+        - question: Where does lapis lazuli ore generate?
+          answer: |
+              It generates between Y-levels -32 and 32, most commonly around
+              Y-0, with an additional hidden layer near Y-64.
+        - question: What tool is required to mine it?
+          answer: |
+              A stone pickaxe or better is required; using Silk Touch collects
+              the ore block itself instead of lapis lazuli.
+        - question: How much lapis lazuli does it drop?
+          answer: |
+              Mining without Silk Touch drops 4-9 lapis lazuli, and Fortune III
+              can increase this up to 36.
+        - question: What is lapis lazuli used for?
+          answer: |
+              It is primarily used for enchanting at the enchanting table and
+              for crafting blue dye.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

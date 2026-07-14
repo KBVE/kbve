@@ -1,5 +1,6 @@
 ---
 title: Hanging Roots
+template: splash
 description: |
     Minecraft Hanging Roots — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 1056
     ref: hanging_roots
     slug: hanging-roots
+    content_rev: 1
     display_name: Hanging Roots
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: hanging_roots
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - lush_caves
+        - overworld
+        - instant_break
+    about:
+        description: |
+            Hanging Roots is a decorative, non-solid plant block that
+            grows downward from rooted dirt in lush caves. It breaks
+            instantly and drops itself when mined.
+        lore: |
+            First teased at Minecraft Live 2020, hanging roots were added
+            in Java Edition snapshot 21w05a as part of the Caves & Cliffs
+            update's lush caves biome.
+    uses:
+        - title: Cave Decoration
+          ref: hanging_roots
+          detail: |
+              Used purely as decoration to visually dress lush cave
+              ceilings and rooted dirt formations.
+    found_in:
+        - location: Lush Caves
+          detail: |
+              Generates beneath azalea trees and rooted dirt on the
+              surface above lush caves.
+        - location: Rooted Dirt
+          detail: |
+              Applying bone meal to rooted dirt grows new hanging roots
+              beneath it, making the block renewable.
+    faq:
+        - question: What tool do I need to mine Hanging Roots?
+          answer: |
+              None. It breaks instantly by hand; shears are the quickest
+              option but any tool works.
+        - question: Do Hanging Roots require Silk Touch to drop?
+          answer: |
+              No, except on Bedrock Edition where Silk Touch is needed to
+              collect it without shears; on Java Edition it always drops
+              itself.
+        - question: Can I farm Hanging Roots?
+          answer: |
+              Yes. Bone meal applied to rooted dirt regenerates hanging
+              roots beneath it, making the resource renewable.
+        - question: Can mobs walk through Hanging Roots?
+          answer: |
+              Yes. The block is non-solid, so entities pass through it
+              like other plant decorations.
     data_version: "1.21.5"
 ---
 

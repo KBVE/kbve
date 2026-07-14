@@ -12,9 +12,60 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 150
-  about: "Kyatt hat is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: leather
+    tier: kyatt
+  properties:
+    release_date: "2006-07-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    options:
+      - wear
+      - drop
+    worn_options:
+      - remove
+  equipment:
+    slot: head
+    attack_speed: 4
+    requirements:
+      ranged: 40
+      hitpoints: 40
+    defence_bonus:
+      stab: 1
+      slash: 0
+      crush: 2
+      magic: -1
+      ranged: 2
+  recipes:
+    - skill: crafting
+      level: 67
+      xp: 168
+      materials:
+        - item_name: Kyatt fur
+          quantity: 2
+        - item_name: Thread
+          quantity: 1
+        - item_name: Needle
+          quantity: 1
+      output_quantity: 1
+      notes: "Crafted at a loom or by using needle on fur"
+  related_items:
+    - item_id: 10041
+      item_name: Kyatt top
+      slug: kyatt-top
+      relationship: set-piece
+      description: Body slot piece of the Kyatt set
+    - item_id: 10043
+      item_name: Kyatt legs
+      slug: kyatt-legs
+      relationship: set-piece
+      description: Legs slot piece of the Kyatt set
+  about: |-
+    Kyatt hat is part of the polar camouflage set used in Fremennik Hunter areas. Provides camouflage in polar regions and a small ranged defence bonus.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

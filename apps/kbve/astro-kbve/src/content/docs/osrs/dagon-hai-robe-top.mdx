@@ -12,9 +12,83 @@ osrs:
   lowalch: 56000
   highalch: 84000
   limit: null
-  about: "Dagon'hai robe top is a members-only item in Old School RuneScape. High alchemy value: 84,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: mid-high
+  properties:
+    release_date: "2019-10-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options: ["Wear", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 2.267
+    requirements:
+      magic: 70
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 25
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 21
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 1
+      prayer: 2
+  drop_table:
+    sources:
+      - source: Larran's big chest
+        quantity: "1"
+        rarity: 1/256
+  about: "Dagon'hai robe top is a mid-high tier magic body slot item requiring 70 Magic and 40 Defence. Drops as rare loot from Larran's big chest (1/256). Provides +25 magic attack, +21 magic defence, +1% magic damage and +2 prayer bonus — strong PvM/PvP magic gear for the Defence requirement. Pairs with the Dagon'hai hat and robe bottom; storable in a magic wardrobe. High alchemy value: 84,000 coins."
+  market_strategy:
+    notes:
+      - "Larran's chest drop rate (1/256) gates supply; PKers stocking the chest drive trickle availability"
+      - "Demand from mid-game mages who want the 40 Defence requirement instead of 70 Defence ahrim's"
+      - "+1% magic damage and +2 prayer bonus distinguish it from cheaper mystic robe tops"
+  trading_tips:
+    - Watch Larran's chest meta — bounty hunter / chest content shifts directly move supply
+    - Resell full Dagon'hai set (hat + top + robe) for collector premium
+  related_items:
+    - item_name: Dagon'hai hat
+      slug: dagon-hai-hat
+      relationship: set-piece
+      description: Head piece of the Dagon'hai robes set
+    - item_name: Dagon'hai robe bottom
+      slug: dagon-hai-robe-bottom
+      relationship: set-piece
+      description: Legs piece of the Dagon'hai robes set
+    - item_name: Mystic robe top
+      slug: mystic-robe-top
+      relationship: alternative
+      description: Cheaper magic body alternative without the magic damage and prayer bonuses
+    - item_name: Ahrim's robetop
+      slug: ahrims-robetop
+      relationship: upgrade
+      description: Higher-tier magic body requiring 70 Defence
+  history:
+    - date: "2019-10-24"
+      description: "Added to the game as a rare drop from Larran's big chest."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

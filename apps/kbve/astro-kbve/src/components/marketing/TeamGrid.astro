@@ -1,0 +1,10 @@
+---
+import type { ComponentProps } from 'react';
+import { TeamGrid } from '@kbve/rn-astro';
+type Props = ComponentProps<typeof TeamGrid>;
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<TeamGrid client:only="react" {...props} />
+</div>

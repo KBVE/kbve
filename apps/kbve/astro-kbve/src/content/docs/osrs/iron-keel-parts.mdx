@@ -1,6 +1,6 @@
 ---
 title: Iron keel parts | OSRS Price Data
-description: "Iron keel parts: Parts for creating an iron keel for a boat.. High alch: 75 GP, GE limit: 100."
+description: "Iron keel parts: Parts for creating an iron keel for a boat. High alch: 75 GP, GE limit: 100."
 osrs:
   id: 32002
   name: Iron keel parts
@@ -12,9 +12,58 @@ osrs:
   lowalch: 50
   highalch: 75
   limit: 100
-  about: "Iron keel parts is a members-only item in Old School RuneScape. High alchemy value: 75 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: iron
+    tier: low
+  recipes:
+    - skill: Smithing
+      level: 22
+      xp: 125
+      materials:
+        - item_name: Iron bar
+          quantity: 5
+      tools:
+        - Hammer
+        - Anvil
+      output: Iron keel parts
+  related_items:
+    - item_id: 32000
+      item_name: Bronze keel parts
+      slug: bronze-keel-parts
+      relationship: downgrade
+      description: Lower-tier keel parts variant
+    - item_id: 32004
+      item_name: Steel keel parts
+      slug: steel-keel-parts
+      relationship: upgrade
+      description: Next tier keel parts variant
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: Bar smelted from iron ore used in the recipe
+  about: "Iron keel parts are Sailing-era shipbuilding components smithed at Smithing 22 from 5 iron bars (125 xp); ten parts combine via Construction 17 and Sailing 22 into an iron keel for skiffs, and large iron keel parts (5 regular parts each) build sloops."
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing skill launch as part of the shipbuilding component pool."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

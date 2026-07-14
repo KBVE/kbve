@@ -1,6 +1,12 @@
 use std::net::IpAddr;
 
-use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
+use axum::{
+    Json, Router,
+    extract::{Path, Query, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+};
 use serde::{Deserialize, Serialize};
 
 use super::validate::{
@@ -63,7 +69,10 @@ fn err(status: StatusCode, msg: impl Into<String>) -> (StatusCode, Json<ErrorRes
 }
 
 pub fn router() -> Router<HttpState> {
-    Router::new().route("/api/servers/submit", post(submit_server))
+    Router::new()
+        .route("/api/servers/submit", post(submit_server))
+        .route("/api/servers/list", get(list_servers))
+        .route("/api/servers/{server_id}", get(get_server))
 }
 
 /// POST /api/servers/submit
@@ -205,6 +214,274 @@ async fn submit_server(
             err(StatusCode::BAD_GATEWAY, "Upstream service unavailable").into_response()
         }
     }
+}
+
+// ── List / Get Endpoints ────────────────────────────────────────────
+
+/// Query params for GET /api/servers/list
+#[derive(Debug, Deserialize)]
+pub struct ListServersQuery {
+    #[serde(default)]
+    pub category: Option<u32>,
+    #[serde(default = "default_sort")]
+    pub sort: String,
+    #[serde(default = "default_page")]
+    pub page: u32,
+    #[serde(default = "default_limit")]
+    pub limit: u32,
+}
+
+fn default_sort() -> String {
+    "votes".into()
+}
+fn default_page() -> u32 {
+    1
+}
+fn default_limit() -> u32 {
+    24
+}
+
+/// Server record returned by list/get endpoints
+#[derive(Debug, Serialize)]
+pub struct ServerRecord {
+    pub server_id: String,
+    pub name: String,
+    pub summary: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub banner_url: Option<String>,
+    pub invite_code: String,
+    pub categories: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub tags: Vec<String>,
+    pub member_count: i32,
+    pub vote_count: i32,
+    pub is_online: bool,
+}
+
+/// GET /api/servers/list
+///
+/// Fetches servers from PgCluster (direct SQL, bypassing Postgrest).
+/// Falls back to empty response if pool unavailable.
+async fn list_servers(
+    State(state): State<HttpState>,
+    Query(params): Query<ListServersQuery>,
+) -> impl IntoResponse {
+    let Some(ref cluster) = state.app.pg_cluster else {
+        tracing::warn!("[list_servers] PgCluster not initialized");
+        return err(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "Database temporarily unavailable",
+        )
+        .into_response();
+    };
+
+    match query_servers(cluster, &params).await {
+        Ok((servers, total)) => {
+            let response = serde_json::json!({
+                "servers": servers,
+                "total": total,
+                "page": params.page,
+                "limit": params.limit,
+            });
+            (StatusCode::OK, Json(response)).into_response()
+        }
+        Err(e) => {
+            tracing::error!(error = %e, "[list_servers] Query failed");
+            err(StatusCode::INTERNAL_SERVER_ERROR, "Failed to fetch servers").into_response()
+        }
+    }
+}
+
+async fn query_servers(
+    cluster: &jedi::state::pg::PgCluster,
+    params: &ListServersQuery,
+) -> Result<(Vec<ServerRecord>, i64), jedi::entity::error::JediError> {
+    let conn = cluster.read().await?;
+
+    // Map category ID to array contains check
+    let cat_filter = params.category.map(|c| c as i16);
+
+    // Normalize sort
+    let sort_col = match params.sort.to_lowercase().as_str() {
+        "members" => "member_count",
+        "newest" => "created_at",
+        "bumped" => "bumped_at",
+        _ => "vote_count",
+    };
+
+    // Build query (status=1 = active)
+    let sql = format!(
+        r#"
+        WITH total AS (
+            SELECT count(*) AS cnt
+            FROM discordsh.servers
+            WHERE status = 1
+              AND ($1::smallint IS NULL OR $1 = ANY(categories))
+        )
+        SELECT
+            s.server_id,
+            s.name,
+            s.summary,
+            s.description,
+            s.icon_url,
+            s.banner_url,
+            s.invite_code,
+            s.categories,
+            s.tags,
+            s.member_count,
+            s.vote_count,
+            s.is_online,
+            t.cnt AS total_count
+        FROM discordsh.servers s, total t
+        WHERE s.status = 1
+          AND ($1::smallint IS NULL OR $1 = ANY(s.categories))
+        ORDER BY s.{} DESC NULLS LAST, s.created_at DESC, s.server_id DESC
+        LIMIT $2 OFFSET $3
+        "#,
+        sort_col
+    );
+
+    let limit = params.limit.min(50) as i64;
+    let offset = ((params.page - 1) * params.limit).min(10_000) as i64;
+
+    let rows = conn.query(&sql, &[&cat_filter, &limit, &offset]).await?;
+
+    if rows.is_empty() {
+        return Ok((vec![], 0));
+    }
+
+    let total: i64 = rows.first().map(|r| r.get("total_count")).unwrap_or(0);
+
+    let servers = rows
+        .into_iter()
+        .map(|row| {
+            let cats: Vec<i16> = row.get("categories");
+            let category_names = cats
+                .into_iter()
+                .filter_map(|c| category_id_to_string(c as u32))
+                .collect();
+
+            ServerRecord {
+                server_id: row.get("server_id"),
+                name: row.get("name"),
+                summary: row.get("summary"),
+                description: row.get("description"),
+                icon_url: row.get("icon_url"),
+                banner_url: row.get("banner_url"),
+                invite_code: row.get("invite_code"),
+                categories: category_names,
+                tags: row.get("tags"),
+                member_count: row.get::<_, i64>("member_count") as i32,
+                vote_count: row.get::<_, i64>("vote_count") as i32,
+                is_online: row.get("is_online"),
+            }
+        })
+        .collect();
+
+    Ok((servers, total))
+}
+
+// Map category ID (1-12) to string slug (matches Astro CATEGORIES)
+fn category_id_to_string(id: u32) -> Option<String> {
+    match id {
+        1 => Some("gaming".into()),
+        2 => Some("anime".into()),
+        3 => Some("music".into()),
+        4 => Some("tech".into()),
+        5 => Some("art".into()),
+        6 => Some("education".into()),
+        7 => Some("social".into()),
+        8 => Some("programming".into()),
+        9 => Some("memes".into()),
+        10 => Some("crypto".into()),
+        11 => Some("roleplay".into()),
+        12 => Some("nsfw".into()),
+        _ => None,
+    }
+}
+
+/// GET /api/servers/:server_id
+///
+/// Fetches single server by ID from PgCluster.
+async fn get_server(
+    State(state): State<HttpState>,
+    Path(server_id): Path<String>,
+) -> impl IntoResponse {
+    if !is_valid_snowflake(&server_id) {
+        return err(StatusCode::BAD_REQUEST, "Invalid server ID").into_response();
+    }
+
+    let Some(ref cluster) = state.app.pg_cluster else {
+        tracing::warn!("[get_server] PgCluster not initialized");
+        return err(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "Database temporarily unavailable",
+        )
+        .into_response();
+    };
+
+    match query_server_by_id(cluster, &server_id).await {
+        Ok(Some(server)) => (StatusCode::OK, Json(server)).into_response(),
+        Ok(None) => err(StatusCode::NOT_FOUND, "Server not found").into_response(),
+        Err(e) => {
+            tracing::error!(error = %e, server_id, "[get_server] Query failed");
+            err(StatusCode::INTERNAL_SERVER_ERROR, "Failed to fetch server").into_response()
+        }
+    }
+}
+
+async fn query_server_by_id(
+    cluster: &jedi::state::pg::PgCluster,
+    server_id: &str,
+) -> Result<Option<ServerRecord>, jedi::entity::error::JediError> {
+    let conn = cluster.read().await?;
+
+    let sql = r#"
+        SELECT
+            server_id,
+            name,
+            summary,
+            description,
+            icon_url,
+            banner_url,
+            invite_code,
+            categories,
+            tags,
+            member_count,
+            vote_count,
+            is_online
+        FROM discordsh.servers
+        WHERE server_id = $1 AND status = 1
+    "#;
+
+    let row_opt = conn.query_opt(sql, &[&server_id]).await?;
+
+    Ok(row_opt.map(|row| {
+        let cats: Vec<i16> = row.get("categories");
+        let category_names = cats
+            .into_iter()
+            .filter_map(|c| category_id_to_string(c as u32))
+            .collect();
+
+        ServerRecord {
+            server_id: row.get("server_id"),
+            name: row.get("name"),
+            summary: row.get("summary"),
+            description: row.get("description"),
+            icon_url: row.get("icon_url"),
+            banner_url: row.get("banner_url"),
+            invite_code: row.get("invite_code"),
+            categories: category_names,
+            tags: row.get("tags"),
+            member_count: row.get::<_, i64>("member_count") as i32,
+            vote_count: row.get::<_, i64>("vote_count") as i32,
+            is_online: row.get("is_online"),
+        }
+    }))
 }
 
 #[cfg(test)]

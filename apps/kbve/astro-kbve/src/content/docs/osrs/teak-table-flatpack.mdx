@@ -12,9 +12,66 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak table (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: flatpack
+    tier: mid
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    weight: 1
+    quest_item: false
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  recipes:
+    - skill: construction
+      level: 38
+      xp: 360
+      materials:
+        - item_name: Teak plank
+          item_id: 8779
+          quantity: 4
+      product: Teak table (flatpack)
+      product_id: 8554
+      output_quantity: 1
+      facility: Workbench
+      members_only: true
+  related_items:
+    - item_id: 8779
+      item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: Construction material for the flatpack
+    - item_id: 8552
+      item_name: Oak table (flatpack)
+      slug: oak-table-flatpack
+      relationship: alternative
+      description: Lower tier flatpack table
+    - item_id: 8556
+      item_name: Mahogany table (flatpack)
+      slug: mahogany-table-flatpack
+      relationship: upgrade
+      description: Higher tier flatpack table
+  market_strategy:
+    notes:
+      - "Construction training method for ironmen and mains"
+      - "Supply from butler-assisted flatpack training"
+      - "Steady demand for Stronghold-style dining rooms"
+      - "Low margin, high volume flip"
+  trading_tips:
+    - "Buy strategy: stock during teak plank price dips"
+    - "Demand: tied to Construction training trends"
+    - "Risk: teak plank price spikes can invert flatpack margins"
+  history:
+    - date: "2006-05-31"
+      description: "Release: flatpack system shipped with the Player-Owned Houses expansion"
+  about: "Teak table (flatpack) is a Construction flatpack made at a workbench using 4 teak planks at 38 Construction for 360 XP. Unpacks into a teak table in a player-owned house dining room. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

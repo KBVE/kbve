@@ -12,8 +12,28 @@ osrs:
   lowalch: 80800
   highalch: 121200
   limit: 70
+  about: "The regen bracelet doubles your natural Hitpoints regeneration, healing 2 HP per minute instead of the standard 1. Best-in-slot melee hand item for 1 Defence pures since it has no Defence requirement."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-04-30"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    weight: 0.25
+    destroy: "Drop"
+  material:
+    type: misc
+    tier: onyx
+    category: bracelet
   equipment:
     slot: hands
+    weapon_type: none
+    attack_speed: null
+    requirements:
+      none: 1
     attack_bonus:
       stab: 8
       slash: 8
@@ -27,17 +47,21 @@ osrs:
       magic: 3
       ranged: 6
     other_bonus:
-      melee_strength: 7
+      strength: 7
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements: {}
-    weight: 0.25
+  special_attack:
+    name: "Hitpoints Regeneration"
+    description: "Doubles the natural Hitpoints regeneration rate from 1 HP per minute to 2 HP per minute. Stacks with Rapid Heal prayer and Hitpoints cape effects."
   recipes:
-    - skill: magic
+    - item_name: Regen bracelet
+      skill: Magic
       level: 87
       xp: 97
-      inputs:
+      tools:
+        - Staff
+      materials:
         - item_name: Onyx bracelet
           quantity: 1
         - item_name: Cosmic rune
@@ -47,58 +71,24 @@ osrs:
         - item_name: Earth rune
           quantity: 20
       output_quantity: 1
-  related_items:
-    - item_id: 7462
-      item_name: Barrows gloves
-      slug: barrows-gloves
-      relationship: upgrade
-      description: BiS gloves from RFD
-    - item_id: 11126
-      item_name: Combat bracelet
-      slug: combat-bracelet
-      relationship: downgrade
-      description: Lower tier bracelet with teleports
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Stab | +8 |
-    | Slash | +8 |
-    | Crush | +8 |
-    | Magic | +3 |
-    | Ranged | +7 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All melee | +6 |
-    | Magic | +3 |
-    | Ranged | +6 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +7 |
-
-    Requirements: None to wear | Weight: 0.25 kg
-
-    The regen bracelet doubles your natural Hitpoints regeneration — healing 2 HP per minute instead of the standard 1. When combined with:
-    - Rapid Heal prayer — 2 HP per 30 seconds
-    - Hitpoints cape — further doubled regeneration
-
-    The regen bracelet is the best-in-slot melee hand slot for players with 1 Defence, as it has no Defence requirement. Its +7 Strength bonus matches mithril gloves while providing superior overall stats.
-
-    | Stat | Regen Bracelet | Barrows Gloves | Combat Bracelet |
-    |------|---------------|---------------|----------------|
-    | Melee Atk | +8/+8/+8 | +12/+12/+12 | +7/+7/+7 |
-    | Strength | +7 | +12 | +6 |
-    | Melee Def | +6/+6/+6 | +6/+6/+6 | +6/+6/+6 |
-    | Special | 2x HP regen | None | Teleports |
-    | Req | None | RFD complete | None |
+      members: true
   market_strategy:
     notes:
-      - Onyx bracelet is the main cost component
-      - Popular with 1 Defence pures and PKers
-      - Passive healing stacks with other regen effects
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "relationship: \"variant\""
+      - "Onyx bracelet"
+      - "Barrows gloves"
+      - "Combat bracelet"
+      - "Mithril gloves"
+      - "Onyx bracelet supply is the main cost driver; enchanting margin tracks onyx market."
+      - "Popular with 1 Defence pures and PKers due to no Defence requirement and passive heal."
+      - "Healing effect stacks with Rapid Heal prayer and Hitpoints cape for AFK content."
+  history:
+    - date: "2007-04-30"
+      description: "Regen bracelet released as part of the onyx jewellery family."
+    - date: "2014-05-01"
+      description: "Combat bonuses were added to the item."
+    - date: "2019-02-01"
+      description: "Healing effect disabled on free-to-play worlds."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,45 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: null
-  about: "Tonameyo white is a members-only item in Old School RuneScape. High alchemy value: 360 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: consumable
+    tier: mid
+  properties:
+    release_date: "2024-09-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+  potion:
+    effects:
+      - description: Restores 16 Hitpoints and 1 Prayer point
+      - description: Reduces Attack by 5
+      - description: Reduces Thieving by 1
+  shops:
+    - shop_name: Moonrise Wines
+      location: Aldarin
+      price: 600
+      currency: Coins
+      stock: 20
+  related_items:
+    - item_name: Tonameyo
+      slug: tonameyo
+      relationship: variant
+      description: Base Darkfrost wine variant
+  about: "Tonameyo white is a sacred Darkfrost wine introduced with the Varlamore: The Rising Darkness update. Drinking it restores 16 Hitpoints and 1 Prayer point while temporarily reducing Attack by 5 and Thieving by 1. Its flavour profile features apple, jangerberry, oak and vanilla, and the name translates from Nahuatl as 'something with clarity, like a ray of sun'. Sold by Moonrise Wines on Aldarin."
+  history:
+    - date: "2024-09-25"
+      description: Added to the game with the Varlamore - The Rising Darkness update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

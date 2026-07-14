@@ -8,11 +8,13 @@ use super::camera::IsometricCamera;
 use super::phase::GamePhase;
 use super::player::Player;
 use super::tilemap::TileCoord;
-use super::virtual_joystick::VirtualJoystickState;
 
 // Desktop: bridged cursor for BVH raycast hover detection
 #[cfg(not(target_arch = "wasm32"))]
 use super::input_bridge::BridgedCursorPosition;
+
+#[cfg(target_arch = "wasm32")]
+use super::virtual_joystick::VirtualJoystickState;
 
 // Re-export EntityEvent so event_target() is available
 use bevy::ecs::event::EntityEvent;
@@ -479,7 +481,7 @@ fn update_hover_highlight(
         );
         if let Some(mat) = materials.get(&mat_handle.0) {
             if mat.emissive != target {
-                if let Some(mat) = materials.get_mut(&mat_handle.0) {
+                if let Some(mut mat) = materials.get_mut(&mat_handle.0) {
                     mat.emissive = target;
                 }
             }
@@ -488,7 +490,7 @@ fn update_hover_highlight(
     for (mat_handle, original) in &unhovered {
         if let Some(mat) = materials.get(&mat_handle.0) {
             if mat.emissive != original.0 {
-                if let Some(mat) = materials.get_mut(&mat_handle.0) {
+                if let Some(mut mat) = materials.get_mut(&mat_handle.0) {
                     mat.emissive = original.0;
                 }
             }
@@ -636,7 +638,7 @@ fn update_occlusion(
 
         let occludes = obj_depth < player_depth && lateral_dist_sq < 4.0;
 
-        if let Some(mat) = materials.get_mut(&mat_handle.0) {
+        if let Some(mut mat) = materials.get_mut(&mat_handle.0) {
             if occludes && mat.alpha_mode != AlphaMode::Blend {
                 mat.base_color = mat.base_color.with_alpha(0.3);
                 mat.alpha_mode = AlphaMode::Blend;

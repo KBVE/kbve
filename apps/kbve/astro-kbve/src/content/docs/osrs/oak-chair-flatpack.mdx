@@ -12,9 +12,62 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak chair (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: construction flatpack
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 19
+      xp: 120
+      materials:
+        - item_name: Oak plank
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Material used to build the flatpack
+    - item_name: Oak chair
+      slug: oak-chair
+      relationship: product
+      description: Assembled chair built from the flatpack in a parlour
+  about: |-
+    Oak chair (flatpack) is a Construction flatpack created at a wooden workbench in a player's workshop. Built at 19 Construction from 2 oak planks for 120 XP, the flatpack can be assembled on any chair space in a parlour without further material requirements.
+
+    Useful for low-cost Construction XP training when buying planks is cheaper than tree-chopping yourself, and for friends/alts furnishing parlours without their own Construction level.
+  market_strategy:
+    notes:
+      - "Niche flatpack demand from low-level Construction trainers"
+      - "Tied directly to oak plank price"
+      - "Tax-adjusted profit is typically negative"
+      - "500 buy limit caps bulk plays"
+  trading_tips:
+    - Track oak plank GE price to find arbitrage windows
+    - Best for Construction trainers buying flatpacks for XP
+    - Volume is low - use limit orders
+  history:
+    - date: "2006-05-31"
+      description: "Item released with the Construction flatpack system update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

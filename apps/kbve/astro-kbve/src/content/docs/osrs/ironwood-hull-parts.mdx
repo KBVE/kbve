@@ -1,6 +1,6 @@
 ---
 title: Ironwood hull parts | OSRS Price Data
-description: "Ironwood hull parts: Parts for creating an ironwood hull for a boat.. High alch: 7,500 GP, GE limit: 100."
+description: "Ironwood hull parts: Parts for creating an ironwood hull for a boat. High alch: 7,500 GP, GE limit: 100."
 osrs:
   id: 32056
   name: Ironwood hull parts
@@ -12,9 +12,61 @@ osrs:
   lowalch: 5000
   highalch: 7500
   limit: 100
-  about: "Ironwood hull parts is a members-only item in Old School RuneScape. High alchemy value: 7,500 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ironwood
+    tier: mid-high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: construction
+      level: 77
+      xp: 437.5
+      materials:
+        - item_name: Ironwood plank
+          quantity: 5
+      tools:
+        - Saw
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Ironwood plank
+      slug: ironwood-plank
+      relationship: component
+      description: Five planks craft into one set of hull parts at the shipwrights' workbench.
+    - item_name: Large ironwood hull parts
+      slug: large-ironwood-hull-parts
+      relationship: upgrade
+      description: Five sets of hull parts combine into the large variant.
+    - item_name: Ironwood hull
+      slug: ironwood-hull
+      relationship: product
+      description: Ten hull parts plus nails, swamp tar, and cupronickel bars assemble the skiff hull.
+  about: "Ironwood hull parts are a mid-tier Construction component used at the shipwrights' workbench to assemble boats. Each set requires level 77 Construction and consumes five ironwood planks, feeding either directly into an ironwood hull (skiff) or into the larger ironwood hull parts subassembly used for sloops."
+  market_strategy:
+    notes:
+      - "Pure Construction sink; demand scales with shipwrighting activity."
+      - "Profit per craft is negative at current ironwood plank prices - market clears via player demand for hulls, not arbitrage."
+      - "437.5 XP per craft makes this a sustained drain for 77+ Construction trainers."
+      - "Hotfix on launch halved shipwrights' workbench XP; check for follow-up balance changes before bulk hoarding."
+  trading_tips:
+    - Watch ironwood plank price - it dominates the recipe cost.
+    - Bulk demand spikes when new ship hulls or boats are introduced.
+  history:
+    - date: "2025-11-19"
+      description: "Released with the shipwrighting Construction expansion. Same-day hotfix halved workbench XP."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

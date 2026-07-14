@@ -35,7 +35,7 @@ const handlers: Record<string, Handler> = {
     if (detailErr) return detailErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_report_meme", {
+    const { data, error } = await supabase.schema("meme").rpc("service_report_meme", {
       p_reporter_id: userId,
       p_meme_id: meme_id as string,
       p_reason: Number(reason),

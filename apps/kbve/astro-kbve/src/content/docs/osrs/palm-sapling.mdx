@@ -12,9 +12,49 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Palm sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    level: 68
+    plant_xp: 110.5
+    check_xp: 10150.1
+    harvest_xp: 41.5
+    growth_time: 960
+    patch: Fruit tree
+    yield: 6
+    protection: 15 papaya fruits
+  related_items:
+    - name: Palm tree seed
+      relationship: component
+    - name: Palm seedling (w)
+      relationship: variant
+    - name: Coconut
+      relationship: product
+  about: "Palm sapling is a Farming-grown fruit tree sapling that requires level 68 Farming, replanted in fruit tree patches to grow into a coconut-bearing palm tree over 16 hours."
+  market_strategy:
+    notes:
+      - "GE price near 23,154 gp with a 200-per-4-hours buy limit."
+      - "Daily volume around 25,799 keeps spreads tight for Farming run flips."
+  trading_tips:
+    - "Stockpile saplings ahead of Farming XP guide spikes or seed-price dips on palm tree seeds."
+    - "Pair with compost and Saradomin brews to sell to fruit-tree run players in bulk."
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill update."
+  properties:
+    release_date: "2005-07-11"
+    update: "Farming"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

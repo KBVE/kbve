@@ -1,6 +1,6 @@
 ---
 title: Eclipse red | OSRS Price Data
-description: "Eclipse red is a members-only OSRS item. High alch: 600 GP, GE limit: 2,000."
+description: "Eclipse red: a full-bodied Aldarin Red wine from Varlamore. Heals 16 HP, boosts Woodcutting by 1, drains Attack 5 and Fletching 1. High alch: 600 GP, GE limit: 2,000."
 osrs:
   id: 29415
   name: Eclipse red
@@ -12,9 +12,87 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 2000
-  about: "Eclipse red is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wine
+    tier: mid
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    equipable: false
+    noteable: true
+    weight: 0.453
+    quest_item: false
+    options:
+      - Drink
+      - Drop
+    destroy: "Are you sure you want to drop the Eclipse red?"
+  consumable:
+    type: wine
+    heals: 16
+    effects:
+      - stat: woodcutting
+        boost: 1
+        duration: 0
+      - stat: attack
+        boost: -5
+        duration: 0
+      - stat: fletching
+        boost: -1
+        duration: 0
+  shops:
+    - shop_name: The Flaming Arrow
+      location: Civitas illa Fortis
+      price: 1000
+      stock: 5
+      currency: coins
+    - shop_name: Moonrise Wines
+      location: Civitas illa Fortis
+      price: 1000
+      stock: 5
+      currency: coins
+    - shop_name: Sunlight's Sanctum
+      location: Civitas illa Fortis
+      price: 1000
+      stock: 5
+      currency: coins
+    - shop_name: The King's Inn
+      location: Civitas illa Fortis
+      price: 1000
+      stock: 5
+      currency: coins
+  related_items:
+    - item_id: 29411
+      item_name: Aldarin red
+      slug: aldarin-red
+      relationship: downgrade
+      description: Cheaper red wine variant
+    - item_id: 1993
+      item_name: Wine of zamorak
+      slug: wine-of-zamorak
+      relationship: alternative
+      description: Alternative wine
+  market_strategy:
+    notes:
+      - "Bottle spawn farming: Guildmaster Apatura's quarters (Hunter Guild)"
+      - "Ironmen rate ~175,000 GP/hour collecting and selling"
+      - "Heals 16 HP with +1 Woodcutting boost"
+      - "Wide shop availability anchors price near alch"
+      - "Buy limit: 2,000 per 4 hours"
+      - "Ironman bottle-runs feed buy-side liquidity"
+      - "Margins thin vs alch — avoid bulk flips"
+  history:
+    - date: "2024-03-20"
+      update: Release
+      description: "Released with Varlamore: Part One."
+    - date: "2024-09-25"
+      update: Rename and redesign
+      description: "Renamed from Eclipse wine to Eclipse red with updated examine and visual."
+  trivia:
+    - Considered the finest Aldarin Red wine in lore.
+    - Spawns in Hunter Guild's Guildmaster Apatura quarters.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

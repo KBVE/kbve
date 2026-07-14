@@ -12,31 +12,24 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 18000
-  rune:
-    type: catalytic
-    element: body
-  runecraft:
-    level: 20
-    xp: 7.5
-    multiple_at: 46
-    altar: Body Altar
-    altar_location: Southwest of Barbarian Village
-    essence_type: any
+  material:
+    type: rune
+    tier: low
   shops:
-    - shop_name: Rune shops
-      stock: Unlimited
-      price: 16
+    - shop_name: "Aubury's Rune Shop"
+      location: Varrock
+    - shop_name: "Betty's Magic Emporium"
+      location: Port Sarim
   recipes:
     - skill: runecraft
       level: 20
       xp: 7.5
       materials:
         - item_name: Rune essence
-          item_id: 1436
           quantity: 1
-      product: Body rune
-      product_id: 559
-      product_quantity: 1
+      tools:
+        - Talisman or tiara
+      output_quantity: 1
       facility: Body altar
   related_items:
     - item_id: 558
@@ -54,39 +47,37 @@ osrs:
       slug: air-rune
       relationship: component
       description: Elemental rune
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecraft Level | 20 |
-    | XP per rune | 7.5 |
-    | Altar location | Southwest of Barbarian Village |
-
-    Multipliers (every 46 levels):
-    - Level 46: 2x runes
-    - Level 92: 3x runes
-
-    | Spell | Body Runes | Other Runes |
-    |-------|------------|-------------|
-    | Curse | 2 | 3 Water, 1 Earth |
-    | Weaken | 3 | 2 Water, 1 Earth |
-    | Confuse | 3 | 3 Water, 2 Earth |
-    | Vulnerability | 5 | 5 Water, 5 Earth |
-    | Enfeeble | 8 | 8 Water, 8 Earth |
-    | Stun | 12 | 12 Water, 12 Earth |
+  about: A catalytic rune used for curse spells in the standard spellbook and crafted at the Body Altar south of Edgeville Monastery from level 20 Runecraft.
   market_strategy:
     notes:
-      - Used for debuff spells
-      - Relatively low demand
-      - Primarily for quest requirements
-      - Quest requirements
-      - Debuff spells
-      - Early Runecrafting training
-      - Low value, low demand
-      - Often crafted for XP
-      - Body tiara useful for training
-      - Abyss runecrafting viable
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Used for debuff spells with low demand
+      - Highest level rune F2P players can craft
+      - Often crafted for early Runecraft XP
+      - Body tiara useful during training
+  trading_tips:
+    - Buy in bulk for quest requirements
+    - Watch shop restocks for cheap supply
+  history:
+    - date: "2001-01-04"
+      description: Item released alongside the RuneScape beta launch.
+    - date: "2022-09-14"
+      description: Grand Exchange buy limit increased from 12,000 to 18,000.
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta is now online!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

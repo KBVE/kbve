@@ -12,9 +12,67 @@ osrs:
   lowalch: 64000
   highalch: 96000
   limit: null
+  material:
+    type: zombie
+    tier: high
+  drop_table:
+    sources:
+      - source: "Armoured zombie (Zemouregal's Base)"
+        quantity: "1"
+        rarity: "1/800"
+      - source: "Armoured zombie (Zemouregal's Fort)"
+        quantity: "1"
+        rarity: "1/600"
+  recipes:
+    - skill: smithing
+      level: 70
+      xp: 500
+      materials:
+        - item_name: Broken zombie axe
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      facility: Anvil
+      product: Zombie axe
+  related_items:
+    - item_name: Zombie axe
+      slug: zombie-axe
+      relationship: product
+      description: Repaired usable axe
+    - item_name: Armoured zombie
+      slug: armoured-zombie
+      relationship: alternative
+      description: Source monster
   about: "Broken zombie axe is a members-only item in Old School RuneScape. High alchemy value: 96,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Rare drop from armoured zombies in Defender of Varrock content
+      - Requires 70 Smithing to repair into the usable Zombie axe
+      - Repair yields 500 Smithing XP
+      - High alch makes it a viable alch fodder in bulk if undervalued
+      - Tradeable broken state lets non-repairers flip to crafters
+  history:
+    - date: "2024-02-21"
+      description: "Released with the Defender of Varrock update."
+  properties:
+    release_date: "2024-02-21"
+    update: Defender of Varrock
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Inspect
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

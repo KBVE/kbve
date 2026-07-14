@@ -32,7 +32,6 @@ namespace RareIcon
             var meshRenderer = gameObject.AddComponent<MeshRenderer>();
             meshFilter.mesh = CreateQuad();
 
-            // Try custom shader first, fallback to standard unlit for debug
             var shader = Shader.Find("RareIcon/HexBiome");
             if (shader == null)
             {
@@ -61,7 +60,7 @@ namespace RareIcon
 
         void GenerateBiome()
         {
-            // Biome generation handled by HexSpawnSystem (ECS entities)
+
             Debug.Log("[HexBiomeLayer] Biome generation delegated to HexSpawnSystem");
         }
 
@@ -77,7 +76,7 @@ namespace RareIcon
             if (cam == null) return;
 
             var camPos = cam.transform.position;
-            // Z = 1, in front of ocean (Z=10) but behind sprites (Z=0)
+
             transform.position = new Vector3(camPos.x, camPos.y, 1f);
 
             if (cam.orthographic)

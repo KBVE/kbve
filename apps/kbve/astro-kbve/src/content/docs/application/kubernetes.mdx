@@ -2,11 +2,92 @@
 title: Kubernetes
 description: |
     Kubernetes is a container orchestration system for VMs in a cloud.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Kubernetes
     order: 101
 unsplash: 1610429559733-a222e865f34a
 img: https://images.unsplash.com/photo-1610429559733-a222e865f34a?fit=crop&w=1400&h=700&q=75
+bento:
+    badge: application · k8s · cloud
+    title: 'Orchestrate everything,'
+    accent: Kubernetes.
+    lede: >-
+        The CNCF-certified container orchestration system that automates
+        deployment, scaling, and management across a hybrid cloud. This guide
+        collects the KBVE cluster playbook — k3s and Talos operations, a
+        kubectl cheatsheet, namespace hygiene, KubeVirt, Firecracker microVMs,
+        and sealed secrets.
+    ctas:
+        - label: Talos operations
+          href: '#talos'
+          primary: true
+        - label: k3s install
+          href: '#k3s'
+        - label: Cheatsheet
+          href: '#cheatsheet'
+        - label: Namespace audit
+          href: '#namespace-orphan-check'
+    aside:
+        icon: deploy
+        title: The KBVE production cluster
+        body: >-
+            KBVE runs Kubernetes on Talos Linux — an immutable, API-only OS
+            with no SSH — and delivers every application through ArgoCD
+            GitOps. These notes are the operational memory of that cluster.
+        points:
+            - <strong>Talos</strong> — upgrades, Longhorn pre-drain, recovery.
+            - <strong>GitOps</strong> — ArgoCD reconciles apps from Git.
+            - <strong>VMs</strong> — KubeVirt and Firecracker on the same nodes.
+    stats:
+        - { label: Governance, value: CNCF, icon: crown }
+        - { label: KBVE node OS, value: Talos Linux, icon: server }
+        - { label: Delivery, value: ArgoCD GitOps, icon: branch }
+        - { label: CLI, value: kubectl, icon: code }
+    features:
+        - title: Talos operations
+          icon: server
+          href: '#talos'
+          body: Image Factory schematics, the full upgrade procedure with Longhorn pre-drain, stuck-upgrade recovery, and known post-upgrade gotchas.
+        - title: k3s
+          icon: bolt
+          href: '#k3s'
+          body: Install the lightweight distribution on Ubuntu, wire up kubectl, and connect agents to the master with the node token.
+        - title: Cheatsheet
+          icon: code
+          href: '#cheatsheet'
+          body: The kubectl commands you reach for daily — cluster info, namespaces, services, deployments, and storage classes.
+        - title: Namespace orphan check
+          icon: eye
+          href: '#namespace-orphan-check'
+          body: A read-only audit script that flags empty namespaces whose stale secrets, ingresses, and SecretStores pollute controller logs.
+    related:
+        - title: Longhorn
+          href: /application/longhorn/
+          copy: Distributed block storage backing the cluster's persistent volumes.
+          icon: database
+        - title: ArgoCD
+          href: /application/argocd/
+          copy: GitOps continuous delivery for every app on the cluster.
+          icon: branch
+        - title: Docker
+          href: /application/docker/
+          copy: The container fundamentals underneath every pod.
+          icon: package
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1610429559733-a222e865f34a?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
 import {
@@ -14,21 +95,24 @@ import {
   Steps,
   Card,
   CardGrid,
-  Code,
-  FileTree,
   Tabs,
   TabItem,
 } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Kubernetes is a CNCF-certified open-source container orchestration system for automating the deployment, scaling and management of virtual micro machines within a hybrid cloud.
 
-<Adsense />
+The KBVE production cluster uses [ArgoCD](/application/argocd/) for GitOps-based continuous delivery of applications.
 
-## K
+</BentoProse>
+
+<BentoProse id="k" eyebrow="Alias setup" heading="K">
 
 -   Generic `k` alias for kubernetes.
     -   without sudo
@@ -41,7 +125,9 @@ Kubernetes is a CNCF-certified open-source container orchestration system for au
             -   `echo "alias k='sudo kubectl'" >>~/.bashrc`
     -   If you end up using [Oh My ZSH](/application/zsh) , replace `.bashrc` with `.zshrc`
 
-## Terms
+</BentoProse>
+
+<BentoProse id="terms" eyebrow="Core vocabulary" heading="Terms">
 
 -   Cluster:
     -   Group of virtual micro servers that orchestrate as the `k` / `k8s` / `kubernetes`.
@@ -66,9 +152,9 @@ Kubernetes is a CNCF-certified open-source container orchestration system for au
 
     -   Labels are Operator defined `Key:Value`-`system` that are associated with the `pod`.
 
----
+</BentoProse>
 
-## k3s
+<BentoProse id="k3s" eyebrow="Lightweight distro" heading="k3s">
 
 ### k3s Install
 
@@ -123,9 +209,9 @@ Access might require `root`.
     -   Master Token
         -   Before the agents can connect, they will need a token from the master, which can be obtained from below:
 
----
+</BentoProse>
 
-## Talos
+<BentoProse id="talos" eyebrow="Immutable node OS" heading="Talos">
 
 The KBVE production cluster runs **Talos Linux** (single control-plane node `talos-4bn-whr`, Hetzner). API-only, immutable, no SSH. All maintenance via `talosctl`.
 
@@ -181,7 +267,7 @@ Verify Hetzner Robot KVM console is reachable **before** the upgrade — not whi
 
 #### 2. Pause ArgoCD reconciliation
 
-ArgoCD's application-controller will fight any temporary scale-down made for the upgrade. Pause it:
+ArgoCD's application-controller will fight any temporary scale-down made for the upgrade. See [ArgoCD - Talos Integration](/application/argocd/#talos-integration) for detailed instructions.
 
 ```shell
 kubectl -n argocd scale sts argocd-application-controller --replicas=0
@@ -277,16 +363,22 @@ Fix is patched into [`apps/kube/multus/manifests/multus-daemonset.yaml`](https:/
 
 The machine config still pins `install.image: ghcr.io/siderolabs/installer:v1.10.5` (upstream, no extensions). Only fires at first install — runtime upgrades ignore it. Patch it to the factory schematic image during a maintenance window so a future first-install / reset doesn't accidentally drop extensions.
 
----
+</BentoProse>
 
-## Help
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="help" eyebrow="Built-in docs" heading="Help">
 
 -   Kubectl Help
     -   `sudo kubectl -h` || `k -h`
 
----
+</BentoProse>
 
-## Cheatsheet
+<BentoProse id="cheatsheet" eyebrow="Daily drivers" heading="Cheatsheet">
 
 -   Cluster:
 
@@ -380,9 +472,9 @@ The machine config still pins `install.image: ghcr.io/siderolabs/installer:v1.10
 
         -   std out: storage provisioners.
 
----
+</BentoProse>
 
-## Namespace Orphan Check
+<BentoProse id="namespace-orphan-check" eyebrow="Cluster hygiene" heading="Namespace Orphan Check">
 
 Over time, Kubernetes clusters accumulate stale namespaces — leftover from decommissioned apps, experiments, or renamed projects.
 These orphaned namespaces cause real problems: controllers like `external-secrets` continuously attempt to reconcile resources in them, generating errors such as `"client is not allowed to get secrets"` and polluting logs with noise that masks actual incidents.
@@ -601,9 +693,9 @@ Future improvements could include CronJob detection, DaemonSet awareness, age-ba
   </TabItem>
 </Tabs>
 
----
+</BentoProse>
 
-## Patch
+<BentoProse id="patch" eyebrow="Live edits" heading="Patch">
 
 -   Kube Patches
 
@@ -631,9 +723,9 @@ Future improvements could include CronJob detection, DaemonSet awareness, age-ba
             sudo kubectl patch svc nodeport -p  '{"spec":{"externalTrafficPolicy":"Cluster"}}'
             ```
 
----
+</BentoProse>
 
-## Portainer Agent
+<BentoProse id="portainer-agent" eyebrow="Cluster UI" heading="Portainer Agent">
 
 We recommend double checking our [Portainer Notes](/application/portainer/) for additional notes / information. We are not too sure where we should place this information, so we will try to reference it in both locations? I suppose that might be the best move.
 
@@ -675,16 +767,16 @@ environment:
 
     -   As of 11/18/2022 - There have bene some updates to Portainer! They now have better ingress support!
 
----
+</BentoProse>
 
-## Harden
+<BentoProse id="harden" eyebrow="Security baseline" heading="Harden">
 
 -   Collection of harden manifests by the DoD
     -   [DSOP](https://repo1.dso.mil/dsop)
 
----
+</BentoProse>
 
-## Storage
+<BentoProse id="storage" eyebrow="Volumes & CSI" heading="Storage">
 
 -   A major component for kubernetes (clusters) is how to handle the storage and volumes.
 
@@ -696,16 +788,22 @@ External Provider
 CSI-Driver-NFS
 [CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs)
 
----
+</BentoProse>
 
-## okd
+<BentoProse id="okd" eyebrow="OpenShift community" heading="okd">
 
 -   [OKD](https://github.com/pvelati/okd-proxmox-scripts)
 -   OKD Notes still need to be worked on.
 
----
+</BentoProse>
 
-## vCluster
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="vcluster" eyebrow="Virtual clusters" heading="vCluster">
 
 Requirements according to the official notes:
 kubectl check via `kubectl version`
@@ -752,10 +850,9 @@ Note: You may have to double check if the: `%APPDATA%\vcluster` was installed su
 
 Confirm -> Run `vcluster --version` to confirm that the install was sucessful.
 
+</BentoProse>
 
----
-
-## KubeVirt
+<BentoProse id="kubevirt" eyebrow="VMs on K8s" heading="KubeVirt">
 
 KubeVirt enables running virtual machines on Kubernetes using KVM. On Talos, KVM is built into the kernel — no extensions or machine config patches needed.
 
@@ -833,9 +930,9 @@ virtctl start windows-builder -n angelscript && \
 # Open http://localhost:6080/vnc.html
 ```
 
----
+</BentoProse>
 
-## Firecracker MicroVMs
+<BentoProse id="firecracker-microvms" eyebrow="Serverless isolation" heading="Firecracker MicroVMs">
 
 Firecracker is an open-source VMM (Virtual Machine Monitor) built by AWS for serverless workloads. It creates lightweight microVMs with ~5 MB overhead and ~125 ms boot times, using KVM for hardware-level isolation.
 
@@ -940,9 +1037,9 @@ kubectl run -n kilobase --rm -it --restart=Never test-fc \
   --image=curlimages/curl -- curl -s http://firecracker-ctl:9001/health
 ```
 
----
+</BentoProse>
 
-## Sealed Secrets
+<BentoProse id="sealed-secrets" eyebrow="Encrypted config" heading="Sealed Secrets">
 
 ### Encoding
 
@@ -963,3 +1060,7 @@ For decoding the sealed secret, use this quick command:
 kubectl get secret $KEY -n $NAMESPACE -o jsonpath="{.data.$SECRET}" | base64 --decode
 
 ```
+
+</BentoProse>
+
+</BentoDoc>

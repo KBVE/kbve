@@ -8,14 +8,52 @@ img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&c
 description: Daily Log for February 3rd for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 3,'
+    accent: every year.
+    lede: 'The February 3rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 2'
+          href: /journal/02-02/
+        - label: 'Feb 4 →'
+          href: /journal/02-04/
+    related:
+        - title: 'Previous · Feb 2'
+          copy: 'Step back a day to the February 2nd log.'
+          href: /journal/02-02/
+          icon: calendar
+        - title: 'Next · Feb 4'
+          copy: 'Jump ahead to the February 4th log.'
+          href: /journal/02-04/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1569396116180-210c182bedb8?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 -	**NVDA**
 
@@ -40,8 +78,15 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 #### Namespace
 9:35am  -   `Namespace`
@@ -65,3 +110,6 @@ Part of the pipeline test casing is with the NX Outpost but I think there will b
 
 After finishing up the basics of the login system, I believe the next move would be to setup the character builder that all the games will share across the multi-games. Going to build out the ProgressBar which will be broken down to a modular event or action within the namespace of KBVE. To do this, we will create the event handler for the Progressbar inside of the UXUI folder and then we will extend that out in the ClientUI namespace to handle the actual creation of the progress bar. I will use issue 620 to keep track of the [changes](https://github.com/KBVE/kbve/issues/620). 
 
+</BentoProse>
+
+</BentoDoc>

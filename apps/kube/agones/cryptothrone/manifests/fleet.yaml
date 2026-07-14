@@ -1,0 +1,129 @@
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: cryptothrone-server
+    namespace: cryptothrone
+    labels:
+        app: cryptothrone-server
+        app.kubernetes.io/part-of: cryptothrone
+spec:
+    replicas: 0
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 25%
+            maxUnavailable: 25%
+    template:
+        metadata:
+            labels:
+                app: cryptothrone-server
+                app.kubernetes.io/part-of: cryptothrone
+        spec:
+            ports:
+                # No hostPort — clients reach the server through the Cilium
+                # gateway (HTTPRoute -> cryptothrone-game Service), so the
+                # pod stays compatible with baseline PodSecurity.
+                - name: ws
+                  portPolicy: None
+                  containerPort: 7979
+                  protocol: TCP
+            health:
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                failureThreshold: 5
+            sdkServer:
+                logLevel: Info
+            template:
+                metadata:
+                    labels:
+                        app: cryptothrone-server
+                        app.kubernetes.io/part-of: cryptothrone
+                spec:
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 10001
+                        runAsGroup: 10001
+                        fsGroup: 10001
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: cryptothrone-server
+                          image: ghcr.io/kbve/cryptothrone-server:0.0.26
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: CT_SERVER_ADDR
+                                value: '0.0.0.0:7979'
+                              - name: CT_SERVER_SEED
+                                value: '0'
+                              - name: RUST_LOG
+                                value: 'info,cryptothrone_server=debug,simgrid=info'
+                              - name: SUPABASE_JWT_SECRET
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: SUPABASE_JWT_SECRET
+                              # Enables the jedi JWKS verifier (accept-both
+                              # HS256 + ES256). Without it the server falls back
+                              # to HS256-only and rejects ES256 tokens GoTrue
+                              # now issues.
+                              - name: SUPABASE_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: SUPABASE_URL
+                              # jedi PgCluster (pooled Postgres) + KvCache
+                              # (Valkey). All optional so a GameServer still
+                              # starts before the ExternalSecrets render; jedi
+                              # init is non-fatal on the Rust side too.
+                              - name: KBVE_PG_APPLICATION_NAME
+                                value: 'cryptothrone-server'
+                              - name: KBVE_PG_RW_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: KBVE_PG_RW_URL
+                                        optional: true
+                              - name: KBVE_PG_RO_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: KBVE_PG_RO_URL
+                                        optional: true
+                              - name: KBVE_KV_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: cryptothrone-valkey
+                                        key: KBVE_KV_URL
+                                        optional: true
+                          ports:
+                              - name: ws
+                                containerPort: 7979
+                                protocol: TCP
+                          readinessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7979
+                              initialDelaySeconds: 3
+                              periodSeconds: 5
+                              failureThreshold: 3
+                          livenessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7979
+                              initialDelaySeconds: 10
+                              periodSeconds: 15
+                              failureThreshold: 5
+                          resources:
+                              requests:
+                                  cpu: '250m'
+                                  memory: '128Mi'
+                              limits:
+                                  cpu: '1500m'
+                                  memory: '512Mi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL

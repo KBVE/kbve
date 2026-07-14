@@ -1,6 +1,6 @@
 ---
 title: Catalytic talisman | OSRS Price Data
-description: "Catalytic talisman: A mysterious power emanates from the talisman.... High alch: 1,200 GP, GE limit: 40."
+description: "Catalytic talisman: A mysterious power emanates from the talisman. High alch: 1,200 GP, GE limit: 40."
 osrs:
   id: 26798
   name: Catalytic talisman
@@ -12,12 +12,103 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 40
-  about: "Catalytic talisman is a members-only item in Old School RuneScape. High alchemy value: 1,200 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: talisman
+    tier: mid
+  properties:
+    release_date: "2022-02-23"
+    update: Tombs of Amascut
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.015
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: neck
+    weapon_type: null
+    attack_speed: null
+    weight: 0.015
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Catalytic Runecraft Boost
+      description: "When equipped, doubles output of catalytic runes (mind, body, chaos, death, blood, soul, law, nature, astral, wrath) crafted at their respective altars."
+  drop_table:
+    sources:
+      - source: Elemental talisman pack
+        quantity: "1"
+        rarity: "1/4"
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Elemental talisman
+          quantity: 1
+        - item_name: Catalytic talisman
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: "Used together to access the Guardians of the Rift minigame and unlock the catalytic guardian."
+  related_items:
+    - item_name: Elemental talisman
+      slug: elemental-talisman
+      relationship: alternative
+      description: "Counterpart talisman that doubles elemental rune output."
+    - item_name: Catalytic guardian stone
+      slug: catalytic-guardian-stone
+      relationship: component
+      description: "Material used alongside the talisman at Guardians of the Rift."
+    - item_name: Catalytic tiara
+      slug: catalytic-tiara
+      relationship: product
+      description: "Wearable variant that frees the inventory slot."
+  about: "The catalytic talisman is a tradeable Guardians of the Rift reward that, when equipped, doubles the runes produced from any catalytic essence (mind, body, chaos, death, blood, soul, law, nature, astral, wrath) crafted at its altar. It is the catalytic counterpart to the elemental talisman and pairs perfectly with high-tier Runecraft methods like blood and soul runecrafting for huge xp/h and gp/h uplifts."
+  market_strategy:
+    notes:
+      - "Buy limit of 40 keeps prices stable; targeted runecrafters drive demand."
+      - "Daru-Bil supply via Guardians of the Rift caps long-term ceiling."
+      - "Pairs tightly with blood rune and soul rune price cycles."
+  trading_tips:
+    - "Flip in batches under the 40 limit when blood/soul rune prices rise."
+    - "Track Guardians of the Rift attendance; supply dips when minigame is dead."
+    - "Long-hold value tied to upcoming Runecraft updates."
+  history:
+    - date: "2022-02-23"
+      description: "Released as a Guardians of the Rift reward when the minigame launched."
+    - date: "2022-03-09"
+      description: "Stat boost confirmed to stack with all catalytic essence Runecrafting."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

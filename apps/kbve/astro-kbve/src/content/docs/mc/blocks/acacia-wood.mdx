@@ -1,5 +1,6 @@
 ---
 title: Acacia Wood
+template: splash
 description: |
     Minecraft Acacia Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 75
     ref: acacia_wood
     slug: acacia-wood
+    content_rev: 1
     display_name: Acacia Wood
     material: wood
     hardness: 2
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Acacia Wood has the bark texture of an acacia log on all six
+            faces instead of just the ends. It is purely decorative,
+            functioning as a building block with a uniform log-like
+            appearance.
+        lore: |
+            Wood blocks emerged as an unintentional side effect of
+            rotatable logs in version 1.3.1, and were made an official,
+            intentional feature by 1.13.
+    uses:
+        - title: Planks and Fuel
+          ref: acacia_planks
+          detail: |
+              Can be crafted into planks the same as logs, and burned as
+              furnace fuel, smelting 1.5 items per block.
+        - title: Campfires and Smokers
+          ref: campfire
+          detail: |
+              Used as an ingredient in crafting campfires and smokers,
+              interchangeably with acacia logs.
+    found_in:
+        - location: Crafting
+          detail: Made from four matching acacia logs (or stripped logs) arranged in a 2x2, yielding three wood blocks.
+        - location: Stripping
+          detail: An axe can strip acacia wood into stripped acacia wood, revealing a cleaner bark pattern.
+    faq:
+        - question: What tool mines Acacia Wood fastest?
+          answer: |
+              An axe. No minimum tool tier is required, and it always
+              drops itself as an item.
+        - question: Does Acacia Wood burn?
+          answer: |
+              Yes. Overworld wood blocks, including acacia, are flammable,
+              unlike the Nether hyphae variants which do not burn.
+        - question: How is Acacia Wood different from Acacia Log?
+          answer: |
+              Acacia Wood shows the bark texture on every face, while an
+              Acacia Log shows the ring texture on its two end faces —
+              otherwise they behave identically.
+        - question: Can Acacia Wood be stripped?
+          answer: |
+              Yes. Right-clicking it with an axe converts it into Stripped
+              Acacia Wood, removing the bark rings visual difference.
     data_version: "1.21.5"
 ---
 

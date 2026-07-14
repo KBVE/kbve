@@ -1,6 +1,6 @@
 ---
 title: Pegasian boots | OSRS Price Data
-description: "Pegasian boots is a members feet slot item requiring 60 Magic. High alch: 45,000 GP, GE limit: 15."
+description: "Pegasian boots is a members feet slot item requiring 75 Ranged and 75 Defence. High alch: 45,000 GP, GE limit: 15."
 osrs:
   id: 13237
   name: Pegasian boots
@@ -12,67 +12,98 @@ osrs:
   lowalch: 30000
   highalch: 45000
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ranged boots
+    tier: high
+  properties:
+    release_date: "27 August 2015"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: feet
-    type: boots
-    attack_style: ranged
+    weapon_type: null
+    attack_speed: null
+    weight: 1.814
     requirements:
-      magic: 60
-      runecraft: 60
-    stats:
-      attack_ranged: 12
-      defence_ranged: 5
-      defence_stab: 5
-      defence_slash: 5
-      defence_crush: 5
-      attack_magic: -12
+      ranged: 75
+      defence: 75
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -12
+      ranged: 12
+    defence_bonus:
+      stab: 5
+      slash: 5
+      crush: 5
+      magic: 5
+      ranged: 5
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
-    - skill: crafting
-      level: 1
+    - skill: magic
+      level: 60
       xp: 200
       materials:
         - item_name: Ranger boots
-          item_id: 2577
           quantity: 1
         - item_name: Pegasian crystal
-          item_id: 13229
           quantity: 1
-      product: Pegasian boots
-      product_id: 13237
-      product_quantity: 1
-      facility: None
-      members_only: true
+      tools: []
+      output_quantity: 1
+    - skill: runecraft
+      level: 60
+      xp: 200
+      materials:
+        - item_name: Ranger boots
+          quantity: 1
+        - item_name: Pegasian crystal
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 13235
-      item_name: Eternal boots
+    - item_name: Eternal boots
       slug: eternal-boots
       relationship: alternative
-      description: Magic variant
-    - item_id: 13239
-      item_name: Primordial boots
+      description: Magic-focused crystal boot variant
+    - item_name: Primordial boots
       slug: primordial-boots
       relationship: alternative
-      description: Melee variant
-    - item_id: 13229
-      item_name: Pegasian crystal
+      description: Melee-focused crystal boot variant
+    - item_name: Pegasian crystal
       slug: pegasian-crystal
       relationship: component
-      description: From Cerberus
-    - item_id: 2577
-      item_name: Ranger boots
+      description: Cerberus drop used in creation
+    - item_name: Ranger boots
       slug: ranger-boots
       relationship: component
-      description: Base boots (medium clues)
+      description: Base boots from medium clues
   about: |-
-    Combine Ranger boots + Pegasian crystal.
+    Pegasian boots are created by combining Ranger boots with a Pegasian crystal. The process requires level 60 Magic and Runecraft (no boosts) and is irreversible.
 
     | Requirement | Value |
     |-------------|-------|
     | Magic | 60 |
     | Runecraft | 60 |
     | XP | 200 Magic, 200 Runecraft |
-
-    Process is irreversible.
 
     | Stat | Value |
     |------|-------|
@@ -81,20 +112,23 @@ osrs:
     | All defence | +5 |
     | Magic attack | -12 |
 
-    Second-best ranged boots (behind Avernic treads)
-
-    BiS ranged boots for:
-    - All ranged combat
+    Pegasian boots are the second-best ranged boots in the game (behind Avernic treads) and remain the standard BiS option for:
+    - General ranged combat
     - Slayer
     - Bossing
     - Raids
   market_strategy:
     notes:
-      - Ranger boots are expensive base (~38M)
-      - Crystal from Cerberus (~5M)
-      - Total cost can exceed finished boots
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Ranger boots are the expensive base (~38M)"
+      - "Crystal drops from Cerberus (~5M)"
+      - "Total cost can exceed finished boots — check GE first"
+      - "Demand is steady due to BiS status"
+  trading_tips:
+    - Compare crystal + base cost vs finished price before assembling
+    - Flip during Cerberus dry stretches
+  history:
+    - date: "27 August 2015"
+      description: "Released with the Cerberus boss update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Lime Banner
+template: splash
 description: |
     Minecraft Lime Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 536
     ref: lime_banner
     slug: lime-banner
+    content_rev: 1
     display_name: Lime Banner
     material: wood
     hardness: 1
@@ -24,10 +26,67 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - not_flammable
+    about:
+        description: |
+            The lime banner is a tall decorative block made of six lime
+            wool and a stick, used to display custom emblems and mark
+            locations on maps. An axe is the fastest tool to break it,
+            though any tool works.
+        lore: |
+            Banners were added in 1.8 and expanded with dyed patterns and
+            loom customization in later updates.
+    uses:
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Combine with dye and an optional pattern item in a loom to
+              add up to six customizable layers to the banner's design.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Applying a banner to a shield in a crafting grid transfers
+              its pattern onto the shield.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              A banner burns for 1.5 items worth of smelting fuel in a
+              furnace.
+    found_in:
+        - location: Crafting
+          detail: Crafted from six lime wool and one stick.
+        - location: Structures
+          detail: Found in end cities, woodland mansions, and some village houses.
+        - location: Villager Trades
+          detail: Purchasable from shepherd and cartographer villagers.
+    faq:
+        - question: What tool mines a lime banner fastest?
+          answer: |
+              An axe. It is not required, but it speeds up breaking the
+              block compared to bare hands.
+        - question: Does a lime banner burn in fire?
+          answer: |
+              No, banners are not flammable and do not catch fire from
+              lava, though they will still burn if placed in fire that
+              directly targets flammable neighbors.
+        - question: Can I recolor a lime banner after crafting it?
+          answer: |
+              No, the banner's base color is fixed at crafting time, but
+              you can add colored pattern layers on top using a loom.
+        - question: How many pattern layers can a banner hold?
+          answer: |
+              Up to six layers, including the base color.
     data_version: "1.21.5"
 ---
 

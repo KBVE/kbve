@@ -22,6 +22,9 @@ public final class NativeRuntime {
 
     private static boolean loaded = false;
 
+    /** True when the JAR carries a native for this OS — load failures are then real errors. */
+    private static boolean bundled = false;
+
     static {
         try {
             String os = System.getProperty("os.name").toLowerCase();
@@ -42,6 +45,7 @@ public final class NativeRuntime {
             if (in == null) {
                 throw new UnsatisfiedLinkError("Native library not found in JAR: " + resourcePath);
             }
+            bundled = true;
 
             File tempFile = File.createTempFile("mc_auth_", "_" + lib);
             tempFile.deleteOnExit();
@@ -58,7 +62,7 @@ public final class NativeRuntime {
             System.load(tempFile.getAbsolutePath());
             loaded = true;
             System.out.println("[mc_auth] Native library loaded from " + tempFile.getAbsolutePath());
-        } catch (Exception e) {
+        } catch (Exception | UnsatisfiedLinkError e) {
             System.err.println("[mc_auth] Failed to load native library: " + e.getMessage());
             loaded = false;
         }
@@ -126,6 +130,11 @@ public final class NativeRuntime {
     /** Check if the native library loaded successfully. */
     public static boolean isLoaded() {
         return loaded;
+    }
+
+    /** Check if the JAR bundles a native for this platform (regardless of load success). */
+    public static boolean isBundled() {
+        return bundled;
     }
 
     private NativeRuntime() {}

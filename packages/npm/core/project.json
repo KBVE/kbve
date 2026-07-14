@@ -1,0 +1,26 @@
+{
+	"name": "core",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/core/src",
+	"projectType": "library",
+	"tags": ["scope:shared", "type:lib"],
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/npm/core/tsconfig.lib.json"
+			}
+		},
+		"sync:api": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["axum-kbve:emit-openapi"],
+			"outputs": ["{workspaceRoot}/packages/npm/core/src/api/schema.ts"],
+			"options": {
+				"command": "openapi-typescript packages/data/openapi/openapi.json -o packages/npm/core/src/api/schema.ts"
+			}
+		}
+	}
+}

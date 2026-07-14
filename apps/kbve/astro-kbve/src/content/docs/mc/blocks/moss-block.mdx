@@ -1,5 +1,6 @@
 ---
 title: Moss Block
+template: splash
 description: |
     Minecraft Moss Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1052
     ref: moss_block
     slug: moss-block
+    content_rev: 1
     display_name: Moss Block
     material: dirt
     hardness: 0.1
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: moss_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Moss Block is a soft green ground cover that lines the floors
+            and ceilings of lush caves. Applying bone meal to it spreads
+            moss and vegetation to adjacent earthen and stone blocks,
+            making it a key tool for greening up builds.
+        lore: |
+            Added with lush caves in the Caves & Cliffs update (1.17), moss
+            gave builders a renewable, bone-meal-spreadable green block.
+    uses:
+        - title: Moss Carpet
+          ref: moss_carpet
+          detail: |
+              Two moss blocks craft into three moss carpets for thin
+              decorative flooring.
+        - title: Mossy Cobblestone & Mossy Stone Bricks
+          ref: mossy_cobblestone
+          detail: |
+              Combining a moss block with cobblestone or stone bricks
+              crafts their mossy variants.
+    found_in:
+        - location: Lush Caves
+          detail: Generates across floors and ceilings throughout the lush caves biome.
+        - location: Trial Chambers
+          detail: Also found scattered within trial chamber structures.
+    faq:
+        - question: What does Moss Block drop when mined?
+          answer: |
+              Itself, one moss block per break, regardless of tool used.
+        - question: Is Moss Block flammable?
+          answer: |
+              No, it does not catch fire from lava or flames.
+        - question: How do I spread Moss Block?
+          answer: |
+              Apply bone meal to it; nearby dirt, stone, and similar blocks
+              within range convert to moss and sprout vegetation.
+        - question: What is the fastest tool for mining Moss Block?
+          answer: |
+              A hoe breaks it fastest, though its low hardness (0.1) makes
+              it quick to mine with any tool.
     data_version: "1.21.5"
 ---
 

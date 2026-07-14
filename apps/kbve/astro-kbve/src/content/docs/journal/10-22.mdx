@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: October 22nd.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 22,'
+    accent: every year.
+    lede: 'The October 22nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 21'
+          href: /journal/10-21/
+        - label: 'Oct 23 →'
+          href: /journal/10-23/
+    related:
+        - title: 'Previous · Oct 21'
+          copy: 'Step back a day to the October 21st log.'
+          href: /journal/10-21/
+          icon: calendar
+        - title: 'Next · Oct 23'
+          copy: 'Jump ahead to the October 23rd log.'
+          href: /journal/10-23/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Supabase Login for AFK
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     This means int he future we will still have this problem and the amount of solutions still seem really limited.
     I wonder if we can have it setup through the rust side but given the time limit we have, I do not think we will make it.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **hCaptcha**
 
@@ -61,3 +110,7 @@ Anyhow, I am going to keep this here as a quick note so that I can reference it 
 The journey continues in the adventures of the good old rsps scene, but this time around, I am looking at finally running the dream within its own wrapped docker image.
 This would be something that we can deploy through our kubernetes and make it very easy to control through supabase, basically allowing us to launch our PaaS down the line by swapping out the docker image that we would want to run.
 There are a couple of moving pieces that we still need to note down but that will come with time.
+
+</BentoProse>
+
+</BentoDoc>

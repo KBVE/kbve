@@ -13,13 +13,33 @@
 #   template         — wire command rendered with positional {N} args
 #   arg_validators   — per-arg validator names; resolved by the server
 #                       (currently: "string", "int", "lua_snippet")
+#
+# UI tiers (front-end groups commands by name, NOT a server-side concept):
+#   read:        list, glist, find, server_info, tps, save_all
+#   write:       say, alert, tp, send, gamemode, time_set, weather
+#   destructive: kick, op, deop, ban, pardon, whitelist_add, whitelist_remove
 
 commands:
-    # ---- Minecraft (vanilla / Fabric) ----
+    # =========================================================================
+    # Minecraft — Paper / Fabric backends (lobby, survival)
+    # =========================================================================
+
     - game: mc
       name: list
-      staff_only: false
+      staff_only: true
       template: list
+      arg_validators: []
+
+    - game: mc
+      name: tps
+      staff_only: true
+      template: tps
+      arg_validators: []
+
+    - game: mc
+      name: save_all
+      staff_only: true
+      template: save-all
       arg_validators: []
 
     - game: mc
@@ -37,17 +57,128 @@ commands:
           - string
           - string
 
-    # ---- Factorio (vanilla) ----
-    # `players online` — read-only, safe for everyone signed in.
+    - game: mc
+      name: gamemode
+      staff_only: true
+      template: 'gamemode {0} {1}'
+      arg_validators:
+          - string
+          - string
+
+    - game: mc
+      name: time_set
+      staff_only: true
+      template: 'time set {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: weather
+      staff_only: true
+      template: 'weather {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: kick
+      staff_only: true
+      template: 'kick {0} {1}'
+      arg_validators:
+          - string
+          - string
+
+    - game: mc
+      name: op
+      staff_only: true
+      template: 'op {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: deop
+      staff_only: true
+      template: 'deop {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: ban
+      staff_only: true
+      template: 'ban {0} {1}'
+      arg_validators:
+          - string
+          - string
+
+    - game: mc
+      name: pardon
+      staff_only: true
+      template: 'pardon {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: whitelist_add
+      staff_only: true
+      template: 'whitelist add {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: whitelist_remove
+      staff_only: true
+      template: 'whitelist remove {0}'
+      arg_validators:
+          - string
+
+    # =========================================================================
+    # Minecraft — Velocity proxy
+    # =========================================================================
+
+    - game: mc
+      name: glist
+      staff_only: true
+      template: glist
+      arg_validators: []
+
+    - game: mc
+      name: find
+      staff_only: true
+      template: 'find {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: server_info
+      staff_only: true
+      template: 'server {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: alert
+      staff_only: true
+      template: 'alert {0}'
+      arg_validators:
+          - string
+
+    - game: mc
+      name: send
+      staff_only: true
+      template: 'send {0} {1}'
+      arg_validators:
+          - string
+          - string
+
+    # =========================================================================
+    # Factorio (vanilla)
+    # =========================================================================
+
     - game: factorio
       name: players_online
       staff_only: false
       template: '/players online'
       arg_validators: []
 
-    # `/silent-command` runs arbitrary Lua. Staff only, validator forces a
-    # plain Lua snippet (no length limit here — Source RCON enforces 4096B
-    # at the wire layer in jedi::rcon).
     - game: factorio
       name: silent_command
       staff_only: true

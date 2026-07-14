@@ -1,6 +1,6 @@
 ---
 title: Teak wardrobe (flatpack) | OSRS Price Data
-description: "Teak wardrobe (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Teak wardrobe (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8618
   name: Teak wardrobe (flatpack)
@@ -12,9 +12,62 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: flatpack
+    tier: mid
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 63
+      xp: 270
+      materials:
+        - item_name: Teak plank
+          quantity: 3
+      tools:
+        - Saw
+        - Hammer
+        - Bench with vice
+      output_quantity: 1
+  related_items:
+    - item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: Material consumed when making the flatpack
+    - item_name: Oak wardrobe (flatpack)
+      slug: oak-wardrobe-flatpack
+      relationship: downgrade
+      description: Lower-tier wardrobe flatpack
+    - item_name: Mahogany wardrobe (flatpack)
+      slug: mahogany-wardrobe-flatpack
+      relationship: upgrade
+      description: Higher-tier wardrobe flatpack
+  about: "The Teak wardrobe (flatpack) is a Construction-made item built at a workbench with vice inside a Player-Owned House. At level 63 Construction it consumes 3 teak planks and grants 270 XP per build, then deploys onto a wardrobe space in the bedroom. Flatpacks are typically sold on the Grand Exchange so buyers can decorate their houses without training Construction themselves."
+  market_strategy:
+    notes:
+      - "Sold mainly to low-Construction house decorators"
+      - "Production almost always runs at a loss vs. plank cost"
+      - "Volume is thin; price reflects niche demand"
+  trading_tips:
+    - Compare price to 3x teak plank cost before producing
+    - Watch DXP weekends for short-term supply bursts
+    - Bulk-buy when listings stack near the 500 limit
+  history:
+    - date: "2006-05-31"
+      description: "Added to the game with the launch of the Construction skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

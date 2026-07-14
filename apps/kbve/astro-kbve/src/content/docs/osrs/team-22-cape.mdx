@@ -12,9 +12,55 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-22 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: cape
+    weapon_type: none
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Ian's Wilderness Cape Shop
+      location: Forgotten Cemetery
+      price: 50
+      stock: 100
+  about: "Team-22 cape is one of fifty numbered F2P team capes sold by Ian in the Forgotten Cemetery; provides minor melee and ranged defence bonuses and is used to identify teams in the Wilderness."
+  history:
+    - date: "2005-02-22"
+      description: Released with the Wilderness Capes, and Changes update.
+    - date: "2013-05-23"
+      description: The item was made available to free-to-play players.
+  properties:
+    release_date: "2005-02-22"
+    update: Wilderness Capes, and Changes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

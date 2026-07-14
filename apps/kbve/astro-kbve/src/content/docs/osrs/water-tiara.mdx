@@ -12,9 +12,90 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 40
-  about: "Water tiara is a free-to-play item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: silver
+    tier: low
+  properties:
+    release_date: "2005-06-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 30
+      materials:
+        - item_name: Tiara
+          quantity: 1
+        - item_name: Water talisman
+          quantity: 1
+      tools:
+        - Water Altar
+      output_quantity: 1
+  related_items:
+    - item_name: Air tiara
+      slug: air-tiara
+      relationship: alternative
+      description: Elemental tiara for air runes.
+    - item_name: Earth tiara
+      slug: earth-tiara
+      relationship: alternative
+      description: Elemental tiara for earth runes.
+    - item_name: Fire tiara
+      slug: fire-tiara
+      relationship: alternative
+      description: Elemental tiara for fire runes.
+    - item_name: Tiara
+      slug: tiara
+      relationship: component
+      description: Base tiara crafted from a silver bar before binding at the altar.
+  about: "Water tiara is a head-slot tiara created by using a Water talisman on the Water Altar with a regular tiara in inventory. Wearing the tiara lets players enter the Water Altar without a talisman and is required for the runecrafting tiara collection."
+  market_strategy:
+    notes:
+      - "GE price sits below the cost of inputs, so crafting them for profit is not viable."
+      - "Bulk supply comes from quest grinders and ironman-adjacent training; demand is collection-driven."
+      - "Buy limit of 40 makes large flips impractical."
+  trading_tips:
+    - List near the average GE price; stale offers sit due to thin daily volume.
+    - Hold for tiara-set completionists rather than active flipping.
+    - Combine purchase with other low-tier tiaras to fill a fashionscape order.
+  history:
+    - date: "2005-06-13"
+      description: "Released alongside the tiara binding mechanic for elemental altars."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

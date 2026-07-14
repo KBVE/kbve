@@ -1,5 +1,6 @@
 ---
 title: Ice
+template: splash
 description: |
     Minecraft Ice — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 264
     ref: ice
     slug: ice
+    content_rev: 1
     display_name: Ice
     material: ice
     hardness: 0.5
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: ice
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Ice is a translucent, slippery block that forms in cold biomes
+            over water and generates naturally in frozen oceans, rivers, and
+            snowy beaches. It only survives harvesting with a Silk Touch
+            tool; otherwise it melts into water (or vanishes if unsupported)
+            as soon as it is broken.
+        lore: |
+            Ice has been a fixture of frozen biomes since the Adventure
+            Update, prized by players for building frictionless rail-free
+            speedways.
+    uses:
+        - title: Packed Ice
+          ref: packed_ice
+          detail: |
+              Nine ice blocks craft into one packed ice block, a denser
+              form that does not melt and keeps its slipperiness without
+              needing to stay near cold light levels.
+        - title: Ice Boat Highways
+          ref: boat
+          detail: |
+              Boats glide across ice at roughly 40 blocks per second,
+              far faster than on water, making ice a popular material for
+              long-distance transport lanes.
+    found_in:
+        - location: Frozen Oceans and Rivers
+          detail: Generates as the surface layer over water in frozen ocean, frozen river, and snowy beach biomes.
+        - location: Frozen Peaks
+          detail: Small ice patches generate embedded in frozen peaks mountain terrain.
+        - location: Ancient Cities
+          detail: Some ice blocks appear as decoration within ancient city structures.
+    faq:
+        - question: Do I need Silk Touch to collect Ice?
+          answer: |
+              Yes. Mining Ice without Silk Touch destroys the block and
+              turns the space into water (if there was a block below) or
+              simply disappears, dropping nothing.
+        - question: What tool mines Ice fastest?
+          answer: |
+              A pickaxe. Ice only has 0.5 hardness, so even a wooden
+              pickaxe breaks it almost instantly.
+        - question: Does sunlight melt Ice?
+          answer: |
+              No. Ice only melts when adjacent to a light source with a
+              light level greater than 11, not from direct sunlight.
+        - question: What is Ice used for?
+          answer: |
+              Building frictionless floors and boat highways, crafting
+              Packed Ice, and decorating cold-biome builds.
     data_version: "1.21.5"
 ---
 

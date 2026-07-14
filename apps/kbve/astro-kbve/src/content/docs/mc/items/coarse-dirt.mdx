@@ -1,5 +1,6 @@
 ---
 title: Coarse Dirt
+template: splash
 description: |
     Minecraft Coarse Dirt — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 29
     ref: coarse_dirt
     slug: coarse-dirt
+    content_rev: 1
     display_name: Coarse Dirt
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A grainy dirt variant that resists grass and mycelium overgrowth, useful for maintaining bare landscapes while still supporting most crops and plants. It generates naturally in windswept savannas, wooded badlands, and old growth taiga biomes, and can also be crafted from dirt and gravel in a checkerboard pattern.
+            Hoeing it converts it back into regular dirt and a shovel turns it into a dirt path, so it stays a fully renewable resource.
+        lore: |
+            The ground here refuses to green over, keeping the earth exposed and raw.
+    faq:
+        - question: Why would I use coarse dirt instead of regular dirt?
+          answer: |
+              It prevents unwanted grass or mycelium from spreading, maintaining a permanently bare surface while still allowing crop growth.
+        - question: Can I farm on coarse dirt?
+          answer: |
+              Yes, you can plant saplings, mushrooms, sugar cane, bamboo, flowers, and sweet berries directly on it without tilling.
+        - question: Is coarse dirt renewable?
+          answer: |
+              Yes, tilling it with a hoe or flattening it with a shovel produces regular dirt, and piglins bartering gravel makes it infinitely farmable.
+        - question: What's the fastest way to mine coarse dirt?
+          answer: |
+              Use a shovel; a netherite shovel breaks it in just 0.1 seconds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

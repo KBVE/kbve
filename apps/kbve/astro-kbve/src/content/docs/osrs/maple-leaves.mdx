@@ -12,9 +12,64 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Maple leaves is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: organic
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Maple tree (chop with Forestry kit)
+        quantity: "1"
+        rarity: 1/4
+      - source: Maple tree (cure diseased via Farming)
+        quantity: "1"
+        rarity: Always
+      - source: Forestry Struggling sapling event
+        quantity: "1"
+        rarity: Common
+      - source: Forestry Friendly Ent event
+        quantity: "1"
+        rarity: Common
+  related_items:
+    - item_name: Maple logs
+      slug: maple-logs
+      relationship: alternative
+      description: Primary product from cutting maple trees
+    - item_name: Forestry kit
+      slug: forestry-kit
+      relationship: component
+      description: Required to receive leaves while woodcutting
+  about: "Maple leaves are a stackable Forestry byproduct from chopping maple trees with a Forestry kit equipped, curing diseased maple farming trees, or completing Forestry events. They serve as flavour drops with no direct combat or alchemy use. High alchemy value: 1 coin."
+  market_strategy:
+    notes:
+      - "No GE buy limit and stackable storage make hoarding trivial"
+      - "Supply is incidental to Forestry-active woodcutters at 45+ WC"
+      - "Alch value of 1 coin means leaves trade as a cosmetic curio only"
+  trading_tips:
+    - Bank leaves while doing Forestry events for future cosmetic flips
+    - Watch for any future Forestry rewards that consume maple leaves
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill update as 'Leaves' from maple trees."
+    - date: "2023-06-12"
+      description: "Renamed to 'Maple leaves', made tradeable on the Grand Exchange and received a graphical update."
+    - date: "2023-10-25"
+      description: "Made stackable in inventory."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 {
 	"name": "@kbve/devops",
-	"version": "0.0.19",
+	"version": "0.0.22",
 	"description": "A DevOps helper library, providing better functions and extensions.",
 	"keywords": [
 		"github",
@@ -40,7 +40,7 @@
 		"dompurify": "^3.4.1",
 		"jsdom": "~29.1.0",
 		"marked": "^18.0.2",
-		"openapi-fetch": "^0.15.2",
+		"openapi-fetch": "^0.17.0",
 		"zod": "^4.3.6"
 	},
 	"engines": {

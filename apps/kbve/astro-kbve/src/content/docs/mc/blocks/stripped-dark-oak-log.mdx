@@ -1,7 +1,9 @@
 ---
 title: Stripped Dark Oak Log
+template: splash
 description: |
-    Minecraft Stripped Dark Oak Log — vanilla 1.21.5 block record (auto-generated).
+    Minecraft Stripped Dark Oak Log — the bark-free variant of Dark Oak Log
+    made by axing a log, keeping ringed ends. Uses, drops, and FAQ.
 sidebar:
     label: Stripped Dark Oak Log
     hidden: true
@@ -13,6 +15,7 @@ mc_block:
     id: 66
     ref: stripped_dark_oak_log
     slug: stripped-dark-oak-log
+    content_rev: 1
     display_name: Stripped Dark Oak Log
     material: wood
     hardness: 2
@@ -24,10 +27,62 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_dark_oak_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Dark Oak Log is the bark-free form of Dark Oak Log,
+            keeping the ringed end texture on its top and bottom faces while
+            showing plank-like grain on the sides. It is created by
+            right-clicking a placed Dark Oak Log with an axe.
+        lore: |
+            Dark Oak was introduced in the Beta 1.9 Prerelease alongside the
+            Roofed Forest biome; stripped log variants were added in 1.13.
+    uses:
+        - title: Stripped Dark Oak Wood
+          ref: stripped_dark_oak_wood
+          detail: |
+              Craft 4 Stripped Dark Oak Logs into 3 Stripped Dark Oak Wood
+              blocks, which show the ringed texture on all six faces.
+        - title: Dark Oak Planks
+          ref: dark_oak_planks
+          detail: |
+              Craft into 4 Dark Oak Planks per block for building.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns as fuel, smelting 1.5 items per block, and used to craft
+              campfires, hanging signs, shelves, and smokers.
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: |
+              Does not generate naturally; obtained by stripping a placed
+              Dark Oak Log with an axe.
+    faq:
+        - question: How do I get Stripped Dark Oak Log?
+          answer: |
+              Use any axe on a Dark Oak Log placed in the world.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool works, including bare hands — it always drops itself.
+              An axe is fastest.
+        - question: Is Stripped Dark Oak Log flammable?
+          answer: |
+              Yes, it burns for about the same duration as other overworld
+              logs and can be used as furnace fuel.
+        - question: Can I turn it back into Dark Oak Log?
+          answer: |
+              No, stripping bark is a permanent, one-way conversion.
     data_version: "1.21.5"
 ---
 

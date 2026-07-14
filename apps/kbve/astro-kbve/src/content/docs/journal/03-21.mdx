@@ -9,16 +9,52 @@ description: |
     21st of March! The Best Day of March!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 21,'
+    accent: every year.
+    lede: 'The March 21st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 20'
+          href: /journal/03-20/
+        - label: 'Mar 22 →'
+          href: /journal/03-22/
+    related:
+        - title: 'Previous · Mar 20'
+          copy: 'Step back a day to the March 20th log.'
+          href: /journal/03-20/
+          icon: calendar
+        - title: 'Next · Mar 22'
+          copy: 'Jump ahead to the March 22nd log.'
+          href: /journal/03-22/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Dashboard Updates
 
@@ -26,7 +62,15 @@ import { Adsense } from '@/components/astropad';
 
     More updates to the kbve dashboard an then back to the unreal grind.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Disoxide v1.2
 
@@ -58,8 +102,9 @@ import { Adsense } from '@/components/astropad';
     Almost level 30, which means we are not too far from getting our mounts?
     Yessir!
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### LCAgents
 
@@ -93,3 +138,7 @@ The latest patch for HellDiver has been making the game actually playable on my 
 Before the amount of heat, terrible performance and lag was just way too much!
 
 The more I play this game, the more I just want to finish up RogueJester to be honest, a combination of Brute Force, Halo and HellDiver would be an epic game.
+
+</BentoProse>
+
+</BentoDoc>

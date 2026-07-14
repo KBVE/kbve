@@ -1,6 +1,6 @@
 ---
 title: Amulet of power (t) | OSRS Price Data
-description: "Amulet of power (t) is a F2P neck slot item with +6 melee strength. High alch: 2,415 GP, GE limit: 5."
+description: "Amulet of power (t) is a F2P neck slot item with +6 stats across the board, +6 strength, +1 prayer. High alch: 2,415 GP, GE limit: 5."
 osrs:
   id: 23354
   name: Amulet of power (t)
@@ -12,9 +12,32 @@ osrs:
   lowalch: 1610
   highalch: 2415
   limit: 5
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: jewellery
+    tier: mid
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
+    weapon_type: null
+    attack_speed: null
     weight: 0.01
+    requirements: {}
     attack_bonus:
       stab: 6
       slash: 6
@@ -32,55 +55,47 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 1
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Easy
-        drop_rate: 1/1,404
-        description: Rare reward from easy clue scrolls
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 6919
-      item_name: Amulet of power
+    - item_name: Amulet of power
       slug: amulet-of-power
       relationship: variant
-      description: Standard (untrimmed) version
-    - item_id: 1704
-      item_name: Amulet of glory(4)
+      description: Standard untrimmed version with identical stats
+    - item_name: Amulet of glory(4)
       slug: amulet-of-glory-4
       relationship: upgrade
-      description: Superior amulet with teleports
-    - item_id: 6585
-      item_name: Amulet of fury
+      description: Stronger hybrid amulet with teleport charges
+    - item_name: Amulet of fury
       slug: amulet-of-fury
       relationship: upgrade
-      description: Best-in-slot hybrid amulet
+      description: Best-in-slot hybrid amulet for most setups
   about: |-
     > *"An enchanted diamond amulet that looks good."*
 
-    | Property | Amulet of Power | Amulet of Power (t) |
-    |----------|----------------|---------------------|
-    | All Attack | +6 | +6 |
-    | All Defence | +6 | +6 |
-    | Strength | +6 | +6 |
-    | Prayer | +1 | +1 |
-    | Appearance | Standard | Gold trimmed |
-    | Source | Crafting (Lvl-4 Enchant) | Easy clue |
-    | F2P | Yes | Yes |
+    The amulet of power (t) is a free-to-play gold-trimmed cosmetic variant of the amulet of power, obtained from easy Treasure Trails at a 1/1,404 rate. It carries the same +6 bonuses across all attack and defence styles plus +6 strength and +1 prayer.
 
-    Stats are identical. The trimmed version is purely cosmetic.
+    Despite being F2P-tradeable, the standard amulet of power is far more common — the trimmed variant exists primarily as a clue-log collector and fashionscape piece.
   market_strategy:
-    title: Investment Notes
     notes:
-      - Easy clue exclusive cosmetic
-      - Free-to-play tradeable
-      - Popular hybrid amulet for mid-level accounts
-      - Best F2P amulet for balanced combat styles
-      - Solid all-round amulet before accessing glory or fury
-      - No requirements to equip, making it accessible to all account builds
-      - Good choice for F2P PKing due to balanced offensive and defensive stats
-      - Collection log item for completionists
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Easy clue exclusive cosmetic"
+      - "F2P tradeable, popular for mid-level fashionscape"
+      - "Low buy limit of 5 keeps the price volatile"
+      - "Best balanced F2P amulet before glory or fury"
+  trading_tips:
+    - Track easy clue completion events for short supply bumps
+    - Collection log item for completionists drives small but steady demand
+  history:
+    - date: "2019-04-11"
+      description: "Released with the Treasure Trail rework cosmetic batch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,86 +12,93 @@ osrs:
   lowalch: 33600
   highalch: 50400
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: obsidian
+    tier: mid-high
+  properties:
+    release_date: "2017-06-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.979
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
-    type: melee_armor
-    tradeable: true
+    weapon_type: null
+    attack_speed: null
+    attack_range: null
     weight: 9.979
     requirements:
       defence: 60
-    stats:
-      strength: 3
-      stab_def: 55
-      slash_def: 78
-      crush_def: 56
-      magic_def: -15
-      ranged_def: 60
-  set_bonus:
-    set_name: Obsidian
-    requirement: Full set + Obsidian weapon
-    damage_bonus: +10%
-    accuracy_bonus: +10%
-    stacks_with:
-      - item_id: 11128
-        item_name: Berserker necklace
-        additional_bonus: +20%
-  shop:
-    npc: TzHaar-Hur-Zal
-    location: Mor Ul Rek
-    price: 270000
-    currency: Tokkul
-  market:
-    buy_limit: 70
-    price_estimate: 2400000
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 55
+      slash: 78
+      crush: 56
+      magic: -15
+      ranged: 60
+    other_bonus:
+      melee_strength: 3
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Obsidian armour set bonus
+      description: "Wearing obsidian helmet, platebody, and platelegs grants +10% accuracy and +10% damage to obsidian weapons; stacks with the Berserker necklace for an additional +20% damage."
+  shops:
+    - shop_name: "TzHaar-Hur-Zal's Equipment Store"
+      location: Mor Ul Rek
+      price: 126000
+      currency: Tokkul
+      stock: 1
   related_items:
-    - item_id: 21298
-      item_name: Obsidian helmet
+    - item_name: Obsidian helmet
       slug: obsidian-helmet
       relationship: set-piece
-      description: Helm slot
-    - item_id: 21304
-      item_name: Obsidian platelegs
+      description: "Head component of the obsidian armour set"
+    - item_name: Obsidian platelegs
       slug: obsidian-platelegs
       relationship: set-piece
-      description: Leg armor
-    - item_id: 6523
-      item_name: Toktz-xil-ak
+      description: "Legs component of the obsidian armour set"
+    - item_name: Toktz-xil-ak
       slug: toktz-xil-ak
       relationship: alternative
-      description: Obsidian sword
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Strength | +3 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +55 |
-    | Slash | +78 |
-    | Crush | +56 |
-    | Magic | -15 |
-    | Ranged | +60 |
-
-    Requirements: 60 Defence
-
-    Full Obsidian Set + Obsidian Weapon:
-    - +10% damage bonus
-    - +10% accuracy bonus
-    - Stacks with Berserker necklace (+20%)
-
-    Popular for:
-    - Training at TzHaar
-    - Budget melee training
-    - Fight Caves
-
-    Core piece of the Obsidian training set.
+      description: "Obsidian sword that benefits from the set damage bonus"
+    - item_name: Berserker necklace
+      slug: berserker-necklace
+      relationship: component
+      description: "Stacks an additional +20% damage on top of the set bonus"
+    - item_name: Fighter torso
+      slug: fighter-torso
+      relationship: alternative
+      description: "Higher strength bonus body with no set effect but no shop alternative"
+  about: "Obsidian platebody is a 60 Defence members body sold by TzHaar-Hur-Zal in Mor Ul Rek for 126,000 Tokkul. Worn with the obsidian helmet, platelegs, and an obsidian weapon, it grants +10% accuracy and +10% damage that stacks with the Berserker necklace, making the full obsidian set a popular budget melee setup at TzHaar."
   market_strategy:
     notes:
-      - Most expensive obsidian piece
-      - Buy with Tokkul or GE
-      - Good for training
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Tokkul shop price floors the GE value, but the set bonus drags prices well above alch"
+      - "Demand swings with Inferno preparation and Slayer mid-game gearing"
+      - "Higher Defence requirement than full obsidian's set bonus mate keeps a thin gating effect"
+  trading_tips:
+    - "Earn Tokkul from Fight Caves/TzHaar Slayer and convert at the shop floor"
+    - "Buy the set ahead of Inferno-prep meta events when demand outruns supply"
+  history:
+    - date: "2017-06-01"
+      description: "Released as part of The Inferno update alongside the rest of the obsidian armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

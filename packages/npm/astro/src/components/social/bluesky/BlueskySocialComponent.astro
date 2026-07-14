@@ -1,0 +1,49 @@
+---
+interface Props {
+	handle?: string;
+	label?: string;
+	embedHeight?: number;
+	showEmbed?: boolean;
+	class?: string;
+}
+
+const {
+	handle = 'kbve.com',
+	label,
+	embedHeight = 600,
+	showEmbed = true,
+	class: className = '',
+} = Astro.props;
+
+const profileUrl = `https://bsky.app/profile/${handle}`;
+const embedUrl = `https://embed.bsky.app/profile/${handle}`;
+const ctaLabel = label ?? `Follow @${handle} on Bluesky`;
+---
+
+<div class:list={['mx-auto my-6 grid w-full max-w-3xl gap-4', className]}>
+	<a
+		class="inline-flex w-fit items-center gap-2 rounded-xl bg-[#0085ff] px-5 py-3 font-semibold text-white shadow-lg shadow-sky-500/30 transition-transform duration-150 hover:-translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+		href={profileUrl}
+		target="_blank"
+		rel="noopener noreferrer">
+		<span class="text-lg leading-none" aria-hidden="true">☁</span>
+		<span>{ctaLabel}</span>
+	</a>
+
+	{
+		showEmbed && (
+			<div
+				class="relative w-full overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
+				style={`min-height:${embedHeight}px`}>
+				<iframe
+					src={embedUrl}
+					title={`${handle} Bluesky profile`}
+					class="h-full w-full border-0"
+					style={`min-height:${embedHeight}px`}
+					loading="lazy"
+					referrerpolicy="strict-origin-when-cross-origin"
+				/>
+			</div>
+		)
+	}
+</div>

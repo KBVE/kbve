@@ -1,5 +1,6 @@
 ---
 title: Waxed Cut Copper Stairs
+template: splash
 description: |
     Minecraft Waxed Cut Copper Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1003
     ref: waxed_cut_copper_stairs
     slug: waxed-cut-copper-stairs
+    content_rev: 1
     display_name: Waxed Cut Copper Stairs
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_cut_copper_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Cut Copper Stairs are decorative copper stairs sealed with
+            honeycomb so their oxidation stage is frozen permanently. They
+            behave like any other stair block for placement and movement.
+        lore: |
+            Cut copper stairs arrived with the Caves & Cliffs Update (1.17),
+            giving copper its first full block-shape variant set.
+    uses:
+        - title: Decorative Roofing/Trim
+          ref: waxed_cut_copper_stairs
+          detail: |
+              Used to build roofs, staircases, and architectural trim in a
+              copper tone that will never change appearance over time.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed variants generate naturally as part of trial chamber structures.
+        - location: Crafted
+          detail: 4 matching Cut Copper blocks craft 4 stairs, or stonecutting from Blocks of Copper, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine Waxed Cut Copper Stairs?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks the block
+              without a drop.
+        - question: Do these stairs ever oxidize?
+          answer: |
+              No. The honeycomb wax permanently locks in whatever oxidation
+              stage they had when waxed.
+        - question: Can I un-wax them later?
+          answer: |
+              Yes. Using an axe on the block removes the wax, after which
+              natural weathering resumes from that stage.
+        - question: Does Silk Touch change what drops?
+          answer: |
+              No. It always drops itself as one stair block, with or
+              without Silk Touch, as long as a stone pickaxe or better mines it.
     data_version: "1.21.5"
 ---
 

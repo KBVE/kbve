@@ -1,5 +1,6 @@
 ---
 title: Potted Open Eyeblossom
+template: splash
 description: |
     Minecraft Potted Open Eyeblossom — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 1101
     ref: potted_open_eyeblossom
     slug: potted-open-eyeblossom
+    content_rev: 1
     display_name: Potted Open Eyeblossom
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: open_eyeblossom
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Open Eyeblossom is a decorative block made by placing an
+            Open Eyeblossom into a flower pot, showing off the plant's
+            watching eye motif without it closing on its own.
+        lore: |
+            Eyeblossoms were added in Java Edition 24w44a, one of the
+            newest plants to receive a potted variant.
+    found_in:
+        - location: Crafted by hand
+          detail: Place an Open Eyeblossom item into an empty Flower Pot to create it.
+        - location: Pale Gardens
+          detail: The Eyeblossom plant used to pot it grows naturally in the pale garden biome.
+    faq:
+        - question: Does the potted eyeblossom still open and close?
+          answer: |
+              No. Once potted it is purely decorative and stays in its
+              current state, unlike a planted eyeblossom that reacts to
+              nearby players.
+        - question: What tool do I need to break it?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: What does it drop?
+          answer: |
+              The empty Flower Pot and the Open Eyeblossom item drop as two
+              separate items.
+        - question: Can I pot a Closed Eyeblossom instead?
+          answer: |
+              Yes, both the open and closed eyeblossom variants have their
+              own separate potted block form.
     data_version: "1.21.5"
 ---
 

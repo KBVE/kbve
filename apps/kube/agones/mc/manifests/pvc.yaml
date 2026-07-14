@@ -1,7 +1,3 @@
-# MC world data — persists across pod restarts.
-# Pre-generate chunks before fleet goes live:
-#   /chunky corners -10000 -10000 10000 10000
-#   /chunky start
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -10,6 +6,9 @@ metadata:
     labels:
         app: mc-gameserver
         app.kubernetes.io/part-of: mc
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     accessModes:
         - ReadWriteOnce

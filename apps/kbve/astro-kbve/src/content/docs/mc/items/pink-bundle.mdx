@@ -1,5 +1,6 @@
 ---
 title: Pink Bundle
+template: splash
 description: |
     Minecraft Pink Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 981
     ref: pink_bundle
     slug: pink-bundle
+    content_rev: 1
     display_name: Pink Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Pink Bundle stores up to a stack's worth of mixed item types inside a single inventory slot, with each item consuming space proportional to its normal stack size. It can be crafted from a plain bundle and pink dye, and bundles also generate in some village and abandoned camp containers.
+            Right-clicking the bundle removes the most recently added item, while opening its inventory lets you insert or retrieve specific items directly.
+        lore: |
+            The bundle's design was inspired by Roman coin purses and lets players carry a mixed assortment of goods in a single compact slot.
+    faq:
+        - question: |
+              How do I craft a Pink Bundle?
+          answer: |
+              Craft a plain bundle from one string and one leather, then combine that bundle with pink dye in a crafting grid to produce a Pink Bundle.
+        - question: |
+              How much can a Pink Bundle hold?
+          answer: |
+              It holds one inventory slot's worth of items in total; items that normally stack to 64 take up 1/64 of the bundle's capacity each, while non-stacking items fill much more space.
+        - question: |
+              Can I put a bundle inside another bundle?
+          answer: |
+              Yes, bundles can be nested inside other bundles, with each nested bundle consuming 1/16 of the outer bundle's capacity plus the space used by its own contents.
+        - question: |
+              Where can I find a bundle without crafting it?
+          answer: |
+              Bundles can also be found generated in certain village house chests and in abandoned camp barrels and chests, though the specific color found depends on loot table randomization.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

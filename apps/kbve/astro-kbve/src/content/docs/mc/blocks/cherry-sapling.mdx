@@ -1,5 +1,6 @@
 ---
 title: Cherry Sapling
+template: splash
 description: |
     Minecraft Cherry Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 30
     ref: cherry_sapling
     slug: cherry-sapling
+    content_rev: 1
     display_name: Cherry Sapling
     material: plant
     hardness: 0
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - plant
+    about:
+        description: |
+            Cherry Sapling is the planted seed form of the cherry tree,
+            distinguished by its pale pink leaves. It breaks instantly with
+            any tool and always drops itself.
+        lore: |
+            Introduced in Java Edition 1.20 with the cherry grove biome as
+            part of the "Trails & Tales" update.
+    uses:
+        - title: Cherry Tree
+          ref: cherry_log
+          detail: |
+              Plant on dirt or grass with enough light and vertical space to
+              grow into a full cherry tree, yielding logs, leaves, and more
+              saplings.
+    found_in:
+        - location: Cherry Grove biome
+          detail: Grown naturally as part of cherry trees generating in the biome.
+        - location: Cherry Leaves decay
+          detail: Breaking cherry leaves without Silk Touch has a 5% chance to drop a sapling, boosted by Fortune.
+    faq:
+        - question: What does breaking a Cherry Sapling drop?
+          answer: |
+              It always drops itself, and breaks instantly with any tool or
+              bare hands.
+        - question: Does a Cherry Sapling grow into a 2x2 tree?
+          answer: |
+              No. Cherry saplings only grow as single 1x1 trees; there is no
+              giant cherry tree variant.
+        - question: What does a Cherry Sapling need to grow?
+          answer: |
+              At least 8 blocks of open space above (a 5x5 column) and a
+              light level of 9 or higher, or bone meal to force growth
+              regardless of light.
+        - question: How do I get more Cherry Saplings?
+          answer: |
+              Break cherry leaves without Silk Touch for a 5% chance per
+              leaf block, increased to up to 10% with Fortune III.
     data_version: "1.21.5"
 ---
 

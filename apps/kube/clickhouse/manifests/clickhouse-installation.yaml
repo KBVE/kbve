@@ -21,7 +21,7 @@ spec:
                 <clickhouse>
                   <named_collections>
                     <supabase_postgres>
-                      <host>supabase-cluster-rw.kilobase.svc.cluster.local</host>
+                      <host>kilobase-rw.kilobase.svc.cluster.local</host>
                       <port>5432</port>
                       <database>supabase</database>
                       <user from_env="CLICKHOUSE_POSTGRES_USER"/>
@@ -32,8 +32,8 @@ spec:
         clusters:
             - name: cluster
               layout:
-                  shardsCount: 2
-                  replicasCount: 2
+                  shardsCount: 1
+                  replicasCount: 1
     defaults:
         templates:
             dataVolumeClaimTemplate: data-storage
@@ -79,7 +79,7 @@ spec:
                   resources:
                       requests:
                           storage: 50Gi
-                  storageClassName: longhorn
+                  storageClassName: longhorn-sdb
             - name: log-storage
               spec:
                   accessModes:
@@ -87,4 +87,4 @@ spec:
                   resources:
                       requests:
                           storage: 10Gi
-                  storageClassName: longhorn
+                  storageClassName: longhorn-sdb

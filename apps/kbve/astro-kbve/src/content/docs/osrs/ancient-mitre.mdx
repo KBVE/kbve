@@ -12,25 +12,83 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: vestment
+    tier: high
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
   equipment:
     slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.3
     requirements:
       prayer: 40
       magic: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 5
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
   related_items:
-    - item_id: 12193
-      item_name: Ancient robe top
+    - item_name: Ancient robe top
       slug: ancient-robe-top
       relationship: set-piece
       description: Ancient vestment body
-  about: |-
-    > *"An Ancient mitre."*
-
-    The Ancient mitre is a head slot item from the Ancient vestment set. It provides a +5 Prayer bonus and requires 40 Prayer and 40 Magic to equip. Offers the second-highest prayer bonus for head slot items. Counts as a Zarosian item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Ancient robe legs
+      slug: ancient-robe-legs
+      relationship: set-piece
+      description: Ancient vestment legs
+    - item_name: Ancient stole
+      slug: ancient-stole
+      relationship: set-piece
+      description: Ancient vestment stole
+    - item_name: Ancient crozier
+      slug: ancient-crozier
+      relationship: set-piece
+      description: Ancient vestment crozier
+    - item_name: Ancient cloak
+      slug: ancient-cloak
+      relationship: set-piece
+      description: Ancient vestment cloak
+  about: "Ancient mitre is a head slot vestment from elite Treasure Trails, obtained via the Cheer emote clue by the Shadow Dungeon ladder while wearing a Ring of visibility. Provides +5 Prayer (second-highest head slot prayer bonus) plus +4 Magic attack and defence, matching mystic hats for magic stats. Requires 40 Prayer and 40 Magic to equip and counts as a Zarosian item in the God Wars Dungeon."
+  market_strategy:
+    notes:
+      - "Elite clue exclusive supply"
+      - "Prayer bonus competes with Mitre and 3a hats"
+      - "Costume room storage maintains long-term demand"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

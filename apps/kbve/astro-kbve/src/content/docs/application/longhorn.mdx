@@ -1,7 +1,15 @@
 ---
 title: Longhorn
 description: |
-    Longhorn is a cloud-native distributed storage application that allows easy and persistent storage across the eco-system.
+    Longhorn is a cloud-native, distributed block storage system for Kubernetes that delivers persistent,
+    replicated volumes with snapshots and backups. This guide covers the architecture, installation,
+    StorageClass configuration, and NFS setup.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Longhorn
     order: 1009
@@ -9,33 +17,156 @@ unsplash: 1575405380157-1fc4e4b3f227
 img: https://images.unsplash.com/photo-1575405380157-1fc4e4b3f227?fit=crop&w=1400&h=700&q=75
 tags:
     - storage
+    - kubernetes
+    - cloud-native
+sem: 1
+ogTitle: Longhorn Guide — Distributed Block Storage for Kubernetes
+ogDescription: Learn Longhorn, the cloud-native distributed block storage system for Kubernetes — how replication and snapshots work, install via Helm, configure a StorageClass, and set up NFS-backed backups.
+jsonld:
+    type: Article
+    keywords:
+        - longhorn
+        - kubernetes storage
+        - distributed block storage
+        - persistent volume
+        - storageclass
+        - volume replication
+    faq:
+        - question: What is Longhorn?
+          answer: Longhorn is a cloud-native, distributed block storage system for Kubernetes, originally by Rancher and now a CNCF project. It provides persistent volumes with synchronous replication across nodes, snapshots, and backups to external targets like NFS or S3, all managed through a Kubernetes-native UI and CRDs.
+        - question: How does Longhorn replicate data?
+          answer: Longhorn creates a replica of each volume on multiple nodes and writes to them synchronously, so the volume survives a node failure. The number of copies is set by the numberOfReplicas parameter on the StorageClass — for example 3 for high availability, or 1 for single-node or non-critical data.
+        - question: How do I install Longhorn on Kubernetes?
+          answer: The recommended path is Helm — add the longhorn repo, then helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace. Every node needs open-iscsi installed and a compatible kernel. You can also apply the official YAML manifest directly with kubectl.
+        - question: Does Longhorn support backups?
+          answer: Yes. Longhorn takes in-cluster snapshots of a volume and can back them up to an external backup target such as an NFS share or an S3-compatible bucket. Backups are incremental after the first full copy and can be restored to a new volume in the same or another cluster.
+        - question: What is a Longhorn StorageClass?
+          answer: A StorageClass tells Kubernetes to provision volumes with Longhorn's CSI driver (driver.longhorn.io) and carries parameters like numberOfReplicas, staleReplicaTimeout, fsType, and dataLocality. Marking it the default class lets PersistentVolumeClaims use Longhorn automatically without naming it.
+bento:
+    badge: application · storage · kubernetes
+    title: 'Block storage that survives,'
+    accent: Longhorn.
+    lede: >-
+        A cloud-native, distributed block storage system for Kubernetes that
+        turns the local disks across your nodes into replicated, persistent
+        volumes — with snapshots and backups to NFS or S3. This guide covers
+        installation via Helm, NFS setup, the storage namespace, and the
+        StorageClass that provisions it all.
+    ctas:
+        - label: Install via Helm
+          href: '#install'
+          primary: true
+        - label: NFS setup
+          href: '#nfs'
+        - label: StorageClass
+          href: '#longhorn-uno'
+    aside:
+        icon: database
+        title: Replicated by default
+        body: >-
+            Every volume is synchronously replicated across nodes, so a single
+            node failure doesn't lose data. Snapshots stay in-cluster; backups
+            ship incrementally to NFS or S3 targets and restore anywhere.
+        points:
+            - <strong>Replication</strong> — synchronous copies via numberOfReplicas.
+            - <strong>Backups</strong> — incremental, to NFS or S3 targets.
+            - <strong>CSI native</strong> — provisioned through driver.longhorn.io.
+    stats:
+        - { label: Governance, value: CNCF, icon: crown }
+        - { label: CSI driver, value: driver.longhorn.io, icon: gears }
+        - { label: Node prerequisite, value: open-iscsi, icon: alert }
+        - { label: Backup targets, value: 'NFS / S3', icon: box }
+    features:
+        - title: Install
+          icon: deploy
+          href: '#install'
+          body: The Helm install path, plus the open-iscsi prerequisite that trips up most first attempts with volumes stuck in Attaching.
+        - title: NFS setup
+          icon: server
+          href: '#nfs'
+          body: Prepare an Ubuntu host with nfs-common and nfs-kernel-server for NFS-backed storage and backup targets.
+        - title: Longhorn Uno StorageClass
+          icon: settings
+          href: '#longhorn-uno'
+          body: The KBVE StorageClass — replica count, data locality, reclaim policy, and the parameters worth tuning.
+        - title: Namespace
+          icon: box
+          href: '#namespace'
+          body: Create the dedicated storage namespace that holds production data resources.
+    related:
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: The cluster orchestration layer Longhorn provisions volumes for.
+          icon: deploy
+        - title: Proxmox
+          href: /application/proxmox/
+          copy: Virtualization host layer underneath many KBVE nodes.
+          icon: server
+        - title: Linux
+          href: /application/linux/
+          copy: LVM, filesystems, and the sysadmin skills behind node disks.
+          icon: code
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1575405380157-1fc4e4b3f227?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
-<Adsense />
+**Longhorn** is a cloud-native, **distributed block storage** system for Kubernetes (originally by Rancher, now a CNCF project). It turns the local disks across your nodes into replicated, persistent volumes — with **snapshots** and **backups** to NFS or S3 — all managed through Kubernetes CRDs and a built-in UI.
 
-## Install
+Every volume is **synchronously replicated** across nodes, so a single node failure doesn't lose data.
+
+This guide covers [install](#install), [NFS setup](#nfs), the [namespace](#namespace), and the [StorageClass](#longhorn-uno).
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="install" eyebrow="Helm path" heading="Install">
 
 -   This current information sheet is in reference to Longhorn 1.3v , be aware that 1.4v will be in production around 2023. Thus this might become obsolete information.
 -   Before installing, look over the requirements for storage.
 
 -   Requirements for 1.3v Longhorn
 
----
+The recommended install path is **Helm**. Every node needs `open-iscsi` and a compatible kernel first:
 
-## NFS
+```shell
+# On each node (Debian/Ubuntu)
+sudo apt-get install open-iscsi -y
+
+# Install Longhorn via Helm
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn \
+  --namespace longhorn-system --create-namespace
+```
+
+<Aside type="caution">
+Longhorn needs `open-iscsi` running on **every** node that will host a replica. A missing iSCSI daemon is the most common cause of volumes stuck in `Attaching`.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="nfs" eyebrow="Backup target prep" heading="NFS">
 
 -   Ubuntu NFS Setup
 
@@ -51,9 +182,9 @@ import { Giscus, Adsense } from '@/components/astropad';
             sudo apt-get install nfs-common nfs-kernel-server -y
             ```
 
----
+</BentoProse>
 
-## Namespace
+<BentoProse id="namespace" eyebrow="Production home" heading="Namespace">
 
 -   Creating a custom namespace to hold the storage.
 
@@ -68,9 +199,9 @@ import { Giscus, Adsense } from '@/components/astropad';
 
 -   This namespace will be where we store our production data.
 
----
+</BentoProse>
 
-## Longhorn Uno
+<BentoProse id="longhorn-uno" eyebrow="StorageClass" heading="Longhorn Uno">
 
 Under storage class, we will be creating the longhorn uno and then deploying it under that.
 
@@ -100,3 +231,9 @@ Under storage class, we will be creating the longhorn uno and then deploying it 
     storageclass.beta.kubernetes.io/is-default-class: 'false'
     storageclass.kubernetes.io/is-default-class: 'false'
 ```
+
+The key parameters: `numberOfReplicas` controls how many synchronous copies of the volume exist (raise to `3` for HA), `dataLocality: best-effort` keeps a replica on the same node as the workload to cut latency, and `reclaimPolicy: Delete` removes the underlying volume when its PVC is deleted.
+
+</BentoProse>
+
+</BentoDoc>

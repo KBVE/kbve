@@ -1,5 +1,6 @@
 ---
 title: Soul Fire
+template: splash
 description: |
     Minecraft Soul Fire — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 184
     ref: soul_fire
     slug: soul-fire
+    content_rev: 1
     display_name: Soul Fire
     material: nether
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 10
     light_opacity: 0
@@ -27,7 +28,59 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - nether
+        - non_flammable
+    about:
+        description: |
+            Soul Fire is a dimmer, turquoise variant of fire created when
+            soul sand or soul soil is ignited. It deals twice the damage of
+            regular fire, never burns out on its own, and repels piglins
+            (though not piglin brutes).
+        lore: |
+            Introduced in the Nether Update (1.16) alongside the soul sand
+            valley biome as a thematic, more dangerous cousin of fire.
+    uses:
+        - title: Soul Torch
+          ref: soul_torch
+          detail: |
+              Crafted from a stick, coal or charcoal, and soul soil or soul
+              sand — the recipe consumes the soul soil/sand, not the fire
+              itself, but soul fire is required to be present to obtain the
+              base ingredients from the valley biome.
+        - title: Soul Campfire
+          ref: soul_campfire
+          detail: |
+              A campfire built on soul soil or soul sand burns with soul
+              fire instead of regular fire, dealing extra damage and
+              repelling piglins.
+    found_in:
+        - location: Soul Sand Valley
+          detail: |
+              Generates naturally on soul soil throughout the biome; also
+              found in ancient cities.
+        - location: Player-ignited
+          detail: |
+              Created by using flint and steel or a fire charge on soul sand
+              or soul soil, or by nearby explosions such as beds and ghast
+              fireballs.
+    faq:
+        - question: Can I mine or pick up Soul Fire?
+          answer: |
+              No. It is instantly destroyed with no drop when broken, mined,
+              or hit, regardless of tool.
+        - question: Is Soul Fire more dangerous than regular fire?
+          answer: |
+              Yes. It deals 2 damage per tick, double that of regular fire,
+              and it does not extinguish on its own over time.
+        - question: Does Soul Fire spread or burn blocks?
+          answer: |
+              No. Unlike regular fire, Soul Fire does not spread to nearby
+              flammable blocks.
+        - question: Why do piglins avoid it?
+          answer: |
+              Soul Fire (and soul torches/lanterns) repel piglins as a
+              built-in AI behavior, though piglin brutes are unaffected.
     data_version: "1.21.5"
 ---
 

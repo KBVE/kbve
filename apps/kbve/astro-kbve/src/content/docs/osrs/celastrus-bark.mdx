@@ -15,21 +15,29 @@ osrs:
   material:
     type: farming_product
     tier: high
-  farming:
-    level: 85
-    xp: 0
-    source: Celastrus tree
+  properties:
+    release_date: "2019-01-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    weight: 1
+    quest_item: false
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
   recipes:
     - skill: fletching
       level: 40
-      xp: 6
+      xp: 80
       materials:
         - item_name: Celastrus bark
           item_id: 22935
           quantity: 1
       product: Battlestaff
       product_id: 1391
-      product_quantity: 1
+      output_quantity: 1
       members_only: true
   related_items:
     - item_id: 22869
@@ -53,26 +61,22 @@ osrs:
       relationship: component
       description: For air battlestaff
   market_strategy:
-    title: Battlestaff Chain
-    steps:
-      - order: 1
-        action: Grow celastrus tree (85 Farming)
-      - order: 2
-        action: Harvest bark
-      - order: 3
-        action: Fletch into battlestaff
-      - order: 4
-        action: Attach orb for elemental staff
-      - order: 5
-        action: Alch or sell
     notes:
-      - Celastrus trees are profitable to grow
-      - Multiple bark per harvest
-      - Consistent supply from farming runs
-      - Compare bark + fletching vs buying battlestaves from Zaff
-      - Zaff's stock is limited daily
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Celastrus trees are profitable to grow"
+      - "Minimum 3 bark per harvest"
+      - "Consistent supply from farming runs"
+      - "Compare bark + fletching vs buying battlestaves from Zaff"
+      - "Zaff's stock is limited daily"
+  trading_tips:
+    - "Buy strategy: stock during farming-run waves when supply spikes"
+    - "Margin: bark to battlestaff fletch margin tends to beat raw bark flips"
+    - "Risk: Zaff's daily 64 battlestaves cap the upside on battlestaff prices"
+  history:
+    - date: "2019-01-10"
+      description: "Release: added with the Farming Guild expansion alongside celastrus trees"
+  about: "Celastrus bark is a Farming product harvested from celastrus trees at 85 Farming. Fletched into battlestaves at 40 Fletching for 80 XP each. High alchemy value: 270 coins. Grand Exchange buy limit: 12,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

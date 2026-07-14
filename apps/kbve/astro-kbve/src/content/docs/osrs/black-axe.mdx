@@ -12,26 +12,82 @@ osrs:
   lowalch: 153
   highalch: 230
   limit: 40
-  item_id: 1361
-  item_type: equipment
-  slot: weapon
-  type: axe
-  tradeable: true
-  weight: 1.36
-  requirements:
-    attack: 10
-    woodcutting: 11
-  stats:
-    stab: -2
-    slash: 10
-    crush: 8
-    strength: 12
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: axe
+    attack_speed: 5
+    weight: 1.36
+    requirements:
+      attack: 10
+      woodcutting: 11
+    attack_bonus:
+      stab: -2
+      slash: 10
+      crush: 8
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   related_items:
-    - slug: mithril-axe
-    - slug: adamant-axe
-  about: Woodcutting tool. 12.5% better than steel axe.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Steel axe
+      slug: steel-axe
+      relationship: downgrade
+      description: Standard metal-tier axe, slower at woodcutting than black.
+    - item_name: Mithril axe
+      slug: mithril-axe
+      relationship: upgrade
+      description: Next tier up in standard woodcutting axes.
+    - item_name: Adamant axe
+      slug: adamant-axe
+      relationship: upgrade
+      description: Higher-tier axe with better cut rate.
+    - item_name: Black felling axe handle
+      slug: black-felling-axe-handle
+      relationship: component
+      description: Combine with this axe to create a black felling axe.
+  about: "Black axe is a free-to-play hatchet roughly 12.5% better than a steel axe at chopping trees. It cannot be smithed, requires 10 Attack to wield and 11 Woodcutting to use, and combines with a felling axe handle to upgrade into a black felling axe."
+  market_strategy:
+    notes:
+      - "Niche tier between steel and mithril, demand mostly from felling axe upgraders."
+      - "Small buy limit keeps spread tight; high-volume flips are impractical."
+  trading_tips:
+    - Hold for felling axe handle release weekends for short demand spikes.
+    - Skip alching; market price exceeds high alch value.
+  history:
+    - date: "2014-09-01"
+      description: "Random event ents no longer spawn; axes no longer break or degrade."
+    - date: "2002-02-27"
+      description: "Released as part of the original black equipment range."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: White Tulip
+template: splash
 description: |
     Minecraft White Tulip — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 165
     ref: white_tulip
     slug: white-tulip
+    content_rev: 1
     display_name: White Tulip
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_tulip
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+        - instant_break
+    about:
+        description: |
+            White Tulip is a small decorative flower that grows on grass
+            and dirt in plains and flower forest biomes. It breaks
+            instantly with any tool or bare hands and can be picked up
+            without harming it.
+        lore: |
+            Tulips were added in Java Edition 1.7.2 as one of the first
+            flower variants alongside the biome-based flower system.
+    uses:
+        - title: Light Gray Dye
+          ref: light_gray_dye
+          detail: |
+              Crafts into one Light Gray Dye, used to color wool, terracotta,
+              glass, and other dyeable blocks and items.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combined with a mushroom and a bowl, White Tulip crafts
+              Suspicious Stew that grants the Weakness effect briefly.
+    found_in:
+        - location: Plains and Sunflower Plains
+          detail: Generates naturally on grass and dirt in rare tulip-only patches.
+        - location: Flower Forest
+          detail: Generates as part of the dense flower gradient found in this biome.
+        - location: Woodland Mansion
+          detail: Potted White Tulips appear as decoration in some mansion rooms.
+    faq:
+        - question: What tool do I need to mine White Tulip?
+          answer: |
+              None. Any tool or bare hand breaks it instantly, and it
+              always drops itself.
+        - question: What is White Tulip used for?
+          answer: |
+              It crafts into Light Gray Dye and is one of the ingredients
+              for Suspicious Stew.
+        - question: Is White Tulip flammable?
+          answer: |
+              Yes, like most flowers it can catch fire and burn.
+        - question: Can bees use White Tulip?
+          answer: |
+              Yes, tulips can be used to breed and lead bees like other
+              flowers.
     data_version: "1.21.5"
 ---
 

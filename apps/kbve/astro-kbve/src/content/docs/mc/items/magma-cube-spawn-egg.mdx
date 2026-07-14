@@ -1,5 +1,6 @@
 ---
 title: Magma Cube Spawn Egg
+template: splash
 description: |
     Minecraft Magma Cube Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1102
     ref: magma_cube_spawn_egg
     slug: magma-cube-spawn-egg
+    content_rev: 1
     display_name: Magma Cube Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Magma Cube Spawn Egg is a creative-mode item that instantly summons a Magma Cube, a
+            hostile Nether mob resembling a layered cube of molten lava that splits into smaller copies
+            when killed. It is used for testing, building mob farms, or populating custom Nether builds
+            without needing natural spawn conditions.
+        lore: |
+            A pulsing orb of trapped heat, ready to unleash a bouncing beast of the Nether.
+    faq:
+        - question: What does the Magma Cube Spawn Egg do?
+          answer: |
+              Using it on a block in creative mode instantly spawns a Magma Cube at that location.
+        - question: Where do Magma Cubes naturally spawn?
+          answer: |
+              They spawn naturally in Nether Wastes, Basalt Deltas, Nether Fortresses, and Bastion
+              Remnants, with only sizes 1, 2, and 4 appearing without external spawning.
+        - question: What happens when a Magma Cube is killed?
+          answer: |
+              Larger magma cubes split into two smaller ones, similar to slimes, until the smallest size
+              is destroyed for good.
+        - question: What do Magma Cubes drop?
+          answer: |
+              Medium and large magma cubes drop magma cream, while small magma cubes killed by frogs drop
+              froglights instead, which is otherwise unobtainable any other way.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

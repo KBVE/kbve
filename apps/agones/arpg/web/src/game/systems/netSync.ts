@@ -1,0 +1,153 @@
+import type { EntityDelta, EntityCat, EntityStore } from '@kbve/laser';
+
+// Numeric Cat values inlined (Player=0, Env=3) — netSync is unit-tested under
+// vitest's node env, where a value import of @kbve/laser's barrel won't resolve,
+// so we keep this module's laser imports type-only.
+const CAT_PLAYER = 0;
+const CAT_NPC = 1;
+const CAT_ENV = 3;
+import type { TileXY } from '../iso';
+
+export interface SyncBridge<R> {
+	create(e: EntityDelta, label: string | undefined): R;
+	move(refs: R, tile: TileXY): void;
+	setPos(refs: R, tile: TileXY): void;
+	follow(refs: R): void;
+	remove(refs: R, eid: number): void;
+}
+
+export interface SyncResolvers {
+	cat(kind: number): EntityCat;
+	hostile(kind: number): boolean;
+	label(e: EntityDelta, cat: EntityCat): string | undefined;
+}
+
+const POS_SCALE = 32;
+const VEL_SCALE = 256;
+
+const despawnScratch: number[] = [];
+
+export interface SyncState {
+	myEid: number;
+	mySlot: number;
+	predicted: TileXY;
+	predictSeeded: boolean;
+	serverPos?: TileXY;
+	serverVel?: TileXY;
+	inputAck?: number;
+}
+
+export function applyEntitySync<R>(
+	entities: readonly EntityDelta[],
+	store: EntityStore<R>,
+	bridge: SyncBridge<R>,
+	resolve: SyncResolvers,
+	state: SyncState,
+	onEnvChange?: () => void,
+): number[] {
+	const seen = new Set<number>();
+	for (const e of entities) {
+		seen.add(e.eid);
+		const cat = resolve.cat(e.kind);
+		if (store.has(e.eid) && store.kind(e.eid) !== e.kind) {
+			const stale = store.refs(e.eid);
+			if (stale !== undefined) bridge.remove(stale, e.eid);
+			store.despawn(e.eid);
+			if (e.eid === state.myEid) state.myEid = -1;
+		}
+		if (!store.has(e.eid)) {
+			const label = resolve.label(e, cat);
+			const refs = bridge.create(e, label);
+			store.spawn(
+				e.eid,
+				{
+					tile: { x: e.tile.x, y: e.tile.y },
+					kind: e.kind,
+					cat,
+					owner: e.owner,
+					hostile: resolve.hostile(e.kind),
+					hp: e.hp,
+					maxHp: e.max_hp,
+					effects: e.effects,
+				},
+				refs,
+			);
+			if (cat === CAT_ENV) onEnvChange?.();
+			if (
+				cat === CAT_PLAYER &&
+				e.owner === state.mySlot &&
+				state.myEid < 0
+			) {
+				state.myEid = e.eid;
+				bridge.follow(refs);
+				state.predicted = { x: e.tile.x, y: e.tile.y };
+				state.predictSeeded = true;
+			}
+		} else if (e.eid === state.myEid) {
+			state.serverPos =
+				e.qx !== undefined && e.qy !== undefined
+					? { x: e.qx / POS_SCALE, y: e.qy / POS_SCALE }
+					: { x: e.tile.x, y: e.tile.y };
+			state.serverVel =
+				e.qvx !== undefined && e.qvy !== undefined
+					? { x: e.qvx / VEL_SCALE, y: e.qvy / VEL_SCALE }
+					: { x: 0, y: 0 };
+			state.inputAck = e.input_ack ?? 0;
+			state.predicted = { x: e.tile.x, y: e.tile.y };
+			store.update(e.eid, {
+				tile: { ...state.predicted },
+				hp: e.hp,
+				maxHp: e.max_hp,
+				effects: e.effects,
+			});
+		} else {
+			const cur = store.tile(e.eid);
+			const refs = store.refs(e.eid);
+			const moved = !!cur && (cur.x !== e.tile.x || cur.y !== e.tile.y);
+			// Interp-backed movers (NPCs + remote players) get the server's sub-tile
+			// pos (qx/qy) fed into the interp every snapshot so they curve with the
+			// server's float steering; grid NPCs carry qx = their tile, so they're fed
+			// too. Env/items (no interp buffer) take the integer-tile path.
+			if (refs && (cat === CAT_NPC || cat === CAT_PLAYER)) {
+				bridge.move(refs, {
+					x: (e.qx ?? 0) / POS_SCALE,
+					y: (e.qy ?? 0) / POS_SCALE,
+				});
+			} else if (refs && moved) {
+				bridge.move(refs, e.tile);
+			}
+			if (cat === CAT_ENV && moved) onEnvChange?.();
+			store.update(e.eid, {
+				tile: { x: e.tile.x, y: e.tile.y },
+				hp: e.hp,
+				maxHp: e.max_hp,
+				effects: e.effects,
+			});
+			if (
+				state.myEid < 0 &&
+				cat === CAT_PLAYER &&
+				e.owner === state.mySlot
+			) {
+				state.myEid = e.eid;
+				if (refs) bridge.follow(refs);
+				state.predicted = { x: e.tile.x, y: e.tile.y };
+				state.predictSeeded = true;
+			}
+		}
+	}
+
+	despawnScratch.length = 0;
+	for (const [serverEid] of store.entries()) {
+		if (!seen.has(serverEid)) despawnScratch.push(serverEid);
+	}
+	const despawned: number[] = [];
+	for (const serverEid of despawnScratch) {
+		const refs = store.refs(serverEid);
+		if (resolve.cat(store.kind(serverEid)) === CAT_ENV) onEnvChange?.();
+		if (refs !== undefined) bridge.remove(refs, serverEid);
+		store.despawn(serverEid);
+		despawned.push(serverEid);
+		if (serverEid === state.myEid) state.myEid = -1;
+	}
+	return despawned;
+}

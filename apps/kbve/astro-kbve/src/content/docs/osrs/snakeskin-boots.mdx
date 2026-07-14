@@ -12,8 +12,30 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: snakeskin
+    tier: mid
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: feet
+    weight: 0.34
+    requirements:
+      ranged: 30
+      defence: 30
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,65 +53,49 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      ranged: 30
-      defence: 30
-    weight: 0.34
   recipes:
     - skill: crafting
       level: 45
       xp: 30
-      inputs:
+      materials:
         - item_name: Snakeskin
           quantity: 6
         - item_name: Thread
           quantity: 1
+      tools:
+        - Needle
       output_quantity: 1
   related_items:
-    - item_id: 6322
-      item_name: Snakeskin body
+    - item_name: Snakeskin body
       slug: snakeskin-body
       relationship: set-piece
-      description: Matching body piece
-    - item_id: 6324
-      item_name: Snakeskin chaps
+      description: Matching body piece.
+    - item_name: Snakeskin chaps
       slug: snakeskin-chaps
       relationship: set-piece
-      description: Matching leg piece
-  about: |-
-    | Ranged | Value |
-    |--------|-------|
-    | Ranged Attack | +3 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab/Slash | +1 |
-    | Crush | +2 |
-    | Magic | +1 |
-
-    Requirements: 30 Ranged, 30 Defence
-
-    | Boots | Ranged Req | Ranged Atk | Other |
-    |-------|-----------|------------|-------|
-    | Leather boots | 1 | 0 | Free |
-    | Snakeskin boots | 30 | +3 | Budget |
-    | Blessed d'hide boots | 40 | +7 | +1 Prayer |
-    | Ranger boots | 40 | +8 | ~35M GP |
-    | Pegasian boots | 75 | +12 | ~30M GP |
-
-    Snakeskin boots fill the gap between leather and blessed d'hide boots. At only 30 Ranged/Defence, they're the earliest meaningful ranged footwear upgrade.
-
-    - Cheapest ranged boots with actual stats
-    - Used by ironmen before blessed d'hide boots
-    - Crafting training product (6 snakeskin per pair)
-    - Budget option for players saving for blessed boots
+      description: Matching leg piece.
+    - item_name: Leather boots
+      slug: leather-boots
+      relationship: downgrade
+      description: Free-to-play ranged footwear with no stats.
+    - item_name: Blessed d'hide boots
+      slug: blessed-dhide-boots
+      relationship: upgrade
+      description: Next ranged boots tier at 40 Ranged.
+  about: "Snakeskin boots are crafted from six snakeskin and a thread at 45 Crafting, giving 30 experience. They are the earliest ranged-footwear upgrade beyond leather boots and bridge the gap to blessed d'hide and ranger boots for mid-level rangers and ironmen."
   market_strategy:
     notes:
-      - Very cheap to craft (30 XP per pair)
-      - Steady demand from mid-level rangers and ironmen
-      - Low margins — better as crafting XP than profit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Crafted in bulk by mid-level Crafting trainers, keeping prices near the snakeskin floor."
+      - "Steady ironman demand keeps daily volume stable but margins thin."
+      - "Better as crafting XP than as a flip target."
+  trading_tips:
+    - Flip only when snakeskin prices spike and boot price lags.
+    - High alch margin is unprofitable versus nature rune cost.
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Trio quest and the snakeskin armour set."
+    - date: "2013-02-22"
+      description: "Made available on the Old School RuneScape Grand Exchange."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

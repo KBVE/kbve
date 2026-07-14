@@ -12,9 +12,54 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 8
-  about: "Ice element staff crown is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: magical
+    tier: high
+  properties:
+    release_date: "2025-02-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Eldric the Ice King
+        quantity: "1"
+        rarity: 1/75
+  related_items:
+    - item_name: Fire element staff crown
+      slug: fire-element-staff-crown
+      relationship: alternative
+      description: Complementary crown dropped by Branda the Fire Queen
+    - item_name: Battlestaff
+      slug: battlestaff
+      relationship: component
+      description: Base staff combined with both crowns
+    - item_name: Twinflame staff
+      slug: twinflame-staff
+      relationship: product
+      description: Final staff created from both crowns and a battlestaff
+  about: "Ice element staff crown is a unique drop from Eldric the Ice King at the Royal Titans encounter with a 1/75 rate. Combined with a fire element staff crown (Branda the Fire Queen) and a battlestaff, the crown produces the twinflame staff, a powerful magic weapon released alongside the Royal Titans on 5 February 2025. As a per-kill drop it is one of the more profitable Royal Titans rewards on the table."
+  market_strategy:
+    notes:
+      - "Price is tied directly to twinflame staff demand and Royal Titans kills per hour."
+      - "1/75 drop rate plus 8-per-4-hour buy limit means individual buyers can move price sharply."
+      - "Drops are split between fire and ice teams; ice supply often lags fire when raid rotations shift."
+  trading_tips:
+    - Watch twinflame staff GE volume; when the assembled staff outpaces crowns, both crowns spike.
+    - Pre-DMM and league events spike all twinflame inputs - flip during quiet weeks.
+  history:
+    - date: "2025-02-05"
+      description: "Released as a unique drop from Eldric the Ice King in the Royal Titans encounter."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

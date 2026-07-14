@@ -12,9 +12,59 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Four-poster bed (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: flatpack
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Are you sure you want to drop this?"
+  recipes:
+    - skill: construction
+      level: 53
+      xp: 450
+      materials:
+        - item_name: Mahogany plank
+          quantity: 3
+        - item_name: Bolt of cloth
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Primary material for the flatpack
+    - item_name: Bolt of cloth
+      slug: bolt-of-cloth
+      relationship: component
+      description: Cloth used in construction
+  about: "Four-poster bed (flatpack) is a members-only Construction flatpack created at a steel framed workbench at level 53 Construction for 450 experience. It is placed in the bedroom of a player-owned house."
+  market_strategy:
+    notes:
+      - "Crafted from mahogany planks and cloth at a steel framed workbench"
+      - "Sold to players building POH bedrooms"
+      - "Buy limit 500 per 4 hours"
+  trading_tips:
+    - Watch mahogany plank prices to gauge profitability
+    - Bulk buying for construction training is common
+  history:
+    - date: "2006-05-31"
+      description: "Introduced with the release of Player-Owned Houses."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

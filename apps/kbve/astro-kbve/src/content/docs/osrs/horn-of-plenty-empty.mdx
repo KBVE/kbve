@@ -1,6 +1,6 @@
 ---
 title: Horn of plenty (empty) | OSRS Price Data
-description: "Horn of plenty (empty): Sound the horn for a better hunt.. High alch: 12,000 GP."
+description: "Horn of plenty (empty): Sound the horn for a better hunt. High alch: 12,000 GP."
 osrs:
   id: 31243
   name: Horn of plenty (empty)
@@ -12,9 +12,94 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: null
-  about: "Horn of plenty (empty) is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: horn
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Wield
+      - Charge
+      - Drop
+    worn_options:
+      - Blow
+      - Toggle
+      - Check
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 1.0
+    requirements:
+      hunter: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Gryphon"
+        quantity: "1"
+        rarity: "1/2,500"
+      - source: "Gryphon (on Slayer task)"
+        quantity: "1"
+        rarity: "1/1,000"
+      - source: "Dire gryphon"
+        quantity: "1"
+        rarity: "1/1,000"
+  passive_effects:
+    - name: "Hunter boost (empty)"
+      description: "Provides an invisible +2 Hunter boost when worn empty."
+    - name: "Hunter boost (charged)"
+      description: "Boost rises to +4 when charged with gryphon feathers."
+    - name: "Double catch"
+      description: "Charged horn grants a 1/10 chance to double Hunter catches without extra XP. Does not apply to implings, molch pearls during aerial fishing, or falconry catches."
+  related_items:
+    - item_name: Gryphon feathers
+      slug: gryphon-feathers
+      relationship: component
+      description: "Charge material for the horn (up to 20,000)."
+    - item_name: Huntsman's kit
+      slug: huntsmans-kit
+      relationship: alternative
+      description: "Stores the horn alongside other hunter gear."
+  about: "The empty horn of plenty is a Sailing-era Hunter shield rewarded from gryphons. Worn empty it gives a quiet +2 Hunter boost; charged with up to 20,000 gryphon feathers it bumps to +4 and rolls a 1/10 double-catch on most Hunter activities."
+  market_strategy:
+    notes:
+      - "No GE buy limit, but listings are scarce until gryphon hunting becomes mainstream."
+      - "Charged versions are not tradeable, so buyers pay a premium for empty stock."
+  trading_tips:
+    - "Watch hunter meta updates - any buff to gryphon catch rates compresses sell prices."
+    - "Pair with a large pile of gryphon feathers if reselling to active hunters."
+  history:
+    - date: "2025-06"
+      description: "First appeared in the Sailing Beta cache without being obtainable."
+    - date: "2025-11-19"
+      description: "Released live alongside the Sailing skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Fletching Table
+template: splash
 description: |
     Minecraft Fletching Table — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 810
     ref: fletching_table
     slug: fletching-table
+    content_rev: 1
     display_name: Fletching Table
     material: wood
     hardness: 2.5
@@ -24,10 +26,62 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: fletching_table
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - village
+    about:
+        description: |
+            Fletching Table is a wooden job-site block used by villagers to
+            become fletchers. It can be crafted or found generated in
+            fletcher houses within villages.
+        lore: |
+            Added in the Village & Pillage update, the fletching table gave
+            fletcher villagers their own dedicated job-site block.
+    uses:
+        - title: Fletcher Job Site
+          ref: fletcher
+          detail: |
+              An unemployed villager standing near a fletching table claims
+              it and becomes a fletcher, later trading arrows, bows, and
+              crossbows.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Can be burned as furnace fuel, smelting roughly 1.5 items per
+              table.
+    found_in:
+        - location: Village fletcher houses
+          detail: Generates naturally inside fletcher houses in villages.
+        - location: Crafted
+          detail: Crafted from 2 flint and 4 wood planks of any type.
+    faq:
+        - question: Can I use the Fletching Table like a crafting table?
+          answer: |
+              No, it currently has no right-click GUI or crafting
+              functionality of its own; its only purpose is as a fletcher
+              job site and furnace fuel.
+        - question: What tool mines a Fletching Table fastest?
+          answer: |
+              An axe. It drops itself with any tool or even by hand, just
+              more slowly.
+        - question: How do I turn a villager into a fletcher?
+          answer: |
+              Place a fletching table near an unemployed villager and it
+              will claim the block and become a fletcher.
+        - question: Is the Fletching Table flammable?
+          answer: |
+              It can catch fire from lava contact, though it does not spread
+              fire in Java Edition the way some wooden blocks do.
     data_version: "1.21.5"
 ---
 

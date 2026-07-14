@@ -12,9 +12,32 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 5
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: gold-trimmed amulet
+    tier: low
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
+    weapon_type: null
+    attack_speed: null
     weight: 0.01
+    requirements: {}
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,46 +55,46 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Easy
-        drop_rate: 1/3,960
-        description: Rare reward from easy clue scrolls
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 11/3,960
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 1727
-      item_name: Amulet of magic
+    - item_name: Amulet of magic
       slug: amulet-of-magic
       relationship: variant
-      description: Standard (untrimmed) version
-    - item_id: 6919
-      item_name: Amulet of power
+      description: Standard (untrimmed) version with identical stats
+    - item_name: Amulet of power
       slug: amulet-of-power
       relationship: upgrade
       description: All-round combat amulet upgrade
   about: |-
     > *"An enchanted sapphire amulet of magic."*
 
-    | Property | Amulet of Magic | Amulet of Magic (t) |
-    |----------|----------------|---------------------|
-    | Magic Attack | +10 | +10 |
-    | Appearance | Standard | Gold trimmed |
-    | Source | Crafting (Lvl-1 Enchant) | Easy clue |
-    | F2P | Yes | Yes |
+    The trimmed amulet of magic is a cosmetic variant of the standard amulet of magic, obtained exclusively as a reward from easy Treasure Trails. Stats are identical to the untrimmed version, making this purely a fashionscape and collection log item.
 
-    Stats are identical. The trimmed version is purely cosmetic.
+    Popular with F2P magic pures who want a cosmetic upgrade without sacrificing the +10 Magic Attack bonus available in free-to-play.
   market_strategy:
-    title: Investment Notes
     notes:
-      - Easy clue exclusive cosmetic
-      - Free-to-play tradeable
-      - Low-tier amulet with niche demand from F2P magic pures
-      - Collection log hunters drive some demand
-      - Best magic amulet available in F2P without other requirements
-      - Commonly used by F2P magic pures for the cosmetic upgrade
-      - Price fluctuates with clue scroll reward table changes
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Easy clue exclusive cosmetic"
+      - "Free-to-play tradeable"
+      - "Low-tier amulet with niche demand from F2P magic pures"
+      - "Collection log hunters drive some demand"
+      - "Best magic amulet available in F2P without other requirements"
+      - "Price fluctuates with clue scroll reward table changes"
+  trading_tips:
+    - Watch clue scroll droprate updates for supply shifts
+    - Collection log demand keeps a price floor
+    - Volume is low - use limit orders rather than instant flips
+  history:
+    - date: "2006-12-05"
+      description: "Item released as a reward from easy Treasure Trails."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

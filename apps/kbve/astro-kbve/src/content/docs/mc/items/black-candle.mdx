@@ -1,5 +1,6 @@
 ---
 title: Black Candle
+template: splash
 description: |
     Minecraft Black Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1321
     ref: black_candle
     slug: black-candle
+    content_rev: 1
     display_name: Black Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Black Candle is a black-dyed variant of the candle, a decorative light source crafted from string and honeycomb and then colored with black dye. Up to four candles can be stacked in a single block space, and once lit with flint and steel or a fire charge each candle raises the emitted light by 3 for a maximum light level of 12. Candles can also be placed atop an uneaten cake to create a candle cake.
+        lore: |
+            A quiet ember dyed the color of the deep dark, the black candle burns low and steady where torches would feel too bright.
+    faq:
+        - question: How do you craft a black candle?
+          answer: |
+            Craft a plain candle from one string and one honeycomb, then combine it with black dye in a crafting grid to produce the black variant.
+        - question: How much light does a black candle emit?
+          answer: |
+            A single candle gives off a light level of 3, and each additional candle in the same block adds another 3, reaching a maximum of 12 with four candles.
+        - question: How do you light and extinguish a candle?
+          answer: |
+            Light candles with flint and steel, fire charges, or flaming projectiles, and extinguish them with water, a wind charge, or by interacting with them directly; waterlogged candles cannot be lit.
+        - question: Can a black candle go on a cake?
+          answer: |
+            Yes, a single candle of any color can be placed on an uneaten cake to make a decorative candle cake that also acts as a light source.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

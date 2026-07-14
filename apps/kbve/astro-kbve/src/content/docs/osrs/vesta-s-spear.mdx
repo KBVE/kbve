@@ -1,20 +1,97 @@
 ---
-title: Vesta's spear | OSRS Price Data
-description: "Vesta's spear: A powerful spear.. High alch: 180,000 GP, GE limit: 10."
+title: "Vesta's spear | OSRS Price Data"
+description: "Vesta's spear: A powerful spear. High alch: 180,000 GP, GE limit: 10."
 osrs:
   id: 22610
-  name: Vesta's spear
+  name: "Vesta's spear"
   slug: vesta-s-spear
   examine: A powerful spear.
   members: true
-  icon: Vesta's spear.png
+  icon: "Vesta's spear.png"
   value: 300000
   lowalch: 120000
   highalch: 180000
   limit: 10
-  about: "Vesta's spear is a members-only item in Old School RuneScape. High alchemy value: 180,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: zarosian
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 75
+    attack_bonus:
+      stab: 133
+      slash: 113
+      crush: 120
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 18
+      slash: 21
+      crush: 21
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 122
+  special_attack:
+    name: Spear Wall
+    energy_cost: 50
+    description: "Consumes 50% special attack energy, dealing up to 100% max hit then a follow-up 50-75% damage after 2 ticks. Grants 8 ticks of immunity to melee and ranged, and reduces attack delay by 1 tick on a successful hit."
+  charges:
+    max_charges: 5000000
+    description: "Activate the spear by consuming 5,000,000 coins. Restricted to designated PvP areas."
+  shops:
+    - shop_name: Bounty Hunter Store
+      location: "Daimon's Crater"
+      price: 300
+      currency: Bounty Hunter points
+  related_items:
+    - item_id: 22613
+      item_name: "Vesta's longsword"
+      slug: vesta-s-longsword
+      relationship: alternative
+      description: Sister Zarosian melee weapon
+    - item_id: 22624
+      item_name: "Statius's warhammer"
+      slug: statius-s-warhammer
+      relationship: alternative
+      description: Bounty Hunter crush alternative
+  about: "Vesta's spear is a powerful two-handed Zarosian spear sold by the Bounty Hunter Store for 300 BH points and activated with 5,000,000 coins. It carries elite stab and strength bonuses and unleashes the Spear Wall special attack that briefly nullifies incoming melee and ranged damage."
+  market_strategy:
+    notes:
+      - Untradeable; supply gated to PvP engagement
+      - 5M coin activation is a sunk cost per spear
+      - Most useful inside dedicated PvP arenas
+  trading_tips:
+    - Earn Bounty Hunter points before stocking up
+    - Reserve activation for confirmed PvP intent
+  history:
+    - date: "2023-05-24"
+      description: Released as part of the Bounty Hunter is Back! update.
+  properties:
+    release_date: "2023-05-24"
+    update: Bounty Hunter is Back!
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Uncharge
+      - Drop
+    worn_options:
+      - Remove
+      - Uncharge
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

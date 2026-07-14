@@ -1,5 +1,6 @@
 ---
 title: Farmland
+template: splash
 description: |
     Minecraft Farmland — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 321
     ref: farmland
     slug: farmland
+    content_rev: 1
     display_name: Farmland
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Farmland is a tilled soil block created by using a hoe on dirt, grass, or dirt paths,
+            and is required to plant most crops. Nearby water within four blocks, or rainfall,
+            hydrates it and speeds crop growth, while leaving it dry and unplanted or jumping
+            on it will revert it back into plain dirt.
+        lore: |
+            Farmland represents an effort to reshape the land for cultivation, needing steady
+            water and careful tending to remain fertile.
+    faq:
+        - question: How do I create farmland?
+          answer: |
+              Use a hoe on dirt, grass blocks, or dirt paths to till them into farmland.
+        - question: What happens if my farmland dries out?
+          answer: |
+              Farmland eventually decays back into dirt if it stays dehydrated with nothing
+              planted in it, so keeping water nearby prevents this.
+        - question: Can mobs or players destroy farmland by walking on it?
+          answer: |
+              Only jumping onto farmland tramples it into dirt; walking across it normally
+              causes no damage, and very small mobs cannot trample it at all.
+        - question: Does rain help my crops grow?
+          answer: |
+              Yes, rainfall hydrates farmland the same way nearby water does, boosting crop
+              growth speed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

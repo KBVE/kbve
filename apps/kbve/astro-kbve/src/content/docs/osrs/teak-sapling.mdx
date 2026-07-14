@@ -1,6 +1,6 @@
 ---
 title: Teak sapling | OSRS Price Data
-description: "Teak sapling: This sapling is ready to be replanted in a hardwood tree patch.. High alch: 1 GP, GE limit: 200."
+description: "Teak sapling: This sapling is ready to be replanted in a hardwood tree patch. High alch: 1 GP, GE limit: 200."
 osrs:
   id: 21477
   name: Teak sapling
@@ -12,9 +12,70 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Teak sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: sapling
+    tier: mid
+  properties:
+    release_date: "2017-09-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options: ["Drop"]
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: farming
+      level: 35
+      xp: 35
+      materials:
+        - item_name: Teak seedling (w)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Teak seed
+      slug: teak-seed
+      relationship: component
+      description: Plant in a filled plant pot to start the sapling chain
+    - item_name: Teak seedling
+      slug: teak-seedling
+      relationship: component
+      description: Pre-water seedling stage
+    - item_name: Teak seedling (w)
+      slug: teak-seedling-w
+      relationship: component
+      description: Watered seedling — matures into the sapling
+    - item_name: Teak logs
+      slug: teak-logs
+      relationship: product
+      description: Eventual woodcutting output after full growth
+  about: |-
+    | Stage | Action |
+    |-------|--------|
+    | Teak seed → seedling | Plant in plant pot (35 Farming) |
+    | Seedling → watered | Watering can or Humidify |
+    | Watered → sapling | Wait one crop cycle (0–5 min) |
+    | Sapling planted | 35 Farming XP, 7,290 check-health XP |
+
+    Hardwood tree sapling grown from a teak seedling. Plant in a hardwood tree patch (Fossil Island, Karamja, Hosidius) — full growth takes ~3 days 3 hours. Pay 15 limpwurt roots per patch for disease protection.
+  market_strategy:
+    notes:
+      - "Required for hardwood tree farming runs"
+      - "Low GE limit (200) keeps supply rationed"
+      - "Demand stable with daily farming rotations"
+  trading_tips:
+    - Sapling spawn rate is fixed per seed — pricing follows teak seed cost
+    - Stock up before bonus XP weekends
+  history:
+    - date: "2017-09-07"
+      description: "Released alongside hardwood tree patches and the teak seed Farming chain."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

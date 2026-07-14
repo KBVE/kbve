@@ -1,6 +1,6 @@
 ---
 title: Twisted bow | OSRS Price Data
-description: "Twisted bow is a members two-handed weapon requiring 85 Ranged. High alch: 2,400,000 GP, GE limit: 8."
+description: "Twisted bow: a mystical bow carved from the twisted remains of the Great Olm. Requires 85 Ranged. High alch: 2,400,000 GP, GE limit: 8."
 osrs:
   id: 20997
   name: Twisted bow
@@ -12,77 +12,89 @@ osrs:
   lowalch: 1600000
   highalch: 2400000
   limit: 8
+  about: "Twisted bow is a two-handed Ranged weapon obtained from Chambers of Xeric. Its accuracy and damage scale with the target's Magic level, making it best-in-slot against high-magic bosses."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: special
+    tier: tob
+  properties:
+    release_date: "2017-01-05"
+    weight: 1.814
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    options:
+      - Wield
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
   equipment:
     slot: 2h
-    type: bow
-    attack_style: ranged
     attack_speed: 5
-    tradeable: true
-    weight: 1.814
     requirements:
       ranged: 85
-    stats:
-      ranged_attack: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 70
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 20
-  special_effect:
-    name: Magic Scaling
-    description: Accuracy and damage scale with target's Magic level
-    scaling:
-      accuracy_cap: 140
-      damage_cap: 250
-      magic_cap: 250
-      magic_cap_cox: 350
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Magic Scaling
+      description: "Accuracy and damage scale with the target's Magic level; accuracy cap 140%, damage cap 250%, magic level capped at 250 (350 in Chambers of Xeric)"
   drop_table:
     sources:
       - source: Chambers of Xeric
-        rate: Rare
-  truemarket:
-    buy_limit: 8
-    price_estimate: 1500000000
+        rarity: Rare
+        quantity: "1"
+        notes: "Unique reward from CoX completions; rate depends on points + party size"
   related_items:
     - item_id: 25865
       item_name: Bow of faerdhinen
       slug: bow-of-faerdhinen
       relationship: alternative
-      description: General alternative
+      description: General alternative ranged weapon
     - item_id: 11212
       item_name: Dragon arrow
       slug: dragon-arrow
       relationship: component
-      description: Best ammo
-    - item_id: 7554
-      item_name: Chambers of Xeric
-      slug: chambers-of-xeric
-      relationship: component
-      description: Drop source
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Ranged | +70 |
-    | Ranged Strength | +20 |
-
-    Requirements: 85 Ranged
-
-    Magic Scaling:
-    - Accuracy/damage scale with target's Magic level
-    - Accuracy cap: 140%
-    - Damage cap: 250%
-    - Magic cap: 250 (350 in CoX)
-
-    BiS for:
-    - High-magic bosses
-    - Commander Zilyana
-    - Inferno (Zuk)
-    - General PvM
-
-    Most expensive weapon in the game.
+      description: Best-in-slot ammo for the Twisted bow
+    - item_id: 20764
+      item_name: Dragon hunter crossbow
+      slug: dragon-hunter-crossbow
+      relationship: alternative
+      description: Alternative ranged weapon against dragons
   market_strategy:
     notes:
-      - From Chambers of Xeric
-      - Best vs high-magic enemies
-      - Poor vs low-magic targets
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "From Chambers of Xeric — supply tied to raid throughput"
+      - "Best vs high-magic enemies; poor vs low-magic targets"
+      - "Most expensive standard weapon in the game"
+  trading_tips:
+    - "Accuracy cap: 140%; damage cap: 250%"
+    - "Magic level cap: 250 outside CoX, 350 inside CoX"
+    - "Attack speed: 5 ticks on Rapid (3.0s), 6 ticks on Accurate (3.6s)"
+    - "Requires: 85 Ranged"
+  history:
+    - date: "2017-01-05"
+      description: "Released as a unique reward from Chambers of Xeric"
+    - date: "2022-05-26"
+      description: "Ranged requirement increased from 75 to 85"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

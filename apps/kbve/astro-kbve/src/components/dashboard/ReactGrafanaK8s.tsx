@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	grafanaService,
@@ -26,9 +26,9 @@ import {
 	XAxis,
 	YAxis,
 	CartesianGrid,
-	Tooltip,
 	ResponsiveContainer,
 } from 'recharts';
+import { AXIS_STROKE, ChartTooltip, GRID_STROKE } from './chartTheme';
 
 // ---------------------------------------------------------------------------
 // Chart helpers
@@ -43,15 +43,27 @@ const tickFormatter = (t: number) =>
 const tooltipLabelFormatter = (t: number) =>
 	new Date(t * 1000).toLocaleString();
 
-const tooltipStyle = {
-	background: 'var(--sl-color-bg-nav, #111)',
-	border: '1px solid var(--sl-color-gray-5, #262626)',
-	borderRadius: '8px',
-	color: 'var(--sl-color-text, #e6edf3)',
-};
+const axisStroke = AXIS_STROKE;
+const gridStroke = GRID_STROKE;
 
-const axisStroke = 'var(--sl-color-gray-3, #8b949e)';
-const gridStroke = 'var(--sl-color-gray-5, #262626)';
+// Skeleton keeps the chart container height reserved while the first
+// range query is in flight, preventing the late-arriving pods chart
+// from pushing siblings down on cold load.
+function ChartSkeleton({ height }: { height: number }) {
+	return (
+		<div
+			aria-hidden
+			style={{
+				width: '100%',
+				height,
+				borderRadius: '8px',
+				background:
+					'repeating-linear-gradient(90deg, var(--sl-color-gray-6, #1c1c1c) 0 24px, var(--sl-color-gray-5, #262626) 24px 48px)',
+				opacity: 0.5,
+			}}
+		/>
+	);
+}
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -67,28 +79,30 @@ function TrendIndicator({ trend }: { trend: TrendInfo }) {
 	const sign = isUp ? '+' : '';
 
 	return (
-		<div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-			<Icon size={12} style={{ color }} />
-			<span style={{ color, fontSize: '0.75rem', fontWeight: 500 }}>
+		<span className="kbve-stat-card__trend" style={{ color }}>
+			<Icon size={11} style={{ color }} />
+			<span style={{ color, fontSize: '0.7rem', fontWeight: 500 }}>
 				{sign}
 				{trend.percentChange.toFixed(1)}%
 			</span>
-		</div>
+		</span>
 	);
 }
 
-function SparklineChart({
+function SparklineBg({
 	data,
 	color,
 }: {
-	data: SparklinePoint[];
+	data?: SparklinePoint[];
 	color: string;
 }) {
-	if (data.length < 2) return null;
+	if (!data || data.length < 2) return null;
 	return (
-		<div style={{ width: '100%', height: 36, marginTop: 'auto' }}>
-			<ResponsiveContainer width="100%" height={36}>
-				<LineChart data={data}>
+		<div className="kbve-stat-card__spark">
+			<ResponsiveContainer width="100%" height="100%">
+				<LineChart
+					data={data}
+					margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
 					<Line
 						type="monotone"
 						dataKey="v"
@@ -110,6 +124,7 @@ function StatCard({
 	trend,
 	sparkline,
 	onClick,
+	tip,
 }: {
 	icon: React.ReactNode;
 	label: string;
@@ -117,75 +132,30 @@ function StatCard({
 	trend?: TrendInfo;
 	sparkline?: SparklinePoint[];
 	onClick?: () => void;
+	tip?: string;
 }) {
-	const [hovered, setHovered] = useState(false);
-
+	const accentColor = 'var(--sl-color-accent, #06b6d4)';
+	const valueText =
+		value != null
+			? Number.isInteger(value)
+				? value
+				: value.toFixed(1)
+			: '--';
 	return (
 		<div
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				alignItems: 'flex-start',
-				gap: '0.5rem',
-				padding: '1rem 1.25rem',
-				borderRadius: '10px',
-				border: '1px solid var(--sl-color-gray-5, #262626)',
-				background: 'var(--sl-color-bg-nav, #111)',
-				transition:
-					'border-color 0.2s, transform 0.15s, box-shadow 0.15s',
-				minHeight: 120,
-				cursor: onClick ? 'pointer' : 'default',
-				borderTop: '2px solid var(--sl-color-accent, #06b6d4)',
-				borderColor:
-					hovered && onClick
-						? 'var(--sl-color-gray-4, #6b7280)'
-						: undefined,
-				transform: hovered && onClick ? 'translateY(-2px)' : undefined,
-				boxShadow:
-					hovered && onClick
-						? '0 4px 12px rgba(0,0,0,0.3)'
-						: undefined,
-			}}
+			className={`kbve-stat-card${onClick ? ' is-clickable' : ''}`}
+			style={{ borderTopColor: accentColor }}
 			onClick={onClick}
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}>
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: '0.5rem',
-					width: '100%',
-				}}>
-				<span style={{ color: 'var(--sl-color-accent, #06b6d4)' }}>
-					{icon}
-				</span>
-				<span
-					style={{
-						color: 'var(--sl-color-gray-3, #8b949e)',
-						fontSize: '0.75rem',
-						fontWeight: 500,
-						textTransform: 'uppercase' as const,
-						letterSpacing: '0.06em',
-					}}>
-					{label}
-				</span>
+			data-tip={tip}>
+			<div className="kbve-stat-card__header">
+				<span style={{ color: accentColor }}>{icon}</span>
+				<span>{label}</span>
 			</div>
-			<div
-				style={{
-					fontSize: '1.75rem',
-					fontWeight: 700,
-					color: 'var(--sl-color-text, #e6edf3)',
-					fontVariantNumeric: 'tabular-nums',
-					whiteSpace: 'nowrap' as const,
-				}}>
-				{value != null
-					? Number.isInteger(value)
-						? value
-						: value.toFixed(1)
-					: '--'}
+			<div className="kbve-stat-card__value">
+				{valueText}
+				{trend && <TrendIndicator trend={trend} />}
 			</div>
-			{trend && <TrendIndicator trend={trend} />}
-			{sparkline && <SparklineChart data={sparkline} color="#06b6d4" />}
+			<SparklineBg data={sparkline} color={accentColor} />
 		</div>
 	);
 }
@@ -274,59 +244,48 @@ export default function ReactGrafanaK8s() {
 	const timeRange = useStore(grafanaService.$timeRange);
 
 	return (
-		<section>
-			<h2
-				style={{
-					color: 'var(--sl-color-text, #e6edf3)',
-					margin: '0 0 1rem 0',
-					fontSize: '1.3rem',
-					fontWeight: 600,
-					paddingBottom: '0.5rem',
-					borderBottom: '1px solid var(--sl-color-gray-5, #262626)',
-				}}>
-				Kubernetes
-			</h2>
-
-			<div
-				style={{
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-					gap: '0.75rem',
-				}}>
+		<>
+			<div className="kbve-card-grid">
 				<StatCard
-					icon={<Activity size={20} />}
+					icon={<Activity size={16} />}
 					label="Running Pods"
 					value={snapshot.pods}
 					trend={trends.pods}
 					sparkline={sparklines.pods}
 					onClick={() => grafanaService.toggleCard('pods')}
+					tip="Pods currently in Running phase. Click for namespace breakdown."
 				/>
 				<StatCard
-					icon={<Clock size={20} />}
+					icon={<Clock size={16} />}
 					label="Pending Pods"
 					value={snapshot.pendingPods}
+					tip="Pods in Pending phase — likely waiting on scheduling or images."
 				/>
 				<StatCard
-					icon={<AlertTriangle size={20} />}
+					icon={<AlertTriangle size={16} />}
 					label="Failed Pods"
 					value={snapshot.failedPods}
+					tip="Pods in Failed phase — non-zero exit + restartPolicy=Never."
 				/>
 				<StatCard
-					icon={<Box size={20} />}
+					icon={<Box size={16} />}
 					label="Containers"
 					value={snapshot.containers}
 					trend={trends.containers}
+					tip="Container instances running across all pods."
 				/>
 				<StatCard
-					icon={<RotateCcw size={20} />}
+					icon={<RotateCcw size={16} />}
 					label={`Restarts (${timeRange})`}
 					value={snapshot.podRestarts}
+					tip="Container restart count over the selected window."
 				/>
 				<StatCard
-					icon={<Layers size={20} />}
+					icon={<Layers size={16} />}
 					label="Deployments"
 					value={snapshot.deployments}
 					trend={trends.deployments}
+					tip="Total Deployment objects across all namespaces."
 				/>
 			</div>
 
@@ -396,24 +355,25 @@ export default function ReactGrafanaK8s() {
 			)}
 
 			{/* Running Pods chart */}
-			{k8sTimeSeries.length > 0 && (
-				<div
+			<div
+				className="kbve-chart-panel"
+				style={{
+					padding: '1.5rem',
+					borderRadius: '12px',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+					marginTop: '1rem',
+				}}>
+				<h3
 					style={{
-						padding: '1.5rem',
-						borderRadius: '12px',
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-						marginTop: '1rem',
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0 0 1rem 0',
+						fontSize: '1.1rem',
+						fontWeight: 600,
 					}}>
-					<h3
-						style={{
-							color: 'var(--sl-color-text, #e6edf3)',
-							margin: '0 0 1rem 0',
-							fontSize: '1.1rem',
-							fontWeight: 600,
-						}}>
-						Running Pods ({timeRange})
-					</h3>
+					Running Pods ({timeRange})
+				</h3>
+				{k8sTimeSeries.length > 0 ? (
 					<ResponsiveContainer width="100%" height={250}>
 						<AreaChart data={k8sTimeSeries}>
 							<CartesianGrid
@@ -427,8 +387,7 @@ export default function ReactGrafanaK8s() {
 								fontSize={12}
 							/>
 							<YAxis stroke={axisStroke} fontSize={12} />
-							<Tooltip
-								contentStyle={tooltipStyle}
+							<ChartTooltip
 								labelFormatter={tooltipLabelFormatter}
 							/>
 							<Area
@@ -441,8 +400,10 @@ export default function ReactGrafanaK8s() {
 							/>
 						</AreaChart>
 					</ResponsiveContainer>
-				</div>
-			)}
-		</section>
+				) : (
+					<ChartSkeleton height={250} />
+				)}
+			</div>
+		</>
 	);
 }

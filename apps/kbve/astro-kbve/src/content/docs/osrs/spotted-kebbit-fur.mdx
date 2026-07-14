@@ -1,6 +1,6 @@
 ---
 title: Spotted kebbit fur | OSRS Price Data
-description: "Spotted kebbit fur: Maybe this is why people think furry dice make you go faster.. High alch: 90 GP, GE limit: 10,000."
+description: "Spotted kebbit fur: Maybe this is why people think furry dice make you go faster. High alch: 90 GP, GE limit: 10,000."
 osrs:
   id: 10125
   name: Spotted kebbit fur
@@ -12,9 +12,62 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 10000
-  about: "Spotted kebbit fur is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: fur
+    tier: mid
+  drop_table:
+    sources:
+      - source: Spotted kebbit (Falconry)
+        quantity: "1"
+        rarity: Always
+  recipes:
+    - materials:
+        - item_name: Spotted kebbit fur
+          quantity: 2
+      tools: []
+      output_quantity: 1
+      product: Spottier cape
+      cost: 400
+      facility: Fancy Dress Shop or Hunter Guild
+  related_items:
+    - item_id: 10073
+      item_name: Spotted cape
+      slug: spotted-cape
+      relationship: product
+      description: Crafted weight-reducing cape
+    - item_id: 10127
+      item_name: Dashing kebbit fur
+      slug: dashing-kebbit-fur
+      relationship: alternative
+      description: Higher tier Hunter fur drop
+  about: "Spotted kebbit fur is a Hunter byproduct caught via falconry on spotted kebbits at level 43 Hunter in the Piscatoris Hunter area. Two furs are tailored into a spotted cape that lightens the wearer by 2.267 kg."
+  market_strategy:
+    notes:
+      - Buy limit 10,000 per 4 hours
+      - Supply driven by falconry training
+      - Demand from spotted cape crafters
+  trading_tips:
+    - Stable price; flip via thin spread
+    - Watch Hunter event spikes for short-term supply bumps
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill update.
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

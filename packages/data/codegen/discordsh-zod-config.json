@@ -1,5 +1,15 @@
 {
-	"include": ["kbve.discordsh.SubmitServerRequest"],
+	"include": [
+		"kbve.discordsh.SubmitServerRequest",
+		"kbve.discordsh.DiscordshConfig",
+		"kbve.discordsh.RepoAllowlist",
+		"kbve.discordsh.PatValidation",
+		"kbve.discordsh.GithubRepoHook",
+		"kbve.discordsh.WebhookDelivery",
+		"kbve.discordsh.EventQueueStats",
+		"kbve.discordsh.FailedEvent",
+		"kbve.discordsh.PendingEvent"
+	],
 
 	"enums": {
 		"kbve.discordsh.ServerCategory": {

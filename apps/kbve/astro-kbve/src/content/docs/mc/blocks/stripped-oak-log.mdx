@@ -1,5 +1,6 @@
 ---
 title: Stripped Oak Log
+template: splash
 description: |
     Minecraft Stripped Oak Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 68
     ref: stripped_oak_log
     slug: stripped-oak-log
+    content_rev: 1
     display_name: Stripped Oak Log
     material: wood
     hardness: 2
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_oak_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Oak Log is the bark-free variant of the Oak Log,
+            produced by using an axe on a placed log. It shows exposed
+            wood-ring texture on its top and bottom faces while the
+            sides display a clean, bark-free look.
+        lore: |
+            Log stripping was added in Java Edition 1.13 (Update Aquatic)
+            as a purely aesthetic building option, letting players turn
+            regular logs into a smoother, lighter-colored wood variant
+            without cutting them into planks.
+    uses:
+        - title: Oak Planks
+          ref: oak_planks
+          detail: |
+              Crafts into 4 Oak Planks per log, the base ingredient for
+              countless crafting recipes, tools, and furniture.
+        - title: Stripped Oak Wood
+          ref: stripped_oak_wood
+          detail: |
+              Combine 4 Stripped Oak Logs in a square to craft 3 Stripped
+              Oak Wood, the all-sides bark-free block.
+    found_in:
+        - location: Forest / Plains biomes
+          detail: Oak trees generate widely across overworld forest, plains, and village biomes; their logs can be stripped after felling.
+        - location: Player-stripped Oak Log
+          detail: Right-click a placed Oak Log with any axe to strip it directly.
+    faq:
+        - question: How do I strip an Oak Log?
+          answer: |
+              Right-click (use) an axe on a placed Oak Log. This costs a
+              small amount of axe durability and converts the block in
+              place.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool or bare hands work; an axe simply breaks it
+              fastest. There is no minimum tool tier for it to drop.
+        - question: Is Stripped Oak Log flammable?
+          answer: |
+              Yes, it burns like other overworld wood blocks, so avoid
+              placing it near lava or fire.
+        - question: Can I turn Stripped Oak Log back into a bark-covered log?
+          answer: |
+              No, stripping is permanent and cannot be reversed.
     data_version: "1.21.5"
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Umbral frag | OSRS Price Data
-description: "Umbral frag: This can be propagated in a coral nursery.. High alch: 46 GP, GE limit: 200."
+description: "Umbral frag is a members coral fragment used in coral nurseries. High alch: 46 GP, GE limit: 200."
 osrs:
   id: 31515
   name: Umbral frag
@@ -12,9 +12,62 @@ osrs:
   lowalch: 31
   highalch: 46
   limit: 200
-  about: "Umbral frag is a members-only item in Old School RuneScape. High alchemy value: 46 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: coral-fragment
+    tier: low
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Orca
+        quantity: "1"
+        rarity: 2/92
+      - source: Aquanite
+        quantity: "1"
+        rarity: 6/128
+      - source: Narwhal
+        quantity: "1-2"
+        rarity: 1/200
+      - source: Stingray
+        quantity: "1-2"
+        rarity: 3/500
+      - source: Albatross
+        quantity: "1"
+        rarity: 4/500
+      - source: Pygmy kraken
+        quantity: "1"
+        rarity: 1/540
+  related_items:
+    - item_name: Umbral coral
+      slug: umbral-coral
+      relationship: product
+      description: Mature coral grown from a propagated frag
+  about: |-
+    Umbral frag is a stackable coral fragment introduced 19 November 2025 with the coral nursery farming content. Each frag can be propagated in a nursery to grow into umbral coral.
+
+    Drops come primarily from aquatic Slayer creatures such as aquanites, orcas, narwhals, and pygmy krakens. The 200 buy limit and consistent drop rates make these frags a steady passive income for Slayer players.
+  market_strategy:
+    notes:
+      - "Supply tied to aquatic Slayer task popularity"
+      - "Orca and aquanite drops anchor the bulk of GE liquidity"
+      - "Stackable nature simplifies long-term storage in the bank"
+  trading_tips:
+    - Bank umbral frags during high-demand farming spikes
+    - Cross-reference orca drop rates with umbral coral prices to size positions
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

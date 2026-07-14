@@ -12,9 +12,52 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 11000
-  about: "Krandorian hops is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Krandorian seed
+      slug: krandorian-seed
+      relationship: component
+      description: Farming seed sown to grow the hops plant
+    - item_name: Dragon bitter
+      slug: dragon-bitter
+      relationship: product
+      description: Ale brewed using four Krandorian hops
+    - item_name: Barley malt
+      slug: barley-malt
+      relationship: component
+      description: Brewing ingredient paired with the hops
+    - item_name: Compost
+      slug: compost
+      relationship: product
+      description: Secondary use via compost bin filler
+  about: "Krandorian hops are a Farming product harvested from Krandorian hops plants grown from Krandorian seeds at 21 Farming. The hops are primarily used for brewing Dragon bitter at 39 Cooking, requiring four per batch alongside barley malt, buckets of water, ale yeast, and beer glasses. Surplus hops can be tossed into a compost bin to produce regular compost."
+  market_strategy:
+    notes:
+      - "Supply driven by Farming patches and yields"
+      - "Demand tied to Cooking brewers chasing Dragon bitter"
+      - "Large 11k buy limit supports bulk flipping"
+      - "Secondary compost demand offers a soft floor"
+  trading_tips:
+    - Bulk buy during low-volume harvest dips for steady margins
+    - Pair listings with barley malt for brewer customers
+    - Watch Cooking content updates for ale demand shifts
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

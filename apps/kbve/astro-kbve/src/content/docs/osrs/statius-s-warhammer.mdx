@@ -12,9 +12,91 @@ osrs:
   lowalch: 120000
   highalch: 180000
   limit: 10
-  about: "Statius's warhammer is a members-only item in Old School RuneScape. High alchemy value: 180,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: zarosian
+    tier: high
+  properties:
+    release_date: "2023-05-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: warhammer
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 75
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 123
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 114
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Smash
+    description: "Deals between 25% and 125% of the user's max hit while lowering the target's current Defence level by 75% on a successful hit; reductions stack with further specs."
+    energy: 35
+  drop_table:
+    sources:
+      - source: Nex
+        quantity: "1"
+        rarity: Rare
+      - source: Bounty Hunter Store
+        quantity: "1"
+        rarity: Always (450 points)
+  related_items:
+    - item_name: Statius's full helm
+      slug: statius-s-full-helm
+      relationship: set-piece
+      description: Head slot piece of the Statius's equipment set.
+    - item_name: Statius's platebody
+      slug: statius-s-platebody
+      relationship: set-piece
+      description: Body slot piece of the Statius's equipment set.
+    - item_name: Statius's platelegs
+      slug: statius-s-platelegs
+      relationship: set-piece
+      description: Legs slot piece of the Statius's equipment set.
+    - item_name: Vesta's longsword
+      slug: vesta-s-longsword
+      relationship: alternative
+      description: Sister Zarosian weapon focused on slash damage instead of crush.
+  about: "Statius's warhammer is a Zarosian-themed crush weapon purchasable from the Bounty Hunter Store for 450 points. Its raw crush attack and strength bonuses make it one of the strongest single-target hammers in the game, but its real draw is the Smash special attack, which can stack heavy Defence reductions on a target. The weapon must be activated for 10 million coins before it can be used outside specific PvP-style arenas."
+  market_strategy:
+    notes:
+      - "Activation cost of 10m coins is non-refundable, so buyers prefer pre-activated copies for plug-and-play loadouts."
+      - "PvP tournaments, Castle Wars updates, and Last Man Standing meta shifts drive price spikes."
+      - "Bounty Hunter Store supply keeps a floor on price; flips above shop-equivalent cost are short-lived."
+  trading_tips:
+    - "Track Bounty Hunter point rates - when points are cheap to farm, the market floods and price dips."
+    - "List ahead of weekend PvP events when defence-stripping specs are in highest demand."
+  history:
+    - date: "2023-05-24"
+      description: "Released as part of the Bounty Hunter rework, reintroducing the classic Statius warhammer."
+    - date: "2025-01-15"
+      description: "Activation cost reduced from 50m to 10m coins and the Smash Defence reduction was buffed from 30% to 75%."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

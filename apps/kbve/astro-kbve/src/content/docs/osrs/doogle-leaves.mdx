@@ -1,6 +1,6 @@
 ---
 title: Doogle leaves | OSRS Price Data
-description: "Doogle leaves: A tasty herb, good for seasoning.. High alch: 1 GP, GE limit: 15."
+description: "Doogle leaves: A tasty herb, good for seasoning. High alch: 1 GP, GE limit: 15."
 osrs:
   id: 1573
   name: Doogle leaves
@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Doogle leaves is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: herb
+    tier: low
+  properties:
+    release_date: "2003-07-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.007
+    options:
+      - Eat
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 1
+      materials:
+        - item_name: "Doogle leaves"
+          quantity: 1
+        - item_name: "Raw sardine"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: "Seasoned sardine"
+      slug: "seasoned-sardine"
+      relationship: product
+      description: "Combine with a raw sardine to season it — needed during Gertrude's Cat."
+    - item_name: "Raw sardine"
+      slug: "raw-sardine"
+      relationship: component
+      description: "Pairs with doogle leaves to produce a seasoned sardine."
+    - item_name: "Ogre bellows"
+      slug: "ogre-bellows"
+      relationship: alternative
+      description: "Used alongside doogle leaves during Big Chompy Bird Hunting."
+  about: "Doogle leaves are a low-tier members herb used to season raw sardines for Gertrude's Cat and as an ingredient during Big Chompy Bird Hunting. They spawn in three locations: behind Gertrude's house west of Varrock, near the swaying tree in the Fremennik region, and east of the gnome glider in Feldip Hills. Spawns respawn every 100 ticks (~60 seconds)."
+  market_strategy:
+    notes:
+      - "Tiny GE buy limit (15 / 4h) keeps speculation negligible."
+      - "Demand is mostly quest-driven — Gertrude's Cat and Big Chompy Bird Hunting."
+      - "Supply via free spawns means GE price hovers near spawn-route opportunity cost."
+  trading_tips:
+    - "Picking spawns is faster than buying for most ironmen-adjacent flows."
+    - "Bulk buy/sell is impractical — limit is too small for serious flipping."
+    - "Useful as a chat-quest filler for new accounts running Gertrude's Cat."
+  history:
+    - date: "2003-07-28"
+      description: "Released with the Gertrude's Cat quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

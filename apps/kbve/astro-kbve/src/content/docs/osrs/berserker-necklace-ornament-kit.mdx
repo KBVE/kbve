@@ -13,8 +13,61 @@ osrs:
   highalch: 3000
   limit: 4
   about: "Berserker necklace ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-04-11"
+    weight: 0.5
+    tradeable: true
+    equipable: false
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+  material:
+    type: jewellery
+    tier: ornament
+  treasure_trail:
+    tier: hard
+    clue_type: hard
+    rarity: "1/1625"
+  drop_table:
+    - source: "Reward casket (hard)"
+      quantity: "1"
+      rarity: "1/1625"
+      notes: "Only available from hard clue scroll caskets."
+  recipes:
+    - item_name: "Berserker necklace (or)"
+      tools:
+        - "Hands"
+      materials:
+        - item_name: "Berserker necklace"
+          quantity: 1
+        - item_name: "Berserker necklace ornament kit"
+          quantity: 1
+      output_quantity: 1
+      notes: "Combine the kit with a berserker necklace. Result is untradeable; can be detached to reverse."
+  relationships:
+    - item_name: "Berserker necklace"
+      relationship: component
+      notes: "Required base item for the ornament kit."
+    - item_name: "Berserker necklace (or)"
+      relationship: component
+      notes: "Cosmetic ornamental version produced by combining the kit."
+  history:
+    - date: "2019-04-11"
+      description: "Released with the Treasure Trails Expansion and Easter 2019 update."
+    - date: "2019-09-19"
+      description: "Examine text reworded from 'Use on the Berserker necklace to trim it with gold' to current wording."
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Pick up during hard clue dry spells; very low buy limit forces patience.\""
+      - "sell_strategy: \"Sell to cosmetic collectors and clue completionists.\""
+      - "profit_potential: \"Cosmetic-only premium; price tracks hard clue volume.\""
+      - "risk_level: \"medium\""
+  trading_tips:
+    - "Buy limit of 4 per 4 hours severely restricts flips."
+    - "Daily volume ~100 — set patient bid/ask spreads."
+    - "Combined version is untradeable but reversible via detach."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

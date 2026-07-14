@@ -1,6 +1,6 @@
 ---
 title: Dragonfruit tree seed | OSRS Price Data
-description: "Dragonfruit tree seed: Plant in a plantpot of soil to grow a sapling.. High alch: 258 GP, GE limit: 200."
+description: "Dragonfruit tree seed is a members farming seed requiring 81 Farming. High alch: 258 GP, GE limit: 200."
 osrs:
   id: 22877
   name: Dragonfruit tree seed
@@ -12,55 +12,67 @@ osrs:
   lowalch: 172
   highalch: 258
   limit: 200
-  item:
+  material:
     type: seed
+    tier: high
+  properties:
+    release_date: "2019-01-10"
     tradeable: true
-    stackable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
-    requirements:
-      farming: 81
-  farming:
-    patch_type: fruit tree
-    growth_time: 960
-    payment: 15 coconuts
-    xp:
-      planting: 140
-      check_health: 17335
-    yield: Dragonfruit
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: farming
+      level: 81
+      xp: 140
+      materials:
+        - item_name: Dragonfruit tree seed
+          quantity: 1
+        - item_name: Plant pot (filled)
+          quantity: 1
+      tools:
+        - Seed dibber
+      output_quantity: 1
   related_items:
-    - item_id: 22929
-      item_name: Dragonfruit
+    - item_name: Dragonfruit
       slug: dragonfruit
       relationship: product
-      description: Harvested fruit from tree
-    - item_id: 5289
-      item_name: Palm tree seed
+      description: Harvested yield from the dragonfruit tree
+    - item_name: Dragonfruit tree sapling
+      slug: dragonfruit-tree-sapling
+      relationship: product
+      description: Sapling grown from this seed
+    - item_name: Palm tree seed
       slug: palm-tree-seed
-      relationship: alternative
-      description: Lower tier fruit tree option
-    - item_id: 5974
-      item_name: Coconut
+      relationship: downgrade
+      description: Lower-tier fruit tree seed
+    - item_name: Coconut
       slug: coconut
-      relationship: alternative
-      description: Protection payment for dragonfruit
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Fruit Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 81 Farming |
-
-    Plant in fruit tree patches to grow dragonfruit trees.
-
-    Growth Time: 16 hours
-
-    Payment: 15 coconuts (optional protection)
-
-    XP: 140 (planting) + 17,335 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: component
+      description: Protection payment to the farmer (15 coconuts)
+  about: "Dragonfruit tree seeds are the highest-level fruit tree seed in Old School RuneScape, requiring 81 Farming to plant in a fruit tree patch. They yield 140 XP on planting and 17,335 XP on check-health, making them a staple of high-XP fruit tree runs. Trees take roughly 16 hours to mature and can be protected from disease by paying a nearby farmer 15 coconuts. Mature trees regrow indefinitely, producing dragonfruit harvested for 70 XP each, used in stews and other consumables."
+  market_strategy:
+    notes:
+      - "Top-tier fruit tree XP makes seeds steadily sought"
+      - "Hespori and high-level Farming bossing drive supply"
+      - "Demand correlates with Farming bot waves"
+      - "200 buy limit caps speculation"
+  trading_tips:
+    - Stock up before Farming-related updates
+    - Flip in bulk during peak Hespori clears
+    - Compare against palm seed XP per GP for arbitrage
+  history:
+    - date: "2019-01-10"
+      description: Added with The Kebos Lowlands update as the highest fruit tree tier.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

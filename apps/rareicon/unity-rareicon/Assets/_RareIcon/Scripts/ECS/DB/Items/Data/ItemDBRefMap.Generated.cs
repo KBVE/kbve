@@ -191,6 +191,8 @@ namespace RareIcon
             { "gold-plated-shield", ItemId.GoldPlatedShield },
             { "needle-arrow", ItemId.NeedleArrow },
             { "stonehead-arrow", ItemId.StoneheadArrow },
+            { "candelabrum-stand", ItemId.CandelabrumStand },
+            { "starship-kit", ItemId.StarshipKit },
         };
     }
 }

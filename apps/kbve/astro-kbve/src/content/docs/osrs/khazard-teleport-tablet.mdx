@@ -12,9 +12,69 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Khazard teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: teleport-tablet
+    tier: low
+  properties:
+    release_date: "2020-09-30"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 78
+      xp: 76
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Water rune
+          quantity: 4
+        - item_name: Astral rune
+          quantity: 2
+      tools:
+        - Lunar lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Base material for teleport tablet creation.
+    - item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: Required rune for lunar teleport tablets.
+    - item_name: Astral rune
+      slug: astral-rune
+      relationship: component
+      description: Required rune for lunar spellbook magic.
+  about: "The Khazard teleport tablet teleports the user to Port Khazard, near the Combat Training Camp and east of Tree Gnome Village. Created at a lunar lectern with 78 Magic on the Lunar spellbook, it is a convenient consumable for ranged and slayer task travel."
+  market_strategy:
+    notes:
+      - "High volume makes flipping easy at scale"
+      - "Profitable to craft via lunar lectern as a Magic XP method"
+      - "Buy limit increased from 100 to 10,000 boosts liquidity"
+  trading_tips:
+    - Stock up when Magic training is incentivised by updates
+    - Flip during weekend slayer task volume spikes
+  history:
+    - date: "2020-09-30"
+      description: "Introduced as part of the Lunar teleport tablets update."
+    - date: "2020-10-07"
+      description: "Became tradeable on the Grand Exchange."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

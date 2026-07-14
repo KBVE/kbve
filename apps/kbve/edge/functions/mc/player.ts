@@ -36,7 +36,7 @@ const handlers: Record<string, Handler> = {
     if (serverErr) return serverErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_save_player", {
+    const { data, error } = await supabase.schema("mc").rpc("service_save_player", {
       p_snapshot: snapshot,
     });
 
@@ -59,7 +59,7 @@ const handlers: Record<string, Handler> = {
     if (serverErr) return serverErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_load_player", {
+    const { data, error } = await supabase.schema("mc").rpc("service_load_player", {
       p_player_uuid: player_uuid as string,
       p_server_id: server_id as string,
     });

@@ -12,9 +12,60 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: null
-  about: "Imperial rosé is a members-only item in Old School RuneScape. High alchemy value: 240 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: drink
+    tier: low
+  properties:
+    release_date: "25 September 2024"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 16 Hitpoints on drink."
+        duration: 0
+      - description: "Temporarily boosts Slayer by 1 level."
+        duration: 0
+      - description: "Drains Attack by 5 levels."
+        duration: 0
+      - description: "Drains Agility by 1 level."
+        duration: 0
+  shops:
+    - shop_name: Moonrise Wines
+      location: Aldarin, Varlamore
+      price: 400
+      currency: Coins
+      stock: 20
+  related_items:
+    - item_name: Imperial steak
+      slug: imperial-steak
+      relationship: alternative
+      description: "Other Varlamore high-end consumable"
+  about: |-
+    Imperial rosé is a herbal wine sold from Moonrise Wines in Aldarin, introduced with the Varlamore: The Rising Darkness update.
+
+    Drinking restores 16 Hitpoints and grants a +1 Slayer boost while draining Attack by 5 and Agility by 1. According to lore, the rosé features flavours of watermelon, pineapple, marrentill, and tarromin.
+  market_strategy:
+    notes:
+      - "Shop-bought; price tracks Varlamore travel convenience"
+      - "Niche +1 Slayer boost use case for clue puzzles"
+  trading_tips:
+    - Buy directly from Moonrise Wines rather than the GE for predictable pricing
+  history:
+    - date: "25 September 2024"
+      description: "Released with the Varlamore: 'The Rising Darkness' update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

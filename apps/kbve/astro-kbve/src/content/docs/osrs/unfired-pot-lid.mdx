@@ -12,9 +12,53 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 100
-  about: "Unfired pot lid is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.198
+    options:
+      - Drop
+    alchable: true
+  recipes:
+    - skill: crafting
+      level: 25
+      xp: 20
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Potter's wheel
+      output_quantity: 1
+  related_items:
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Raw material shaped on a potter's wheel
+    - item_name: Pot lid
+      slug: pot-lid
+      relationship: product
+      description: Fired result after using a pottery oven
+  about: "Unfired pot lid is a Crafting intermediate used during One Small Favour. Players shape soft clay on a potter's wheel at level 25 Crafting for 20 experience and then fire it in a pottery oven to produce a finished pot lid."
+  market_strategy:
+    notes:
+      - "Tight 100 buy limit and niche demand keep volume low"
+      - "Mainly bought by One Small Favour completers and collectors"
+      - "Soft clay cost dominates margin"
+  trading_tips:
+    - Price tracks the soft clay floor with a small handling premium
+    - Restock activity spikes during quest helper bursts
+  history:
+    - date: "2005-02-28"
+      description: "Added to the game with One Small Favour."
+    - date: "2005-07-11"
+      description: "Recoloured during the mid-July 2005 graphical pass."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

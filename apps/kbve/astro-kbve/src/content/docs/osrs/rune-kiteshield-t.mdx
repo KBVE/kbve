@@ -12,22 +12,81 @@ osrs:
   lowalch: 21760
   highalch: 32640
   limit: 8
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
   equipment:
     slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 5.443
     requirements:
       defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -2
+    defence_bonus:
+      stab: 44
+      slash: 48
+      crush: 46
+      magic: -1
+      ranged: 46
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Hard Treasure Trails
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 2621
-      item_name: Rune kiteshield (g)
+    - item_name: Rune kiteshield
+      slug: rune-kiteshield
+      relationship: variant
+      description: Standard untrimmed version with identical stats.
+    - item_name: Rune kiteshield (g)
       slug: rune-kiteshield-g
       relationship: variant
-      description: Gold-trimmed variant
-  about: |-
-    > *"Rune kiteshield with trim."*
-
-    The rune kiteshield (t) is a trimmed cosmetic variant of the standard rune kiteshield. Identical stats, requiring 40 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Gold-trimmed cosmetic variant.
+  about: "The rune kiteshield (t) is a trimmed cosmetic variant of the standard rune kiteshield, dropped exclusively from hard Treasure Trail reward caskets at roughly 1/1,625. It cannot be smithed and shares identical combat stats with the untrimmed version, requiring 40 Defence to wield."
+  market_strategy:
+    notes:
+      - "Purely cosmetic premium over the standard rune kiteshield."
+      - "Supply tied to hard clue completion rates."
+      - "Stores in costume room treasure chest, reducing active inventory drain."
+      - "Compare price gap to base kiteshield to gauge fashion premium."
+  trading_tips:
+    - Buy after large clue scroll events when supply spikes.
+    - Watch for double XP/clue weekends that flood the market.
+  history:
+    - date: "2004-05-05"
+      description: "Released as a hard clue Treasure Trail reward."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

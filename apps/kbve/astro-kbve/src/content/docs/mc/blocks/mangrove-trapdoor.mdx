@@ -1,5 +1,6 @@
 ---
 title: Mangrove Trapdoor
+template: splash
 description: |
     Minecraft Mangrove Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 309
     ref: mangrove_trapdoor
     slug: mangrove-trapdoor
+    content_rev: 1
     display_name: Mangrove Trapdoor
     material: wood
     hardness: 3
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Mangrove Trapdoor is a wooden trapdoor crafted from mangrove
+            planks that can be opened and closed by hand or redstone
+            pulse, acting as a solid barrier when shut or a passable
+            climbable surface when open above a ladder.
+        lore: |
+            Added in Java Edition 1.19 (22w11a) with the rest of the
+            mangrove wood set introduced by the Wild Update.
+    uses:
+        - title: Hidden Entrances & Redstone Doors
+          ref: mangrove_planks
+          detail: |
+              Combined with a ladder, a trapdoor placed above it can be
+              climbed through; redstone pulses can automate opening for
+              secret entrances or piston-free doors.
+    found_in:
+        - location: Crafting only
+          detail: |
+              Craft from 6 Mangrove Planks arranged in two rows to yield
+              2 trapdoors; not found naturally generated in structures.
+    faq:
+        - question: What tool mines Mangrove Trapdoor fastest?
+          answer: |
+              An axe, though any tool or bare hands will break it since it
+              has no minimum tool tier requirement.
+        - question: Can I climb through a Mangrove Trapdoor?
+          answer: |
+              Yes, if placed directly above a ladder or vine, an open
+              trapdoor lets players climb straight through it.
+        - question: Does redstone open Mangrove Trapdoor?
+          answer: |
+              Yes, a redstone signal or pulse will toggle it open and
+              closed, same as any wooden trapdoor.
+        - question: Is Mangrove Trapdoor flammable?
+          answer: |
+              Yes, like all wooden blocks it can catch fire and burn away
+              if exposed to flames or lava.
     data_version: "1.21.5"
 ---
 

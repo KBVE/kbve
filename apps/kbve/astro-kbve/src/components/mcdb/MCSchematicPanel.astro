@@ -1,0 +1,363 @@
+---
+import { MCSchematicFrontmatterSchema } from '@/data/schema';
+
+const { data } = Astro.props;
+const s = MCSchematicFrontmatterSchema.parse(data);
+
+const CHUNK = 16;
+const footprintChunksX = Math.ceil(s.dims_x / CHUNK);
+const footprintChunksZ = Math.ceil(s.dims_z / CHUNK);
+
+// Render at ~6 px per block; cap to keep oversized castles from
+// overflowing the panel.
+const RAW_PX_PER_BLOCK = 6;
+const MAX_SIZE = 280;
+const longest = Math.max(s.dims_x, s.dims_z);
+const pxPerBlock = Math.min(RAW_PX_PER_BLOCK, MAX_SIZE / longest);
+const svgW = s.dims_x * pxPerBlock;
+const svgD = s.dims_z * pxPerBlock;
+const svgH = s.dims_y * pxPerBlock;
+
+const totalCredits = s.price_credits;
+const totalKhash = s.price_khash;
+
+const categoryAccent: Record<string, string> = {
+	house: '#86efac',
+	castle: '#fcd34d',
+	tower: '#a5b4fc',
+	farm: '#fde68a',
+	shop: '#7dd3fc',
+	utility: '#cbd5e1',
+	monument: '#f9a8d4',
+};
+const accent = categoryAccent[s.category] ?? '#cbd5e1';
+---
+
+<section class="mcschem-panel not-content kbve-dashboard-page">
+	<header class="mcschem-panel__head">
+		<div>
+			<h2>{s.display_name}</h2>
+			<p class="mcschem-panel__sub">
+				<code>{s.schematic_id}</code>
+			</p>
+			<div class="mcschem-panel__pills">
+				<span class="mcschem-pill" style={`--accent:${accent}`}>
+					{s.category}
+				</span>
+				<span class="mcschem-pill mcschem-pill--tier">
+					tier {s.tier}
+				</span>
+				{
+					!s.enabled && (
+						<span class="mcschem-pill mcschem-pill--off">
+							disabled
+						</span>
+					)
+				}
+			</div>
+		</div>
+		<div class="mcschem-panel__price">
+			{
+				totalCredits > 0 && (
+					<span>
+						<strong>{totalCredits.toLocaleString()}</strong> credits
+					</span>
+				)
+			}
+			{
+				totalKhash > 0 && (
+					<span>
+						<strong>{totalKhash.toLocaleString()}</strong> khash
+					</span>
+				)
+			}
+			{totalCredits === 0 && totalKhash === 0 && <span>free</span>}
+		</div>
+	</header>
+
+	<div class="mcschem-panel__grid">
+		<dl class="mcschem-stats">
+			<div>
+				<dt>Dimensions</dt>
+				<dd>{s.dims_x}×{s.dims_y}×{s.dims_z} blocks</dd>
+			</div>
+			<div>
+				<dt>Footprint</dt>
+				<dd>
+					{footprintChunksX}×{footprintChunksZ} chunk{
+						footprintChunksX * footprintChunksZ === 1 ? '' : 's'
+					}
+				</dd>
+			</div>
+			<div>
+				<dt>Height</dt>
+				<dd>{s.dims_y} blocks</dd>
+			</div>
+			<div>
+				<dt>Resource</dt>
+				<dd><code>{s.resource_path}</code></dd>
+			</div>
+		</dl>
+
+		<figure class="mcschem-figure">
+			<figcaption>Top-down footprint</figcaption>
+			<svg
+				viewBox={`0 0 ${Math.max(svgW, 80)} ${Math.max(svgD, 80)}`}
+				width={Math.max(svgW, 80)}
+				height={Math.max(svgD, 80)}
+				role="img"
+				aria-label={`${s.display_name} footprint, ${s.dims_x} by ${s.dims_z} blocks`}>
+				<rect
+					x={0}
+					y={0}
+					width={svgW}
+					height={svgD}
+					fill="#0c0f14"
+					stroke={accent}
+					stroke-width="1">
+				</rect>
+				{
+					Array.from({ length: s.dims_x + 1 }, (_, i) => i).map(
+						(i) => (
+							<line
+								x1={i * pxPerBlock}
+								y1={0}
+								x2={i * pxPerBlock}
+								y2={svgD}
+								stroke={i % CHUNK === 0 ? '#3b4252' : '#1c2230'}
+								stroke-width={i % CHUNK === 0 ? 1 : 0.3}
+							/>
+						),
+					)
+				}
+				{
+					Array.from({ length: s.dims_z + 1 }, (_, i) => i).map(
+						(i) => (
+							<line
+								x1={0}
+								y1={i * pxPerBlock}
+								x2={svgW}
+								y2={i * pxPerBlock}
+								stroke={i % CHUNK === 0 ? '#3b4252' : '#1c2230'}
+								stroke-width={i % CHUNK === 0 ? 1 : 0.3}
+							/>
+						),
+					)
+				}
+			</svg>
+			<p class="mcschem-figure__hint">
+				1 px ≈ {(1 / pxPerBlock).toFixed(2)} blocks. Heavier gridlines mark
+				16-block chunk boundaries.
+			</p>
+		</figure>
+
+		<figure class="mcschem-figure mcschem-figure--side">
+			<figcaption>Side profile</figcaption>
+			<svg
+				viewBox={`0 0 ${Math.max(svgW, 80)} ${Math.max(svgH, 60)}`}
+				width={Math.max(svgW, 80)}
+				height={Math.max(svgH, 60)}
+				role="img"
+				aria-label={`${s.display_name} side, ${s.dims_x} wide by ${s.dims_y} tall blocks`}>
+				<rect
+					x={0}
+					y={Math.max(svgH, 60) - svgH}
+					width={svgW}
+					height={svgH}
+					fill="#0c0f14"
+					stroke={accent}
+					stroke-width="1">
+				</rect>
+				<line
+					x1={0}
+					y1={Math.max(svgH, 60)}
+					x2={Math.max(svgW, 80)}
+					y2={Math.max(svgH, 60)}
+					stroke="#3b4252"
+					stroke-width="1">
+				</line>
+			</svg>
+			<p class="mcschem-figure__hint">
+				{s.dims_y} blocks tall over a {s.dims_x}-block-wide baseline.
+			</p>
+		</figure>
+	</div>
+
+	{
+		(s.about.summary || s.about.lore) && (
+			<section class="mcschem-about">
+				{s.about.summary && (
+					<p class="mcschem-about__summary">{s.about.summary}</p>
+				)}
+				{s.about.lore && (
+					<p class="mcschem-about__lore">
+						<em>{s.about.lore}</em>
+					</p>
+				)}
+			</section>
+		)
+	}
+
+	{
+		s.tags.length > 0 && (
+			<footer class="mcschem-panel__tags">
+				{s.tags.map((t) => (
+					<span class="mcschem-tag">#{t}</span>
+				))}
+			</footer>
+		)
+	}
+</section>
+
+<style>
+	.mcschem-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: 1rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.6rem;
+		background: var(--sl-color-bg-nav);
+	}
+
+	.mcschem-panel__head {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		align-items: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.mcschem-panel__head h2 {
+		margin: 0;
+	}
+
+	.mcschem-panel__sub {
+		margin: 0.2rem 0 0.4rem;
+		color: var(--sl-color-gray-3);
+		font-size: 0.85em;
+	}
+
+	.mcschem-panel__pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.mcschem-pill {
+		display: inline-block;
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		font-size: 0.78em;
+		background: color-mix(in srgb, var(--accent, #cbd5e1) 25%, transparent);
+		color: var(--accent, #cbd5e1);
+		border: 1px solid var(--accent, #cbd5e1);
+		text-transform: capitalize;
+	}
+
+	.mcschem-pill--tier {
+		--accent: #94a3b8;
+	}
+
+	.mcschem-pill--off {
+		--accent: #f87171;
+	}
+
+	.mcschem-panel__price {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.15rem;
+		font-size: 0.95em;
+	}
+
+	.mcschem-panel__price strong {
+		color: var(--sl-color-white);
+	}
+
+	.mcschem-panel__grid {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: start;
+	}
+
+	@media (max-width: 720px) {
+		.mcschem-panel__grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.mcschem-stats {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		row-gap: 0.4rem;
+		column-gap: 0.75rem;
+		margin: 0;
+	}
+
+	.mcschem-stats > div {
+		display: contents;
+	}
+
+	.mcschem-stats dt {
+		color: var(--sl-color-gray-3);
+		font-size: 0.85em;
+	}
+
+	.mcschem-stats dd {
+		margin: 0;
+	}
+
+	.mcschem-figure {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		align-items: flex-start;
+	}
+
+	.mcschem-figure figcaption {
+		font-size: 0.85em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.mcschem-figure svg {
+		max-width: 100%;
+		height: auto;
+		border-radius: 0.3rem;
+	}
+
+	.mcschem-figure__hint {
+		margin: 0;
+		font-size: 0.75em;
+		color: var(--sl-color-gray-4);
+	}
+
+	.mcschem-about {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+
+	.mcschem-about__lore {
+		color: var(--sl-color-gray-3);
+		font-size: 0.92em;
+	}
+
+	.mcschem-panel__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+		border-top: 1px solid var(--sl-color-gray-6);
+		padding-top: 0.5rem;
+	}
+
+	.mcschem-tag {
+		font-size: 0.75em;
+		color: var(--sl-color-gray-3);
+		padding: 0.05rem 0.4rem;
+		border-radius: 0.3rem;
+		background: var(--sl-color-bg);
+		border: 1px solid var(--sl-color-gray-6);
+	}
+</style>

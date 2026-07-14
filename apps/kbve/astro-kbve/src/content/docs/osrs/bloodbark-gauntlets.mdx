@@ -12,9 +12,99 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 70
-  about: "Bloodbark gauntlets is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bloodbark
+    tier: high
+  properties:
+    release_date: "2021-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options:
+      - Wear
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements:
+      magic: 60
+      defence: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 5
+      slash: 4
+      crush: 6
+      magic: 5
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 77
+      xp: 0
+      materials:
+        - item_name: Splitbark gauntlets
+          quantity: 1
+        - item_name: Blood rune
+          quantity: 100
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Blood spell healing
+      description: Each equipped bloodbark piece increases blood spell healing by 2 percent; the full set converts 35 percent of damage dealt by blood spells into healing.
+  related_items:
+    - item_name: Splitbark gauntlets
+      slug: splitbark-gauntlets
+      relationship: component
+      description: Base armour infused at the Blood Altar to create bloodbark gauntlets.
+    - item_name: Bloodbark helm
+      slug: bloodbark-helm
+      relationship: set-piece
+      description: Matching head slot piece of the bloodbark set.
+    - item_name: Bloodbark body
+      slug: bloodbark-body
+      relationship: set-piece
+      description: Matching body slot piece of the bloodbark set.
+    - item_name: Bloodbark legs
+      slug: bloodbark-legs
+      relationship: set-piece
+      description: Matching legs slot piece of the bloodbark set.
+    - item_name: Bloodbark boots
+      slug: bloodbark-boots
+      relationship: set-piece
+      description: Matching feet slot piece of the bloodbark set.
+  about: |-
+    Bloodbark gauntlets are the hands slot piece of the bloodbark armour set, created by infusing splitbark gauntlets with 100 blood runes at the Blood Altar after learning the secret of infusion. They require 60 Magic and 60 Defence to wear.
+  market_strategy:
+    notes:
+      - "Demand tracks Magic and Defence pures levelling at the Blood Altar."
+      - "Limited supply because crafting consumes 100 blood runes and a splitbark base."
+  trading_tips:
+    - Buy splitbark gauntlets cheap and craft when blood rune prices dip.
+    - Sell during clue scroll or PvM gear meta shifts toward magic defence.
+  history:
+    - date: "2021-01-27"
+      description: "Bloodbark gauntlets released alongside the Bloodbark armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

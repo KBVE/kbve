@@ -1,6 +1,6 @@
 ---
 title: Raw rainbow crab meat | OSRS Price Data
-description: "Raw rainbow crab meat: I should try cooking this.. High alch: 180 GP."
+description: "Raw rainbow crab meat is a Sailing-era cooking input from rainbow crabs. High alch: 180 GP."
 osrs:
   id: 31700
   name: Raw rainbow crab meat
@@ -12,9 +12,56 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: null
-  about: "Raw rainbow crab meat is a members-only item in Old School RuneScape. High alchemy value: 180 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Cooking
+      level: 77
+      experience: 12
+      output_quantity: 1
+      materials:
+        - item_name: Rainbow crab
+          quantity: 1
+      tools:
+        - Knife
+  related_items:
+    - item_id: 31702
+      item_name: Rainbow crab meat
+      slug: rainbow-crab-meat
+      relationship: product
+      description: Cooked form of raw rainbow crab meat
+    - item_id: 31704
+      item_name: Burnt rainbow crab meat
+      slug: burnt-rainbow-crab-meat
+      relationship: alternative
+      description: Burnt result from failed cook
+  about: "Raw rainbow crab meat is harvested from rainbow crabs with a knife at 77 Cooking, then cooked at 77 Cooking for 200 XP into rainbow crab meat."
+  market_strategy:
+    notes:
+      - Top-tier crab meat introduced with Sailing
+      - Daily volume sits around 20 trades
+      - Supply tied to crab trapping activity
+  trading_tips:
+    - Sell raw to bulk cookers who level Cooking
+    - Track rainbow crab spawn nerfs/buffs
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "I should try cooking this."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

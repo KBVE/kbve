@@ -1,6 +1,6 @@
 ---
 title: Sliced mushrooms | OSRS Price Data
-description: "Sliced mushrooms: A bowl of sliced Bittercap mushrooms.. High alch: 25 GP, GE limit: 13,000."
+description: "Sliced mushrooms: A bowl of sliced Bittercap mushrooms. High alch: 25 GP, GE limit: 13,000."
 osrs:
   id: 7080
   name: Sliced mushrooms
@@ -12,9 +12,63 @@ osrs:
   lowalch: 16
   highalch: 25
   limit: 13000
-  about: "Sliced mushrooms is a members-only item in Old School RuneScape. High alchemy value: 25 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Sliced mushrooms is a members-only cooking ingredient used to make fried mushrooms and as a topping component for baked potato dishes."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: misc
+    tier: common
+    category: ingredient
+  properties:
+    release_date: "2006-01-30"
+    weight: 0.5
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+  recipes:
+    - item_name: Sliced mushrooms
+      skill: Cooking
+      level: 1
+      xp: 0
+      tools:
+        - Knife
+      materials:
+        - item_name: Bowl
+          quantity: 1
+        - item_name: Bittercap mushroom
+          quantity: 1
+      output_quantity: 1
+      notes: "Combine a bowl with a bittercap mushroom while carrying a knife — no Cooking level required."
+  relationships:
+    - item_name: Bittercap mushroom
+      relationship: component
+    - item_name: Bowl
+      relationship: component
+    - item_name: Fried mushrooms
+      relationship: product
+      note: "Cooked at level 46 Cooking on a fire or range for 60 Cooking XP."
+    - item_name: Mushroom & onion
+      relationship: product
+      note: "Topping for baked potato meals in Gnome cooking."
+  market_strategy:
+    notes:
+      - "summary: \"Cheap ingredient with steady demand from gnome cooking and potato topping recipes; thin margin.\""
+      - "buy_strategy: \"Buy bittercaps and bowls separately and prep if the prepared spread covers GE tax.\""
+      - "sell_strategy: \"Sell at GE mid-price; turnover is moderate but volume is capped by limited demand.\""
+      - "volatility: \"low\""
+  trading_tips:
+    - "No Cooking level required to slice — useful XP-free prep for stew/topping recipes."
+    - "Burns into worthless burnt mushrooms if Cooking is under 46."
+    - "Sells at a small loss versus raw ingredients due to GE tax; prep is convenience-priced."
+  history:
+    - date: "2006-01-30"
+      description: "Sliced mushrooms released with the Gnome cooking content."
+  examine_variants:
+    - context: Inventory
+      text: "A bowl of sliced Bittercap mushrooms."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Brown Stained Glass
+template: splash
 description: |
     Minecraft Brown Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 297
     ref: brown_stained_glass
     slug: brown-stained-glass
+    content_rev: 1
     display_name: Brown Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Brown Stained Glass is a dyed variant of glass made by smelting
+            sand with brown dye, or crafting glass with brown dye directly.
+            It has no assigned mining tool and only yields itself when
+            broken with a Silk Touch enchanted tool.
+        lore: |
+            Stained glass was added to give builders colored, see-through
+            blocks for windows and decoration without relying on wool or
+            terracotta.
+    uses:
+        - title: Brown Stained Glass Pane
+          ref: brown_stained_glass_pane
+          detail: |
+              Craft 6 brown stained glass into 16 brown stained glass panes
+              for more material-efficient window glazing.
+    found_in:
+        - location: Crafting table
+          detail: Craft from 8 glass plus 1 brown dye (yields 8 blocks).
+        - location: Trail ruins
+          detail: Generates as suspicious gravel loot and structural blocks in trail ruins.
+    faq:
+        - question: What tool do I need to mine Brown Stained Glass?
+          answer: |
+              None specifically — it has no assigned tool and breaks at the
+              same speed regardless of what is used.
+        - question: Does it drop without Silk Touch?
+          answer: |
+              No. Breaking it without Silk Touch yields nothing; only a
+              Silk Touch tool drops the block itself.
+        - question: Can mobs spawn on Brown Stained Glass?
+          answer: |
+              No. Like other stained glass, mobs cannot naturally spawn on
+              its surface, though zombie reinforcements are an exception.
+        - question: Is it flammable?
+          answer: |
+              No. Stained glass does not burn or catch fire from adjacent
+              flames or lava.
     data_version: "1.21.5"
 ---
 

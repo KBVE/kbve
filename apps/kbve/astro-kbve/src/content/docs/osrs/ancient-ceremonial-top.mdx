@@ -12,9 +12,102 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 8
-  about: "Ancient ceremonial top is a members-only item in Old School RuneScape. High alchemy value: 60,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: high
+  properties:
+    release_date: "2021-12-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.9
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 6
+  drop_table:
+    sources:
+      - source: Fumus
+        quantity: "1"
+        rarity: 1/1000
+      - source: Umbra
+        quantity: "1"
+        rarity: 1/1000
+      - source: Cruor
+        quantity: "1"
+        rarity: 1/1000
+      - source: Glacies
+        quantity: "1"
+        rarity: 1/1000
+      - source: Spiritual mage (Ancient)
+        quantity: "1"
+        rarity: 1/640
+      - source: Spiritual ranger (Ancient)
+        quantity: "1"
+        rarity: 1/640
+      - source: Spiritual warrior (Ancient)
+        quantity: "1"
+        rarity: 1/640
+  related_items:
+    - item_name: Ancient ceremonial legs
+      slug: ancient-ceremonial-legs
+      relationship: set-piece
+      description: Matching leg armor
+    - item_name: Ancient ceremonial mask
+      slug: ancient-ceremonial-mask
+      relationship: set-piece
+      description: Matching head piece
+    - item_name: Ancient ceremonial gloves
+      slug: ancient-ceremonial-gloves
+      relationship: set-piece
+      description: Matching gloves
+    - item_name: Ancient ceremonial boots
+      slug: ancient-ceremonial-boots
+      relationship: set-piece
+      description: Matching boots
+  about: "Ancient ceremonial top is a Zarosian body slot item dropped by NPCs in the Ancient Prison. Provides +6 Prayer bonus matching monk's robe top stats and grants god protection against Zarosian dungeon NPCs."
+  market_strategy:
+    notes:
+      - "Dropped from Ancient Prison NPCs"
+      - "Part of full Zarosian ceremonial set"
+      - "Prayer bonus +6 like monk top"
+      - "Cosmetic appeal for prayer training"
+  trading_tips:
+    - "Pairs with other ceremonial set pieces for cosmetic value"
+    - "Drop rates from spiritual mobs (1/640) make supply steady"
+  history:
+    - date: "2021-12-16"
+      description: "Added to the game as part of Zarosian Ancient Prison drops."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

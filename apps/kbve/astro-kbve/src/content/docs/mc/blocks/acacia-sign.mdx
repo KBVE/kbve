@@ -1,5 +1,6 @@
 ---
 title: Acacia Sign
+template: splash
 description: |
     Minecraft Acacia Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 200
     ref: acacia_sign
     slug: acacia-sign
+    content_rev: 1
     display_name: Acacia Sign
     material: wood
     hardness: 1
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Acacia Sign is a placeable text-display block crafted from
+            acacia planks and a stick. It can be placed on top of or on the
+            side of other blocks and holds custom, dyeable text.
+        lore: |
+            Signs let water and lava flow around them without being
+            destroyed, making them a handy tool for controlling fluids.
+    uses:
+        - title: Labeling and Redstone Builds
+          ref: acacia_planks
+          detail: |
+              Used to label chests, farms, and builds, and to block fluid
+              flow while remaining passable to entities.
+        - title: Furnace Fuel
+          ref: charcoal
+          detail: |
+              As a wooden item it can be smelted as furnace fuel, burning
+              one item per sign.
+    found_in:
+        - location: Crafted from Acacia Planks
+          detail: Six acacia planks and one stick craft three acacia signs.
+        - location: Igloos and taiga villages
+          detail: Generic signs generate naturally in some igloo and village structures.
+    faq:
+        - question: What is the best tool to mine Acacia Sign?
+          answer: |
+              An axe breaks it fastest, though any tool or bare hands
+              will still drop it.
+        - question: Is a specific tool tier required?
+          answer: |
+              No. It always drops as an item, regardless of tool.
+        - question: Can Acacia Sign burn?
+          answer: |
+              Yes, it is flammable, unlike the Crimson and Warped variants.
+        - question: Can I customize the text on a sign?
+          answer: |
+              Yes, signs support editable front and back text, dye colors,
+              glowing text with glow ink sacs, and can be waxed to lock
+              the text permanently.
     data_version: "1.21.5"
 ---
 

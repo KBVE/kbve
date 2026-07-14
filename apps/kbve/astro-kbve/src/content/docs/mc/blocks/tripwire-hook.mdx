@@ -1,5 +1,6 @@
 ---
 title: Tripwire Hook
+template: splash
 description: |
     Minecraft Tripwire Hook — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 370
     ref: tripwire_hook
     slug: tripwire-hook
+    content_rev: 1
     display_name: Tripwire Hook
     material: redstone
     hardness: 0
@@ -24,10 +26,62 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tripwire_hook
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - redstone_component
+        - overworld
+    about:
+        description: |
+            The Tripwire Hook is a redstone component that, when connected
+            to another hook by a taut Tripwire string line, detects entities
+            crossing the line and emits a redstone signal to power nearby
+            mechanisms.
+        lore: |
+            Added alongside Tripwire in the Adventure Update (1.0.0) as a
+            way to build traps and detection circuits.
+    uses:
+        - title: Crossbow
+          ref: crossbow
+          detail: |
+              Combined with sticks, string, and an iron ingot to craft a
+              crossbow.
+        - title: Trapped Chest
+          ref: trapped_chest
+          detail: |
+              Not made from tripwire hooks directly, but tripwire circuits
+              are commonly wired to trapped chests and dispensers for
+              trap builds.
+    found_in:
+        - location: Jungle Pyramid
+          detail: Four tripwire hooks generate naturally as part of the pyramid's dart-trap mechanism.
+        - location: Trial Chamber
+          detail: Several spawn near dispensers as trap components.
+        - location: Crafting
+          detail: Craft from one iron ingot, one stick, and one wood plank to get two hooks.
+    faq:
+        - question: What tool do I need to break a Tripwire Hook?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: How far apart can two tripwire hooks be?
+          answer: |
+              Up to 40 blocks of string between them still forms a valid
+              tripwire circuit.
+        - question: Does a Tripwire Hook emit light?
+          answer: |
+              No, it emits no light and is fully transparent to line of
+              sight and passing mobs.
+        - question: Can I disarm a tripwire without triggering it?
+          answer: |
+              Yes. Breaking the connecting string with shears removes it
+              without sending a signal to the hooks.
     data_version: "1.21.5"
 ---
 

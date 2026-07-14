@@ -8,14 +8,52 @@ img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&c
 description: Daily Log for January 29th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 29,'
+    accent: every year.
+    lede: 'The January 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jan 28'
+          href: /journal/01-28/
+        - label: 'Jan 30 →'
+          href: /journal/01-30/
+    related:
+        - title: 'Previous · Jan 28'
+          copy: 'Step back a day to the January 28th log.'
+          href: /journal/01-28/
+          icon: calendar
+        - title: 'Next · Jan 30'
+          copy: 'Jump ahead to the January 30th log.'
+          href: /journal/01-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1569396116180-210c182bedb8?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Unreal Engine Skeleton Animation
 
@@ -25,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     It has been way too long of an issue, but I am making some better progress!
     I believe it might be the C++ code that I am using to track the animation state?
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   **Hashmap**
 
@@ -55,7 +101,9 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
     -   7:30am  -   `Payment`
 
@@ -146,3 +194,7 @@ import { Adsense } from '@/components/astropad';
                 ```
 
             ^ That is the example for the password validation.
+
+</BentoProse>
+
+</BentoDoc>

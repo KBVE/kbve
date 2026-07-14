@@ -12,9 +12,82 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: null
-  about: "Shattered banner is a members-only item in Old School RuneScape. High alchemy value: 600 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: "2022-01-19"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: cloth
+    tier: cosmetic
+    primary_material: cloth
+  equipment:
+    slot: weapon
+    weapon_type: banner
+    attack_speed: 6
+    two_handed: false
+    tradeable: true
+    weight: 2.267
+    requirements:
+      attack: 1
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 26426
+      item_name: Trailblazer banner
+      slug: trailblazer-banner
+      relationship: variant
+      description: Banner from Leagues IV - Trailblazer Reloaded.
+    - item_id: 26425
+      item_name: Twisted banner
+      slug: twisted-banner
+      relationship: variant
+      description: Banner from Leagues II - Twisted League.
+  about: |-
+    Shattered banner is a cosmetic members reward from Leagues III - Shattered Relics.
+
+    Purchased from the Leagues Reward Shop for 500 League points.
+
+    | Slot | Stats |
+    |------|-------|
+    | Weapon | All bonuses +0 |
+
+    Used for:
+    - Cosmetic display
+    - Banner stand furniture in league hall
+    - Player house decoration
+  market_strategy:
+    notes:
+      - "Cosmetic-only with no stat bonuses"
+      - "Demand driven by league nostalgia"
+      - "Limited supply from completed league"
+  trading_tips:
+    - Cosmetic banners hold steady prices outside of league seasons.
+    - Spikes when new league content references prior leagues.
+    - No GE buy limit - large bulk trades possible.
+  history:
+    - date: "2022-01-19"
+      description: "Added to the game."
+    - date: "2022-03-16"
+      description: "Became obtainable through the Leagues Reward Shop for 500 League points."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

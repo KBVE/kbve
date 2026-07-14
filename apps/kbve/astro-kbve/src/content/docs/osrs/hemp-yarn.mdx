@@ -1,6 +1,6 @@
 ---
 title: Hemp yarn | OSRS Price Data
-description: "Hemp yarn: Spun from hemp.. High alch: 21 GP, GE limit: 13,000."
+description: "Hemp yarn is spun on a spinning wheel and feeds canvas weaving and Sailing trawling net recipes. High alch: 21 GP, GE limit: 13,000."
 osrs:
   id: 31466
   name: Hemp yarn
@@ -12,9 +12,99 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 13000
-  about: "Hemp yarn is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: crafting-component
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 39
+      xp: 60
+      materials:
+        - item_name: Hemp
+          quantity: 1
+      tools:
+        - Spinning wheel
+      product: Hemp yarn
+      product_id: 31466
+      output_quantity: 1
+      ticks: 3
+      members_only: true
+    - skill: crafting
+      level: 75
+      materials:
+        - item_name: Hemp yarn
+          quantity: 2
+      tools:
+        - Loom
+      product: Bolt of canvas
+      output_quantity: 1
+      members_only: true
+    - skill: sailing
+      level: 76
+      materials:
+        - item_name: Hemp yarn
+          quantity: 6
+        - item_name: Camphor plank
+          quantity: 4
+        - item_name: Rope
+          quantity: 1
+        - item_name: Adamantite bar
+          quantity: 4
+        - item_name: Cupronickel bar
+          quantity: 2
+        - item_name: Ray barb
+          quantity: 4
+      product: Hemp trawling net
+      output_quantity: 1
+      facility: Sailing workbench
+      members_only: true
+  related_items:
+    - item_name: Hemp
+      slug: hemp
+      relationship: component
+      description: Raw input spun on a spinning wheel into yarn.
+    - item_name: Bolt of canvas
+      slug: bolt-of-canvas
+      relationship: product
+      description: Higher-tier weaving product made from two hemp yarn.
+    - item_name: Hemp trawling net
+      slug: hemp-trawling-net
+      relationship: product
+      description: Sailing-era trawling net using bulk hemp yarn.
+  about: |-
+    Hemp yarn is the Sailing-era spinning-wheel product, produced at Crafting 39 from raw hemp. It
+    feeds two parallel pipelines: bulk canvas weaving (2 yarn per bolt) and a high-level Sailing
+    trawling-net recipe. The 13,000 GE buy limit and shared input with canvas bolts make it a
+    reliable mid-tier flip target.
+  market_strategy:
+    title: Yarn Pipeline
+    notes:
+      - Margin per spin is razor-thin; volume matters more than per-craft profit
+      - Demand follows Sailing trawling-net popularity and canvas bolt construction projects
+      - Watch raw hemp price; ingredient spikes squeeze the yarn margin to zero
+      - 13,000 GE buy limit gives bulk flippers room to operate
+  trading_tips:
+    - Bulk-buy raw hemp when crafters dump stock between updates
+    - List yarn just below instant-buy to clear pre-spike inventory
+    - Track bolt of canvas prices as a leading indicator
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing skill launch and the spinning-wheel hemp recipe.
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.025
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

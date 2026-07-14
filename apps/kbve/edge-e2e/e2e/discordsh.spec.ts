@@ -20,9 +20,12 @@ describe('Discordsh — Smoke Tests', () => {
 	it('should return 200 for OPTIONS preflight without JWT', async () => {
 		const res = await fetch(`${BASE_URL}/discordsh`, {
 			method: 'OPTIONS',
+			headers: { Origin: 'https://kbve.com' },
 		});
 		expect(res.status).toBe(200);
-		expect(res.headers.get('access-control-allow-origin')).toBe('*');
+		expect(res.headers.get('access-control-allow-origin')).toBe(
+			'https://kbve.com',
+		);
 	});
 
 	// -- Method --

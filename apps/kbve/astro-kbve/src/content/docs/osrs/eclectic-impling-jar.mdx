@@ -12,58 +12,58 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 18000
-  item:
-    type: impling jar
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: hunter-loot
+    tier: mid
+  properties:
+    release_date: "2007-06-11"
     tradeable: true
-    hunter_level: 50
-    barehand_level: 70
-  loot:
-    average_value: 1291
-    notable_drops:
-      - item_name: Clue scroll (medium)
-        rarity: 1/25
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Loot
+      - Destroy
+    worn_options: []
+    alchable: true
+    destroy: "If you drop this it will disappear. Are you sure you want to do this?"
+  drop_table:
+    sources:
+      - source: Eclectic impling (Puro-Puro / overworld)
+        quantity: "1"
+        rarity: Always
   related_items:
-    - item_id: 11260
-      item_name: Impling jar
+    - item_name: Impling jar
       slug: impling-jar
       relationship: component
-      description: Required to catch implings
-    - item_id: 2801
-      item_name: Clue scroll (medium)
+      description: Empty jar returned after looting an impling capture.
+    - item_name: Clue scroll (medium)
       slug: clue-scroll-medium
       relationship: alternative
-      description: Main target drop from eclectic implings
-    - item_id: 2577
-      item_name: Ranger boots
+      description: Headline drop the eclectic jar is farmed for.
+    - item_name: Ranger boots
       slug: ranger-boots
       relationship: alternative
-      description: Valuable reward from medium clue scrolls
-  about: |-
-    Notable Drops:
-
-    | Item | Rarity | Quantity |
-    |------|--------|----------|
-    | Medium clue scroll | 1/25 | 1 |
-    | Snape grass | 1/10 | 3 |
-    | Oak plank | 1/10 | 4 |
-    | Watermelon seed | 1/10 | 3 |
-    | Gold ore | 1/10 | 5 |
-    | Battlestaff | 1/100 | 1 |
-    | Rune dagger | 1/100 | 1 |
-
-    Average Loot Value: ~1,291 gp
-
-    Medium Clue Farming:
-    - Best method for obtaining medium clue scrolls
-    - 1/25 drop rate makes it efficient
-    - Used for ranger boots hunting
+      description: High-value reward chased through medium clue scrolls.
+  about: "The eclectic impling jar is the mid-tier impling capture loot rolled for medium clue scrolls (1/25) plus a small pool of utility drops including snape grass, oak planks, watermelon seeds, gold ore, battlestaff, and rune dagger. Average loot value sits near 1,291 gp, and the jar is a staple supply of medium clues for ironmen and the Grand Exchange alike."
   market_strategy:
     notes:
-      - Popular for clue scroll farming
-      - Often profitable to open in bulk
-      - Price fluctuates with ranger boots demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Popular for clue scroll farming and bulk opening"
+      - "Often profitable to open in bulk when medium clue rewards spike"
+      - "Price tracks ranger boots demand closely"
+  trading_tips:
+    - "Open in bulk during ranger boot price spikes to chase clue value"
+    - "Sell empty jars back to the market to recover supply cost"
+  history:
+    - date: "2007-06-11"
+      description: "Released with Impetuous Impulses and the introduction of Puro-Puro."
+    - date: "2015-02-26"
+      description: "Made tradeable on the Grand Exchange."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

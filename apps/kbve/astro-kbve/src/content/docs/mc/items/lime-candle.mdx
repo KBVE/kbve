@@ -1,5 +1,6 @@
 ---
 title: Lime Candle
+template: splash
 description: |
     Minecraft Lime Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1311
     ref: lime_candle
     slug: lime-candle
+    content_rev: 1
     display_name: Lime Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Lime Candle is a dyeable light-emitting block crafted from string, honeycomb,
+            and lime dye. When lit with flint and steel, it produces a light level of 3, and up
+            to four candles of the same color can be grouped on one block for a combined light
+            level of 12.
+        lore: |
+            A soft lime-hued wax taper, dyed to match a builder's colorful vision.
+    faq:
+        - question: How do I light a Lime Candle?
+          answer: |
+              Use flint and steel, a fire charge, or a flaming projectile to light it.
+        - question: Can I place a Lime Candle on a cake?
+          answer: |
+              Yes, a single candle of any color can be placed on an uneaten cake to make a
+              candle cake, and it drops if the cake is eaten or destroyed.
+        - question: Can I recolor a Lime Candle after dyeing it?
+          answer: |
+              No, once a candle is dyed it cannot be recolored.
+        - question: How many Lime Candles can occupy one block space?
+          answer: |
+              Up to four candles of the same color can share one block space, each adding
+              3 light levels when lit.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

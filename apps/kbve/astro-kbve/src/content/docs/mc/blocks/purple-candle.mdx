@@ -1,5 +1,6 @@
 ---
 title: Purple Candle
+template: splash
 description: |
     Minecraft Purple Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 914
     ref: purple_candle
     slug: purple-candle
+    content_rev: 1
     display_name: Purple Candle
     material: stone
     hardness: 0.1
     blast_resistance: 0.1
     best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Purple Candle is a purple-dyed variant of the candle,
+            crafted by combining any candle with purple dye. Up to four
+            candles can occupy one block space, and each lit candle adds
+            a light level of 3, up to 12 when all four are lit.
+        lore: |
+            Candles were added in the Caves & Cliffs update as the first
+            light source players can place on cake and use as an
+            enchanting-table alternative to lanterns.
+    uses:
+        - title: Light Source
+          ref: purple_candle
+          detail: |
+              Light with flint and steel, a fire charge, or a flaming
+              projectile for a light level of 3 per candle, stacking up to
+              four in one block.
+        - title: Cake Topper
+          ref: purple_candle_cake
+          detail: |
+              Place directly on an uneaten cake to create a Cake with
+              Purple Candle.
+    found_in:
+        - location: Crafted
+          detail: Combine a candle (string + honeycomb) with purple dye at a crafting table.
+        - location: Trail Ruins
+          detail: Purple and other colored candles generate naturally inside suspicious gravel at trail ruins.
+    faq:
+        - question: How much light does a stack of Purple Candles give?
+          answer: |
+              Each lit candle adds light level 3, so one candle gives 3,
+              two give 6, three give 9, and four give the maximum of 12.
+        - question: Can I waterlog a Purple Candle?
+          answer: |
+              Yes, but waterlogged candles cannot be lit, and water
+              extinguishes any candle that is already burning.
+        - question: Is the Purple Candle flammable?
+          answer: |
+              No. Candles do not catch fire from lava or spreading fire
+              despite being a light source.
+        - question: Can I change a Purple Candle back to a different color?
+          answer: |
+              No. Once dyed, a candle's color is permanent — you would need
+              to craft a fresh candle and dye it again.
     data_version: "1.21.5"
 ---
 

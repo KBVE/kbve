@@ -26,6 +26,7 @@ pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(15);
 /// Use [`SupaClient::new`] when you already have the URL + key, or
 /// [`SupaClient::from_env`] to read them from the process env.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Resource))]
 pub struct SupaClient {
     base_url: String,
     api_key: String,
@@ -61,10 +62,14 @@ impl SupaClient {
         api_key: impl Into<String>,
         timeout: Duration,
     ) -> Self {
-        let http = Client::builder()
-            .timeout(timeout)
-            .build()
-            .unwrap_or_else(|_| Client::new());
+        let mut builder = Client::builder();
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            builder = builder.timeout(timeout);
+        }
+        #[cfg(target_arch = "wasm32")]
+        let _ = timeout;
+        let http = builder.build().unwrap_or_else(|_| Client::new());
 
         Self {
             base_url: base_url.into().trim_end_matches('/').to_string(),

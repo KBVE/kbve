@@ -11,14 +11,20 @@ sidebar:
     order: 5
 ---
 
-import DeferredAstroGithubHero from '@/components/github/GithubHero/DeferredAstroGithubHero.astro';
-import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
+import DeferredAstroGithubHero from '@kbve/astro/components/social/github/GithubHero/DeferredAstroGithubHero.astro';
+import AstroGithubTabs from '@kbve/astro/components/social/github/Tabs/AstroGithubTabs.astro';
+import AstroGithubRepoCatalog from '@kbve/astro/components/social/github/RepoCatalog/AstroGithubRepoCatalog.astro';
+import AstroGithubActivity from '@kbve/astro/components/social/github/Activity/AstroGithubActivity.astro';
+import AstroGithubProjectBoard from '@kbve/astro/components/social/github/ProjectBoard/AstroGithubProjectBoard.astro';
+import AstroGithubContribute from '@kbve/astro/components/social/github/Contribute/AstroGithubContribute.astro';
 
 <div class="ring-page kbve-dashboard-page relative min-h-screen w-full bg-transparent">
 
 # GitHub
 
-Community contributors, open-source projects, and live org activity.
+Open-source games, cloud infrastructure, and the contributors building them.
+PRs land against `dev`, ship through CI to `main`. Pick an issue, fork the
+repo, open a worktree — the walkthrough lives under the **Contribute** tab.
 
 <DeferredAstroGithubHero
     title="Top Contributors"
@@ -34,6 +40,12 @@ Community contributors, open-source projects, and live org activity.
     newTabLabel="(opens in new tab)"
 />
 
+<AstroGithubTabs>
+    <AstroGithubActivity slot="activity" />
+    <AstroGithubProjectBoard slot="board" />
+    <AstroGithubRepoCatalog slot="repos" />
+    <AstroGithubContribute slot="contribute" />
+</AstroGithubTabs>
+
 </div>
 
-<ScrollRing prev="/feature/" next="/projects/" prevLabel="Features" nextLabel="Projects" />

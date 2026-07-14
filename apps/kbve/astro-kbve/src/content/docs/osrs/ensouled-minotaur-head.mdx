@@ -12,9 +12,57 @@ osrs:
   lowalch: 91
   highalch: 136
   limit: 3000
-  about: "Ensouled minotaur head is a members-only item in Old School RuneScape. High alchemy value: 136 coins. Grand Exchange buy limit: 3,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ensouled_head
+    tier: low
+  properties:
+    release_date: "7 January 2016"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Minotaur
+        quantity: "1"
+        rarity: "1/50"
+  related_items:
+    - item_name: Ensouled goblin head
+      slug: ensouled-goblin-head
+      relationship: downgrade
+      description: Lower XP (130)
+    - item_name: Ensouled monkey head
+      slug: ensouled-monkey-head
+      relationship: upgrade
+      description: Higher XP (435)
+    - item_name: Ensouled aviansie head
+      slug: ensouled-aviansie-head
+      relationship: upgrade
+      description: Master-tier XP (1,234)
+  about: "Ensouled minotaur head is reanimated using the Basic Reanimation spell from the Arceuus spellbook, requiring 16 Magic and granting 32 Magic XP per cast. Defeating the reanimated minotaur awards 364 Prayer XP. Cost-effective early-game Prayer training method."
+  market_strategy:
+    notes:
+      - "Early Prayer training method"
+      - "Low Magic requirement (16)"
+      - "Supply from Minotaurs in Stronghold of Security"
+  trading_tips:
+    - "Basic Reanimation cost: 4 body, 2 nature runes — cheap GP/XP"
+    - Bulk-stack noted via head courier alts at Arceuus altar
+  history:
+    - date: "7 January 2016"
+      description: "Released as part of the Zeah: Great Kourend update."
+    - date: "28 April 2021"
+      description: "Examine text slightly revised."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,21 +12,53 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  material:
+    type: cloth
+    tier: mid
   equipment:
     slot: legs
-    requirements: {}
+    weight: 0.1
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
     - item_id: 12347
       item_name: Gold elegant shirt
       slug: gold-elegant-shirt
       relationship: set-piece
       description: Matching elegant shirt
-  about: |-
-    > *"A rather elegant pair of men's gold pantaloons."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the gold elegant clothing set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "A rather elegant pair of men's gold pantaloons. Purely cosmetic treasure trail reward with no combat stats. Part of the gold elegant clothing set."
+  market_strategy:
+    notes:
+      - Cosmetic clue reward — demand driven by fashionscape
+      - Thin GE volume; large flips difficult
+      - Set premium when paired with the gold elegant shirt
+  history:
+    - date: "2014-06-12"
+      description: Released with the Treasure Trails Expansion as a medium clue reward.
+    - date: "2014-12-10"
+      description: "Renamed from 'Gold ele' legs' to 'Gold elegant legs' in the Trading Post update."
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

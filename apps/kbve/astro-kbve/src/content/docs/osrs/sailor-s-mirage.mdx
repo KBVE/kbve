@@ -1,6 +1,6 @@
 ---
 title: Sailor's mirage | OSRS Price Data
-description: "Sailor's mirage: Vodka, apple, lime and... cactus spines?. High alch: 12 GP."
+description: "Sailor's mirage: Vodka, apple, lime and... cactus spines? High alch: 12 GP."
 osrs:
   id: 31261
   name: Sailor's mirage
@@ -12,9 +12,43 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Sailor's mirage is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: Boosts Hunter by 1 level.
+      - description: Drains Sailing, Attack, Strength, and Defence by 2% + 2 levels.
+  shops:
+    - shop_name: "'Squawking' Steve Beanie"
+      location: The Pandemonium pub
+      price: 20
+  about: "Sailor's mirage is a Demonic Pacts League cocktail that briefly boosts Hunter while draining combat and Sailing skills."
+  market_strategy:
+    notes:
+      - Niche league cocktail
+      - Cheap shop alternative when in-region
+      - Limited demand outside Hunter boosters
+  trading_tips:
+    - Buy direct from Steve Beanie at 20 gp for arbitrage
+    - Stock up before Hunter content sessions
+  history:
+    - date: "2025-11-19"
+      update: Demonic Pacts League
+      description: Added with the Demonic Pacts league launch.
+  properties:
+    release_date: "2025-11-19"
+    update: Demonic Pacts League
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drink
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

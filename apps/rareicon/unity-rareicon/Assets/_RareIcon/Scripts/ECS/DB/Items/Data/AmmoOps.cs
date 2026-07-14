@@ -3,9 +3,9 @@ namespace RareIcon
     /// <summary>Static lookup for arrow-tier items so RangedAttack / ArcherRefill / WeaponSelect can treat <see cref="ItemId.Arrow"/>, <see cref="ItemId.NeedleArrow"/>, and <see cref="ItemId.StoneheadArrow"/> as a single ammo family. Pure switches on numeric constants — Burst-safe, no managed alloc. Damage multipliers stay in lockstep with itemdb buy_price tiers (cheap wood &lt; tipped variants).</summary>
     public static class AmmoOps
     {
-        public const ushort WOODEN_ARROW    = 517;  // ItemId.Arrow
-        public const ushort NEEDLE_ARROW    = 561;  // ItemId.NeedleArrow
-        public const ushort STONEHEAD_ARROW = 562;  // ItemId.StoneheadArrow
+        public const ushort WOODEN_ARROW    = 517;
+        public const ushort NEEDLE_ARROW    = 561;
+        public const ushort STONEHEAD_ARROW = 562;
 
         public static bool IsArrow(ushort itemId)
         {

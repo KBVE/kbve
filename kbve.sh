@@ -186,10 +186,13 @@ atomic_function() {
         return 1
     fi
 
-    # Create worktree
+    # Create worktree. Skip LFS smudge: a single bad/oversized pointer (e.g. a
+    # chuckrpg .umap) 404s and aborts the whole `worktree add`, and most worktrees
+    # never touch the large binaries anyway — pull them on demand with `git lfs pull
+    # -I "<path>/**"`. Also keeps LFS bandwidth down.
     echo "Creating atomic worktree at: $worktree_dir"
     echo "Branch: $branch_name (based on dev)"
-    git worktree add "$worktree_dir" -b "$branch_name" "origin/dev"
+    GIT_LFS_SKIP_SMUDGE=1 git worktree add "$worktree_dir" -b "$branch_name" "origin/dev"
 
     # Copy .env if it exists in the main repo
     if [ -f "$main_repo/.env" ]; then
@@ -284,10 +287,13 @@ create_worktree() {
     echo "Fetching latest from origin..."
     git fetch origin "$base_branch"
 
-    # Create worktree
+    # Create worktree. Skip LFS smudge: a single bad/oversized pointer (e.g. a
+    # chuckrpg .umap) 404s and aborts the whole `worktree add`, and most worktrees
+    # never touch the large binaries anyway — pull them on demand with `git lfs pull
+    # -I "<path>/**"`. Also keeps LFS bandwidth down.
     echo "Creating worktree at: $worktree_dir"
     echo "Branch: $branch_name (based on $base_branch)"
-    git worktree add "$worktree_dir" -b "$branch_name" "origin/$base_branch"
+    GIT_LFS_SKIP_SMUDGE=1 git worktree add "$worktree_dir" -b "$branch_name" "origin/$base_branch"
 
     # Copy .env if it exists in the main repo (gitignored, won't be in worktree)
     if [ -f "$main_repo/.env" ]; then
@@ -617,6 +623,182 @@ audit_worktree_stale() {
     fi
 }
 
+# Parallel-prune removable worktrees. Removes those that are clean or only have
+# lockfile churn (Cargo.lock / pnpm-lock / etc). Worktrees with real uncommitted
+# work are skipped. `git worktree prune` keeps branch refs, so commits are never
+# lost (only the checkout) and any worktree can be recreated with -worktree.
+# Flags: --merged  restrict to branches merged into origin/dev or origin/main
+#        --dry-run preview only
+audit_worktree_prune() {
+    local main_repo; main_repo=$(git rev-parse --show-toplevel)
+    local cpus; cpus=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 8)
+    local jobs="${WT_PRUNE_JOBS:-$cpus}"
+    local dry=0 merged_only=0 batch_size="$jobs" arg prev=""
+    for arg in "$@"; do
+        [ "$arg" = "--dry-run" ] && dry=1
+        [ "$arg" = "--merged" ] && merged_only=1
+        [ "$prev" = "--batch" ] && batch_size="$arg"
+        prev="$arg"
+    done
+
+    echo "Fetching origin/dev + origin/main ..."
+    git fetch origin dev main --quiet 2>/dev/null
+    local dev_sha main_sha
+    dev_sha=$(git rev-parse origin/dev 2>/dev/null)
+    main_sha=$(git rev-parse origin/main 2>/dev/null)
+
+    local remove_file skip_file
+    remove_file=$(mktemp); skip_file=$(mktemp)
+
+    while IFS= read -r wt; do
+        [ "$wt" = "$main_repo" ] && continue
+        [ -d "$wt" ] || continue
+
+        local st; st=$(git -C "$wt" status --porcelain 2>/dev/null)
+        if [ -n "$st" ]; then
+            local nonlock; nonlock=$(printf '%s\n' "$st" | grep -vE 'Cargo\.lock|pnpm-lock\.yaml|package-lock\.json|yarn\.lock|\.lock$')
+            [ -n "$nonlock" ] && { echo "$wt" >> "$skip_file"; continue; }
+        fi
+
+        if [ "$merged_only" = "1" ]; then
+            local h; h=$(git -C "$wt" rev-parse HEAD 2>/dev/null)
+            if ! { git merge-base --is-ancestor "$h" "$dev_sha" 2>/dev/null || git merge-base --is-ancestor "$h" "$main_sha" 2>/dev/null; }; then
+                echo "$wt" >> "$skip_file"; continue
+            fi
+        fi
+        echo "$wt" >> "$remove_file"
+    done < <(git worktree list --porcelain | awk '/^worktree /{print $2}')
+
+    local n s
+    n=$(wc -l < "$remove_file" | tr -d ' '); s=$(wc -l < "$skip_file" | tr -d ' ')
+    echo "Removable: $n   Skipped (real uncommitted work): $s"
+
+    if [ "$dry" = "1" ]; then
+        echo "(dry-run) would remove $n worktrees with ${jobs}-way parallel rm."
+        rm -f "$remove_file" "$skip_file"; return 0
+    fi
+    if [ "$n" -eq 0 ]; then echo "Nothing to prune."; rm -f "$remove_file" "$skip_file"; return 0; fi
+
+    local before; before=$(df -h . | tail -1 | awk '{print $4}')
+    echo "Pruning $n worktrees in batches of $batch_size (${jobs}-way parallel) ..."
+
+    local tmpd; tmpd=$(mktemp -d)
+    split -l "$batch_size" "$remove_file" "$tmpd/b_"
+    local done=0 bi=0 chunk
+    for chunk in "$tmpd"/b_*; do
+        bi=$((bi + 1))
+        local cn; cn=$(wc -l < "$chunk" | tr -d ' ')
+        tr '\n' '\0' < "$chunk" | xargs -0 -P "$jobs" -n1 rm -rf
+        git worktree prune
+        done=$((done + cn))
+        echo "  batch $bi: -$cn  (total $done/$n, free $(df -h . | tail -1 | awk '{print $4}'))"
+    done
+    rm -rf "$tmpd"
+
+    local after; after=$(df -h . | tail -1 | awk '{print $4}')
+    echo "Pruned $done worktrees. Free: ${before} -> ${after}  (branch refs preserved)."
+    rm -f "$remove_file" "$skip_file"
+}
+
+# Forcefully wipe EVERY worktree, keeping only the main repo (dev). Unlike
+# -worktree-prune this does NOT spare dirty worktrees — uncommitted work in any
+# worktree is destroyed. Branch refs survive (`git worktree prune` keeps them),
+# so any worktree is recreatable via -worktree. Removal runs in parallel and
+# self-heals: unlock locked worktrees, force-remove, rm -rf leftovers, prune
+# stale .git/worktrees metadata, then prune detached branch refs.
+# Flags: --yes / -y  skip the confirmation prompt
+nuke_worktrees() {
+    local main_repo; main_repo=$(git rev-parse --show-toplevel 2>/dev/null)
+    if [ -z "$main_repo" ] || [ ! -d "$main_repo/.git" ]; then
+        echo "ERROR: Could not resolve git repository root."; return 1
+    fi
+
+    local current_dir; current_dir=$(pwd -P)
+    if [ "$current_dir" != "$(cd "$main_repo" && pwd -P)" ]; then
+        echo "ERROR: Run -nuke from the main repo root ($main_repo)."
+        echo "  You are inside: $current_dir"
+        return 1
+    fi
+
+    local cpus; cpus=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 8)
+    local jobs="${WT_NUKE_JOBS:-$cpus}"
+    local assume_yes=0 arg
+    for arg in "$@"; do
+        case "$arg" in --yes|-y) assume_yes=1 ;; esac
+    done
+
+    local nuke_file; nuke_file=$(mktemp)
+    while IFS= read -r wt; do
+        [ "$wt" = "$main_repo" ] && continue
+        echo "$wt" >> "$nuke_file"
+    done < <(git worktree list --porcelain | awk '/^worktree /{print $2}')
+
+    local n; n=$(wc -l < "$nuke_file" | tr -d ' ')
+    if [ "$n" -eq 0 ]; then
+        echo "No worktrees to nuke. Only the main repo exists."
+        git worktree prune; rm -f "$nuke_file"; return 0
+    fi
+
+    echo "=== WORKTREE NUKE ==="
+    echo "Will FORCE-REMOVE $n worktree(s), keeping only: $main_repo"
+    echo ""
+    git worktree list | grep -v "^$main_repo " || true
+    echo ""
+    echo "WARNING: this destroys ALL uncommitted changes in those worktrees."
+    echo "         (branch refs are preserved; checkouts are not)"
+
+    if [ "$assume_yes" != "1" ]; then
+        printf "Type 'nuke' to proceed: "
+        local confirm; read -r confirm
+        if [ "$confirm" != "nuke" ]; then
+            echo "Aborted."; rm -f "$nuke_file"; return 1
+        fi
+    fi
+
+    local before; before=$(df -h . | tail -1 | awk '{print $4}')
+
+    # Unlock any locked worktrees + best-effort git removal first (serial, fast),
+    # then blast leftover directories in parallel.
+    echo ""
+    echo "[1/2] Detaching $n worktree(s) from git..."
+    local i=0
+    while IFS= read -r wt; do
+        i=$((i + 1))
+        printf "\r  git remove %d/%d  %-40.40s" "$i" "$n" "$(basename "$wt")"
+        git worktree unlock "$wt" 2>/dev/null || true
+        git worktree remove --force "$wt" 2>/dev/null || true
+    done < "$nuke_file"
+    printf "\r  git remove %d/%d  done%-40s\n" "$n" "$n" ""
+
+    echo "[2/2] Blasting leftover directories with $jobs parallel workers..."
+    local progress_file; progress_file=$(mktemp)
+    tr '\n' '\0' < "$nuke_file" | xargs -0 -P "$jobs" -n1 -I{} sh -c '
+        rm -rf "$1" 2>/dev/null
+        echo x >> "'"$progress_file"'"
+        printf "\r  removed %s/'"$n"'  %-40.40s" "$(wc -l < "'"$progress_file"'" | tr -d " ")" "$(basename "$1")"
+    ' _ {} 2>/dev/null || true
+    printf "\r  removed %d/%d  done%-40s\n" "$n" "$n" ""
+    rm -f "$progress_file"
+
+    git worktree prune
+    git worktree prune --verbose 2>/dev/null || true
+
+    local remaining; remaining=$(git worktree list --porcelain | awk '/^worktree /{print $2}' | grep -vx "$main_repo" || true)
+    if [ -n "$remaining" ]; then
+        echo ""
+        echo "WARNING: some worktrees survived (likely held open by an editor):"
+        echo "$remaining"
+        echo "  Close any IDE on those paths, then re-run: $0 -nuke -y"
+        rm -f "$nuke_file"; return 1
+    fi
+
+    local after; after=$(df -h . | tail -1 | awk '{print $4}')
+    echo ""
+    echo "Nuked $n worktree(s). Free: ${before} -> ${after}"
+    echo "Only the main repo remains: $main_repo  (branch refs preserved)"
+    rm -f "$nuke_file"
+}
+
 # Function to manage a tmux session
 manage_tmux_session() {
     # Assign the first argument to session_name
@@ -818,6 +1000,234 @@ build_pnpm_nx() {
     pnpm nx build "$argument"
 }
 
+# Git LFS endpoint router.
+#
+# Stock git-lfs only honors `lfs.url` from the repository-root .lfsconfig.
+# Per-tree routing isn't supported, so this wrapper injects the correct
+# Forgejo endpoint per-game via `git -c lfs.url=…` and then forwards the
+# remaining args straight to `git lfs`.
+#
+# Usage:
+#   ./kbve.sh -lfs <game> <lfs-subcommand> [args...]
+#
+# Games:
+#   chuck      → KBVE/chuck     (apps/chuckrpg/unreal-chuck/**)
+#   rareicon   → KBVE/rareicon  (apps/rareicon/**) — matches root .lfsconfig
+#
+# Examples:
+#   ./kbve.sh -lfs chuck push origin dev
+#   ./kbve.sh -lfs chuck pull
+#   ./kbve.sh -lfs chuck ls-files
+kbve_lfs() {
+    local game="$1"
+    shift 2>/dev/null || true
+    if [ -z "$game" ] || [ "$game" = "-h" ] || [ "$game" = "--help" ]; then
+        cat <<'EOF'
+Usage: ./kbve.sh -lfs <game> <lfs-subcommand> [args...]
+
+Games:
+  chuck      → https://git.kbve.com/KBVE/chuck.git/info/lfs
+  rareicon   → https://git.kbve.com/KBVE/rareicon.git/info/lfs
+  rentearth  → https://git.kbve.com/KBVE/rentearth.git/info/lfs
+  arpg       → https://git.kbve.com/KBVE/arpg.git/info/lfs
+  cryptothrone → https://git.kbve.com/KBVE/cryptothrone.git/info/lfs
+
+Standard subcommands forwarded to `git lfs`:
+  push|pull|fetch|ls-files|env|...
+
+Custom subcommands:
+  register      Register every LFS OID under the game's path prefix with the
+                game's Forgejo repo. No bytes are uploaded if the blob already
+                lives in the shared content-addressed storage (Forgejo dedups
+                across the KBVE org), so this is the cheap way to claim
+                ownership for pointers whose blobs were pushed via the root
+                .lfsconfig endpoint (e.g. by the husky pre-push hook).
+
+  ssh-push [remote] [branch]
+                Push large LFS files via SSH NodePort, bypassing HTTP upload
+                size limits. Automatically detects Forgejo SSH NodePort via
+                kubectl and temporarily switches git remote to SSH. Useful for
+                files >100MB that fail with HTTP 413 errors.
+                Default remote: forgejo-archive, default branch: dev
+
+  direct-push [remote] [branch]
+                Push large LFS files via direct.git.kbve.com, bypassing
+                Cloudflare's 100MB upload limit. Uses direct server IP access
+                for files >100MB that fail with HTTP 413 through Cloudflare.
+                Default remote: forgejo-archive, default branch: dev
+
+Examples:
+  ./kbve.sh -lfs chuck push origin dev
+  ./kbve.sh -lfs chuck pull
+  ./kbve.sh -lfs chuck fetch --all
+  ./kbve.sh -lfs chuck ls-files
+  ./kbve.sh -lfs chuck register
+  ./kbve.sh -lfs cleanroom ssh-push forgejo-archive dev
+  ./kbve.sh -lfs cleanroom direct-push forgejo-archive dev
+EOF
+        return 1
+    fi
+
+    local url path_prefix
+    case "$game" in
+        chuck)
+            url="https://git.kbve.com/KBVE/chuck.git/info/lfs"
+            path_prefix="apps/chuckrpg/unreal-chuck"
+            ;;
+        rareicon)
+            url="https://git.kbve.com/KBVE/rareicon.git/info/lfs"
+            path_prefix="apps/rareicon"
+            ;;
+        rentearth)
+            url="https://git.kbve.com/KBVE/rentearth.git/info/lfs"
+            path_prefix="apps/rentearth/unreal-rentearth"
+            ;;
+        arpg)
+            url="https://git.kbve.com/KBVE/arpg.git/info/lfs"
+            path_prefix="apps/agones/arpg/web/public/assets/arcade/arpg"
+            ;;
+        cryptothrone)
+            url="https://git.kbve.com/KBVE/cryptothrone.git/info/lfs"
+            path_prefix="apps/cryptothrone/astro-cryptothrone/public/assets"
+            ;;
+        cleanroom)
+            url="https://git.kbve.com/KBVE/cleanroom.git/info/lfs"
+            path_prefix="apps/chuckrpg/unreal-cleanroom/UnrealCleanroom"
+            ;;
+        herbmail)
+            url="https://git.kbve.com/KBVE/herbmail.git/info/lfs"
+            path_prefix="apps/herbmail/herbmail-game"
+            ;;
+        *)
+            echo "Unknown game '$game'. Known: chuck, rareicon, rentearth, arpg, cryptothrone, cleanroom, herbmail" >&2
+            return 1
+            ;;
+    esac
+
+    if [ $# -eq 0 ]; then
+        echo "Missing lfs subcommand (e.g. push, pull, fetch, ls-files, register)." >&2
+        return 1
+    fi
+
+    if [ "$1" = "path" ]; then
+        echo "$path_prefix"
+        return 0
+    fi
+
+    if [ "$1" = "register" ]; then
+        shift
+        local remote="${1:-origin}"
+        echo "→ scanning local LFS pointers under $path_prefix/"
+        local oids
+        oids=$(git lfs ls-files --long | awk -v prefix="$path_prefix/" '$0 ~ prefix {print $1}')
+        if [ -z "$oids" ]; then
+            echo "No LFS pointers found under $path_prefix/. Nothing to register."
+            return 0
+        fi
+        local count
+        count=$(printf '%s\n' "$oids" | wc -l | tr -d ' ')
+        echo "→ registering $count OIDs with $url via --object-id (bytes deduped server-side)"
+        printf '%s\n' "$oids" | xargs git -c "lfs.url=$url" lfs push --object-id "$remote"
+        return $?
+    fi
+
+    if [ "$1" = "ssh-push" ]; then
+        shift
+        local remote="${1:-forgejo-archive}"
+        local branch="${2:-dev}"
+
+        echo "=== SSH LFS Push for $game ==="
+        echo "→ Using SSH endpoint via NodePort for large file uploads"
+        echo "→ Remote: $remote"
+        echo "→ Branch: $branch"
+        echo ""
+
+        # Get SSH NodePort from kubectl
+        local ssh_nodeport
+        ssh_nodeport=$(kubectl get svc -n forgejo forgejo-ssh -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null)
+        if [ -z "$ssh_nodeport" ]; then
+            echo "ERROR: Could not get Forgejo SSH NodePort from kubectl"
+            echo "  Make sure kubectl is configured and forgejo-ssh service exists"
+            return 1
+        fi
+
+        # Get node IP
+        local node_ip
+        node_ip=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null)
+        if [ -z "$node_ip" ]; then
+            echo "ERROR: Could not get node IP from kubectl"
+            return 1
+        fi
+
+        echo "→ Forgejo SSH: $node_ip:$ssh_nodeport"
+        echo ""
+
+        # Temporarily update remote URL to use SSH
+        local original_url
+        original_url=$(git remote get-url "$remote" 2>/dev/null)
+        if [ -z "$original_url" ]; then
+            echo "ERROR: Remote '$remote' not found"
+            return 1
+        fi
+
+        local ssh_url="ssh://git@${node_ip}:${ssh_nodeport}/KBVE/${game}.git"
+        echo "→ Temporarily switching remote to SSH: $ssh_url"
+        git remote set-url "$remote" "$ssh_url"
+
+        # Push LFS objects with the game-specific endpoint
+        echo "→ Pushing LFS objects to $url"
+        echo ""
+
+        if git -c "lfs.url=$url" lfs push "$remote" "$branch" --all; then
+            echo ""
+            echo "✓ LFS push successful!"
+            status=0
+        else
+            echo ""
+            echo "✗ LFS push failed"
+            status=1
+        fi
+
+        # Restore original remote URL
+        echo ""
+        echo "→ Restoring original remote URL"
+        git remote set-url "$remote" "$original_url"
+
+        return $status
+    fi
+
+    if [ "$1" = "direct-push" ]; then
+        shift
+        local remote="${1:-forgejo-archive}"
+        local branch="${2:-dev}"
+
+        echo "=== Direct LFS Push for $game ==="
+        echo "→ Bypassing Cloudflare via direct.git.kbve.com"
+        echo "→ Remote: $remote"
+        echo "→ Branch: $branch"
+        echo ""
+
+        # Use direct.git.kbve.com subdomain which points directly to the server
+        local direct_url="https://direct.git.kbve.com/KBVE/${game}.git/info/lfs"
+
+        echo "→ Pushing LFS objects to $direct_url"
+        echo ""
+
+        if git -c "lfs.url=$direct_url" lfs push "$remote" "$branch" --all; then
+            echo ""
+            echo "✓ LFS push successful!"
+            return 0
+        else
+            echo ""
+            echo "✗ LFS push failed"
+            return 1
+        fi
+    fi
+
+    echo "→ git -c lfs.url=$url lfs $*"
+    git -c "lfs.url=$url" lfs "$@"
+}
+
 # Main execution
 case "$1" in
     -check)
@@ -941,6 +1351,10 @@ case "$1" in
         shift 2>/dev/null || true
         bash "$(git rev-parse --show-toplevel)/apps/rows/scripts/deploy-server.sh" "$@" "--project=${PROJECT}"
         ;;
+    -lfs)
+        shift
+        kbve_lfs "$@"
+        ;;
     -worktree)
         shift
         create_worktree "$@"
@@ -960,6 +1374,14 @@ case "$1" in
         ;;
     -worktree-stale)
         audit_worktree_stale
+        ;;
+    -worktree-prune)
+        shift
+        audit_worktree_prune "$@"
+        ;;
+    -nuke)
+        shift
+        nuke_worktrees "$@"
         ;;
     -db)
         if is_installed "diesel_ext"; then
@@ -1067,6 +1489,8 @@ case "$1" in
         echo "  -worktree-dirty          Show uncommitted changes per worktree"
         echo "  -worktree-gc             Remove all clean worktrees (interactive)"
         echo "  -worktree-stale          Find worktrees already merged into dev"
+        echo "  -worktree-prune [--merged] [--dry-run]  Parallel-prune clean worktrees"
+        echo "  -nuke [-y]               FORCE-wipe ALL worktrees, keep only main repo (destroys uncommitted work)"
         echo ""
         echo "Version:"
         echo "  -cargobump [pkg]   Bump Cargo.toml patch version"
@@ -1076,6 +1500,12 @@ case "$1" in
         echo "  -ue <project> [ver] Build + deploy UE5 dedicated server"
         echo "                      Projects: chuck (default), hubworld"
         echo "                      Flags: --shipping, --skip-build, --skip-deploy"
+        echo ""
+        echo "Git LFS:"
+        echo "  -lfs <game> <cmd>  Route git-lfs to per-game Forgejo endpoint"
+        echo "                     Games: chuck, rareicon"
+        echo "                     Examples: -lfs chuck push origin dev"
+        echo "                               -lfs chuck pull"
         echo ""
         echo "Utilities:"
         echo "  -check [cmds...]   Check if commands are installed"

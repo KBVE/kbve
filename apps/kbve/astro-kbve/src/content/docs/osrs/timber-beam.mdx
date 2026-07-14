@@ -1,6 +1,6 @@
 ---
 title: Timber beam | OSRS Price Data
-description: "Timber beam: A hefty beam of timber, perfect for building temples.. High alch: 1 GP, GE limit: 13,000."
+description: "Timber beam is a members construction material used to upgrade Temple of the Eye altars. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 8837
   name: Timber beam
@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Timber beam is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2005-08-23"
+    update: "Construction"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4.5
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Demonic gorilla
+        combat_level: 275
+        quantity: "30-40"
+        rarity: common
+        members_only: true
+      - source: Tortured gorilla
+        combat_level: 141
+        quantity: "20"
+        rarity: uncommon
+        members_only: true
+      - source: Skotizo
+        combat_level: 321
+        quantity: "100 (noted)"
+        rarity: uncommon
+        members_only: true
+  shops:
+    - shop_name: "Razmire Builders' Merchants"
+      location: Mort'ton
+      price: 1
+      stock: 50
+      currency: coins
+  related_items:
+    - item_id: 8786
+      item_name: Limestone brick
+      slug: limestone-brick
+      relationship: alternative
+      description: Alternative Construction building material.
+    - item_id: 960
+      item_name: Plank
+      slug: plank
+      relationship: alternative
+      description: Standard Construction building material.
+  about: "Timber beam is a members construction material primarily used in the Temple of the Eye to upgrade Runecraft altars and as a drop from demonic gorillas in the Crash Site Cavern. It is dropped in large stacks alongside other rare resources, making demonic gorillas a popular money-making target despite the low individual GE value."
+  market_strategy:
+    notes:
+      - "High Grand Exchange volume from demonic gorilla farming"
+      - "Price stays at minimum due to abundance from PvM drops"
+      - "Bulk demand from Temple of the Eye Runecraft altar upgrades"
+  trading_tips:
+    - "Buy in bulk during demonic gorilla content updates"
+    - "Sell stacks immediately after PvM trips to avoid GE freeze"
+  history:
+    - date: "2005-08-23"
+      description: "Added to the game with the release of the Construction skill."
+    - date: "2018-01-04"
+      description: "Added to the demonic gorilla drop table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

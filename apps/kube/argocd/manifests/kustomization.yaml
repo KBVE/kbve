@@ -4,6 +4,9 @@ resources:
     - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
     - argocd-server-cert.yaml
     - httproute.yaml
+    - argocd-gate-externalsecret.yaml
+    - argocd-gate-deployment.yaml
+    - argocd-gate-service.yaml
     - servicemonitor.yaml
     - prometheusrule.yaml
 patches:

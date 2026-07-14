@@ -1,5 +1,6 @@
 ---
 title: Jack o'Lantern
+template: splash
 description: |
     Minecraft Jack o'Lantern — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 346
     ref: jack_o_lantern
     slug: jack-o-lantern
+    content_rev: 1
     display_name: Jack o'Lantern
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A jack o'lantern is crafted by combining a carved pumpkin with a torch, producing a
+            block that emits the maximum light level of 15. It keeps shining even when submerged
+            underwater and can serve as the head of a snow, iron, or copper golem.
+        lore: |
+            Despite giving off maximum light, hostile mobs can still spawn on top of a jack
+            o'lantern, an odd exception among level-15 light sources.
+    faq:
+        - question: How do you craft a jack o'lantern?
+          answer: |
+              Combine a carved pumpkin with a torch in a crafting table.
+        - question: Does a jack o'lantern work underwater?
+          answer: |
+              Yes, it continues to emit light level 15 even when fully submerged.
+        - question: Can a jack o'lantern be used to build a golem?
+          answer: |
+              Yes, it can serve as the head for a snow golem, iron golem, or copper golem, and must
+              be placed last for the golem to spawn.
+        - question: Can mobs spawn on a jack o'lantern?
+          answer: |
+              Yes, unusually, hostile mobs can still spawn on top of it despite its maximum light
+              output.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

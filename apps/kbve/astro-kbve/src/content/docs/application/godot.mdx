@@ -4,6 +4,12 @@ description: |
     Godot is a cross-platform and open source game engine written in GDScript, C#, C++ and Rust.
     Godot is a free and open source game engine that offers a unique and innovative way to create 2D and 3D games for various platforms, using a node and scene system, multiple programming languages, and a community-driven development model.
 
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Godot
     order: 1310
@@ -11,39 +17,144 @@ unsplash: 1605347086577-706b21474ed7
 img: https://images.unsplash.com/photo-1605347086577-706b21474ed7?fit=crop&w=1400&h=700&q=75
 tags:
     - game-engine
+    - gamedev
     - software
+sem: 1
+ogTitle: Godot Guide — Open-Source 2D/3D Game Engine, Animation & Shaders
+ogDescription: Learn the Godot game engine — the node and scene system, GDScript vs C#, 2D sprite animation with AnimationPlayer, GDShader basics, and exporting to HTML5/Web with Supabase integration.
+jsonld:
+    type: Article
+    keywords:
+        - godot
+        - game engine
+        - gdscript
+        - gdshader
+        - godot animation
+        - 2d 3d games
+    faq:
+        - question: What is Godot?
+          answer: Godot is a free, open-source game engine for building 2D and 3D games across desktop, mobile, and web. It uses a node and scene system as its core building blocks, supports GDScript, C#, and C++, and ships under the permissive MIT license with no fees or royalties.
+        - question: What languages does Godot support?
+          answer: Godot's primary language is GDScript, a lightweight, Python-inspired language tightly integrated with the engine. It also supports C# (via .NET), and C++ or Rust through GDExtension for performance-critical code. Most gameplay logic is written in GDScript.
+        - question: What is the difference between nodes and scenes in Godot?
+          answer: A node is the smallest building block — it handles one job like a sprite, a collision shape, or a sound. A scene is a tree of nodes saved together and reused as a unit; scenes can be instanced inside other scenes, giving Godot its modular, LEGO-like structure.
+        - question: How do I animate 2D sprites in Godot?
+          answer: Use AnimatedSprite2D for frame-by-frame sprite-sheet animation with adjustable speed, looping, and finished signals, or drive any node property with an AnimationPlayer. Import a sprite sheet, slice it into frames, and play the sequence — no external rigging required.
+        - question: Can Godot export to the web?
+          answer: Yes. Godot exports games to HTML5/WebAssembly so they run in a browser. You need the matching export templates installed, and platforms like itch.io host the build. Web builds can integrate services such as Supabase via a CDN client for auth and data.
+bento:
+    badge: application · game-engine · gamedev
+    title: 'Nodes, scenes, and freedom,'
+    accent: Godot.
+    lede: >-
+        A free, open-source game engine for 2D and 3D games across desktop,
+        mobile, and web — built on a modular node and scene system, scripted in
+        GDScript, C#, or C++/Rust, and shipped under the MIT license with no
+        fees or royalties. This guide covers animation, GDShader, and building
+        for the web with Supabase integration.
+    ctas:
+        - label: Animations
+          href: '#animations'
+          primary: true
+        - label: Shaders
+          href: '#shaders'
+        - label: Build & export
+          href: '#build'
+    aside:
+        icon: box
+        title: LEGO-like by design
+        body: >-
+            Nodes are the building blocks — sprites, physics, sounds — and
+            scenes combine them into reusable, hierarchical chunks you can
+            instance anywhere. Community-driven and free from corporate
+            gate-keeping.
+        points:
+            - <strong>Animation</strong> — AnimationPlayer and AnimatedSprite2D built in.
+            - <strong>Shaders</strong> — GDShader, a GLSL-derived engine language.
+            - <strong>Web</strong> — HTML5/WASM exports with Supabase via CDN.
+    stats:
+        - { label: License, value: MIT, icon: license }
+        - { label: Language, value: GDScript, icon: code }
+        - { label: Dimensions, value: 2D + 3D, icon: render }
+        - { label: Web export, value: HTML5/WASM, icon: deploy }
+    features:
+        - title: Animations
+          icon: video
+          href: '#animations'
+          body: AnimationPlayer keyframes, AnimationTree state machines, and frame-by-frame sprite sheets with AnimatedSprite2D.
+        - title: Shaders
+          icon: render
+          href: '#shaders'
+          body: The GDShader language — shader_type contexts, processor functions, built-in I/O, uniforms, and cel shader references.
+        - title: Build & export
+          icon: deploy
+          href: '#build'
+          body: WASM configuration notes for GDExtension plus wiring a web build to Supabase for itch.io deploys.
+        - title: Guides & demos
+          icon: book
+          href: '#guides'
+          body: Official HTML5 export tutorials, export-template troubleshooting, and the GDQuest demo repository.
+    related:
+        - title: Unity
+          href: /application/unity/
+          copy: The C# engine alternative with DOTS and Burst.
+          icon: box
+        - title: Unreal
+          href: /application/unreal/
+          copy: The C++ heavyweight for high-fidelity 3D projects.
+          icon: render
+        - title: Supabase
+          href: /application/supabase/
+          copy: Auth and data for your Godot web builds.
+          icon: database
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1605347086577-706b21474ed7?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
+
+**Godot** is a free, open-source game engine for building **2D and 3D games** across desktop, mobile, and web — under the permissive MIT license with no fees or royalties. Its **node and scene** system gives a modular, LEGO-like workflow, and it supports GDScript, C#, and C++/Rust.
+
+This guide covers [animation](#animations), [shaders](#shaders), and [building/exporting](#build) including Web and Supabase.
+
+</BentoProse>
+
+<BentoProse id="information" eyebrow="The engine" heading="Information">
 
 Godot is a free, open-source game engine for creating 2D and 3D games across desktop, mobile, and web platforms—without fees or restrictive licenses.
 At its core, Godot's node and scene system provides a modular, LEGO-like approach to game design—nodes are the building blocks, handling everything from sprites to physics, and scenes combine them into reusable, hierarchical chunks you can instantiate anywhere.
 This flexibility is paired with support for multiple programming languages, including its own lightweight GDScript (a Python-inspired concept), C#, and even C++ for performance junkies, letting developers pick their comfort zone.
 
 What truly sets Godot apart is its community-driven development model, shout-out to the amazing discord community servers too!
-Built and evolved by a passionate global user base, it continues to grow through open collaboration, thus free from corporate gate-keeping, karls wet dream.
+Built and evolved by a passionate global user base, it continues to grow through open collaboration, free from corporate gate-keeping.
 With built-in editors for animation, shaders, and tilemaps, plus a permissive MIT license, Godot provides a complete toolbox for crafting anything from pixel-art platformers to expansive 3D experiences, all while remaining lightweight enough for modest hardware.
 
 
 It's no surprise that indie developers and hobbyists alike see it as a refreshing, empowering alternative to larger engines like [Unity](/application/unity/) or Unreal.
 
+</BentoProse>
 
-<Adsense />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
----
-
-## Animations
+<BentoProse id="animations" eyebrow="Bring it to life" heading="Animations">
 
 In the beloved Godot engine, animation is a powerful and flexible system that brings your game to life—allowing you to animate virtually any property of any node or object, from position and rotation to color and even custom variables.
 At the heart of this system is the AnimationPlayer node, a versatile tool that lets you create everything from simple transitions—like a character moving across the screen—to complex cinematic sequences with ease.
@@ -71,24 +182,58 @@ Remember to connect the signals for the animations, to create custom effects onc
 
 </Aside>
 
-## Guides
+</BentoProse>
+
+<BentoProse id="guides" eyebrow="Official docs" heading="Guides">
 
 -   Godot Export as HTML5 [Tutorial](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_web.html)
 -   Exporting Template for Platforms missing [Error Guide](https://godotengine.org/qa/65015/export-templates-for-this-platform-are-missing)
 
----
+</BentoProse>
 
-## Demos
+<BentoProse id="demos" eyebrow="Learn by example" heading="Demos">
 
 -   GDQuest Repo of Godot [Demos](https://github.com/GDQuest/godot-demos)
 
----
+</BentoProse>
 
-## Media
+<BentoProse id="media" eyebrow="Watch & listen" heading="Media">
 
----
+</BentoProse>
 
-## Shaders
+<BentoProse id="shaders" eyebrow="GPU effects" heading="Shaders">
+
+Godot ships its own shading language, **GDShader** (`.gdshader` files), a GLSL-derived language wired into Godot's render pipeline. For the engine-agnostic fundamentals (the GPU pipeline, shader stages, lighting models, performance budget), see the [Shaders & Rendering GDD page](/gdd/shaders/); this section covers the Godot-specific layer.
+
+### GDShader language
+
+GDShader looks like GLSL ES 3.0 but adds Godot-provided built-ins and a `shader_type` declaration that tells the engine which render path the shader plugs into.
+
+- **`shader_type`** — the first line; picks the context:
+  - `spatial` — 3D materials (mesh surfaces).
+  - `canvas_item` — 2D materials (sprites, UI, tilemaps).
+  - `particles` — compute-style particle processing.
+  - `sky` and `fog` — environment shading.
+- **Processor functions** — you fill in stage entry points: `vertex()` (per-vertex), `fragment()` (per-pixel surface output), and `light()` (per-light custom lighting).
+- **Built-in I/O** — Godot exposes inputs like `UV`, `NORMAL`, `TIME`, `SCREEN_TEXTURE`, and you write outputs such as `ALBEDO`, `ALPHA`, `EMISSION`, `ROUGHNESS`, `METALLIC` — no manual matrix wiring for the common case.
+- **`uniform`** — parameters exposed to the editor/inspector and settable from GDScript/C# at runtime (`material.set_shader_parameter(...)`).
+
+```glsl
+shader_type canvas_item;
+
+uniform vec4 tint : source_color = vec4(1.0);
+uniform float wave_speed = 2.0;
+
+void fragment() {
+    vec2 uv = UV;
+    uv.x += sin(TIME * wave_speed + UV.y * 10.0) * 0.02;
+    COLOR = texture(TEXTURE, uv) * tint;
+}
+```
+
+<Aside>
+GDShader has two front-ends: write the language directly in a `.gdshader` file, or build it with the **VisualShader** node graph (Godot compiles the graph to the same GDShader under the hood). Use the visual editor to prototype, drop to text for control.
+</Aside>
 
 ### Cel Shaders
 
@@ -96,11 +241,15 @@ This is a quick reference to a couple popular cel shaders for Godot!
 
 [eldskald's complete global cel shader](https://github.com/eldskald/godot4-cel-shader/tree/main?tab=readme-ov-file) provides a comprehensive cel shader designed for Godot 4.
 
+### Further reading
 
----
+-   Godot [Shading language reference](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/shading_language.html)
+-   Godot [Your first 2D / 3D shader](https://docs.godotengine.org/en/stable/tutorials/shaders/your_first_shader/index.html) tutorials
+-   [Shaders & Rendering](/gdd/shaders/) — engine-agnostic shader and rendering fundamentals
 
+</BentoProse>
 
-## Build
+<BentoProse id="build" eyebrow="Ship it" heading="Build">
 
 ### WASM
 
@@ -140,3 +289,7 @@ Inside of your supabase instance, make sure to allow both your main itch, in our
 Godot is a free and open-source game engine that offers a unique and innovative way to create 2D and 3D games for a wide array of platforms, from Windows and macOS to Android, iOS, and even the web, all without costing a dime or tying you to proprietary licenses.
 
 </Aside>
+
+</BentoProse>
+
+</BentoDoc>

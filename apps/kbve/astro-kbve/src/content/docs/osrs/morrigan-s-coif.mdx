@@ -1,20 +1,99 @@
 ---
 title: Morrigan's coif | OSRS Price Data
-description: "Morrigan's coif: A powerful coif.. High alch: 150,000 GP, GE limit: 10."
+description: "Morrigan's coif: A powerful coif. High alch: 150,000 GP, GE limit: 10."
 osrs:
   id: 22638
   name: Morrigan's coif
   slug: morrigan-s-coif
-  examine: A powerful coif.
+  examine: "A powerful coif."
   members: true
   icon: Morrigan's coif.png
   value: 250000
   lowalch: 100000
   highalch: 150000
   limit: 10
-  about: "Morrigan's coif is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bounty hunter armour
+    tier: high
+  equipment:
+    slot: head
+    weapon_type: none
+    weight: 0.907
+    requirements:
+      defence: 78
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -5
+      ranged: 13
+    defence_bonus:
+      stab: 8
+      slash: 11
+      crush: 14
+      magic: 8
+      ranged: 12
+    other_bonus:
+      strength: 0
+      ranged_strength: 4
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Bounty Hunter Store
+      location: Edgeville
+      price: 400
+      currency: Bounty Hunter points
+      quantity: 1
+  charges:
+    max_charges: 5000000
+  related_items:
+    - item_name: Morrigan's leather body
+      slug: morrigan-s-leather-body
+      relationship: set-piece
+      description: Body slot piece of Morrigan's ranged PvP set.
+    - item_name: Morrigan's leather chaps
+      slug: morrigan-s-leather-chaps
+      relationship: set-piece
+      description: Legs slot piece of Morrigan's ranged PvP set.
+    - item_name: Morrigan's throwing axe
+      slug: morrigan-s-throwing-axe
+      relationship: set-piece
+      description: Special-attack ammo paired with the Morrigan set.
+  about: "Morrigan's coif is the Bounty Hunter head slot piece of Morrigan's PvP ranged set, purchased for 400 BH points and activated with 5M coins."
+  market_strategy:
+    notes:
+      - Untradeable after activation, activation requires 5M coins.
+      - Demand limited to PvP locations that allow PvP-only gear.
+      - Full set effect grants +15% ranged special attack accuracy.
+  trading_tips:
+    - Buy only if you actively play Bounty Hunter or PvP minigames.
+    - Untradeable status makes flipping post-activation impossible.
+  history:
+    - date: "2023-04-05"
+      description: Ranged strength bonus increased from +0 to +4.
+    - date: "2023-05-24"
+      description: Released with the Bounty Hunter is Back! update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-05-24"
+    update: "Bounty Hunter is Back!"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Uncharge
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

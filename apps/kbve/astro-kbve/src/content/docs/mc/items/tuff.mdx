@@ -1,5 +1,6 @@
 ---
 title: Tuff
+template: splash
 description: |
     Minecraft Tuff — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 12
     ref: tuff
     slug: tuff
+    content_rev: 1
     display_name: Tuff
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Tuff is an ornamental stone block that generates underground as blobs below Y=0 in every biome, and also appears around sulfur springs and inside trial chamber loot areas. It requires a wooden pickaxe or better to mine, has a hardness of 1.5, and a blast resistance of 6, and it cannot be ignited by lava.
+            Beyond its natural generation, tuff is a popular decorative building material, since a stonecutter can turn it into polished tuff, chiseled tuff, tuff bricks, slabs, stairs, and walls.
+        lore: |
+            First previewed at Minecraft Live 2020, tuff was formally added to Java Edition 1.17, modeled after the real-world volcanic rock formed from compressed ash.
+    faq:
+        - question: Where does Tuff generate?
+          answer: |
+            Tuff generates as blobs underground below Y=0 in all biomes, around sulfur springs, and inside trial chamber loot rooms.
+        - question: What tool is needed to mine Tuff?
+          answer: |
+            A wooden pickaxe or better; mining it without a pickaxe yields nothing.
+        - question: What can Tuff be turned into?
+          answer: |
+            A stonecutter can turn Tuff into Polished Tuff, Chiseled Tuff, Tuff Bricks, and their respective slabs, stairs, and walls.
+        - question: Can Tuff burn or be renewed?
+          answer: |
+            Tuff cannot catch fire from lava and is a non-renewable resource, so mined tuff cannot be regenerated.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

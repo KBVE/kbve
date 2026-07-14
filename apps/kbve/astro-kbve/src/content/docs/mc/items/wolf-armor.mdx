@@ -1,5 +1,6 @@
 ---
 title: Wolf Armor
+template: splash
 description: |
     Minecraft Wolf Armor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 837
     ref: wolf_armor
     slug: wolf-armor
+    content_rev: 1
     display_name: Wolf Armor
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Wolf Armor is protective gear crafted from six armadillo scutes that can be equipped on
+            an adult tamed wolf. It absorbs incoming damage until its durability is depleted, and can
+            be repaired with additional scutes or by combining two damaged armors.
+        lore: |
+            Forged from armadillo shells, this resilient gear transforms loyal companions into
+            armored protectors.
+    faq:
+        - question: Can baby wolves wear armor?
+          answer: |
+              No, only adult tamed wolves can be equipped with wolf armor.
+        - question: What damage types does wolf armor not protect against?
+          answer: |
+              Drowning, freezing, suffocation, magic, thorns, the Wither effect, void damage, entity
+              cramming, and the /kill command all bypass wolf armor's protection.
+        - question: How do I remove armor from a wolf?
+          answer: |
+              Use shears on the armored wolf to unequip it, unless it is enchanted with Curse of
+              Binding, which prevents removal in survival mode.
+        - question: Does dyeing wolf armor change its protection or durability?
+          answer: |
+              No, dyeing is purely cosmetic and has no effect on the armor's protective value or
+              durability.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

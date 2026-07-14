@@ -1,5 +1,6 @@
 ---
 title: Quartz Slab
+template: splash
 description: |
     Minecraft Quartz Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 588
     ref: quartz_slab
     slug: quartz-slab
+    content_rev: 1
     display_name: Quartz Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: quartz_slab
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Quartz Slab is a decorative half-height variant of quartz
+            block, used for detailed building and trim. Two slabs stacked
+            together reform a full, fully opaque double slab.
+        lore: |
+            Added in Java Edition 1.5 (snapshot 13w02a) alongside the
+            original quartz block family, long before pillar and brick
+            variants existed.
+    uses:
+        - title: Chiseled Quartz Block
+          ref: chiseled_quartz_block
+          detail: |
+              Two Quartz Slabs combine in a crafting grid to form a
+              Chiseled Quartz Block.
+    found_in:
+        - location: Crafting Table
+          detail: Craft 3 of any quartz block variant (regular, chiseled, or pillar) into 6 Quartz Slabs.
+        - location: Stonecutter
+          detail: Cut 1 Block of Quartz into 2 Quartz Slabs.
+    faq:
+        - question: Do Quartz Slabs generate naturally?
+          answer: |
+              No, they are a purely crafted or stonecut decorative block
+              and do not appear in any natural structure.
+        - question: Are Quartz Slabs waterloggable?
+          answer: |
+              Yes, water can occupy the same space as a single slab
+              without the slab breaking or the water draining.
+        - question: How much does mining a Quartz Slab drop?
+          answer: |
+              A single slab drops 1 slab, while a double slab (formed by
+              stacking two) drops 2 slabs when mined with a pickaxe.
+        - question: Why use Quartz Slabs for defense?
+          answer: |
+              Two stacked Quartz Slabs have a higher blast resistance than
+              a single Block of Quartz, making double-slab walls slightly
+              tougher against explosions.
     data_version: "1.21.5"
 ---
 

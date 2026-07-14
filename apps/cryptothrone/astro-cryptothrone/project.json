@@ -23,7 +23,32 @@
 			"options": {
 				"cwd": "apps/cryptothrone/astro-cryptothrone",
 				"commands": [
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs cryptothrone pull --include='apps/cryptothrone/astro-cryptothrone/public/assets/**') || echo 'cryptothrone LFS pull skipped (no creds / offline) — assets may be pointer stubs'",
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
+				],
+				"parallel": false
+			},
+			"cache": true
+		},
+		"build-embed": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/public/embed"],
+			"options": {
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
+				"commands": [
+					"NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.embed.config.mts"
+				],
+				"parallel": false
+			},
+			"cache": true
+		},
+		"build-discord": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/public/discord"],
+			"options": {
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
+				"commands": [
+					"NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.discord.config.mts"
 				],
 				"parallel": false
 			},
@@ -59,6 +84,14 @@
 				"commands": ["nx exec -- astro sync"],
 				"parallel": false
 			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
+				"command": "vitest run --coverage --config vitest.config.ts"
+			},
+			"cache": true
 		}
 	}
 }

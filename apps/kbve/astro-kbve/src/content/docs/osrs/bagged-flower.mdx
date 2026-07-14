@@ -1,6 +1,6 @@
 ---
 title: Bagged flower | OSRS Price Data
-description: "Bagged flower: You can plant this in your garden.. High alch: 3,000 GP, GE limit: 10,000."
+description: "Bagged flower: You can plant this in your garden. High alch: 3,000 GP, GE limit: 10,000."
 osrs:
   id: 8451
   name: Bagged flower
@@ -12,9 +12,64 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 10000
-  about: "Bagged flower is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    use: Plant in a formal garden in a Player-Owned House
+    level: 66
+    xp: 70
+    farming_xp: 70
+    tool_required: Filled watering can
+  shops:
+    - shop_name: "Garden Supplier"
+      location: Falador Park
+      stock: 5
+      price: 5000
+    - shop_name: "Farming Guild Garden Supplier"
+      location: Farming Guild
+      stock: 5
+      price: 5000
+  related_items:
+    - item_id: 8452
+      item_name: Bagged plant 1
+      slug: bagged-plant-1
+      relationship: alternative
+      description: Other formal garden flora option
+    - item_id: 8447
+      item_name: Bagged dead tree
+      slug: bagged-dead-tree
+      relationship: alternative
+      description: Bagged decorative option for non-formal gardens
+  about: "Bagged flower is a members-only decorative used in formal gardens of a Player-Owned House, purchased from Garden suppliers and planted at level 66 Construction for 70 XP in both Construction and Farming."
+  market_strategy:
+    notes:
+      - Shop sells at value of 5,000 so flipping vs GE is the play
+      - Demand spikes with Construction training trends
+      - High alch of 3,000 leaves headroom for floor disposal
+      - Buy limit of 10,000 is rarely a constraint
+      - Volume sits low so patience is needed on resell
+  trading_tips:
+    - Watch for Construction efficiency guides surfacing demand
+    - Stock from Garden supplier when offers stagnate on GE
+    - Formal garden builders are the main consumer pool
+  history:
+    - date: "2006-05-31"
+      update: "Player-Owned Houses"
+      description: Bagged flower released with the Construction skill launch.
+  properties:
+    release_date: "2006-05-31"
+    update: "Player-Owned Houses"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

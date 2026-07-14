@@ -12,9 +12,70 @@ osrs:
   lowalch: 1040
   highalch: 1560
   limit: 8
-  about: "Mithril plateskirt (t) is a free-to-play item in Old School RuneScape. High alchemy value: 1,560 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Mithril plateskirt (t) is a trimmed cosmetic variant of the standard mithril plateskirt, obtained as a reward from medium Treasure Trail clue caskets. High alchemy value: 1,560 coins. Grand Exchange buy limit: 8 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    equipable: true
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 7.257
+  material:
+    type: metal
+    tier: mithril
+  equipment:
+    slot: legs
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: -11
+    defence_bonus:
+      stab: 24
+      slash: 22
+      crush: 20
+      magic: -4
+      ranged: 22
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    rarity: "1/1,133"
+  drop_table:
+    - source: "Medium Clue Casket"
+      quantity: "1"
+      rarity: "1/1,133"
+  market_strategy:
+    notes:
+      - "flip_potential: \"low\""
+      - "Cosmetic trimmed variant; demand fluctuates with medium clue activity."
+  trading_tips:
+    - "Pairs well with mithril platebody (t) for full trimmed set fashionscape."
+    - "Stock during medium clue events when supply spikes."
+  history:
+    - date: "2014-06-12"
+      description: "Released as a medium Treasure Trail reward."
+    - date: "2021-04-21"
+      description: "Ranged attack penalty decreased from -7 to -11."
+  relationships:
+    - item_name: Mithril plateskirt
+      relationship: variant
+    - item_name: Mithril plateskirt (g)
+      relationship: variant
+    - item_name: Mithril platebody (t)
+      relationship: set-piece
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

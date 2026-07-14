@@ -1,5 +1,6 @@
 ---
 title: Gray Concrete
+template: splash
 description: |
     Minecraft Gray Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 685
     ref: gray_concrete
     slug: gray-concrete
+    content_rev: 1
     display_name: Gray Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Gray Concrete is a solid, non-flammable building block made by
+            hardening Gray Concrete Powder with water. It has more
+            saturated color than stained terracotta and, unlike wool,
+            cannot catch fire.
+        lore: |
+            Concrete was introduced in Java Edition 1.12; black concrete is
+            considered the darkest block color in the game.
+    uses:
+        - title: Building Material
+          ref: gray_concrete
+          detail: |
+              A durable, vividly colored decorative block popular for
+              builds needing solid, non-flammable color blocks.
+    found_in:
+        - location: Water contact
+          detail: Gray Concrete Powder solidifies into Gray Concrete when touched by water.
+        - location: Trial chamber atriums
+          detail: Related concrete colors (red, white) generate naturally in trial chamber structures.
+    faq:
+        - question: What tool do I need to mine Gray Concrete?
+          answer: |
+              At least a wooden pickaxe; mining without a pickaxe drops
+              nothing.
+        - question: Is Gray Concrete flammable?
+          answer: |
+              No, unlike wool it does not burn, making it a safer choice
+              near lava or fire.
+        - question: How do I make Gray Concrete?
+          answer: |
+              Craft Gray Concrete Powder from gray dye, sand, and gravel,
+              then let it touch any water source or waterlogged block.
+        - question: Is Gray Concrete affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops exactly one block regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

@@ -1,6 +1,3 @@
-# CronJob: refreshes the pip package cache (pip-cache.ext4) weekly.
-# Downloads latest wheels for kbve + fudster and rebuilds the ext4 image.
-# Uses the same PVC and network policy as the rootfs init job.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -8,8 +5,11 @@ metadata:
     namespace: firecracker
     labels:
         app: firecracker-pip-cache
+        kbve.com/category: virtualization
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
-    schedule: '0 4 * * 0' # Weekly: Sunday 04:00 UTC
+    schedule: 0 4 * * 0
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 1
     failedJobsHistoryLimit: 3
@@ -20,7 +20,6 @@ spec:
             template:
                 metadata:
                     labels:
-                        # Reuse the rootfs-init label for network policy egress
                         app: firecracker-rootfs-init
                 spec:
                     restartPolicy: OnFailure
@@ -29,52 +28,30 @@ spec:
                           image: alpine:3.21
                           securityContext:
                               runAsUser: 0
-                          command: ['/bin/sh', '-c']
+                          command:
+                              - /bin/sh
+                              - -c
                           args:
-                              - |
-                                  set -eu
-                                  OUTPUT="/rootfs"
-                                  TARGET="${OUTPUT}/pip-cache.ext4"
-
-                                  echo "=== Pip cache refresh ==="
-
-                                  apk add --no-cache python3 py3-pip e2fsprogs
-
-                                  PIPCACHE=$(mktemp -d)
-                                  mkdir -p "${PIPCACHE}/pip"
-
-                                  PACKAGES=$(grep -v '^\s*$' /pip-packages/packages.txt | tr '\n' ' ')
-                                  echo "Downloading latest wheels: ${PACKAGES}"
-                                  pip3 download --dest "${PIPCACHE}/pip" \
-                                      --only-binary=:all: \
-                                      --platform=musllinux_1_2_x86_64 \
-                                      --platform=musllinux_1_1_x86_64 \
-                                      --platform=any \
-                                      --python-version=3.12 \
-                                      ${PACKAGES} 2>&1 || \
-                                  pip3 download --dest "${PIPCACHE}/pip" ${PACKAGES} 2>&1 || true
-
-                                  WHEEL_COUNT=$(ls "${PIPCACHE}/pip/"*.whl "${PIPCACHE}/pip/"*.tar.gz 2>/dev/null | wc -l)
-
-                                  if [ "$WHEEL_COUNT" -eq 0 ]; then
-                                      echo "WARNING: No packages downloaded, keeping existing cache"
-                                      rm -rf "${PIPCACHE}"
-                                      exit 0
-                                  fi
-
-                                  echo "Downloaded ${WHEEL_COUNT} packages"
-
-                                  # Build new cache image to a temp file first, then atomic swap
-                                  TMPIMG=$(mktemp -p "${OUTPUT}" pip-cache.XXXXXX)
-                                  dd if=/dev/zero of="${TMPIMG}" bs=1M count=0 seek=384 2>/dev/null
-                                  mkfs.ext4 -F -d "${PIPCACHE}" "${TMPIMG}"
-
-                                  # Atomic replace — prevents partial reads by firecracker-ctl
-                                  mv "${TMPIMG}" "${TARGET}"
-
-                                  rm -rf "${PIPCACHE}"
-                                  echo "pip-cache.ext4 refreshed: $(du -h ${TARGET} | cut -f1) (${WHEEL_COUNT} packages)"
-                                  echo "=== Done ==="
+                              - "set -eu\nOUTPUT=\"/rootfs\"\nTARGET=\"${OUTPUT}/pip-cache.ext4\"\n\n\
+                                echo \"=== Pip cache refresh ===\"\n\napk add --no-cache python3 py3-pip\
+                                \ e2fsprogs\n\nPIPCACHE=$(mktemp -d)\nmkdir -p \"${PIPCACHE}/pip\"\n\
+                                \nPACKAGES=$(grep -v '^\\s*$' /pip-packages/packages.txt | tr '\\n'\
+                                \ ' ')\necho \"Downloading latest wheels: ${PACKAGES}\"\npip3 download\
+                                \ --dest \"${PIPCACHE}/pip\" \\\n    --only-binary=:all: \\\n    --platform=musllinux_1_2_x86_64\
+                                \ \\\n    --platform=musllinux_1_1_x86_64 \\\n    --platform=any \\\n\
+                                \    --python-version=3.12 \\\n    ${PACKAGES} 2>&1 || \\\npip3 download\
+                                \ --dest \"${PIPCACHE}/pip\" ${PACKAGES} 2>&1 || true\n\nWHEEL_COUNT=$(ls\
+                                \ \"${PIPCACHE}/pip/\"*.whl \"${PIPCACHE}/pip/\"*.tar.gz 2>/dev/null\
+                                \ | wc -l)\n\nif [ \"$WHEEL_COUNT\" -eq 0 ]; then\n    echo \"WARNING:\
+                                \ No packages downloaded, keeping existing cache\"\n    rm -rf \"${PIPCACHE}\"\
+                                \n    exit 0\nfi\n\necho \"Downloaded ${WHEEL_COUNT} packages\"\n\n\
+                                # Build new cache image to a temp file first, then atomic swap\nTMPIMG=$(mktemp\
+                                \ -p \"${OUTPUT}\" pip-cache.XXXXXX)\ndd if=/dev/zero of=\"${TMPIMG}\"\
+                                \ bs=1M count=0 seek=384 2>/dev/null\nmkfs.ext4 -F -d \"${PIPCACHE}\"\
+                                \ \"${TMPIMG}\"\n\n# Atomic replace — prevents partial reads by firecracker-ctl\n\
+                                mv \"${TMPIMG}\" \"${TARGET}\"\n\nrm -rf \"${PIPCACHE}\"\necho \"pip-cache.ext4\
+                                \ refreshed: $(du -h ${TARGET} | cut -f1) (${WHEEL_COUNT} packages)\"\
+                                \necho \"=== Done ===\"\n"
                           resources:
                               requests:
                                   cpu: 250m

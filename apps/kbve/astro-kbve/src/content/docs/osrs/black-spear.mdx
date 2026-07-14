@@ -1,6 +1,6 @@
 ---
 title: Black spear | OSRS Price Data
-description: "Black spear: A black tipped spear.. High alch: 390 GP, GE limit: 8."
+description: "Black spear is a members two-handed weapon requiring 10 Attack. High alch: 390 GP, GE limit: 8."
 osrs:
   id: 4580
   name: Black spear
@@ -12,9 +12,103 @@ osrs:
   lowalch: 260
   highalch: 390
   limit: 8
-  about: "Black spear is a members-only item in Old School RuneScape. High alchemy value: 390 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: black
+    tier: low
+  equipment:
+    slot: weapon
+    weight: 2.2
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 17
+      slash: 17
+      crush: 17
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 18
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1237
+      item_name: Iron spear
+      slug: iron-spear
+      relationship: downgrade
+      description: Lower tier metal spear
+    - item_id: 1239
+      item_name: Steel spear
+      slug: steel-spear
+      relationship: alternative
+      description: Steel-tier alternative
+    - item_id: 1241
+      item_name: Mithril spear
+      slug: mithril-spear
+      relationship: upgrade
+      description: Higher tier mithril spear
+  market_strategy:
+    notes:
+      - Two-handed stab/slash/crush weapon
+      - Niche use as low-level spear option
+      - Demand limited compared to standard scimitars
+  trading_tips:
+    - Use Grand Exchange for fast trades
+    - Watch slayer task spikes for demand bumps
+  about: "Black spear is a two-handed spear with equal stab, slash, and crush attack bonuses. Requires 10 Attack to wield and is a members-only item."
+  family_ref:
+    family_slug: black-spear
+    role: base
+  family:
+    slug: black-spear
+    name: Black spear
+    type: poison
+    canonical_id: 4580
+    members:
+    - id: 4580
+      slug: black-spear
+      name: Black spear
+      icon: Black spear.png
+      role: base
+      dose: null
+      value: 650
+      lowalch: 260
+      highalch: 390
+    - id: 4582
+      slug: black-spear-p
+      name: Black spear(p)
+      icon: Black spear(p).png
+      role: poison
+      dose: null
+      value: 750
+      lowalch: 300
+      highalch: 450
+    - id: 5734
+      slug: black-spear-p-5734
+      name: Black spear(p+)
+      icon: Black spear(p+).png
+      role: poison
+      dose: null
+      value: 750
+      lowalch: 300
+      highalch: 450
+    - id: 5736
+      slug: black-spear-p-5736
+      name: Black spear(p++)
+      icon: Black spear(p++).png
+      role: poison
+      dose: null
+      value: 750
+      lowalch: 300
+      highalch: 450
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -50,10 +50,6 @@ pub extern "C-unwind" fn smart_matview_worker_main(arg: pg_sys::Datum) {
         max_sleep_secs
     );
 
-    if let Err(e) = setup_notification_listener() {
-        log!("WARNING: Could not set up notifications: {}", e);
-    }
-
     run_worker_loop(max_sleep_secs);
 
     log!("{} shutting down", BackgroundWorker::get_name());
@@ -62,13 +58,6 @@ pub extern "C-unwind" fn smart_matview_worker_main(arg: pg_sys::Datum) {
 // =============================================================================
 // WORKER HELPER FUNCTIONS
 // =============================================================================
-
-fn setup_notification_listener() -> Result<(), pgrx::spi::Error> {
-    BackgroundWorker::transaction(|| {
-        Spi::run("LISTEN matview_refresh_config_changed")?;
-        Ok(())
-    })
-}
 
 fn run_worker_loop(max_sleep_secs: i32) {
     let mut cycle_count: u64 = 0;

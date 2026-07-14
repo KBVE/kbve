@@ -1,5 +1,6 @@
 ---
 title: Yellow Bed
+template: splash
 description: |
     Minecraft Yellow Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 114
     ref: yellow_bed
     slug: yellow-bed
+    content_rev: 1
     display_name: Yellow Bed
     material: stone
     hardness: 0.2
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: yellow_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Yellow Bed lets players sleep through the night, set their
+            respawn point, and skip storms in the Overworld. Dyed yellow
+            wool gives it its color.
+        lore: |
+            Beds have let players skip the night since Java Edition 1.3.1,
+            later gaining their explosive Nether/End behavior in 1.13.
+    uses:
+        - title: Spawn Point
+          ref: yellow_bed
+          detail: |
+              Sleeping in the bed sets the player's respawn point to its
+              location, provided it is in the Overworld.
+        - title: Villager Breeding
+          ref: villager
+          detail: |
+              Spare beds near villagers allow breeding when other
+              requirements, like food, are met.
+    found_in:
+        - location: Villages, igloos, and trial chambers
+          detail: Generates naturally in these structures.
+        - location: Crafting table
+          detail: Crafted from three yellow wool and three wooden planks.
+    faq:
+        - question: Can I use this bed in the Nether or End?
+          answer: |
+              No. Sleeping there is blocked, and the bed instead explodes
+              with a power similar to five TNT.
+        - question: What tool do I need to break a bed?
+          answer: |
+              None. Any tool or bare hands breaks it instantly.
+        - question: Is the bed flammable?
+          answer: |
+              No, beds do not catch fire despite containing wool and wood.
+        - question: Can beds be used to breed villagers?
+          answer: |
+              Yes, having enough spare beds nearby is one requirement for
+              villagers to breed.
     data_version: "1.21.5"
 ---
 

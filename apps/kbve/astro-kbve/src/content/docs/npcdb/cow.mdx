@@ -1,5 +1,9 @@
 ---
 title: 'Cow'
+template: splash
+sidebar:
+    label: 'Cow'
+    hidden: true
 description: |
     Largest passive livestock. Slowest move speed, biggest HP pool of the farm trio. Drops Meat in bulk when killed; herd into Farms for steady food production.
 ref: 'cow'
@@ -33,7 +37,10 @@ faction:
     faction_id: 'wildlife'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Largest passive livestock. Slow, big HP pool, drops Meat in bulk when killed.
+
+</NpcLeaf>

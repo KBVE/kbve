@@ -1,0 +1,37 @@
+---
+title: Gyroscope
+template: splash
+description: |
+    Immersive Aircraft Gyroscope — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Gyroscope
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900019
+    ref: immersive_aircraft:gyroscope
+    slug: gyroscope
+    content_rev: 0
+    display_name: Gyroscope
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            A stabilizer upgrade that keeps an aircraft steady and easier to control in flight.
+        lore: |
+            Steady hands, spinning wheel.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

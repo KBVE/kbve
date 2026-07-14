@@ -12,9 +12,82 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Bob's black shirt is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 10320
+      item_name: "Bob's red shirt"
+      slug: bob-s-red-shirt
+      relationship: variant
+      description: Red variant
+    - item_id: 10324
+      item_name: "Bob's blue shirt"
+      slug: bob-s-blue-shirt
+      relationship: variant
+      description: Blue variant
+    - item_id: 10326
+      item_name: "Bob's green shirt"
+      slug: bob-s-green-shirt
+      relationship: variant
+      description: Green variant
+    - item_id: 10328
+      item_name: "Bob's purple shirt"
+      slug: bob-s-purple-shirt
+      relationship: variant
+      description: Purple variant
+  about: "Bob's black shirt is a cosmetic body slot reward from easy-tier Treasure Trails featuring Bob the Jagex Cat. It provides no combat bonuses and can be stored in the costume room treasure chest."
+  market_strategy:
+    notes:
+      - Cosmetic clue reward
+      - Low buy limit (4)
+      - High GE price vs low alch value
+  trading_tips:
+    - Cosmetic collector demand drives price
+    - Hold during clue scroll surge events
+  history:
+    - date: "2006-12-05"
+      description: "Released alongside the Treasure Trails, spiders and sheep update."
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails, spiders and sheep"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

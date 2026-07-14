@@ -12,39 +12,42 @@ osrs:
   lowalch: 56000
   highalch: 84000
   limit: null
+  material:
+    type: chromium
+    tier: high
   equipment:
     slot: ring
-    type: melee
+    weapon_type: unarmed
     requirements:
-      quest: The Whisperer kill
-    stats:
-      attack_slash: 20
+      attack: 1
+    attack_bonus:
+      slash: 20
+    defence_bonus: {}
+    other_bonus:
       strength: 6
-  creation:
-    components:
-      - item_id: 28275
-        item_name: Warrior icon
-      - item_id: 28292
-        item_name: Bellator vestige
-      - item_id: 565
-        item_name: Blood rune
-        quantity: "500"
-    materials:
-      - item_name: Chromium ingot
-        quantity: "3"
-      - item_name: Ring mould
-        quantity: "1"
-    skill_requirements:
-      magic: 90
-      crafting: 80
+  recipes:
+    - materials:
+        - item_name: Warrior icon
+          quantity: "1"
+        - item_name: Bellator vestige
+          quantity: "1"
+        - item_name: Blood rune
+          quantity: "500"
+        - item_name: Chromium ingot
+          quantity: "3"
+        - item_name: Ring mould
+          quantity: "1"
+      tools:
+        - Furnace
+      skill: Crafting
+      level: 80
+      experience: 2500
+      output_quantity: 1
   drop_table:
     sources:
       - source: The Whisperer
-        source_id: 12204
-        combat_level: 600
-        quantity: 1 (Bellator vestige)
+        quantity: "1"
         rarity: Rare
-        members_only: true
   related_items:
     - item_id: 28307
       item_name: Ultor ring
@@ -61,36 +64,33 @@ osrs:
       slug: bellator-vestige
       relationship: component
       description: From The Whisperer
-  about: |-
-    1. Combine Warrior icon + Bellator vestige + 500 blood runes
-    2. Craft at furnace with 3 chromium ingots + ring mould
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 90 (boostable) |
-    | Crafting | 80 (boostable) |
-    | Kill The Whisperer | 1 time |
-
-    | Offense | Value |
-    |---------|-------|
-    | Slash | +20 |
-    | Strength | +6 |
-
-    Requirements: The Whisperer kill
-
-    BiS for:
-    - Slash accuracy builds
-    - High-def targets
-    - Accuracy-focused combat
-
-    Highest slash attack bonus ring.
+  about: "Bellator ring is a high-tier melee ring from Desert Treasure II with the highest slash attack bonus of any ring."
   market_strategy:
     notes:
       - Vestige from The Whisperer
       - Cannot be imbued
       - DT2 content
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2023-07-26"
+      description: Released with the Desert Treasure II update.
+  properties:
+    release_date: "2023-07-26"
+    update: Desert Treasure II - The Fallen Empire
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.012
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: 3rd age range legs | OSRS Price Data
-description: "3rd age range legs is a members legs slot item requiring 45 Defence. High alch: 30,360 GP, GE limit: 8."
+description: "3rd age range legs is a members legs slot item requiring 45 Defence and 65 Ranged. High alch: 30,360 GP, GE limit: 8."
 osrs:
   id: 10332
   name: 3rd age range legs
@@ -12,60 +12,107 @@ osrs:
   lowalch: 20240
   highalch: 30360
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: dragonhide
+    tier: high
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: ranged armour
-    attack_style: ranged
+    weapon_type: null
+    attack_speed: null
+    weight: 3
     requirements:
       ranged: 65
       defence: 45
-    stats:
-      attack_ranged: 17
-      defence_stab: 31
-      defence_slash: 25
-      defence_crush: 33
-      defence_magic: 28
-      defence_ranged: 33
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 17
+    defence_bonus:
+      stab: 31
+      slash: 25
+      crush: 33
+      magic: 30
+      ranged: 33
+    other_bonus:
+      strength: 0
       ranged_strength: 0
-      prayer_bonus: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Very Rare
-        description: Extremely rare reward from master clue scrolls
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Hard Treasure Trails reward casket
+        quantity: "1"
+        rarity: "1/211,250"
+      - source: Elite Treasure Trails reward casket
+        quantity: "1"
+        rarity: "1/249,262"
+      - source: Master Treasure Trails reward casket
+        quantity: "1"
+        rarity: "1/313,168"
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+      - master
   related_items:
-    - item_id: 10334
-      item_name: 3rd age range coif
+    - item_name: 3rd age range coif
       slug: 3rd-age-range-coif
       relationship: set-piece
-      description: Head slot of 3rd age range set
-    - item_id: 10330
-      item_name: 3rd age range top
+      description: "Head slot piece of the 3rd age ranged set"
+    - item_name: 3rd age range top
       slug: 3rd-age-range-top
       relationship: set-piece
-      description: Body slot of 3rd age range set
-    - item_id: 10336
-      item_name: 3rd age vambraces
+      description: "Body slot piece of the 3rd age ranged set"
+    - item_name: 3rd age vambraces
       slug: 3rd-age-vambraces
       relationship: set-piece
-      description: Hands slot of 3rd age range set
+      description: "Hands slot piece of the 3rd age ranged set"
+    - item_name: 3rd age bow
+      slug: 3rd-age-bow
+      relationship: set-piece
+      description: "Two-handed bow that completes the 3rd age ranged loadout"
+    - item_name: Armadyl chainskirt
+      slug: armadyl-chainskirt
+      relationship: alternative
+      description: "Practical ranged legs alternative"
   about: |-
-    The 3rd age range legs are part of the 3rd age ranged set, one of the rarest and most prestigious armour sets in Old School RuneScape. They require 65 Ranged and 45 Defence to wear.
+    The 3rd age range legs are the legs slot piece of the prestigious 3rd age ranged armour set, requiring 65 Ranged and 45 Defence to wear. They share the same defensive profile as karil's leatherskirt while adding ranged attack and slight magic defence.
 
-    3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
+    3rd age equipment is overwhelmingly cosmetic at the top end of the market — players buy it for the look and the rarity badge, not the marginal stat upgrade over Armadyl. Supply enters the economy only through hard, elite, and master Treasure Trails caskets at vanishingly low rates.
   market_strategy:
-    title: Investment Notes
     notes:
-      - Extremely valuable due to rarity
-      - Price fluctuates based on collector demand
-      - Consider set value vs individual pieces
-      - Verify authenticity when trading high-value items
-      - Use Grand Exchange for secure trades
-      - Monitor price trends before purchasing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Extremely valuable due to rarity — collector-driven price"
+      - "Buy limit of 8 caps flips to a few units per cycle"
+      - "Set value vs individual piece value can diverge significantly"
+      - "Use Grand Exchange for secure trades on high-value items"
+  trading_tips:
+    - "Monitor price trend before committing the bulk of a bank to it"
+    - "Watch clue scroll updates — drop table tweaks shift floor price"
+  history:
+    - date: "2006-12-05"
+      description: "Released as part of the 3rd age ranged armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

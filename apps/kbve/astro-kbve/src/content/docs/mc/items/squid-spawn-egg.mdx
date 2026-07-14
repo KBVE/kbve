@@ -1,5 +1,6 @@
 ---
 title: Squid Spawn Egg
+template: splash
 description: |
     Minecraft Squid Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1127
     ref: squid_spawn_egg
     slug: squid-spawn-egg
+    content_rev: 1
     display_name: Squid Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Squid Spawn Egg is a creative-mode item that instantly spawns an adult
+            squid when used on a block or in water. Squids are passive aquatic mobs that
+            drift aimlessly through oceans and rivers, dropping ink sacs when killed and
+            releasing a defensive ink cloud when attacked.
+        lore: |
+            A speckled egg holding a coiled, ink-dark drifter of the deep, ready to
+            unfurl its tentacles the moment it touches water.
+    faq:
+        - question: How do you use a Squid Spawn Egg?
+          answer: |
+              Select it from the inventory or hotbar and use it on a block or in water to
+              spawn an adult squid at that location.
+        - question: What do squids drop when killed?
+          answer: |
+              Squids drop 1-3 ink sacs on death, with the Looting enchantment increasing
+              the average yield.
+        - question: Can squids breed like other passive mobs?
+          answer: |
+              No, squids cannot breed. Baby squids only appear through natural spawning
+              and take about 20 minutes to mature.
+        - question: How is a Squid different from a Glow Squid?
+          answer: |
+              Glow Squids are a separate, visually luminous variant that behaves
+              similarly to regular squids but drops glowing ink sacs instead of normal
+              ones.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

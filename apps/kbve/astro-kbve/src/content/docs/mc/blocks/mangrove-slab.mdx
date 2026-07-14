@@ -1,5 +1,6 @@
 ---
 title: Mangrove Slab
+template: splash
 description: |
     Minecraft Mangrove Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 575
     ref: mangrove_slab
     slug: mangrove-slab
+    content_rev: 1
     display_name: Mangrove Slab
     material: wood
     hardness: 2
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Mangrove Slab is a half-height block crafted from mangrove
+            planks, used for detailed building, staircases, and half-slab
+            floors. It burns in fire like other wooden blocks and cannot
+            be produced with a stonecutter since that tool is restricted
+            to stone-type materials.
+        lore: |
+            Mangrove slabs were added in Java Edition 1.19 with the rest
+            of the mangrove wood set introduced by the Wild Update.
+    uses:
+        - title: Building & Detailing
+          ref: mangrove_planks
+          detail: |
+              Used as a half-height decorative or structural block; two
+              slabs placed one atop the other combine back into a full
+              Mangrove Planks block.
+    found_in:
+        - location: Crafting only
+          detail: |
+              Craft from 3 Mangrove Planks in a horizontal row to yield 6
+              slabs; not found naturally generated in structures.
+    faq:
+        - question: What tool mines Mangrove Slab fastest?
+          answer: |
+              An axe, though any tool or bare hands will break it since it
+              has no minimum tool tier requirement.
+        - question: Can I stonecutter Mangrove Slab?
+          answer: |
+              No. The stonecutter only accepts stone-type blocks; wooden
+              slabs must be crafted at a crafting table.
+        - question: Does placing two slabs make a full block?
+          answer: |
+              Yes, placing a slab against a matching slab of the same
+              type combines them into a full Mangrove Planks block.
+        - question: Is Mangrove Slab flammable?
+          answer: |
+              Yes, like all wooden blocks it can catch fire and burn away
+              if exposed to flames or lava.
     data_version: "1.21.5"
 ---
 

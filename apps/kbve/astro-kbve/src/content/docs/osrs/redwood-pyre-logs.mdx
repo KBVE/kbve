@@ -12,9 +12,64 @@ osrs:
   lowalch: 358
   highalch: 537
   limit: 11000
-  about: "Redwood pyre logs is a members-only item in Old School RuneScape. High alchemy value: 537 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: pyre-logs
+    tier: high
+  properties:
+    release_date: "2016-06-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: firemaking
+      level: 90
+      xp: 20
+      materials:
+        - item_name: Redwood logs
+          quantity: 1
+        - item_name: Sacred oil(4)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Redwood logs
+      slug: redwood-logs
+      relationship: component
+      description: "Base log chopped from redwood trees in the Woodcutting Guild, soaked in sacred oil"
+    - item_name: Sacred oil(4)
+      slug: sacred-oil-4
+      relationship: component
+      description: "Sanctified oil applied to redwood logs to make redwood pyre logs"
+    - item_name: Magic pyre logs
+      slug: magic-pyre-logs
+      relationship: downgrade
+      description: "Lower-xp pyre log used before unlocking redwoods"
+  about: "Redwood pyre logs are the top-tier pyre logs used to cremate shade remains at Mort'ton, yielding 500 Firemaking xp per pyre and contributing to Shades of Mort'ton minigame progress. They are made by applying sacred oil(4) to redwood logs, which requires 90 Firemaking and yields 20 xp per soak."
+  market_strategy:
+    notes:
+      - "Demand spikes during Shades of Mort'ton minigame and on Firemaking xp weekends"
+      - "Supply is constrained by redwood log yield (Woodcutting Guild) and sacred oil(4) Crafting requirements"
+      - "Buy limit of 11,000 per 4 hours supports bulk shade-burning sessions"
+  trading_tips:
+    - "Compare GE price vs (redwood log + sacred oil(4) cost): the spread is the maker's profit"
+    - "Stock up before community-driven Shades of Mort'ton events; pyre log demand follows minigame activity"
+    - "Make-All addition in 2024 reduced friction for hand-creating pyre logs — keep an eye on supply when Firemaking events run"
+  history:
+    - date: "2016-06-02"
+      description: "Released alongside redwood trees and the Woodcutting Guild as the top-tier pyre log"
+    - date: "2024-07-31"
+      description: "Make-All added for pyre log creation; pyre log warning added when attempting to burn without remains; sacred oil application standardized to a flat 5 Firemaking xp per dose"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

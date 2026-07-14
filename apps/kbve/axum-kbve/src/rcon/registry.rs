@@ -43,7 +43,7 @@ impl Game {
 
     fn well_known_servers(self) -> &'static [&'static str] {
         match self {
-            Game::Mc => &["LOBBY", "SURVIVAL"],
+            Game::Mc => &["VELOCITY", "LOBBY", "SURVIVAL"],
             Game::Factorio => &["MAIN"],
         }
     }

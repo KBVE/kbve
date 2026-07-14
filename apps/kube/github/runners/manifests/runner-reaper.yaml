@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: arc-runner-reaper
+    namespace: arc-runners
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: arc-runner-reaper
+    namespace: arc-runners
+rules:
+    - apiGroups:
+          - actions.github.com
+      resources:
+          - ephemeralrunners
+      verbs:
+          - get
+          - list
+          - delete
+    - apiGroups:
+          - ''
+      resources:
+          - serviceaccounts
+      verbs:
+          - get
+          - list
+          - patch
+    - apiGroups:
+          - rbac.authorization.k8s.io
+      resources:
+          - roles
+          - rolebindings
+      verbs:
+          - get
+          - list
+          - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: arc-runner-reaper
+    namespace: arc-runners
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: arc-runner-reaper
+subjects:
+    - kind: ServiceAccount
+      name: arc-runner-reaper
+      namespace: arc-runners
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: arc-runner-reaper
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: arc-runner-reaper
+        app.kubernetes.io/component: maintenance
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+spec:
+    schedule: '*/10 * * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 2
+            ttlSecondsAfterFinished: 600
+            template:
+                spec:
+                    serviceAccountName: arc-runner-reaper
+                    restartPolicy: OnFailure
+                    containers:
+                        - name: reaper
+                          image: ghcr.io/kbve/kubectl:0.1.4
+                          command:
+                              - /bin/sh
+                              - -c
+                          args:
+                              - |
+                                  set -eu
+                                  NS=arc-runners
+                                  FZ=actions.github.com/cleanup-protection
+                                  STUCK_AFTER=1800
+
+                                  FAILED=$(kubectl get ephemeralrunner -n "$NS" -o json \
+                                    | jq -r '.items[] | select(.status.phase == "Failed") | .metadata.name')
+                                  if [ -z "$FAILED" ]; then
+                                    echo "No Failed ephemeralrunners; nothing to reap."
+                                  else
+                                    echo "Reaping Failed ephemeralrunners:"
+                                    echo "$FAILED"
+                                    echo "$FAILED" | xargs -r kubectl delete ephemeralrunner -n "$NS"
+                                  fi
+
+                                  for KIND in serviceaccount role rolebinding; do
+                                    STUCK=$(kubectl get "$KIND" -n "$NS" -o json \
+                                      | jq -r --arg fz "$FZ" --argjson after "$STUCK_AFTER" '
+                                          .items[]
+                                          | select(.metadata.deletionTimestamp != null)
+                                          | select((.metadata.finalizers // []) | index($fz))
+                                          | select(now - (.metadata.deletionTimestamp | fromdateiso8601) > $after)
+                                          | .metadata.name')
+                                    if [ -z "$STUCK" ]; then
+                                      continue
+                                    fi
+                                    echo "Clearing stuck $FZ finalizer on ${KIND}s (Terminating > ${STUCK_AFTER}s):"
+                                    echo "$STUCK"
+                                    echo "$STUCK" | xargs -r -I{} kubectl patch "$KIND" {} -n "$NS" \
+                                      --type=merge -p '{"metadata":{"finalizers":null}}'
+                                  done
+                          resources:
+                              requests:
+                                  cpu: 25m
+                                  memory: 64Mi
+                              limits:
+                                  cpu: 100m
+                                  memory: 128Mi

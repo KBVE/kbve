@@ -1,6 +1,6 @@
 ---
 title: Gilded med helm | OSRS Price Data
-description: "Gilded med helm: A medium sized helmet with gold plate.. High alch: 11,520 GP, GE limit: 70."
+description: "Gilded med helm: A medium sized helmet with gold plate. High alch: 11,520 GP, GE limit: 70."
 osrs:
   id: 20146
   name: Gilded med helm
@@ -12,9 +12,95 @@ osrs:
   lowalch: 7680
   highalch: 11520
   limit: 70
-  about: "Gilded med helm is a free-to-play item in Old School RuneScape. High alchemy value: 11,520 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: gilded
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1.814
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: 0
+    defence_bonus:
+      stab: 22
+      slash: 23
+      crush: 21
+      magic: -1
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+      - master
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/35750
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/32258
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/149776
+  related_items:
+    - item_name: Rune med helm
+      slug: rune-med-helm
+      relationship: alternative
+      description: Functionally identical helmet without the cosmetic gilding.
+    - item_name: Gilded full helm
+      slug: gilded-full-helm
+      relationship: set-piece
+      description: Alternative gilded headgear with full-helm aesthetics.
+  about: |-
+    Gilded med helm is a cosmetic Treasure Trail reward with stats identical to the rune med helm. The gold plating gives it a premium look that wealthy F2P players use as a fashion piece for the head slot.
+
+    Because it drops from hard, elite, and master caskets and has no use beyond aesthetics, supply is capped by clue completions while demand is driven entirely by collectors and fashionscapers.
+  market_strategy:
+    notes:
+      - "Pure cosmetic item — price tracks fashion demand"
+      - "Steady supply from clue scroll grinders"
+      - "Holds value during clue scroll content updates"
+  trading_tips:
+    - Buy after large clue events when supply briefly floods the market
+    - Sell to fashion buyers during seasonal cosmetic hype
+  history:
+    - date: "2016-07-06"
+      description: "Added with the Treasure Trail Expansion update."
+    - date: "2021-04-21"
+      description: "Ranged attack bonus adjusted from -1 to 0."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Bamboo Sign
+template: splash
 description: |
     Minecraft Bamboo Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 206
     ref: bamboo_sign
     slug: bamboo-sign
+    content_rev: 1
     display_name: Bamboo Sign
     material: wood
     hardness: 1
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The bamboo sign is a non-solid text-display block crafted from
+            bamboo planks, placeable on the top or side of other blocks. It
+            can be freely edited until waxed with honeycomb.
+        lore: |
+            Signs let players label builds, mark paths, and leave messages
+            without needing books or command blocks.
+    uses:
+        - title: Bamboo Sign
+          ref: bamboo_sign
+          detail: |
+              Crafted from six bamboo planks and a stick, yielding three
+              signs. Text can be dyed and made to glow with a glow ink sac.
+    found_in:
+        - location: Crafted by the player
+          detail: Made from bamboo planks and a stick at a crafting table.
+    faq:
+        - question: What tool do I need to mine a bamboo sign?
+          answer: |
+              None required — any tool works, though an axe breaks it
+              fastest.
+        - question: Does a bamboo sign burn in fire?
+          answer: |
+              No, signs are non-flammable and will not catch fire even next
+              to lava.
+        - question: Can a bamboo sign act as furnace fuel?
+          answer: |
+              Yes, an overworld sign can be smelted as fuel, powering one
+              smelting operation.
+        - question: Can I stop players from editing my sign's text?
+          answer: |
+              Yes, right-click it with honeycomb to wax it, which locks the
+              text permanently.
     data_version: "1.21.5"
 ---
 

@@ -1,0 +1,26 @@
+# Role: Allow windmill ExternalSecrets SA to read the supabase secrets it syncs
+# (postgres DB password for DATABASE_URL + the gate JWT signing secret).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: windmill-supabase-access
+    namespace: kilobase
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['supabase-postgres', 'supabase-jwt']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: windmill-supabase-access-binding
+    namespace: kilobase
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: windmill-supabase-access
+subjects:
+    - kind: ServiceAccount
+      name: windmill-external-secrets
+      namespace: windmill

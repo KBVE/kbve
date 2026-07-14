@@ -1,6 +1,6 @@
 ---
 title: Fremennik yellow cloak | OSRS Price Data
-description: "Fremennik yellow cloak: The latest fashion in Rellekka.. High alch: 150 GP, GE limit: 150."
+description: "Fremennik yellow cloak is a cape-slot fashion item sold by Yrsa in Rellekka after The Fremennik Trials. High alch: 150 GP, GE limit: 150."
 osrs:
   id: 3781
   name: Fremennik yellow cloak
@@ -12,9 +12,107 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik yellow cloak is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    update: "The Fremennik Trials"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weight: 0.453
+    requirements:
+      quest: "The Fremennik Trials"
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Yrsa's Shoe Store"
+      location: Rellekka
+      price: 325
+      stock: 5
+      members_only: true
+      requirements: "The Fremennik Trials"
+  quest_data:
+    quests:
+      - quest_name: "The Fremennik Trials"
+        role: required
+        notes: "Quest completion is required to purchase the cloak from Yrsa."
+  related_items:
+    - item_id: 3759
+      item_name: Fremennik cyan cloak
+      slug: fremennik-cyan-cloak
+      relationship: variant
+      description: "Cyan colour swap of the same cape."
+    - item_id: 3761
+      item_name: Fremennik brown cloak
+      slug: fremennik-brown-cloak
+      relationship: variant
+      description: "Brown colour swap."
+    - item_id: 3763
+      item_name: Fremennik blue cloak
+      slug: fremennik-blue-cloak
+      relationship: variant
+      description: "Blue colour swap."
+    - item_id: 3765
+      item_name: Fremennik green cloak
+      slug: fremennik-green-cloak
+      relationship: variant
+      description: "Green colour swap."
+    - item_id: 3767
+      item_name: Fremennik red cloak
+      slug: fremennik-red-cloak
+      relationship: variant
+      description: "Red colour swap."
+    - item_id: 3791
+      item_name: Fremennik shirt
+      slug: fremennik-shirt
+      relationship: set-piece
+      description: "Body slot of the Fremennik outfit."
+  about: "Fremennik yellow cloak is one of eleven colour-swapped cloaks sold by Yrsa in Rellekka after completion of The Fremennik Trials. The cape slot piece offers minor defensive bonuses (+1 slash, +1 crush, +2 ranged defence) and is primarily used as a fashionscape item, for Fremennik diary clothing requirements, and as a cheap cape filler for low-level accounts. Yrsa stocks five of each cloak colour at 325 gp, restocking every 60 seconds."
+  market_strategy:
+    notes:
+      - "Yrsa's stock cap of 5 per colour limits merchanting upside."
+      - "Demand skews fashionscape and Fremennik diary completion."
+      - "Players past The Fremennik Trials can self-supply at 325 gp from Yrsa."
+      - "Low GE limit (150 per 4 hours) keeps volume thin."
+  trading_tips:
+    - "Buy direct from Yrsa when GE listings dry up - 325 gp shop price is the soft floor."
+    - "Bundle the full eleven-cloak set for cosmetic collectors looking for matching kits."
+    - "Watch leagues and seasonal mode launches for fashionscape demand spikes."
+  history:
+    - date: "2004-11-02"
+      description: "Added with The Fremennik Trials quest as part of Yrsa's eleven-colour cloak palette."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

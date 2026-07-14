@@ -12,9 +12,71 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 250
-  about: "Teak bird house is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2017-09-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 35
+      xp: 30
+      materials:
+        - item_name: Teak logs
+          quantity: 1
+        - item_name: Clockwork
+          quantity: 1
+      tools:
+        - Chisel
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Bird house
+      slug: bird-house
+      relationship: downgrade
+      description: Lower-tier regular bird house
+    - item_name: Oak bird house
+      slug: oak-bird-house
+      relationship: variant
+      description: Adjacent oak-tier bird house in the trapping cycle
+    - item_name: Willow bird house
+      slug: willow-bird-house
+      relationship: upgrade
+      description: Next tier of bird house for higher Hunter XP
+    - item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: Required mechanism for assembling any bird house
+    - item_name: Teak logs
+      slug: teak-logs
+      relationship: component
+      description: Wood used to carve the bird house shell
+  about: "Teak bird house is the third tier of the Fossil Island bird house trap line, requiring 35 Crafting to make from one teak log and one clockwork for 30 Crafting XP. It is placed on bird house hunting spots around Fossil Island (34 Hunter required), then baited with seeds to passively yield Hunter XP, bird nests, feathers, and rare clue nest drops while the player runs other content."
+  market_strategy:
+    notes:
+      - "Profit comes from selling crafted houses to Hunter trappers above teak log + clockwork cost"
+      - "Demand is steady because each bird house run consumes four houses per cycle"
+      - "Margins tighten when clockwork prices rise from Automaton or hunter event spikes"
+  trading_tips:
+    - Watch teak log and clockwork prices, the two-input recipe makes margins easy to model
+    - Bulk craft on double Crafting XP events to capture both XP and sale margin
+    - Sell to Fossil Island Hunter trainers during weekend prime hours for fastest turnover
+  history:
+    - date: "2017-09-07"
+      description: "Released with the Fossil Island expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

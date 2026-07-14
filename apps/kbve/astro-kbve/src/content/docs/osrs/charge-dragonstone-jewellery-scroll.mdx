@@ -12,9 +12,77 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Charge dragonstone jewellery scroll is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: paper
+    tier: low
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: Uncommon
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  related_items:
+    - item_name: Amulet of glory
+      slug: amulet-of-glory
+      relationship: alternative
+      description: "Dragonstone amulet that this scroll can recharge to 4 charges"
+    - item_name: Combat bracelet
+      slug: combat-bracelet
+      relationship: alternative
+      description: "Dragonstone bracelet rechargeable to 4 charges with this scroll"
+    - item_name: Skills necklace
+      slug: skills-necklace
+      relationship: alternative
+      description: "Dragonstone necklace rechargeable to 4 charges with this scroll"
+  about: "The charge dragonstone jewellery scroll is a consumable Treasure Trails reward that recharges amulets of glory, combat bracelets, and skills necklaces to 4 charges each. Recharging amulets of glory requires completion of Heroes' Quest, while combat bracelets and skills necklaces require Legends' Quest. Rings of wealth cannot be recharged with this scroll - only the Fountain of Rune in deep Wilderness will work."
+  market_strategy:
+    notes:
+      - "Supply is steady from all clue tiers above beginner; not a bottlenecked drop"
+      - "Demand is utility - bossers who hate the Fountain of Rune trip buy in bulk"
+      - "10,000 buy limit and stackable status make large flips frictionless"
+  trading_tips:
+    - "Bulk pricing tends to flatten near 150 coins; flip volume not margin"
+    - "Watch for boss meta shifts that drive glory teleport demand"
+  history:
+    - date: "2016-07-06"
+      description: "Added as a clue reward with the 2016 Treasure Trails update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

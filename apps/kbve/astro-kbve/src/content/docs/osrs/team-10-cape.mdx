@@ -1,6 +1,6 @@
 ---
 title: Team-10 cape | OSRS Price Data
-description: "Team-10 cape: Ooohhh look at the pretty colours.... High alch: 30 GP, GE limit: 150."
+description: "Team-10 cape: Ooohhh look at the pretty colours... High alch: 30 GP, GE limit: 150."
 osrs:
   id: 4333
   name: Team-10 cape
@@ -12,9 +12,75 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-10 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: low
+  equipment:
+    slot: cape
+    weapon_type: none
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Sam's Wilderness Cape Shop
+      location: East of Dark Warriors' Fortress
+      price: 50
+  related_items:
+    - slug: team-9-cape
+      item_name: Team-9 cape
+      relationship: variant
+      description: Adjacent team cape colour variant.
+    - slug: team-11-cape
+      item_name: Team-11 cape
+      relationship: variant
+      description: Adjacent team cape colour variant.
+  about: "Team-10 cape is a Wilderness team cape that shows matching wearers as blue minimap dots and converts left-click attack to right-click between teammates."
+  market_strategy:
+    notes:
+      - Niche PvP cosmetic with thin liquidity outside of clan events.
+      - Sam's shop sells for 50 gp so GE prices rarely run far above value.
+  trading_tips:
+    - Buy at shop price for quick flips when GE volume spikes for clan wars.
+    - List ahead of organised PvP weekends for the best margin.
+  history:
+    - date: "2005-02-22"
+      description: Released as part of the Wilderness Capes update.
+    - date: "2013-05-23"
+      description: Made available to free-to-play players.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-22"
+    update: Wilderness Capes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

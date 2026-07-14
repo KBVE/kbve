@@ -1,5 +1,6 @@
 ---
 title: Blue Egg
+template: splash
 description: |
     Minecraft Blue Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 970
     ref: blue_egg
     slug: blue-egg
+    content_rev: 1
     display_name: Blue Egg
     category: misc
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Blue Egg is a variant egg laid by cold chickens, the cold-biome variant of the chicken. It behaves like a standard egg: it can be thrown to spawn chicks and used as a crafting ingredient for foods like cake and pumpkin pie.
+        lore: |
+            Blue eggs arrived with the chicken variants system in Java Edition 25w06a, adding biome-specific flavor to Minecraft's oldest farm animal.
+    faq:
+        - question: |
+            Which mob lays Blue Eggs?
+          answer: |
+            Cold chickens — the cold-biome variant of the chicken — lay blue eggs instead of ordinary white ones.
+        - question: |
+            What hatches from a Blue Egg?
+          answer: |
+            When thrown, a blue egg has a 1/8 chance to spawn a chick, and any chick that hatches is a cold chick, preserving the variant.
+        - question: |
+            Can I cook with Blue Eggs?
+          answer: |
+            Yes. Blue eggs work like normal eggs in crafting, including recipes such as cake and pumpkin pie.
+        - question: |
+            When were Blue Eggs added?
+          answer: |
+            They were introduced in Java Edition snapshot 25w06a and Bedrock Edition Preview 1.21.70.22 as part of the chicken variants update.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

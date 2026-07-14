@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&c
 description: October 25th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 25,'
+    accent: every year.
+    lede: 'The October 25th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 24'
+          href: /journal/10-24/
+        - label: 'Oct 26 →'
+          href: /journal/10-26/
+    related:
+        - title: 'Previous · Oct 24'
+          copy: 'Step back a day to the October 24th log.'
+          href: /journal/10-24/
+          icon: calendar
+        - title: 'Next · Oct 26'
+          copy: 'Jump ahead to the October 26th log.'
+          href: /journal/10-26/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Macbook Quad Code
 
@@ -27,7 +68,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     For spawns, each time a new npc or monster is added into the scene we should have a portal that appears.
     This portal should be pooled, so we can grab them quickly.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   01:13AM
     - Fudster told me to add the timestamps back, so I will try to do a mixture of it.
@@ -141,3 +190,7 @@ import { Adsense, Tasks } from '@/components/astropad';
 
     Messing around with the signalr but it seems that we could just drop all of that and just stick with the base websockets.
     I am going to create a new branch for the next day and focus on just using the base websockets to communicate and execute.
+
+</BentoProse>
+
+</BentoDoc>

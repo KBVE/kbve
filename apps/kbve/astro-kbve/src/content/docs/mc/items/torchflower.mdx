@@ -1,5 +1,6 @@
 ---
 title: Torchflower
+template: splash
 description: |
     Minecraft Torchflower — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 244
     ref: torchflower
     slug: torchflower
+    content_rev: 1
     display_name: Torchflower
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The torchflower is an ancient flower harvested from fully grown torchflower
+            crops, used mainly as a decorative block and dye source. It can be crafted
+            into orange dye, added to suspicious stew for Night Vision, and is
+            pollinated by bees to boost nearby honey production.
+        lore: |
+            Torchflowers are inspired by the real-world Kniphofia genus, commonly known
+            as torch lilies, for their flame-like appearance.
+    faq:
+        - question: How do I obtain torchflowers?
+          answer: |
+              Torchflowers do not spawn naturally; they must be harvested by breaking a
+              fully grown torchflower crop grown from torchflower seeds.
+        - question: What can I craft with torchflowers?
+          answer: |
+              One torchflower yields one orange dye. Combined with red and brown
+              mushrooms plus a bowl, it makes suspicious stew that grants Night Vision.
+        - question: Do torchflowers affect bees?
+          answer: |
+              Yes, bees pollinate torchflowers like any other flower, increasing honey
+              levels in nearby beehives and bee nests by 1.
+        - question: Can torchflowers be composted?
+          answer: |
+              Yes, placing a torchflower in a composter has an 85% chance of raising the
+              compost level by 1.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

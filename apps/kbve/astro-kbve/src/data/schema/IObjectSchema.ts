@@ -13,7 +13,7 @@ import {
 	DeployableInfoSchema,
 	CraftingRecipeSchema,
 	ItemRaritySchema,
-} from '../../../../../../packages/data/codegen/generated/itemdb-schema';
+} from '@kbve/proto/itemdb-schema';
 
 // Re-export generated types for downstream consumers
 export {
@@ -31,7 +31,7 @@ export type {
 	CraftingRecipe,
 	ItemRarityValue,
 	ItemTypeFlagValue,
-} from '../../../../../../packages/data/codegen/generated/itemdb-schema';
+} from '@kbve/proto/itemdb-schema';
 
 // ---------------------------------------------------------------------------
 // Astro-specific script binding override

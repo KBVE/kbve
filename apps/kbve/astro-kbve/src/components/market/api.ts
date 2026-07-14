@@ -1,4 +1,8 @@
-import { getAccessToken } from '@kbve/astro';
+import {
+	apiFetch as baseApiFetch,
+	authedApiFetch,
+	ApiError,
+} from '@/lib/apiFetch';
 
 export type MarketListing = {
 	listing_id: number;
@@ -48,53 +52,35 @@ export type MyBid = {
 
 export type IdResponse = { id: number };
 
-export class MarketApiError extends Error {
-	status: number;
-	code?: string;
-	constructor(message: string, status: number, code?: string) {
-		super(message);
-		this.status = status;
-		this.code = code;
-	}
-}
+export class MarketApiError extends ApiError {}
 
-async function parseError(res: Response): Promise<MarketApiError> {
-	let detail = '';
-	let code: string | undefined;
-	try {
-		const txt = await res.text();
-		try {
-			const parsed = JSON.parse(txt);
-			detail = parsed.message || parsed.error || txt;
-			code = parsed.error;
-		} catch {
-			detail = txt;
-		}
-	} catch {}
-	return new MarketApiError(detail || res.statusText, res.status, code);
+function asMarketError(e: unknown): MarketApiError {
+	if (e instanceof MarketApiError) return e;
+	if (e instanceof ApiError)
+		return new MarketApiError(e.message, e.status, e.code);
+	return new MarketApiError(
+		e instanceof Error ? e.message : 'request failed',
+		0,
+	);
 }
 
 async function publicGet<T>(path: string): Promise<T> {
-	const res = await fetch(path);
-	if (!res.ok) throw await parseError(res);
-	return (await res.json()) as T;
+	try {
+		return await baseApiFetch<T>(path);
+	} catch (e) {
+		throw asMarketError(e);
+	}
 }
 
 async function authedFetch<T>(
 	path: string,
 	init: RequestInit = {},
 ): Promise<T> {
-	const token = await getAccessToken();
-	if (!token)
-		throw new MarketApiError('not authenticated', 401, 'not_authenticated');
-	const headers = new Headers(init.headers);
-	headers.set('Authorization', `Bearer ${token}`);
-	if (init.body && !headers.has('Content-Type'))
-		headers.set('Content-Type', 'application/json');
-	const res = await fetch(path, { ...init, headers });
-	if (!res.ok) throw await parseError(res);
-	if (res.status === 204) return undefined as T;
-	return (await res.json()) as T;
+	try {
+		return await authedApiFetch<T>(path, init);
+	} catch (e) {
+		throw asMarketError(e);
+	}
 }
 
 type Cursor = {

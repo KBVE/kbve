@@ -12,93 +12,98 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: null
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: armor
+    tier: high
+  properties:
+    release_date: "2024-09-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    type: ranged
-    tradeable: true
-    weight: 0.4
+    weapon_type: null
+    attack_speed: null
+    weight: 0.9
     requirements:
       defence: 40
       ranged: 70
-    stats:
-      attack_ranged: 7
-      attack_magic: -1
-      defence_stab: 4
-      defence_slash: 7
-      defence_crush: 10
-      defence_ranged: 8
-      defence_magic: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -1
+      ranged: 7
+    defence_bonus:
+      stab: 4
+      slash: 7
+      crush: 10
+      magic: 5
+      ranged: 8
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 2
   recipes:
     - skill: crafting
       level: 76
       xp: 190
       materials:
-        - item_id: 30085
-          item_name: Hueycoatl hide
+        - item_name: Hueycoatl hide
           quantity: 2
-        - item_id: 1734
-          item_name: Thread
+        - item_name: Thread
           quantity: 1
-  market:
-    buy_limit: 70
-    price_estimate: 950000
+      tools:
+        - Needle
+      output_quantity: 1
   related_items:
-    - item_id: 30085
-      item_name: Hueycoatl hide
+    - item_name: Hueycoatl hide
       slug: hueycoatl-hide
       relationship: component
-      description: Crafting material
-    - item_id: 30076
-      item_name: Hueycoatl hide body
+      description: "Crafting material - two hides per coif"
+    - item_name: Hueycoatl hide body
       slug: hueycoatl-hide-body
       relationship: set-piece
-      description: Body armor
-    - item_id: 30079
-      item_name: Hueycoatl hide chaps
+      description: "Torso piece of the Hueycoatl hide set"
+    - item_name: Hueycoatl hide chaps
       slug: hueycoatl-hide-chaps
       relationship: set-piece
-      description: Leg armor
-    - item_id: 30082
-      item_name: Hueycoatl hide vambraces
+      description: "Leg piece of the Hueycoatl hide set"
+    - item_name: Hueycoatl hide vambraces
       slug: hueycoatl-hide-vambraces
       relationship: set-piece
-      description: Gloves
+      description: "Glove piece of the Hueycoatl hide set"
   about: |-
-    - 40 Defence
-    - 70 Ranged
-
-    | Stat | Bonus |
-    |------|-------|
-    | Ranged Attack | +7 |
-    | Magic Attack | -1 |
-    | Stab Defence | +4 |
-    | Slash Defence | +7 |
-    | Crush Defence | +10 |
-    | Ranged Defence | +8 |
-    | Magic Defence | +5 |
-    | Prayer | +2 |
-
-    The Hueycoatl hide coif is part of the Hueycoatl hide armor set. Key features:
-
-    - Prayer bonus: Provides +2 prayer, useful for extended trips
-    - Balanced defences: Good all-around defensive stats
-    - Ranged focus: Designed for ranged combat setups
-
-    Best used with:
-    - Hueycoatl hide body
-    - Hueycoatl hide chaps
-    - Hueycoatl hide vambraces
-
-    Full set prayer bonus: +8 total prayer from all pieces combined
+    Ranged head slot crafted from two Hueycoatl hides and a thread at 76 Crafting (190 xp). Provides +7 ranged attack, balanced defences, and a +2 prayer bonus. Part of the four-piece Hueycoatl hide set sourced from the Hueycoatl boss in the Varlamore expansion.
   market_strategy:
     notes:
-      - Compare crafting cost vs buying price
-      - Part of a set - demand correlates with other pieces
-      - Prayer bonus makes it attractive for specific content
-      - Check hide prices before deciding to craft or buy
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Crafting level reduced from 86 to 76 in the June 2025 update, expanding the crafter pool"
+      - "Set-wide prayer bonus (+8 total) drives demand for completionist setups"
+      - "Hueycoatl hide drop volume dictates floor price"
+      - "Compare craft profit vs GE before buying directly"
+  trading_tips:
+    - "Watch Hueycoatl boss meta - drop rate adjustments swing hide prices"
+    - "Pieces trade together - body and chaps are the price drivers"
+    - "No GE buy limit reported - bulk trades are viable"
+  history:
+    - date: "2024-09-25"
+      description: "Released with the Varlamore: The Hunter Called expansion and the Hueycoatl boss"
+    - date: "2025-06-18"
+      description: "Crafting requirement reduced from level 86 to level 76"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

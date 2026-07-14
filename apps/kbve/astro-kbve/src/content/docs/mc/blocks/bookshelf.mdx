@@ -1,5 +1,6 @@
 ---
 title: Bookshelf
+template: splash
 description: |
     Minecraft Bookshelf — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 177
     ref: bookshelf
     slug: bookshelf
+    content_rev: 1
     display_name: Bookshelf
     material: wood
     hardness: 1.5
@@ -24,10 +26,68 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: book
+          qty_min: 3
+          qty_max: 3
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: bookshelf
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Bookshelf is a decorative wood-and-book block whose main
+            purpose is boosting the enchanting table's available enchantment
+            levels. It normally breaks into three books, but Silk Touch
+            preserves the assembled shelf.
+        lore: |
+            Bookshelves have existed since Minecraft's earliest Classic
+            builds, but only gained their enchanting-power function once
+            the enchanting table was introduced.
+    uses:
+        - title: Enchanting Table Power
+          ref: enchanting_table
+          detail: |
+              Up to fifteen bookshelves placed near an enchanting table
+              raise the maximum enchantment level obtainable to 30.
+        - title: Lectern Crafting
+          ref: lectern
+          detail: |
+              A Bookshelf combined with wooden slabs and a bookshelf
+              crafts a Lectern for displaying books and maps.
+    found_in:
+        - location: Villages
+          detail: Found in village libraries alongside lecterns.
+        - location: Strongholds
+          detail: Stronghold libraries contain 161–233 bookshelves lining the walls.
+        - location: Woodland Mansions
+          detail: Library rooms hold 1–24 bookshelves, with large libraries reaching up to 180.
+    faq:
+        - question: What does mining a Bookshelf give?
+          answer: |
+              Normally three books; mining with a Silk Touch tool instead
+              yields the intact Bookshelf block.
+        - question: How many Bookshelves do I need for max enchantments?
+          answer: |
+              Fifteen bookshelves placed within range of an enchanting
+              table unlock level 30 enchantments.
+        - question: Is Bookshelf flammable?
+          answer: |
+              Yes, it can catch fire from nearby flames or lava like other
+              wood-containing blocks.
+        - question: Can any wood plank type be used to craft one?
+          answer: |
+              Yes, any of the twelve plank types works, along with three
+              books, to craft a Bookshelf.
     data_version: "1.21.5"
 ---
 

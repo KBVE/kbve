@@ -1,5 +1,6 @@
 ---
 title: Dead Tube Coral Fan
+template: splash
 description: |
     Minecraft Dead Tube Coral Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 735
     ref: dead_tube_coral_fan
     slug: dead-tube-coral-fan
+    content_rev: 1
     display_name: Dead Tube Coral Fan
     material: stone
     hardness: 0
@@ -26,8 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_tube_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Dead Tube Coral Fan is the lifeless, grayscale form of Tube
+            Coral Fan. It can be placed on the top or sides of blocks (but
+            not the bottom), and like other dead coral it only yields an
+            item when mined with a Silk Touch tool.
+        lore: |
+            Coral fans were added alongside coral blocks in the Update
+            Aquatic (1.13), giving builders thin, plantable reef decoration.
+    found_in:
+        - location: Warm ocean biomes (Bedrock Edition)
+          detail: Naturally generates within coral reef structures alongside live coral fans.
+        - location: Anywhere, by placement
+          detail: Created by placing a live Tube Coral Fan out of water, where it dies within a few seconds.
+    faq:
+        - question: How do I collect Dead Tube Coral Fan as an item?
+          answer: |
+              Mine it with a tool enchanted with Silk Touch. Without Silk
+              Touch it breaks instantly and drops nothing.
+        - question: Can it be planted like living coral fans?
+          answer: |
+              It can be placed the same way, but it has no growth or
+              particle behavior since it is already dead — purely
+              decorative.
+        - question: What blocks can it be placed on?
+          answer: |
+              The top and four sides of a supporting block, but not the
+              bottom face.
+        - question: Is there a crafting recipe for it?
+          answer: |
+              No. It can only be obtained by mining natural dead coral fans
+              with Silk Touch or by killing live coral fans out of water.
     data_version: "1.21.5"
 ---
 

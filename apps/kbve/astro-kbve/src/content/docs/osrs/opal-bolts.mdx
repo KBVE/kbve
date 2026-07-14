@@ -1,6 +1,6 @@
 ---
 title: Opal bolts | OSRS Price Data
-description: "Opal bolts is a members ammo slot item. High alch: 4 GP, GE limit: 11,000."
+description: "Opal bolts: Opal tipped Bronze crossbow bolts with +14 ranged strength. High alch: 4 GP, GE limit: 11,000."
 osrs:
   id: 879
   name: Opal bolts
@@ -12,21 +12,93 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    ranged_strength: 14
+    weapon_type: crossbow
+    attack_speed: 6
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 14
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 11
+      xp: 1.6
+      materials:
+        - item_name: Bronze bolts
+          quantity: 10
+        - item_name: Opal bolt tips
+          quantity: 10
+      tools: []
+      output_quantity: 10
+  passive_effects:
+    - name: Bronze crossbow ammo
+      description: "Stackable bronze crossbow bolts dealing baseline crossbow damage with +14 ranged strength."
   related_items:
-    - item_id: 880
-      item_name: Pearl bolts
+    - item_name: Opal bolts (e)
+      slug: opal-bolts-e
+      relationship: product
+      description: Enchanted variant with the Lucky Lightning special
+    - item_name: Bronze bolts
+      slug: bronze-bolts
+      relationship: component
+      description: Base bolt used in fletching opal bolts
+    - item_name: Opal bolt tips
+      slug: opal-bolt-tips
+      relationship: component
+      description: Gem tips combined with bronze bolts at 11 Fletching
+    - item_name: Pearl bolts
       slug: pearl-bolts
       relationship: variant
-      description: Another gem bolt type
-  about: |-
-    > _"Opal tipped Bronze crossbow bolts."_
-
-    Opal bolts provide +14 ranged strength. When enchanted, they become opal bolts (e) with the Lucky Lightning special effect that deals extra damage.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Next gem bolt tier above opal
+  about: "Opal bolts are Bronze crossbow bolts tipped with opals, fletched at 11 Fletching from Bronze bolts and Opal bolt tips for 1.6 XP per bolt; enchanted, they become opal bolts (e) with the Lucky Lightning effect for extra damage against air-style targets."
+  market_strategy:
+    notes:
+      - "Entry-tier gem bolt; mostly used for Lucky Lightning enchanted variant"
+      - "Opal bolt tips also drop from gem implings"
+      - "Enchanted variant has steady ranged training demand"
+  trading_tips:
+    - Buy bolt tips during implings spikes to undercut GE
+    - Enchant for resale margin against opal bolts (e) demand
+  history:
+    - date: "2006-07-31"
+      description: "Released alongside the Fletching Crossbows update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

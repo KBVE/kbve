@@ -12,38 +12,97 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 7000
-  item_id: 9141
-  type: ammunition
-  tradeable: true
-  weight: 0
-  buy_limit: 7000
+  material:
+    type: ammunition
+    tier: low
   equipment:
     slot: ammo
     type: bolts
+    attack_style: ranged
     requirements:
       ranged: 31
     stats:
       ranged_strength: 64
-  fletching:
-    level: 46
-    xp: 3.5
-    materials:
-      - item: Steel bolts (unf)
-        quantity: "1"
-      - item: Feathers
-        quantity: "1"
-  obtaining:
-    fletching: 46 Fletching with steel bolts (unf) + feathers
-    shop: Crossbow Shop, Keldagrim
+  recipes:
+    - skill: fletching
+      level: 46
+      xp: 3.5
+      output_quantity: 10
+      materials:
+        - item_name: Steel bolts (unf)
+          quantity: "1"
+        - item_name: Feathers
+          quantity: "1"
+  shops:
+    - shop_name: Crossbow Shop
+      location: Keldagrim
+      price: 8
+      stock: 0
   related_items:
     - slug: mithril-bolts
-      name: Mithril bolts
-      relation: upgrade
+      item_name: Mithril bolts
+      relationship: upgrade
+      description: Higher-tier crossbow bolts
     - slug: steel-crossbow
-      name: Steel crossbow
-      relation: compatible_weapon
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      item_name: Steel crossbow
+      relationship: set-piece
+      description: Compatible crossbow for these bolts
+  about: "Steel bolts are members-only crossbow ammunition requiring 31 Ranged to wield. Fletched from steel bolts (unf) and feathers at 46 Fletching for 3.5 XP per 10 bolts."
+  market_strategy:
+    notes:
+      - Mid-tier crossbow ammunition for Ranged training
+      - Fletch from steel bolts (unf) + feathers for profit margin
+      - Purchasable from Keldagrim Crossbow Shop as a backup supply
+  trading_tips:
+    - Buy unfinished bolts in bulk when Fletching XP is the goal
+    - Compare GE price against shop restock price before flipping
+  family_ref:
+    family_slug: steel-bolts
+    role: base
+  family:
+    slug: steel-bolts
+    name: Steel bolts
+    type: poison
+    canonical_id: 9141
+    members:
+    - id: 9141
+      slug: steel-bolts
+      name: Steel bolts
+      icon: Steel bolts 5.png
+      role: base
+      dose: null
+      value: 8
+      lowalch: 3
+      highalch: 4
+    - id: 9288
+      slug: steel-bolts-p
+      name: Steel bolts (p)
+      icon: Steel bolts (p) 5.png
+      role: poison
+      dose: null
+      value: 8
+      lowalch: 3
+      highalch: 4
+    - id: 9295
+      slug: steel-bolts-p-9295
+      name: Steel bolts (p+)
+      icon: Steel bolts (p+) 5.png
+      role: poison
+      dose: null
+      value: 8
+      lowalch: 3
+      highalch: 4
+    - id: 9302
+      slug: steel-bolts-p-9302
+      name: Steel bolts (p++)
+      icon: Steel bolts (p++) 5.png
+      role: poison
+      dose: null
+      value: 8
+      lowalch: 3
+      highalch: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

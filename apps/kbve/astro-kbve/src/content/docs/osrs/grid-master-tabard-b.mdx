@@ -12,9 +12,84 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Grid master tabard (b) is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weapon_type: cosmetic
+    weight: 0.3
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Events Reward Shop
+      location: Varrock Square
+      price: 750
+      currency: Event points
+  related_items:
+    - item_id: 31180
+      item_name: Grid master tabard
+      slug: grid-master-tabard
+      relationship: variant
+      description: Standard variant of the same cosmetic tabard.
+    - item_id: 31182
+      item_name: Grid master tabard (g)
+      slug: grid-master-tabard-g
+      relationship: variant
+      description: Gold variant of the cosmetic tabard.
+    - item_id: 31186
+      item_name: Grid master tabard (p)
+      slug: grid-master-tabard-p
+      relationship: variant
+      description: Purple variant of the cosmetic tabard.
+    - item_id: 31188
+      item_name: Grid master swords and emblem (b)
+      slug: grid-master-swords-and-emblem-b
+      relationship: set-piece
+      description: Matching shield/emblem piece for the (b) variant set.
+  about: Cosmetic blue Grid Master tabard bought from the Events Reward Shop for 750 event points; storable in costume room armour cases.
+  market_strategy:
+    notes:
+      - Supply is limited to event point spenders
+      - Ultimate Ironman two-piece storage rule limits resale velocity
+  trading_tips:
+    - Watch event resets - tabard prices dip when new participants flood the GE
+    - Pair flips with the matching swords and emblem (b) piece
+  history:
+    - date: "2025-10-15"
+      description: Released alongside the Grid Master event launch.
+  properties:
+    release_date: "2025-10-15"
+    update: "Grid Master - Out Today!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

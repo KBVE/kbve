@@ -12,9 +12,48 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 15000
-  about: "Revenant cave teleport is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destinations:
+      - "Level 17 Wilderness entrance east of Dark Warriors' Fortress"
+      - "Level 26 Wilderness entrance north of Bandit Camp"
+      - "Level 40 Wilderness entrance southeast of Lava Maze"
+    notes:
+      - Multi-entrance selection added in February 2026.
+  about: "Revenant cave teleport is a one-time-use scroll that drops players at one of three Revenant Cave entrances inside the Wilderness. It is widely used to skip the dangerous Wilderness walk for revenant farming and PvP teams."
+  market_strategy:
+    notes:
+      - High daily volume keeps spreads tight despite the scrolls being consumable.
+      - Generous 15,000 buy limit suits revenant farmers stocking trip supplies.
+  trading_tips:
+    - Buy in bulk before Wilderness boss weeks when demand and price climb.
+    - Watch for price dips when new Wilderness teleport alternatives are released.
+  history:
+    - date: "2017-11-23"
+      description: Released with the Mage Arena II, Revenant Caves and Deadman Beta update.
+    - date: "2018-03-01"
+      description: Default destination changed from the level 17 entrance to the level 40 entrance.
+    - date: "2026-02-01"
+      description: Added multi-entrance selection so players can pick their preferred cave entrance.
+    - date: "2026-05-01"
+      description: Scrolls can be dropped again after the earlier drop restriction was reverted.
+  properties:
+    release_date: "2017-11-23"
+    update: "Mage Arena II, Revenant Caves & Deadman Beta"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Teleport
+      - Config
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

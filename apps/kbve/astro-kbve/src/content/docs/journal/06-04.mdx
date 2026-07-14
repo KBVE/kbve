@@ -9,14 +9,54 @@ description: |
    June 4th. AstroPad
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 4,'
+    accent: every year.
+    lede: 'The June 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 3'
+          href: /journal/06-03/
+        - label: 'Jun 5 →'
+          href: /journal/06-05/
+    related:
+        - title: 'Previous · Jun 3'
+          copy: 'Step back a day to the June 3rd log.'
+          href: /journal/06-03/
+          icon: calendar
+        - title: 'Next · Jun 5'
+          copy: 'Jump ahead to the June 5th log.'
+          href: /journal/06-05/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1717580860912-cb1731f171a6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-
 
 import {
   Adsense
 } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Steam RareIcon
 
@@ -33,7 +73,15 @@ import {
     This is making me think that I need another couple versions of me, but I am either too slow or have terrible networking skills.
     Delegating some of the work within this monorepo will be tough.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **AstroPad**
 
@@ -104,7 +152,9 @@ Forgot that Elkoe had a Dust bootleg floating around!
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 7:00am - Most of the morning was spent looking into how I should handle svelte within this `kbve.com` repo, but I need to open up Unity and dive a bit deeper into that workflow.
 I was able to clear up the invoice for Silver and we should be holding a meeting later today regarding the future of the game.
@@ -117,14 +167,22 @@ I was able to clear up the invoice for Silver and we should be holding a meeting
 I will have to look into how to setup the whole Unity DevOps, but from my basic understanding, it looks pretty straight forward!
 We might try and have both repos active, one on Github and one of Unity cloud but it might end up becoming a bit too costly to run in the long term.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The person who lives life fully, glowing with life's energy, is the person who lives a successful life.
 > — <cite>Daisaku Ikeda</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [X] - Fix the Git LFS / Github build issue with Unity. UPDATE: This task was just removed from our log.
 - [ ] - Integrate Unity Cloud builder for RougeJester.
+
+</BentoProse>
+
+</BentoDoc>

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1721297014365-5f8e043e87a5?crop=entropy&c
 description: July 22nd.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 22,'
+    accent: every year.
+    lede: 'The July 22nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 21'
+          href: /journal/07-21/
+        - label: 'Jul 23 →'
+          href: /journal/07-23/
+    related:
+        - title: 'Previous · Jul 21'
+          copy: 'Step back a day to the July 21st log.'
+          href: /journal/07-21/
+          icon: calendar
+        - title: 'Next · Jul 23'
+          copy: 'Jump ahead to the July 23rd log.'
+          href: /journal/07-23/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1721297014365-5f8e043e87a5?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Edge Deployment - KiloEdge?
 
@@ -28,8 +69,15 @@ import { Adsense } from '@/components/astropad';
 
     Rest in Peace to the Shadow Wizard King, Ozzy.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Register**
 
@@ -63,9 +111,10 @@ This will give us a couple options and for this case, we will bump the package u
 It is not a complete monday without a quick couple hours of kill tony!
 The guests were okay, a perfect blend of failure and brilliance, I actually think we found a 70 year old version of Fudster.
 
+</BentoProse>
 
+<BentoProse id="2023" heading="2023">
 
-## 2023
 - 7:35am - The goal for this weekend will be to finish up most of the basics within RentEarth and get it up to date. This includes the login, register and general profile scope for now. We want to at least get the bare components resolved and then work on expanding the rest. I am not too sure if I want to add SSO to the website for now, but it might be something that I will look into in the future. 
 - 8:27am - We would look or make the minion class to be that of all encompassing? That does not feel like it would be the best, hmm. Okay as I am re-writing this out, I am thinking that it would make more sense to isolate the possible commands into different tasks, yet how would we handle the data that is being sent over? Would there have to be specific styles of input/output per say that we would have to handle? Like are we sending a `Data` map/array filled with different atoms , i.e string, number, boolean? There still has to be some level of logic and thought to this, one that makes the most sense. 
 - 9:00am - While I am programming, I am listening to a couple different podcasts with some lofi-jams and it is nearly perfect, I really should just stream this as a 24/7 style session, where its just random podcasts and the lofi-beat. Granted there would be some copyright issues, so I suppose we would have to have someone break down the podcasts and provide input? Like a deep dive style where we take a single podcast episode and expand it out by going deeper into the content. 
@@ -78,13 +127,21 @@ The guests were okay, a perfect blend of failure and brilliance, I actually thin
 - 7:57pm - Test casing on line 92, `OnPress` seems to work fine when attached to the trigger and the next move would be to dismiss the keyboard when the button gets pressed, thus we know that there are two ways that we can handle the `event`. I am still figuring out what would be the best way to go about it, looking through the docs right now. 
 - 10:05pm - Switching over to the cyberpunk series! It has been a while since I saw the series, but damn its epic. Going from Trigun to Edgerunner was the wave!
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > But man is not made for defeat. A man can be destroyed but not defeated.
 > — <cite>Ernest Hemingway</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Finish RentEarth.com Login / Register - Postpone.
+
+</BentoProse>
+
+</BentoDoc>

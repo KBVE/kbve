@@ -1,5 +1,6 @@
 ---
 title: Potted Oxeye Daisy
+template: splash
 description: |
     Minecraft Potted Oxeye Daisy — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 401
     ref: potted_oxeye_daisy
     slug: potted-oxeye-daisy
+    content_rev: 1
     display_name: Potted Oxeye Daisy
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,48 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: oxeye_daisy
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Oxeye Daisy is a decorative block made by placing an
+            Oxeye Daisy into a flower pot, showing off the white-petaled
+            flower without occupying a grass tile.
+        lore: |
+            Oxeye Daisies were added in Java Edition 1.7.2 as one of the
+            original single-block flower variants.
+    found_in:
+        - location: Crafted by hand
+          detail: Place an Oxeye Daisy item into an empty Flower Pot to create it.
+        - location: Woodland Mansions
+          detail: Pre-potted oxeye daisies occasionally decorate mansion rooms.
+    faq:
+        - question: What tool do I need to break it?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: What does it drop?
+          answer: |
+              The empty Flower Pot and the Oxeye Daisy item drop as two
+              separate items.
+        - question: Can I get the flower back without breaking the pot?
+          answer: |
+              Yes. Pressing use on the pot removes the daisy into your
+              inventory and leaves the empty pot in place.
+        - question: Where do Oxeye Daisies normally grow?
+          answer: |
+              Oxeye Daisies naturally generate in plains, meadow, and
+              sunflower plains biomes before being harvested and potted.
     data_version: "1.21.5"
 ---
 

@@ -1,21 +1,25 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Points Hostile units' MovementGoal at the player's Capital. If a damaged Player building is within <see cref="HuntJob.TargetingRadius"/> hexes of the hostile's current hex, the nearest damaged building wins. If a BanditScout has reported additional Player buildings into <see cref="KnownPlayerHexesSingleton"/>, those land in the same scan with a wider <see cref="HuntJob.KnownTargetRadius"/> — lets raid bandits divert to outposts the scout uncovered, even when the player's structures are intact. GarrisonPost defenders + BanditHome laborers are excluded.</summary>
+    /// <summary>Points Hostile units' MovementGoal at the player's Capital. If a damaged Player building is within <see cref="HuntJob.TargetingRadius"/> hexes of the hostile's current hex, the nearest damaged building wins. If a BanditScout has reported additional Player buildings into <see cref="KnownPlayerHexesSingleton"/>, those land in the same scan with a wider <see cref="HuntJob.KnownTargetRadius"/> — lets raid bandits divert to outposts the scout uncovered, even when the player's structures are intact. GarrisonPost defenders + BanditHome laborers are excluded. Damaged-building prep scan jobified as a parallel IJobEntity into NativeList.ParallelWriter so the per-frame scan stays off the main thread at scale.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial struct HuntBehaviorSystem : ISystem
     {
         const int TargetingRadius = 12;
 
+        EntityQuery _buildingQuery;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<MovementGoal>();
+            _buildingQuery = SystemAPI.QueryBuilder().WithAll<Building, BuildingHealth>().Build();
         }
 
         public void OnDestroy(ref SystemState state) { }
@@ -25,13 +29,12 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingletonEntity<CapitalTag>(out var capital)) return;
             int2 capitalHex = SystemAPI.GetComponent<Building>(capital).RootHex;
 
-            var damagedHexes = new NativeList<int2>(32, Allocator.TempJob);
-            foreach (var (b, hp) in SystemAPI.Query<RefRO<Building>, RefRO<BuildingHealth>>())
+            int buildingCap = _buildingQuery.CalculateEntityCount();
+            var damagedHexes = new NativeList<int2>(math.max(1, buildingCap), Allocator.TempJob);
+            var damagedHandle = new CollectDamagedHexesJob
             {
-                if (b.ValueRO.OwnerFaction != FactionType.Player) continue;
-                if (hp.ValueRO.Value >= hp.ValueRO.Max) continue;
-                damagedHexes.Add(b.ValueRO.RootHex);
-            }
+                Writer = damagedHexes.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
 
             var knownHexes = new NativeList<int2>(8, Allocator.TempJob);
             if (SystemAPI.TryGetSingletonEntity<KnownPlayerHexesSingleton>(out var knownEntity)
@@ -48,13 +51,26 @@ namespace RareIcon
                 KnownHexes        = knownHexes.AsDeferredJobArray(),
                 TargetingRadius   = TargetingRadius,
                 KnownTargetRadius = KnownTargetRadius,
-            }.ScheduleParallel(state.Dependency);
+            }.ScheduleParallel(JobHandle.CombineDependencies(damagedHandle, state.Dependency));
 
             state.Dependency = damagedHexes.Dispose(handle);
             state.Dependency = knownHexes  .Dispose(state.Dependency);
         }
 
         public const int KnownTargetRadius = 24;
+    }
+
+    [BurstCompile]
+    public partial struct CollectDamagedHexesJob : IJobEntity
+    {
+        public NativeList<int2>.ParallelWriter Writer;
+
+        void Execute(in Building b, in BuildingHealth hp)
+        {
+            if (b.OwnerFaction != FactionType.Player) return;
+            if (hp.Value >= hp.Max) return;
+            Writer.AddNoResize(b.RootHex);
+        }
     }
 
     [BurstCompile]
@@ -79,23 +95,18 @@ namespace RareIcon
             for (int i = 0; i < DamagedHexes.Length; i++)
             {
                 int d = AxialDistance(m.CurrentHex - DamagedHexes[i]);
-                if (d <= 0) continue;            // skip self-equal — never lock onto own hex
+                if (d <= 0) continue;
                 if (d > TargetingRadius) continue;
                 if (d < bestD) { bestD = d; target = DamagedHexes[i]; }
             }
             for (int i = 0; i < KnownHexes.Length; i++)
             {
                 int d = AxialDistance(m.CurrentHex - KnownHexes[i]);
-                if (d <= 0) continue;            // skip stale entry that equals the bandit's current hex (destroyed building leaves it cached)
+                if (d <= 0) continue;
                 if (d > KnownTargetRadius) continue;
                 if (d < bestD) { bestD = d; target = KnownHexes[i]; }
             }
 
-            // If every candidate was skipped + the bandit is already
-            // standing on the Capital fallback, leave the goal alone
-            // so PathfindingJob won't see TargetHex == CurrentHex and
-            // permanently park the unit. Hunt re-evaluates next tick
-            // once damagedHexes / KnownHexes refreshes.
             if (target.Equals(m.CurrentHex)) return;
 
             goal = new MovementGoal

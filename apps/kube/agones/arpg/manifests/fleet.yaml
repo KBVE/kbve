@@ -1,0 +1,144 @@
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: arpg-server
+    namespace: arpg
+    labels:
+        app: arpg-server
+        app.kubernetes.io/part-of: arpg
+spec:
+    replicas: 0
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 25%
+            maxUnavailable: 25%
+    template:
+        metadata:
+            labels:
+                app: arpg-server
+                app.kubernetes.io/part-of: arpg
+        spec:
+            ports:
+                # No hostPort — clients reach the server through the Cilium
+                # gateway (HTTPRoute -> arpg-game Service), so the pod stays
+                # compatible with baseline PodSecurity.
+                - name: ws
+                  portPolicy: None
+                  containerPort: 7979
+                  protocol: TCP
+                - name: udp
+                  portPolicy: None
+                  containerPort: 7977
+                  protocol: UDP
+            health:
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                failureThreshold: 5
+            sdkServer:
+                logLevel: Info
+            template:
+                metadata:
+                    labels:
+                        app: arpg-server
+                        app.kubernetes.io/part-of: arpg
+                spec:
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 10001
+                        runAsGroup: 10001
+                        fsGroup: 10001
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: arpg-server
+                          image: ghcr.io/kbve/arpg-server:0.1.27
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: ARPG_SERVER_ADDR
+                                value: '0.0.0.0:7979'
+                              - name: ARPG_SERVER_SEED
+                                value: '0'
+                              - name: ARPG_UDP_ADDR
+                                value: '0.0.0.0:7977'
+                              - name: RUST_LOG
+                                value: 'info,arpg_server=debug,simgrid=info'
+                              - name: OBSERV_ENDPOINT
+                                value: 'http://metrics-service.kbve.svc.cluster.local:5500/api/v1/ingest/errors'
+                              - name: OBSERV_PROJECT
+                                value: 'arpg'
+                              - name: OBSERV_ENVIRONMENT
+                                value: 'production'
+                              - name: SUPABASE_JWT_SECRET
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: SUPABASE_JWT_SECRET
+                              # Enables the jedi JWKS verifier (accept-both
+                              # HS256 + ES256). Without it the server falls back
+                              # to HS256-only and rejects ES256 tokens GoTrue
+                              # now issues.
+                              - name: SUPABASE_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: SUPABASE_URL
+                              # jedi PgCluster (pooled Postgres) + KvCache
+                              # (Valkey). All optional so a GameServer still
+                              # starts before the ExternalSecrets render; jedi
+                              # init is non-fatal on the Rust side too.
+                              - name: KBVE_PG_APPLICATION_NAME
+                                value: 'arpg-server'
+                              - name: KBVE_PG_RW_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: KBVE_PG_RW_URL
+                                        optional: true
+                              - name: KBVE_PG_RO_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: KBVE_PG_RO_URL
+                                        optional: true
+                              - name: KBVE_KV_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: arpg-valkey
+                                        key: KBVE_KV_URL
+                                        optional: true
+                          ports:
+                              - name: ws
+                                containerPort: 7979
+                                protocol: TCP
+                              - name: udp
+                                containerPort: 7977
+                                protocol: UDP
+                          readinessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7979
+                              initialDelaySeconds: 3
+                              periodSeconds: 5
+                              failureThreshold: 3
+                          livenessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7979
+                              initialDelaySeconds: 10
+                              periodSeconds: 15
+                              failureThreshold: 5
+                          resources:
+                              requests:
+                                  cpu: '250m'
+                                  memory: '128Mi'
+                              limits:
+                                  cpu: '1500m'
+                                  memory: '512Mi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL

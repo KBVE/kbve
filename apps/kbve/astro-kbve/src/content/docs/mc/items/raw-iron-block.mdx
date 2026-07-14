@@ -1,5 +1,6 @@
 ---
 title: Block of Raw Iron
+template: splash
 description: |
     Minecraft Block of Raw Iron — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 84
     ref: raw_iron_block
     slug: raw-iron-block
+    content_rev: 1
     display_name: Block of Raw Iron
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A block of raw iron is a compact storage block equivalent to nine raw iron items, crafted by combining nine raw iron in a crafting grid. It serves as an efficient way to store raw iron in inventory or chests. It cannot be smelted directly into an iron block and must first be broken back down into raw iron.
+        lore: |
+            Raw iron blocks occasionally generate naturally in huge ore veins deep underground, replacing standard iron ore about 2% of the time.
+    faq:
+        - question: How do I craft a Block of Raw Iron?
+          answer: |
+              Arrange nine raw iron in a 3x3 crafting grid pattern to create one block of raw iron.
+        - question: Where can I find Blocks of Raw Iron?
+          answer: |
+              They spawn rarely in massive ore veins below Y-level 0, with roughly a 2% chance of replacing iron ore blocks within those formations.
+        - question: What can I use a Block of Raw Iron for?
+          answer: |
+              These blocks primarily serve storage purposes. You can break them down back into nine raw iron, but the block itself cannot be smelted into an iron block until it is converted back to raw iron and then to ingots.
+        - question: Should I store iron as blocks or ingots?
+          answer: |
+              Raw iron blocks are better for compact bulk storage, but blocks cannot be smelted directly. Raw iron must be converted to ingots first, which then smelt into usable iron.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

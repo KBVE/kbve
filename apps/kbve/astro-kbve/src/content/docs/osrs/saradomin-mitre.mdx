@@ -12,33 +12,92 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: vestment
+    tier: mid-high
+  properties:
+    release_date: "5 December 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.3
     requirements:
       prayer: 40
       magic: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 5
+  drop_table:
+    sources:
+      - source: Elite Treasure Trails
+        quantity: "1"
+        rarity: Common
   related_items:
-    - item_id: 10458
-      item_name: Saradomin robe top
+    - item_name: Saradomin robe top
       slug: saradomin-robe-top
       relationship: set-piece
       description: Saradomin vestment body
-    - item_id: 10464
-      item_name: Saradomin robe legs
+    - item_name: Saradomin robe legs
       slug: saradomin-robe-legs
       relationship: set-piece
       description: Saradomin vestment legs
-  about: |-
-    > *"A Saradomin mitre."*
-
-    The Saradomin mitre is a head slot item from the Saradomin vestment set. It provides a +5 Prayer bonus and requires 40 Prayer and 40 Magic to equip. Offers the second-highest prayer bonus for head slot items while matching mystic hat magic bonuses. Counts as a Saradominist item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Saradomin cloak
+      slug: saradomin-cloak
+      relationship: set-piece
+      description: Saradomin vestment cloak
+    - item_name: Saradomin stole
+      slug: saradomin-stole
+      relationship: set-piece
+      description: Saradomin vestment stole
+  about: "The Saradomin mitre is the head piece of the Saradomin vestment set, obtained as a reward from elite Treasure Trails. It provides a +5 Prayer bonus and matches mystic hat magic bonuses, requiring 40 Prayer and 40 Magic to equip. It counts as a Saradominist item in the God Wars Dungeon and is storable in the Costume Room treasure chest."
+  market_strategy:
+    notes:
+      - "Elite clue scroll exclusive"
+      - "Low GE buy limit of 8 makes flips slow"
+      - "Demand from Saradomin GWD trips and ironman alts"
+      - "Price stable with seasonal clue events"
+  trading_tips:
+    - Stock up during clue scroll events when supply spikes
+    - Sell during PvM weekends when GWD activity is high
+    - Compare prices across all four god mitres for arbitrage
+  history:
+    - date: "5 December 2006"
+      description: "Item was added to the game as part of the god vestment sets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

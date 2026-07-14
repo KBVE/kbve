@@ -12,68 +12,91 @@ osrs:
   lowalch: 14080
   highalch: 21120
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: high
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    stats:
-      attack_magic: -6
-      attack_ranged: -3
-      defence_stab: 30
-      defence_slash: 32
-      defence_crush: 27
-      defence_magic: -1
-      defence_ranged: 30
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
     requirements:
       defence: 40
-  obtaining:
-    methods:
-      - source: Hard Treasure Trails
-        type: Reward casket (hard)
-        rarity: 1/1,625
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 30
+      slash: 32
+      crush: 27
+      magic: -1
+      ranged: 30
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 1163
-      item_name: Rune full helm
+    - item_name: Rune full helm
       slug: rune-full-helm
-      relationship: component
-      description: Standard version with identical stats
-    - item_id: 2627
-      item_name: Rune full helm (t)
+      relationship: variant
+      description: Standard untrimmed version with identical stats
+    - item_name: Rune full helm (t)
       slug: rune-full-helm-t
       relationship: variant
-      description: Trimmed version
-    - item_id: 2615
-      item_name: Rune platebody (g)
+      description: Trimmed cosmetic variant
+    - item_name: Rune platebody (g)
       slug: rune-platebody-g
       relationship: set-piece
       description: Matching gold-trimmed platebody
   about: |-
     > *"Rune full helmet with gold trim."*
 
-    | Bonus | Value |
-    |-------|-------|
-    | Stab Attack | +0 |
-    | Slash Attack | +0 |
-    | Crush Attack | +0 |
-    | Magic Attack | -6 |
-    | Ranged Attack | -3 |
-    | Stab Defence | +30 |
-    | Slash Defence | +32 |
-    | Crush Defence | +27 |
-    | Magic Defence | -1 |
-    | Ranged Defence | +30 |
-    | Melee Strength | +0 |
-    | Ranged Strength | +0 |
-    | Magic Damage | 0% |
-    | Prayer | +0 |
+    The rune full helm (g) is a cosmetic gold-trimmed version of the rune full helm. Stats are identical to the regular helm, but the gold trim makes it a sought-after fashionscape item for both F2P and members. It requires 40 Defence to equip.
 
-    Requirements: 40 Defence
+    The helm cannot be made through Smithing — the only way to obtain it is as a reward from hard Treasure Trails.
   market_strategy:
     notes:
-      - F2P tradeable, popular in free-to-play fashion
-      - Low buy limit due to treasure trail rarity
-      - Price driven by cosmetic demand, not utility
-      - Identical stats to regular rune full helm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "F2P tradeable, popular in free-to-play fashionscape"
+      - "Low GE buy limit due to treasure trail rarity (1/1,625 from hard caskets)"
+      - "Price driven by cosmetic demand, not utility"
+      - "Identical stats to regular rune full helm — purely a fashion item"
+  trading_tips:
+    - Margin trade in small batches due to the 8-per-4-hours limit
+    - Demand spikes during F2P PvP and fashion events
+  history:
+    - date: "2004-05-05"
+      description: "Item released alongside the original rune armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

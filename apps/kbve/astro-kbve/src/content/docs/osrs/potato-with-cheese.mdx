@@ -12,9 +12,60 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 13000
-  about: "Potato with cheese is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about:
+    text: "Potato with cheese is a members-only food item that heals 16 Hitpoints in a single bite. It is made at Cooking level 47 by using cheese on a potato with butter, with no fire or range needed, and is a popular low-cost food choice for mid-level players."
+    sections:
+      - heading: How much does potato with cheese heal?
+        anchor: healing
+        body: "Potato with cheese heals 16 Hitpoints when eaten and is consumed in one bite, making it a strong single-slot food for mid-level players. Its healing matches several higher-tier foods while costing very little, which is why it is a popular pick among players who fight in places like the Warriors' Guild. Because it is eaten in a single action, it can be used as part of a combo-eat to recover a large amount of health quickly. As a members-only item it cannot be eaten in free-to-play worlds, but on members worlds it offers reliable, cheap healing that is easy to stock up on in bulk through the Grand Exchange or by cooking your own."
+      - heading: How do you make a potato with cheese?
+        anchor: cooking
+        body: "To make a potato with cheese you need Cooking level 47 and must use a piece of cheese on a potato with butter. The process grants 40 Cooking experience and, unusually, does not require a fire or a range, so it can be assembled anywhere in your inventory. Each combine takes 2 game ticks (1.2 seconds). The materials are one potato with butter and one cheese. Because the Grand Exchange price of the finished food is lower than the cost of its ingredients, cooking it for profit is not viable, but it remains a cheap source of healing food and modest Cooking experience for players training the skill while stocking up on food."
+      - heading: Where do you get potato with cheese?
+        anchor: obtaining
+        body: "Potato with cheese can be bought from the Warrior Guild Food Shop, run by Lidio on the ground floor of the Warriors' Guild, which stocks 10 at a time and restocks roughly every minute. This accessibility right beside a popular members combat area is a big part of why the food is favoured by mid-level players. It can also be made yourself at Cooking level 47, or bought on the Grand Exchange where it trades within a 13,000 buy limit per four hours. In addition, it drops in stacks of 3 from the Crazy archaeologist and the Deranged archaeologist as an uncommon drop."
+  food: { heals: 16, type: potato, cooking_level: 47, cooking_xp: 40 }
+  recipes:
+    - skill: cooking
+      level: 47
+      xp: 40
+      ticks: 2
+      product: Potato with cheese
+      materials:
+        - { item_name: Potato with butter, quantity: 1 }
+        - { item_name: Cheese, quantity: 1 }
+  drop_table:
+    sources:
+      - { source: Crazy archaeologist, combat_level: 204, quantity: "3", rarity: "8/128", drop_rate: "8/128" }
+      - { source: Deranged archaeologist, combat_level: 276, quantity: "3", rarity: "8/131", drop_rate: "8/131" }
+  related_items:
+    - item_name: Potato with butter
+      slug: potato-with-butter
+      relationship: component
+      description: Base ingredient combined with cheese to make potato with cheese
+    - item_name: Cheese
+      slug: cheese
+      relationship: component
+      description: Added to a potato with butter to create the finished food
+  trivia:
+    - "Potato with cheese was added on 24 October 2005 in the update that introduced Mogres, Lizards, Pet Fish, Potions and Potatoes."
+    - "On 30 January 2006 the item's value was raised from 0 to 8 coins in the Runesquares, Harpie Bugs and new potato recipes update."
+    - "It is one of the few foods that can be assembled without a fire or range, since cheese is simply used on a potato with butter."
+  faq:
+    - question: Is potato with cheese members-only?
+      answer: "Yes. Potato with cheese is a members-only food, so it can only be eaten and traded on members worlds. It cannot be used in free-to-play. On members worlds it is a cheap, popular healing food, especially among mid-level players training near the Warriors' Guild."
+    - question: How much does potato with cheese heal in OSRS?
+      answer: "Potato with cheese heals 16 Hitpoints and is eaten in a single bite. That single-action healing makes it useful for combo-eating, and its low cost relative to its healing makes it a favourite cheap food for mid-level combat training and bossing on a budget."
+    - question: What Cooking level do you need to make potato with cheese?
+      answer: "You need Cooking level 47 to make potato with cheese. You combine cheese with a potato with butter, gaining 40 Cooking experience per item. No fire or range is required, so the food can be assembled anywhere directly in your inventory."
+    - question: Where can you buy potato with cheese?
+      answer: "Potato with cheese is sold at the Warrior Guild Food Shop by Lidio in the Warriors' Guild, which stocks 10 and restocks about once a minute. It can also be bought on the Grand Exchange or made yourself at Cooking level 47."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Potato_with_cheese"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

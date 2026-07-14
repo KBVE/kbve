@@ -1,7 +1,7 @@
 ---
 title: 'June: 21'
 category: Daily
-date: 2024-06-21 12:00:00
+date: 2026-06-21 12:00:00
 client: Self
 unsplash: 1685110191139-eb2caaac220d
 img: https://images.unsplash.com/photo-1685110191139-eb2caaac220d?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -9,24 +9,75 @@ description: |
   June 21st. Fixing Atlas Issue Process.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 21,'
+    accent: every year.
+    lede: 'The June 21st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Jun 20'
+          href: /journal/06-20/
+        - label: 'Jun 22 →'
+          href: /journal/06-22/
+    related:
+        - title: 'Previous · Jun 20'
+          copy: 'Step back a day to the June 20th log.'
+          href: /journal/06-20/
+          icon: calendar
+        - title: 'Next · Jun 22'
+          copy: 'Jump ahead to the June 22nd log.'
+          href: /journal/06-22/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1685110191139-eb2caaac220d?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="notes" heading="Notes">
 
 The month is almost over! The summer heat be rough.
 
 ---
 
-## Quote
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="quote" heading="Quote">
 
 > If you would take, you must first give, this is the beginning of intelligence.
 > — <cite>Laozi</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Start Mother-in-Law Construction Research
 - [ ] Manga Codebase Refresh
@@ -34,7 +85,20 @@ The month is almost over! The summer heat be rough.
 
 ---
 
-## 2025
+</BentoProse>
+
+<BentoProse id="2026" heading="2026">
+
+### Unreal Mac
+
+-   11:15PM
+
+    Looks like the mac operating system pipeline is complete, so we now we have a full three build set.
+    This means we can look into making improvements further down the line for iOS and android.
+
+</BentoProse>
+
+<BentoProse id="2025" heading="2025">
 
 ### Dashboard for Project Fudster
 
@@ -52,7 +116,9 @@ The month is almost over! The summer heat be rough.
     Session went great, got a better understanding of where I need to patch up the rest of the game.
     Moving all of the character state and orchestration into a refactored r3 will be the next goal for this week.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Atlas**
 
@@ -158,8 +224,14 @@ In our markdown table, we are keeping both the title of the song and the artist/
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:30am - It seems that I was assigned again on a SPY put, so forced to buy 100 shares of $SPY. I might also get assigned on one of my TSLA calls, but at the same time, my puts look like they expired with a decent amount of profit. Overall this week looks like another $2000 in the bag, which I will most likely allocate towards CEFs, as my REIT position is already above 10% of my portfolio. I might also look into adding a larger position of bonds too, including some meme bonds.
 - 5:00pm - Decided to delete the older manga reference files, including the abstract theme. I am going to start it again but with a fresh take and maybe a more internal / core approach to resolve the issue. As for the transition effects, we could reference the older SWUP but we can also utilize the pre-fetch to help load the options before hand? There are a couple ways we could go about this.
 - 11:00pm - It looks like the basic layout for the manga / visual novel looks like it can be a MVP. I am going to mess around with the settings and see if we can expand upon that.
+
+</BentoProse>
+
+</BentoDoc>

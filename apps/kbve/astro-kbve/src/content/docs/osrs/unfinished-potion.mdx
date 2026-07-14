@@ -12,9 +12,62 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  about: "Unfinished potion is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: unfinished-potion
+    tier: mid
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Ashes
+          quantity: 1
+        - item_name: Vial of water
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Ashes
+      slug: ashes
+      relationship: component
+      description: Combined with a vial of water to create the unfinished potion
+    - item_name: Vial of water
+      slug: vial-of-water
+      relationship: component
+      description: Water base for the unfinished potion
+    - item_name: Tarromin
+      slug: tarromin
+      relationship: component
+      description: Added to produce Serum 207 (3) at 50 Herblore
+    - item_name: Serum 207 (3)
+      slug: serum-207-3
+      relationship: product
+      description: Finished potion produced after adding tarromin
+  about: "Unfinished potion is the ash-based intermediate used during the Shades of Mort'ton quest line. Combining Ashes with a Vial of water yields the unfinished mix; finishing it with Tarromin at 50 Herblore produces Serum 207 (3), the active reagent for purifying shades. Outside the quest, the item exists mostly as a Herblore curio with a tiny 6-coin alch value."
+  market_strategy:
+    notes:
+      - "Demand tracks Shades of Mort'ton minigame popularity"
+      - "Bulk supply piggybacks on cheap ashes"
+      - "High alch unprofitable, hold for serum brewers"
+  history:
+    - date: "2004-10-18"
+      description: Added with the Shades of Mort'ton quest release.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

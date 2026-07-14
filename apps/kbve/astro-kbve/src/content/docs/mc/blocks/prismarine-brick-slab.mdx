@@ -1,5 +1,6 @@
 ---
 title: Prismarine Brick Slab
+template: splash
 description: |
     Minecraft Prismarine Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 502
     ref: prismarine_brick_slab
     slug: prismarine-brick-slab
+    content_rev: 1
     display_name: Prismarine Brick Slab
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: prismarine_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - slab
+    about:
+        description: |
+            Prismarine Brick Slab is a decorative half-height variant of
+            Prismarine Bricks, used to add trim and detail to aquatic
+            builds. It does not generate naturally and must be crafted.
+        lore: |
+            Its chiseled cyan pattern echoes the pillars of ocean monuments
+            where the parent block, Prismarine Bricks, is found.
+    uses:
+        - title: Decorative Trim
+          ref: prismarine_brick_slab
+          detail: |
+              Used to cap walls, build half-steps, and add detail lines to
+              ocean-monument-themed structures.
+    found_in:
+        - location: Crafted from Prismarine Bricks
+          detail: 3 Prismarine Bricks craft 6 slabs; a stonecutter converts 1 brick into 2 slabs.
+    faq:
+        - question: What tool do I need to mine Prismarine Brick Slab?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              yields no drop.
+        - question: Does Prismarine Brick Slab generate naturally?
+          answer: |
+              No. It is a purely crafted decorative block and never
+              appears in ocean monuments or other generated structures.
+        - question: How do I craft Prismarine Brick Slabs?
+          answer: |
+              Place 3 Prismarine Bricks in a horizontal row in a crafting
+              grid to get 6 slabs, or cut 1 brick into 2 slabs with a
+              stonecutter.
+        - question: Does Silk Touch matter for this block?
+          answer: |
+              No. It always drops itself when mined with a pickaxe,
+              Silk Touch or not.
     data_version: "1.21.5"
 ---
 

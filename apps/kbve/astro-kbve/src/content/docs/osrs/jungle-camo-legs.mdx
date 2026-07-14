@@ -1,6 +1,6 @@
 ---
 title: Jungle camo legs | OSRS Price Data
-description: "Jungle camo legs: These should make me harder to spot in jungle areas.. High alch: 12 GP."
+description: "Jungle camo legs: These should make me harder to spot in jungle areas. High alch: 12 GP."
 osrs:
   id: 10059
   name: Jungle camo legs
@@ -12,9 +12,94 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Jungle camo legs is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weapon_type: none
+    weight: 0.226
+    requirements:
+      hunter: 4
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -7
+    defence_bonus:
+      stab: 11
+      slash: 10
+      crush: 10
+      magic: 0
+      ranged: 10
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Fancy Clothes Store
+      location: Varrock
+      cost: 20
+      currency: coins
+    - shop_name: Hunter Guild Store
+      location: Hunter Guild
+      cost: 20
+      currency: coins
+    - shop_name: Seamstress
+      location: Prifddinas
+      cost: 20
+      currency: coins
+  recipes:
+    - skill: Purchase
+      tools: []
+      materials:
+        - item_name: Feldip weasel fur
+          quantity: 2
+        - item_name: Coins
+          quantity: 20
+      product: Jungle camo legs
+  related_items:
+    - item_id: 10057
+      item_name: Jungle camo top
+      slug: jungle-camo-top
+      relationship: set-piece
+      description: Matching torso piece of the jungle camo set.
+    - item_id: 10061
+      item_name: Desert camo legs
+      slug: desert-camo-legs
+      relationship: variant
+      description: Desert biome camo legs variant.
+  about: "Jungle camo legs are members-only Hunter clothing that improves catch rate in jungle Hunter areas and reduces carried weight by 2 kg when worn."
+  market_strategy:
+    notes:
+      - Crafted cheaply from feldip weasel furs and resold for Hunter convenience.
+      - GE supply is thin; flips depend on Hunter player demand.
+  trading_tips:
+    - Pair with Jungle camo top for full-set sales.
+    - Stock up before new Hunter content releases.
+  history:
+    - date: "2006-11-21"
+      description: Released alongside the Hunter skill.
+    - date: "2024-03-20"
+      description: Updated to reduce carried weight by 2 kg when equipped.
+  properties:
+    release_date: "2006-11-21"
+    update: "HUNTER SKILL!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

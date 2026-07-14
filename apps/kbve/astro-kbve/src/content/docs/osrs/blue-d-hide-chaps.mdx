@@ -12,92 +12,94 @@ osrs:
   lowalch: 1728
   highalch: 2592
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: dragonhide
+    tier: mid
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    alchable: true
   equipment:
     slot: legs
-    type: ranged_armour
-    ranged_requirement: 50
-    defence_requirement: 40
-  attack_bonuses:
-    ranged: 11
-  defence_bonuses:
-    ranged: 25
-    magic: 18
-  crafting:
-    level: 68
-    xp: 140
+    weapon_type: null
+    attack_speed: null
+    weight: 5.443
+    requirements:
+      ranged: 50
+    attack_bonus:
+      magic: -10
+      ranged: 11
+    defence_bonus:
+      stab: 13
+      slash: 16
+      crush: 20
+      magic: 14
+      ranged: 20
+    other_bonus: {}
   recipes:
     - skill: crafting
       level: 68
       xp: 140
       materials:
         - item_name: Blue dragon leather
-          item_id: 2505
           quantity: 2
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Blue d'hide chaps
-      product_id: 2493
-      product_quantity: 1
-      facility: Needle and thread
-      members_only: true
+      tools:
+        - Needle
+      output_quantity: 1
   related_items:
-    - item_id: 1751
-      item_name: Blue dragonhide
+    - item_name: Blue dragonhide
       slug: blue-dragonhide
       relationship: component
-      description: Raw material
-    - item_id: 2505
-      item_name: Blue dragon leather
+      description: Raw material tanned into leather
+    - item_name: Blue dragon leather
       slug: blue-dragon-leather
       relationship: component
-      description: Tanned hide
-    - item_id: 2499
-      item_name: Blue d'hide body
+      description: Tanned hide used to craft the chaps
+    - item_name: Blue d'hide body
       slug: blue-dhide-body
-      relationship: alternative
-      description: Matching body
-    - item_id: 2487
-      item_name: Blue d'hide vambraces
+      relationship: set-piece
+      description: Matching dragonhide body
+    - item_name: Blue d'hide vambraces
       slug: blue-dhide-vambraces
-      relationship: alternative
-      description: Matching gloves
-    - item_id: 1099
-      item_name: Green d'hide chaps
+      relationship: set-piece
+      description: Matching dragonhide vambraces
+    - item_name: Green d'hide chaps
       slug: green-dhide-chaps
-      relationship: alternative
-      description: Lower tier chaps
-    - item_id: 2495
-      item_name: Red d'hide chaps
+      relationship: downgrade
+      description: Lower tier dragonhide chaps
+    - item_name: Red d'hide chaps
       slug: red-dhide-chaps
-      relationship: alternative
-      description: Higher tier chaps
-  about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Crafting | 68 | 2 Blue dragon leather |
-    | XP | 140 | - |
-
-    | Stat | Value |
-    |------|-------|
-    | Ranged requirement | 50 |
-    | Defence requirement | 40 |
-    | Ranged attack | +11 |
-    | Ranged defence | +25 |
-    | Magic defence | +18 |
+      relationship: upgrade
+      description: Higher tier dragonhide chaps
+  about: "Blue d'hide chaps are mid-tier members Ranged leg armour requiring level 50 Ranged to equip. They are crafted at level 68 Crafting from two blue dragon leather and a thread for 140 experience, making them a staple Crafting training product."
   market_strategy:
     notes:
-      - Second dragonhide leg tier
-      - Members only
-      - Popular crafting item
-      - Crafting training (140 XP)
-      - Mid-level ranged armor
-      - Budget gear
-      - 2 leather per chaps
-      - Good XP for level
-      - Popular crafting method
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Second-tier dragonhide leg armour and a popular Crafting training output"
+      - "Margin depends on the spread between blue dragon leather and the finished chaps"
+      - "125 buy limit keeps the market liquid for mid-level Rangers"
+  trading_tips:
+    - Watch blue dragon leather cost for craft-and-flip viability
+    - Demand picks up alongside Crafting bonus XP events
+  history:
+    - date: "2004-03-29"
+      description: "Released with the RuneScape 2 launch."
+    - date: "2006-01-01"
+      description: "Renamed from Dragonhide chaps to Blue d'hide chaps."
+    - date: "2021-01-01"
+      description: "Defence bonuses adjusted as part of the dragonhide armour rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Gianne dough | OSRS Price Data
-description: "Gianne dough: It's made from a secret recipe.. High alch: 1 GP, GE limit: 13,000."
+description: "Gianne dough: It's made from a secret recipe. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2171
   name: Gianne dough
@@ -12,9 +12,56 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Gianne dough is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cooking-ingredient
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Grand Tree Groceries
+      location: Grand Tree
+      price: 2
+      currency: coins
+      stock: 50
+  related_items:
+    - item_name: Batta tin
+      slug: batta-tin
+      relationship: component
+      description: Combine with Gianne dough to make raw battas
+    - item_name: Crunchy tray
+      slug: crunchy-tray
+      relationship: component
+      description: Combine with Gianne dough to make raw crunchies
+    - item_name: Gnomebowl mould
+      slug: gnomebowl-mould
+      relationship: component
+      description: Combine with Gianne dough to make raw gnomebowls
+  about: "Gianne dough is a special cooking ingredient used in Gnome Cuisine, sold by the Grand Tree Groceries shop for 2 coins each. The dough cannot be cooked on its own; instead it combines with batta tins, crunchy trays or gnomebowl moulds to make their respective raw gnome dishes. Players also receive 100 doughs as a reward for completing the Gnome Restaurant minigame tutorial."
+  market_strategy:
+    notes:
+      - "Shop-priced near alch value, so spreads are tiny"
+      - "High buy limit means easy bulk flips when GE dips"
+      - "Demand driven by gnome cuisine training and restaurant tasks"
+  trading_tips:
+    - Buy from Grand Tree Groceries when GE listings spike above shop price
+    - Bulk-flip near the 13,000 limit for thin steady margins
+    - Watch for Gnome Restaurant content updates that raise demand
+  history:
+    - date: "2002-12-12"
+      description: "Added to the game with the Gnome Stronghold update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

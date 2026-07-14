@@ -1,5 +1,6 @@
 ---
 title: Cherry Sign
+template: splash
 description: |
     Minecraft Cherry Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 931
     ref: cherry_sign
     slug: cherry-sign
+    content_rev: 1
     display_name: Cherry Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Cherry Sign is a non-solid block crafted from cherry planks that
+            displays up to four lines of customizable text. Like all sign variants,
+            it can be dyed, made to glow with a glow ink sac, and waxed with
+            honeycomb to permanently lock the text from further editing.
+        lore: |
+            Cherry Signs share the soft pink hue of the Cherry Grove biome, making
+            them a popular decorative choice for blossom-themed builds.
+    faq:
+        - question: How do I craft a Cherry Sign?
+          answer: |
+            Combine 6 cherry planks with 1 stick in a crafting table to produce 3
+            cherry signs.
+        - question: Can I change the text color on a Cherry Sign?
+          answer: |
+            Yes, apply a dye to the sign while it is placed to change the text
+            color, and use a glow ink sac to make the text glow.
+        - question: Can Cherry Signs be used as furnace fuel?
+          answer: |
+            Overworld wood signs, including cherry, can be burned in a furnace as
+            fuel, unlike nether wood variants such as crimson and warped.
+        - question: How do I stop someone from editing my sign?
+          answer: |
+            Use honeycomb on a placed sign to wax it, which locks the text and
+            prevents further edits.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

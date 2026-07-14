@@ -1,6 +1,6 @@
 ---
 title: Arceuus scarf | OSRS Price Data
-description: "Arceuus scarf: A blue scarf adorned with a dark crystal.. High alch: 6,000 GP, GE limit: 4."
+description: "Arceuus scarf is a cosmetic Elite clue reward representing the Arceuus House of Great Kourend. High alch: 6,000 GP, GE limit: 4."
 osrs:
   id: 19943
   name: Arceuus scarf
@@ -12,12 +12,108 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 4
-  about: "Arceuus scarf is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2016-07-06"
+    update: "Treasure Trails Expansion - Elite Clues"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: neck
+    weight: 0.5
+    attack_speed: 4
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: "1/1,275"
+        notes: "Elite clue scroll exclusive cosmetic neck reward."
+  related_items:
+    - item_name: Arceuus banner
+      slug: arceuus-banner
+      relationship: set-piece
+      description: "Two-handed banner sharing the Arceuus House crest."
+    - item_name: Arceuus hood
+      slug: arceuus-hood
+      relationship: set-piece
+      description: "Head slot Arceuus House cosmetic from elite clues."
+    - item_name: Arceuus cloak
+      slug: arceuus-cloak
+      relationship: set-piece
+      description: "Cape slot cosmetic from the same Arceuus elite reward pool."
+    - item_name: Piscarilius scarf
+      slug: piscarilius-scarf
+      relationship: alternative
+      description: "Kourend House variant scarf for the Piscarilius crest."
+    - item_name: Hosidius scarf
+      slug: hosidius-scarf
+      relationship: alternative
+      description: "Kourend House variant scarf for the Hosidius crest."
+    - item_name: Shayzien scarf
+      slug: shayzien-scarf
+      relationship: alternative
+      description: "Kourend House variant scarf for the Shayzien crest."
+    - item_name: Lovakengj scarf
+      slug: lovakengj-scarf
+      relationship: alternative
+      description: "Kourend House variant scarf for the Lovakengj crest."
+  about: "Arceuus scarf is a cosmetic elite clue scroll reward representing the Arceuus House of Great Kourend, one of five Kourend scarves in the elite reward pool. It carries no combat stats and is primarily a costume room collection piece for clue log completionists."
+  market_strategy:
+    notes:
+      - "Supply is throttled by elite clue casket completion volume."
+      - "Demand is collector and ironman-driven; small float widens spreads."
+      - "GE limit of 4 per 4 hours forces patient accumulation."
+  trading_tips:
+    - "Buy on weekday lulls when collection log posts cool clue hype cycles."
+    - "Pair purchases with matching Arceuus hood and cloak for bundled flip value."
+  history:
+    - date: "2016-07-06"
+      update: "Treasure Trails Expansion - Elite Clues"
+      description: "Arceuus scarf released as part of the Kourend House cosmetic set in elite clue rewards."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -12,9 +12,56 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: null
-  about: "Yellowfin is a members-only item in Old School RuneScape. High alchemy value: 102 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: fish
+    tier: mid-high
+  properties:
+    release_date: "19 November 2025"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.65
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 79
+      xp: 200
+      materials:
+        - item_name: Raw yellowfin
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Raw yellowfin
+      slug: raw-yellowfin
+      relationship: component
+      description: "Cooking ingredient"
+    - item_name: Burnt yellowfin
+      slug: burnt-yellowfin
+      relationship: alternative
+      description: "Failed cook result"
+  about: "Yellowfin is a high-tier cooked fish that restores 19 Hitpoints and 20% run energy when eaten, requiring 79 Cooking to prepare."
+  market_strategy:
+    notes:
+      - "Combined heal + run energy makes it competitive with sharks for bossing"
+      - "Supply tied to raw yellowfin availability"
+      - "Burn rate drops to zero at 98 Cooking in Hosidius Kitchen with elite Kourend & Kebos Diary"
+  trading_tips:
+    - "Cook in Hosidius Kitchen to minimize burn losses"
+    - "Stable price compared to sharks given identical heal tier"
+  history:
+    - date: "19 November 2025"
+      description: "Released alongside the raw yellowfin cooking content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

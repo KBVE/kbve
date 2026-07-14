@@ -23,47 +23,47 @@ namespace RareIcon
         public const byte Outpost    = 8;
         public const byte Lumbercamp = 9;
         public const byte MiningPit  = 10;
-        public const byte Dock           = 11;  // River-only; passive fishing + Timber→FishingBoat crafting.
-        public const byte BanditCamp     = 12;  // Hostile-owned raid source; spawns periodic bandit parties.
-        public const byte TradeHouse     = 13;  // Market tier 1.
-        public const byte MerchantsGuild = 14;  // Market tier 2.
-        public const byte Village        = 15;  // Farm tier 1.
-        public const byte Keep           = 16;  // Barracks tier 1.
-        public const byte Castle         = 17;  // Barracks tier 2.
-        public const byte Tower          = 18;  // Standalone defensive spire.
-        public const byte Wall           = 19;  // Standalone barrier segment.
-        public const byte Landmark       = 20;  // Naturally-spawned world object — neutral-owned, has HP, gameplay TBD.
-        public const byte Tavern         = 21;  // Inn tier 1 — heal-on-rest + coin trickle.
-        public const byte Lodge          = 22;  // Inn tier 2 — bigger sleep cap, faster heal, higher coin yield.
-        public const byte GoblinVillage  = 23;  // Naturally-spawned settlement — random Hostile or Player faction roll at spawn time. Hostile variants drip out small raid parties; Player variants are passive ally settlements.
-        public const byte Sawmill        = 24;  // Lumbercamp tier 1 — keeps producing Log AND adds a Log → Timber recipe so the build-cost loop closes mid-game.
-        public const byte Quarry         = 25;  // Mining Pit tier 1 — keeps producing Stone AND adds a Stone → StoneBlock recipe so masonry costs flow without round-tripping the Capital seed.
-        public const byte Shipyard       = 26;  // Dock tier 1 — keeps spawning FishingBoats AND unlocks Galley combat-boat production from Timber + StoneBlock.
-        public const byte Harbour        = 27;  // Dock tier 2 — adds a passive Coin trickle and ups the FishingBoat / Galley cap.
-        public const byte PirateCove     = 28;  // Hostile-owned coastal structure — drips out PirateShip raids on cadence (sister to BanditCamp on water).
-        public const byte Forge          = 29;  // Furnace tier 1 — keeps smelting AND adds steel/bronze alloy recipes + faster cadence.
-        public const byte Foundry        = 30;  // Furnace tier 2 — high-tier metallurgy; unlocks mithril / obsidian-tipped crafting.
-        public const byte Watchpost      = 31;  // Outpost tier 1 — wider territory radius + scout reveal aura.
-        public const byte Garrison       = 32;  // Outpost tier 2 — full territory ring + faction-pressure modifier + arrow-volley boost.
-        public const byte WatchTower     = 33;  // Tower T1 default — arrow-volley defense + wider territory radius (variant 0).
-        public const byte SentinelTower  = 34;  // Tower T2 — full arrow garrison + area-denial aura + maximum territory ring.
-        public const byte BeaconTower    = 41;  // Tower T1 alt — wider territory + light volley + medium VisionRadius (variant 1).
-        public const byte HighwatchTower = 42;  // Tower T1 alt — pure recon: huge VisionRadius, no volley (variant 2).
-        public const byte AleHouse       = 43;  // Inn T1 alt — drink-quality focus, lighter heal, brewing recipes (variant 1).
-        public const byte Glassworks     = 44;  // Furnace T1 alt — sand → glass + lens crafting recipes (variant 1).
-        public const byte BeaconOutpost  = 51;  // Outpost T1 alt — vision aura + signal-fire reveal, smaller volley (variant 1).
-        public const byte Gatepost       = 52;  // Outpost T1 alt — chokepoint defender — heavy volley, tighter territory (variant 2).
-        public const byte Stables        = 53;  // Barracks T1 alt — cavalry recruit + speed aura (variant 1).
-        public const byte Guildhall      = 54;  // Barracks T1 alt — periodic free hero recruitment (variant 2).
-        public const byte Buttress       = 55;  // Wall T1 alt — extra HP, projectile soak (variant 1).
-        public const byte Palisade       = 56;  // Wall T1 alt — cheap timber wall, lower HP (variant 2).
-        public const byte ReinforcedWall = 35;  // Wall tier 1 — more HP, blocks projectiles at low-velocity.
-        public const byte FortifiedWall  = 36;  // Wall tier 2 — full projectile block + LoS denier.
-        public const byte CityState      = 37;  // Civ-style independent settlement — Hostile/Neutral/Allied disposition driven by Mood. Player can gift / annex / raze.
-        public const byte HostileCity    = 38;  // CityState mood-band visual: Hostile (Mood < 33).
-        public const byte AlliedCity     = 39;  // CityState mood-band visual: Allied (Mood ≥ 67).
-        public const byte VassalCity     = 40;  // CityState diplomacy state: paying tribute to the player Capital.
-        public const byte City           = 45;  // Player-founded city — second+ city under Player faction. Carries CityTag + CityLedger + smaller TerritoryEmitter than the Capital seed. Reuses Capital visual until a dedicated shader case ships.
+        public const byte Dock           = 11;
+        public const byte BanditCamp     = 12;
+        public const byte TradeHouse     = 13;
+        public const byte MerchantsGuild = 14;
+        public const byte Village        = 15;
+        public const byte Keep           = 16;
+        public const byte Castle         = 17;
+        public const byte Tower          = 18;
+        public const byte Wall           = 19;
+        public const byte Landmark       = 20;
+        public const byte Tavern         = 21;
+        public const byte Lodge          = 22;
+        public const byte GoblinVillage  = 23;
+        public const byte Sawmill        = 24;
+        public const byte Quarry         = 25;
+        public const byte Shipyard       = 26;
+        public const byte Harbour        = 27;
+        public const byte PirateCove     = 28;
+        public const byte Forge          = 29;
+        public const byte Foundry        = 30;
+        public const byte Watchpost      = 31;
+        public const byte Garrison       = 32;
+        public const byte WatchTower     = 33;
+        public const byte SentinelTower  = 34;
+        public const byte BeaconTower    = 41;
+        public const byte HighwatchTower = 42;
+        public const byte AleHouse       = 43;
+        public const byte Glassworks     = 44;
+        public const byte BeaconOutpost  = 51;
+        public const byte Gatepost       = 52;
+        public const byte Stables        = 53;
+        public const byte Guildhall      = 54;
+        public const byte Buttress       = 55;
+        public const byte Palisade       = 56;
+        public const byte ReinforcedWall = 35;
+        public const byte FortifiedWall  = 36;
+        public const byte CityState      = 37;
+        public const byte HostileCity    = 38;
+        public const byte AlliedCity     = 39;
+        public const byte VassalCity     = 40;
+        public const byte City           = 45;
     }
 
     /// <summary>Tag for naturally-spawned Goblin Villages — sister structure to BanditCamp. Faction (Hostile or Player) is rolled once at spawn and never changes; <see cref="GoblinVillageState"/> + <see cref="TerritoryEmitter"/> carry the per-instance data.</summary>
@@ -97,7 +97,7 @@ namespace RareIcon
         public const byte Dock       = 11;
         public const byte Tower      = 18;
         public const byte Wall       = 19;
-        public const byte City       = 45;  // Player-founded city — placed once per location, gated by min distance + cost in FoundCitySystem.
+        public const byte City       = 45;
     }
 
     /// <summary>Marker tag for the Capital — craft / governance systems query key.</summary>
@@ -203,7 +203,7 @@ namespace RareIcon
     }
 
     /// <summary>Per-building territory claim; any building may emit. Empire territory = union of all same-faction emitters. Radius is the axial hex range from Center.</summary>
-    // TODO(rust-ffi): persist alongside Building so territory survives chunk unload.
+
     public struct TerritoryEmitter : IComponentData
     {
         public int2 Center;
@@ -555,7 +555,7 @@ namespace RareIcon
     /// Ghost-replicated: type + footprint anchor + ownership are the
     /// minimum a client needs to render + target a building.
     /// </summary>
-    // TODO(rust-ffi): persist {Type, RootHex, OwnerFaction} + the Capital's InventorySlot treasury buffer so world state survives unload / server restart.
+
     [Unity.NetCode.GhostComponent]
     public struct Building : IComponentData
     {
@@ -575,7 +575,7 @@ namespace RareIcon
     }
 
     /// <summary>Per-building HP. Damage drops Value, Builders restore it; LastRepairAbsSeconds rate-limits the per-building repair tick against WorldClock. LastRepairAbsSeconds is server-only — clients don't need the throttle clock.</summary>
-    // TODO(rust-ffi): persist Value across chunk unload so damaged buildings don't auto-heal on reload.
+
     [Unity.NetCode.GhostComponent]
     public struct BuildingHealth : IComponentData
     {
@@ -602,7 +602,7 @@ namespace RareIcon
     /// </summary>
     public struct BuildMode : IComponentData
     {
-        public byte Target;   // BuildTarget.* — None = off
+        public byte Target;
         public bool Active => Target != BuildTarget.None;
     }
 

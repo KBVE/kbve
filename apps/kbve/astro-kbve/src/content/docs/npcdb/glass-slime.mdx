@@ -1,5 +1,9 @@
 ---
 title: 'Glass Slime'
+template: splash
+sidebar:
+    label: 'Glass Slime'
+    hidden: true
 description: |
     A translucent blob of living glass that oozes through dungeon corridors, absorbing anything it touches.
 ref: 'glass-slime'
@@ -11,6 +15,26 @@ personality: 'feral'
 rank: 'elite'
 family: 'aberration'
 level: 1
+sprite_atlas:
+    atlas_ref: '/Game/NPC/Slime/T_Slime_Crawl'
+    columns: 5
+    rows: 3
+    cell_width: 64
+    cell_height: 64
+    row_front: 0
+    row_side: 1
+    row_back: 2
+    mirror_right_from_side: true
+    world_width: 128
+    world_height: 128
+    pivot_z: 0
+    clips:
+        - anim: 'crawl'
+          row: 0
+          start_frame: 0
+          frame_count: 5
+          fps: 10
+          loop: true
 stats:
     hp: 20
     max_hp: 20
@@ -78,7 +102,10 @@ faction:
     faction_id: 'crystal-order'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A translucent blob of living glass that oozes through dungeon corridors, absorbing anything it touches.
+
+</NpcLeaf>

@@ -1,6 +1,6 @@
 ---
 title: Magic sapling | OSRS Price Data
-description: "Magic sapling: This sapling is ready to be replanted in a tree patch.. High alch: 1 GP, GE limit: 200."
+description: "Magic sapling: This sapling is ready to be replanted in a tree patch. High alch: 1 GP, GE limit: 200."
 osrs:
   id: 5374
   name: Magic sapling
@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Magic sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Plant
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: farming
+      level: 75
+      xp: 145.5
+      materials:
+        - item_name: Magic sapling
+          quantity: 1
+      tools:
+        - Spade
+      output_quantity: 1
+  related_items:
+    - item_name: Magic seed
+      slug: magic-seed
+      relationship: component
+      description: Seed required to grow the seedling
+    - item_name: Magic seedling
+      slug: magic-seedling
+      relationship: component
+      description: Seedling stage prior to becoming a sapling
+    - item_name: Magic tree
+      slug: magic-tree
+      relationship: product
+      description: Fully grown tree from the sapling
+    - item_name: Magic logs
+      slug: magic-logs
+      relationship: product
+      description: Harvested from a fully grown magic tree
+  about: "Magic sapling is the planted stage of the magic tree, created by watering a magic seedling in a filled plant pot. Planting requires 75 Farming and the tree takes 8 hours to mature, granting 13,768.3 experience on check-health."
+  market_strategy:
+    notes:
+      - "Saplings sell at premium vs raw seeds due to planted XP timing"
+      - "Buy limit of 200 caps daily volume for bulk planters"
+      - "Price tracks magic seed availability and farming bot bans"
+  trading_tips:
+    - Cheaper than raising your own seedling if time is limited
+    - Always pay gardeners 25 coconuts to protect during 8h grow time
+  history:
+    - date: "2005-07-11"
+      description: "Released alongside the Farming skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

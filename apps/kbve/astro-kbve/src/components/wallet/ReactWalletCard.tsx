@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getAccessToken, useSession } from '@kbve/astro';
+import { useSession } from '@kbve/astro';
+import { authedApiFetch } from '@/lib/apiFetch';
 import { formatCompact } from './format';
 
 type Balance = {
@@ -62,24 +63,11 @@ function balancesEqual(a: Balance | null, b: Balance | null): boolean {
 	);
 }
 
-async function authedFetch(path: string, init: RequestInit = {}) {
-	const token = await getAccessToken();
-	if (!token) throw new Error('not authenticated');
-	const headers = new Headers(init.headers);
-	headers.set('Authorization', `Bearer ${token}`);
-	if (init.body && !headers.has('Content-Type')) {
-		headers.set('Content-Type', 'application/json');
-	}
-	const res = await fetch(path, { ...init, headers });
-	if (!res.ok) {
-		let detail = await res.text().catch(() => '');
-		try {
-			const parsed = JSON.parse(detail);
-			detail = parsed.error || parsed.message || detail;
-		} catch {}
-		throw new Error(`${res.status}: ${detail || res.statusText}`);
-	}
-	return res.json();
+async function authedFetch<T = unknown>(
+	path: string,
+	init: RequestInit = {},
+): Promise<T> {
+	return authedApiFetch(path, init) as Promise<T>;
 }
 
 function findShell(from: HTMLElement | null): HTMLElement | null {
@@ -211,7 +199,7 @@ export function ReactWalletCard() {
 					coupon_id: couponId,
 					idempotency_key: crypto.randomUUID(),
 				});
-				const result: RedeemResult = await authedFetch(
+				const result = await authedFetch<RedeemResult>(
 					'/api/v1/wallet/me/redeem-coupon',
 					{ method: 'POST', body },
 				);

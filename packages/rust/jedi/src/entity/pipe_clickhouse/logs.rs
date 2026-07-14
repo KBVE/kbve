@@ -53,6 +53,16 @@ pub struct LogsStatsParams {
     pub minutes: Option<u32>,
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ErrorGroupsParams {
+    #[serde(default)]
+    pub pod_namespace: Option<String>,
+    #[serde(default)]
+    pub minutes: Option<u32>,
+    #[serde(default)]
+    pub limit: Option<u32>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogsResult {
     pub rows: Vec<serde_json::Value>,
@@ -163,6 +173,70 @@ pub async fn run_stats(
     params: &LogsStatsParams,
 ) -> Result<LogsResult, JediError> {
     let sql = build_stats_sql(params);
+    let rows = config.execute_select(&sql).await?;
+    Ok(LogsResult {
+        count: rows.len(),
+        rows,
+    })
+}
+
+pub const MAX_ERROR_GROUPS: u32 = 100;
+pub const DEFAULT_ERROR_GROUPS: u32 = 25;
+const ERROR_GROUP_SIGNATURE_LENGTH: u32 = 200;
+
+fn clamped_error_groups(raw: Option<u32>) -> u32 {
+    raw.unwrap_or(DEFAULT_ERROR_GROUPS)
+        .clamp(1, MAX_ERROR_GROUPS)
+}
+
+/// Build the `error_groups` SQL — collapse `level = 'error'` messages into
+/// normalized signatures (numbers and long id/hex tokens masked) and aggregate
+/// by frequency. Turns a flat error stream into "this error ×1840, last seen
+/// 2m ago" so callers can triage the dominant failure first. Optionally scoped
+/// to a single namespace.
+pub fn build_error_groups_sql(params: &ErrorGroupsParams) -> String {
+    let minutes = clamped_minutes(params.minutes);
+    let limit = clamped_error_groups(params.limit);
+
+    let mut conditions: Vec<String> = vec![
+        format!("timestamp > now() - INTERVAL {} MINUTE", minutes),
+        "level = 'error'".to_string(),
+    ];
+    if let Some(ns) = params.pod_namespace.as_deref().filter(|s| !s.is_empty()) {
+        conditions.push(format!(
+            "pod_namespace = '{}'",
+            escape_clickhouse_string(ns)
+        ));
+    }
+    let where_clause = conditions.join(" AND ");
+
+    // Bracket-class regexes only — no backslash escapes to thread through both
+    // the Rust string literal and the ClickHouse SQL literal. Braces in the
+    // quantifier are doubled for `format!`.
+    format!(
+        "SELECT \
+            pod_namespace, \
+            any(service) AS service, \
+            substring(replaceRegexpAll(replaceRegexpAll(message, '[0-9a-fA-F-]{{16,}}', '<id>'), '[0-9]+', 'N'), 1, {sig_len}) AS signature, \
+            count() AS cnt, \
+            max(timestamp) AS last_seen, \
+            any(message) AS sample \
+         FROM logs_distributed \
+         WHERE {where_clause} \
+         GROUP BY pod_namespace, signature \
+         ORDER BY cnt DESC \
+         LIMIT {limit}",
+        sig_len = ERROR_GROUP_SIGNATURE_LENGTH,
+        where_clause = where_clause,
+        limit = limit,
+    )
+}
+
+pub async fn run_error_groups(
+    config: &ClickHouseConfig,
+    params: &ErrorGroupsParams,
+) -> Result<LogsResult, JediError> {
+    let sql = build_error_groups_sql(params);
     let rows = config.execute_select(&sql).await?;
     Ok(LogsResult {
         count: rows.len(),
@@ -399,6 +473,34 @@ mod tests {
         let sql = build_stats_sql(&LogsStatsParams::default());
         assert!(sql.contains(&format!("INTERVAL {} MINUTE", DEFAULT_MINUTES)));
         assert!(sql.contains("GROUP BY pod_namespace, service, level"));
+    }
+
+    #[test]
+    fn build_error_groups_sql_shape() {
+        let sql = build_error_groups_sql(&ErrorGroupsParams {
+            pod_namespace: Some("kbve".into()),
+            minutes: Some(120),
+            limit: Some(10),
+        });
+        assert!(sql.contains("INTERVAL 120 MINUTE"));
+        assert!(sql.contains("level = 'error'"));
+        assert!(sql.contains("pod_namespace = 'kbve'"));
+        assert!(sql.contains("AS signature"));
+        assert!(sql.contains("count() AS cnt"));
+        assert!(sql.contains("max(timestamp) AS last_seen"));
+        assert!(sql.contains("GROUP BY pod_namespace, signature"));
+        assert!(sql.contains("'[0-9a-fA-F-]{16,}'"));
+        assert!(sql.contains("LIMIT 10"));
+    }
+
+    #[test]
+    fn build_error_groups_sql_unscoped_clamps_limit() {
+        let sql = build_error_groups_sql(&ErrorGroupsParams::default());
+        assert!(sql.contains(&format!("INTERVAL {} MINUTE", DEFAULT_MINUTES)));
+        assert!(!sql.contains("pod_namespace = '"));
+        assert!(sql.contains(&format!("LIMIT {}", DEFAULT_ERROR_GROUPS)));
+        assert_eq!(clamped_error_groups(Some(0)), 1);
+        assert_eq!(clamped_error_groups(Some(9_999)), MAX_ERROR_GROUPS);
     }
 
     #[test]

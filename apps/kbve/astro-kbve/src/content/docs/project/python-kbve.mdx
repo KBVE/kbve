@@ -1,7 +1,8 @@
 ---
-title: Python KBVE
-description: |
-    KBVE Python library.
+title: Python KBVE — Async API Layer for HTTP, WebSocket, and gRPC
+description: The kbve Python library is an API layer for async HTTP, WebSocket, gRPC, and broadcasting, with optional sprite, OSRS, and SEO tooling extras.
+featured: true
+sem: 1
 sidebar:
     label: Python KBVE
     order: 81
@@ -17,8 +18,85 @@ version_toml: packages/python/kbve/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the kbve Python library?
+          answer: kbve is an API layer and complexity handler for async HTTP, WebSocket, gRPC, and broadcasting. It provides the core modules that packages like fudster build on, spanning api, grpc, proto, server, and health.
+        - question: How do I install the kbve Python package?
+          answer: Install it from PyPI with pip install kbve. It requires Python 3.12 or newer and depends on pydantic, aiohttp, fastapi, uvicorn, grpcio, and protobuf.
+        - question: What optional extras does kbve provide?
+          answer: kbve ships opt-in extras kept off the core install — sprite for the ARPG sprite-baking toolchain (Pillow, numpy), osrs for OSRS item-corpus analysis, and seo for the whole-site SEO/SEM auditor — each enabled with uv sync --extra.
+bento:
+    badge: python
+    title: Async API core —
+    accent: Python KBVE
+    lede: >-
+        An API layer and complexity handler for async HTTP, WebSocket, gRPC, and
+        broadcasting. It provides the shared core that other KBVE Python packages
+        (such as Fudster) build on, plus opt-in tooling for ARPG sprite baking,
+        OSRS item-corpus analysis, and whole-site SEO/SEM auditing.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/python/kbve
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Usage
+          href: "#usage"
+    aside:
+        icon: package
+        title: Core deps
+        body: >-
+            Built on pydantic, aiohttp, fastapi, uvicorn, grpcio, and protobuf —
+            the shared async foundation the rest of the KBVE Python stack reuses.
+        points:
+            - <strong>PyPI</strong> — <code>kbve</code>, Python >=3.12,<3.14.
+            - <strong>Extras</strong> — sprite, osrs, seo (opt-in).
+    stats:
+        - { label: Package, value: kbve, icon: package }
+        - { label: Language, value: Python 3.12+, icon: code }
+        - { label: Serves, value: HTTP · WS · gRPC, icon: network }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Async API core
+          icon: network
+          body: Modules spanning api, grpc, proto, server, and health for HTTP, WebSocket, gRPC, and broadcasting.
+        - title: Sprite toolchain
+          icon: camera
+          body: Extra sprite — kbve.sprite.* scripts (skin-variant, sprite-postprocess, ship-footprint) for ARPG sprite baking; adds Pillow and numpy.
+        - title: OSRS corpus tooling
+          icon: book
+          body: Extra osrs — kbve.osrs.* survey/audit/family scripts for OSRS item pages, including canonical-page collapse and the axum-kbve 301 table.
+        - title: SEO/SEM auditor
+          icon: chart
+          body: Extra seo — kbve.seo.* static frontmatter and MDX analysis for the whole site.
+    usage:
+        label: install & dev
+        lang: bash
+        code: |
+            pip install kbve
+
+            # development inside the KBVE monorepo
+            pnpm nx test python-kbve
+            pnpm nx lint python-kbve
+            pnpm nx build python-kbve
+    related:
+        - title: Fudster
+          href: /project/fudster/
+          copy: Composable ML library built on top of this kbve core.
+          icon: gears
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-KBVE Python library.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

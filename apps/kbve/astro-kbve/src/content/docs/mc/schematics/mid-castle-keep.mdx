@@ -1,0 +1,35 @@
+---
+title: Castle Keep
+template: splash
+description: 25×24×25 stone keep with battlements — Tier 5 mid-game build.
+sidebar:
+    label: Castle Keep
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-schematic
+mc_schematic:
+    schematic_id: mid:castle_keep
+    display_name: Castle Keep
+    category: castle
+    tier: 5
+    dims_x: 25
+    dims_y: 24
+    dims_z: 25
+    price_credits: 0
+    price_khash: 10
+    resource_path: schematics/mid/castle_keep.nbt
+    enabled: true
+    tags:
+        - mid
+        - castle
+        - khash
+    about:
+        summary: Square four-tower keep with battlements, an internal courtyard, and arrow loops.
+        lore: First mid-game build. Khash-priced — a status symbol for established players.
+---
+
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />

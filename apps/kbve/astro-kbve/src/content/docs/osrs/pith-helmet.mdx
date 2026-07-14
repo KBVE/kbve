@@ -12,9 +12,79 @@ osrs:
   lowalch: 344
   highalch: 516
   limit: 4
-  about: "Pith helmet is a members-only item in Old School RuneScape. High alchemy value: 516 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.06
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.06
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_name: Explorer backpack
+      slug: explorer-backpack
+      relationship: set-piece
+      description: Matching back-slot cosmetic for the explorer fashion set.
+    - item_name: Safari shirt
+      slug: safari-shirt
+      relationship: set-piece
+      description: Tan upper-body cosmetic that pairs with the helmet.
+    - item_name: Safari trousers
+      slug: safari-trousers
+      relationship: set-piece
+      description: Lower-body cosmetic completing the safari look.
+  about: "Pith helmet is a cosmetic head slot reward from hard Treasure Trails, dropped from a reward casket at roughly 1/1,625 rarity. It has no stat bonuses and is worn purely for fashionscape alongside the explorer and safari outfit pieces."
+  market_strategy:
+    notes:
+      - "Buy limit of 4 caps single-window flip volume sharply."
+      - "Supply is gated by hard clue completions; demand is cosmetic."
+      - "Price is sensitive to clue scroll meta shifts."
+  trading_tips:
+    - List patiently above the 24h average; thin volume rewards patience over undercutting.
+    - Stockpile during clue bot waves and resell during clue scroll content updates.
+    - Cross-list with the matching safari outfit pieces for set buyers.
+  history:
+    - date: "2014-06-12"
+      description: "Added to the hard reward casket loot pool with that year's clue scroll expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

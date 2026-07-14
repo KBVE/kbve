@@ -1,10 +1,14 @@
-use super::{CachedSession, OWSService};
+use super::{AuthIdentity, CachedSession, OWSService};
 use crate::error::RowsError;
 use crate::models::*;
 use crate::repo::UsersRepo;
+use axum::http::HeaderMap;
 use uuid::Uuid;
 
 impl OWSService {
+    /// DEPRECATED: legacy OWS local email/password login. Authentication now flows through Supabase
+    /// via [`OWSService::external_login`]; this path is retained only for backwards compatibility
+    /// with old OWS clients and local dev, and will be removed once those are migrated.
     pub async fn login(&self, email: &str, password: &str) -> Result<LoginResult, RowsError> {
         let repo = UsersRepo(&self.state.db);
         let result = repo.login(email, password).await?;
@@ -29,6 +33,9 @@ impl OWSService {
         Ok(result)
     }
 
+    /// DEPRECATED: legacy OWS local account creation. New accounts originate in Supabase and are
+    /// provisioned on first [`OWSService::external_login`]; kept for backwards compatibility only,
+    /// slated for removal.
     pub async fn register(
         &self,
         email: &str,
@@ -102,7 +109,7 @@ impl OWSService {
         let name_part = email.split('@').next().unwrap_or("Player");
 
         let user_guid = repo
-            .find_or_create_by_email(customer_guid, &email, name_part, "")
+            .find_or_create_supabase_user(customer_guid, validated.user_id, &email, name_part, "")
             .await?;
 
         let session_guid = repo.create_session(customer_guid, user_guid).await?;
@@ -128,6 +135,62 @@ impl OWSService {
             user_session_guid: Some(session_guid),
             error_message: String::new(),
         })
+    }
+
+    /// Confirms the caller before a protected action (e.g. handing out a world IP), reading the
+    /// bearer token and optional service key from HTTP headers. Returns the [`AuthIdentity`].
+    /// Transport-agnostic logic lives in [`OWSService::confirm_login_parts`], shared with gRPC.
+    pub async fn confirm_login(
+        &self,
+        headers: &HeaderMap,
+        session_guid: Option<Uuid>,
+    ) -> Result<AuthIdentity, RowsError> {
+        self.confirm_login_parts(
+            crate::middleware::extract_bearer(headers),
+            session_guid,
+            crate::middleware::extract_service_key(headers),
+        )
+        .await
+    }
+
+    /// Transport-agnostic auth gate, in precedence order: a valid service key authenticates a trusted
+    /// server-to-server caller ([`AuthIdentity::Service`]); otherwise a Supabase bearer token or a
+    /// live session GUID authenticates a player ([`AuthIdentity::Player`] carrying the `user_guid` —
+    /// the JWT `sub` or the session's user). Reused by both the REST and gRPC entry points.
+    pub async fn confirm_login_parts(
+        &self,
+        bearer: Option<String>,
+        session_guid: Option<Uuid>,
+        service_key: Option<String>,
+    ) -> Result<AuthIdentity, RowsError> {
+        if let Some(key) = service_key {
+            if self.state.supabase.service_key_enabled() {
+                crate::supabase::validate_service_key(&key, &self.state.supabase)
+                    .map_err(|e| RowsError::Unauthorized(format!("Invalid service key: {e}")))?;
+                return Ok(AuthIdentity::Service);
+            }
+        }
+
+        if let Some(token) = bearer {
+            if self.state.supabase.jwt_enabled() {
+                let validated = crate::supabase::validate_jwt(&token, &self.state.supabase)
+                    .map_err(|e| RowsError::Unauthorized(format!("Invalid access token: {e}")))?;
+                return Ok(AuthIdentity::Player(validated.user_id));
+            }
+        }
+
+        if let Some(sg) = session_guid {
+            let cached = self
+                .resolve_session(sg)
+                .await
+                .map_err(|_| RowsError::Unauthorized("Invalid or expired session".into()))?;
+            return Ok(AuthIdentity::Player(cached.user_guid));
+        }
+
+        Err(RowsError::Unauthorized(
+            "Login required: send Authorization: Bearer <jwt>, a valid session GUID, or a service key"
+                .into(),
+        ))
     }
 
     pub async fn set_selected_character_and_get_session(

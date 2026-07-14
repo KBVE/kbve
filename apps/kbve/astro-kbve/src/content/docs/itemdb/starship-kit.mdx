@@ -1,0 +1,193 @@
+---
+title: 'Starship'
+template: splash
+sidebar:
+    label: 'Starship'
+    hidden: true
+description: |
+    A folded single-seat starfighter that answers an orbital beacon. Set the beacon down and the hull drops from low orbit, flares its retros, and settles onto the marked tile. Recall it and the engines spool the ship back up through the atmosphere, leaving the beacon in your pack.
+lore: |
+    Every freelancer's first real asset and last thing they sell. The beacon is the cheap part — a transponder and a folded landing cradle — but it is keyed to a hull parked in a decaying orbit overhead, waiting on a call. Plant it where you mean to stay a while; the ship does not like being summoned twice in one breath.
+ref: 'starship-kit'
+key: 600
+id: '01KWA1B2C3D4E5F6G7H8J9K0M1'
+name: 'Starship'
+type_flags: 8704
+img: '/assets/items/furniture/starship-kit.png'
+pixel_density: 64
+sorting_layer: Ground
+sorting_order: 10
+consumable: true
+stackable: true
+max_stack: 1
+rarity: 'legendary'
+buy_price: 5000
+emoji: '🚀'
+action: 'consume'
+credits: |
+    Starship model "fighter1" by Psionic (3D Game Resources), freeware. Iso sprite baking & ARPG integration by retrovandal.
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
+
+A deployable starship beacon. Plant it down and the ship descends from orbit and
+lands on the marked tile — press **R** while placing to set its heading. Recall it
+(pick it up) and the ship lifts off and climbs out of the atmosphere, folding back
+into the beacon in your pack. Board a landed ship to fly it.
+
+## Sprite baking
+
+The piloted ship is **not** a single sheet — it's a multi-sheet rig driven by
+[ship.ts](https://github.com/KBVE/kbve/blob/main/apps/agones/arpg/web/src/game/entities/ship.ts).
+Every sheet is baked from one 3D model with the Blender headless baker
+(`kbve-model-sprites`, source at `packages/python/kbve/kbve/sprite/`). Full baker
+flag reference lives in the [Blender doc](/application/blender/#sprite-baker); this
+page is the **ship-specific recipe** so it isn't lost.
+
+### Files
+
+| What | Path |
+| --- | --- |
+| Source model + skins | `apps/agones/arpg/web/scripts/ship-src/` — `fighter1.obj` (+ `.fbx`), `idolknight.jpg` (engines on), `idolknight_off.jpg` (off) |
+| Baked sheets (LFS) | `apps/agones/arpg/web/public/assets/arcade/arpg/environment/structures/ship/` |
+| Space-mode model copy | `apps/agones/arpg/web/public/assets/arcade/arpg/models/ship/` (r3f `SpaceScene` loads the same OBJ) |
+
+Model + skins are **in-repo** (moved off `~/Downloads` in `9560dbb94`) so bakes are
+reproducible. `idolknight_off.jpg` is generated from the on skin via
+`kbve-skin-variant --hue green` (kills the engine glow). After any re-bake + commit,
+run `./kbve.sh -lfs arpg register origin` — the sheets live on **arpg.git** LFS, not
+the repo root (see [Blender doc](/application/blender/)).
+
+### Sheet layout
+
+Animated sheets are `4096x8192` = **512px frames, 8 anim cols × 16 dir rows**,
+row-major index `dir * frames + f` (Phaser reads it as `frames: 8, directions: 16`).
+Atmosphere cutscenes are `8192x512` = **16 frames × 1 facing**. `--res 512` is
+mandatory — 256px looked bad in-game (`9560dbb94`). Drive sub-states:
+`off → powerOn → lift → fly ⇄ {idle | move | bank}`.
+
+| Sheet | `--anim-mode` | `--anim-frames` | Dims | Skin | Behaviour |
+| --- | --- | --- | --- | --- | --- |
+| `ship.png` | static | 1 | 2048×2048 | off | parked, engines dark |
+| `ship_on.png` | static | 1 | 2048×2048 | on | parked, engines lit |
+| `ship_lift.png` | `lift` | 8 | 4096×8192 | on | spool-up: rises once, holds at top |
+| `ship_idle.png` | `idle` | 8 | 4096×8192 | on | **Hover** — vertical bob loop |
+| `ship_move.png` | `move` | 8 | 4096×8192 | on | flying: bob (phase +90°) + roll sway |
+| `ship_bank.png` | `bank` | 8 | 4096×8192 | on | monotonic roll L→R; game indexes by turn-rate to HOLD a lean |
+| `ship_leaving_atmosphere.png` | `launch` | 16 | 8192×512 | on | **ascension** — cinematic climb to space |
+| `ship_entering_atmosphere.png` | `launch` (frames reversed) | 16 | 8192×512 | on | **descension** — its own sheet, the ascent baked with frames reversed |
+
+`ship.ts` plays both atmosphere sheets **forward** off their own texture — `entering` is
+**not** auto-reversed in-engine, so it ships as a separate baked sheet. (The only
+in-engine reverse is `land`, which replays the `lift` sheet backward for a ground
+descent — there is no separate `land`/`powerOn`/`powerOff` sheet.)
+
+<Aside type="caution" title="Facing calibration — yaw-offset is NOT recorded in git">
+The bake **flags were never committed** (not in commit messages, not shell history).
+The original 256px sheets baked at **`--yaw-offset 45 --elev 30`**; the 512px re-bake
+(`9560dbb94`) used the baker defaults **`--yaw-offset 0 --elev 35`** → a **45° facing
+shift** that broke ship-pilot heading calibration (`PILOT_STEER_ROT` in
+`apps/agones/arpg/web/src/game/systems/movement.ts`).
+
+All 8 sheets are now uniform at **`--yaw-offset 0 --elev 35`** — keep it there. Calibrate
+`PILOT_STEER_ROT` empirically with the in-game debug overlay (compass + velocity arrow),
+**not** by re-deriving yaw. Note `--elev 35` is camera iso pitch (the 2:1 look), a
+different axis from `--yaw-offset` — it does **not** move facings.
+
+`9560dbb94` only re-baked the **6 animated** sheets to yaw 0 and **left `ship.png` /
+`ship_on.png` at the original yaw 45** — so the parked ship faced 45° off from the flying
+ship until they were re-baked to match. **Re-bake all 8 together** whenever yaw/elev
+changes, or the static and animated sheets desync again.
+</Aside>
+
+### Common flags (all sheets)
+
+```
+--frames 16 --pitch 90 --elev 35 --yaw-offset 0 --real-shadow
+```
+
+Static sheets add `--anim-frames 1`; animated add `--anim-frames 8 --anim-mode <mode>`;
+atmosphere cutscenes use `--frames 1 --anim-frames 16 --anim-mode launch` (1 facing,
+16-frame ascent — bake `leaving`, reverse the frames for `entering`).
+
+### Shadows — always `--real-shadow` for animated sheets
+
+Two shadow modes (see Blender doc):
+
+- **`--real-shadow`** (use this) — a Cycles shadow-catcher on a fixed ground plane. The
+  cast shadow stays planted on the floor while the hull bobs/lifts, so the growing gap
+  reads as genuine hover. `lift`/`idle`/`move`/`bank` all use it.
+- **Fake** (post-process default) — `sprite_postprocess.py` derives the shadow from each
+  frame's silhouette bottom (`bbox[3]`), which **rises with a vertical bob** → on the
+  hover loop the shadow glues to the hull and floats. Looks wrong for any bobbing sheet.
+
+`--bob` is the Y-wobble amplitude (fraction of model size) — **lower = less wobble**
+(`0.06` default bobbed too hard). Current values: `idle` (hover) `0.015`, `move` (flying)
+**`0.01`** (both deliberately tiny; the ship should barely undulate). `--lift 0.6` =
+resting hover height.
+
+The bob is **one full sine cycle over the anim loop**, so its *speed* is the sheet's
+playback fps in `ship.ts` `SHIP_SHEETS`, not a bake flag — drop `move`/`idle` fps there
+if the bob still cycles too fast after the amplitude fix.
+
+### Re-bake recipes
+
+Hover (`ship_idle`) — low wobble + grounded shadow:
+
+```bash
+uv run --project packages/python/kbve kbve-model-sprites -- \
+  --model apps/agones/arpg/web/scripts/ship-src/fighter1.obj \
+  --skin apps/agones/arpg/web/scripts/ship-src/idolknight.jpg \
+  --out ship_idle --frames 16 --anim-frames 8 --anim-mode idle --res 512 \
+  --elev 35 --pitch 90 --yaw-offset 0 --lift 0.6 --bob 0.015 --real-shadow
+```
+
+Move / lift / bank — same flags, swap `--anim-mode {move|lift|bank}` and `--out`. `move`
+uses `--bob 0.01` (+ `--sway 8` roll); `lift`/`bank` ignore `--bob` (lift ramps to
+`--lift`, bank holds it).
+
+#### Ascension / descension (atmosphere cutscenes)
+
+`launch` mode is the cinematic: the hull accelerates upward (ease-in `t²`), pitches
+nose-to-sky, and shrinks to fake distance — so the shadow plane (kept by `--real-shadow`)
+falls away beneath it = a real "leaving the planet" read. `ship.ts` plays both sheets
+forward, so **bake two sheets**: ascension forward, descension as the ascent with its
+frames reversed.
+
+```bash
+# ascension — ship_leaving_atmosphere.png
+uv run --project packages/python/kbve kbve-model-sprites -- \
+  --model apps/agones/arpg/web/scripts/ship-src/fighter1.obj \
+  --skin apps/agones/arpg/web/scripts/ship-src/idolknight.jpg \
+  --out ship_leaving --frames 1 --anim-frames 16 --anim-mode launch --res 512 \
+  --elev 35 --pitch 90 --yaw-offset 0 --real-shadow \
+  --launch-height 5 --launch-pitch 70 --launch-shrink 0.12
+```
+
+Descension (`ship_entering_atmosphere.png`) = the **same ascent with frame order
+reversed**. The baker has no reverse flag, so bake `launch` as above into a temp dir,
+then reverse the 16 `frame_NN.png` before stitching the sheet (rename ascending →
+descending, or reverse the strip). Same `--launch-*` knobs as ascension so the two read
+as exact opposites.
+
+Cinematic tuning knobs (defaults shown — bump for more drama):
+
+| Flag | Meaning | Default |
+| --- | --- | --- |
+| `--launch-height` | ascent height × model size | `5` |
+| `--launch-pitch` | nose-up pitch deg at apex | `70` |
+| `--launch-shrink` | final scale (fakes distance) | `0.12` |
+
+After baking, copy `<out>/sheet.png` → the asset dir as `<sheet>.png`, keep `ship.ts`
+`SHIP_SHEETS` frame sizes at **512**, then `./kbve.sh -lfs arpg register origin`.

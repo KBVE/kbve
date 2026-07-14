@@ -12,32 +12,71 @@ osrs:
   lowalch: 232
   highalch: 348
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "4 January 2018"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
+    weapon_type: thrown
+    attack_speed: null
+    weight: 0
+    requirements: {}
     attack_bonus:
       stab: 0
       slash: 0
       crush: 0
       magic: 0
       ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      strength: 0
       ranged_strength: 122
+      magic_damage: 0
       prayer: 0
-    requirements: {}
   recipes:
     - skill: magic
       level: 4
       xp: 9
-      inputs:
+      materials:
         - item_name: Opal dragon bolts
           quantity: 10
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Air rune
+          quantity: 2
+      tools: []
       output_quantity: 10
   related_items:
-    - item_id: 9236
-      item_name: Opal bolts (e)
+    - item_name: Opal dragon bolts
+      slug: opal-dragon-bolts
+      relationship: component
+      description: "Unenchanted base used in Enchant Crossbow Bolt (Opal)"
+    - item_name: Opal bolts (e)
       slug: opal-bolts-e
       relationship: downgrade
-      description: Regular crossbow version
+      description: "Regular enchanted opal bolts with much lower ranged strength"
   about: |-
     > *"Enchanted Dragon crossbow bolts, tipped with opal."*
 
@@ -54,16 +93,23 @@ osrs:
     | Stat | Dragon (e) | Regular (e) |
     |------|-----------|-------------|
     | Ranged Str | +122 | +14 |
-    | Base bolt | Dragon crossbow bolt | Bronze–Runite bolt |
+    | Base bolt | Dragon crossbow bolt | Bronze-Runite bolt |
 
     The dragon bolt base provides significantly higher ranged strength, making enchanted dragon bolts the top-tier ammunition choice for crossbow users.
   market_strategy:
     notes:
-      - Lowest enchant level of any bolt enchantment (Magic 4)
-      - Cheapest dragon bolt (e) variant to produce
-      - Effect is minor compared to higher-tier enchantments
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Lowest enchant level of any bolt enchantment (Magic 4)"
+      - "Cheapest dragon bolt (e) variant to produce"
+      - "Effect is minor compared to higher-tier enchantments"
+  trading_tips:
+    - "Margin is the gap between unenchanted dragon bolts and enchanted: buy unenchanted in dips"
+    - "Bulk-enchant in stacks of 10 to maximize Magic XP per cast"
+  passive_effects:
+    - name: Lucky Lightning
+      description: "5% chance (5.5% with hard Kandarin Diary) to deal bonus damage equal to 10% of visible Ranged level"
+  history:
+    - date: "4 January 2018"
+      description: "Released with the Dragon Slayer II update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

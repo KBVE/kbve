@@ -1,33 +1,65 @@
-# Egress restriction for self-hosted GitHub Actions runners
-# Allows only the ports needed for CI/CD (DNS, HTTPS, HTTP, SSH, sccache).
-# Blocks direct access to internal cluster services on non-standard ports
-# (e.g., PostgreSQL 5432, Redis on non-sccache services, RCON 25575).
+# Default-deny egress for self-hosted GitHub Actions runners.
+# Runner pods run privileged DinD as root, so a fork/PR job that escapes
+# the container has the pod's network reach. This policy denies all egress
+# by default and re-allows only:
+#   - DNS (kube-dns)
+#   - Public internet on 443/80/22 (GitHub, registries, git over SSH),
+#     with every in-cluster / private RFC1918 / metadata range carved out
+#   - Valkey (sccache) in the valkey namespace on 6379
+#   - registry-mirror in arc-runners on 5000
+# Internal cluster services (PostgreSQL 5432, RCON 25575, etc.) are
+# unreachable because the public-internet rule excepts all private CIDRs
+# and no other rule selects them.
+#
+# Scoped to ARC ephemeral runner pods ONLY — actions.github.com/scale-set-name
+# is stamped on every gha-runner-scale-set runner pod. arc-runners is a shared
+# namespace: the MC stack (mc-velocity, mc-lobby, mc-fabric gameservers) lives
+# here too, and an empty podSelector put it under runner default-deny —
+# velocity could not reach its backends and the gameserver's IRC connect
+# blackholed on the Server thread, wedging SERVER_STARTED and the Agones
+# Ready call (4-minute recycle loop).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
     name: arc-runner-egress
     namespace: arc-runners
 spec:
-    podSelector: {}
+    podSelector:
+        matchExpressions:
+            - key: actions.github.com/scale-set-name
+              operator: Exists
     policyTypes:
         - Egress
     egress:
         # DNS resolution (kube-dns)
-        - ports:
+        - to:
+              - namespaceSelector: {}
+                podSelector:
+                    matchLabels:
+                        k8s-app: kube-dns
+          ports:
               - port: 53
                 protocol: UDP
               - port: 53
                 protocol: TCP
-        # HTTPS (GitHub API, container registries, npm/cargo registries)
-        - ports:
+        # Public internet only — HTTPS/HTTP/SSH for GitHub, container/package
+        # registries, git over SSH. Pod CIDR (10.244/16), service CIDR
+        # (10.96/12), WireGuard (10.0/24), all RFC1918, and link-local
+        # metadata (169.254/16) are excepted so a job cannot pivot to
+        # in-cluster or node-local endpoints via raw IP.
+        - to:
+              - ipBlock:
+                    cidr: 0.0.0.0/0
+                    except:
+                        - 10.0.0.0/8
+                        - 172.16.0.0/12
+                        - 192.168.0.0/16
+                        - 169.254.0.0/16
+          ports:
               - port: 443
                 protocol: TCP
-        # HTTP (some registries, apt/apk repos)
-        - ports:
               - port: 80
                 protocol: TCP
-        # SSH (git clone via SSH)
-        - ports:
               - port: 22
                 protocol: TCP
         # sccache → Valkey (port 6379, scoped to valkey ns only).
@@ -38,4 +70,36 @@ spec:
                         kubernetes.io/metadata.name: valkey
           ports:
               - port: 6379
+                protocol: TCP
+        # Docker Hub pull-through mirror (registry-mirror.arc-runners.svc:5000).
+        - to:
+              - podSelector:
+                    matchLabels:
+                        app.kubernetes.io/name: registry-mirror
+          ports:
+              - port: 5000
+                protocol: TCP
+        # ghcr.io pull-through cache (registry-mirror-ghcr.arc-runners.svc:5000)
+        # for the UE image. Required now that egress is default-deny with every
+        # private CIDR excepted — without this allow the ghcr cache is
+        # unreachable and every UE pull silently falls back to ghcr.io.
+        - to:
+              - podSelector:
+                    matchLabels:
+                        app.kubernetes.io/name: registry-mirror-ghcr
+          ports:
+              - port: 5000
+                protocol: TCP
+        # Persistent remote buildkitd (buildkitd.arc-runners.svc:1234) — the warm
+        # .astro / cargo / sccache-local / layer cache shared across runs. Default-
+        # deny egress excepts the cluster service CIDR, so without this allow the
+        # remote buildx driver is unreachable and every build silently falls back
+        # to the cold docker-container builder. Pairs with the buildkitd-ingress
+        # policy in buildkitd.yaml (which already allows in from arc-runners).
+        - to:
+              - podSelector:
+                    matchLabels:
+                        app.kubernetes.io/name: buildkitd
+          ports:
+              - port: 1234
                 protocol: TCP

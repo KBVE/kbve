@@ -1,6 +1,6 @@
 ---
 title: Book of balance page set | OSRS Price Data
-description: "Book of balance page set: A set containing the four pages of Guthix's Book of Balance.. High alch: 4,200 GP, GE limit: 5."
+description: "Book of balance page set is a members Grand Exchange set of four Guthix book pages. High alch: 4,200 GP, GE limit: 5."
 osrs:
   id: 13153
   name: Book of balance page set
@@ -12,9 +12,33 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 5
-  about: "Book of balance page set is a members-only item in Old School RuneScape. High alchemy value: 4,200 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: set
+    tier: mid
+  related_items:
+    - item_name: Damaged book (Guthix)
+      slug: damaged-book-guthix
+      relationship: product
+      description: Pages combine into the damaged Guthix book
+    - item_name: Book of balance
+      slug: book-of-balance
+      relationship: product
+      description: Completed prayer book offering bonuses
+    - item_name: Torn prayer scroll
+      slug: torn-prayer-scroll
+      relationship: alternative
+      description: Alternative Treasure Trails prayer reward
+  market_strategy:
+    notes:
+      - Grand Exchange set used to bundle the four Guthix book pages
+      - Demand driven by Treasure Trail completionists
+      - Convert via GE Sets exchange clerk
+  trading_tips:
+    - Compare set price vs sum of individual pages before buying
+    - Use Grand Exchange for secure trades
+  about: "Book of balance page set is a Grand Exchange set containing the four pages of Guthix's Book of Balance. Used to assemble the damaged book before binding to Guthix's completed prayer book."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

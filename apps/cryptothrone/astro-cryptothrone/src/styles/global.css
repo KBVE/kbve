@@ -45,21 +45,32 @@
 
 /* ── Game full-bleed layout ── */
 
-/* Lock body scroll and hide footer when the game overlay is active */
+/* Lock body scroll fully when the game overlay is active */
+html:has(.game-fullscreen),
 body:has(.game-fullscreen) {
 	overflow: hidden;
 }
 
+/* Strip Starlight chrome below the header so the game gets the rest of
+   the viewport — the nav bar stays for orientation + the auth badge */
+body:has(.game-fullscreen) .sidebar,
+body:has(.game-fullscreen) .right-sidebar,
+body:has(.game-fullscreen) starlight-menu-button,
 body:has(.game-fullscreen) footer,
 body:has(.game-fullscreen) .ct-footer {
 	display: none;
 }
 
-/* Full-viewport game overlay — covers Starlight header/hero */
+body:has(.game-fullscreen) .page,
+body:has(.game-fullscreen) .main-frame {
+	padding-top: 0 !important;
+}
+
+/* Game overlay fills the viewport below the nav bar */
 .game-fullscreen {
 	position: fixed;
-	inset: 0;
-	z-index: 50;
+	inset: var(--sl-nav-height, 3.5rem) 0 0 0;
+	z-index: 40;
 	background: var(--ct-bg-deep);
 	display: flex;
 	align-items: center;
@@ -72,7 +83,7 @@ body:has(.game-fullscreen) .ct-footer {
 	width: 100%;
 	height: 100%;
 	max-width: 100vw;
-	max-height: 100vh;
+	max-height: calc(100vh - var(--sl-nav-height, 3.5rem));
 	object-fit: contain;
 }
 

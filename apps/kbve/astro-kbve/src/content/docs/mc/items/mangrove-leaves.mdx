@@ -1,5 +1,6 @@
 ---
 title: Mangrove Leaves
+template: splash
 description: |
     Minecraft Mangrove Leaves — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 190
     ref: mangrove_leaves
     slug: mangrove-leaves
+    content_rev: 1
     display_name: Mangrove Leaves
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Mangrove Leaves are the semi-transparent foliage blocks that form the canopy of mangrove trees in swamp biomes, diffusing light while casting shade beneath the tree. When broken by hand they have a small chance to drop a Mangrove Propagule or a stick, but shears or a Silk Touch tool let a player collect the leaf block itself intact.
+            Uniquely among leaf types, mangrove leaves can host a hanging Mangrove Propagule that grows and eventually drops as a plantable sapling, and applying bone meal directly to the leaves can spawn new propagules. Leaves left disconnected from any log within six blocks will decay naturally over time.
+        lore: |
+            These waxy, salt-tolerant leaves let mangrove trees thrive with their roots submerged in swamp water.
+    faq:
+        - question: How do you obtain Mangrove Leaves as a block?
+          answer: |
+              Break them with shears or a tool enchanted with Silk Touch to collect the leaf block itself; breaking them by hand instead has a chance to drop a Mangrove Propagule or a stick.
+        - question: Do Mangrove Leaves decay like other tree leaves?
+          answer: |
+              Yes, if a mangrove leaf block is not within six blocks of a connected log it will decay and disappear over time, unless it was placed directly by a player.
+        - question: Can you get a Mangrove Propagule from the leaves?
+          answer: |
+              Yes, mangrove leaves can grow and drop hanging propagules naturally, and applying bone meal to the leaves can also spawn additional propagules.
+        - question: Can Mangrove Leaves be composted?
+          answer: |
+              Yes, like other leaf blocks they can be placed in a composter to have a chance of producing bone meal.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

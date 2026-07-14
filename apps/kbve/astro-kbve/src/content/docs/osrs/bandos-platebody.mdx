@@ -1,6 +1,6 @@
 ---
 title: Bandos platebody | OSRS Price Data
-description: "Bandos platebody: Rune platebody in the colours of Bandos.. High alch: 39,000 GP, GE limit: 8."
+description: "Bandos platebody: Rune platebody in the colours of Bandos. High alch: 39,000 GP, GE limit: 8."
 osrs:
   id: 12480
   name: Bandos platebody
@@ -12,9 +12,96 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: 8
-  about: "Bandos platebody is a free-to-play item in Old School RuneScape. High alchemy value: 39,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: mid-high
+  equipment:
+    slot: body
+    weight: 9.979
+    requirements:
+      defence: 40
+      quest: Dragon Slayer I
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 82
+      slash: 80
+      crush: 72
+      magic: -6
+      ranged: 80
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  drop_table:
+    sources:
+      - source: Treasure Trails (Hard)
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_id: 1127
+      item_name: Rune platebody
+      slug: rune-platebody
+      relationship: alternative
+      description: Standard rune platebody with identical stats.
+    - item_id: 12482
+      item_name: Bandos platelegs
+      slug: bandos-platelegs
+      relationship: set-piece
+      description: Matching Bandos-themed platelegs.
+    - item_id: 12484
+      item_name: Bandos full helm
+      slug: bandos-full-helm
+      relationship: set-piece
+      description: Matching Bandos-themed full helm.
+    - item_id: 12486
+      item_name: Bandos kiteshield
+      slug: bandos-kiteshield
+      relationship: set-piece
+      description: Matching Bandos-themed kiteshield.
+  about: "Bandos platebody is a cosmetic rune platebody re-colored to Bandos heraldry obtained from Hard Treasure Trails; stats match the standard rune platebody."
+  market_strategy:
+    notes:
+      - Supply comes exclusively from Hard Treasure Trails at roughly 1/1625.
+      - Price tracks the prestige cosmetic market rather than combat demand.
+      - Bandos imagery keeps modest collector demand.
+  trading_tips:
+    - Watch for price spikes when Treasure Trails content updates ship.
+    - Compare to other heraldic rune sets to gauge cosmetic premium.
+    - Note that wearing it requires Dragon Slayer I, narrowing the buyer pool slightly.
+  history:
+    - date: "2014-06-12"
+      description: Item released as part of the Treasure Trails expansion.
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trails Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    quest: Dragon Slayer I
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

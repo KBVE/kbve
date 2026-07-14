@@ -1,5 +1,6 @@
 ---
 title: Gray Bundle
+template: splash
 description: |
     Minecraft Gray Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 982
     ref: gray_bundle
     slug: gray-bundle
+    content_rev: 1
     display_name: Gray Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A gray bundle is a dyed variant of the bundle, an inventory item that stores a mix of different item types within a single slot. Items take up space based on their normal stack size, so items that stack to 64 fill only 1/64 of the bundle while non-stackable items fill it entirely. It is made by combining an undyed bundle with gray dye.
+        lore: |
+            Bundles are inspired by the ancient Roman coin purse, a container used for thousands of years to carry a variety of small valuables.
+    faq:
+        - question: How much can a gray bundle hold?
+          answer: |
+              A bundle can store only what would otherwise add up to a single inventory slot, equivalent to 64 stackable items or a single non-stackable item.
+        - question: Can I put bundles inside a gray bundle?
+          answer: |
+              Yes. Each nested bundle consumes 1/16 of the outer bundle's capacity in addition to the space taken by its own contents.
+        - question: Why does the bundle only come in 16 fixed colors instead of custom dye mixes?
+          answer: |
+              It is considered more important that a player can quickly glance at a bundle's color and judge its contents than to allow unlimited custom colors.
+        - question: Can a gray bundle be placed inside a shulker box?
+          answer: |
+              Yes, bundles can be placed inside shulker boxes, though shulker boxes themselves cannot be placed inside bundles.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

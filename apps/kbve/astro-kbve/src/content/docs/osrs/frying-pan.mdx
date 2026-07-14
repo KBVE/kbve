@@ -12,9 +12,72 @@ osrs:
   lowalch: 664
   highalch: 996
   limit: 50
-  about: "Frying pan is a members-only item in Old School RuneScape. High alchemy value: 996 coins. Grand Exchange buy limit: 50 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: iron
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: bladed
+    attack_speed: 6
+    weight: 1.587
+    requirements:
+      attack: 20
+      quest: "Recipe for Disaster"
+    attack_bonus:
+      crush: 25
+    other_bonus:
+      strength: 20
+  shops:
+    - shop_name: Culinaromancer's Chest
+      location: Lumbridge Castle basement
+      price: 2158
+      diary_discount_price: 1726
+  related_items:
+    - name: Wooden spoon
+      relationship: alternative
+    - name: Egg whisk
+      relationship: alternative
+    - name: Spork
+      relationship: alternative
+    - name: Spatula
+      relationship: alternative
+    - name: Skewer
+      relationship: alternative
+    - name: Rolling pin
+      relationship: alternative
+    - name: Meat tenderiser
+      relationship: alternative
+  about: "Frying pan is a members-only joke melee weapon in Old School RuneScape, unlocked through Recipe for Disaster subquests. High alchemy value: 996 coins. Grand Exchange buy limit: 50 per 4 hours."
+  market_strategy:
+    notes:
+      - Culinaromancer's Chest provides a stable supply ceiling at 2,158 coins (1,726 with diary).
+      - GE price typically sits below shop price thanks to high-alch profitability.
+  trading_tips:
+    - High-alch margin holds the price near alch-floor; bulk flips clear slowly given the 50 limit.
+    - Watch for nostalgia spikes around RFD anniversary events.
+  history:
+    - date: "2006-03-15"
+      description: Released with the Recipe for Disaster (Hundredth Quest) update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-03-15"
+    update: "Recipe for Disaster"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: "Recipe for Disaster"
+    weight: 1.587
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

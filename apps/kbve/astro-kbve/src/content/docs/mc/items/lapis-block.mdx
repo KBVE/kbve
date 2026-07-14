@@ -1,5 +1,6 @@
 ---
 title: Block of Lapis Lazuli
+template: splash
 description: |
     Minecraft Block of Lapis Lazuli — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 197
     ref: lapis_block
     slug: lapis-block
+    content_rev: 1
     display_name: Block of Lapis Lazuli
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The block of lapis lazuli is a storage block that compresses 9 lapis
+            lazuli into a single block for compact inventory management. It can be
+            mined with a stone pickaxe or better and can be crafted back into 9
+            lapis lazuli when needed.
+        lore: |
+            A deep blue stone said to echo the pigment once ground from real lapis
+            lazuli to paint the finest manuscripts.
+    faq:
+        - question: How do you craft a block of lapis lazuli?
+          answer: |
+              Arrange 9 lapis lazuli in a 3x3 grid on a crafting table to
+              produce 1 block.
+        - question: What tool is needed to mine it?
+          answer: |
+              A stone pickaxe or better is required to mine the block and
+              collect it as an item.
+        - question: Where does it generate naturally?
+          answer: |
+              Blocks of lapis lazuli are hidden inside illager statues found in
+              woodland mansions.
+        - question: Can it be turned back into lapis lazuli?
+          answer: |
+              Yes, crafting the block again in a grid by itself yields 9
+              individual lapis lazuli.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

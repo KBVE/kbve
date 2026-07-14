@@ -12,9 +12,51 @@ osrs:
   lowalch: 240000
   highalch: 360000
   limit: 40
-  about: "Dwarf cannon set is a members-only item in Old School RuneScape. High alchemy value: 360,000 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: equipment-set
+    tier: high
+  properties:
+    release_date: "2014-12-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Cannon barrels
+      slug: cannon-barrels
+      relationship: set-piece
+      description: "Top section of the Dwarf Multicannon"
+    - item_name: Cannon base
+      slug: cannon-base
+      relationship: set-piece
+      description: "Bottom base of the Dwarf Multicannon"
+    - item_name: Cannon furnace
+      slug: cannon-furnace
+      relationship: set-piece
+      description: "Furnace section of the Dwarf Multicannon"
+    - item_name: Cannon stand
+      slug: cannon-stand
+      relationship: set-piece
+      description: "Stand section of the Dwarf Multicannon"
+  about: "Dwarf cannon set bundles the four parts of the Dwarf Multicannon (barrels, base, furnace, stand) for one-click Grand Exchange trading. Players who complete Dwarf Cannon can buy and assemble the set into a functional multicannon."
+  market_strategy:
+    notes:
+      - "Trade the set instead of four separate pieces to save time"
+      - "Compare set price to component sum before buying"
+      - "Requires Dwarf Cannon quest to deploy the assembled cannon"
+  history:
+    - date: "2014-12-10"
+      description: "Set added to the Grand Exchange Sets interface."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

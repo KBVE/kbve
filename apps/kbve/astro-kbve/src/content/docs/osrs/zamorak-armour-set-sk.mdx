@@ -12,9 +12,52 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Zamorak armour set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: misc
+    tier: steel
+  related_items:
+    - item_id: 2657
+      item_name: Zamorak full helm
+      slug: zamorak-full-helm
+      relationship: component
+      description: Set component
+    - item_id: 2653
+      item_name: Zamorak platebody
+      slug: zamorak-platebody
+      relationship: component
+      description: Set component
+    - item_id: 2655
+      item_name: Zamorak plateskirt
+      slug: zamorak-plateskirt
+      relationship: component
+      description: Set component
+    - item_id: 2659
+      item_name: Zamorak kiteshield
+      slug: zamorak-kiteshield
+      relationship: component
+      description: Set component
+  market_strategy:
+    notes:
+      - "summary: \"Grand Exchange convenience set; price tracks the underlying Zamorak steel pieces.\""
+      - "target_audience: \"Free-to-play PKers and decorators consolidating bank space.\""
+      - "trading_strategy: \"Compare set price against the sum of individual pieces to flip for arbitrage.\""
+  trading_tips:
+    - Exchange via Grand Exchange clerk 'Sets' right-click to combine or split.
+    - GE buy limit only 8 per 4 hours - low-volume flips.
+  history:
+    - date: "2015-02-26"
+      description: Released alongside other F2P armour sets to ease bank management.
+  about: |-
+    Zamorak armour set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours.
+
+    Contains a Zamorak full helm, platebody, plateskirt, and kiteshield. Created and decomposed via the Grand Exchange clerk's 'Sets' option.
+  properties:
+    release_date: "2015-02-26"
+    weight: 6
+    quest_item: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

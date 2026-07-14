@@ -68,7 +68,7 @@ impl HoverMap {
                     let dx = world_x - tile_center_x;
                     let dz = world_z - tile_center_z;
                     let dist_sq = dx * dx + dz * dz;
-                    if best.map_or(true, |(_, d)| dist_sq < d) {
+                    if best.is_none_or(|(_, d)| dist_sq < d) {
                         best = Some((entry.entity, dist_sq));
                     }
                 }
@@ -247,7 +247,7 @@ pub fn cursor_pick(
                         let tile_cz = cz as f32 + 0.5;
                         let dist_sq =
                             (ground_xz.x - tile_cx).powi(2) + (ground_xz.y - tile_cz).powi(2);
-                        if best.map_or(true, |(_, d)| dist_sq < d) {
+                        if best.is_none_or(|(_, d)| dist_sq < d) {
                             best = Some((entry.entity, dist_sq));
                         }
                     }

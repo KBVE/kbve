@@ -1,6 +1,6 @@
 ---
 title: Iron set (lg) | OSRS Price Data
-description: "Iron set (lg): A set containing a full helm, platebody, legs and kiteshield.. High alch: 540 GP, GE limit: 8."
+description: "Iron set (lg): A set containing a full helm, platebody, legs and kiteshield. High alch: 540 GP, GE limit: 8."
 osrs:
   id: 12972
   name: Iron set (lg)
@@ -12,12 +12,61 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 8
-  about: "Iron set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+  related_items:
+    - item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: component
+      description: Helmet contained in the set
+    - item_name: Iron platebody
+      slug: iron-platebody
+      relationship: component
+      description: Body contained in the set
+    - item_name: Iron platelegs
+      slug: iron-platelegs
+      relationship: component
+      description: Legs contained in the set
+    - item_name: Iron kiteshield
+      slug: iron-kiteshield
+      relationship: component
+      description: Shield contained in the set
+    - item_name: Iron set (sk)
+      slug: iron-set-sk
+      relationship: alternative
+      description: Skirt variant of the iron armour set
+  about: "Iron set (lg) is a free-to-play Grand Exchange convenience item that bundles an Iron full helm, Iron platebody, Iron platelegs, and Iron kiteshield into a single tradeable token. The set is mostly used to save bank space and is exchanged with a Grand Exchange clerk to obtain or split the four pieces. Because the bundle typically trades above the sum of the components, it is also a popular set-flip target."
+  market_strategy:
+    notes:
+      - "Set-flip target - assemble pieces and exchange"
+      - "F2P friendly with strong bank-space utility"
+      - "GE buy limit of 8 keeps flips modest"
+      - "Margin tracks the spread vs sum-of-parts"
+  trading_tips:
+    - Compare set price to combined component cost before flipping
+    - Watch armour-set updates and spotlights for demand spikes
+  history:
+    - date: "2015-02-26"
+      description: Introduced with the Grand Exchange set conversion update.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

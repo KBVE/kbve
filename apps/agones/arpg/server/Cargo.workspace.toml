@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = [
+    "apps/agones/arpg/server",
+    "packages/rust/simgrid",
+]
+
+[workspace.package]
+rust-version = "1.96"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"

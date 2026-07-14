@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693476516334-25f07491f59c?crop=entropy&c
 description: September 9th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 9,'
+    accent: every year.
+    lede: 'The September 9th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 8'
+          href: /journal/09-08/
+        - label: 'Sep 10 →'
+          href: /journal/09-10/
+    related:
+        - title: 'Previous · Sep 8'
+          copy: 'Step back a day to the September 8th log.'
+          href: /journal/09-08/
+          icon: calendar
+        - title: 'Next · Sep 10'
+          copy: 'Jump ahead to the September 10th log.'
+          href: /journal/09-10/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693476516334-25f07491f59c?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025 
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### KBVE Hyperlane
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     I also believe that we might be one of the first to do so, the tests with Disoxide have been great and this is the perfect step towards the direction that we want.
     There are still some bugs that we need to resolve, but I will tackle them during the next refactor of the KBVE website.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Terraform Proxmox** 
 
@@ -44,17 +93,27 @@ The next stage for deployment is to setup a cloudnative pg image based off of su
 Within the monorepo, we are going to add a new package into the nx eco-system that will help with building containers.
 The nx containers still needs to be updated within the github actions and ci-cd pipeline.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:43am - Looking over the UI/UX components for the next game that we build, I am diving a bit deeper.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > I cannot even imagine where I would be today were it not for that handful of friends who have given me a heart full of joy. Let's face it, friends make life a lot more fun.
 > — <cite>Chuck Swindoll</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

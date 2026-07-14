@@ -1,5 +1,6 @@
 ---
 title: Slime Block
+template: splash
 description: |
     Minecraft Slime Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 694
     ref: slime_block
     slug: slime-block
+    content_rev: 1
     display_name: Slime Block
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A slime block is a full-sized block crafted from nine slimeballs. It
+            cushions falls with a bounce instead of dealing fall damage, and
+            sticks to adjacent blocks when pushed by a piston, making it a key
+            component of flying machines and other redstone contraptions.
+        lore: |
+            Once dismissed as a mere curiosity, the slime block became a
+            cornerstone technology for builders chasing flying machines and
+            elaborate mechanical contraptions.
+    faq:
+        - question: How do I make a slime block?
+          answer: |
+              Arrange nine slimeballs in a full 3x3 crafting grid to produce
+              one slime block.
+        - question: What happens when I land on a slime block?
+          answer: |
+              Landing on a slime block causes no fall damage and bounces you
+              upward proportional to your falling velocity, though the bounce
+              height diminishes with each successive bounce.
+        - question: How do slime blocks work with pistons?
+          answer: |
+              When a piston pushes a slime block, any entities or blocks ahead
+              of it are pushed or launched in the same direction, enabling
+              multi-block contraptions and flying machines.
+        - question: Can slime blocks be used in brewing?
+          answer: |
+              Yes, combining a slime block with an Awkward Potion produces a
+              Potion of Oozing, which grants the Oozing effect.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

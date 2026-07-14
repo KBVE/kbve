@@ -12,9 +12,83 @@ osrs:
   lowalch: 266
   highalch: 399
   limit: 4
-  about: "Briefcase is a members-only item in Old School RuneScape. High alchemy value: 399 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: clue-cosmetic
+    tier: high
+  properties:
+    release_date: "12 June 2014"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 0.005
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers: ["elite"]
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/1275
+  related_items:
+    - item_name: Suit jacket
+      slug: suit-jacket
+      relationship: alternative
+      description: Matching elite clue cosmetic torso piece.
+    - item_name: Suit trousers
+      slug: suit-trousers
+      relationship: alternative
+      description: Matching elite clue cosmetic leg piece.
+    - item_name: Reward casket (elite)
+      slug: reward-casket-elite
+      relationship: component
+      description: Source casket — the briefcase is one of its rare cosmetic rewards.
+  about: |-
+    The Briefcase is a cosmetic shield slot item granted as a rare 1/1,275 reward from elite Reward caskets. It provides no combat bonuses and exists purely as fashionscape kit for big-city outfits. Released on 12 June 2014 as part of the Treasure Trail Expansion.
+  market_strategy:
+    notes:
+      - "Tiny buy limit (4 per 4 hours) means thin flipping; price-sensitive."
+      - "Supply is gated by elite clue completions — drought events spike price."
+      - "Pairs in fashion sets with suit jacket/trousers — bundle pricing applies."
+  trading_tips:
+    - "Watch elite clue completion events — sell into the post-content hype."
+    - "Use Costume Room storage in your POH — saves bank space when off-market."
+    - "Cross-list against suit jacket and trousers for set-completion buyers."
+  history:
+    - date: "12 June 2014"
+      description: "Released with the Treasure Trail Expansion as an elite clue reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Knife | OSRS Price Data
-description: "Knife: A dangerous looking knife.. High alch: 3 GP, GE limit: 40."
+description: "Knife: A dangerous looking knife. High alch: 3 GP, GE limit: 40."
 osrs:
   id: 946
   name: Knife
@@ -12,13 +12,64 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 40
-  related_items: []
-  about: |-
-    > _"A relatively small knife."_
-
-    The knife is a utility tool used in Crafting (cutting leather, stringing bows) and Fletching (making arrow shafts from logs). One of the most essential tools alongside the tinderbox and chisel.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Bob's Brilliant Axes
+      location: Lumbridge
+      price: 80
+      currency: Coins
+      stock: 5
+    - shop_name: Trader Stan's Trading Post
+      location: Karamja
+      price: 80
+      currency: Coins
+      stock: 5
+    - shop_name: Ardougne Spice Stall
+      location: East Ardougne
+      price: 80
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Tinderbox
+      slug: tinderbox
+      relationship: alternative
+      description: Companion utility tool for Firemaking
+    - item_name: Chisel
+      slug: chisel
+      relationship: alternative
+      description: Companion utility tool for Crafting
+  about: |
+    The knife is a fundamental utility tool used in Fletching (for cutting logs into arrow shafts) and Crafting (for cutting leather and stringing bows). It also cuts webs in Stronghold-style passages and is essential for Hunter trap setup. A free knife spawns in a sack near the Mage Arena bank lever if you arrive without one.
+  market_strategy:
+    notes:
+      - "Buy limit of 40 caps speculative flipping"
+      - "Shop-bought price often beats GE"
+      - "Steady but slow demand from low-level fletchers"
+  trading_tips:
+    - Cheaper to buy from general stores than the GE
+    - Bob's Brilliant Axes in Lumbridge restocks reliably
+    - Used in early Hunter, Fletching, and Crafting tasks
+  history:
+    - date: "2001-01-04"
+      description: "Knife added as a multi-skill utility tool."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

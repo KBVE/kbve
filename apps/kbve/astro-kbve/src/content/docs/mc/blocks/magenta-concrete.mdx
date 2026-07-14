@@ -1,5 +1,6 @@
 ---
 title: Magenta Concrete
+template: splash
 description: |
     Minecraft Magenta Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 680
     ref: magenta_concrete
     slug: magenta-concrete
+    content_rev: 1
     display_name: Magenta Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Magenta Concrete is a solid, vibrantly colored building block
+            formed when Magenta Concrete Powder contacts water. It is
+            non-flammable and slightly harder than stone, making it a
+            popular fireproof decoration material.
+        lore: |
+            Concrete released in Java Edition 1.12, giving builders a
+            saturated, fire-resistant alternative to wool and terracotta.
+    uses:
+        - title: Building Material
+          ref: magenta_concrete
+          detail: |
+              Used purely as a decorative, fireproof building block;
+              it has no further crafting uses.
+    found_in:
+        - location: Converted from powder
+          detail: Formed whenever Magenta Concrete Powder touches a water source, flowing water, or a waterlogged block.
+        - location: Trial chambers
+          detail: Some colors of concrete, primarily red and white, generate naturally inside trial chamber structures.
+    faq:
+        - question: What tool do I need to mine Magenta Concrete?
+          answer: |
+              A pickaxe of any tier, starting with wood. Mining without a
+              pickaxe yields no drop.
+        - question: Is Magenta Concrete flammable?
+          answer: |
+              No. Unlike wool, concrete never catches fire, making it a
+              safer alternative for builds near lava or flames.
+        - question: How strong is Magenta Concrete against explosions?
+          answer: |
+              Its blast resistance is only 1.8, slightly higher than
+              stone but much lower than blocks like obsidian.
+        - question: Can I turn Magenta Concrete back into powder?
+          answer: |
+              No. Once concrete forms, it cannot be reverted to concrete
+              powder.
     data_version: "1.21.5"
 ---
 

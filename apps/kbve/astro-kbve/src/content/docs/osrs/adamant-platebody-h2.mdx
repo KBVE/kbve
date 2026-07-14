@@ -12,9 +12,95 @@ osrs:
   lowalch: 6656
   highalch: 9984
   limit: 8
-  about: "Adamant platebody (h2) is a free-to-play item in Old School RuneScape. High alchemy value: 9,984 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 11.339
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 11.339
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 65
+      slash: 63
+      crush: 55
+      magic: -6
+      ranged: 63
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Medium Clue Scroll
+        quantity: "1"
+        rarity: "1/1,133"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_name: Adamant platebody
+      slug: adamant-platebody
+      relationship: alternative
+      description: Standard smithable platebody with identical defensive stats.
+    - item_name: Adamant platebody (h1)
+      slug: adamant-platebody-h1
+      relationship: variant
+      description: Alternate heraldic design from medium clue rewards.
+    - item_name: Adamant platebody (h3)
+      slug: adamant-platebody-h3
+      relationship: variant
+      description: Alternate heraldic design from medium clue rewards.
+    - item_name: Adamant platebody (h4)
+      slug: adamant-platebody-h4
+      relationship: variant
+      description: Alternate heraldic design from medium clue rewards.
+    - item_name: Adamant platebody (h5)
+      slug: adamant-platebody-h5
+      relationship: variant
+      description: Alternate heraldic design from medium clue rewards.
+  about: "The adamant platebody (h2) is a heraldic cosmetic variant of the adamant platebody with identical defensive stats and a 30 Defence requirement. It is obtained exclusively from medium Treasure Trails as part of the heraldic h1–h5 series introduced in the 2019 Treasure Trails expansion."
+  market_strategy:
+    notes:
+      - "Heraldic supply is clue-driven; price follows medium clue completion volume."
+      - "Fashionscape demand pegs price slightly above the standard platebody."
+      - "GE buy limit of 8 keeps short-term flips constrained."
+  trading_tips:
+    - "Sell during fashionscape and clue-prep hype windows."
+    - "Bundle with matching h-series kiteshield and full helm for set premium."
+    - "Compare against sibling h1/h3/h4/h5 patterns to spot under-priced designs."
+  history:
+    - date: "2019-04-11"
+      description: "Added as a medium Treasure Trail reward in the Treasure Trails expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

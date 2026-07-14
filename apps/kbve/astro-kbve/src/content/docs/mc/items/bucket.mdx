@@ -1,5 +1,6 @@
 ---
 title: Bucket
+template: splash
 description: |
     Minecraft Bucket — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 950
     ref: bucket
     slug: bucket
+    content_rev: 1
     display_name: Bucket
     category: misc
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A bucket is a utility container crafted from three iron ingots that lets players collect and transport fluids and small aquatic mobs. Empty buckets can scoop up water, lava, milk, and powder snow, or capture cod, salmon, tropical fish, pufferfish, axolotls, and tadpoles, with each filled bucket taking up one inventory slot. Lava buckets also double as an efficient, renewable furnace fuel source.
+        lore: |
+            One of Minecraft's oldest tools, the bucket has hauled water and lava since the game's earliest development builds.
+    faq:
+        - question: How do I craft a bucket?
+          answer: |
+              Arrange three iron ingots in a V-shape in the crafting grid: one ingot on each side of the top row, and one in the center of the middle row, yielding one bucket.
+        - question: Can I use a bucket to collect lava for fuel?
+          answer: |
+              Yes, a lava bucket placed in the fuel slot of a furnace becomes an empty bucket after the lava is consumed during smelting, making lava buckets an excellent renewable fuel source.
+        - question: What happens if my inventory is full when I try to collect fluid?
+          answer: |
+              If the empty bucket is part of a stack and the player's inventory is full, the filled bucket drops in front of the player as an item instead of being added to the inventory.
+        - question: Do filled buckets stack like empty ones?
+          answer: |
+              No, filled buckets such as water, lava, or milk cannot stack, whereas empty buckets stack up to 16 per slot.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

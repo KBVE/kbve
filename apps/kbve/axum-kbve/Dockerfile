@@ -14,7 +14,7 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS ast
 WORKDIR /app
 
 # Copy root dependency and config files (layer-cached separately from source)
-COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
 
 # Install all dependencies (hoisted mode - all go to root node_modules)
 # Cache pnpm content-addressable store across builds to skip re-downloading
@@ -26,6 +26,11 @@ COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/devops/ packages/npm/devops/
 COPY packages/npm/droid/ packages/npm/droid/
 COPY packages/npm/laser/ packages/npm/laser/
+COPY packages/npm/chat/ packages/npm/chat/
+COPY packages/npm/core/ packages/npm/core/
+COPY packages/npm/observ/ packages/npm/observ/
+COPY packages/npm/rn/ packages/npm/rn/
+COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 
 # Copy generated schemas used by astro-kbve content collections
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
@@ -49,7 +54,8 @@ COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 # NOTE: Mount cache to a staging path, then copy in/out. Mounting directly on
 # .astro/ causes EBUSY when Astro tries to rmdir the mount point after build.
 WORKDIR /app/apps/kbve/astro-kbve
-RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-cache \
+ARG ASTRO_CACHE_KEY=astro6
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-kbve-cache-${ASTRO_CACHE_KEY},sharing=locked \
     cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
     npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build && \

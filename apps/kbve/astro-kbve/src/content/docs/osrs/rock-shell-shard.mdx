@@ -1,6 +1,6 @@
 ---
 title: Rock-shell shard | OSRS Price Data
-description: "Rock-shell shard: A curved piece of rock-shell.. High alch: 36 GP, GE limit: 11,000."
+description: "Rock-shell shard is a Dagannoth-drop crafting component combined by Skulgrimen with dagannoth hide to make rock-shell platebodies. High alch: 36 GP, GE limit: 11,000."
 osrs:
   id: 6159
   name: Rock-shell shard
@@ -12,9 +12,76 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 11000
-  about: "Rock-shell shard is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: rock-shell
+    tier: mid
+  properties:
+    release_date: "2005-08-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Giant Rock Crab
+        combat_level: 137
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 2/128
+        members_only: true
+      - source: King Sand Crab
+        combat_level: 107
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 2/128
+        members_only: true
+      - source: Dagannoth
+        combat_level: 74
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/128
+        members_only: true
+  related_items:
+    - item_name: Rock-shell plate
+      slug: rock-shell-plate
+      relationship: product
+      description: Forged by Skulgrimen on the Fremennik Isles from 3 dagannoth hides, 1 rock-shell shard, and 10,000 coins
+    - item_name: Rock-shell chunk
+      slug: rock-shell-chunk
+      relationship: alternative
+      description: Heavier dagannoth drop used to craft rock-shell helms
+    - item_name: Rock-shell splinter
+      slug: rock-shell-splinter
+      relationship: alternative
+      description: Smaller dagannoth drop used to craft rock-shell legs
+    - item_name: Dagannoth hide
+      slug: dagannoth-hide
+      relationship: component
+      description: Soft-tier dagannoth drop combined with rock-shell shards at Skulgrimen
+  about: "Rock-shell shard is a Fremennik Isles crafting component dropped by dagannoth and crab variants, combined with dagannoth hide at Skulgrimen after The Fremennik Isles quest to forge rock-shell platebodies; before completing The Fremennik Trials it can also be exchanged with Askeladden for cooked tuna."
+  market_strategy:
+    notes:
+      - "Demand tied to rock-shell armour crafters and low-Defence pures kitting out free attack bonuses"
+      - "Supply faucets are Dagannoth and crab-tier monsters - shifts with Slayer task popularity"
+      - "GE buy limit of 11,000 per 4 hours easily covers crafter runs"
+      - "High alch of 36 gp is well below price - not viable as an alch target"
+  trading_tips:
+    - "Watch Slayer task rotations for Dagannoth/crab spikes that flood supply"
+    - "Cross-check against Dagannoth hide spot prices to gauge crafter margin"
+    - "Rock-shell armour stays niche - stick to small, consistent flips"
+  history:
+    - date: "2005-08-01"
+      description: "Released with The Fremennik Isles quest expanding the dagannoth-themed armour line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

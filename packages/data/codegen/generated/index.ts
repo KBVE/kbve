@@ -5,6 +5,9 @@
  * Must match the registry in packages/data/codegen/gen-all.mjs.
  */
 
+export * from './agents-schema.js';
+export * from './argocd-schema.js';
+export * from './chat-schema.js';
 export * from './ci_registry-schema.js';
 export * from './clickhouse-schema.js';
 export * from './common-schema.js';
@@ -16,8 +19,10 @@ export * from './groq-schema.js';
 export * from './icons-schema.js';
 export * from './itemdb-schema.js';
 export * from './jedi-schema.js';
+export * from './jobboard-schema.js';
 export * from './kbveproto-schema.js';
 export * from './mapdb-schema.js';
+export * from './mc_lot-schema.js';
 export * from './meme-schema.js';
 export * from './npcdb-schema.js';
 export * from './osrs-schema.js';
@@ -29,6 +34,8 @@ export * from './redis-schema.js';
 export * from './rows-schema.js';
 export * from './schema-schema.js';
 export * from './snapshot-schema.js';
+export * from './spelldb-schema.js';
 export * from './staff-schema.js';
+export * from './telemetry-schema.js';
 export * from './twitch-schema.js';
 export * from './vm-schema.js';

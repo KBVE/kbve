@@ -1,6 +1,6 @@
 ---
 title: 3rd age pickaxe | OSRS Price Data
-description: "3rd age pickaxe is a members weapon slot item requiring 65 Attack. High alch: 58,770 GP, GE limit: 40."
+description: "3rd age pickaxe: A beautifully crafted pickaxe, shaped by ancient smiths. High alch: 58,770 GP, GE limit: 40."
 osrs:
   id: 20014
   name: 3rd age pickaxe
@@ -12,82 +12,96 @@ osrs:
   lowalch: 39180
   highalch: 58770
   limit: 40
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: 3rd-age
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.4
+    options:
+      - "Wield"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: pickaxe
-    attack_style: melee
+    weapon_type: pickaxe
     attack_speed: 5
+    weight: 2.4
     requirements:
       attack: 65
       mining: 61
-    stats:
-      attack_stab: 26
-      attack_slash: -2
-      attack_crush: 24
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 1
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      melee_strength: 29
-      prayer_bonus: 0
-  skilling:
-    skill: mining
-    level: 61
-    speed_modifier: dragon_equivalent
-    special: Functions as dragon pickaxe for mining
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Very Rare
-        description: Extremely rare reward from master clue scrolls
+    attack_bonus:
+      stab: 38
+      slash: -2
+      crush: 32
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 42
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: "1/313,168"
+  passive_effects:
+    - name: Dragon-tier mining
+      description: "Shares mining speed and special attack functionality with the dragon pickaxe."
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
   related_items:
-    - item_id: 12426
-      item_name: 3rd age longsword
+    - item_name: Dragon pickaxe
+      slug: dragon-pickaxe
+      relationship: alternative
+      description: "Same mining speed and special attack at a fraction of the price."
+    - item_name: 3rd age longsword
       slug: 3rd-age-longsword
       relationship: alternative
-      description: 3rd age melee weapon
-    - item_id: 12424
-      item_name: 3rd age bow
+      description: "3rd age melee weapon variant."
+    - item_name: 3rd age bow
       slug: 3rd-age-bow
       relationship: alternative
-      description: 3rd age ranged weapon
-    - item_id: 12422
-      item_name: 3rd age wand
-      slug: 3rd-age-wand
-      relationship: alternative
-      description: 3rd age magic weapon
-    - item_id: 20011
-      item_name: 3rd age axe
+      description: "3rd age ranged weapon variant."
+    - item_name: 3rd age axe
       slug: 3rd-age-axe
       relationship: alternative
-      description: 3rd age skilling tool
+      description: "3rd age skilling axe counterpart."
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Mining Level | 61 |
-    | Speed | Dragon equivalent |
-
-    The 3rd age pickaxe has the same mining speed as a dragon pickaxe. It can be used with the Motherlode Mine and is compatible with all mining activities that accept the dragon pickaxe.
-
-    The 3rd age pickaxe is a rare skilling tool obtained from Treasure Trails. It requires 61 Mining to use for mining and functions identically to a dragon pickaxe in terms of mining speed.
-
-    3rd age tools are highly sought after due to their extreme rarity and status symbol value. The pickaxe is both a functional mining tool and a prestigious item.
+    3rd age pickaxe is a rare reward from master Treasure Trails that doubles as a level-61 mining tool with dragon pickaxe speed and the same special attack. It also wields as a melee weapon with strong stab and crush bonuses, putting it in the same prestige tier as the rest of the 3rd age set.
   market_strategy:
-    title: Investment Notes
     notes:
-      - Extremely valuable due to rarity
-      - Functional skilling tool with prestige value
-      - Price fluctuates based on collector demand
-      - Verify authenticity when trading high-value items
-      - Use Grand Exchange for secure trades
-      - Monitor price trends before purchasing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "Extreme rarity makes price highly sensitive to collector demand."
+      - "Functions as a true dragon pickaxe substitute, so it always has a utility floor."
+      - "Verify item authenticity via GE history before any big-ticket trade."
+  trading_tips:
+    - "Use the Grand Exchange or trusted middlemen for secure high-value trades."
+    - "Track master clue completion rate trends; supply scales with clue popularity."
+  history:
+    - date: "2016-07-06"
+      description: "Added as part of the Treasure Trail expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

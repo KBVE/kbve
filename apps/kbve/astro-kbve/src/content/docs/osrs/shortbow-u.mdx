@@ -12,23 +12,65 @@ osrs:
   lowalch: 9
   highalch: 13
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.992
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 5
+      xp: 5
+      materials:
+        - item_name: Logs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
   related_items:
-    - item_id: 48
-      item_name: Longbow (u)
+    - item_name: Shortbow
+      slug: shortbow
+      relationship: product
+      description: Strung with a bowstring at level 5 Fletching
+    - item_name: Longbow (u)
       slug: longbow-u
       relationship: variant
       description: Unstrung longbow from regular logs
-    - item_id: 54
-      item_name: Oak shortbow (u)
+    - item_name: Oak shortbow (u)
       slug: oak-shortbow-u
-      relationship: variant
+      relationship: upgrade
       description: Higher tier unstrung shortbow
-  about: |-
-    > _"I need to find a string for this."_
-
-    The shortbow (u) is an unstrung shortbow made from regular logs. String with a bowstring at 5 Fletching to create a shortbow. Members only. The very first item available for Fletching training.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Bowstring
+      slug: bowstring
+      relationship: component
+      description: Required to string into a usable shortbow
+  about: "Shortbow (u) is the very first item available for Fletching training, made by using a knife on regular logs at level 5 Fletching for 5 XP. Stringing the unstrung shortbow with a bowstring (also level 5 Fletching) produces a functional shortbow and grants an additional 5 XP. Crafting takes 3 game ticks (1.8 seconds). Members-only despite being a low-level item."
+  market_strategy:
+    notes:
+      - "Entry-level Fletching training item"
+      - "High buy limit reflects high supply"
+      - "Margin between materials and product is tight"
+  history:
+    - date: "2002-03-25"
+      description: Released with the Fletching skill.
+    - date: "2004-06-01"
+      description: Underwent a sprite recolour during June 2004.
+    - date: "2005-05-17"
+      description: Renamed from "Shortbow" to "Shortbow (u)" to disambiguate from the strung product.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

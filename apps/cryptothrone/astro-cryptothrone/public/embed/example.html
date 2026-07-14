@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>CryptoThrone embed — example</title>
+		<style>
+			body {
+				margin: 0;
+				background: #0b0b14;
+				color: #e5e5e5;
+				font-family: system-ui, sans-serif;
+			}
+			header {
+				padding: 12px 16px;
+				border-bottom: 1px solid #222;
+			}
+			main {
+				padding: 16px;
+			}
+			code {
+				background: #1a1a2e;
+				padding: 2px 6px;
+				border-radius: 4px;
+			}
+		</style>
+	</head>
+	<body>
+		<header>
+			<strong>CryptoThrone</strong> — standalone embed demo
+		</header>
+		<main>
+			<p>
+				Drop the game into any page with a target element + the bundle.
+				A Supabase <code>jwt</code> and <code>username</code> are
+				required (the embed takes auth as input — it does not run the
+				Supabase login gate).
+			</p>
+
+			<!-- Declarative mount: the bundle auto-mounts [data-cryptothrone]. -->
+			<div
+				data-cryptothrone
+				data-jwt="PASTE_SUPABASE_JWT"
+				data-username="PASTE_USERNAME"
+				data-height="600px"></div>
+
+			<script src="/embed/embed.js" defer></script>
+
+			<!-- Or mount programmatically:
+			<script>
+				window.addEventListener('load', () => {
+					window.Cryptothrone.mount({
+						el: '#game',
+						jwt: '...',
+						username: '...',
+						gameWs: 'wss://game.cryptothrone.com/ws',
+						height: '600px',
+					});
+				});
+			</script>
+			-->
+		</main>
+	</body>
+</html>

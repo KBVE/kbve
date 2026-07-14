@@ -1,0 +1,41 @@
+---
+import ReactAuthCallback from './ReactAuthCallback';
+---
+
+<ReactAuthCallback client:only="react" />
+
+<style is:global>
+	.ct-auth-status {
+		max-width: 500px;
+		margin: 3rem auto;
+		text-align: center;
+	}
+
+	.ct-status-message {
+		font-size: 1.25rem;
+		color: var(--sl-color-white);
+		margin-top: 1rem;
+	}
+
+	.ct-status-sub {
+		color: var(--sl-color-gray-3);
+		font-size: 0.9rem;
+		margin-top: 0.5rem;
+	}
+
+	.ct-spinner {
+		width: 40px;
+		height: 40px;
+		margin: 0 auto;
+		border: 3px solid var(--sl-color-hairline-light);
+		border-top-color: var(--sl-color-text-accent);
+		border-radius: 50%;
+		animation: ct-spin 0.8s linear infinite;
+	}
+
+	@keyframes ct-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>

@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Double eye patch is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: low
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.006
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Eye patch
+      slug: eye-patch
+      relationship: variant
+      description: "Single-eye version sewn together to form this item"
+    - item_name: Book o' piracy
+      slug: book-o-piracy
+      relationship: component
+      description: "Required in inventory when paying Patchy to combine eye patches"
+  about: |-
+    The double eye patch is a cosmetic head slot item created by paying Patchy 500 coins to stitch a left eye patch with a right eye patch. Requires Cabin Fever quest completion and a book o' piracy in inventory.
+
+    Purely cosmetic with no combat bonuses, but can be stored in the costume room mahogany treasure chest at master tier.
+  market_strategy:
+    notes:
+      - "Pure cosmetic, no PvM demand"
+      - "Costume room storage drives modest collector demand"
+      - "Cabin Fever quest gate limits supply"
+  trading_tips:
+    - "Best to flip during Halloween/pirate-themed events"
+    - "Low GE limit (4): bulk reselling not viable"
+  history:
+    - date: "2016-07-06"
+      description: "Released with the Cabin Fever quest expansion patch update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

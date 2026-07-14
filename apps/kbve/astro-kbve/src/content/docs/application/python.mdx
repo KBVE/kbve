@@ -1,31 +1,140 @@
 ---
 title: Python
 description: |
-    Python is a general-purpose, objected-oriented, high-level programming language.
-    It is known for its simplicity, readability, and versatility.
-    Python is often used for web development, data science, machine learning, and artificial intelligence.
+    Python is a general-purpose, high-level programming language known for its readability and versatility.
+    This guide covers installing Python on Windows, macOS, and Linux, managing virtual environments and pip,
+    and building typed web APIs with FastAPI, Pydantic, and Haystack.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Python
     order: 420
 unsplash: 1553413077-190dd305871c
 img: https://images.unsplash.com/photo-1553413077-190dd305871c?fit=crop&w=1400&h=700&q=75
 tags:
-    - technology
+    - programming
+    - python
+    - backend
+sem: 1
+ogTitle: Python Guide — Install, Virtual Environments, pip & FastAPI
+ogDescription: A practical Python guide — install on Windows, macOS, and Linux, isolate dependencies with virtual environments and pip, and build typed web APIs using FastAPI and Pydantic.
+jsonld:
+    type: Article
+    keywords:
+        - python
+        - virtual environment
+        - pip
+        - fastapi
+        - pydantic
+    faq:
+        - question: How do I create a Python virtual environment?
+          answer: Run python -m venv .venv to create an isolated environment in a .venv folder, then activate it with source .venv/bin/activate on macOS/Linux or .venv\Scripts\activate on Windows. Packages you install with pip then stay scoped to that project.
+        - question: What is the difference between pip and a virtual environment?
+          answer: pip is Python's package installer; a virtual environment is an isolated directory of Python and its packages. You use pip inside a virtual environment so each project has its own dependency versions without polluting the global system Python.
+        - question: What is FastAPI used for?
+          answer: FastAPI is a modern Python web framework for building APIs. It uses standard type hints and Pydantic models for automatic request validation and generates interactive OpenAPI documentation, while running on ASGI for high async performance.
+        - question: What is Pydantic?
+          answer: Pydantic is a data-validation library that uses Python type hints to parse and validate data at runtime. It powers FastAPI's request and response models, coercing and checking incoming JSON against your declared types and raising clear errors on mismatch.
+        - question: Which Python version should I use?
+          answer: Use the latest stable Python 3 release for new projects to get current syntax, performance, and security fixes. Pin the version per project with a virtual environment or a tool like pyenv so upgrades never break existing work.
+bento:
+    badge: application · programming · backend
+    title: 'Readable power,'
+    accent: Python.
+    lede: >-
+        A general-purpose, high-level language prized for clear syntax and a
+        vast ecosystem — web development, data science, machine learning, and
+        automation. This guide moves from setup to real APIs: install Python
+        on any OS, isolate dependencies with virtual environments and pip,
+        then build typed web services with FastAPI and Pydantic.
+    ctas:
+        - label: Install Python
+          href: '#setup'
+          primary: true
+        - label: Virtual environments
+          href: '#virtual-environments'
+        - label: FastAPI
+          href: '#fastapi'
+        - label: Pydantic
+          href: '#pydantic'
+    aside:
+        icon: code
+        title: From script to service
+        body: >-
+            Python's interpreter runs on every major platform, and its
+            package manager plus virtual environments make per-project
+            dependency isolation straightforward — a clean path from a
+            first script to a production API.
+        points:
+            - <strong>Isolation</strong> — venv keeps each project's packages scoped.
+            - <strong>Typed APIs</strong> — FastAPI validates requests with type hints.
+            - <strong>Validation</strong> — Pydantic parses and checks data at runtime.
+    stats:
+        - { label: Package manager, value: pip, icon: package }
+        - { label: Web framework, value: FastAPI, icon: bolt }
+        - { label: Validation, value: Pydantic, icon: check }
+        - { label: Major version, value: Python 3, icon: code }
+    features:
+        - title: Setup on any OS
+          icon: settings
+          href: '#setup'
+          body: Step-by-step installers for Windows, macOS, and Linux — plus verifying python and pip from the terminal.
+        - title: Virtual environments & pip
+          icon: package
+          href: '#virtual-environments'
+          body: Create and activate isolated environments, then install, list, and upgrade packages from PyPI.
+        - title: FastAPI + Pydantic
+          icon: bolt
+          href: '#fastapi'
+          body: Build a typed API with Uvicorn, automatic Swagger docs, and Pydantic models for request validation.
+        - title: Haystack search
+          icon: eye
+          href: '#haystack'
+          body: NLP-powered search systems and question answering over Elasticsearch, FAISS, and other backends.
+    related:
+        - title: Machine Learning
+          href: /application/ml/
+          copy: Models, training, and the Python-first ML toolchain.
+          icon: chart
+        - title: Docker
+          href: /application/docker/
+          copy: Containerize Python apps and APIs for reproducible deploys.
+          icon: package
+        - title: Rust
+          href: /application/rust/
+          copy: The systems language powering Pydantic's core validation.
+          icon: rust
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1553413077-190dd305871c?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
+import { Steps, FileTree } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
-## Information
+Python is a high-level, interpreted language prized for readable syntax and a vast ecosystem, spanning web development, data science, machine learning, and automation. Its interpreter runs on every major platform, and its package manager (`pip`) plus virtual environments make per-project dependency isolation straightforward.
+
+This guide moves from setup to real APIs: [install Python](#setup) on Windows, macOS, and Linux, isolate dependencies with [virtual environments](#virtual-environments) and [pip](#pip), then build typed web services with [FastAPI](#fastapi), [Pydantic](#pydantic), and [Haystack](#haystack).
+
+</BentoProse>
+
+<BentoProse id="information" eyebrow="Why Python" heading="Information">
 
 Python is a high-level, interpreted [programming](https://kbve.com/theory/programming/) language known for its clear syntax and readability, making it excellent for beginners and experienced developers alike.
 It supports multiple programming paradigms, including procedural, object-oriented, and functional programming.
@@ -34,9 +143,15 @@ Python's vast ecosystem of libraries and frameworks—such as Django for web dev
 Python is widely used in scientific computing, data mining, and [artificial intelligence](/application/ml/), thanks to its simplicity and the powerful libraries that extend its capabilities. It's also a favorite for automation, scripting, and rapid application development across diverse fields.
 The language's design and module architecture encourage code reusability and maintainability.
 
-<Adsense />
+</BentoProse>
 
-## Setup
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="setup" eyebrow="Every platform" heading="Setup">
 
 These are various tutorials for setting up python on different operating systems!
 
@@ -113,9 +228,9 @@ These are various tutorials for setting up python on different operating systems
 
 </Steps>
 
----
+</BentoProse>
 
-## Virtual Environments
+<BentoProse id="virtual-environments" eyebrow="Isolate dependencies" heading="Virtual Environments">
 
 <Steps>
 
@@ -139,9 +254,9 @@ These are various tutorials for setting up python on different operating systems
 
 </Steps>
 
----
+</BentoProse>
 
-## pip
+<BentoProse id="pip" eyebrow="Package manager" heading="pip">
 
 -   `pip` is the package manager for Python. It is used to install and manage software packages written in Python.
 
@@ -185,9 +300,15 @@ pip install requests
 
 </Steps>
 
----
+</BentoProse>
 
-## FastAPI
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="fastapi" eyebrow="Typed web APIs" heading="FastAPI">
 
 FastAPI is a modern and fast web framework designed for building APIs with Python 3.7+ using standard Python type hints.
 Offering high performance, FastAPI leverages asynchronous programming to achieve speeds comparable to those of Node.js and Go, making it ideal for developing scalable and efficient web applications.
@@ -334,9 +455,9 @@ By providing built-in support for data validation, serialization, and interactiv
 
 </Steps>
 
----
+</BentoProse>
 
-## Pydantic
+<BentoProse id="pydantic" eyebrow="Data validation" heading="Pydantic">
 
 Pydantic is a powerful data validation and settings management library for Python, leveraging Python type annotations to ensure robust and reliable data handling.
 By defining data models through type hints, Pydantic automates the validation and parsing process, converting input data into the appropriate types and structures.
@@ -553,12 +674,16 @@ With broad adoption, including use by major companies and integration with popul
 You now have a detailed setup for a Pydantic project with models, helper functions, and application logic.
 Do not forget, you can extend this project further by adding more models, complex validation, and integrating with other parts of your application.
 
----
+</BentoProse>
 
-## Haystack
+<BentoProse id="haystack" eyebrow="NLP search" heading="Haystack">
 
 Haystack is an advanced Python library designed to simplify the creation of search systems and question-answering applications.
 It leverages natural language processing (NLP) to allow developers to build powerful search interfaces that can understand and process user queries in a human-like manner.
 With Haystack, users can integrate various NLP models, connect to document stores, and implement sophisticated retrieval mechanisms.
 It supports multiple backends, including Elasticsearch and FAISS, enabling flexible and scalable search solutions.
 Additionally, Haystack offers features like end-to-end pipelines, real-time updates, and integration with external data sources, making it a versatile tool for modern information retrieval tasks.
+
+</BentoProse>
+
+</BentoDoc>

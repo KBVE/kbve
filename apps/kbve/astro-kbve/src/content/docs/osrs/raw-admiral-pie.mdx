@@ -12,9 +12,65 @@ osrs:
   lowalch: 62
   highalch: 93
   limit: 13000
-  about: "Raw admiral pie is a members-only item in Old School RuneScape. High alchemy value: 93 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 70
+      xp: 210
+      materials:
+        - item_name: Raw admiral pie
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  related_items:
+    - item_name: Admiral pie
+      slug: admiral-pie
+      relationship: product
+      description: Cooked result at level 70 Cooking, granting +5 Fishing boost on consumption.
+    - item_name: Part admiral pie (tuna)
+      slug: part-admiral-pie-tuna
+      relationship: component
+      description: Tuna stage of the pie before adding raw potato to finish the raw admiral pie.
+    - item_name: Pie shell
+      slug: pie-shell
+      relationship: component
+      description: Empty pastry shell used as the base of every admiral pie.
+    - item_name: Burnt pie
+      slug: burnt-pie
+      relationship: variant
+      description: Failure result when cooking the raw admiral pie below sufficient level.
+  about: "Raw admiral pie is the uncooked stage of the admiral pie, requiring a part admiral pie (tuna) topped with a raw potato. It bakes at level 70 Cooking for 210 XP, producing the +5 Fishing-boost admiral pie used by ironmen prepping shark and minnow trips."
+  market_strategy:
+    notes:
+      - "Profit is highest when crafted from raw ingredients rather than flipping pies directly."
+      - "13k buy limit makes high-volume cook-to-flip viable during Fishing skilling events."
+      - "Burn rate at level 70 reduces hourly throughput - 99 Cooking is the practical floor."
+  trading_tips:
+    - Pair admiral pie batches with Fishing competition windows for peak demand.
+    - Buy at GE low when bots dump raw pies overnight.
+    - Track salmon and tuna prices - they drive raw admiral pie cost.
+  history:
+    - date: "2006-02-20"
+      description: "Released with the pie variants expansion that introduced Mort'ton Cooking content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

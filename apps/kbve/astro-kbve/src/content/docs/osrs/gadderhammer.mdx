@@ -12,9 +12,80 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 8
-  about: "Gadderhammer is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2006-03-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: warhammer
+    attack_speed: 5
+    weight: 1.814
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 35
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 35
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Aurel's Shop
+      location: Burgh de Rott
+      price: 3000
+      currency: Coins
+      stock: 1
+  passive_effects:
+    - name: Shade bane
+      description: "Deals a 25% damage bonus against shades and has a 5% chance to deal double damage to them, similar to the keris versus kalphites."
+  related_items:
+    - item_name: Flail of Ivandis
+      slug: flail-of-ivandis
+      relationship: alternative
+      description: "Alternative Myreque-themed weapon used against vampyric foes"
+    - item_name: Rod of ivandis
+      slug: rod-of-ivandis
+      relationship: alternative
+      description: "Another Myreque weapon obtained during the storyline"
+  about: "The gadderhammer is a members-only two-handed crush weapon obtained after defeating Gadderanks during In Aid of the Myreque. Its strength lies against shades, where a 25% damage bonus and 5% double-damage chance make it a niche bossing pick. It cannot be wielded by players who have not completed the quest, even if traded."
+  market_strategy:
+    notes:
+      - "Quest gate locks the wieldable audience to In Aid of the Myreque completers"
+      - "Demand spikes during Mort'ton temple / shade-related events"
+      - "Buy limit of 8 keeps day-to-day flipping volume small"
+  trading_tips:
+    - "Stock up before Halloween or Mort'ton minigame promotions"
+    - "Compare against repurchasing from Aurel at 3,000 coins as a price ceiling"
+  history:
+    - date: "2006-03-22"
+      description: "Released with the In Aid of the Myreque quest update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

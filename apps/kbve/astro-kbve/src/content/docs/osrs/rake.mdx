@@ -12,9 +12,52 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 40
-  about: "Rake is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Rake is a Farming tool used to clear weeds from farming patches. Available from farming shops and can be stored by tool leprechauns."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-06-06"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    weight: 1.36
+    destroy: "Drop"
+  material:
+    type: misc
+    tier: tool
+    category: farming_tool
+  shops:
+    - shop_name: "Head Farmer Jones' Farming Shop"
+      location: "Falador"
+      price: 15
+      stock: 5
+    - shop_name: "Sarah's Farming Shop"
+      location: "North-east of Falador"
+      price: 15
+      stock: 5
+    - shop_name: "Heskel's Farming Supplies"
+      location: "Tree Gnome Stronghold"
+      price: 15
+      stock: 5
+    - shop_name: "Alice's Farming Shop"
+      location: "East of Catherby"
+      price: 15
+      stock: 5
+  market_strategy:
+    notes:
+      - "relationship: \"variant\""
+      - "Spade"
+      - "Seed dibber"
+      - "Watering can"
+      - "Secateurs"
+      - "Essential Farming tool; can be stored by tool leprechauns near farming patches."
+      - "Cheaply available from gardener and farming shops at 15 coins each."
+      - "GE price hovers above shop price due to convenience demand."
+  history:
+    - date: "2005-06-06"
+      description: "Rake released as part of the Farming skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

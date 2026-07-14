@@ -12,44 +12,40 @@ osrs:
   lowalch: 120000
   highalch: 180000
   limit: 8
+  material:
+    type: magical
+    tier: high
   equipment:
     slot: weapon
-    type: wand
-    tradeable: true
+    weapon_type: staff_and_wand
+    attack_speed: 5
     weight: 2
     requirements:
       magic: 65
-    stats:
-      attack_magic: 16
-      defence_magic: 16
+    attack_bonus:
+      magic: 16
+    defence_bonus:
+      magic: 16
+    other_bonus:
       magic_damage: 10
-  effect:
-    name: Dragonbane
-    description: 75% accuracy and damage increase vs dragons, wyrms, wyverns, hydras
-    stacks_with:
-      - Slayer helmet (i)
-      - Elite Void Knight
-  autocasts:
-    - Standard spellbook
-    - Ancient spellbook
+  special_attack:
+    description: "Dragonbane effect: 75% accuracy increase and 40% damage increase against draconic creatures (dragons, wyrms, wyverns, hydras). Stacks multiplicatively with Slayer helmet (i) and Elite Void Knight equipment."
   drop_table:
     sources:
       - source: The Hueycoatl
-        rate: 1/105
-  market:
-    buy_limit: 8
-    price_estimate: 16395392
+        quantity: "1"
+        rarity: 1/105
   related_items:
     - item_id: 22978
       item_name: Dragon hunter lance
       slug: dragon-hunter-lance
       relationship: alternative
-      description: Melee dragonbane
+      description: Melee dragonbane weapon
     - item_id: 21012
       item_name: Dragon hunter crossbow
       slug: dragon-hunter-crossbow
       relationship: alternative
-      description: Ranged dragonbane
+      description: Ranged dragonbane weapon
   about: |-
     | Stat | Bonus |
     |------|-------|
@@ -60,7 +56,7 @@ osrs:
     The Dragon hunter wand possesses the powerful Dragonbane effect:
 
     - 75% accuracy boost against draconic creatures
-    - 75% damage boost against draconic creatures
+    - 40% damage boost against draconic creatures
     - Affects: Dragons, Wyrms, Wyverns, and Hydras
 
     Stacking: The dragonbane effect stacks multiplicatively with:
@@ -83,8 +79,32 @@ osrs:
       - Price correlates with Hydra and dragon boss popularity
       - Consider flipping around new content releases featuring dragons
       - Pairs well with other magic gear upgrades
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2024-09-25"
+      description: "Released with the Varlamore: The Rising Darkness update as a drop from The Hueycoatl."
+    - date: "2024-11-27"
+      description: Received +16 Magic defence bonus.
+    - date: "2025-06-25"
+      description: Bonuses increased from 50% accuracy/20% damage to 75% accuracy/40% damage; Ancient Magicks autocast added.
+  properties:
+    release_date: "2024-09-25"
+    update: "Varlamore: The Rising Darkness"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,51 +12,70 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: teleport_scroll
-    destination: Nardah
+    tier: low
+  properties:
+    release_date: "2014-06-12"
     tradeable: true
     stackable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite/Master
-        drop_rate: Varies by tier
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Teleport
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/340.5
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/203
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/190.6
   related_items:
-    - item_id: 12403
-      item_name: Digsite teleport
+    - item_name: Digsite teleport
       slug: digsite-teleport
       relationship: alternative
-      description: Another clue teleport scroll
+      description: Sibling clue-scroll teleport scroll
+    - item_name: Spirits of the Elid
+      slug: spirits-of-the-elid
+      relationship: alternative
+      description: Quest that unlocks Elidinis Statuette utility at the destination
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Teleport Scroll |
-    | Destination | Nardah |
-    | Tradeable | Yes |
-    | Stackable | Yes |
+    The Nardah teleport is a stackable scroll obtained from Treasure Trails reward caskets across the easy, medium, hard, elite, and master tiers. Right-click "Teleport" to travel directly to Nardah in the Kharidian Desert, near both the bank and Desert diary NPCs.
 
-    Right-click and select "Teleport" to travel to Nardah.
-
-    Teleport Location:
-    - Nardah in the Kharidian Desert
-    - Near the bank
-    - Close to Desert Diary NPCs
-
-    - Desert Treasure quest
-    - Elidinis Statuette (restore stats)
-    - Desert diary completion
-    - Faster than walking through desert
+    After completing Spirits of the Elid, players can use the scroll for fast access to the Elidinis Statuette, which restores prayer points, run energy, special attack energy, and hitpoints — a popular utility for Barrows and other restore-heavy activities.
   market_strategy:
     notes:
-      - Useful for desert activities
-      - Stock up for clue hunting
-      - Cheaper than construction teleport
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheap utility teleport for desert content"
+      - "Stock up for clue hunting and statuette restores"
+      - "Cheaper than building the Nardah construction teleport"
+  history:
+    - date: "2014-06-12"
+      description: "Nardah teleport scroll added as a Treasure Trails reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

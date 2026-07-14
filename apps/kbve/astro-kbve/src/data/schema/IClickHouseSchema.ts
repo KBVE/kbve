@@ -19,7 +19,7 @@ import {
 	type LogQueryResponse,
 	type LogStatsResponse,
 	type SeverityLevelValue,
-} from '../../../../../../packages/data/codegen/generated/clickhouse-schema';
+} from '@kbve/proto/clickhouse-schema';
 
 // Re-export generated schemas
 export {
@@ -75,6 +75,27 @@ export interface QueryData {
 /** Stats query response (alias for LogStatsResponse with rows alias) */
 export interface StatsData {
 	rows: StatRow[];
+	count: number;
+}
+
+/**
+ * An `error_groups` row — `level = 'error'` messages collapsed into a
+ * normalized `signature` and aggregated by frequency. Wire format from the
+ * ClickHouse SQL: `cnt` is a string, `last_seen` is a ClickHouse datetime
+ * string, `sample` is a representative raw message for the group.
+ */
+export interface ErrorGroupRow {
+	pod_namespace: string;
+	service: string;
+	signature: string;
+	cnt: string;
+	last_seen: string;
+	sample: string;
+}
+
+/** Error-groups query response */
+export interface ErrorGroupsData {
+	rows: ErrorGroupRow[];
 	count: number;
 }
 

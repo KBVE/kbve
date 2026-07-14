@@ -1,6 +1,6 @@
 ---
 title: Pitta bread | OSRS Price Data
-description: "Pitta bread: Nicely baked pitta bread. Needs more ingredients to make a kebab.. High alch: 6 GP, GE limit: 11,000."
+description: "Pitta bread: Nicely baked pitta bread. Needs more ingredients to make a kebab. High alch: 6 GP, GE limit: 11,000."
 osrs:
   id: 1865
   name: Pitta bread
@@ -12,9 +12,58 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 11000
-  about: "Pitta bread is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Pitta bread is a members-only baked good used as a base for crafting Ugthanki kebabs in Old School RuneScape."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: food
+    tier: common
+    category: ingredient
+  properties:
+    release_date: "2003-04-14"
+    weight: 0.1
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+  recipes:
+    - item_name: Pitta bread
+      skill: Cooking
+      level: 58
+      xp: 40
+      tools:
+        - Cooking range
+      materials:
+        - item_name: Pitta dough
+          quantity: 1
+      output_quantity: 1
+      notes: "Baked on a cooking range; cannot be burnt because success rate reaches 100 percent at level 37."
+  relationships:
+    - item_name: Pitta dough
+      relationship: component
+    - item_name: Kebab mix
+      relationship: alternative
+      note: "Combined with pitta bread to create Ugthanki kebabs."
+    - item_name: Ugthanki kebab
+      relationship: product
+  market_strategy:
+    notes:
+      - "summary: \"Niche cooking ingredient with steady but low daily turnover; primarily moved by Ugthanki kebab crafters.\""
+      - "buy_strategy: \"Buy pitta dough cheaply and bake yourself if the spread to pitta bread is positive after GE tax.\""
+      - "sell_strategy: \"List near mid-price; demand is thin so very high markups stall on the GE.\""
+      - "volatility: \"low\""
+  trading_tips:
+    - "Cannot be burnt at level 58 Cooking — guaranteed XP per dough."
+    - "Used as the bread base for Ugthanki kebabs (good or bad variants)."
+    - "11,000 buy limit allows bulk Cooking XP runs without GE throttling."
+  history:
+    - date: "2003-04-14"
+      description: "Pitta bread released as part of the original Cooking content rollout."
+  examine_variants:
+    - context: Inventory
+      text: "Nicely baked pitta bread. Needs more ingredients to make a kebab."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

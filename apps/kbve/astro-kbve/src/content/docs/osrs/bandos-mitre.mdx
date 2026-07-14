@@ -1,6 +1,6 @@
 ---
 title: Bandos mitre | OSRS Price Data
-description: "Bandos mitre is a members head slot item requiring 40 Magic. High alch: 3,000 GP, GE limit: 8."
+description: "Bandos mitre is a members head slot item requiring 40 Magic and 40 Prayer. High alch: 3,000 GP, GE limit: 8."
 osrs:
   id: 12271
   name: Bandos mitre
@@ -12,25 +12,99 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: high
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.3
     requirements:
       prayer: 40
       magic: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
     other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 5
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/1275
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/2356
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - medium
+      - elite
   related_items:
-    - item_id: 12265
-      item_name: Bandos robe top
+    - item_name: Bandos robe top
       slug: bandos-robe-top
       relationship: set-piece
       description: Bandos vestment body
+    - item_name: Bandos robe legs
+      slug: bandos-robe-legs
+      relationship: set-piece
+      description: Bandos vestment legs
+    - item_name: Bandos stole
+      slug: bandos-stole
+      relationship: set-piece
+      description: Bandos vestment stole
+    - item_name: Bandos crozier
+      slug: bandos-crozier
+      relationship: set-piece
+      description: Bandos vestment crozier
   about: |-
     > *"A Bandos mitre."*
 
-    The Bandos mitre is a head slot item from the Bandos vestment set. It provides a +5 Prayer bonus and requires 40 Prayer and 40 Magic to equip. Counts as a Bandosian item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Bandos mitre is the head piece of the Bandos vestment set, granting the second-highest possible prayer bonus for a head slot item (+5) alongside mystic-tier magic bonuses. It counts as a Bandosian item inside the God Wars Dungeon, letting prayer hybrids skip the aggression check from Bandos followers.
+  market_strategy:
+    notes:
+      - "Steady prayer-bonus demand from PvM hybrids"
+      - "Elite and medium clue drops bound the supply curve"
+  trading_tips:
+    - "Bid below high alch during clue scroll droughts"
+    - "List during raid meta shifts that favour +5 prayer head slots"
+  history:
+    - date: "2014-06-12"
+      description: "Released with the Treasure Trail Expansion as part of the Bandos vestment set."
+    - date: "2014-08-14"
+      description: "Added to the medium clue scroll reward pool after being missed on launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

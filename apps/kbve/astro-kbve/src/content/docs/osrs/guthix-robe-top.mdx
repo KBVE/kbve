@@ -12,12 +12,30 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 8
+  material:
+    type: cloth
+    tier: mid
   equipment:
     slot: body
+    weight: 1.8
     requirements:
       prayer: 20
+    attack_bonus:
+      magic: 4
+    defence_bonus:
+      magic: 4
     other_bonus:
       prayer: 6
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 10466
       item_name: Guthix robe legs
@@ -29,12 +47,40 @@ osrs:
       slug: guthix-mitre
       relationship: set-piece
       description: Guthix vestment head
-  about: |-
-    > *"Guthix Vestments."*
-
-    The Guthix robe top is the body piece of the Guthix vestment set. It provides a +6 Prayer bonus and requires 20 Prayer to equip. Counts as a Guthixian item in the God Wars Dungeon, providing protection from Guthix followers.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "The Guthix robe top is the body piece of the Guthix vestment set, providing a +6 Prayer bonus and requiring 20 Prayer to equip. It counts as a Guthixian item in the God Wars Dungeon, granting protection from Guthix followers."
+  market_strategy:
+    notes:
+      - Obtained from easy clue caskets at 1/1404 rarity
+      - Strong steady demand for the +6 prayer bonus on a budget body slot
+      - Vestment sets are popular among ironmen and prayer-focused PvMers
+      - Buy limit of 8 per 4 hours caps quick flipping volume
+  trading_tips:
+    - Compare prices against Saradomin and Zamorak vestment tops
+    - Prayer bonus parity with monk robes makes these viable for low-defence PvMers
+  history:
+    - date: "2006-12-05"
+      description: Item released as part of the Treasure Trail rewards expansion.
+    - date: "2014-07-24"
+      description: Vestment robe tops were updated to grant the same prayer bonus as monk robes.
+  properties:
+    release_date: "2006-12-05"
+    update: Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.8
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

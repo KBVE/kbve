@@ -12,19 +12,30 @@ osrs:
   lowalch: 2488
   highalch: 3732
   limit: 70
+  material:
+    type: dragonhide
+    tier: high
   equipment:
     slot: legs
-    type: ranged_armour
-    ranged_requirement: 70
-    defence_requirement: 40
-  attack_bonuses:
-    ranged: 17
-  defence_bonuses:
-    ranged: 30
-    magic: 28
-  crafting:
-    level: 82
-    xp: 172
+    requirements:
+      ranged: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 17
+    defence_bonus:
+      stab: 18
+      slash: 20
+      crush: 26
+      magic: 23
+      ranged: 26
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 82
@@ -36,6 +47,8 @@ osrs:
         - item_name: Thread
           item_id: 1734
           quantity: 1
+      tools:
+        - Needle
       product: Black d'hide chaps
       product_id: 2497
       product_quantity: 1
@@ -55,46 +68,55 @@ osrs:
     - item_id: 2503
       item_name: Black d'hide body
       slug: black-dhide-body
-      relationship: alternative
+      relationship: set-piece
       description: Matching body
     - item_id: 2491
       item_name: Black d'hide vambraces
       slug: black-dhide-vambraces
-      relationship: alternative
-      description: Matching gloves
+      relationship: set-piece
+      description: Matching vambraces
     - item_id: 2495
       item_name: Red d'hide chaps
       slug: red-dhide-chaps
-      relationship: alternative
+      relationship: downgrade
       description: Lower tier chaps
-  about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Crafting | 82 | 2 Black dragon leather |
-    | XP | 172 | - |
-
-    | Stat | Value |
-    |------|-------|
-    | Ranged requirement | 70 |
-    | Defence requirement | 40 |
-    | Ranged attack | +17 |
-    | Ranged defence | +30 |
-    | Magic defence | +28 |
+  about: "Black d'hide chaps are the highest-tier standard dragonhide legs in OSRS, requiring 70 Ranged. Crafted at 82 Crafting from 2 black dragon leather. Popular Ranged training and Wilderness risk gear."
   market_strategy:
     notes:
       - Highest tier standard d'hide legs
-      - Popular for Ranged training
-      - Wilderness risk gear
-      - Ranged training
-      - Wilderness activities
-      - Budget Ranged gear
-      - PvP risk gear
+      - Popular Ranged training gear
       - Low buy limit (70)
-      - 2 leather per chaps
-      - Popular risk gear
-      - Best non-degradable ranged legs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Wilderness PvP risk gear
+      - Crafting demand from black dragon leather supply
+  trading_tips:
+    - Watch Hydra and Colossal Hydra drop supply
+    - Crafter margin tied to black dragon leather price
+  history:
+    - date: "2004-03-29"
+      description: Released with RuneScape 2.
+    - date: "2006-01-09"
+      description: Renamed from Dragonhide chaps to Black d'hide chaps.
+    - date: "2021-09-29"
+      description: Defence bonuses reduced in the ranged armour rebalance.
+  properties:
+    release_date: "2004-03-29"
+    update: RuneScape 2
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

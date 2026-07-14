@@ -1,5 +1,6 @@
 ---
 title: Sniffer Egg
+template: splash
 description: |
     Minecraft Sniffer Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 618
     ref: sniffer_egg
     slug: sniffer-egg
+    content_rev: 1
     display_name: Sniffer Egg
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Sniffer Egg is a block that hatches into a baby sniffer over
+            time, obtained by brushing suspicious sand found in warm ocean ruins
+            or by breeding two adult sniffers with torchflower seeds. Once
+            placed, it cracks in stages before hatching, taking 10 minutes on
+            moss blocks or 20 minutes on any other surface.
+        lore: |
+            The sniffer egg reintroduced an ancient, long-extinct creature to
+            Minecraft, letting players revive a mob that sniffs out lost seeds
+            from the past.
+    faq:
+        - question: How do I get a Sniffer Egg?
+          answer: |
+              Sniffer eggs are obtained by brushing suspicious sand in warm
+              ocean ruins, or by breeding two adult sniffers using torchflower
+              seeds.
+        - question: How long does a Sniffer Egg take to hatch?
+          answer: |
+              It hatches in about 10 minutes when placed on a moss block, or 20
+              minutes when placed on any other block surface.
+        - question: Do I need Silk Touch to pick up a Sniffer Egg?
+          answer: |
+              No, unlike turtle eggs, sniffer eggs do not require Silk Touch to
+              mine and can also be pushed by pistons.
+        - question: What does a Sniffer Egg turn into?
+          answer: |
+              A sniffer egg hatches into a baby sniffer, known as a snifflet,
+              which grows into an adult sniffer that can dig up ancient seeds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

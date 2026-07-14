@@ -1,0 +1,33 @@
+{
+	"expo": {
+		"name": "KBVE",
+		"slug": "kbve-react-native",
+		"scheme": "kbve",
+		"version": "0.0.1",
+		"orientation": "portrait",
+		"userInterfaceStyle": "automatic",
+		"newArchEnabled": true,
+		"plugins": [
+			"expo-web-browser",
+			[
+				"expo-build-properties",
+				{
+					"android": {
+						"minSdkVersion": 26
+					}
+				}
+			]
+		],
+		"ios": {
+			"supportsTablet": true,
+			"bundleIdentifier": "com.kbve.app"
+		},
+		"android": {
+			"package": "com.kbve.app",
+			"edgeToEdgeEnabled": true
+		},
+		"web": {
+			"bundler": "metro"
+		}
+	}
+}

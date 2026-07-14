@@ -1,0 +1,137 @@
+---
+title: 'Sidekick'
+template: splash
+sidebar:
+    label: 'Sidekick'
+    hidden: true
+description: |
+    The base human character used across herbmail-game — both the player avatar and the template every humanoid NPC is built from. A SIDEKICK modular skin body wearing removable knight armor over its underwear layer.
+ref: 'sidekick'
+id: '01KSAVZ000000000000000SDKK'
+name: 'Sidekick'
+type_flags: 1
+rarity: 'rare'
+personality: 'noble'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+role: 'Base Character / Player Avatar'
+tags:
+    - herbmail
+    - player
+    - sidekick
+    - base-character
+stats:
+    hp: 100
+    max_hp: 100
+    attack: 5
+    defense: 5
+    speed: 5
+    armor: 3
+behavior:
+    movement_type: 'patrol'
+    first_strike: false
+faction:
+    faction_id: 'player'
+---
+
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
+
+<NpcLeaf data={frontmatter}>
+
+## Overview
+
+**Sidekick** is the shared humanoid base for `herbmail-game`. The same rig and
+mesh set drive the **player avatar** and every humanoid **NPC** — an NPC is just
+this base with a different armor loadout, face variant, and behavior.
+
+Source art is **Synty SIDEKICK** (modular). The character is assembled from
+per-slot meshes that all carry the full **88-bone Unreal-mannequin skeleton**, so
+any part can be swapped or hidden without re-rigging.
+
+- Model: `apps/herbmail/herbmail-game/public/models/character-anim.glb`
+- Pipeline scripts: `apps/herbmail/herbmail-game/art/character/`
+- Equipment logic: `src/game/character/armor.ts`
+
+## Layers
+
+The model is a **removable knight over a permanent skin base**:
+
+| Layer | Meshes | Visibility |
+| --- | --- | --- |
+| Skin base | `SKIN_TORS/AUPL/AUPR/ALWL/ALWR/HNDL/HNDR/HIPS/LEGL/LEGR/FOTL/FOTR` | always |
+| Underwear | `SKIN_WRAP` (boxer briefs + top) | always |
+| Head / face | `HEAD`, `HAIR`, `EARL/R`, `EBRL/R`, `EYEL/R`, `NOSE`, `TETH`, `TONG` | always |
+| Knight armor | 25 knight slots (see below) | toggleable |
+
+Stripping every knight piece reveals the naked base in its underwear — the skin
+body fills the gaps under the armor, so removing arm or leg armor never leaves a
+hole.
+
+### Removable armor pieces
+
+Twelve toggleable pieces cover all 25 knight slots:
+
+`helmet` (AHED, AFAC) · `chest` (TORS) · `backpack` (ABAC) ·
+`pauldrons` (ASHL/R) · `upperArms` (AUPL/R) · `elbowGuards` (AEBL/R) ·
+`bracers` (ALWL/R) · `gauntlets` (HNDL/R) ·
+`faulds` (HIPS, AHPF/B/L/R) · `legs` (LEGL/R) · `kneeGuards` (AKNL/R) ·
+`boots` (FOTL/R).
+
+Toggling a piece flips mesh visibility only — the rig and animation clips are
+untouched.
+
+## Animations
+
+Baked from **Mesh2Motion** clips (same UE bone names), retargeted onto the
+SIDEKICK rig via the **Rokoko GUI** (the headless `retarget_bake.py` contorts the
+body and must not be used). Eleven clips ship:
+
+`Idle_Loop`, `Walk_Loop`, `Jog_Fwd_Loop`, `Sprint_Loop`, `Sword_Idle`,
+`Sword_Attack`, `Sword_Block`, `Jump_Start`, `Jump_Loop`, `Jump_Land`,
+`Punch_Cross`.
+
+## Build notes
+
+Because a headless retarget is off the table, every mesh/animation edit is a
+**post-process of the committed glb**:
+
+- **`fix_right_foot.py`** — the retargeted right boot detached from the shin
+  (over-rotated ankle). Fix mirrors the clean left foot's `foot_r`/`ball_r`
+  rotation keyframes onto the right (direct copy — UE L/R feet share local axes).
+- **`attach_skin_body.py`** — binds the SIDEKICK human body (variant 01 slots
+  `10TORS`–`21FOTR` + `38WRAP`) onto the already-animated armature. Same 88-bone
+  rig means the skin follows the baked clips with **no retarget**. Meshes are
+  named `SKIN_*` to avoid colliding with knight slot nodes.
+
+Skin uses `T_HumanSpecies_01ColorMap` with `Closest` texture filtering for the
+PSX look. Final glb: **49 mesh nodes** (36 knight + 13 skin), 11 animations.
+
+## Body type (morphs)
+
+The body is **one gender-neutral mesh driven by blendshapes**, not separate
+male/female meshes. Every skin part (`SKIN_*`, including `WRAP`) carries the same
+four morph targets over a `Basis`:
+
+- `masculineFeminine` — 0 = masculine → 1 = feminine
+- `defaultBuff` — muscular build
+- `defaultHeavy` — heavier build
+- `defaultSkinny` — slimmer build
+
+Driving these uniformly across all skin parts gives a coherent body type, so a
+single mesh set covers masc/fem and every build in between — the customizable
+"gender-neutral base" approach.
+
+The glb ships the morphs (`export_morph=True`), and they are driven at **runtime**:
+`src/game/character/body.ts` holds the four influences in a store, `useBodySkinMorph`
+applies them to every `SKIN_*` mesh's `morphTargetInfluences`, and the equipment
+panel exposes them as sliders. Each character/NPC can therefore carry its own build.
+
+## Known limits
+
+- `SKIN_WRAP` underwear includes a red bandeau top that reads as a bra on the
+  base — recolor via the species colormap or split the mesh to drop it.
+- The Starter pack is a single species mesh; extra species (sci-fi civilian,
+  horror villain) exist as separate part sets but aren't wired in.
+
+</NpcLeaf>

@@ -12,9 +12,85 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Irit tar is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: ammunition
+    tier: mid
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: salamander_ammo
+    attack_speed: null
+    weight: 0
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 60
+  recipes:
+    - skill: herblore
+      level: 55
+      xp: 85
+      materials:
+        - item_name: Swamp tar
+          quantity: 15
+        - item_name: Irit leaf
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 15
+  related_items:
+    - item_name: Guam tar
+      slug: guam-tar
+      relationship: alternative
+      description: "Lower-tier salamander ammo"
+    - item_name: Marrentill tar
+      slug: marrentill-tar
+      relationship: alternative
+      description: "Mid-tier salamander ammo"
+    - item_name: Tarromin tar
+      slug: tarromin-tar
+      relationship: alternative
+      description: "Mid-tier salamander ammo"
+    - item_name: Harralander tar
+      slug: harralander-tar
+      relationship: alternative
+      description: "Higher-tier salamander ammo"
+    - item_name: Tecu salamander
+      slug: tecu-salamander
+      relationship: component
+      description: "Weapon that consumes Irit tar as ammo"
+  about: "Irit tar is the ammunition used by the tecu salamander, made at 55 Herblore from 15 swamp tar and one irit leaf with a pestle and mortar for 85 xp. Each batch yields 15 tars. The April 3 2024 buff increased its ranged strength bonus to +60."
+  market_strategy:
+    notes:
+      - "Direct demand from tecu salamander training"
+      - "Swamp tar and irit leaf supply drive cost"
+      - "High buy limit allows large rolling orders"
+  trading_tips:
+    - "Track swamp tar and irit leaf prices for margin"
+    - "Recipe yields 15 per batch, scale orders accordingly"
+    - "GE limit of 11,000 supports bulk flipping"
+  history:
+    - date: "2024-03-20"
+      description: "Released with the Varlamore: Part One update."
+    - date: "2024-04-03"
+      description: "Ranged Strength bonus increased from +49 to +60."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

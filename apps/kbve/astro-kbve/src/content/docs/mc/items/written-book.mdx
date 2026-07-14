@@ -1,5 +1,6 @@
 ---
 title: Written Book
+template: splash
 description: |
     Minecraft Written Book — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1153
     ref: written_book
     slug: written-book
+    content_rev: 1
     display_name: Written Book
     category: material
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Written Book is a signed and finalized version of a Book and Quill that can no longer be edited. It displays its title and author's name on the item, and can be placed on lecterns or stored in chiseled bookshelves for reading and decoration.
+        lore: |
+            Knowledge preserved in ink endures far longer than words whispered in passing.
+    faq:
+        - question: How do I create a Written Book?
+          answer: |
+              Write your content in a Book and Quill, then sign it. Once signed, it becomes a permanent Written Book that can no longer be edited.
+        - question: Can I make unlimited copies of a Written Book?
+          answer: |
+              No. Original books produce "Copy of Original" copies, which can produce "Copy of Copy" versions, but copies of copies cannot be duplicated any further.
+        - question: What can I use a Written Book for besides reading?
+          answer: |
+              Written Books can be placed on lecterns, which emit a redstone signal based on the page shown, or stored in chiseled bookshelves for decoration.
+        - question: Do Written Books stack in my inventory?
+          answer: |
+              Yes, Written Books stack up to 16 per slot, making them easy to store and distribute in bulk.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -11,12 +11,18 @@ import {
 	IQuestSchema,
 	IMapObjectSchema,
 	INpcSchema,
+	ISpellSchema,
+	ITileSchema,
 	OSRSExtendedSchema,
 	ICiProjectSchema,
 	MCItemSchema,
 	McEnchantSchema,
 	McBlockSchema,
+	MCSchematicFrontmatterSchema,
+	MCLotFrontmatterSchema,
+	MCPoiFrontmatterSchema,
 } from '@/data/schema';
+import { ProjectSchemaWithEngine } from '@/data/ci/project-schema';
 
 const OSRSFrontmatterSchema = OSRSExtendedSchema;
 
@@ -53,80 +59,6 @@ const gdd = defineCollection({
 		pattern: '**/*.mdx',
 		base: './src/content/docs/gdd',
 	}),
-});
-
-const SteamAppInline = z.object({
-	app_id: z.string().regex(/^\d+$/).max(16),
-	label: z.string().min(1).max(64).optional(),
-	depot_id: z.string().regex(/^\d+$/).max(16).optional(),
-	branch: z.string().min(1).max(64).optional(),
-	promote_to_branch: z.string().min(1).max(64).optional(),
-});
-
-const FactorioModInline = z.object({
-	name: z
-		.string()
-		.min(1)
-		.max(50)
-		.regex(/^[a-zA-Z0-9_-]+$/),
-	source_path: z.string().min(1).max(256),
-});
-
-const ExternalPublishInline = z
-	.object({
-		modrinth_mod_id: z.string().max(32).optional(),
-		modrinth_pack_id: z.string().max(32).optional(),
-		modrinth_version_type: z.enum(['alpha', 'beta', 'release']).optional(),
-		modrinth_game_versions: z.string().max(512).optional(),
-		modrinth_loaders: z.string().max(256).optional(),
-		modrinth_retain_count: z.number().int().min(1).max(50).optional(),
-		modrinth_rolling_version: z.string().min(1).max(64).optional(),
-		modrinth_server_address: z.string().min(1).max(253).optional(),
-		itch_user: z.string().min(1).max(64).optional(),
-		itch_game: z.string().min(1).max(64).optional(),
-		itch_channel: z.string().min(1).max(64).optional(),
-		steam_apps: z.array(SteamAppInline).max(10).optional(),
-		apple_bundle_id: z.string().min(1).max(128).optional(),
-		apple_app_id: z.string().regex(/^\d+$/).max(16).optional(),
-		apple_team_id: z.string().min(1).max(32).optional(),
-		google_play_package: z.string().min(1).max(128).optional(),
-		google_play_track: z
-			.enum(['internal', 'alpha', 'beta', 'production'])
-			.optional(),
-		curseforge_project_id: z.string().regex(/^\d+$/).max(16).optional(),
-		curseforge_pack_id: z.string().regex(/^\d+$/).max(16).optional(),
-		curseforge_release_type: z
-			.enum(['alpha', 'beta', 'release'])
-			.optional(),
-		factorio_mods: z.array(FactorioModInline).max(10).optional(),
-	})
-	.optional();
-
-const ProjectSchemaWithEngine = ICiProjectSchema.extend({
-	title: z.string().optional(),
-	sidebar: z
-		.object({
-			label: z.string().optional(),
-			order: z.number().optional(),
-			hidden: z.boolean().optional(),
-			badge: z.unknown().optional(),
-		})
-		.optional(),
-	engine: z
-		.object({
-			version: z.string().min(1).max(64),
-			project_path: z.string().min(1).max(256),
-			build_targets: z.array(z.string().min(1).max(64)).max(20),
-			license_method: z
-				.enum(['personal', 'professional', 'serial'])
-				.optional(),
-			dotnet_enabled: z.boolean().optional(),
-			test_args: z.array(z.string().max(256)).max(50).optional(),
-			features: z.array(z.string().min(1).max(64)).max(50).optional(),
-			external_repo_url: z.string().url().max(512).optional(),
-		})
-		.optional(),
-	external_publish: ExternalPublishInline,
 });
 
 const project = defineCollection({
@@ -169,6 +101,22 @@ const npcdb = defineCollection({
 	schema: INpcSchema,
 });
 
+const spelldb = defineCollection({
+	loader: glob({
+		pattern: '**/*.mdx',
+		base: './src/content/docs/spelldb',
+	}),
+	schema: ISpellSchema,
+});
+
+const tiledb = defineCollection({
+	loader: glob({
+		pattern: '**/*.mdx',
+		base: './src/content/docs/tiledb',
+	}),
+	schema: ITileSchema,
+});
+
 export const collections = {
 	docs: defineCollection({
 		loader: docsLoader(),
@@ -182,8 +130,27 @@ export const collections = {
 				mc_item: MCItemSchema.optional(),
 				mc_enchant: McEnchantSchema.optional(),
 				mc_block: McBlockSchema.optional(),
+				mc_schematic: MCSchematicFrontmatterSchema.optional(),
+				mc_lot: MCLotFrontmatterSchema.optional(),
+				mc_poi: MCPoiFrontmatterSchema.optional(),
 				'yt-tracks': z.array(z.string()).optional(),
 				'yt-sets': z.array(z.string()).optional(),
+				// Journal post metadata consumed by the RSS feed
+				// (src/pages/rss.xml.ts). Without these the docs schema strips
+				// them from entry.data.
+				date: z.coerce.date().optional(),
+				img: z.string().optional(),
+				category: z.string().optional(),
+				tags: z.array(z.string()).optional(),
+				sem: z.number().int().optional(),
+				// Project-page software metadata consumed by Head.astro to
+				// derive SoftwareSourceCode JSON-LD. Without these the docs
+				// schema strips them from entry.data and no node is emitted.
+				source_path: z.string().optional(),
+				app_name: z.string().optional(),
+				version: z.string().optional(),
+				license: z.string().optional(),
+				author: z.string().optional(),
 				// Per-page social-meta overrides consumed by
 				// src/components/navigation/Head.astro. Astro silently strips
 				// nested z.object fields imported across zod-package boundaries
@@ -195,14 +162,45 @@ export const collections = {
 				twitterTitle: z.string().optional(),
 				twitterDescription: z.string().optional(),
 				twitterImage: z.string().optional(),
+				noindex: z.boolean().optional(),
+				jsonld: z
+					.object({
+						disable: z.boolean().optional(),
+						type: z.enum(['WebPage', 'Article']).optional(),
+						image: z.string().optional(),
+						datePublished: z.string().optional(),
+						dateModified: z.string().optional(),
+						author: z.string().optional(),
+						section: z.string().optional(),
+						keywords: z.array(z.string()).optional(),
+						breadcrumb: z
+							.array(
+								z.object({
+									name: z.string(),
+									path: z.string(),
+								}),
+							)
+							.optional(),
+						faq: z
+							.array(
+								z.object({
+									question: z.string(),
+									answer: z.string(),
+								}),
+							)
+							.optional(),
+					})
+					.optional(),
 			}),
 		}),
 	}),
 	itemdb,
 	questdb,
 	npcdb,
+	spelldb,
 	application,
 	gdd,
 	project,
 	mapdb,
+	tiledb,
 };

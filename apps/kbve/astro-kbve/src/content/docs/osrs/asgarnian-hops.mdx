@@ -12,9 +12,75 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 11000
-  about: "Asgarnian hops is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: hops
+    tier: low
+  properties:
+    release_date: "11 July 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Vanessa's Farming Shop
+      location: Catherby
+      price: 5
+      currency: coins
+      stock: 0
+    - shop_name: Richard's Farming Shop
+      location: East Ardougne
+      price: 5
+      currency: coins
+      stock: 0
+    - shop_name: Sarah's Farming Shop
+      location: South Falador Farm
+      price: 5
+      currency: coins
+      stock: 0
+    - shop_name: Alice's Farming Shop
+      location: Alice's Farm
+      price: 5
+      currency: coins
+      stock: 0
+  related_items:
+    - item_name: Asgarnian seed
+      slug: asgarnian-seed
+      relationship: component
+      description: "Seed planted to grow Asgarnian hops"
+    - item_name: Hammerstone hops
+      slug: hammerstone-hops
+      relationship: alternative
+      description: "Lower-tier hops variant"
+    - item_name: Yanillian hops
+      slug: yanillian-hops
+      relationship: alternative
+      description: "Higher-tier hops variant"
+    - item_name: Asgarnian ale
+      slug: asgarnian-ale
+      relationship: product
+      description: "Brewed from Asgarnian hops"
+  about: "Asgarnian hops are a Farming and Cooking ingredient harvested from a hops patch at Farming level 8, primarily used by brewers crafting Asgarnian ale and by farmers building Asgarnian seed yields for profit."
+  market_strategy:
+    notes:
+      - "Low margins; profit is in bulk volume for ale-brewing flips."
+      - "Supply tracks farming-bot rotation and seasonal events."
+      - "Used in Brewing minigame so demand floor is steady but unspectacular."
+  trading_tips:
+    - "Watch the asgarnian seed price: cheap seeds = cheap hops."
+    - "Stack orders across multiple worlds, hops fills slowly."
+    - "Sell into ale-brewing news bumps when hops are featured."
+  history:
+    - date: "11 July 2005"
+      description: "Added to the game with the Farming skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

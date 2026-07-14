@@ -12,9 +12,82 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Purple robe bottoms is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-06-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barker's Haberdashery
+      location: Canifis
+      price: 650
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Red robe bottoms
+      slug: red-robe-bottoms
+      relationship: variant
+      description: Red colour variant from Barker's Haberdashery.
+    - item_name: Yellow robe bottoms
+      slug: yellow-robe-bottoms
+      relationship: variant
+      description: Yellow colour variant from Barker's Haberdashery.
+    - item_name: Tan robe bottoms
+      slug: tan-robe-bottoms
+      relationship: variant
+      description: Tan colour variant from Barker's Haberdashery.
+  about: "Purple robe bottoms are cosmetic legs sold by Barker's Haberdashery in Canifis after starting Priest in Peril. They are part of the Canifis townsfolk wardrobe and pair with matching werewolf-themed robe tops."
+  market_strategy:
+    notes:
+      - "Barker shop stock caps profit when GE price drifts above shop restock cost."
+      - "Cosmetic demand is event-driven; expect quiet flat volume otherwise."
+  trading_tips:
+    - Buy from Barker's Haberdashery and flip on the GE when supply runs dry.
+    - Track bond-week cosmetic crazes for short spikes.
+  history:
+    - date: "2014-12-10"
+      description: "Renamed from 'Robe bottoms' to 'Purple robe bottoms' in the Trading Post update."
+    - date: "2004-06-29"
+      description: "Released with the Priest in Peril quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

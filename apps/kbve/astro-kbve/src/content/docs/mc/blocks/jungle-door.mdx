@@ -1,5 +1,6 @@
 ---
 title: Jungle Door
+template: splash
 description: |
     Minecraft Jungle Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 616
     ref: jungle_door
     slug: jungle-door
+    content_rev: 1
     display_name: Jungle Door
     material: wood
     hardness: 3
@@ -24,10 +26,54 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Jungle Door is a two-tile-high wooden door crafted from
+            Jungle Planks that villagers, piglins, and copper golems can
+            open, and that can be toggled by hand or by a redstone signal.
+        lore: |
+            Wooden doors date back to Infdev, with distinct wood-type
+            variants including jungle added in Java Edition 1.8.
+    uses:
+        - title: Entrance / Barrier
+          ref: jungle_planks
+          detail: |
+              Placed in a doorway, it blocks most mobs while allowing
+              villagers and players to pass through when opened.
+    found_in:
+        - location: Crafted
+          detail: Six Jungle Planks in a 3x2 grid yield 3 Jungle Doors.
+        - location: Jungle Village / Structure Generation
+          detail: Generates naturally on jungle-biome village houses.
+    faq:
+        - question: What tool mines a Jungle Door fastest?
+          answer: |
+              An axe, though any tool or bare hands work since it always
+              drops itself.
+        - question: Is a Jungle Door flammable?
+          answer: |
+              Yes, being made of wood it can catch fire and burn, unlike
+              crimson and warped doors.
+        - question: Can zombies break down a Jungle Door?
+          answer: |
+              Regular zombies have a small chance to break wooden doors on
+              Hard difficulty, and vindicators can break doors as well.
+        - question: Can a Jungle Door be used as furnace fuel?
+          answer: |
+              Yes, Overworld wood doors smelt 1 item per door when used as
+              furnace fuel.
     data_version: "1.21.5"
 ---
 

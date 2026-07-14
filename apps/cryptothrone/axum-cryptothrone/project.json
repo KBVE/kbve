@@ -38,6 +38,15 @@
 				}
 			}
 		},
+		"coverage": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"cargo llvm-cov -p axum-cryptothrone --ignore-filename-regex 'main\\.rs' --fail-under-lines 80 --summary-only"
+				],
+				"parallel": false
+			}
+		},
 		"lint": {
 			"executor": "@monodon/rust:lint",
 			"outputs": ["{options.target-dir}"],

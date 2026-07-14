@@ -12,9 +12,50 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw wild kebbit is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Drop
+    alchable: false
+  recipes:
+    - skill: cooking
+      level: 23
+      xp: 73
+      materials:
+        - item_name: Raw wild kebbit
+          quantity: 1
+      tools:
+        - Fire or range
+      output_quantity: 1
+  related_items:
+    - item_name: Cooked wild kebbit
+      slug: cooked-wild-kebbit
+      relationship: product
+      description: Successful cooked result (23 Cooking, 73 xp).
+    - item_name: Burnt kebbit
+      slug: burnt-kebbit
+      relationship: alternative
+      description: Burnt outcome from failed cooking attempts.
+  about: "Raw wild kebbit is a Hunter byproduct introduced with Varlamore: Part One. It is caught when hunting wild kebbits at 23 Hunter and cooks at 23 Cooking for 73 experience, yielding cooked wild kebbit on success or burnt kebbit on failure. The meat can be combined with herblore ingredients to produce herbal mixes."
+  market_strategy:
+    notes:
+      - "Supply tied to Varlamore Hunter throughput — newer skill content keeps inflows healthy."
+      - "Cooked variant is a low-cost food option, supporting raw demand from Cooking trainers."
+  trading_tips:
+    - Cook to cooked wild kebbit for XP and a small flip margin when the cooked/raw spread widens.
+    - Watch for Varlamore expansion updates that change kebbit hunting mechanics.
+  history:
+    - date: "2024-03-20"
+      description: "Added with the Varlamore: Part One update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

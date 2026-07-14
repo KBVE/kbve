@@ -12,9 +12,50 @@ osrs:
   lowalch: 168
   highalch: 252
   limit: 10000
+  material:
+    type: light_source
+    tier: mid-high
+  related_items:
+    - item_name: Bullseye lantern (unf)
+      slug: bullseye-lantern-unf
+      relationship: component
+      description: Unfinished lantern frame
+    - item_name: Lantern lens
+      slug: lantern-lens
+      relationship: component
+      description: Required lens component
+    - item_name: Bullseye lantern (oil)
+      slug: bullseye-lantern-oil
+      relationship: variant
+      description: Oil-filled version ready to light
   about: "Bullseye lantern is a members-only item in Old School RuneScape. High alchemy value: 252 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Required for Lumbridge Swamp Caves exploration
+      - Niche demand from quest and exploration players
+      - Safer alternative to candle lanterns in swamp gas areas
+      - Crafted from unfinished frame plus lens plus oil
+      - Stable low-volume market
+  history:
+    - date: "2005-03-14"
+      description: "Released with the Lumbridge Swamp Caves update."
+  properties:
+    release_date: "2005-03-14"
+    update: Lumbridge Swamp Caves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Light
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

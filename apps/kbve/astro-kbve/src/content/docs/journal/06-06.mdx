@@ -1,7 +1,7 @@
 ---
 title: 'June: 06'
 category: Daily
-date: 2025-06-06 12:00:00
+date: 2026-06-06 12:00:00
 client: Self
 unsplash: 1717297808345-b740e9846158
 img: https://images.unsplash.com/photo-1717297808345-b740e9846158?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -9,14 +9,92 @@ description: |
    June 6th. League MiniMap.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 6,'
+    accent: every year.
+    lede: 'The June 6th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Jun 5'
+          href: /journal/06-05/
+        - label: 'Jun 7 →'
+          href: /journal/06-07/
+    related:
+        - title: 'Previous · Jun 5'
+          copy: 'Step back a day to the June 5th log.'
+          href: /journal/06-05/
+          icon: calendar
+        - title: 'Next · Jun 7'
+          copy: 'Jump ahead to the June 7th log.'
+          href: /journal/06-07/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1717297808345-b740e9846158?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import {
   Adsense
 } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2026" heading="2026">
+
+### Grass
+
+-   04:10AM
+
+    Grass blades should get updated in chuck rpg.
+    Each blade should be 3 floats for position, 2 floats for facing.
+    Maybe hashing with its type and group, a cluster of it could be useful when pooling.
+    That cluster could be a clump of grass, color too.
+    We need to account for tilt, curve and bend, definitely when it comes to the wind.
+
+```cpp
+
+struct FChuckGrassBladePacked
+{
+    FVector3f Position;    // 12 bytes
+    FVector2f Facing;      // 8 bytes, sin/cos yaw or normalized XY facing
+
+    uint16 TypeId;         // blade type
+    uint16 GroupId;        // clump/cluster group
+
+    uint8 Tilt;            // normalized 0-255
+    uint8 Curve;           // normalized 0-255
+    uint8 BendStrength;    // normalized wind response
+    uint8 ColorVariant;    // palette/random tint index
+};
+
+```
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Toast Canvas
 
@@ -36,7 +114,9 @@ import {
     The more practice that I get with the reactive programming, the better it make sense and honestly it should be how every game goes moving forward.
     Starting to split the actual game logic into its own background functions, while the main ui thread focuses on just the reactivity.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **League Minimap**
 
@@ -133,19 +213,29 @@ I figured I would do the same with the `kbve` package and making sure that the p
 It might require some libraries that Github action might not provide, so I will have to double check it.
 Based upon my quick search, it seems that the Github actions default runner has the `libmysqlclient-dev` client ready to be linked.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:00pm - I messed up the formatting for my notes on 06-06 in the year of 2023. 
 - 10:00pm - A general summary for today would be that we were able to finish up / wrap up the cloud build! It looks like Unity was able to build the game, however we still have a couple things that we need to finish up before we could release a working steam demo. One of the core concepts that I was looking into was how we could start the wishlist before throwing together the demo. I should use the word `playbale` lightly, I would say that it does run but most of the crashes are actually just minor bugs and unexpected events, per say.
 - 11:00pm - The new login system has to be setup and we need to get that going within the next couple days, so that players could load into the game without having any major issues. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > A single rose can be my garden... a single friend, my world.
 > — <cite>Leo Buscaglia</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Complete a windows build.
+
+</BentoProse>
+
+</BentoDoc>

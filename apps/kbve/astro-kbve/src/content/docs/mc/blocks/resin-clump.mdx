@@ -1,5 +1,6 @@
 ---
 title: Resin Clump
+template: splash
 description: |
     Minecraft Resin Clump — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 337
     ref: resin_clump
     slug: resin-clump
+    content_rev: 1
     display_name: Resin Clump
     material: stone
     hardness: 0
@@ -23,11 +25,64 @@ mc_block:
     light_opacity: 1
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: resin_clump
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - non_solid
+        - waterloggable
+    about:
+        description: |
+            Resin Clump is a thin, non-solid decoration block that appears
+            on Pale Oak wood after a Creaking is attacked at night. It
+            breaks instantly with any tool and does not affect movement
+            much beyond a plant-like block.
+        lore: |
+            Introduced with the Pale Garden biome and the Creaking mob in
+            Java 1.21.4 (snapshot 24w44a), it represents hardened tree sap
+            oozing from wounded Pale Oak trunks.
+    uses:
+        - title: Block of Resin
+          ref: resin_block
+          detail: |
+              Nine Resin Clumps craft into one Block of Resin, a compact
+              storage and decorative form.
+        - title: Resin Bricks
+          ref: resin_bricks
+          detail: |
+              Resin Clumps can be smelted or crafted along the resin chain
+              into Resin Bricks, used for slabs, stairs, walls, and
+              chiseled variants.
+    found_in:
+        - location: Pale Garden biome
+          detail: Spawns on Pale Oak logs/wood when a Creaking is struck at night by a player, tamed wolf, or explosion.
+        - location: Woodland Mansion chests
+          detail: Found as loot in woodland mansion chests (roughly 54% chance in Java Edition).
+    faq:
+        - question: What tool do I need to harvest Resin Clump?
+          answer: |
+              None. It breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Does Fortune increase Resin Clump drops?
+          answer: |
+              Not from the clump block itself, but destroying the Creaking
+              Heart it is attached to can drop extra clumps with Fortune,
+              up to 6 with Fortune III.
+        - question: Can I place Resin Clump like a normal block?
+          answer: |
+              Yes, it is placeable and waterloggable, but it is non-solid
+              and mostly used decoratively or as crafting material.
+        - question: What does Resin Clump craft into?
+          answer: |
+              Nine clumps make a Block of Resin; clumps also feed into
+              Resin Bricks and their slab, stair, and wall variants.
     data_version: "1.21.5"
 ---
 

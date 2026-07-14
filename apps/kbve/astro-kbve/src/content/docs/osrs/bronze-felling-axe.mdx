@@ -12,9 +12,89 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: null
-  about: "Bronze felling axe is a members-only item in Old School RuneScape. High alchemy value: 9 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2023-10-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Chop
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: 2h
+    weapon_type: axe
+    attack_speed: 7
+    weight: 1.814
+    requirements:
+      woodcutting: 1
+      attack: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 1
+      xp: 5
+      materials:
+        - item_name: Felling axe handle
+          quantity: 1
+        - item_name: Bronze axe
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  related_items:
+    - item_name: Iron felling axe
+      slug: iron-felling-axe
+      relationship: upgrade
+      description: Next-tier felling axe
+    - item_name: Bronze axe
+      slug: bronze-axe
+      relationship: component
+      description: Required to craft the felling axe
+    - item_name: Felling axe handle
+      slug: felling-axe-handle
+      relationship: component
+      description: Forestry-specific handle needed for assembly
+  about: "The bronze felling axe is the lowest-tier Forestry felling axe, used in two-handed woodcutting activities alongside other Forestry contributors. Functions as a regular bronze axe unless the player carries forester's rations, which grant a 10% bonus Woodcutting XP and a 20% chance to skip receiving logs. Crafted at level 1 Smithing by combining a felling axe handle and a bronze axe on an anvil."
+  market_strategy:
+    notes:
+      - "Not on the Grand Exchange so liquidity is player-to-player"
+      - "Cheap to assemble for Forestry events"
+      - "Replaced quickly as players unlock higher-tier axes"
+  history:
+    - date: "2023-10-25"
+      description: "Made obtainable with the Forestry: The Way of the Forester update."
+    - date: "2023-11-01"
+      description: "Bug fixes to felling axe behaviour."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

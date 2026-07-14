@@ -1,6 +1,6 @@
 ---
 title: Eclipse moon helm (broken) | OSRS Price Data
-description: "Eclipse moon helm (broken): The helm of the Eclipse Moon.. High alch: 61,800 GP, GE limit: 15."
+description: "Eclipse moon helm (broken): The helm of the Eclipse Moon. High alch: 61,800 GP, GE limit: 15."
 osrs:
   id: 29055
   name: Eclipse moon helm (broken)
@@ -12,12 +12,60 @@ osrs:
   lowalch: 41200
   highalch: 61800
   limit: 15
-  about: "Eclipse moon helm (broken) is a members-only item in Old School RuneScape. High alchemy value: 61,800 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: eclipse_moon
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options: ["Repair", "Drop"]
+    worn_options: []
+    alchable: true
+  charges:
+    type: degradation
+    description: Broken state of the Eclipse moon helm after fully depleting its 30,000 charge meter; loses one charge per 0.6 seconds of combat use. Repair to restore charges - 1,500,000 coins through Bob the Cat in Lumbridge, reducible to 757,500 coins self-repair at 99 Smithing.
+  related_items:
+    - item_name: Eclipse moon helm
+      slug: eclipse-moon-helm
+      relationship: variant
+      description: Functional charged version repaired from this broken state
+    - item_name: Eclipse moon chestplate
+      slug: eclipse-moon-chestplate
+      relationship: set-piece
+      description: Matching body piece of the Eclipse moon set
+    - item_name: Eclipse moon tassets
+      slug: eclipse-moon-tassets
+      relationship: set-piece
+      description: Matching legs piece of the Eclipse moon set
+    - item_name: Eclipse atlatl
+      slug: eclipse-atlatl
+      relationship: set-piece
+      description: Weapon completing the Eclipse moon ranged set effect
+  about: "The Eclipse moon helm (broken) is the depleted form of the Eclipse moon helm, the ranged head slot piece of the Eclipse moon set introduced with Varlamore: Part One. The helm degrades during combat and falls into this broken state once its charge meter empties - repair it through Bob the Cat in Lumbridge for 1,500,000 coins, or via self-repair on an armour stand for as low as 757,500 coins at 99 Smithing. The base helm drops from the Lunar Chest in Neypotzli at roughly 1/224."
+  market_strategy:
+    notes:
+      - "Broken state often trades below charged variant by repair cost"
+      - "15 GE buy limit caps flip volume"
+      - "Members-only Varlamore reward"
+      - "Repair arbitrage available against the charged variant"
+  trading_tips:
+    - Calculate repair cost vs charged price spread before flipping
+    - Self-repair at 99 Smithing improves margins meaningfully
+  history:
+    - date: "2024-03-20"
+      description: Released with the Varlamore - Part One expansion as part of the Moons of Peril minigame rewards.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

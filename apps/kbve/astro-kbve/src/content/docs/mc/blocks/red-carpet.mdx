@@ -1,5 +1,6 @@
 ---
 title: Red Carpet
+template: splash
 description: |
     Minecraft Red Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 520
     ref: red_carpet
     slug: red-carpet
+    content_rev: 1
     display_name: Red Carpet
     material: wool
     hardness: 0.1
     blast_resistance: 0.1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Red Carpet is a thin, one-pixel-tall decorative block made from red
+            wool. It can be placed on almost any surface, broken instantly by
+            hand, and always drops itself. Like all wool-based blocks it is
+            flammable and will spread fire.
+        lore: |
+            A splash of dyed red wool rolled flat, the carpet lines the halls of
+            woodland mansions and village homes across the Overworld.
+    uses:
+        - title: Decoration
+          ref: red_carpet
+          detail: |
+              Covers floors, stairs, and surfaces with a flat colored layer, and
+              can be stacked on fences to make thin tables or hidden supports.
+        - title: Llama Decoration
+          ref: red_carpet
+          detail: |
+              Equipping a carpet on a llama or trader llama gives it a colored
+              decorative pattern that also serves as a saddle-like accessory.
+        - title: Sculk Dampening
+          ref: red_carpet
+          detail: |
+              Placing carpet over a sculk sensor muffles the vibrations of players
+              walking above it, helping to sneak past sculk-based alarms.
+    found_in:
+        - location: Villages
+          detail: Generates in snowy, savanna, and taiga village houses as flooring.
+        - location: Woodland Mansions & Igloos
+          detail: Appears in mansion rooms and igloo basements as decorative carpet.
+    faq:
+        - question: What tool do I need to break Red Carpet?
+          answer: |
+              None. Carpet breaks instantly with your bare hand or any tool and
+              always drops itself.
+        - question: How do I craft Red Carpet?
+          answer: |
+              Place two red wool side by side in a horizontal row to get three
+              red carpets, or dye a white carpet with red dye.
+        - question: Is Red Carpet flammable?
+          answer: |
+              Yes. Being wool-based, it catches fire and spreads flames, so keep
+              it away from lava and other fire sources.
+        - question: Does carpet stop mobs from spawning?
+          answer: |
+              Yes. Because carpet is not a full block, hostile mobs cannot spawn
+              on top of it, making it useful for spawn-proofing floors.
     data_version: "1.21.5"
 ---
 

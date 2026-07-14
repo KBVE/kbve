@@ -1,5 +1,6 @@
 ---
 title: Block of Diamond
+template: splash
 description: |
     Minecraft Block of Diamond — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 192
     ref: diamond_block
     slug: diamond-block
+    content_rev: 1
     display_name: Block of Diamond
     material: metal
     hardness: 5
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: diamond_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - storage_block
+        - beacon_base
+    about:
+        description: |
+            The Block of Diamond is a mineral block that stores nine diamonds
+            in a single block. It is used for compact storage, as a beacon
+            base material, and as a decorative building block.
+        lore: |
+            Originally called an "emerald block" when introduced in early
+            2010, it first required only four diamonds before being changed
+            to the nine-diamond recipe still used today. Its texture is the
+            gold block texture tinted blue.
+    uses:
+        - title: Compact Diamond Storage
+          ref: diamond
+          detail: |
+              Crafts back into nine diamonds, making it an efficient way to
+              store large quantities of diamonds in a single inventory slot.
+        - title: Beacon Base
+          ref: beacon
+          detail: |
+              Can be used to build a beacon pyramid, powering the beacon and
+              unlocking its status-effect ranges.
+    found_in:
+        - location: Woodland Mansions
+          detail: Generates in the cores of hidden obsidian and lava rooms.
+        - location: Trial Chambers
+          detail: Found in intersection chests, ominous vaults, and rarely decorated pots.
+        - location: Crafting
+          detail: Made by placing nine diamonds in a 3x3 crafting grid.
+    faq:
+        - question: What tool do I need to mine a Block of Diamond?
+          answer: |
+              An iron pickaxe or better. Mining with a stone, copper, or
+              wooden pickaxe destroys the block with no drop.
+        - question: How many diamonds does one block hold?
+          answer: |
+              Nine. A Block of Diamond can be crafted from nine diamonds and
+              broken back down into nine diamonds.
+        - question: Can I use it to build a beacon?
+          answer: |
+              Yes. Blocks of Diamond are a valid beacon base material,
+              alongside iron, gold, emerald, and netherite blocks.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Block of Diamond regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

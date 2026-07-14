@@ -6,6 +6,11 @@ import {
   requireServiceRole,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
+import {
+  CONTAINER_TYPE_MAX,
+  CONTAINER_TYPE_MIN,
+  ContainerType,
+} from "../_shared/constants.ts";
 
 // ---------------------------------------------------------------------------
 // MC Container Module
@@ -13,6 +18,10 @@ import { safeRpcError } from "../_shared/validators.ts";
 // Actions:
 //   save  — MC server persists container state (chests, barrels, etc.)
 //   load  — MC server loads container state by ID + server
+//
+// Container `type` is a ContainerType enum value
+// (Chest=0 … Other=13); inputs outside [CONTAINER_TYPE_MIN, CONTAINER_TYPE_MAX]
+// are rejected.
 // ---------------------------------------------------------------------------
 
 type Handler = (mcReq: McRequest) => Promise<Response>;
@@ -34,19 +43,27 @@ const handlers: Record<string, Handler> = {
     const cidErr = requireNonEmpty(c.container_id, "container_id");
     if (cidErr) return cidErr;
 
-    // Validate container_type range if provided
     if (c.type !== undefined) {
       const t = Number(c.type);
-      if (!Number.isInteger(t) || t < 0 || t > 13) {
+      if (
+        !Number.isInteger(t) ||
+        t < CONTAINER_TYPE_MIN ||
+        t > CONTAINER_TYPE_MAX
+      ) {
         return jsonResponse(
-          { error: "container type must be 0-13" },
+          {
+            error:
+              `container type must be a ContainerType value ${CONTAINER_TYPE_MIN}-${CONTAINER_TYPE_MAX} (${
+                ContainerType[CONTAINER_TYPE_MIN]
+              }..${ContainerType[CONTAINER_TYPE_MAX]})`,
+          },
           400,
         );
       }
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_save_container", {
+    const { data, error } = await supabase.schema("mc").rpc("service_save_container", {
       p_container: container,
       p_server_id: server_id as string,
     });
@@ -70,7 +87,7 @@ const handlers: Record<string, Handler> = {
     if (serverErr) return serverErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_load_container", {
+    const { data, error } = await supabase.schema("mc").rpc("service_load_container", {
       p_container_id: container_id as string,
       p_server_id: server_id as string,
     });

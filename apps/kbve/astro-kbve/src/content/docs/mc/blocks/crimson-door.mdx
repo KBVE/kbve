@@ -1,5 +1,6 @@
 ---
 title: Crimson Door
+template: splash
 description: |
     Minecraft Crimson Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 858
     ref: crimson_door
     slug: crimson-door
+    content_rev: 1
     display_name: Crimson Door
     material: nether
     hardness: 3
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+    about:
+        description: |
+            Crimson Door is a two-tile-tall door crafted from six Crimson
+            Planks, yielding three doors per craft. It opens and closes on
+            right-click or via redstone signal, and being Nether wood it
+            never burns.
+        lore: |
+            Crimson doors give Nether builds a fire-safe entrance, since
+            ordinary wooden doors would be a liability so close to lava.
+    uses:
+        - title: Entryway / Air Pocket
+          ref: crimson_planks
+          detail: |
+              Placed underwater or over lava, a closed door creates a
+              breathable air pocket, letting players walk through Nether
+              lava tubes or ocean floors without drowning.
+    found_in:
+        - location: Crafted from Crimson Planks
+          detail: Six Crimson Planks in a door pattern craft three Crimson Doors.
+        - location: Bastion remnants and Nether structures
+          detail: Generates as part of some Nether structure builds.
+    faq:
+        - question: What tool do I need to mine Crimson Door?
+          answer: |
+              An axe is fastest, but any tool — or bare hands — will
+              eventually break it since no minimum tier is required.
+        - question: Does Crimson Door burn?
+          answer: |
+              No. As a Nether wood block it is fire-immune, unlike
+              Overworld wood doors.
+        - question: Can zombies break Crimson Doors?
+          answer: |
+              Zombies have a small chance to break wooden doors on Hard
+              difficulty, and this applies to Crimson Doors as well.
+        - question: Can it be used as furnace fuel?
+          answer: |
+              No. Nether wood doors do not smelt as fuel, unlike Overworld
+              wood doors which smelt one item each.
     data_version: "1.21.5"
 ---
 

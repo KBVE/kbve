@@ -24,12 +24,69 @@ fn to_status(e: crate::error::RowsError) -> Status {
     e.into_tonic()
 }
 
+/// Pulls a Supabase token out of the gRPC `authorization: Bearer <jwt>` metadata entry.
+fn bearer_from_meta<T>(req: &Request<T>) -> Option<String> {
+    let raw = req.metadata().get("authorization")?.to_str().ok()?.trim();
+    let token = raw
+        .strip_prefix("Bearer ")
+        .or_else(|| raw.strip_prefix("bearer "))?
+        .trim();
+    if token.is_empty() {
+        None
+    } else {
+        Some(token.to_string())
+    }
+}
+
+/// Optional `x-user-session: <uuid>` metadata entry, the gRPC equivalent of the REST session GUID.
+fn session_from_meta<T>(req: &Request<T>) -> Option<Uuid> {
+    req.metadata()
+        .get("x-user-session")?
+        .to_str()
+        .ok()?
+        .trim()
+        .parse()
+        .ok()
+}
+
+/// Optional `x-service-key: <key>` metadata entry for trusted server-to-server callers (e.g. the UE
+/// dedicated server), validated against `SUPABASE_SERVICE_KEY_HASH`.
+fn service_key_from_meta<T>(req: &Request<T>) -> Option<String> {
+    let key = req.metadata().get("x-service-key")?.to_str().ok()?.trim();
+    if key.is_empty() {
+        None
+    } else {
+        Some(key.to_string())
+    }
+}
+
+/// Enforces a valid `x-service-key` for trusted server-to-server RPCs — the gRPC equivalent of the
+/// REST `require_service_key` gate. Without this, InstanceManagement / CharacterPersistence-write /
+/// GlobalData-write methods would be callable unauthenticated. Player/tenant RPCs use
+/// `confirm_login_parts` (bearer/session) instead.
+#[allow(clippy::result_large_err)]
+fn require_service_key<T>(svc: &OWSService, req: &Request<T>) -> Result<(), Status> {
+    let cfg = &svc.state().supabase;
+    if !cfg.service_key_enabled() {
+        return Err(Status::unauthenticated(
+            "service key auth is not configured on this server",
+        ));
+    }
+    let key = service_key_from_meta(req)
+        .ok_or_else(|| Status::unauthenticated("x-service-key metadata required"))?;
+    crate::supabase::validate_service_key(&key, cfg)
+        .map_err(|_| Status::unauthenticated("invalid service key"))?;
+    Ok(())
+}
+
 pub struct PublicApiService {
     svc: Arc<OWSService>,
 }
 
 #[tonic::async_trait]
 impl PublicApi for PublicApiService {
+    /// DEPRECATED: legacy OWS local email/password login. Prefer Supabase auth (bearer metadata on
+    /// the protected RPCs); retained for backwards compatibility and slated for removal.
     async fn login(&self, req: Request<LoginRequest>) -> Result<Response<LoginResponse>, Status> {
         let r = req.get_ref();
         let result = self
@@ -51,6 +108,8 @@ impl PublicApi for PublicApiService {
         }))
     }
 
+    /// DEPRECATED: legacy OWS local account creation. Accounts now originate in Supabase and are
+    /// provisioned on first external login; retained for backwards compatibility, slated for removal.
     async fn register(
         &self,
         req: Request<RegisterRequest>,
@@ -130,11 +189,20 @@ impl PublicApi for PublicApiService {
         &self,
         req: Request<GetServerToConnectToRequest>,
     ) -> Result<Response<GetServerToConnectToResponse>, Status> {
+        let caller = self
+            .svc
+            .confirm_login_parts(
+                bearer_from_meta(&req),
+                session_from_meta(&req),
+                service_key_from_meta(&req),
+            )
+            .await
+            .map_err(to_status)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         let result = self
             .svc
-            .get_server_to_connect_to(guid, &r.character_name, &r.character_name)
+            .get_server_to_connect_to(guid, caller, &r.character_name, &r.character_name)
             .await
             .map_err(to_status)?;
         if !result.success {
@@ -176,44 +244,82 @@ pub struct InstanceManagementService {
 impl InstanceManagement for InstanceManagementService {
     async fn register_launcher(
         &self,
-        _req: Request<RegisterLauncherRequest>,
+        req: Request<RegisterLauncherRequest>,
     ) -> Result<Response<RegisterLauncherResponse>, Status> {
-        Err(Status::unimplemented(
-            "RegisterLauncher not yet implemented",
-        ))
+        require_service_key(&self.svc, &req)?;
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        let world_server_id = self
+            .svc
+            .register_launcher(
+                guid,
+                &r.launcher_guid,
+                &r.server_ip,
+                r.max_number_of_instances,
+                &r.internal_server_ip,
+                r.starting_instance_port,
+            )
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(RegisterLauncherResponse {
+            success: world_server_id >= 0,
+            world_server_id,
+            error: None,
+        }))
     }
 
     async fn start_instance_launcher(
         &self,
-        _req: Request<StartInstanceLauncherRequest>,
+        req: Request<StartInstanceLauncherRequest>,
     ) -> Result<Response<StartInstanceLauncherResponse>, Status> {
-        Err(Status::unimplemented(
-            "StartInstanceLauncher not yet implemented",
-        ))
+        require_service_key(&self.svc, &req)?;
+        // The dedicated server is its own launcher in the ROWS topology: it
+        // registers, then spins up its own zone instances. Ack the start.
+        tracing::info!(
+            world_server_id = req.get_ref().world_server_id,
+            "StartInstanceLauncher ack"
+        );
+        Ok(Response::new(StartInstanceLauncherResponse {
+            success: true,
+        }))
     }
 
     async fn shut_down_instance_launcher(
         &self,
-        _req: Request<ShutDownInstanceLauncherRequest>,
+        req: Request<ShutDownInstanceLauncherRequest>,
     ) -> Result<Response<ShutDownInstanceLauncherResponse>, Status> {
-        Err(Status::unimplemented(
-            "ShutDownInstanceLauncher not yet implemented",
-        ))
+        require_service_key(&self.svc, &req)?;
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        self.svc
+            .shut_down_launcher(guid, r.world_server_id)
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(ShutDownInstanceLauncherResponse {
+            success: true,
+        }))
     }
 
     async fn get_zone_instances_for_world_server(
         &self,
-        _req: Request<GetZoneInstancesRequest>,
+        req: Request<GetZoneInstancesRequest>,
     ) -> Result<Response<GetZoneInstancesResponse>, Status> {
-        Err(Status::unimplemented(
-            "GetZoneInstancesForWorldServer not yet implemented",
-        ))
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        let instances = self
+            .svc
+            .get_zone_instances(guid, r.world_server_id)
+            .await
+            .map_err(to_status)?;
+        tracing::debug!(count = instances.len(), "GetZoneInstancesForWorldServer");
+        Ok(Response::new(GetZoneInstancesResponse { success: true }))
     }
 
     async fn set_zone_instance_status(
         &self,
         req: Request<SetZoneInstanceStatusRequest>,
     ) -> Result<Response<SetZoneInstanceStatusResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -227,24 +333,46 @@ impl InstanceManagement for InstanceManagementService {
 
     async fn spin_up_instance(
         &self,
-        _req: Request<SpinUpInstanceRequest>,
+        req: Request<SpinUpInstanceRequest>,
     ) -> Result<Response<SpinUpInstanceResponse>, Status> {
-        Err(Status::unimplemented("SpinUpInstance not yet implemented"))
+        require_service_key(&self.svc, &req)?;
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        self.svc
+            .spin_up_server_instance(
+                guid,
+                r.world_server_id,
+                r.zone_instance_id,
+                &r.zone_name,
+                r.port,
+            )
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(SpinUpInstanceResponse {
+            success: true,
+            error: None,
+        }))
     }
 
     async fn shut_down_instance(
         &self,
-        _req: Request<ShutDownInstanceRequest>,
+        req: Request<ShutDownInstanceRequest>,
     ) -> Result<Response<ShutDownInstanceResponse>, Status> {
-        Err(Status::unimplemented(
-            "ShutDownInstance not yet implemented",
-        ))
+        require_service_key(&self.svc, &req)?;
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        self.svc
+            .shut_down_server_instance(guid, r.zone_instance_id)
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(ShutDownInstanceResponse { success: true }))
     }
 
     async fn update_number_of_players(
         &self,
         req: Request<UpdateNumberOfPlayersRequest>,
     ) -> Result<Response<UpdateNumberOfPlayersResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -281,6 +409,7 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<UpdatePositionRequest>,
     ) -> Result<Response<UpdatePositionResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -294,6 +423,7 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<UpdateStatsRequest>,
     ) -> Result<Response<UpdateStatsResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -307,6 +437,7 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<PlayerLogoutRequest>,
     ) -> Result<Response<PlayerLogoutResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let session_guid = parse_session(&r.user_session_guid)?;
         self.svc.logout(session_guid).await.map_err(to_status)?;
@@ -323,11 +454,20 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<JoinMapRequest>,
     ) -> Result<Response<JoinMapResponse>, Status> {
+        let caller = self
+            .svc
+            .confirm_login_parts(
+                bearer_from_meta(&req),
+                session_from_meta(&req),
+                service_key_from_meta(&req),
+            )
+            .await
+            .map_err(to_status)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         let result = self
             .svc
-            .get_server_to_connect_to(guid, &r.character_name, &r.zone_name)
+            .get_server_to_connect_to(guid, caller, &r.character_name, &r.zone_name)
             .await
             .map_err(to_status)?;
         Ok(Response::new(JoinMapResponse {
@@ -346,6 +486,7 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<LeaveMapRequest>,
     ) -> Result<Response<LeaveMapResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -382,6 +523,7 @@ impl GlobalDataService for GlobalDataServiceImpl {
         &self,
         req: Request<SetGlobalDataRequest>,
     ) -> Result<Response<SetGlobalDataResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc

@@ -1,52 +1,12 @@
-//! Multi-viewer VNC proxy hub.
-//!
-//! KubeVirt only allows a single VNC client per VMI — the second client to
-//! connect evicts the first. This module fans one upstream connection out
-//! to any number of viewers, so multiple staff members can watch the same
-//! console at the same time.
-//!
-//! ## Protocol notes
-//!
-//! RFB is stateful: the server sends ProtocolVersion, a list of security
-//! types, a SecurityResult, and a ServerInit (which carries the framebuffer
-//! dimensions + pixel format). Only after ServerInit can framebuffer
-//! updates flow. A late joiner whose RFB client skips straight to Normal
-//! mode will not understand subsequent bytes — it needs the handshake plus
-//! an initial full framebuffer.
-//!
-//! We don't parse RFB. Instead we keep a bounded cache of every byte the
-//! upstream has sent since session start; since the very first thing any
-//! viewer requests after ServerInit is a full framebuffer update, the
-//! cache naturally contains everything a late joiner needs (up to its
-//! size cap). Late joiners replay the cache, then subscribe to a broadcast
-//! channel of live upstream bytes — their client advances through its RFB
-//! state machine using the replayed bytes exactly as if it were the first
-//! connection.
-//!
-//! ## Input arbitration
-//!
-//! Only one viewer at a time is allowed to write to upstream (the
-//! "primary"). Observer input is dropped on the floor — their RFB client's
-//! handshake responses go nowhere, which is fine because the upstream is
-//! already past handshake. If the primary disconnects, the next observer
-//! that sends a message opportunistically becomes the new primary via
-//! CAS on the `primary_id` field.
-//!
-//! ## Cache bound + drift
-//!
-//! The cache is capped at 4 MiB. For typical KubeVirt consoles that's
-//! comfortably enough for handshake (< 1 KB) plus the initial full frame
-//! (usually 100-500 KB for 1024x768). If the cap is hit we stop appending
-//! to the cache — new joiners may see a stale framebuffer until the next
-//! full refresh, but no live bytes are dropped.
-
 use axum::body::Bytes;
 use axum::extract::ws::{Message as AxumMsg, WebSocket};
 use dashmap::DashMap;
 use futures_util::{SinkExt, StreamExt};
 use serde::Serialize;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Mutex as StdMutex;
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
+use std::time::{Duration, Instant};
 use tokio::sync::{Mutex, broadcast};
 use tokio_tungstenite::tungstenite::http::HeaderValue;
 use tokio_tungstenite::tungstenite::{Message as TungMsg, client::IntoClientRequest};
@@ -59,18 +19,26 @@ type UpstreamWs =
     tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
 type UpstreamSink = futures_util::stream::SplitSink<UpstreamWs, TungMsg>;
 
-/// Per-VM shared VNC session. Torn down when the last viewer leaves.
 pub struct VncSession {
     vm_key: String,
-    /// Replay buffer bounded by `MAX_CACHE_BYTES`; new viewers replay this
-    /// before subscribing to the live broadcast.
     cache: Mutex<Vec<u8>>,
     broadcast: broadcast::Sender<Bytes>,
     upstream_sink: Mutex<Option<UpstreamSink>>,
     clients: AtomicUsize,
-    /// `0` = no primary; the next client to send input CASes itself in.
-    primary_id: AtomicUsize,
+    controller_id: AtomicUsize,
+    clients_map: DashMap<usize, String>,
+    pending: StdMutex<Option<PendingControl>>,
+    pending_gen: AtomicU64,
 }
+
+struct PendingControl {
+    requester_id: usize,
+    requester_viewer_id: String,
+    deadline: Instant,
+    generation: u64,
+}
+
+const CONTROL_GRACE: Duration = Duration::from_secs(5);
 
 static SESSIONS: OnceLock<DashMap<String, Arc<VncSession>>> = OnceLock::new();
 static NEXT_CLIENT_ID: AtomicUsize = AtomicUsize::new(1);
@@ -79,42 +47,179 @@ fn sessions() -> &'static DashMap<String, Arc<VncSession>> {
     SESSIONS.get_or_init(DashMap::new)
 }
 
-/// Snapshot of a VNC session's state, returned by the info endpoint.
+#[derive(Serialize)]
+pub struct ViewerInfo {
+    pub viewer_id: String,
+    pub is_controller: bool,
+}
+
+#[derive(Serialize)]
+pub struct PendingInfo {
+    pub requester_viewer_id: String,
+    pub seconds_remaining: u64,
+}
+
 #[derive(Serialize)]
 pub struct SessionInfo {
     pub vm_key: String,
     pub viewers: usize,
+    pub controller_viewer_id: Option<String>,
     pub has_primary: bool,
+    pub viewers_list: Vec<ViewerInfo>,
+    pub pending: Option<PendingInfo>,
 }
 
-/// Query session info for a specific VM key. Returns `None` if no active
-/// session exists (i.e. no one is currently connected to that VM's VNC).
-pub fn get_session_info(vm_key: &str) -> Option<SessionInfo> {
-    let registry = sessions();
-    registry.get(vm_key).map(|session| SessionInfo {
+fn build_session_info(session: &VncSession) -> SessionInfo {
+    let controller_id = session.controller_id.load(Ordering::Relaxed);
+    let controller_viewer_id = session
+        .clients_map
+        .get(&controller_id)
+        .map(|v| v.value().clone());
+    let viewers_list = session
+        .clients_map
+        .iter()
+        .map(|e| ViewerInfo {
+            viewer_id: e.value().clone(),
+            is_controller: *e.key() == controller_id,
+        })
+        .collect();
+    let pending = session
+        .pending
+        .lock()
+        .expect("vnc pending mutex poisoned")
+        .as_ref()
+        .map(|pc| PendingInfo {
+            requester_viewer_id: pc.requester_viewer_id.clone(),
+            seconds_remaining: pc
+                .deadline
+                .saturating_duration_since(Instant::now())
+                .as_secs(),
+        });
+    SessionInfo {
         vm_key: session.vm_key.clone(),
         viewers: session.clients.load(Ordering::Relaxed),
-        has_primary: session.primary_id.load(Ordering::Relaxed) != 0,
-    })
+        controller_viewer_id,
+        has_primary: controller_id != 0,
+        viewers_list,
+        pending,
+    }
 }
 
-/// List all active VNC sessions with their viewer counts.
+pub fn get_session_info(vm_key: &str) -> Option<SessionInfo> {
+    let registry = sessions();
+    registry
+        .get(vm_key)
+        .map(|session| build_session_info(&session))
+}
+
 pub fn list_sessions() -> Vec<SessionInfo> {
     let registry = sessions();
     registry
         .iter()
-        .map(|entry| {
-            let session = entry.value();
-            SessionInfo {
-                vm_key: session.vm_key.clone(),
-                viewers: session.clients.load(Ordering::Relaxed),
-                has_primary: session.primary_id.load(Ordering::Relaxed) != 0,
-            }
-        })
+        .map(|entry| build_session_info(entry.value()))
         .collect()
 }
 
-/// Per-upstream connection knobs supplied by the caller.
+pub fn request_control(vm_key: &str, viewer_id: &str) -> bool {
+    let Some(session) = sessions().get(vm_key).map(|s| s.clone()) else {
+        return false;
+    };
+    let Some(requester_id) = session
+        .clients_map
+        .iter()
+        .find(|e| e.value() == viewer_id)
+        .map(|e| *e.key())
+    else {
+        return false;
+    };
+
+    let current = session.controller_id.load(Ordering::Relaxed);
+    if current == 0 || current == requester_id {
+        session.controller_id.store(requester_id, Ordering::Relaxed);
+        *session.pending.lock().expect("vnc pending mutex poisoned") = None;
+        info!(
+            "VNC hub: {} control granted immediately to client {}",
+            session.vm_key, requester_id
+        );
+        return true;
+    }
+
+    let generation = session.pending_gen.fetch_add(1, Ordering::Relaxed) + 1;
+    *session.pending.lock().expect("vnc pending mutex poisoned") = Some(PendingControl {
+        requester_id,
+        requester_viewer_id: viewer_id.to_string(),
+        deadline: Instant::now() + CONTROL_GRACE,
+        generation,
+    });
+    info!(
+        "VNC hub: {} client {} requested control — {}s grace",
+        session.vm_key,
+        requester_id,
+        CONTROL_GRACE.as_secs()
+    );
+
+    let session_timer = session.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(CONTROL_GRACE).await;
+        let mut p = session_timer
+            .pending
+            .lock()
+            .expect("vnc pending mutex poisoned");
+        if let Some(pc) = p.as_ref() {
+            if pc.generation == generation
+                && session_timer.clients_map.contains_key(&pc.requester_id)
+            {
+                session_timer
+                    .controller_id
+                    .store(pc.requester_id, Ordering::Relaxed);
+                info!(
+                    "VNC hub: {} control transferred to client {} (grace elapsed)",
+                    session_timer.vm_key, pc.requester_id
+                );
+                *p = None;
+            }
+        }
+    });
+    true
+}
+
+pub fn deny_control(vm_key: &str, viewer_id: &str) -> bool {
+    let Some(session) = sessions().get(vm_key).map(|s| s.clone()) else {
+        return false;
+    };
+    let controller_id = session.controller_id.load(Ordering::Relaxed);
+    let is_controller = session
+        .clients_map
+        .get(&controller_id)
+        .map(|v| v.value() == viewer_id)
+        .unwrap_or(false);
+    if !is_controller {
+        return false;
+    }
+    session.pending_gen.fetch_add(1, Ordering::Relaxed);
+    *session.pending.lock().expect("vnc pending mutex poisoned") = None;
+    info!("VNC hub: {} pending control request denied", session.vm_key);
+    true
+}
+
+pub fn release_control(vm_key: &str, viewer_id: &str) -> bool {
+    let Some(session) = sessions().get(vm_key).map(|s| s.clone()) else {
+        return false;
+    };
+    let controller_id = session.controller_id.load(Ordering::Relaxed);
+    let is_controller = session
+        .clients_map
+        .get(&controller_id)
+        .map(|v| v.value() == viewer_id)
+        .unwrap_or(false);
+    if !is_controller {
+        return false;
+    }
+    session.controller_id.store(0, Ordering::Relaxed);
+    info!("VNC hub: {} controller released control", session.vm_key);
+    true
+}
+
 pub struct UpstreamConfig {
     pub auth_header: Option<HeaderValue>,
     pub origin: Option<HeaderValue>,
@@ -123,7 +228,6 @@ pub struct UpstreamConfig {
 }
 
 impl UpstreamConfig {
-    /// KubeVirt VNC subresource defaults.
     pub fn kubevirt(
         bearer_token: Option<String>,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
@@ -140,26 +244,26 @@ impl UpstreamConfig {
     }
 }
 
-/// Entry point used by the HTTP handler. Finds or creates the session for
-/// this VM key, attaches this browser viewer, and runs the full client
-/// lifecycle until the browser disconnects or the session tears down.
 pub async fn join_session(
     vm_key: String,
     upstream_url: String,
     upstream_token: Option<String>,
+    viewer_id: Option<String>,
     browser_ws: WebSocket,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let config = UpstreamConfig::kubevirt(upstream_token)?;
-    join_session_with_config(vm_key, upstream_url, config, browser_ws).await
+    join_session_with_config(vm_key, upstream_url, config, viewer_id, browser_ws).await
 }
 
 pub async fn join_session_with_config(
     vm_key: String,
     upstream_url: String,
     config: UpstreamConfig,
+    viewer_id: Option<String>,
     browser_ws: WebSocket,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client_id = NEXT_CLIENT_ID.fetch_add(1, Ordering::Relaxed);
+    let viewer_id = viewer_id.unwrap_or_else(|| format!("c{client_id}"));
     let registry = sessions();
 
     let session = {
@@ -179,26 +283,32 @@ pub async fn join_session_with_config(
         }
     };
 
+    session.clients_map.insert(client_id, viewer_id.clone());
     let prior = session.clients.fetch_add(1, Ordering::Relaxed);
     if prior == 0 {
-        session.primary_id.store(client_id, Ordering::Relaxed);
+        session.controller_id.store(client_id, Ordering::Relaxed);
         info!(
-            "VNC hub: {} opened — client {} is primary",
-            session.vm_key, client_id
+            "VNC hub: {} opened — client {} (viewer {}) is controller",
+            session.vm_key, client_id, viewer_id
         );
     } else {
         info!(
-            "VNC hub: {} client {} joined as observer ({} total)",
+            "VNC hub: {} client {} (viewer {}) joined as view-only ({} total)",
             session.vm_key,
             client_id,
+            viewer_id,
             prior + 1
         );
     }
 
     let result = run_client(session.clone(), client_id, browser_ws).await;
 
-    if session.primary_id.load(Ordering::Relaxed) == client_id {
-        session.primary_id.store(0, Ordering::Relaxed);
+    session.clients_map.remove(&client_id);
+    if session.controller_id.load(Ordering::Relaxed) == client_id {
+        let next = session.clients_map.iter().map(|e| *e.key()).min();
+        session
+            .controller_id
+            .store(next.unwrap_or(0), Ordering::Relaxed);
     }
     let remaining = session.clients.fetch_sub(1, Ordering::Relaxed) - 1;
     if remaining == 0 {
@@ -212,8 +322,6 @@ pub async fn join_session_with_config(
     result
 }
 
-/// Open a fresh upstream WebSocket to the configured backend and spawn
-/// the background reader task that feeds the cache + broadcast channel.
 async fn create_session(
     vm_key: String,
     upstream_url: String,
@@ -251,7 +359,10 @@ async fn create_session(
         broadcast: broadcast_tx,
         upstream_sink: Mutex::new(Some(upstream_tx)),
         clients: AtomicUsize::new(0),
-        primary_id: AtomicUsize::new(0),
+        controller_id: AtomicUsize::new(0),
+        clients_map: DashMap::new(),
+        pending: StdMutex::new(None),
+        pending_gen: AtomicU64::new(0),
     });
 
     {
@@ -293,9 +404,6 @@ async fn create_session(
     Ok(session)
 }
 
-/// Drive a single browser viewer: replay the handshake cache, then pump
-/// bytes in both directions (with primary-only input gating) until one
-/// side closes.
 async fn run_client(
     session: Arc<VncSession>,
     client_id: usize,
@@ -303,24 +411,19 @@ async fn run_client(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let (mut browser_tx, mut browser_rx) = browser_ws.split();
 
-    // Atomic snapshot + subscribe: hold the cache lock across both so the
-    // upstream reader cannot interleave a broadcast that we'd miss.
     let (cache_snapshot, mut live_rx) = {
         let cache = session.cache.lock().await;
         let rx = session.broadcast.subscribe();
         (cache.clone(), rx)
     };
 
-    if !cache_snapshot.is_empty() {
-        // K8s VNC uses the binary.k8s.io subprotocol; one Binary frame is
-        // fine because noVNC re-frames internally on RFB boundaries.
-        if browser_tx
+    if !cache_snapshot.is_empty()
+        && browser_tx
             .send(AxumMsg::Binary(Bytes::from(cache_snapshot)))
             .await
             .is_err()
-        {
-            return Ok(());
-        }
+    {
+        return Ok(());
     }
 
     let session_input = session.clone();
@@ -333,20 +436,7 @@ async fn run_client(
                 _ => continue,
             };
 
-            // Opportunistic primary CAS — observers fall through to drop.
-            let primary = session_input.primary_id.load(Ordering::Relaxed);
-            let may_write = if primary == client_id {
-                true
-            } else if primary == 0 {
-                session_input
-                    .primary_id
-                    .compare_exchange(0, client_id, Ordering::Relaxed, Ordering::Relaxed)
-                    .is_ok()
-            } else {
-                false
-            };
-
-            if !may_write {
+            if session_input.controller_id.load(Ordering::Relaxed) != client_id {
                 continue;
             }
 
@@ -370,8 +460,6 @@ async fn run_client(
                         break;
                     }
                 }
-                // Continuing on lag beats killing the viewer; lost bytes
-                // are unrecoverable but the next full refresh resyncs.
                 Err(broadcast::error::RecvError::Lagged(skipped)) => {
                     warn!(
                         "VNC hub: client {} lagged, skipped {} frames",
@@ -397,9 +485,6 @@ async fn run_client(
     Ok(())
 }
 
-/// Build a TLS connector that trusts the in-cluster Kubernetes CA so the
-/// apiserver's self-signed cert for the VNC subresource validates.
-/// Mirrors the setup from the old single-viewer `vnc_bridge`.
 fn build_kubevirt_tls_connector()
 -> Result<tokio_tungstenite::Connector, Box<dyn std::error::Error + Send + Sync>> {
     let mut root_store = rustls::RootCertStore::empty();
@@ -421,7 +506,6 @@ fn build_kubevirt_tls_connector()
     Ok(tokio_tungstenite::Connector::Rustls(Arc::new(config)))
 }
 
-/// TLS connector that accepts any cert. Cluster-internal use only.
 pub fn build_accept_any_tls_connector()
 -> Result<tokio_tungstenite::Connector, Box<dyn std::error::Error + Send + Sync>> {
     use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};

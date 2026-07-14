@@ -1,3 +1,6 @@
+#![allow(clippy::result_large_err)]
+#![allow(clippy::too_many_arguments)]
+
 mod astro;
 mod auth;
 mod db;
@@ -106,6 +109,18 @@ async fn main() -> anyhow::Result<()> {
         info!("Forum service not configured - /forum routes will 503");
     }
 
+    if db::init_pg_cluster().await {
+        info!("PgCluster initialized - PgCluster-backed routes enabled");
+    } else {
+        warn!("PgCluster not configured - PgCluster-backed routes will 503");
+    }
+
+    if db::init_kv_cache().await {
+        info!("KvCache initialized - L1 LRU + L2 Valkey read-through cache enabled");
+    } else {
+        warn!("KvCache init failed - read-through cache disabled");
+    }
+
     if db::init_wallet_client().await {
         info!("Wallet client initialized - /api/v1/wallet/me/* routes enabled");
     } else {
@@ -118,6 +133,14 @@ async fn main() -> anyhow::Result<()> {
         info!("Referral client initialized - /api/v1/referral/* routes enabled");
     } else {
         warn!("Referral client not configured - /api/v1/referral/* routes will 503");
+    }
+
+    // Lot client also rides the wallet pool (purchases settle through
+    // wallet.service_debit). Run after the wallet client so it can share.
+    if db::init_lot_client().await {
+        info!("Lot client initialized - /api/v1/mc/lots/* routes enabled");
+    } else {
+        warn!("Lot client not configured - /api/v1/mc/lots/* routes will 503");
     }
 
     let _osrs_cache = db::init_osrs_cache().await;
@@ -163,6 +186,10 @@ async fn main() -> anyhow::Result<()> {
         warn!("Forgejo proxy not configured (FORGEJO_UPSTREAM_URL not set)");
     }
 
+    if transport::forgejo_api::init_forgejo_api() {
+        info!("Forgejo typed API initialized - /dashboard/forgejo/api/* enabled");
+    }
+
     if transport::proxy::init_edge_proxy() {
         info!("Edge proxy initialized - /dashboard/edge/proxy enabled");
     } else {
@@ -189,6 +216,33 @@ async fn main() -> anyhow::Result<()> {
         info!("Firecracker proxy not configured (using default cluster URL)");
     }
 
+    // Initialize Factorio proxy (optional - for /dashboard/factorio, routes to factorio-ctl)
+    if transport::proxy::init_factorio_proxy() {
+        info!("Factorio proxy initialized - /dashboard/factorio/proxy enabled");
+    } else {
+        info!("Factorio proxy not configured (using default cluster URL)");
+    }
+
+    // Initialize Vibeshine proxy (optional - DASHBOARD_MANAGE gated, routes to the
+    // Windows game-stream host over the wg0 tunnel)
+    if transport::proxy::init_vibeshine_proxy() {
+        info!(
+            "Vibeshine proxy initialized - /dashboard/vibeshine/proxy enabled (DASHBOARD_MANAGE required)"
+        );
+    } else {
+        info!("Vibeshine proxy not configured (using default wg tunnel URL)");
+    }
+
+    // Initialize Vibeshine WebRTC signaling relay (optional - DASHBOARD_VIEW gated,
+    // separate webrtc-scoped upstream token via VIBESHINE_WEBRTC_TOKEN)
+    if transport::proxy::init_vibeshine_webrtc_proxy() {
+        info!(
+            "Vibeshine WebRTC relay initialized - /api/v1/vibeshine/webrtc/* enabled (DASHBOARD_VIEW required)"
+        );
+    } else {
+        info!("Vibeshine WebRTC relay not configured (using default wg tunnel URL)");
+    }
+
     // Initialize Firecracker-Net proxy (optional - DASHBOARD_MANAGE gated, routes to firecracker-ctl-net with Gluetun/WireGuard sidecar)
     if transport::proxy::init_firecracker_net_proxy() {
         info!(
@@ -206,15 +260,11 @@ async fn main() -> anyhow::Result<()> {
     }
 
     if transport::proxy::init_chuckrpg_proxy() {
-        info!("ChuckRPG proxy initialized - /dashboard/chuckrpg/proxy enabled");
+        info!(
+            "ChuckRPG proxy initialized - /dashboard/chuckrpg/proxy/{{tenant}} + /api/rows/openapi.json enabled"
+        );
     } else {
-        info!("ChuckRPG proxy not configured (CHUCKRPG_UPSTREAM_URL not set)");
-    }
-
-    if transport::proxy::init_chuckrpg_docs_proxy() {
-        info!("ChuckRPG docs proxy initialized - /api/rows/openapi.json enabled");
-    } else {
-        info!("ChuckRPG docs proxy not configured (CHUCKRPG_DOCS_URL not set)");
+        info!("ChuckRPG proxy not configured (CHUCKRPG_TENANTS not set)");
     }
 
     // Initialize game server (headless Bevy + lightyear + avian3d)

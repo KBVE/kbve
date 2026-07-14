@@ -12,9 +12,86 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: null
-  about: "Sunlight antelope fur is a members-only item in Old School RuneScape. High alchemy value: 6 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hide
+    tier: mid
+  drop_table:
+    sources:
+      - source: Sunlight antelope
+        quantity: "1"
+        rarity: Always
+  recipes:
+    - skill: Crafting
+      level: 65
+      materials:
+        - item_name: Sunlight antelope fur
+          quantity: 1
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
+      output: Large meat pouch
+    - skill: Crafting
+      level: 69
+      materials:
+        - item_name: Sunlight antelope fur
+          quantity: 1
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
+      output: Mixed hide boots
+    - skill: Crafting
+      level: 72
+      materials:
+        - item_name: Sunlight antelope fur
+          quantity: 1
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
+      output: Mixed hide top
+  related_items:
+    - item_name: Moonlight antelope fur
+      slug: moonlight-antelope-fur
+      relationship: variant
+      description: Higher tier antelope fur
+    - item_name: Large meat pouch
+      slug: large-meat-pouch
+      relationship: product
+      description: Crafted product
+    - item_name: Mixed hide boots
+      slug: mixed-hide-boots
+      relationship: product
+      description: Crafted product
+  about: "Sunlight antelope fur is obtained from pitfall trapping Sunlight antelopes in Varlamore at level 72 Hunter. Used in Crafting to make Large meat pouches (65), Mixed hide boots (69), and Mixed hide tops (72)."
+  market_strategy:
+    notes:
+      - No GE buy limit, easy to bulk-flip
+      - Steady demand from Crafting trainers
+      - Supply spikes during Varlamore hunting events
+  trading_tips:
+    - Track GE around DXP and Varlamore promo periods
+    - Pair with moonlight antelope furs for mixed hide combos
+  history:
+    - date: "2024-03-20"
+      description: "Added with the Varlamore: Part One update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: The Hunt for Tecu"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

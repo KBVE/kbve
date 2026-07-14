@@ -24,9 +24,6 @@ namespace RareIcon
         public int Furnaces;
         public int Barracks;
 
-        // Bitmask indexed by ProfessionKind byte value (Lumberjack=2, Miner=3, ...).
-        // LogisticsWarningSystem walks each bit and toasts the matching locale
-        // key on main thread; set-then-cleared each turn.
         public uint RolesAutoFilled;
         public uint RolesUnfillable;
     }
@@ -65,8 +62,6 @@ namespace RareIcon
         {
             uint turn = SystemAPI.GetSingleton<WorldClock>().TurnIndex;
 
-            // Singleton is created lazily — first frame returns after
-            // queueing the create, actual work runs from next frame onward.
             if (!SystemAPI.TryGetSingletonEntity<LogisticsReport>(out var reportEntity))
             {
                 var ecbSeed = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -104,15 +99,9 @@ namespace RareIcon
     [BurstCompile]
     public struct LogisticsCensusJob : IJob
     {
-        // Promote at the same specialty priority BuildingStaffingSystem uses,
-        // so a logistics quota goblin and a building-staffed goblin look the
-        // same to ProfessionDispatchSystem and to the IsPureLooter check (both gate on
-        // specialty roles being zero).
+
         const byte SpecialtyPriority = 5;
 
-        // Tribe-wide quotas — counted as "role at specialty priority", not
-        // "role > 0" (every default goblin has Looter/Lumberjack/Miner/Hunter
-        // baselined, so anything counting "> 0" would always read 100%).
         const int LumberjackQuota = 2;
         const int MinerQuota      = 2;
         const int HunterQuota     = 2;
@@ -133,10 +122,7 @@ namespace RareIcon
 
         public void Execute()
         {
-            // Counts here are SPECIALTY counts — goblins whose role priority
-            // is at SpecialtyPriority. Generalist baseline (priority 1-3) does
-            // not count toward a quota, so quotas measure "dedicated workers"
-            // not "goblins capable of the role".
+
             int lumberjacks = 0, miners = 0, guards = 0, looters = 0;
             int farmers = 0, builders = 0, chefs = 0, hunters = 0, blacksmiths = 0;
 
@@ -178,25 +164,16 @@ namespace RareIcon
             uint autoFilled = 0u;
             uint unfillable = 0u;
 
-            // Tribe-wide raw-material quotas — Lumberjack and Miner first
-            // because the whole craft chain stalls without them.
             FillQuota(ProfessionKind.Lumberjack, ref lumberjacks, LumberjackQuota, pureLooters, ref autoFilled, ref unfillable);
             FillQuota(ProfessionKind.Miner,      ref miners,      MinerQuota,      pureLooters, ref autoFilled, ref unfillable);
             FillQuota(ProfessionKind.Hunter,     ref hunters,     HunterQuota,     pureLooters, ref autoFilled, ref unfillable);
             FillQuota(ProfessionKind.Looter,     ref looters,     LooterQuota,     pureLooters, ref autoFilled, ref unfillable);
 
-            // Building-conditional minima: only stamp Farmer/Chef/Blacksmith/
-            // Guard if the matching building actually exists. Each is gated at
-            // 1 — players can keep promoting via the Citizens UI past that.
             if (farms    > 0) FillQuota(ProfessionKind.Farmer,     ref farmers,     1, pureLooters, ref autoFilled, ref unfillable);
             if (furnaces > 0) FillQuota(ProfessionKind.Chef,       ref chefs,       1, pureLooters, ref autoFilled, ref unfillable);
             if (furnaces > 0) FillQuota(ProfessionKind.Blacksmith, ref blacksmiths, 1, pureLooters, ref autoFilled, ref unfillable);
             if (barracks > 0) FillQuota(ProfessionKind.Guard,      ref guards,      1, pureLooters, ref autoFilled, ref unfillable);
 
-            // Builder keeps pace with open ConstructionSites — one builder per
-            // site, capped to "match siteCount". BuildingStaffingSystem stamps
-            // a specialty Builder when the Capital lands so tribes start with
-            // at least one once construction's in flight.
             if (SiteCount > builders)
             {
                 FillQuota(ProfessionKind.Builder, ref builders, SiteCount, pureLooters, ref autoFilled, ref unfillable);
@@ -223,10 +200,6 @@ namespace RareIcon
             pureLooters.Dispose();
         }
 
-        // Pump generalists into a role until either the pool is exhausted or
-        // the quota is met. Pops one promotion per call iteration so the same
-        // generalist never gets two specialties — once stamped at SpecialtyPriority
-        // they no longer pass IsPureLooter and the next pass skips them.
         void FillQuota(byte roleKind, ref int currentCount, int quota,
                        NativeList<Entity> pool, ref uint autoFilled, ref uint unfillable)
         {
@@ -250,12 +223,6 @@ namespace RareIcon
             if (currentCount < quota) unfillable |= roleBit;
         }
 
-        // "Promotable" = no specialty stamp yet. The default goblin carries
-        // Looter / Lumberjack / Miner / Hunter / Builder at generalist priority
-        // (1-3), so the only filter is "no role is at SpecialtyPriority". Both
-        // BuildingStaffingSystem stamps and earlier LogisticsSystem stamps
-        // bump roles to SpecialtyPriority (5), so this check naturally avoids
-        // poaching anyone who's already been assigned somewhere.
         bool IsPureLooter(in ProfessionPriorities p)
         {
             if (p.Looter == 0) return false;
@@ -271,15 +238,4 @@ namespace RareIcon
         }
     }
 
-    // TODO(toast-drain): LogisticsReport's RolesAutoFilled / RolesUnfillable
-    // bitmasks already carry the data a toast would need — "No Chef was found,
-    // temp Chef assigned" on info, "Chef unassigned — no free Looter" on
-    // warning. The main-thread drain was removed because reading LogisticsReport
-    // on main thread races with LogisticsCensusJob's ComponentLookup write. Once
-    // a shared ToastRequest intent entity + single ToastDrainSystem lands (same
-    // shape as SpawnSoldierRequest / PendingItemTransfer), switch LogisticsCensusJob
-    // over to emitting toast intents via ECB instead of setting the masks, or
-    // keep the masks and have the drain read LogisticsReport via a BurstCompiled
-    // ISystem. Either way keeps the producer Burst and puts the MessagePipe
-    // publish in one place.
 }

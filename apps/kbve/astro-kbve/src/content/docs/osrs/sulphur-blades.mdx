@@ -12,9 +12,82 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 15
-  about: "Sulphur blades is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: weapon
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: slash_weapon
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 55
+    attack_bonus:
+      stab: 0
+      slash: 72
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 64
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Sulphur Nagua
+        quantity: "1"
+        rarity: 1/450
+  related_items:
+    - item_name: Glacial temotli
+      slug: glacial-temotli
+      relationship: alternative
+      description: Crush variant of the multi-hit Varlamore weapon trio
+    - item_name: Earthbound tecpatl
+      slug: earthbound-tecpatl
+      relationship: alternative
+      description: Stab variant of the multi-hit Varlamore weapon trio
+    - item_name: Dragon scimitar
+      slug: dragon-scimitar
+      relationship: alternative
+      description: Conventional slash benchmark
+  about: |-
+    > *"Are these explosive?"*
+
+    Two-handed slash weapon that rolls two independent hits per swing. Requires 55 Attack and drops from Sulphur Nagua at 1/450.
+  market_strategy:
+    notes:
+      - "Supply gated by Sulphur Nagua drop rate"
+      - "Multi-hit mechanic keeps demand among slayer/AFK trainers"
+  trading_tips:
+    - Watch for price dips after each new Varlamore content patch
+  history:
+    - date: "2024-03-20"
+      description: "Added with Varlamore: Part One."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

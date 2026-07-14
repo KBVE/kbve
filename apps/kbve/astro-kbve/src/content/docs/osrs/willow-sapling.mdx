@@ -1,6 +1,6 @@
 ---
 title: Willow sapling | OSRS Price Data
-description: "Willow sapling: This sapling is ready to be replanted in a tree patch.. High alch: 1 GP, GE limit: 200."
+description: "Willow sapling: This sapling is ready to be replanted in a tree patch. Requires 30 Farming. High alch: 1 GP, GE limit: 200."
 osrs:
   id: 5371
   name: Willow sapling
@@ -12,9 +12,67 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Willow sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: sapling
+    tier: mid
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Check-health
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: farming
+      level: 30
+      xp: 25
+      materials:
+        - item_name: Willow seed
+          quantity: 1
+        - item_name: Plant pot (filled)
+          quantity: 1
+      tools:
+        - Gardening trowel
+        - Watering can
+      output_quantity: 1
+  related_items:
+    - item_name: Willow seed
+      slug: willow-seed
+      relationship: component
+      description: Seed planted in a filled plant pot to grow a seedling
+    - item_name: Willow logs
+      slug: willow-logs
+      relationship: product
+      description: Logs harvested from the fully grown tree
+    - item_name: Willow tree seed
+      slug: willow-tree-seed
+      relationship: alternative
+      description: Disambiguation - alternate naming
+  about: |-
+    > _"This sapling is ready to be replanted in a tree patch."_
+
+    Willow sapling is the planted form of a willow seed. Plant in a tree patch (30 Farming) for 25 XP; the tree grows in 240 minutes (4 hours) and grants 1,456.5 XP on full growth. Protect with 1 basket of five apples to skip the disease cycle. Stump yields willow logs when chopped and willow roots when dug up.
+  market_strategy:
+    notes:
+      - "Daily tree-run staple"
+      - "Limited shelf life vs seed flipping"
+      - "Demand spikes during farming bonus weekends"
+  trading_tips:
+    - Buy seeds and convert when sapling margin > seed margin
+    - Stock saplings on bonus XP weekends for resale
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

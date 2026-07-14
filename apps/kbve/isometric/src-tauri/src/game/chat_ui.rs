@@ -151,7 +151,7 @@ fn render_log(
                     line.spawn((
                         Text::new(format!("{}:", entry.sender)),
                         TextFont {
-                            font_size: 11.0,
+                            font_size: bevy::text::FontSize::Px(11.0),
                             ..default()
                         },
                         TextColor(entry.color),
@@ -161,7 +161,7 @@ fn render_log(
                     line.spawn((
                         Text::new(entry.content.clone()),
                         TextFont {
-                            font_size: 11.0,
+                            font_size: bevy::text::FontSize::Px(11.0),
                             ..default()
                         },
                         TextColor(ui_color::TEXT_PRIMARY),

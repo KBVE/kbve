@@ -12,9 +12,90 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 10000
-  about: "Botanical pie is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: "2016-05-26"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: food
+    tier: consumable
+    primary_material: food
+  potion:
+    type: food
+    heals: 14
+    bites: 2
+    description: "Heals 14 Hitpoints across 2 bites and temporarily boosts Herblore by 4 levels."
+  recipes:
+    - item_name: Botanical pie
+      skill: Cooking
+      level: 52
+      xp: 180
+      tools:
+        - Range
+      materials:
+        - item_id: 19660
+          item_name: Uncooked botanical pie
+          slug: uncooked-botanical-pie
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 19660
+      item_name: Uncooked botanical pie
+      slug: uncooked-botanical-pie
+      relationship: component
+      description: Raw pie cooked into the finished item.
+    - item_id: 2313
+      item_name: Pie shell
+      slug: pie-shell
+      relationship: component
+      description: Base shell used in pie crafting.
+    - item_id: 2347
+      item_name: Pie dish
+      slug: pie-dish
+      relationship: component
+      description: Returned after eating both bites.
+    - item_id: 19656
+      item_name: Golovanova fruit top
+      slug: golovanova-fruit-top
+      relationship: component
+      description: Filling added to the pie shell.
+  about: |-
+    Botanical pie heals 14 Hitpoints in 2 bites and boosts Herblore by 4 levels.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Cooking | 52 (180 XP) |
+
+    Crafted using a golovanova fruit top on a pie shell, then cooked on a range.
+
+    Used for:
+    - Herblore boosting potion creation
+    - Reaching higher-tier potions without level
+    - Mid-game training food
+  market_strategy:
+    notes:
+      - "Reliable Herblore boost drives steady demand"
+      - "Tracks uncooked pie + golovanova fruit top costs"
+      - "Used by Ironmen for boosted Herblore potions"
+  trading_tips:
+    - Compare cooked pie price against uncooked pie + Cooking XP value.
+    - Demand spikes around Herblore content updates.
+    - GE buy limit of 10,000 every 4 hours supports bulk flipping.
+  history:
+    - date: "2016-05-26"
+      description: "Released alongside Monkey Madness II."
+    - date: "2016-06-02"
+      description: "Changed to members-only."
+    - date: "2016-09-08"
+      description: "Removed from master clue scroll drops."
+    - date: "2017-09-07"
+      description: "Graphically updated."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

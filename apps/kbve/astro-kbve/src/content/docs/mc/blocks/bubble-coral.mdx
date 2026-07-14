@@ -1,5 +1,6 @@
 ---
 title: Bubble Coral
+template: splash
 description: |
     Minecraft Bubble Coral — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 732
     ref: bubble_coral
     slug: bubble-coral
+    content_rev: 1
     display_name: Bubble Coral
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bubble_coral
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - coral
+        - underwater
+        - non_solid
+    about:
+        description: |
+            Bubble Coral is a plant-like decorative block that must be
+            placed on the top or side of another block while submerged in
+            water. It breaks instantly and, without Silk Touch, drops
+            nothing at all.
+        lore: |
+            Along with the other coral plants, Bubble Coral was added in
+            the Update Aquatic to flesh out Minecraft's ocean biomes.
+    uses:
+        - title: Reef Decoration
+          ref: bubble_coral_fan
+          detail: |
+              Placed decoratively in coral reef builds; bone meal applied
+              to nearby coral blocks can spread new coral plants,
+              including bubble coral, onto adjacent blocks.
+    found_in:
+        - location: Warm ocean coral reef structures
+          detail: Generates naturally growing on top of coral blocks and sand in warm oceans.
+        - location: Bone-mealed coral blocks
+          detail: Can be grown by applying bone meal to a living coral block in warm ocean water.
+    faq:
+        - question: Why did my coral disappear when I broke it?
+          answer: |
+              Coral plants only drop an item when mined with a Silk Touch
+              tool; without it, breaking the block yields nothing.
+        - question: Does Bubble Coral need water to survive?
+          answer: |
+              Yes. At least one adjacent block must be water or
+              waterlogged, or it wilts into Dead Bubble Coral within a
+              few seconds.
+        - question: What tool should I use to mine it?
+          answer: |
+              Any tool works and breaks it instantly — there is no
+              required tool tier, though Silk Touch is needed to keep the
+              living coral as an item.
+        - question: Can I grow more Bubble Coral?
+          answer: |
+              Yes, by applying bone meal to a nearby living coral block or
+              coral plant while it is underwater in a warm ocean biome.
     data_version: "1.21.5"
 ---
 

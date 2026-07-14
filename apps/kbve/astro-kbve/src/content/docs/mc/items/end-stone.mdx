@@ -1,5 +1,6 @@
 ---
 title: End Stone
+template: splash
 description: |
     Minecraft End Stone — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 406
     ref: end_stone
     slug: end-stone
+    content_rev: 1
     display_name: End Stone
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            End Stone is the pale, sand-colored block that makes up the floating islands of the End dimension. It has a hardness of 3 and a blast resistance of 9, requiring a wooden pickaxe or better to mine, and it cannot be destroyed by the ender dragon or picked up by endermen. It is also the only block on which chorus flowers can be planted, making it essential for farming chorus fruit.
+        lore: |
+            Even the developers admitted this fundamental End block was hard to write meaningful lore for, since it exists mostly as inert terrain beneath the dragon's islands.
+    faq:
+        - question: Where can I find End Stone?
+          answer: |
+              End Stone generates only in the End dimension, where it forms the entire body of the floating islands players stand on after entering through an End portal.
+        - question: What tool do I need to mine End Stone?
+          answer: |
+              Any wooden pickaxe or better will mine it. It has a hardness of 3, so a stone or higher-tier pickaxe speeds up mining considerably.
+        - question: What can I craft with End Stone?
+          answer: |
+              End Stone can be crafted into End Stone Bricks (four End Stone makes one brick) or cut into brick variants with a stonecutter for building.
+        - question: Is End Stone renewable?
+          answer: |
+              Yes. Resummoning the ender dragon by placing four End Crystals on the exit portal regenerates a small amount of End Stone beneath it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

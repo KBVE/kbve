@@ -14,7 +14,7 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS ast
 WORKDIR /app
 
 # Copy root dependency and config files (layer-cached separately from source)
-COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
 
 # Install all dependencies (hoisted mode - all go to root node_modules)
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
@@ -23,6 +23,9 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
 # Copy workspace package sources (TypeScript path aliases resolve to these)
 COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
+COPY packages/npm/core/ packages/npm/core/
+COPY packages/npm/rn/ packages/npm/rn/
+COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 
 # Copy generated schemas (content collections may import these)
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
@@ -32,8 +35,11 @@ COPY apps/memes/astro-memes/ apps/memes/astro-memes/
 
 # Build astro site
 WORKDIR /app/apps/memes/astro-memes
-RUN rm -rf .astro && npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-memes-cache,sharing=locked \
+    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    npx astro sync && \
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
+    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets

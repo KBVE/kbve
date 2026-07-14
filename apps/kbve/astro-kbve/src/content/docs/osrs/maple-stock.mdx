@@ -12,9 +12,80 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 10000
-  about: "Maple stock is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: mid
+  recipes:
+    - skill: Fletching
+      level: 54
+      xp: 32
+      tools:
+        - Knife
+      output_quantity: 1
+      materials:
+        - item_name: Maple logs
+          item_id: 1517
+          quantity: 1
+    - skill: Fletching
+      level: 54
+      xp: 64
+      tools: []
+      output_quantity: 1
+      result: Mithril crossbow (u)
+      materials:
+        - item_name: Maple stock
+          item_id: 9448
+          quantity: 1
+        - item_name: Mithril limbs
+          item_id: 9425
+          quantity: 1
+  related_items:
+    - item_id: 9442
+      item_name: Willow stock
+      slug: willow-stock
+      relationship: downgrade
+      description: Lower-tier crossbow stock
+    - item_id: 9450
+      item_name: Yew stock
+      slug: yew-stock
+      relationship: upgrade
+      description: Higher-tier crossbow stock
+    - item_id: 9461
+      item_name: Mithril crossbow (u)
+      slug: mithril-crossbow-u
+      relationship: product
+      description: Unstrung crossbow assembled with mithril limbs
+  about: "Crossbow stock fletched from a single maple log at level 54 Fletching for 32 XP; combined with mithril limbs to begin a mithril crossbow."
+  market_strategy:
+    notes:
+      - Tied to maple log prices and Fletching training demand
+      - Thin margin per unit; volume is the play
+      - Mithril crossbow demand drives downstream pull
+      - Steady but low daily GE volume
+  trading_tips:
+    - Buy maple logs in bulk during peak woodcutting hours
+    - Sell during evening fletching prime time
+    - Bundle with mithril limbs to capture full mithril crossbow margin
+  history:
+    - date: "2006-07-31"
+      description: Maple stock released with the Crossbows fletching expansion.
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

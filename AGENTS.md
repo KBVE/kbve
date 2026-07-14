@@ -114,7 +114,7 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
     git push -u origin atom-<MMDDHHMM>-<description>
     ```
 
-    For authorized users, the PR is auto-approved and squash-merged after lint + test pass.
+    `ci-atom.yml` runs lint + test, then leaves the PR open for a human to review and merge. Atomics do **not** auto-merge — the workflow only auto-creates the PR; merging into `dev` is a manual step.
 
 4. **Cleanup** after merge:
     ```bash
@@ -126,7 +126,7 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
 - **Branch naming:** `atom-<MMDDHHMM>-<description>` — alphanumeric + hyphens only, max 50 chars
 - **Worktree path:** `../kbve-atom-<description>` (adjacent to main repo)
 - **Reserved names:** `atom-main`, `atom-dev`, `atom-master` are blocked
-- **Authorization:** Only users in the `AUTHORIZED_USERS` list in `ci-atom.yml` get auto-merge
+- **Authorization:** Only users in the `AUTHORIZED_USERS` list in `ci-atom.yml` may run the atomic workflow (push `atom-*` branches and get a PR auto-created). It does not grant auto-merge — a human still reviews and merges the PR.
 - **Tests:** `nx affected --target=lint` and `nx affected --target=test` run against `dev` before merge
 - PRs target `dev`, never `main`
 - No co-authoring lines in commits
@@ -173,6 +173,20 @@ Different rule for content collections under `apps/kbve/astro-kbve/src/content/d
     - `npx nx run astro-kbve:sync:questdb`
 - Commit the MDX **and** any artifacts the sync target wrote (JSON / binpb under `astro-kbve/public/data/`, Generated C# under `apps/rareicon/.../Generated/`).
 - ❌ Never hand-edit those generated artifacts. The MDX is the source of truth; the sync target is the only writer.
+
+# Unreal C++ — validate edits with kbve-unreal-check
+
+After editing any C++ file under `packages/unreal/` or `apps/rentearth/unreal-rentearth/Source/`, validate it in seconds instead of running a full UBT build:
+
+```
+cd packages/python/kbve
+uv run kbve-unreal-check <absolute-or-relative-file-path>
+```
+
+- Works on `.cpp` and `.h` (headers are checked through a sibling source file from the same module).
+- Exit 0 = clean, 1 = compile errors (printed as `file:line:col: error: ...`), 2 = file not in the compile database.
+- On exit 2 (new file, or flags drifted), regenerate the database first: `uv run kbve-unreal-clangd` (or `pnpm nx run unreal-rentearth:clangd-db`). Takes ~10 s.
+- The database lives at `apps/rentearth/unreal-rentearth/compile_commands.json` (gitignored) and is pointed to by the committed root `.clangd`, which also powers clangd IDE support.
 
 ---
 

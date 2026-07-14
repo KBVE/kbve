@@ -12,9 +12,91 @@ osrs:
   lowalch: 112
   highalch: 168
   limit: 4
-  about: "Iron plateskirt (g) is a free-to-play item in Old School RuneScape. High alchemy value: 168 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 8.164
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 8.164
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 11
+      slash: 10
+      crush: 10
+      magic: -4
+      ranged: 10
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: "1/1,404"
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Iron platelegs
+      slug: iron-platelegs
+      relationship: alternative
+      description: "Untrimmed male legs variant"
+    - item_name: Iron plateskirt
+      slug: iron-plateskirt
+      relationship: alternative
+      description: "Untrimmed female skirt variant"
+    - item_name: Iron platebody (g)
+      slug: iron-platebody-g
+      relationship: set-piece
+      description: "Matching chest from the gold-trimmed iron set"
+    - item_name: Iron full helm (g)
+      slug: iron-full-helm-g
+      relationship: set-piece
+      description: "Matching helm from the gold-trimmed iron set"
+  about: "Iron plateskirt (g) is a free-to-play gold-trimmed skirt obtained as a rare reward from easy Treasure Trails. It shares stats with the untrimmed iron plateskirt and is valued mostly for cosmetic appeal."
+  market_strategy:
+    notes:
+      - "Drop rate of 1/1,404 from easy clue caskets keeps supply scarce."
+      - "Buy limit of 4 per 4 hours makes bulk flipping impractical."
+      - "Cosmetic demand from fashionscape players drives most volume."
+  trading_tips:
+    - "List as a full gold-trimmed set for higher per-piece markup"
+    - "Easy clue events often flood supply so wait for normalization before bulk listing"
+  history:
+    - date: "2021-04-21"
+      description: "Ranged attack bonus reduced from -7 to -11"
+    - date: "2014-06-12"
+      description: "Released as part of the gold-trimmed armour clue rewards"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

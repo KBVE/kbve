@@ -12,9 +12,53 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of binding is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table (most monsters)
+        quantity: "1"
+        rarity: Rare
+  related_items:
+    - name: "Sigil of specialised strikes"
+      relationship: alternative
+    - name: "Sigil of the porcupine"
+      relationship: alternative
+    - name: "Sigil of fortification"
+      relationship: alternative
+    - name: "Sigil of the ruthless ranger"
+      relationship: alternative
+    - name: "Sigil of the feral fighter"
+      relationship: alternative
+    - name: "Sigil of the menacing mage"
+      relationship: alternative
+  about: "Sigil of binding is a members-only tier 2 combat sigil for Deadman Mode that grants a 75% magic accuracy boost on the next binding spell cast within 12 seconds when activated. Tradeable while un-attuned, then permanently account-bound after attuning."
+  market_strategy:
+    notes:
+      - "Deadman Mode-only utility — demand is concentrated around DM events."
+      - "Becomes permanently account-bound once attuned, removing it from market supply."
+      - "5-minute cooldown on success vs 1-minute on failure rewards higher Magic levels."
+  trading_tips:
+    - "Buy un-attuned sigils before a Deadman Mode tournament announcement."
+    - "Sell off-event when DM demand falls and farming supply persists."
+  history:
+    - date: "2021-08-25"
+      description: "Released with the Deadman: Reborn update as one of the new tier 2 combat sigils."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

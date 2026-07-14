@@ -12,9 +12,64 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Rune trimmed set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Rune
+    tier: mid-high
+  recipes:
+    - materials:
+        - item_name: Rune full helm (t)
+          quantity: 1
+        - item_name: Rune platebody (t)
+          quantity: 1
+        - item_name: Rune platelegs (t)
+          quantity: 1
+        - item_name: Rune kiteshield (t)
+          quantity: 1
+      tools:
+        - Grand Exchange clerk
+      output_quantity: 1
+  related_items:
+    - name: Rune full helm (t)
+      relationship: component
+    - name: Rune platebody (t)
+      relationship: component
+    - name: Rune platelegs (t)
+      relationship: component
+    - name: Rune kiteshield (t)
+      relationship: component
+    - name: Rune gold-trimmed set (lg)
+      relationship: alternative
+    - name: Rune armour set (lg)
+      relationship: alternative
+  about: "Rune trimmed set (lg) is a Grand Exchange-exchangeable bundle of the four trimmed rune legs-variant pieces, used to save bank space."
+  market_strategy:
+    notes:
+      - "Set arbitrage: compare set price vs sum of individual trimmed pieces."
+      - "Tiny buy limit (8 per 4 hours) limits flip volume."
+      - "High alch 48k well below typical GE price — not alchable for profit."
+  trading_tips:
+    - "Use the GE Sets tab to assemble/disassemble sets and capture arbitrage spreads."
+    - "Trimmed sets are cosmetic — demand is driven by collectors, not combat."
+  history:
+    - date: "2015-02-26"
+      description: "Released with The Grand Exchange update as part of the Item Sets interface."
+  properties:
+    release_date: "2015-02-26"
+    update: "The Grand Exchange"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

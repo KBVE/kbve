@@ -1,0 +1,82 @@
+---
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+import NPCDBPanel from './NPCDBPanel.astro';
+import NPCDBDialogue from './NPCDBDialogue.astro';
+import { INpcSchema } from '@/data/schema';
+
+const { data } = Astro.props;
+const npc = INpcSchema.parse(data);
+
+const titleCase = (v: string): string =>
+	String(v ?? '')
+		.replace(/[-_]/g, ' ')
+		.replace(/\b\w/g, (c) => c.toUpperCase());
+
+const family = titleCase(npc.family ?? 'unspecified');
+const rarity = titleCase(npc.rarity ?? 'common');
+const rank = titleCase(String(npc.rank ?? 'normal'));
+const familyKey = npc.family ?? 'unspecified';
+
+const lede =
+	typeof npc.description === 'string'
+		? npc.description.trim().split('\n\n')[0].replace(/\n/g, ' ')
+		: undefined;
+
+const stats: { label: string; value: string; icon: string }[] = [
+	{ label: 'Level', value: String(npc.level ?? 0), icon: 'chart' },
+	{ label: 'Rarity', value: rarity, icon: 'crown' },
+	{ label: 'Rank', value: rank, icon: 'shield' },
+];
+const s = (npc as { stats?: Record<string, number> }).stats;
+if (s && (s.max_hp || s.hp)) {
+	stats.push({
+		label: 'Health',
+		value: String(s.max_hp ?? s.hp),
+		icon: 'activity',
+	});
+}
+
+const role = (npc as { role?: string }).role;
+
+const hero = {
+	badge: `${rarity} · ${family}`,
+	title: `${npc.name}`,
+	accent: role ? String(role) : family,
+	lede,
+	stats,
+	ctas: [
+		{ label: '← All NPCs', href: '/npcdb/' },
+		{ label: `${family} family`, href: `/npcdb/#${familyKey}` },
+	],
+	related: [
+		{
+			href: `/npcdb/#${familyKey}`,
+			title: `More ${family}`,
+			copy: `Browse other ${family.toLowerCase()} NPCs in the database.`,
+			icon: 'network',
+		},
+		{
+			href: '/npcdb/',
+			title: 'NPC Database',
+			copy: 'Back to the full catalog, grouped by creature family.',
+			icon: 'database',
+		},
+		{
+			href: '/api/npcdb.json',
+			title: 'JSON API',
+			copy: 'This catalog as machine-readable JSON, keyed by id, ref, and name.',
+			icon: 'code',
+		},
+	],
+	theme: { accent: '#a855f7', accent2: '#c084fc' },
+};
+---
+
+<BentoDoc data={hero} class="npc-leaf">
+	<BentoProse eyebrow="Profile" heading="Overview">
+		<slot />
+		<NPCDBPanel data={data} />
+		<NPCDBDialogue data={data} />
+	</BentoProse>
+</BentoDoc>

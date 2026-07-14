@@ -1,0 +1,50 @@
+---
+title: World Map
+template: splash
+description: |
+    Top-down overview of the live KBVE Minecraft world. Surveyed plaza
+    lots, editorial points of interest, real-time DB lot overlay, and
+    live player count from RCON.
+tableOfContents: false
+graph:
+    visible: false
+sidebar:
+    label: World Map
+    order: 7
+tags:
+    - minecraft
+    - mc
+    - mc-world
+---
+
+import MCWorldMap from '@/components/mcdb/MCWorldMap.astro';
+import MCWorldMapLive from '@/components/mcdb/MCWorldMapLive';
+import '@/components/mcdb/mc-world-live.css';
+
+A chunk-scale top-down view of `minecraft:overworld`. The static layer
+renders editorial points of interest and the surveyed plaza lot grid
+from MDX; the live layer overlays the current `mc.lot` table contents
+through `/api/v1/mc/lots/viewport` plus the RCON-driven player count.
+
+<MCWorldMap minChunk={-32} maxChunk={32} />
+
+<div class="mcworldlive-skeleton" data-mcworld-live-skeleton>
+	Loading live overlay…
+</div>
+
+<MCWorldMapLive
+	client:only="react"
+	world="minecraft:overworld"
+	minChunk={-32}
+	maxChunk={32}
+/>
+
+## How to read it
+
+- Grid: 1 cell = 1 chunk = 16×16 blocks. Heavier gridlines mark 16-chunk region boundaries.
+- Tinted gray crosshair: world origin (0, 0).
+- Tinted rectangles: editorial sample lots from `/mc/lots/`.
+- Colored circles + labels: points of interest from `/mc/poi/`.
+- Dashed circles: biome / wilderness rings.
+- Rectangles painted on top (when the live layer hydrates): real `mc.lot` rows from the deployed DB. Lots you own render in deep blue.
+- Live badge: total online players across every reachable RCON-bridged server.

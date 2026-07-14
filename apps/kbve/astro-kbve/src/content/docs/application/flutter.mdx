@@ -1,7 +1,15 @@
 ---
 title: Flutter
 description: |
-    Open-source cross platform UI/UX software development kit based upon Dart and created by Google.
+    Flutter is Google's open-source UI toolkit for building natively compiled apps for mobile, web, and desktop
+    from a single Dart codebase. This guide covers installing the SDK, running flutter doctor, the essential CLI
+    cheatsheet, the widget model, and where to find packages on pub.dev.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Flutter
     order: 475
@@ -9,20 +17,120 @@ unsplash: 1628277613967-6abca504d0ac
 img: https://images.unsplash.com/photo-1628277613967-6abca504d0ac?fit=crop&w=1400&h=700&q=75
 tags:
     - dart
+    - mobile
+    - cross-platform
+sem: 1
+ogTitle: Flutter Guide — Install the SDK, CLI Cheatsheet & Widget Basics
+ogDescription: Get started with Flutter, Google's cross-platform UI toolkit — install the SDK, verify with flutter doctor, learn the core CLI commands, and understand the widget-based build model.
+jsonld:
+    type: Article
+    keywords:
+        - flutter
+        - dart
+        - cross-platform
+        - mobile development
+        - flutter widgets
+    faq:
+        - question: What is Flutter?
+          answer: Flutter is Google's open-source UI toolkit for building natively compiled applications for mobile (iOS and Android), web, and desktop from a single Dart codebase. It renders its own widgets, so the UI looks and behaves consistently across platforms.
+        - question: What language does Flutter use?
+          answer: Flutter apps are written in Dart, an object-oriented, strongly typed language by Google. Dart compiles ahead-of-time to native machine code for release builds and just-in-time during development to enable hot reload.
+        - question: What is flutter doctor?
+          answer: flutter doctor is a diagnostic command that checks your environment for everything Flutter needs — the SDK, platform toolchains (Android SDK, Xcode), connected devices, and IDE plugins — and reports what is missing with fix suggestions.
+        - question: What is a widget in Flutter?
+          answer: In Flutter everything on screen is a widget — a lightweight, immutable description of part of the UI. Widgets compose into a tree; StatelessWidget describes UI that never changes, while StatefulWidget rebuilds when its state updates.
+        - question: Where do I find Flutter packages?
+          answer: pub.dev is the official package repository for Dart and Flutter. Add a package with flutter pub add <name>, which updates pubspec.yaml and downloads it, then import it in your Dart code.
+bento:
+    badge: application · dart · mobile
+    title: 'One codebase, every screen,'
+    accent: Flutter.
+    lede: >-
+        Google's open-source UI toolkit compiles a single Dart codebase into
+        natively compiled apps for mobile, web, and desktop — with hot reload
+        showing changes in under a second. This guide covers installing the
+        SDK, verifying with flutter doctor, the essential CLI cheatsheet, the
+        widget model, and finding packages on pub.dev.
+    ctas:
+        - label: Install the SDK
+          href: '#install'
+          primary: true
+        - label: CLI cheatsheet
+          href: '#cheatsheet'
+        - label: Widget model
+          href: '#widgets'
+    aside:
+        icon: code
+        title: Rendered, not wrapped
+        body: >-
+            Instead of wrapping native controls, Flutter ships its own
+            rendering engine and widget set — a single design looks and
+            behaves identically on Android, iOS, the web, and desktop.
+        points:
+            - <strong>SDK</strong> — clone, add to PATH, run flutter doctor.
+            - <strong>CLI</strong> — run, devices, logs, pub add in one cheatsheet.
+            - <strong>Widgets</strong> — Stateless vs Stateful and the build cycle.
+    stats:
+        - { label: Language, value: Dart, icon: code }
+        - { label: Dev loop, value: Hot reload, icon: zap }
+        - { label: Diagnostics, value: flutter doctor, icon: check }
+        - { label: Packages, value: pub.dev, icon: package }
+    features:
+        - title: Install the SDK
+          icon: deploy
+          href: '#install'
+          body: Windows, macOS, and Linux setup — clone the SDK, add it to PATH, and resolve every flutter doctor warning.
+        - title: CLI cheatsheet
+          icon: code
+          href: '#cheatsheet'
+          body: The daily commands — doctor, upgrade, pub get, devices, run, logs, clean, and package management.
+        - title: Widget model
+          icon: box
+          href: '#widgets'
+          body: Everything is a widget — Stateless vs Stateful, the build method, and Flutter's reactive rebuild cycle.
+        - title: Packages on pub.dev
+          icon: package
+          href: '#packages'
+          body: The official Dart and Flutter package repository — add dependencies with flutter pub add.
+    related:
+        - title: Android
+          href: /application/android/
+          copy: The native platform tooling behind Flutter's Android builds.
+          icon: settings
+        - title: iOS
+          href: /application/ios/
+          copy: Xcode and Apple toolchain notes for the other mobile target.
+          icon: package
+        - title: React Native
+          href: /application/rn/
+          copy: The other major cross-platform framework in the KBVE stack.
+          icon: code
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1628277613967-6abca504d0ac?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
+
+Flutter is Google's open-source UI toolkit for building natively compiled apps for mobile, web, and desktop from **one** Dart codebase. Instead of wrapping native controls, Flutter ships its own rendering engine and widget set, so a single design looks and behaves identically on every platform. Its standout developer feature is **hot reload** — code changes appear in the running app in under a second.
+
+This guide gets you productive fast: [install the SDK](#install), verify it with `flutter doctor`, learn the [essential CLI commands](#cheatsheet), understand the [widget model](#widgets), and find [packages](#packages) on pub.dev.
+
+</BentoProse>
+
+<BentoProse id="information" eyebrow="The pitch" heading="Information">
 
 > TLDR; Flutter is an open source cross platform development kit.
 
@@ -31,11 +139,15 @@ Flutter is often used with DART, which is an object-oriented programming languag
 The biggest advantage of flutter is that it can be used to create cross-platform applications.
 So, if you want to build an app that looks stunning and works great on any device, Flutter is the way to go! 😊
 
----
+</BentoProse>
 
-<Adsense />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## Install
+<BentoProse id="install" eyebrow="Get set up" heading="Install">
 
 Installation is broken down into two different aspects, the first aspect is within the core of flutter and the other aspect contains the scopes.
 
@@ -51,9 +163,31 @@ You can install Flutter on Windows by following these steps:
 6. Add Flutter to your path.
 7. Run `flutter doctor` to verify that Flutter has been installed correctly.
 
----
+### macOS / Linux
 
-## Cheatsheet
+On macOS and Linux the fastest route is to clone the SDK and add it to your `PATH`:
+
+```bash
+git clone https://github.com/flutter/flutter.git -b stable ~/flutter
+export PATH="$PATH:$HOME/flutter/bin"
+flutter doctor
+```
+
+`flutter doctor` inspects your toolchain and lists anything missing — Android SDK, Xcode, or IDE plugins — with a checkmark or an `✗` plus a fix hint. Resolve every `✗` before building.
+
+### Create and Run Your First App
+
+```bash
+flutter create my_app
+cd my_app
+flutter run
+```
+
+`flutter create` scaffolds a counter demo app. `flutter run` builds it and launches on a connected device or emulator — then edit `lib/main.dart` and save to see hot reload in action.
+
+</BentoProse>
+
+<BentoProse id="cheatsheet" eyebrow="Daily drivers" heading="Cheatsheet">
 
 -   Healthcheck
     -   `flutter doctor`
@@ -79,8 +213,43 @@ You can install Flutter on Windows by following these steps:
 -   Package add / install
     -   `flutter pub add {$package}`
 
----
+</BentoProse>
 
-## Packages
+<BentoProse id="widgets" eyebrow="Everything is one" heading="Widgets">
 
-[Pub.dev](https://pub.dev) is the official package repository for Dart / Flutter apps!
+In Flutter, **everything is a widget** — text, padding, buttons, and even the app itself. A widget is an immutable description of part of the UI; Flutter composes them into a tree and renders it. There are two core kinds:
+
+- **StatelessWidget** — describes UI that never changes on its own (a label, an icon).
+- **StatefulWidget** — holds mutable state and rebuilds when that state changes (a counter, a form).
+
+```dart
+import 'package:flutter/material.dart';
+
+void main() => runApp(const MyApp());
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(title: const Text('Hello Flutter')),
+        body: const Center(child: Text('Welcome to KBVE')),
+      ),
+    );
+  }
+}
+```
+
+The `build` method returns a widget tree. When state changes, Flutter calls `build` again and efficiently updates only what differs — the foundation of its reactive UI model.
+
+</BentoProse>
+
+<BentoProse id="packages" eyebrow="pub.dev" heading="Packages">
+
+[Pub.dev](https://pub.dev) is the official package repository for Dart / Flutter apps! Add one with `flutter pub add <package>`, which records it in `pubspec.yaml` and downloads it, then `import` it in your Dart code.
+
+</BentoProse>
+
+</BentoDoc>

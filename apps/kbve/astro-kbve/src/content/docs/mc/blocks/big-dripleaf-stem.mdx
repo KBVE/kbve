@@ -1,5 +1,6 @@
 ---
 title: Big Dripleaf Stem
+template: splash
 description: |
     Minecraft Big Dripleaf Stem — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1054
     ref: big_dripleaf_stem
     slug: big-dripleaf-stem
+    content_rev: 1
     display_name: Big Dripleaf Stem
     material: plant
     hardness: 0.1
@@ -24,10 +26,44 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Big Dripleaf Stem forms the stalk beneath a Big Dripleaf
+            leaf, growing one segment at a time when bone meal is applied to
+            the plant above it.
+        lore: |
+            Introduced alongside lush caves in the Caves & Cliffs update
+            (1.17), the stem lets big dripleaves reach up to five blocks
+            tall.
+    found_in:
+        - location: Lush Caves
+          detail: Generates naturally beneath big dripleaf leaves in lush caves.
+        - location: Player-grown
+          detail: |
+              Applying bone meal to a small dripleaf or an existing big
+              dripleaf adds stem segments and grows the plant taller.
+    faq:
+        - question: What tool do I need to mine a Big Dripleaf Stem?
+          answer: |
+              None required — it breaks instantly with any tool or by hand.
+        - question: Does breaking the stem drop anything?
+          answer: |
+              No. Breaking any part of a big dripleaf plant collapses the
+              whole structure and it drops nothing on its own.
+        - question: Can I place a Big Dripleaf Stem directly?
+          answer: |
+              No, it can only appear by growing a Big Dripleaf with bone
+              meal; it cannot be obtained or placed as an item.
+        - question: What is the stem used for?
+          answer: |
+              It only extends the height of the plant so the leaf above can
+              be used as a temporary, tilting platform.
     data_version: "1.21.5"
 ---
 

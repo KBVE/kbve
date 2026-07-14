@@ -1,5 +1,9 @@
 ---
 title: 'Pirate Ship'
+template: splash
+sidebar:
+    label: 'Pirate Ship'
+    hidden: true
 description: |
     Hostile coastal raider. PirateCove-spawned via PirateCoveRaidSystem; water-locked, arrow attack, slightly weaker than the player Galley but spawned in waves. The ocean sister to the Bandit raid line.
 ref: 'pirate-ship'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'hostile'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Hostile coastal raider. PirateCove-spawned, water-locked arrow attack, sister to Bandit raids.
+
+</NpcLeaf>

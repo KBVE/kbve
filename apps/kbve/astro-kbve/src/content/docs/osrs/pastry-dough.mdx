@@ -1,6 +1,6 @@
 ---
 title: Pastry dough | OSRS Price Data
-description: "Pastry dough: Potentially pastry.. High alch: 1 GP, GE limit: 13,000."
+description: "Pastry dough: Potentially pastry. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 1953
   name: Pastry dough
@@ -12,9 +12,60 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Pastry dough is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food-ingredient
+    tier: low
+  properties:
+    release_date: "2001-03-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.17
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Pot of flour
+          quantity: 1
+        - item_name: Bucket of water
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Pot of flour
+      slug: pot-of-flour
+      relationship: component
+      description: Combine with water to produce pastry dough.
+    - item_name: Pie dish
+      slug: pie-dish
+      relationship: component
+      description: Pastry dough is used on a pie dish to make pie shells.
+    - item_name: Pie shell
+      slug: pie-shell
+      relationship: product
+      description: Created by using pastry dough on a pie dish.
+  about: "Pastry dough is a free-to-play cooking ingredient made by combining a pot of flour with a bucket, bowl, or jug of water. It is the first step toward any pie in OSRS and feeds into the pie-shell pipeline used by cooks of every level."
+  market_strategy:
+    notes:
+      - "Margin is razor-thin; only viable in bulk volume."
+      - "Demand is steady from cooks making pies for higher-level skilling food."
+      - "Buy limit of 13,000 supports large-volume flips."
+  trading_tips:
+    - Stack with pot of flour flips for higher hourly profit.
+    - Avoid alching - pastry dough is not high-alchable.
+  history:
+    - date: "2001-03-17"
+      description: "Released alongside the introduction of pies in early RuneScape."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

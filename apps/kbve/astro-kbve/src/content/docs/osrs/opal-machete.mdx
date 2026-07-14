@@ -12,9 +12,98 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 15
-  about: "Opal machete is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: machete
+    tier: mid
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: slash_sword
+    attack_speed: 4
+    weight: 1.36
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 8
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Trading sticks
+          quantity: 300
+        - item_name: Opal
+          quantity: 3
+        - item_name: Gout tuber
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      price: 600
+      currency: Trading sticks
+      stock: 2
+  drop_table:
+    sources:
+      - source: Ninja impling jar
+        quantity: "1"
+        rarity: 1/198
+  related_items:
+    - item_name: Machete
+      slug: machete
+      relationship: downgrade
+      description: "Baseline non-gem machete with weaker stats"
+    - item_name: Jade machete
+      slug: jade-machete
+      relationship: upgrade
+      description: "Next gem-machete tier above opal"
+    - item_name: Red topaz machete
+      slug: red-topaz-machete
+      relationship: upgrade
+      description: "Highest tier gem-tipped machete"
+  about: "Opal machete is the entry-level gem machete used in the Tai Bwo Wannai Cleanup minigame. It is bought from Gabooty for 600 trading sticks (500 with Karamja gloves), crafted by Safta Doc, or looted from ninja implings. It doubles as a low-level slash weapon with +8 slash attack and +4 strength."
+  market_strategy:
+    notes:
+      - "Demand is tied to Tai Bwo Wannai Cleanup activity and ninja impling hunters."
+      - "Buy limit of 15 per 4 hours keeps GE flips small."
+  trading_tips:
+    - "Stock up when Karamja Diary clue routes spike and machetes get consumed quickly."
+    - "Compare GE price to the 600-stick shop floor before flipping in bulk."
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Cleanup minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

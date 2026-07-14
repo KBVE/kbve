@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: metrics-deployment
+    namespace: kbve
+    labels:
+        app: metrics
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
+        secret.reloader.stakater.com/reload: clickhouse-credentials,supabase-shared
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: metrics
+    template:
+        metadata:
+            annotations:
+                rollout-restart: '2026-06-20T00:00:00Z'
+                prometheus.io/scrape: 'true'
+                prometheus.io/port: '9090'
+                prometheus.io/path: /metrics
+            labels:
+                app: metrics
+                version: 0.1.0
+        spec:
+            serviceAccountName: metrics-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: metrics
+                  image: ghcr.io/kbve/metrics:0.1.5
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 5500
+                        protocol: TCP
+                      - name: metrics
+                        containerPort: 9090
+                        protocol: TCP
+                  env:
+                      - name: APP_VERSION
+                        value: '0.1.5'
+                      - name: METRICS_PROMETHEUS_PORT
+                        value: '9090'
+                      - name: HTTP_HOST
+                        value: 0.0.0.0
+                      - name: HTTP_PORT
+                        value: '5500'
+                      - name: RUST_LOG
+                        value: met=info,tower_http=warn
+                      - name: CLICKHOUSE_DATABASE
+                        value: telemetry
+                      - name: METRICS_ERRORS_TABLE
+                        value: errors_distributed
+                      - name: METRICS_ALLOWED_ORIGINS
+                        value: https://kbve.com,https://www.kbve.com,https://jobs.kbve.com,https://arpg.kbve.com,https://*.discordsays.com
+                      - name: METRICS_RATE_LIMIT_PER_MIN
+                        value: '120'
+                      - name: CLICKHOUSE_ENDPOINT
+                        value: http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123
+                      - name: CLICKHOUSE_USERNAME
+                        value: kbve_ingest
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: password
+                      - name: SUPABASE_URL
+                        value: http://kong.kilobase.svc.cluster.local:8000
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: jwt-secret
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: 5500
+                      initialDelaySeconds: 5
+                      periodSeconds: 15
+                      timeoutSeconds: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /readiness
+                          port: 5500
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                  resources:
+                      requests:
+                          memory: 64Mi
+                          cpu: 50m
+                      limits:
+                          memory: 256Mi
+                          cpu: 500m
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 32Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: metrics-service
+    namespace: kbve
+    labels:
+        app: metrics
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        app: metrics
+    ports:
+        - port: 5500
+          targetPort: 5500
+          protocol: TCP

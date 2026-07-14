@@ -1,5 +1,6 @@
 ---
 title: White Terracotta
+template: splash
 description: |
     Minecraft White Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 452
     ref: white_terracotta
     slug: white-terracotta
+    content_rev: 1
     display_name: White Terracotta
     material: stone
     hardness: 1.25
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - not_flammable
+        - overworld
+    about:
+        description: |
+            White Terracotta is a dyed variant of terracotta, a hardened
+            clay block. It keeps its color permanently, does not burn,
+            and is often used for stripes, patterns, and desert-themed
+            builds because of its earthy, matte finish.
+        lore: |
+            The block was originally called "stained clay" in early
+            1.8 snapshots before being renamed to terracotta.
+    uses:
+        - title: White Glazed Terracotta
+          ref: white_glazed_terracotta
+          detail: |
+              Smelting White Terracotta in a furnace with any fuel
+              produces White Glazed Terracotta, a glossy patterned
+              variant used for banner-style designs.
+    found_in:
+        - location: Crafting Table
+          detail: Craft from four plain Terracotta blocks plus one white dye to get four blocks.
+        - location: Badlands, Villages, and Desert Pyramids
+          detail: Generates naturally as terrain and building material in badlands biomes, and appears in desert pyramids and some village houses.
+        - location: Mason Villager Trades
+          detail: Expert-level mason villagers sell stained terracotta for emeralds.
+    faq:
+        - question: What tool do I need to mine White Terracotta?
+          answer: |
+              Any pickaxe works, even a wooden one — it always drops the
+              block itself when mined with a pickaxe.
+        - question: Does White Terracotta burn?
+          answer: |
+              No, unlike wool or wood, terracotta is not flammable.
+        - question: What can I make from White Terracotta?
+          answer: |
+              Smelting it in a furnace produces White Glazed Terracotta,
+              a glossy patterned block popular for banner-style pixel art.
+        - question: Where does it generate naturally?
+          answer: |
+              Colored terracotta forms broad striped layers in badlands
+              biomes, and also appears in desert pyramids and some
+              villages.
     data_version: "1.21.5"
 ---
 

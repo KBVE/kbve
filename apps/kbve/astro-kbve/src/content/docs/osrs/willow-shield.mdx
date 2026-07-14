@@ -12,9 +12,94 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 18000
-  about: "Willow shield is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2018-02-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 3.175
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 6
+      slash: 7
+      crush: 5
+      magic: 2
+      ranged: 6
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 42
+      xp: 83
+      materials:
+        - item_name: Willow logs
+          quantity: 2
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Willow logs
+      slug: willow-logs
+      relationship: component
+      description: Required material for fletching the shield
+    - item_name: Snakeskin shield
+      slug: snakeskin-shield
+      relationship: upgrade
+      description: Crafted from willow shield at Crafting 56
+    - item_name: Oak shield
+      slug: oak-shield
+      relationship: downgrade
+      description: Lower-tier wooden shield
+    - item_name: Maple shield
+      slug: maple-shield
+      relationship: upgrade
+      description: Higher-tier wooden shield
+  about: |-
+    The willow shield is a mid-tier wooden shield introduced with the wooden shield expansion in 2018. Fletched from 2 willow logs at level 42 Fletching, it requires 30 Defence to equip and serves as a component for the snakeskin shield at Crafting 56. While stats are modest, it remains a popular leveling option for low-defence pures and skillers.
+  market_strategy:
+    notes:
+      - "Low-margin item with high volume and 18k buy limit"
+      - "Demand driven by Fletching trainers and snakeskin shield crafters"
+      - "Price often hovers near or below low alch value"
+      - "Watch for Fletching XP event spikes"
+      - "Consider it as raw stock for snakeskin upgrade flips"
+  trading_tips:
+    - Buy at low alch as a price floor for safe holds
+    - Bulk flip into snakeskin shield demand cycles
+    - Avoid overpaying above 80 percent of high alch
+  history:
+    - date: "2018-02-01"
+      description: "Added with the wooden shields expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

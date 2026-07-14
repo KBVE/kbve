@@ -1,0 +1,99 @@
+---
+title: KBVETinyBVH — Unreal TinyBVH Ray Tracing Plugin
+description: KBVETinyBVH is an Unreal Engine wrapper for TinyBVH 1.6.7, the single-header BVH construction and traversal library for ray tracing, as a runtime plugin.
+sem: 1
+sidebar:
+    label: KBVETinyBVH
+    order: 84
+tags:
+    - unreal
+    - raytracing
+key: ue_kbvetinybvh
+pipeline: unreal
+plugin_name: KBVETinyBVH
+plugin_path: packages/unreal/KBVETinyBVH
+version: "1.6.7"
+source_path: packages/unreal/KBVETinyBVH
+version_toml: packages/unreal/KBVETinyBVH/version.toml
+author: h0lybyte
+license: KBVE
+status: active
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVETinyBVH plugin?
+          answer: KBVETinyBVH is an Unreal Engine wrapper for TinyBVH 1.6.7, a single-header BVH (bounding volume hierarchy) construction and traversal library used for ray tracing. It ships as a runtime third-party plugin.
+        - question: What version of TinyBVH does it wrap?
+          answer: The plugin wraps TinyBVH 1.6.7, matching the plugin VersionName, and bundles the tiny_bvh.h single-header library along with OpenCL and compute traversal kernels.
+        - question: Which Unreal versions and platforms are supported?
+          answer: KBVETinyBVH targets Unreal Engine 5.4 and newer and builds for Win64, Linux, and Mac. It is a runtime module and is not enabled by default.
+bento:
+    badge: unreal · raytracing
+    title: Ray-tracing BVH for
+    accent: KBVETinyBVH
+    lede: >-
+        An Unreal Engine wrapper for TinyBVH 1.6.7 — a single-header BVH
+        (bounding volume hierarchy) construction and traversal library for ray
+        tracing. It packages the upstream tiny_bvh.h header plus OpenCL and
+        compute traversal kernels as a runtime third-party plugin.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVETinyBVH
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: render
+        title: Traversal kernels bundled
+        body: >-
+            Ships OpenCL (<code>.cl</code>) and compute (<code>.comp</code>)
+            traversal kernels for BVH2, BVH4, CWBVH, TLAS, and wavefront paths.
+            Categorized as a Third Party plugin, <strong>not</strong> enabled by
+            default.
+        points:
+            - <strong>Upstream</strong> — jbikker/tinybvh, single-header.
+            - <strong>Platforms</strong> — Win64, Linux, Mac.
+    stats:
+        - { label: TinyBVH, value: "1.6.7", icon: render }
+        - { label: Min engine, value: UE 5.4, icon: box }
+        - { label: Platforms, value: Win · Linux · Mac, icon: gears }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Single-header BVH
+          icon: render
+          body: Wraps the upstream <code>tiny_bvh.h</code> library for compact BVH construction and traversal.
+        - title: Ray-tracing ready
+          icon: eye
+          body: Bundles OpenCL (<code>.cl</code>) and compute (<code>.comp</code>) traversal kernels for BVH2, BVH4, CWBVH, TLAS, and wavefront paths.
+        - title: Runtime third-party module
+          icon: gears
+          body: Categorized as a Third Party plugin, loaded at the Default phase and not enabled by default.
+        - title: Cross-platform
+          icon: expand
+          body: Builds for Win64, Linux, and Mac on Unreal Engine 5.4 and newer.
+    related:
+        - title: KBVEMapDB
+          href: /project/kbvemapdb/
+          copy: Sibling Unreal plugin from the KBVE package group.
+          icon: map
+        - title: Unreal Chuck Dev
+          href: /project/unreal-chuck-dev/
+          copy: UE5 game client that consumes KBVE Unreal plugins.
+          icon: box
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

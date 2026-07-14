@@ -1,5 +1,6 @@
 ---
 title: Cartography Table
+template: splash
 description: |
     Minecraft Cartography Table — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 809
     ref: cartography_table
     slug: cartography-table
+    content_rev: 1
     display_name: Cartography Table
     material: wood
     hardness: 2.5
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cartography_table
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Cartography Table is a wooden utility block used to zoom out,
+            copy, and lock maps. It also serves as the job site block for
+            cartographer villagers.
+        lore: |
+            Added alongside the villager trading overhaul, it gave
+            cartographers a dedicated workstation and gave players a
+            faster way to manage explorer maps.
+    uses:
+        - title: Map Zooming
+          ref: map
+          detail: |
+              Place a map on the table to zoom it out one level, revealing
+              a wider area at lower detail.
+        - title: Map Cloning
+          ref: map
+          detail: |
+              Combine a map with an empty map to create a duplicate that
+              can be carried by a second player.
+        - title: Map Locking
+          ref: glass_pane
+          detail: |
+              Combine a map with a glass pane to lock it, preventing
+              further zooming or alteration.
+    found_in:
+        - location: Village Cartographer Houses
+          detail: Generates as furniture inside cartographer villager houses.
+        - location: Trail Ruins
+          detail: Can be found embedded within trail ruins structures.
+    faq:
+        - question: What tool mines a cartography table fastest?
+          answer: |
+              An axe. It can still be broken by hand or any tool, just
+              more slowly.
+        - question: What do I need to craft a cartography table?
+          answer: |
+              Four paper and four planks of any wood type.
+        - question: Can I use it as furnace fuel?
+          answer: |
+              Yes, a cartography table can be burned as fuel, smelting
+              about 1.5 items.
+        - question: What villager uses this as a job site?
+          answer: |
+              Cartographer villagers claim a nearby cartography table as
+              their workstation for trading map-related goods.
     data_version: "1.21.5"
 ---
 

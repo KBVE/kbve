@@ -1,6 +1,6 @@
 ---
 title: Circular hide | OSRS Price Data
-description: "Circular hide: A toughened chunk of dagannoth hide.. High alch: 36 GP, GE limit: 11,000."
+description: "Circular hide: A toughened chunk of dagannoth hide. High alch: 36 GP, GE limit: 11,000."
 osrs:
   id: 6169
   name: Circular hide
@@ -12,9 +12,65 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 11000
-  about: "Circular hide is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hide
+    tier: mid
+  drop_table:
+    sources:
+      - source: Dagannoth (level 88, Ranged)
+        quantity: "1"
+        rarity: 2/128
+  recipes:
+    - materials:
+        - item_name: Circular hide
+          quantity: 1
+        - item_name: Dagannoth hide
+          quantity: 1
+        - item_name: Coins
+          quantity: 5000
+      tools:
+        - Coins
+      skill: Crafting
+      output_item: Spined helm
+      output_quantity: 1
+      notes: Requires The Fremennik Trials; exchanged with Sigli the Huntsman in Rellekka.
+  related_items:
+    - item_name: Dagannoth hide
+      slug: dagannoth-hide
+      relationship: component
+      description: Pairs with circular hide to craft spined helm.
+    - item_name: Spined helm
+      slug: spined-helm
+      relationship: product
+      description: Crafted from circular hide and dagannoth hide.
+  about: "Circular hide is a members-only dagannoth-hide variant dropped by Ranged Dagannoths in the Waterbirth Island Dungeon, used to craft the spined helm with Sigli the Huntsman."
+  market_strategy:
+    notes:
+      - Supply is gated by Waterbirth Dagannoth slayer trips.
+      - Demand spikes when players push Fremennik tasks or spined sets.
+      - Can be exchanged with Askeladden for cooked tuna or lobster.
+  trading_tips:
+    - Buy from Dagannoth farmers; flip to spined helm crafters.
+    - Margin widens during Slayer events targeting Dagannoths.
+  history:
+    - date: "2005-08-01"
+      description: Added to the game with the Waterbirth Island update.
+  properties:
+    release_date: "2005-08-01"
+    update: Waterbirth Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

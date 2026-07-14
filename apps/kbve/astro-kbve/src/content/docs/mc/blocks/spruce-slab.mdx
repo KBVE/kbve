@@ -1,5 +1,6 @@
 ---
 title: Spruce Slab
+template: splash
 description: |
     Minecraft Spruce Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 568
     ref: spruce_slab
     slug: spruce-slab
+    content_rev: 1
     display_name: Spruce Slab
     material: wood
     hardness: 2
@@ -24,10 +26,57 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            A Spruce Slab is a half-height block cut from spruce planks,
+            used to build stairs, roofs, and decorative half-walls. Two
+            slabs stacked together form a full block again.
+        lore: |
+            Slabs give builders finer vertical control than full blocks,
+            letting them match half-step heights and thin overhangs.
+    uses:
+        - title: Building & Decoration
+          ref: spruce_planks
+          detail: |
+              Used for compact roofing, half-height flooring, and
+              furniture-style detailing; also a component in crafting
+              Chiseled Bookshelves and Composters when mixed with other
+              wood items.
+    found_in:
+        - location: Crafting table
+          detail: Three matching spruce planks craft six spruce slabs.
+        - location: Villages, mansions, shipwrecks, and trial chambers
+          detail: Generates naturally as flooring, stairs, or decorative trim in wood-themed structures.
+    faq:
+        - question: What tool mines a Spruce Slab fastest?
+          answer: |
+              An axe. Any tool, or bare hands, still breaks it and drops
+              the slab.
+        - question: Is Spruce Slab flammable?
+          answer: |
+              Yes, it burns and can catch fire from nearby lava or flames
+              like other spruce wood blocks.
+        - question: How many slabs make a full block?
+          answer: |
+              Two spruce slabs placed in the same space combine into one
+              full spruce block visually, though they remain a double slab
+              rather than a Spruce Planks block.
+        - question: Can Spruce Slabs be waterlogged?
+          answer: |
+              Yes, placing a slab in water lets it hold the water source
+              without draining it.
     data_version: "1.21.5"
 ---
 

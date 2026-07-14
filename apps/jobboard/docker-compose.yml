@@ -1,0 +1,111 @@
+# Local jobboard stack: production-replica Postgres (kilobase) + dbmate
+# migrations + the Axum binary that serves the embedded SPA.
+#
+#   docker compose -f apps/jobboard/docker-compose.yml up --build
+#   open http://localhost:5400
+#   docker compose -f apps/jobboard/docker-compose.yml down -v   # wipe
+#
+# Flow: postgres (healthy) -> migrate (dbmate up, runs ALL migrations) ->
+# seed (verticals) -> jobboard. Each gate is depends_on completed_successfully.
+# Postgres mounts the repo's dbmate init/ scripts so the Supabase role
+# structure (supabase_admin, anon, authenticated, ...) exists before the
+# migrations run; dbmate auto-creates its own schema_migrations schema.
+#
+# NOTE: jobboard identity = Supabase JWT (auth.users). /api/verticals + the
+# SPA need no auth; /api/auth/me needs a bearer token signed with
+# SUPABASE_JWT_SECRET below.
+
+services:
+    postgres:
+        image: ghcr.io/kbve/postgres:17.4.1.069-kilobase
+        platform: linux/amd64
+        # supabase/postgres' bundled migrate.sh logs in as supabase_admin and
+        # creates the real auth.*/storage.*/extensions/pgsodium/vault at initdb.
+        # Mount KBVE init scripts INDIVIDUALLY with a zz_ prefix so they sort
+        # AFTER that — never bind ./init over the whole initdb.d (masks the
+        # image's own setup -> no auth schema).
+        environment:
+            POSTGRES_USER: supabase_admin
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: supabase
+        ports:
+            - '54322:5432'
+        volumes:
+            - ../../packages/data/sql/dbmate/init/00-roles.sql:/docker-entrypoint-initdb.d/zz_00-roles.sql:ro
+            - ../../packages/data/sql/dbmate/init/01-supabase-runtime-stubs.sql:/docker-entrypoint-initdb.d/zz_01-supabase-runtime-stubs.sql:ro
+            - ../../packages/data/sql/dbmate/init/03-n8n-stub.sql:/docker-entrypoint-initdb.d/zz_03-n8n-stub.sql:ro
+            - ../../packages/data/sql/dbmate/init/04-profile-stub.sql:/docker-entrypoint-initdb.d/zz_04-profile-stub.sql:ro
+            - pgdata:/var/lib/postgresql/data
+        # pg_isready alone passes against supabase's temporary socket-only
+        # init server, so migrate would connect over TCP before the real
+        # server is up. Gate on TCP reachability AND the auth schema existing
+        # (only true once migrate.sh's bundled init has finished).
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'pg_isready -h 127.0.0.1 -U postgres -d supabase && PGPASSWORD=postgres psql -h 127.0.0.1 -U supabase_admin -d supabase -tAc "select 1 from pg_namespace where nspname=''auth''" | grep -q 1',
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 40
+            start_period: 30s
+
+    migrate:
+        image: ghcr.io/amacneil/dbmate:2
+        command:
+            ['--no-dump-schema', '--migrations-dir', '/db/migrations', 'up']
+        environment:
+            DATABASE_URL: postgres://supabase_admin:postgres@postgres:5432/supabase?sslmode=disable&search_path=dbmate,public
+        volumes:
+            - ../../packages/data/sql/dbmate:/db:ro
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+    seed:
+        image: ghcr.io/kbve/postgres:17.4.1.069-kilobase
+        platform: linux/amd64
+        entrypoint:
+            [
+                'psql',
+                'postgres://supabase_admin:postgres@postgres:5432/supabase',
+                '-v',
+                'ON_ERROR_STOP=1',
+                '-f',
+                '/seed.sql',
+            ]
+        volumes:
+            - ./docker/seed.sql:/seed.sql:ro
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+
+    jobboard:
+        build:
+            context: ../..
+            dockerfile: apps/jobboard/Dockerfile
+        environment:
+            # Single source of truth for the reported version (matches prod, where
+            # the k8s deployment's APP_VERSION is atom-PR-synced from the MDX bump).
+            # The jobboard:dev nx target exports this from version.toml; empty here
+            # falls back to the compiled CARGO_PKG_VERSION.
+            APP_VERSION: ${APP_VERSION:-}
+            HTTP_HOST: 0.0.0.0
+            HTTP_PORT: '5400'
+            RUST_LOG: jobboard=info,tower_http=info
+            KBVE_PG_RW_URL: postgres://supabase_admin:postgres@postgres:5432/supabase?sslmode=disable
+            # dev: resolve auth against live Supabase GoTrue (/auth/v1/user),
+            # LRU-cached — no local JWT secret needed. anon key = Kong apikey.
+            # prod sets AUTH_MODE=local + SUPABASE_JWT_SECRET for offline HS256.
+            AUTH_MODE: remote
+            SUPABASE_URL: https://supabase.kbve.com
+            SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg
+        ports:
+            - '5400:5400'
+        depends_on:
+            seed:
+                condition: service_completed_successfully
+
+volumes:
+    pgdata:

@@ -12,13 +12,68 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 40
-  related_items: []
-  about: |-
-    > _"A fairly small spade."_
-
-    The spade is a versatile tool used for digging in Farming, completing treasure trails, and various quests. Essential for planting seeds and digging up crops. Also used to dig at specific locations in clue scrolls.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2001-01-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Dig
+      - Drop
+    worn_options: []
+    alchable: true
+  shops:
+    - shop_name: Sarah's Farming Shop
+      location: Catherby
+      price: 3
+      currency: Coins
+      stock: 5
+    - shop_name: Head Farmer Jones' Farming Shop
+      location: Falador
+      price: 3
+      currency: Coins
+      stock: 5
+    - shop_name: Alice's Farming Shop
+      location: East Ardougne
+      price: 3
+      currency: Coins
+      stock: 5
+    - shop_name: Lumbridge General Store
+      location: Lumbridge
+      price: 3
+      currency: Coins
+      stock: 5
+    - shop_name: Varrock General Store
+      location: Varrock
+      price: 3
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Gardening trowel
+      slug: gardening-trowel
+      relationship: alternative
+      description: Farming tool for picking herbs
+    - item_name: Rake
+      slug: rake
+      relationship: alternative
+      description: Farming tool for clearing weeds
+    - item_name: Seed dibber
+      slug: seed-dibber
+      relationship: alternative
+      description: Farming tool for planting seeds
+  about: "The spade is a versatile tool used for digging in Farming, completing Treasure Trail clues, accessing Barrows crypts, and various quests including Pirate's Treasure, X Marks the Spot, and Ernest the Chicken. It is widely stocked at farming shops, general stores and player-owned house tool stores at very low prices, and can also spawn at fixed scenery locations across Gielinor."
+  history:
+    - date: "2001-01-21"
+      description: Added to the game.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

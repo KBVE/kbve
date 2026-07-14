@@ -5,7 +5,7 @@ osrs:
   id: 10414
   name: Green elegant legs
   slug: green-elegant-legs
-  examine: A rather elegant pair of men's green pantaloons.
+  examine: "A rather elegant pair of men's green pantaloons."
   members: true
   icon: Green elegant legs.png
   value: 2000
@@ -14,19 +14,73 @@ osrs:
   limit: 4
   equipment:
     slot: legs
+    weight: 1
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: "1/2808"
   related_items:
-    - item_id: 10412
-      item_name: Green elegant shirt
-      slug: green-elegant-shirt
+    - item_name: Green elegant shirt
       relationship: set-piece
-      description: Matching elegant shirt
-  about: |-
-    > *"A rather elegant pair of men's green pantaloons."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the green elegant clothing set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching elegant shirt for male characters.
+    - item_name: Green elegant blouse
+      relationship: alternative
+      description: Female equivalent top piece.
+    - item_name: Green elegant skirt
+      relationship: alternative
+      description: Female legs equivalent.
+  about: "Green elegant legs is a purely cosmetic Easy Treasure Trail reward, dropped from reward caskets at a 1/2,808 rate and part of the green elegant clothing set."
+  market_strategy:
+    notes:
+      - Tiny buy limit of 4 per 4 hours suits long-term flipping only
+      - Demand driven by cosmetic costume room collectors
+      - Supply tied to Easy Treasure Trail completions
+  history:
+    - date: "2006-12-05"
+      description: Released with the Treasure Trails, spiders and sheep update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: Treasure Trails, spiders and sheep
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

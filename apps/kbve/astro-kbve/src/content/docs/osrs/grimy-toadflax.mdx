@@ -12,68 +12,77 @@ osrs:
   lowalch: 7
   highalch: 11
   limit: 13000
-  herb:
-    type: grimy
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: grimy herb
     tier: mid
-  herblore:
-    cleaning_level: 30
-    cleaning_xp: 8
-    clean_id: 2998
-    clean_name: Toadflax
-  farming:
-    level: 38
-    seed_id: 5296
-    seed_name: Toadflax seed
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 30
+      xp: 8
+      materials:
+        - item_name: Grimy toadflax
+          quantity: 1
+      tools: []
+      output_quantity: 1
   drop_table:
     sources:
       - source: Aberrant spectre
-        source_id: 2927
-        combat_level: 96
         quantity: "1"
         rarity: common
-        members_only: true
+      - source: Tree spirit
+        quantity: "1"
+        rarity: 6/128
+      - source: Kalphite Queen
+        quantity: "25 (noted)"
+        rarity: 2/126
   related_items:
-    - item_id: 2998
-      item_name: Toadflax
+    - item_name: Toadflax
       slug: toadflax
       relationship: product
-      description: Cleaned version
-    - item_id: 6687
-      item_name: Saradomin brew(3)
-      slug: saradomin-brew-3
-      relationship: product
-      description: Main product
-    - item_id: 6693
-      item_name: Crushed nest
-      slug: crushed-nest
-      relationship: component
-      description: Secondary
-    - item_id: 5296
-      item_name: Toadflax seed
+      description: Cleaned herb used in agility potions and Saradomin brews
+    - item_name: Toadflax seed
       slug: toadflax-seed
       relationship: component
-      description: Farming seed
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 30 |
-    | XP | 8 |
-    | Product | Toadflax (clean) |
+      description: Seed planted to grow grimy toadflax with 38 Farming
+    - item_name: Saradomin brew(3)
+      slug: saradomin-brew-3
+      relationship: product
+      description: Premier PvM heal made from clean toadflax + crushed nest
+    - item_name: Crushed nest
+      slug: crushed-nest
+      relationship: component
+      description: Secondary ingredient paired with toadflax for brews
+  about: "Grimy toadflax is the uncleaned herb that becomes toadflax once a player with 30+ Herblore identifies it. Toadflax feeds agility potions, antidote+, and most importantly the Saradomin brew supply chain, making this herb a permanent PvM staple."
   market_strategy:
     notes:
-      - Essential for Saradomin brew
-      - High demand from PvM
-      - Consistent value herb
-      - Saradomin brew production
-      - Agility potion demand
-      - Raids and bossing
-      - High-level PvM
-      - Farm runs profitable
-      - 38 Farming required
-      - Sara brew most valuable use
-      - Essential PvM supply
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand tied directly to Saradomin brew consumption at raids"
+      - "Farming runs at 38 Farming produce steady supply pressure"
+      - "Aberrant spectre slayer tasks dump volume that softens spikes"
+  trading_tips:
+    - Stock during Farming run lulls and resell into raid weekends
+    - Pair with crushed nests to lock margin on Sara brew flips
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill rework."
+    - date: "2015-02-26"
+      description: "Update: grimy herbs received unique icons for easier identification."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

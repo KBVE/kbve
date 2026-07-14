@@ -12,9 +12,83 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 125
-  about: "Butterfly net is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: tool
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: none
+    weight: 0.226
+    requirements:
+      hunter: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Aleck's Hunter Emporium"
+      location: Yanille
+      stock: 5
+      price: 24
+      sell_price: 14
+    - shop_name: "Hunting Supplies"
+      location: Nardah
+      stock: 5
+      price: 24
+      sell_price: 14
+  related_items:
+    - name: Magic butterfly net
+      relationship: upgrade
+    - name: Impling jar
+      relationship: alternative
+    - name: Butterfly jar
+      relationship: alternative
+  about: "Butterfly net is a members Hunter tool used to catch butterflies, moths, implings, and bats. Equipping it is mandatory for those Hunter activities and starter copies are available from Elnock Inquisitor in Puro-Puro. High alchemy value: 12 coins. Grand Exchange buy limit: 125 per 4 hours."
+  market_strategy:
+    notes:
+      - "Cheap commodity; demand follows new Hunter trainers."
+      - "Magic butterfly net is the strict upgrade for serious Hunter trips."
+  trading_tips:
+    - "Starter copies from Elnock Inquisitor saturate supply; flip during Hunter content updates."
+    - "Bundle with impling jars for new player kits."
+  history:
+    - date: "2006-11-21"
+      description: "Butterfly net released with the Hunter skill."
+    - date: "2026-04-22"
+      description: "Wiki refresh confirmed shop pricing and alch values."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: "Hunter"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wield
+      - "Check totals"
+      - Drop
+    worn_options:
+      - "Check Totals"
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

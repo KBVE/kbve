@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod actor_tests {
     use tokio::sync::{mpsc, watch};
     use tokio_util::sync::CancellationToken;
 

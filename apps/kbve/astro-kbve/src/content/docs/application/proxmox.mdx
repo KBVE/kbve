@@ -1,29 +1,128 @@
 ---
 title: Proxmox
 description: |
-    A complete open source software platform for virtualization management.
+    Proxmox VE is an open-source virtualization platform built on Debian that runs KVM virtual machines and LXC
+    containers with a web UI, CLI, and REST API. This guide covers the qm and pct command cheatsheet, container
+    networking with netplan, Windows VM setup with VirtIO drivers, and theming.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Proxmox
     order: 110
 unsplash: 1558494949-ef010cbdcc31
 img: https://images.unsplash.com/photo-1558494949-ef010cbdcc31?fit=crop&w=1400&h=700&q=75
 tags:
-    - technology
+    - virtualization
+    - homelab
+    - linux
+sem: 1
+ogTitle: Proxmox VE Guide — qm & pct CLI, Networking & Windows VMs
+ogDescription: Manage Proxmox VE virtual machines and containers — the qm and pct command cheatsheet, container networking with netplan, Windows KVM setup with VirtIO drivers, and dark-mode theming.
+jsonld:
+    type: Article
+    keywords:
+        - proxmox
+        - kvm
+        - lxc
+        - virtualization
+        - homelab
+    faq:
+        - question: What is Proxmox VE?
+          answer: Proxmox Virtual Environment is an open-source server virtualization platform based on Debian Linux. It runs KVM/QEMU virtual machines and LXC containers under one web interface, with clustering, high availability, Ceph storage, and backups built in.
+        - question: What is the difference between qm and pct in Proxmox?
+          answer: qm manages KVM/QEMU virtual machines (full hardware virtualization), while pct manages LXC containers (lightweight OS-level virtualization). For example qm start <id> boots a VM and pct start <id> starts a container.
+        - question: What port is the Proxmox web interface on?
+          answer: The Proxmox web panel listens on port 8006 over HTTPS, and the PVEDaemon uses port 85. You log in with PAM or Proxmox PVE authentication. Confirm the open ports with nmap 127.0.0.1 -p- or netstat.
+        - question: How do I install VirtIO drivers on a Windows VM in Proxmox?
+          answer: Download the VirtIO ISO into /var/lib/vz/template/iso with wget, attach it to the Windows KVM as a second CD drive, reboot, and run the installer from the ISO so Windows recognizes the paravirtualized disk and network devices.
+bento:
+    badge: application · virtualization · homelab
+    title: 'The homelab hypervisor,'
+    accent: Proxmox.
+    lede: >-
+        An open-source virtualization platform built on Debian that runs KVM
+        virtual machines and LXC containers behind one web UI, CLI, and REST
+        API. This working reference covers the qm and pct command cheatsheet,
+        container networking with netplan, Windows VM setup with VirtIO
+        drivers, and dark-mode theming.
+    ctas:
+        - label: Command cheatsheet
+          href: '#cheatsheet'
+          primary: true
+        - label: Networking
+          href: '#network'
+        - label: Windows VMs
+          href: '#windows'
+        - label: Dark theme
+          href: '#style'
+    aside:
+        icon: server
+        title: One panel, every workload
+        body: >-
+            KVM for full hardware virtualization, LXC for lightweight
+            containers — with clustering, high availability, Ceph storage,
+            and backups built into the same Debian-based platform.
+        points:
+            - <strong>qm</strong> — start, stop, and configure KVM/QEMU VMs.
+            - <strong>pct</strong> — manage LXC containers from the shell.
+            - <strong>Web panel</strong> — HTTPS on port 8006, PAM or PVE auth.
+    stats:
+        - { label: Base OS, value: Debian, icon: server }
+        - { label: VMs, value: 'KVM / QEMU', icon: gears }
+        - { label: Containers, value: LXC, icon: package }
+        - { label: Web UI port, value: '8006', icon: network }
+    features:
+        - title: Command cheatsheet
+          icon: code
+          href: '#cheatsheet'
+          body: The qm and pct CLI quick reference — list, start, shutdown, reboot, and configure VMs and containers.
+        - title: Container networking
+          icon: network
+          href: '#network'
+          body: Default ports, OVH IPv4 configuration, and a working Ubuntu 22.04 netplan config for containers.
+        - title: Windows VM setup
+          icon: settings
+          href: '#windows'
+          body: Audio device args for the qemu-server config and installing stable or latest VirtIO driver ISOs.
+        - title: Dark-mode theming
+          icon: render
+          href: '#style'
+          body: Give the web panel a Discord-style dark theme with the PVEDiscordDark install script.
+    related:
+        - title: Linux
+          href: /application/linux/
+          copy: Extend guest disks with LVM after growing them in Proxmox.
+          icon: server
+        - title: Docker
+          href: /application/docker/
+          copy: Containers and Compose inside your Proxmox VMs and LXCs.
+          icon: package
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Cluster orchestration on top of your virtualized nodes.
+          icon: deploy
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Proxmox is an exquisite open-source server platform that empowers you to orchestrate and administer virtual machines, containers, storage, networking, and backup.
 It is based on Linux (Debian operating system) and uses KVM (qEMU) and LXC as virtualization technologies.
@@ -32,9 +131,17 @@ The objective of this software is provide a base-line to build your own paradigm
 
 > Hint: Utilize the PAM/PVE settings within Proxmox to secure and abstract the system authentication.
 
-<Adsense />
+This page is a working reference: the [command cheatsheet](#cheatsheet) for `qm` (VMs) and `pct` (containers), [container networking](#network) with netplan, [Windows VM setup](#windows) including VirtIO drivers, and [theming](#style).
 
-## Cheatsheet
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="cheatsheet" eyebrow="Daily drivers" heading="Cheatsheet">
 
 Proxmox Cheatsheet for quick commands and below are the basic CLI (command-line interface)
 
@@ -67,9 +174,9 @@ Proxmox Cheatsheet for quick commands and below are the basic CLI (command-line 
         -   `$v_ram` is in megabytes by default.
     -   `pct enter $v_id` - Enter the terminal of the container (LXC).
 
----
+</BentoProse>
 
-## Network
+<BentoProse id="network" eyebrow="Wire it up" heading="Network">
 
 -   Proxmox has several types of networking options and integrations. We will go over the basics here and slowly expand to different concepts afterwards.
 -   The default ports for proxmox are `8006` for the web panel, which you can log in via PAM/Proxmox PVE and `85` for the PvEDaemon. To double check the ports, run `nmap 127.0.0.1 -p-` to see the two open ports and then run `netstat -nlp | grep -E ":85|:8006"` to get more information.
@@ -117,7 +224,9 @@ Proxmox Cheatsheet for quick commands and below are the basic CLI (command-line 
 
 -   Test the command by pinging a domain (google.com) and an IPv4 (8.8.8.8), making sure that it works!
 
-## Windows
+</BentoProse>
+
+<BentoProse id="windows" eyebrow="Guest OS" heading="Windows">
 
 This is a generic guide to installing and setting up windows.
 
@@ -129,7 +238,7 @@ Grab the qEMU server id from the proxmox list, then go to `/etc/pve/qemu-server/
 
 Then add this to the `args`:
 
-```conf
+```ini
 
 args: -device intel-hda,id=sound5,bus=pci.0,addr=0x18 -device hda-micro,id=sound5-codec0,bus=sound5.0,cad=0 -device hda-duplex,id=sound5-codec1,bus=sound5.0,cad=1
 
@@ -164,28 +273,32 @@ wget https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-vir
 
 After downloading the right ISO, attach it to your KVM/QEMU instance and then reboot the machine. After the reboot, go to `My Computer` and run the iso to install the proper drivers.
 
----
+</BentoProse>
 
-## Notes
+<BentoProse id="notes" eyebrow="Extras" heading="Notes">
 
 -   eXtremeSHOCK Optimization / Post Install Scripts located below
     -   [Repo](https://github.com/extremeshok/xshok-proxmox)
 
-## Style
+</BentoProse>
+
+<BentoProse id="style" eyebrow="Make it pretty" heading="Style">
 
 -   Dark Mode Theme for Proxmox
     -   Installation Script located here: [Github PVEDiscordDark](https://github.com/Weilbyte/PVEDiscordDark)
     -   The script alters the css / js , so that the panel has a "Dark" / Discord theme base.
     -   `bash <(curl -s https://raw.githubusercontent.com/Weilbyte/PVEDiscordDark/master/PVEDiscordDark.sh ) install`
 
-## Podcast
+</BentoProse>
+
+<BentoProse id="podcast" eyebrow="Off the record" heading="Podcast">
 
 General jokes/memes about the proxmox and general weird methods.
 We were trying to find a cute and creative way to introduce the vast realm of virtual machines.
 
----
+</BentoProse>
 
-## Jokes
+<BentoProse id="jokes" eyebrow="Just for fun" heading="Jokes">
 
 Dock Swarm
 
@@ -237,3 +350,7 @@ Dock Swarm
 #In case you aren't in the know like cool guy Jones, Rick Deckard is from Bladerunner and he hunts stray replicants, the premise here don't let replicants go stray.
 ### 4.d. Creating Reverse Proxies for your Nodes
 ```
+
+</BentoProse>
+
+</BentoDoc>

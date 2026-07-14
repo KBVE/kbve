@@ -31,6 +31,12 @@ metadata:
     labels:
         app: angelscript
         component: vm-runner
+    annotations:
+        # ArgoCD Sync hook: recreate + run the idempotent install on each sync
+        # (avoids the immutable-Job error on resync). Heals the runner when the
+        # VM is up; Phase 0 in the script exits cleanly when the VM is down.
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
     backoffLimit: 2
     ttlSecondsAfterFinished: 86400
@@ -49,7 +55,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: runner-install
-                  image: ghcr.io/kbve/kubectl:0.1.2
+                  image: ghcr.io/kbve/kubectl:0.1.5
                   command: ['/bin/sh', '/scripts/install-runner.sh']
                   securityContext:
                       allowPrivilegeEscalation: false
@@ -74,6 +80,13 @@ spec:
                             secretKeyRef:
                                 name: github-arc-token
                                 key: github_token
+                      - name: RUNNER_LOGON_ACCOUNT
+                        value: LocalSystem
+                      - name: ADMIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: windows-builder-admin
+                                key: password
                   volumeMounts:
                       - name: script
                         mountPath: /scripts

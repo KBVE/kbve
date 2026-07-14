@@ -1,0 +1,37 @@
+---
+title: Telescope
+template: splash
+description: |
+    Immersive Aircraft Telescope — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Telescope
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900027
+    ref: immersive_aircraft:telescope
+    slug: telescope
+    content_rev: 0
+    display_name: Telescope
+    category: tool
+    rarity: common
+    stack_size: 1
+    tags:
+        - immersive_aircraft
+        - tool
+    about:
+        description: |
+            A bulkier version of the spyglass for spotting distant targets and terrain.
+        lore: |
+            See it long before you reach it.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

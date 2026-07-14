@@ -1,5 +1,6 @@
 ---
 title: Light Gray Bundle
+template: splash
 description: |
     Minecraft Light Gray Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 983
     ref: light_gray_bundle
     slug: light-gray-bundle
+    content_rev: 1
     display_name: Light Gray Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Light Gray Bundle is a dyed variant of the bundle, a storage item that
+            can hold a mixed stack's worth of different item types in a single
+            inventory slot. It is crafted from any bundle combined with light gray dye,
+            and each item consumes bundle space proportional to its normal stack size.
+        lore: |
+            A dyed version of the bundle, an item inspired by the ancient Roman coin
+            purse for carrying an assortment of goods in one slot.
+    faq:
+        - question: How much can a Light Gray Bundle hold?
+          answer: |
+              A bundle can hold up to 64 stack-equivalent units of items. Items that
+              normally stack to 64 use 1/64 of the space each, while non-stackable
+              items fill the entire bundle.
+        - question: How do I make a Light Gray Bundle?
+          answer: |
+              Combine any bundle with light gray dye in a crafting grid, or craft a new
+              bundle from string and leather and then dye it light gray.
+        - question: Can I put a bundle inside a Light Gray Bundle?
+          answer: |
+              Yes, bundles can be nested. An inner bundle takes up 1/16 of the outer
+              bundle's space plus the space used by its own contents.
+        - question: How do I take items out of a Light Gray Bundle?
+          answer: |
+              Right-click to remove the most recently added item group, or scroll to
+              pick a specific stack. Using it directly from the hotbar ejects one item
+              group at a time.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

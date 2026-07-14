@@ -1,5 +1,6 @@
 ---
 title: Oak Door
+template: splash
 description: |
     Minecraft Oak Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 207
     ref: oak_door
     slug: oak-door
+    content_rev: 1
     display_name: Oak Door
     material: wood
     hardness: 3
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Oak Door is a two-block-tall wooden door that players,
+            villagers, and most passive mobs can open manually or that can
+            be toggled with a redstone signal. It blocks movement while
+            closed but still lets light through.
+        lore: |
+            Doors are one of Minecraft's oldest blocks, dating back to
+            Infdev, with the oak-specific plank variant arriving once
+            wood-type crafting was standardized.
+    uses:
+        - title: Access Control
+          ref: oak_planks
+          detail: |
+              Crafted from six oak planks arranged in two columns to yield
+              three doors, commonly used to seal houses and villager
+              buildings from mobs.
+    found_in:
+        - location: Crafted from planks
+          detail: Six oak planks craft three oak doors at a crafting table.
+        - location: Villages and Woodland Mansions
+          detail: |
+              Naturally generates on many village houses and inside
+              woodland mansions and shipwrecks.
+    faq:
+        - question: What tool do I need to mine an Oak Door?
+          answer: |
+              None — it can be broken by hand, though an axe breaks it
+              fastest.
+        - question: Can zombies break Oak Doors?
+          answer: |
+              On Hard difficulty, zombies and vindicators can break down
+              closed wooden doors to reach a player or villager.
+        - question: Is the Oak Door flammable?
+          answer: |
+              Yes — like most Overworld wood blocks, it can catch fire and
+              burn when exposed to flames.
+        - question: Can I open an Oak Door with redstone?
+          answer: |
+              Yes — a redstone signal or wind charge can toggle it open and
+              closed without manual interaction.
     data_version: "1.21.5"
 ---
 

@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-use crate::supabase::{SupabaseConfig, SupabaseError, Session, auth, functions};
+use crate::supabase::{SupabaseConfig, SupabaseError, Session, auth, functions, oauth};
 
 #[derive(serde::Deserialize, serde::Serialize, Clone)]
 pub struct SupabaseClient {
@@ -88,6 +88,37 @@ impl SupabaseClient {
 		*error_handle.lock().expect("last_error mutex poisoned") = None;
 
 		auth::sign_in_with_password(&self.config, email, password, move |result| {
+			match &result {
+				Ok(session) => {
+					*session_handle.lock().expect("session mutex poisoned") =
+						Some(session.clone());
+				}
+				Err(err) => {
+					*error_handle.lock().expect("last_error mutex poisoned") =
+						Some(format!("{}", err));
+				}
+			}
+			loading_flag.store(false, Ordering::Release);
+			callback(result);
+		});
+	}
+
+	pub fn authorize_url(&self, provider: &str, redirect_to: &str) -> String {
+		oauth::authorize_url(&self.config, provider, redirect_to)
+	}
+
+	pub fn complete_oauth<F>(&self, callback_url: &str, callback: F)
+	where
+		F: FnOnce(Result<Session, SupabaseError>) + Send + 'static,
+	{
+		let session_handle = self.session.clone();
+		let loading_flag = self.is_loading.clone();
+		let error_handle = self.last_error.clone();
+
+		loading_flag.store(true, Ordering::Release);
+		*error_handle.lock().expect("last_error mutex poisoned") = None;
+
+		oauth::exchange_callback(&self.config, callback_url, move |result| {
 			match &result {
 				Ok(session) => {
 					*session_handle.lock().expect("session mutex poisoned") =

@@ -12,28 +12,53 @@ osrs:
   lowalch: 25
   highalch: 37
   limit: 125
+  material:
+    type: iron
+    tier: low
   equipment:
     slot: weapon
-    type: mace
-    tradeable: true
+    weapon_type: mace
+    attack_speed: 4
     weight: 1.814
     requirements:
       attack: 1
-    stats:
-      attack_stab: 4
-      attack_slash: -2
-      attack_crush: 9
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: 4
+      slash: -2
+      crush: 9
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 7
       ranged_strength: 0
       magic_damage: 0
       prayer: 1
+  shops:
+    - shop_name: "Flynn's Mace Market"
+      location: Falador
+    - shop_name: Warriors' Guild Armoury
+      location: Warriors' Guild
+    - shop_name: "Briget's Weapons"
+      location: Shayzien
+    - shop_name: "Spike's Spikes"
+      location: Outer Fortis
+  recipes:
+    - skill: Smithing
+      level: 17
+      experience: 25
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
     - item_id: 1424
       item_name: Steel mace
@@ -45,8 +70,38 @@ osrs:
       slug: iron-warhammer
       relationship: alternative
       description: Higher strength alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Iron mace is a F2P one-handed crush weapon smithed from a single iron bar at 17 Smithing. Provides a +9 crush attack bonus, +7 strength, and +1 prayer, making it a budget early-game option for low-level Attack training.
+  market_strategy:
+    notes:
+      - Cheap commodity smithed in bulk from iron bars
+      - "Limited demand: most players progress past iron quickly"
+      - Buy limit 125 per 4 hours
+  trading_tips:
+    - Stock up before Smithing competitions for resale
+    - "Watch iron bar prices: smithing loss can flip profitable"
+  history:
+    - date: "2001-01-04"
+      description: Added to the game.
+    - date: "2021-04-21"
+      description: "Attack speed improved from 5 (3.0s) to 4 (2.4s)."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

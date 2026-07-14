@@ -12,70 +12,122 @@ osrs:
   lowalch: 110000
   highalch: 165000
   limit: 15
+  family_ref:
+    family_slug: dharok-s-platelegs
+    role: base
+  family:
+    slug: dharok-s-platelegs
+    name: Dharok's platelegs
+    type: degraded
+    canonical_id: 4722
+    members:
+    - id: 4722
+      slug: dharok-s-platelegs
+      name: Dharok's platelegs
+      icon: Dharok's platelegs.png
+      role: base
+      dose: null
+      value: 275000
+      lowalch: 110000
+      highalch: 165000
+    - id: 4902
+      slug: dharok-s-platelegs-0
+      name: Dharok's platelegs 0
+      icon: Dharok's platelegs 0.png
+      role: degraded
+      dose: null
+      value: 275000
+      lowalch: 110000
+      highalch: 165000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: barrows
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: barrows
-    set: Dharok
-    tradeable: true
-    degradeable: true
+    weapon_type: unarmed
+    attack_speed: 4
     weight: 9
     requirements:
       defence: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -21
-      attack_ranged: -11
-      defence_stab: 85
-      defence_slash: 82
-      defence_crush: 83
-      defence_magic: -4
-      defence_ranged: 92
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 85
+      slash: 82
+      crush: 83
+      magic: -4
+      ranged: 92
+    other_bonus:
       strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  set_effect:
-    name: Wretched Strength
-    pieces_required: 4
-    description: Damage increases as HP decreases. Up to +98.9% damage at 1 HP with 99 max HP
+  drop_table:
+    sources:
+      - source: Barrows chest (Dharok the Wretched)
+        quantity: "1"
+        rarity: "1/2500"
+        notes: "Dropped from the Barrows minigame when Dharok is among the killed brothers."
+  passive_effects:
+    - name: Wretched Strength
+      description: "When wearing the full Dharok's set (helm, platebody, platelegs, greataxe), Melee damage scales up as Hitpoints drop, peaking near +98.9% damage at 1 HP with 99 base HP."
   related_items:
     - item_id: 4716
       item_name: Dharok's helm
-      slug: dharoks-helm
+      slug: dharok-s-helm
       relationship: set-piece
       description: Head slot set piece
     - item_id: 4720
       item_name: Dharok's platebody
-      slug: dharoks-platebody
+      slug: dharok-s-platebody
       relationship: set-piece
       description: Body slot set piece
     - item_id: 4718
       item_name: Dharok's greataxe
-      slug: dharoks-greataxe
+      slug: dharok-s-greataxe
       relationship: set-piece
       description: Weapon set piece
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +85 |
-    | Slash defence | +82 |
-    | Crush defence | +83 |
-    | Magic defence | -4 |
-    | Ranged defence | +92 |
-    | Magic attack | -21 |
-    | Ranged attack | -11 |
-
-    Wretched Strength:
-    When wearing full Dharok's (helm, platebody, platelegs, greataxe):
-    - Damage increases as HP decreases
-    - Up to +98.9% damage at 1 HP with 99 max HP
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 4902
+      item_name: Dharok's platelegs 0
+      slug: dharok-s-platelegs-0
+      relationship: variant
+      description: Fully degraded variant with no charges remaining
+  about: "Dharok's platelegs are the leg piece of Dharok the Wretched's Barrows set, granting heavy melee defence (+85 stab, +82 slash, +83 crush, +92 ranged defence) and feeding the set's Wretched Strength effect that boosts damage as HP drops. They require 70 Defence, degrade over ~15 hours of combat, and are repaired by Bob in Lumbridge or at a POH armour stand."
+  market_strategy:
+    notes:
+      - "Price tracks Barrows brother loot tables and Dharok pure demand"
+      - "Cheap among the Dharok pieces; supply driven by Barrows runs"
+      - "Bulk demand from low-HP PvP / Dharok pure account builders"
+  trading_tips:
+    - Watch Barrows efficiency updates that shift Dharok piece supply
+    - Compare against degraded 0/25/50/75 charge variants for repair-flip arbitrage
+  history:
+    - date: "2005-05-09"
+      description: "Released as part of the Barrows minigame and Dharok's set."
+    - date: "2007-12-10"
+      description: "Defence bonuses rebalanced alongside other Barrows armour."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

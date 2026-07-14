@@ -9,16 +9,52 @@ description: |
     The 11th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 11,'
+    accent: every year.
+    lede: 'The March 11th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Mar 10'
+          href: /journal/03-10/
+        - label: 'Mar 12 →'
+          href: /journal/03-12/
+    related:
+        - title: 'Previous · Mar 10'
+          copy: 'Step back a day to the March 10th log.'
+          href: /journal/03-10/
+          icon: calendar
+        - title: 'Next · Mar 12'
+          copy: 'Jump ahead to the March 12th log.'
+          href: /journal/03-12/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1619597455322-4fbbd820250a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Nx Workspace v20.5.0
 
@@ -66,7 +102,15 @@ import { Adsense } from '@/components/astropad';
     The next issue that we need to resolve is the `PGSodium` issue that has been open for a while, I been waiting for Supabase to replace it but has not yet happen.
     
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Output
 
@@ -92,3 +136,7 @@ For the storage of the KBVE types and general handling of it, I will just create
 Generic command for starting a new library -> `npx nx g @nx/js:lib mylib --bundler=vite`.
 
 We will create the `supabase` ts file within the `postgres` library.
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,9 +1,13 @@
 ---
 title: Grafana Dashboard
 description: KBVE Cluster Monitoring Dashboard
+template: splash
 tableOfContents: false
 graph:
     visible: false
+editUrl: false
+lastUpdated: false
+next: false
 sidebar:
     label: Grafana
     order: 1
@@ -15,10 +19,10 @@ tags:
 ---
 
 import AstroGrafanaDashboard from '@/components/dashboard/AstroGrafanaDashboard.astro';
-import AstroAlerts from '@/components/dashboard/AstroAlerts.astro';
+import AstroAlertsGrafana from '@/components/dashboard/AstroAlertsGrafana.astro';
 
 <AstroGrafanaDashboard />
 
 # Alerts
 
-<AstroAlerts />
+<AstroAlertsGrafana />

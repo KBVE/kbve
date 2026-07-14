@@ -1,5 +1,6 @@
 ---
 title: Acacia Sign
+template: splash
 description: |
     Minecraft Acacia Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 214
     ref: acacia_wall_sign
     slug: acacia-wall-sign
+    content_rev: 1
     display_name: Acacia Sign
     material: wood
     hardness: 1
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_wall_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The Acacia Sign is the wall-mounted form of the acacia sign,
+            attaching flat against a block face rather than standing on a
+            post. It displays customizable, dyeable text and can be waxed
+            with a honeycomb to lock it against further edits.
+        lore: |
+            Signs were reimplemented as blocks during Infdev in 2010 and
+            gained wood-specific variants, including acacia, in update 1.14.
+    uses:
+        - title: Acacia Sign (item)
+          ref: acacia_sign
+          detail: |
+              Crafted from 6 acacia planks and 1 stick, yielding 3 signs;
+              placing against a block face produces the wall-mounted form.
+        - title: Wayfinding and Labels
+          ref: sign
+          detail: |
+              Commonly used to label shops, chests, farms, and paths with custom text.
+    found_in:
+        - location: Crafting
+          detail: Made from 6 acacia planks and 1 stick, yielding 3 signs.
+        - location: Loot chests
+          detail: Occasionally found in generated structure loot, though less commonly than other wood types.
+    faq:
+        - question: What tool mines an Acacia Sign fastest?
+          answer: |
+              An axe. No minimum tool tier is required, and it always drops
+              itself as an item.
+        - question: Does the Acacia Sign burn?
+          answer: |
+              Yes. Acacia signs are flammable and can catch fire from
+              nearby lava, similar to other acacia wood blocks.
+        - question: How is the wall sign different from a standing sign?
+          answer: |
+              The wall variant mounts flat against a vertical block face,
+              while the standing sign sits on a post atop a block and can
+              be rotated to 16 different angles.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, unless the sign has been waxed with a honeycomb, which
+              locks the text permanently against further edits.
     data_version: "1.21.5"
 ---
 

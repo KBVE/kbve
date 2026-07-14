@@ -12,22 +12,75 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 125
+  material:
+    type: steel
+    tier: low
   equipment:
     slot: legs
+    weight: 9.071
     requirements:
       defence: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: -11
+    defence_bonus:
+      stab: 17
+      slash: 16
+      crush: 15
+      magic: -4
+      ranged: 16
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 20184
       item_name: Steel platebody (t)
       slug: steel-platebody-t
       relationship: set-piece
       description: Matching trimmed platebody
-  about: |-
-    > *"Steel platelegs with trim."*
-
-    The steel platelegs (t) are a trimmed cosmetic variant of standard steel platelegs. Identical stats, requiring 5 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Steel platelegs (t) is a trimmed cosmetic variant of standard steel platelegs obtained from easy clue scroll caskets. Identical stats, requiring 5 Defence."
+  market_strategy:
+    notes:
+      - Easy clue exclusive cosmetic
+      - Identical stats to standard steel platelegs
+      - Storable in costume room as part of steel trimmed set
+  trading_tips:
+    - Price near high alch floor
+    - Demand driven by fashionscape collectors
+  history:
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -7 to -11 as part of equipment rebalancing.
+    - date: "2016-07-06"
+      description: Item released as part of the Treasure Trail Expansion update.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

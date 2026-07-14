@@ -1,5 +1,6 @@
 ---
 title: Nether Wart Block
+template: splash
 description: |
     Minecraft Nether Wart Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 640
     ref: nether_wart_block
     slug: nether-wart-block
+    content_rev: 1
     display_name: Nether Wart Block
     material: plant
     hardness: 1
@@ -24,10 +26,61 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: nether_wart_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - nether
+        - not_flammable
+    about:
+        description: |
+            Nether Wart Block is a solid, textured block that grows
+            naturally as part of huge crimson fungi in the Nether. It is
+            crafted from nine Nether Wart but cannot be converted back,
+            making it a one-way cosmetic building block.
+        lore: |
+            Added in Java Edition 1.16, developers noted it was designed as
+            a purely cosmetic block and not a compact storage form of Nether
+            Wart, preserving the item's value for potion brewing.
+    uses:
+        - title: Building and Decoration
+          ref: red_nether_bricks
+          detail: |
+              Used purely for its texture in builds; unlike most crafted
+              storage blocks it cannot be reversed back into 9 Nether Wart.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing it in a composter has an 85% chance of raising the
+              compost level by one.
+    found_in:
+        - location: Crimson forests
+          detail: Generates as part of the trunks of huge crimson fungi in the Nether.
+        - location: Crafting table
+          detail: Crafted from 9 Nether Wart in a 3x3 pattern.
+    faq:
+        - question: What tool should I use on Nether Wart Block?
+          answer: |
+              A hoe is fastest, but any tool or even bare hands can break it
+              since no minimum tier is required for the drop.
+        - question: Can I turn Nether Wart Block back into Nether Wart?
+          answer: |
+              No. The crafting recipe only works one way, from Nether Wart
+              into the block, by design.
+        - question: Does Nether Wart Block burn in fire or lava?
+          answer: |
+              No, it is non-flammable and does not catch fire from
+              adjacent lava.
+        - question: Does Nether Wart Block affect mob spawning?
+          answer: |
+              Yes. It prevents Piglins, Zombified Piglins, and Hoglins from
+              spawning on top of it.
     data_version: "1.21.5"
 ---
 

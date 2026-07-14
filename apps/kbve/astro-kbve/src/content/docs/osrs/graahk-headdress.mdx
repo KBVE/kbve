@@ -12,9 +12,82 @@ osrs:
   lowalch: 300
   highalch: 450
   limit: 150
-  about: "Graahk headdress is a members-only item in Old School RuneScape. High alchemy value: 450 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: graahk
+    tier: mid
+  equipment:
+    slot: head
+    weight: 0.226
+    requirements:
+      hunter: 38
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 4
+      slash: 5
+      crush: 3
+      magic: 0
+      ranged: 4
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Crafting
+      materials:
+        - item_name: Graahk fur
+          quantity: 1
+        - item_name: Coins
+          quantity: 750
+      tools:
+        - Fancy Clothes Store
+        - Hunter Guild tailor
+        - Prifddinas Seamstress
+      output_quantity: 1
+      notes: Tailor converts the fur into the headdress for a 750 gp fee at any clothes-store NPC.
+  related_items:
+    - item_name: Graahk top
+      relationship: set-piece
+      description: Body slot piece of the graahk camouflage outfit.
+    - item_name: Graahk legs
+      relationship: set-piece
+      description: Legs slot piece of the graahk camouflage outfit.
+    - item_name: Graahk fur
+      relationship: component
+      description: Raw fur input used to tailor the headdress.
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill in the Land of the Kharidian update.
+  about: "Graahk headdress is a desert-camouflage Hunter outfit headpiece tailored from a graahk fur, providing camouflage when hunting in desert regions and requiring 38 Hunter to wear."
+  market_strategy:
+    notes:
+      - Tailoring from fur is profitable when GE price exceeds fur cost plus 750 gp fee.
+      - Demand spikes with new desert Hunter content or quest releases.
+  trading_tips:
+    - Watch graahk fur supply — cheap furs unlock tailoring arbitrage.
+    - Buy below alch floor and wait out lull periods.
+  properties:
+    release_date: "2006-11-21"
+    update: Land of the Kharidian
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

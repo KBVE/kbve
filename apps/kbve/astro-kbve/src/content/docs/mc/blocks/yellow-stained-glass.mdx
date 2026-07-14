@@ -1,5 +1,6 @@
 ---
 title: Yellow Stained Glass
+template: splash
 description: |
     Minecraft Yellow Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 289
     ref: yellow_stained_glass
     slug: yellow-stained-glass
+    content_rev: 1
     display_name: Yellow Stained Glass
     material: glass
     hardness: 0.3
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: yellow_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Yellow Stained Glass is a fully transparent building block tinted
+            yellow, letting light pass through while coloring anything viewed
+            or lit behind it.
+        lore: |
+            Stained glass was added in 1.7.2, giving builders 16 dyed
+            variants of the classic transparent glass block.
+    uses:
+        - title: Colored Windows and Beacon Beams
+          ref: yellow_stained_glass
+          detail: |
+              Use as decorative windows, or stack it above a beacon to tint
+              the beacon's light beam yellow (mixing colors if multiple
+              stained glass colors are stacked).
+    found_in:
+        - location: Crafted only
+          detail: Made by combining 4 Glass blocks with 1 Yellow Dye in a crafting grid to make 8 blocks.
+        - location: End Ships (magenta only)
+          detail: Only magenta stained glass generates naturally, in end ships; yellow never generates naturally.
+    faq:
+        - question: Do I need Silk Touch to mine Yellow Stained Glass?
+          answer: |
+              Yes. Without Silk Touch, breaking it drops nothing.
+        - question: Can mobs spawn on Yellow Stained Glass?
+          answer: |
+              No. Even though it's transparent, mobs treat it as a full
+              opaque block and cannot spawn on its surface.
+        - question: Does stacking yellow stained glass over a beacon change the beam?
+          answer: |
+              Yes. It tints the beacon beam yellow; stacking multiple colors
+              along the beam blends them together.
+        - question: Can I re-dye Yellow Stained Glass to another color?
+          answer: |
+              Not directly. You must craft plain glass with the new dye;
+              stained glass cannot be redyed like wool or terracotta.
     data_version: "1.21.5"
 ---
 

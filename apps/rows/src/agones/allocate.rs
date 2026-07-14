@@ -21,6 +21,7 @@ impl AgonesClient {
         &self,
         map_name: &str,
         zone_instance_id: i32,
+        empty_shutdown_minutes: i32,
     ) -> Result<AllocationResult, AgonesError> {
         self.check_circuit()?;
 
@@ -34,7 +35,10 @@ impl AgonesClient {
                 tokio::time::sleep(backoff).await;
             }
 
-            match self.try_allocate(map_name, zone_instance_id).await {
+            match self
+                .try_allocate(map_name, zone_instance_id, empty_shutdown_minutes)
+                .await
+            {
                 Ok(result) => {
                     self.record_success();
                     info!(
@@ -73,7 +77,25 @@ impl AgonesClient {
         &self,
         map_name: &str,
         zone_instance_id: i32,
+        empty_shutdown_minutes: i32,
     ) -> Result<AllocationResult, AgonesError> {
+        // The `empty-shutdown-minutes` annotation is the ROWS side of UE drain-contract
+        // obligation #3 (UE self-shutdown after going empty — see issue #13281). Stamp it ONLY
+        // for a positive value: `<= 0` means "no annotation". The verify/re-poll paths pass 0
+        // (not real player allocations), and while the annotation is gated OFF the call sites
+        // pass 0 so we never advertise a self-shutdown deadline that no UE consumer reads yet.
+        let mut gs_metadata = json!({
+            "labels": {
+                "ows.kbve.com/map": map_name,
+                "ows.kbve.com/zone-instance": zone_instance_id.to_string()
+            }
+        });
+        if empty_shutdown_minutes > 0 {
+            gs_metadata["annotations"] = json!({
+                "ows.kbve.com/empty-shutdown-minutes": empty_shutdown_minutes.to_string()
+            });
+        }
+
         let allocation = json!({
             "apiVersion": "allocation.agones.dev/v1",
             "kind": "GameServerAllocation",
@@ -84,12 +106,7 @@ impl AgonesClient {
                         "agones.dev/fleet": &self.fleet
                     }
                 },
-                "metadata": {
-                    "labels": {
-                        "ows.kbve.com/map": map_name,
-                        "ows.kbve.com/zone-instance": zone_instance_id.to_string()
-                    }
-                }
+                "metadata": gs_metadata
             }
         });
 

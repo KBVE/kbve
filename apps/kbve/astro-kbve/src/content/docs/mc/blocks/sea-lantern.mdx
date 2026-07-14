@@ -1,5 +1,6 @@
 ---
 title: Sea Lantern
+template: splash
 description: |
     Minecraft Sea Lantern — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 504
     ref: sea_lantern
     slug: sea-lantern
+    content_rev: 1
     display_name: Sea Lantern
     material: stone
     hardness: 0.3
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: prismarine_crystals
+          qty_min: 2
+          qty_max: 3
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: sea_lantern
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - hoe_mineable
+        - axe_mineable
+        - shovel_mineable
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Sea Lantern is a glowstone-like light block that generates in
+            ocean monuments and ocean ruins, giving underwater structures
+            their eerie blue-white glow at full light level 15.
+        lore: |
+            First previewed in 2014 and released in Java Edition 1.8, it was
+            later added to ocean ruins with the 1.13 update of the aquatic.
+    uses:
+        - title: Prismarine Crafting
+          ref: prismarine_crystals
+          detail: |
+              Mining without Silk Touch drops 2-3 Prismarine Crystals,
+              a key ingredient (with Prismarine Shards) for crafting new
+              Sea Lanterns and Prismarine blocks.
+    found_in:
+        - location: Ocean Monuments
+          detail: Generates throughout monument rooms as the primary light source.
+        - location: Ocean Ruins
+          detail: Occasionally found among the underwater ruin structures.
+    faq:
+        - question: What tool do I need to mine Sea Lantern?
+          answer: |
+              Any tool, or even bare hands — it has no tool requirement and
+              breaks quickly regardless of tool used.
+        - question: Does Sea Lantern drop itself when mined?
+          answer: |
+              Only with Silk Touch. Otherwise it drops 2-3 Prismarine
+              Crystals, boosted by Fortune in Java Edition.
+        - question: Can I craft a Sea Lantern?
+          answer: |
+              Yes — 4 Prismarine Shards and 5 Prismarine Crystals arranged
+              in the correct crafting pattern produce one Sea Lantern.
+        - question: Is Sea Lantern flammable?
+          answer: |
+              No, it is non-flammable and safe from fire or lava exposure.
     data_version: "1.21.5"
 ---
 

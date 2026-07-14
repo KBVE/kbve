@@ -1,5 +1,6 @@
 ---
 title: Stripped Acacia Log
+template: splash
 description: |
     Minecraft Stripped Acacia Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 64
     ref: stripped_acacia_log
     slug: stripped-acacia-log
+    content_rev: 1
     display_name: Stripped Acacia Log
     material: wood
     hardness: 2
@@ -24,10 +26,61 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_acacia_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Acacia Log is the bark-free form of an Acacia Log,
+            produced by using an axe on the log. It shows the pale orange
+            rings of acacia wood on every face and breaks fastest with an
+            axe, though any tool works.
+        lore: |
+            Stripping bark was added alongside the crafting table update to
+            give players a cleaner, more decorative wood texture for builds.
+    uses:
+        - title: Stripped Acacia Wood
+          ref: stripped_acacia_wood
+          detail: |
+              Craft four Stripped Acacia Logs in a 2x2 pattern to make three
+              Stripped Acacia Wood blocks, which show the ringed texture on
+              all six faces.
+        - title: Acacia Planks
+          ref: acacia_planks
+          detail: |
+              Smelts or crafts down into Acacia Planks and is also a valid
+              ingredient for campfires, smokers, hanging signs, and shelves.
+    found_in:
+        - location: Any Acacia Log
+          detail: |
+              Not naturally generated — obtained by right-clicking (or
+              using) an axe on a placed Acacia Log or Wood block.
+    faq:
+        - question: How do I get Stripped Acacia Log?
+          answer: |
+              Use any axe on a placed Acacia Log. The action is instant and
+              permanent — it cannot be reversed back into a normal log.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool works, but an axe breaks it fastest. There is no
+              minimum tool tier required to get the drop.
+        - question: Does it burn?
+          answer: |
+              Yes, like most wood blocks it is flammable and will catch
+              fire from nearby flames or lava.
+        - question: Is Stripped Acacia Log renewable?
+          answer: |
+              Yes — acacia trees regrow from saplings, so the supply of
+              logs to strip is effectively unlimited.
     data_version: "1.21.5"
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Gloves of darkness | OSRS Price Data
-description: "Gloves of darkness: A dark power is woven into these gloves.. High alch: 6,000 GP, GE limit: 70."
+description: "Gloves of darkness: A dark power is woven into these gloves. High alch: 6,000 GP, GE limit: 70."
 osrs:
   id: 20134
   name: Gloves of darkness
@@ -12,9 +12,77 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 70
-  about: "Gloves of darkness is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      magic: 3
+    defence_bonus:
+      magic: 3
+    other_bonus: {}
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/1133
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Hood of darkness
+      slug: hood-of-darkness
+      relationship: set-piece
+      description: Hood piece of the robes of darkness set
+    - item_name: Robe top of darkness
+      slug: robe-top-of-darkness
+      relationship: set-piece
+      description: Robe top of the robes of darkness set
+    - item_name: Robe bottom of darkness
+      slug: robe-bottom-of-darkness
+      relationship: set-piece
+      description: Robe bottom of the robes of darkness set
+    - item_name: Boots of darkness
+      slug: boots-of-darkness
+      relationship: set-piece
+      description: Boots of the robes of darkness set
+  about: "Gloves of darkness are a master clue reward (1/1,133) and part of the robes of darkness set. Provides +3 Magic attack and +3 Magic defence; aligned with Zaros."
+  market_strategy:
+    notes:
+      - "Master clue exclusive (1/1133)"
+      - "Set-piece demand drives long-term price"
+      - "GE limit 70 per 4 hours"
+  trading_tips:
+    - Stock during master clue events
+    - Full robes of darkness set commands a premium
+  history:
+    - date: "2016-07-06"
+      description: "Added as a Master Treasure Trail reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

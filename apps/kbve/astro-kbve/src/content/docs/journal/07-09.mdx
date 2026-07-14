@@ -9,11 +9,52 @@ description: |
   July 9th. NPC Engine
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 9,'
+    accent: every year.
+    lede: 'The July 9th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 8'
+          href: /journal/07-08/
+        - label: 'Jul 10 →'
+          href: /journal/07-10/
+    related:
+        - title: 'Previous · Jul 8'
+          copy: 'Step back a day to the July 8th log.'
+          href: /journal/07-08/
+          icon: calendar
+        - title: 'Next · Jul 10'
+          copy: 'Jump ahead to the July 10th log.'
+          href: /journal/07-10/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1718976142386-e9ebe34d3aee?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Nvidia 4T
 
@@ -30,7 +71,15 @@ import { Adsense } from '@/components/astropad';
 	In the future, I will try and add some hook systems so that the astro pad can directly hook into vite configuration.
 	This will be something that we add in the future, the goal being that we make this as modular as possible.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **TSLA**
 
@@ -136,13 +185,21 @@ These are the generic items that we can add into the category, I am just making 
 ### 2023
 - 1:24am - Just finished finished a quick league match and I figured it would make sense to go through more of the backlog grooming stage.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Genuine sincerity opens people's hearts, while manipulation causes them to close.
 > — <cite>Daisaku Ikeda</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Sunday Funday!
+
+</BentoProse>
+
+</BentoDoc>

@@ -12,9 +12,48 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Jar of smoke is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Jar of smoke is a rare drop from the Thermonuclear smoke devil (1/2000). Can be placed on the Achievement Gallery boss lair display. High alchemy value: 1 coin. Grand Exchange buy limit: 4 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: misc
+    tier: collectible
+  properties:
+    release_date: "2021-03-17"
+    tradeable: true
+    equipable: false
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.04
+  drop_table:
+    - source: Thermonuclear smoke devil
+      quantity: "1"
+      rarity: "1/2000"
+  relationships:
+    - item_name: Jar of dirt
+      relationship: variant
+    - item_name: Jar of stone
+      relationship: variant
+    - item_name: Jar of darkness
+      relationship: variant
+    - item_name: Jar of chemicals
+      relationship: variant
+    - item_name: Pet smoke devil
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "short_term: \"High-value collector item; price swings hard with raid/collection log meta interest.\""
+      - "long_term: \"Trophy-style item with a 4-per-4hr limit; long-term price is dictated by Thermy farming rates and Achievement Gallery demand.\""
+      - "risk_level: \"high\""
+  trading_tips:
+    - "Watch big collection-log events — prices often dip while supply spikes from Thermy farm streams."
+    - "Buy-limit of 4 means scaling requires multiple accounts or patient daily accumulation."
+  history:
+    - date: "2021-03-17"
+      description: "Released as a rare drop from the Thermonuclear smoke devil."
+    - date: "2024-09-25"
+      description: "Inventory icon updated as part of the Varlamore inventory revamp."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

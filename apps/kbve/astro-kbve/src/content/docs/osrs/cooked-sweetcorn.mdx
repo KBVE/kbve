@@ -1,6 +1,6 @@
 ---
 title: Cooked sweetcorn | OSRS Price Data
-description: "Cooked sweetcorn: Delicious cooked sweetcorn.. High alch: 5 GP, GE limit: 11,000."
+description: "Cooked sweetcorn: Delicious cooked sweetcorn. High alch: 5 GP, GE limit: 11,000."
 osrs:
   id: 5988
   name: Cooked sweetcorn
@@ -12,12 +12,70 @@ osrs:
   lowalch: 3
   highalch: 5
   limit: 11000
-  about: "Cooked sweetcorn is a members-only item in Old School RuneScape. High alchemy value: 5 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 28
+      xp: 104
+      materials:
+        - item_name: Sweetcorn
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  related_items:
+    - item_name: Sweetcorn
+      slug: sweetcorn
+      relationship: component
+      description: Raw form before cooking
+    - item_name: Sweetcorn (bowl)
+      slug: sweetcorn-bowl
+      relationship: product
+      description: Bowled cooked sweetcorn
+    - item_name: Tuna and corn
+      slug: tuna-and-corn
+      relationship: upgrade
+      description: Combined with chopped tuna at 67 Cooking
+    - item_name: Tuna potato
+      slug: tuna-potato
+      relationship: upgrade
+      description: Combined further at 68 Cooking
+  about: |-
+    Cooked sweetcorn heals 1 plus 10 percent of the player's total hitpoints rounded down. It is cooked from raw sweetcorn at 28 Cooking, stops burning at 53 Cooking, and is a key ingredient for higher tier dishes such as tuna and corn and tuna potato.
+  market_strategy:
+    notes:
+      - "Ingredient for tuna potato chain - a top farming dish"
+      - "Cooked from farmed sweetcorn at 28 Cooking, 104 xp"
+      - "Healing scales with player max HP making it niche food"
+  trading_tips:
+    - "Bulk price moves with tuna potato demand"
+    - "Sweetcorn farmers often process and sell cooked for fewer GE slots"
+  history:
+    - date: "2005-07-11"
+      description: "Added with the Farming skill release"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

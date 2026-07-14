@@ -12,9 +12,70 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik brown shirt is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: body
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Yrsa's Accoutrements
+      location: Rellekka
+      price: 325
+    - shop_name: Miscellanian Clothes Shop
+      location: Miscellania and Etceteria Dungeon
+      price: 250
+  related_items:
+    - name: Fremennik blue shirt
+      relationship: variant
+    - name: Fremennik red shirt
+      relationship: variant
+    - name: Fremennik beige shirt
+      relationship: variant
+    - name: Fremennik grey shirt
+      relationship: variant
+  about: "Fremennik brown shirt is a cosmetic body slot item sold by Yrsa's Accoutrements in Rellekka and the Miscellanian Clothes Shop. Part of the Fremennik clothing collection released with The Fremennik Trials quest."
+  history:
+    - date: "2004-11-02"
+      description: Released as part of The Fremennik Trials update.
+    - date: "2014-12-10"
+      description: Renamed from Fremennik shirt to Fremennik brown shirt.
+  properties:
+    release_date: "2004-11-02"
+    update: The Fremennik Trials
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

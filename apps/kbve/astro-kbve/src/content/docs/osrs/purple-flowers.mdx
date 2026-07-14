@@ -12,9 +12,75 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Purple flowers is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: flower
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Wield
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weight: 0.028
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Mithril seed
+      slug: mithril-seed
+      relationship: component
+      description: Planted to obtain coloured flowers including purple.
+    - item_name: Red flowers
+      slug: red-flowers
+      relationship: variant
+      description: Alternative mithril seed colour outcome.
+    - item_name: Blue flowers
+      slug: blue-flowers
+      relationship: variant
+      description: Alternative mithril seed colour outcome.
+    - item_name: Assorted flowers
+      slug: assorted-flowers
+      relationship: variant
+      description: Mixed colour mithril seed outcome.
+  about: "Purple flowers are produced when planting a mithril seed and choosing to pick the result. They have no combat purpose beyond being a joke wieldable, but are sometimes used in flower-poker mini-games and as gardener gifts."
+  market_strategy:
+    notes:
+      - "Volume is driven by mithril seed players RNG into purple variants."
+      - "Demand is largely cosmetic and tied to gambling/flower poker meta."
+      - "Limit of 150 caps any flip strategy at low risk and low reward."
+  trading_tips:
+    - Buy floor-priced lots only when gambling demand spikes around major events.
+    - High alch margin is irrelevant compared to nature rune cost.
+  history:
+    - date: "2004-03-29"
+      description: "Released with RuneScape 2 and the mithril seed flower mechanic."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Harralander tar | OSRS Price Data
-description: "Harralander tar: A dark, thick, foul-smelling, tar-like substance.. High alch: 1 GP, GE limit: 11,000."
+description: "Harralander tar is a Herblore secondary used in guam, harralander, and marrentill tar production. High alch: 1 GP, GE limit: 11,000."
 osrs:
   id: 10145
   name: Harralander tar
@@ -12,12 +12,73 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Harralander tar is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: herblore secondary
+    tier: low
+  properties:
+    release_date: "2005-08-30"
+    update: "Slayer Skill"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 26
+      xp: 72.5
+      materials:
+        - item_name: Harralander
+          quantity: 1
+        - item_name: Swamp tar
+          quantity: 15
+      tools: []
+      output_quantity: 15
+      notes: "Use a clean harralander on swamp tar; requires Slayer training and produces 15 tars per cast."
+  related_items:
+    - item_name: Guam tar
+      slug: guam-tar
+      relationship: variant
+      description: "Lower-level tar variant made from guam leaf."
+    - item_name: Marrentill tar
+      slug: marrentill-tar
+      relationship: variant
+      description: "Mid-tier tar variant made from marrentill."
+    - item_name: Swamp tar
+      slug: swamp-tar
+      relationship: component
+      description: "Base ingredient combined with the herb."
+    - item_name: Harralander
+      slug: harralander
+      relationship: component
+      description: "Clean harralander herb used in the cast."
+  about: "Harralander tar is a stackable Herblore secondary made by combining a clean harralander with 15 swamp tar at 26 Herblore for 72.5 xp. The tar fuels the Slayer dart spell from Marrentill tar onwards and is used as ammo for the iban blast and saradomin strike darts via the Magic combat spells, making it a steady throughput consumable for Slayer-based magic training."
+  market_strategy:
+    notes:
+      - "Bulk consumed by F2P/early-members Slayer mages using Magic Dart-class spells"
+      - "Supply is gated on swamp tar farming and herb prices"
+      - "High GE limit of 11,000 supports bulk flipping"
+      - "Margins are tight; volume play, not single-flip play"
+  trading_tips:
+    - "Compare harralander tar price vs raw harralander + swamp tar to spot crafting arbitrage"
+    - "Demand spikes around Slayer xp events when magic-dart methods get popular"
+    - "Watch swamp tar resupply windows for inventory restocks"
+  history:
+    - date: "2005-08-30"
+      description: "Released with the Slayer skill and the Magic Dart family of spells."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

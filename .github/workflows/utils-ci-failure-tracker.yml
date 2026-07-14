@@ -18,6 +18,10 @@ on:
             status:
                 required: true
                 type: string # "failure", "success", "cancelled", "skipped"
+            version:
+                required: false
+                type: string
+                default: ''
 
 jobs:
     track:
@@ -71,6 +75,7 @@ jobs:
                   fi
 
                   # Try to get log snippet — logs may not be available yet
+                  RAW_LOG=""
                   LOG_SNIPPET="See [run logs](${{ inputs.run_url }}) for details."
                   if [ -n "$JOB_ID" ]; then
                     RAW_LOG=$(gh api "repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
@@ -80,9 +85,16 @@ jobs:
                     fi
                   fi
 
+                  # Classify a likely cause from the logs so the issue states WHY, not just where.
+                  REASON=""
+                  if printf '%s' "${RAW_LOG}${LOG_SNIPPET}" | grep -qiE 'Forgejo LFS auth failed|Authentication required|Authorization error|info/lfs/objects/batch'; then
+                    REASON="🔑 Forgejo LFS authentication failed — FORGEJO_TOKEN is likely invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                  fi
+
                   # Write to file to avoid delimiter issues
                   echo "$LOG_SNIPPET" > /tmp/log_snippet.txt
                   echo "failed_step=${FAILED_STEP:-unknown}" >> "$GITHUB_OUTPUT"
+                  echo "reason=${REASON}" >> "$GITHUB_OUTPUT"
 
             - name: Create new failure issue
               if: inputs.status == 'failure' && steps.search.outputs.issue_number == ''
@@ -94,17 +106,32 @@ jobs:
                   RUN_ID: ${{ inputs.run_id }}
                   RUN_URL: ${{ inputs.run_url }}
                   FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
+                  REASON: ${{ steps.logs.outputs.reason }}
+                  VERSION: ${{ inputs.version }}
               run: |
                   set -euo pipefail
                   TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
                   LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
+                  VERSION_LINE=""
+                  VERSION_MARKER=""
+                  if [ -n "${VERSION:-}" ]; then
+                    VERSION_LINE="**Version:** ${VERSION}"
+                    VERSION_MARKER="<!-- ci-tracker:version=${VERSION} -->"
+                  fi
+                  REASON_LINE=""
+                  if [ -n "${REASON:-}" ]; then
+                    REASON_LINE="**Likely cause:** ${REASON}"
+                  fi
 
                   cat > /tmp/issue-body.md << ISSUEEOF
                   ## ${TITLE}
+                  ${VERSION_MARKER}
 
                   **Workflow:** ${WORKFLOW_NAME}
                   **Job:** ${JOB_NAME}
+                  ${VERSION_LINE}
                   **Failed step:** ${FAILED_STEP}
+                  ${REASON_LINE}
                   **Status:** Failing since ${TIMESTAMP}
                   **Consecutive failures:** 1
 
@@ -145,16 +172,28 @@ jobs:
                   RUN_ID: ${{ inputs.run_id }}
                   RUN_URL: ${{ inputs.run_url }}
                   FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
+                  REASON: ${{ steps.logs.outputs.reason }}
+                  VERSION: ${{ inputs.version }}
               run: |
                   set -euo pipefail
                   TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
                   LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
+                  VERSION_LINE=""
+                  if [ -n "${VERSION:-}" ]; then
+                    VERSION_LINE="- **Version:** ${VERSION}"
+                  fi
+                  REASON_LINE=""
+                  if [ -n "${REASON:-}" ]; then
+                    REASON_LINE="- **Likely cause:** ${REASON}"
+                  fi
 
                   cat > /tmp/comment-body.md << COMMENTEOF
                   ## Failure — ${TIMESTAMP}
 
                   - **Run:** [#${RUN_ID}](${RUN_URL})
                   - **Failed step:** ${FAILED_STEP}
+                  ${REASON_LINE}
+                  ${VERSION_LINE}
                   - **Ref:** ${{ github.ref }}
                   - **Trigger:** ${{ github.event_name }}
 
@@ -176,12 +215,17 @@ jobs:
                   ISSUE_NUMBER: ${{ steps.search.outputs.issue_number }}
                   RUN_ID: ${{ inputs.run_id }}
                   RUN_URL: ${{ inputs.run_url }}
+                  VERSION: ${{ inputs.version }}
               run: |
                   set -euo pipefail
                   TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  RESOLVE_TITLE="## Resolved — ${TIMESTAMP}"
+                  if [ -n "${VERSION:-}" ]; then
+                    RESOLVE_TITLE="## Resolved — shipped v${VERSION} — ${TIMESTAMP}"
+                  fi
 
                   cat > /tmp/resolve-body.md << RESOLVEEOF
-                  ## Resolved — ${TIMESTAMP}
+                  ${RESOLVE_TITLE}
 
                   - **Run:** [#${RUN_ID}](${RUN_URL})
                   - **Ref:** ${{ github.ref }}

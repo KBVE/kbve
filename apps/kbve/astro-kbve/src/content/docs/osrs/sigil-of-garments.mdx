@@ -12,9 +12,65 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of garments is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: high
+  passive_effects:
+    - name: Attune sigil slot
+      description: "Activating the sigil consumes it and unlocks the matching sigil effect on the player's sigil interface for the Deadman season."
+      trigger: on_use
+  drop_table:
+    sources:
+      - source: Deadman Mode loot key
+        quantity: "1"
+        rarity: Uncommon
+        notes: "Dropped from PK-claimed loot keys in Deadman seasonal worlds."
+      - source: Deadman Reward Shop
+        quantity: "1"
+        rarity: Always
+        notes: "Purchased from the Deadman Mode reward shop for Deadman points."
+  related_items:
+    - item_name: Sigil of the menacing mage
+      slug: sigil-of-the-menacing-mage
+      relationship: alternative
+      description: "Combat-focused Deadman sigil targeting Magic."
+    - item_name: Sigil of escaping
+      slug: sigil-of-escaping
+      relationship: alternative
+      description: "Mobility-focused Deadman sigil."
+    - item_name: Sigil of nature
+      slug: sigil-of-nature
+      relationship: alternative
+      description: "Skilling-focused Deadman sigil."
+  about: "Sigil of garments is a Deadman Mode sigil that, when activated, attunes itself to the player and unlocks a slot effect for the active Deadman season. Each sigil is single-use and consumed on attunement, and the unlock applies only within the seasonal Deadman world."
+  market_strategy:
+    notes:
+      - "Supply is bound to active Deadman seasons; off-season prices crater."
+      - "Demand spikes at season launch when players race to attune sigils."
+      - "Limit of 8 per 4 hours restricts large-scale flips."
+  trading_tips:
+    - "Buy off-season for next-season speculation; sell during season hype."
+    - "Compare against other Deadman sigils for relative season value."
+  history:
+    - date: "2023-08-30"
+      description: "Released with Deadman Mode: Reborn introducing the sigil system."
+  properties:
+    release_date: "2023-08-30"
+    update: "Deadman Mode: Reborn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Activate
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

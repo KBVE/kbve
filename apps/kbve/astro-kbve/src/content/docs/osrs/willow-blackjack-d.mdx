@@ -12,12 +12,93 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 125
-  about: "Willow blackjack(d) is a members-only item in Old School RuneScape. High alchemy value: 480 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "15 August 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: blackjack
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      defence: 20
+      thieving: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 8
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 8
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Martin Thwait's Lost and Found
+      location: Rogues' Den
+      price: 800
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Willow blackjack
+      slug: willow-blackjack
+      relationship: variant
+      description: Base willow blackjack
+    - item_name: Willow blackjack(o)
+      slug: willow-blackjack-o
+      relationship: variant
+      description: Offensive willow blackjack variant
+    - item_name: Oak blackjack(d)
+      slug: oak-blackjack-d
+      relationship: downgrade
+      description: Lower-tier defensive blackjack
+    - item_name: Maple blackjack(d)
+      slug: maple-blackjack-d
+      relationship: upgrade
+      description: Higher-tier defensive blackjack
+  about: "The willow blackjack(d) is the defensive variant of the willow blackjack, used in the Thieving minigame at Pollnivneach to knock out and pickpocket bandits. It requires 30 Thieving and 20 Defence to wield. The defensive variant lowers the chance of failed knockouts compared to the offensive variant, making it the safer choice for early blackjack training. Purchased from Martin Thwait's Lost and Found in the Rogues' Den."
+  market_strategy:
+    notes:
+      - "Rogues' Den shop floor at 800 coins"
+      - "Demand tied to Thieving training routes"
+      - "Low daily volume"
+      - "Stable price near shop value"
+  trading_tips:
+    - Buy when shop restocks during low-activity hours
+    - Resell during Thieving event weekends
+    - Compare with maple blackjack(d) upgrade timing
+  history:
+    - date: "15 August 2005"
+      description: "Item was added to the game alongside the blackjack thieving rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

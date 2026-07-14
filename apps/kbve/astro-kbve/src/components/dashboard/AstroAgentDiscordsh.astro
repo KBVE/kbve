@@ -1,7 +1,9 @@
 ---
-import ReactAgentDiscordsh from './ReactAgentDiscordsh';
-import ReactAgentBotConfig from './ReactAgentBotConfig';
-import ReactAgentSetupStatus from './ReactAgentSetupStatus';
+import ReactAgentDiscordsh from './agents/ReactAgentDiscordsh';
+import ReactAgentBotConfig from './agents/ReactAgentBotConfig';
+import ReactAgentSetupStatus from './agents/ReactAgentSetupStatus';
+import ReactAgentBotInstall from './agents/ReactAgentBotInstall';
+import ReactAgentEventQueue from './agents/ReactAgentEventQueue';
 ---
 
 <section
@@ -33,7 +35,9 @@ import ReactAgentSetupStatus from './ReactAgentSetupStatus';
 
 		<div class="agent-stack">
 			<ReactAgentSetupStatus client:only="react" />
+			<ReactAgentBotInstall client:only="react" />
 			<ReactAgentBotConfig client:only="react" />
+			<ReactAgentEventQueue client:only="react" />
 			<ReactAgentDiscordsh client:only="react" />
 		</div>
 	</div>

@@ -12,9 +12,63 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Air talisman is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: magical
+    tier: low
+  drop_table:
+    sources:
+      - source: Air Wizard
+        quantity: "1"
+        rarity: 1/20
+      - source: Dagannoth Prime
+        quantity: "25"
+        rarity: 7/128
+      - source: Abyssal creatures
+        quantity: "1"
+        rarity: Common
+      - source: Rock crabs
+        quantity: "1"
+        rarity: Uncommon
+  recipes:
+    - name: Air tiara
+      skill: Runecraft
+      level: 1
+      experience: 25
+      materials:
+        - item_name: Silver tiara
+          quantity: 1
+        - item_name: Air talisman
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Air tiara
+      relationship: product
+    - name: Air rune
+      relationship: alternative
+    - name: Elemental talisman
+      relationship: alternative
+  about: "Air talisman is a free-to-play runecrafting talisman used to enter the Air Altar. It can be combined with a silver tiara to permanently create an air tiara and is a secondary in combination runecrafting for dust, mist, and smoke runes."
+  history:
+    - date: "2004-03-29"
+      description: Released alongside RuneScape 2's launch.
+  properties:
+    release_date: "2004-03-29"
+    update: RuneScape 2 launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.015
+    options:
+      - Locate
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Mangrove Boat with Chest
+template: splash
 description: |
     Minecraft Mangrove Boat with Chest — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 827
     ref: mangrove_chest_boat
     slug: mangrove-chest-boat
+    content_rev: 1
     display_name: Mangrove Boat with Chest
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Mangrove Boat with Chest combines a mangrove boat with a chest occupying the passenger
+            seat, letting players ferry cargo across water while sailing. It is crafted by combining a
+            chest with a mangrove boat, and its inventory can be reached by sneaking and interacting or
+            while riding.
+        lore: |
+            A mangrove hull fitted with a lashed chest, built for hauling goods across open water.
+    faq:
+        - question: How do I craft a Mangrove Boat with Chest?
+          answer: |
+              Combine a chest with a mangrove boat in a crafting grid to produce the chest boat.
+        - question: How many passengers can ride in it?
+          answer: |
+              Only one entity can ride, since the chest occupies the seat that would normally hold a
+              second passenger.
+        - question: How do I access the chest's inventory?
+          answer: |
+              Sneak and interact with the boat, which works whether you are riding in it or standing
+              nearby.
+        - question: Do piglins react to Mangrove Boats with Chests?
+          answer: |
+              Yes, piglins become hostile toward players who open or break a chest boat, treating it like
+              other chest-opening actions they guard against.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

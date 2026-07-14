@@ -1,0 +1,330 @@
+syntax = "proto3";
+package jobboard;
+
+message MediaAttachment {
+  string url = 1;
+  int32 media_type = 2;
+  string caption = 3;
+}
+
+enum Capability {
+  CAP_NONE   = 0;
+  CAP_TAKER  = 1;
+  CAP_POSTER = 2;
+  CAP_ADMIN  = 4;
+}
+
+enum GigStatus {
+  GIG_DRAFT          = 0;
+  GIG_PENDING_REVIEW = 1;
+  GIG_OPEN           = 2;
+  GIG_FILLED         = 4;
+  GIG_CLOSED         = 8;
+  GIG_EXPIRED        = 16;
+}
+
+enum ApplicationStatus {
+  APP_SUBMITTED   = 0;
+  APP_SHORTLISTED = 1;
+  APP_ACCEPTED    = 2;
+  APP_DECLINED    = 3;
+  APP_WITHDRAWN   = 4;
+}
+
+enum EngagementStatus {
+  ENG_ACTIVE    = 0;
+  ENG_COMPLETED = 1;
+  ENG_CANCELLED = 2;
+}
+
+enum BudgetType {
+  BUDGET_UNSPECIFIED = 0;
+  BUDGET_FIXED       = 1;
+  BUDGET_RANGE       = 2;
+  BUDGET_HOURLY      = 3;
+}
+
+enum ReportTarget {
+  REPORT_TARGET_UNSPECIFIED = 0;
+  REPORT_TARGET_USER        = 1;
+  REPORT_TARGET_GIG         = 2;
+  REPORT_TARGET_MESSAGE     = 3;
+  REPORT_TARGET_REVIEW      = 4;
+}
+
+enum ReportStatus {
+  REPORT_OPEN      = 0;
+  REPORT_REVIEWING = 1;
+  REPORT_RESOLVED  = 2;
+  REPORT_DISMISSED = 3;
+}
+
+message Vertical {
+  uint64 id = 1;
+  string slug = 2;
+  string label = 3;
+  string description = 4;
+  int32  status = 5;
+  int32  sort_order = 6;
+}
+
+message Taxonomy {
+  uint64 id = 1;
+  uint64 vertical_id = 2;
+  int32  kind = 3;
+  string name = 4;
+  string label = 5;
+  int32  status = 6;
+}
+
+message MembershipApplication {
+  bytes  id = 1;
+  bytes  user_id = 2;
+  int32  requested_capabilities = 3;
+  repeated uint64 vertical_ids = 4;
+  string statement = 5;
+  repeated string portfolio_links = 6;
+  int32  status = 7;
+  bytes  reviewed_by = 8;
+  string reviewed_at = 9;
+  string review_notes = 10;
+  string created_at = 11;
+}
+
+message TalentProfile {
+  bytes  user_id = 1;
+  string headline = 2;
+  int32  years_experience = 3;
+  int32  availability = 4;
+  int64  rate_min = 5;
+  int64  rate_max = 6;
+  string currency = 7;
+  repeated uint64 vertical_ids = 8;
+  repeated uint64 discipline_ids = 9;
+  repeated uint64 tool_ids       = 10;
+  repeated uint64 skill_ids      = 11;
+  string updated_at = 12;
+}
+
+message ClientProfile {
+  bytes  user_id = 1;
+  string org_name = 2;
+  int32  company_size = 3;
+  string website = 4;
+  string about = 5;
+  repeated uint64 vertical_ids = 6;
+  string updated_at = 7;
+}
+
+message PortfolioItem {
+  bytes  id = 1;
+  bytes  user_id = 2;
+  uint64 vertical_id = 3;
+  string title = 4;
+  string description = 5;
+  string source = 6;
+  repeated MediaAttachment media = 7;
+  repeated uint64 tag_ids = 8;
+  int32  sort_order = 9;
+  string created_at = 10;
+}
+
+message Gig {
+  bytes  id = 1;
+  bytes  poster_id = 2;
+  uint64 vertical_id = 3;
+  string title = 4;
+  string summary = 5;
+  string description = 6;
+  repeated uint64 discipline_ids = 7;
+  repeated uint64 tool_ids       = 8;
+  repeated uint64 skill_ids      = 9;
+  BudgetType budget_type = 10;
+  int64  budget_min = 11;
+  int64  budget_max = 12;
+  string currency = 13;
+  string deadline = 14;
+  int32  location_pref = 15;
+  int32  status = 16;
+  string published_at = 17;
+  string updated_at = 18;
+  string created_at = 19;
+}
+
+message Application {
+  bytes  id = 1;
+  bytes  gig_id = 2;
+  bytes  applicant_id = 3;
+  string cover_message = 4;
+  int64  proposed_rate = 5;
+  BudgetType proposed_rate_type = 6;
+  repeated bytes portfolio_item_ids = 7;
+  int32  status = 8;
+  string created_at = 9;
+}
+
+message Engagement {
+  bytes  id = 1;
+  bytes  gig_id = 2;
+  bytes  poster_id = 3;
+  bytes  taker_id = 4;
+  int32  status = 5;
+  string started_at = 6;
+  string completed_at = 7;
+}
+
+message Review {
+  bytes  id = 1;
+  bytes  engagement_id = 2;
+  bytes  reviewer_id = 3;
+  bytes  reviewee_id = 4;
+  int32  rating = 5;
+  string body = 6;
+  string created_at = 7;
+}
+
+message Conversation {
+  bytes  id = 1;
+  bytes  gig_id = 2;
+  string created_at = 3;
+}
+
+message ConversationParticipant {
+  bytes  id = 1;
+  bytes  conversation_id = 2;
+  bytes  user_id = 3;
+  string joined_at = 4;
+  string left_at = 5;
+  bytes  last_read_message_id = 6;
+}
+
+message Message {
+  bytes  id = 1;
+  bytes  conversation_id = 2;
+  bytes  sender_participant_id = 3;
+  string body = 4;
+  repeated MediaAttachment attachments = 5;
+  string created_at = 6;
+}
+
+message Notification {
+  bytes  id = 1;
+  bytes  user_id = 2;
+  int32  kind = 3;
+  bytes  payload = 4;
+  string read_at = 5;
+  string created_at = 6;
+}
+
+message Report {
+  bytes  id = 1;
+  bytes  reporter_id = 2;
+  ReportTarget target_kind = 3;
+  string target_id = 4;
+  string reason = 5;
+  ReportStatus status = 6;
+  string created_at = 7;
+}
+
+message AuditLog {
+  bytes  id = 1;
+  bytes  actor_id = 2;
+  string action = 3;
+  int32  target_kind = 4;
+  string target_id = 5;
+  bytes  detail = 6;
+  string created_at = 7;
+}
+
+message ById     { bytes  id = 1; }
+message ByLookup { uint64 id = 1; }
+message ByUser   { bytes  user_id = 1; }
+message Ack      { bool success = 1; string message = 2; }
+
+// Membership API envelope: string ids so one message serves REST JSON + gRPC.
+message ProfileLink {
+  string kind = 1; // github/linkedin/website/x/itch/artstation/other
+  string url  = 2;
+}
+
+message ProfileDraft {
+  optional string headline         = 1;
+  optional string bio              = 2;
+  optional int32  years_experience = 3;
+  optional string location         = 4;
+  repeated ProfileLink links       = 5;
+  repeated uint64 discipline_ids   = 6;
+}
+
+message MembershipApplicationView {
+  string id                      = 1; // ULID
+  int32  requested_capabilities  = 2; // Capability bitmask
+  string statement               = 3;
+  repeated string portfolio_links = 4;
+  int32  status                  = 5; // 0=pending, 1=approved, 2=rejected
+  string review_notes            = 6;
+  string created_at              = 7;
+  optional string reviewed_at    = 8;
+  repeated uint64 vertical_ids   = 9;
+  ProfileDraft profile_draft     = 10;
+}
+
+message AdminApplicationView {
+  string id                       = 1;
+  string user_id                  = 2;
+  optional string email           = 3;
+  int32  requested_capabilities   = 4;
+  string statement                = 5;
+  repeated string portfolio_links = 6;
+  int32  status                   = 7;
+  string created_at               = 8;
+  repeated uint64 vertical_ids    = 9;
+  ProfileDraft profile_draft      = 10;
+}
+
+message SubmitApplicationInput {
+  int32  requested_capabilities  = 1;
+  repeated uint64 vertical_ids   = 2;
+  string statement               = 3;
+  repeated string portfolio_links = 4;
+  ProfileDraft profile_draft     = 5;
+}
+
+message DecisionInput {
+  bool   approve            = 1;
+  int32  grant_capabilities = 2;
+  string notes              = 3;
+}
+
+message DecideMembershipRequest {
+  string application_id = 1; // ULID
+  DecisionInput input   = 2;
+}
+
+message GetMembershipRequest {} // identity comes from the request metadata
+
+// Served by the jobboard gRPC server (grpc.rs), sharing the membership/vetting
+// logic with the REST handlers. Identity is the `authorization: Bearer <jwt>`
+// request metadata — the same Supabase token REST uses.
+service MembershipService {
+  rpc SubmitMembership (SubmitApplicationInput) returns (MembershipApplicationView);
+  rpc DecideMembership (DecideMembershipRequest) returns (Ack);
+  rpc GetMyMembership  (GetMembershipRequest) returns (MembershipApplicationView);
+}
+
+service JobBoardRpc {
+  rpc CreateVertical (Vertical) returns (Ack);
+  rpc UpsertTaxonomy (Taxonomy) returns (Ack);
+  rpc GetTalentProfile (ByUser) returns (TalentProfile);
+  rpc UpsertTalentProfile (TalentProfile) returns (Ack);
+  rpc UpsertPortfolioItem (PortfolioItem) returns (Ack);
+  rpc CreateGig (Gig) returns (Ack);
+  rpc GetGig (ById) returns (Gig);
+  rpc CloseGig (ById) returns (Ack);
+  rpc ApplyToGig (Application) returns (Ack);
+  rpc ReviewGigApplication (Application) returns (Ack);
+  rpc AcceptApplication (ById) returns (Engagement);
+  rpc CompleteEngagement (ById) returns (Ack);
+  rpc SubmitReview (Review) returns (Ack);
+  rpc SendMessage (Message) returns (Ack);
+}

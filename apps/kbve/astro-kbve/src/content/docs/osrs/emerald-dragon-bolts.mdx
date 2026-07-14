@@ -1,6 +1,6 @@
 ---
 title: Emerald dragon bolts | OSRS Price Data
-description: "Emerald dragon bolts: Dragon crossbow bolts, tipped with emerald.. High alch: 480 GP, GE limit: 11,000."
+description: "Emerald dragon bolts: Dragon crossbow bolts, tipped with emerald. High alch: 480 GP, GE limit: 11,000."
 osrs:
   id: 21965
   name: Emerald dragon bolts
@@ -12,9 +12,93 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 11000
-  about: "Emerald dragon bolts is a members-only item in Old School RuneScape. High alchemy value: 480 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragon-bolt
+    tier: high
+  equipment:
+    slot: ammo
+    weapon_type: crossbow
+    weight: 0
+    requirements:
+      ranged: 64
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 122
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - product: Emerald dragon bolts
+      product_id: 21965
+      skill: Fletching
+      level: 84
+      experience: 5.5
+      materials:
+        - item_id: 21905
+          item_name: Dragon bolts
+          quantity: 1
+        - item_id: 9192
+          item_name: Emerald bolt tips
+          quantity: 1
+      tools: []
+      notes: "Use emerald bolt tips on dragon bolts; xp granted is per bolt."
+  related_items:
+    - item_id: 21905
+      item_name: Dragon bolts
+      slug: dragon-bolts
+      relationship: component
+      description: Base unenchanted dragon crossbow bolts.
+    - item_id: 9192
+      item_name: Emerald bolt tips
+      slug: emerald-bolt-tips
+      relationship: component
+      description: Emerald tip attached to the bolt.
+    - item_id: 21967
+      item_name: Emerald dragon bolts (e)
+      slug: emerald-dragon-bolts-e
+      relationship: upgrade
+      description: Enchanted variant unlocking the Magical Poison proc.
+  about: "Emerald dragon bolts are 64 Ranged crossbow ammunition that fletchers can tip and the Magic skill can enchant into the proc-laden (e) version."
+  market_strategy:
+    notes:
+      - Demand follows enchant-and-flip Magic XP cycles.
+      - Buy limit of 11,000 supports large daily flips when emerald tips dip.
+  trading_tips:
+    - Track emerald bolt tip price against the enchanted variant for arbitrage.
+    - Bulk produce at GE price floor during Fletching grinds.
+  history:
+    - date: "2018-01-04"
+      description: Added to the game with the Dragon Slayer II update.
+  properties:
+    release_date: "2018-01-04"
+    update: "Dragon Slayer II"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,72 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Cemetery teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-05-12"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: ["Break", "Configure"]
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 71
+      xp: 82
+      materials:
+        - item_name: "Law rune"
+          quantity: 1
+        - item_name: "Soul rune"
+          quantity: 1
+        - item_name: "Blood rune"
+          quantity: 1
+        - item_name: "Dark essence block"
+          quantity: 1
+      tools: ["Arceuus lectern"]
+      output_quantity: 1
+  related_items:
+    - item_name: "Dark essence block"
+      slug: "dark-essence-block"
+      relationship: "component"
+      description: "Arceuus essence input - bottleneck material for tablet creation."
+    - item_name: "Law rune"
+      slug: "law-rune"
+      relationship: "component"
+      description: "Standard teleport rune required for the tablet."
+    - item_name: "Soul rune"
+      slug: "soul-rune"
+      relationship: "component"
+      description: "Arceuus rune component of the teleport spell."
+    - item_name: "Blood rune"
+      slug: "blood-rune"
+      relationship: "component"
+      description: "Arceuus rune component of the teleport spell."
+    - item_name: "Barrows teleport (tablet)"
+      slug: "barrows-teleport-tablet"
+      relationship: "alternative"
+      description: "Other Arceuus lectern teleport tablet for Wilderness/Barrows access."
+  about: "The Cemetery teleport (tablet) is an Arceuus Magic tablet that drops the user at The Forgotten Cemetery in level 31 Wilderness. Created at the Arceuus lectern at 71 Magic for 82 XP using one Law, Soul, and Blood rune plus a Dark essence block. Released May 12, 2016 with the Arceuus spellbook. A 2020 update added a configurable safety warning before breaking it."
+  market_strategy:
+    notes:
+      - "Stackable, low-weight teleport - solid daily-driver for clue/PK trips."
+      - "Tablet creation arbitrage: ~2.5k profit per tablet over component cost."
+      - "Demand tied to Forgotten Cemetery PvP activity and clue-step routes."
+      - "10,000 buy limit makes this easy to flip in bulk."
+  trading_tips:
+    - "Buy soul/blood/law runes + dark essence blocks during dumps to feed tablet creation."
+    - "Sell tablets in bulk during Wilderness PvP events for premium pricing."
+    - "Track wilderness rejuvenation updates - they can spike or crash demand overnight."
+  history:
+    - date: "2016-05-12"
+      description: "Released alongside the Arceuus spellbook lectern."
+    - date: "2020-09-09"
+      description: "Added a Configure right-click option to enable a Wilderness-teleport confirmation warning."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,80 @@ osrs:
   lowalch: 14080
   highalch: 21120
   limit: 70
-  about: "Rune helm (h4) is a free-to-play item in Old School RuneScape. High alchemy value: 21,120 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: mid-high
+  equipment:
+    slot: head
+    weapon_type: null
+    weight: 2.721
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 30
+      slash: 32
+      crush: 27
+      magic: -1
+      ranged: 30
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+  related_items:
+    - name: Rune helm (h1)
+      relationship: variant
+    - name: Rune helm (h2)
+      relationship: variant
+    - name: Rune helm (h3)
+      relationship: variant
+    - name: Rune helm (h5)
+      relationship: variant
+    - name: Rune full helm
+      relationship: alternative
+  about: "Rune helm (h4) is a free-to-play heraldic rune helmet in Old School RuneScape. High alchemy value: 21,120 coins. Grand Exchange buy limit: 70 per 4 hours."
+  market_strategy:
+    notes:
+      - Obtained from Hard and Elite Treasure Trail rewards.
+      - Shares identical defence bonuses with the standard rune full helm.
+      - Daily volume is modest; cosmetic demand drives price more than combat use.
+  trading_tips:
+    - High-alch profit can be marginal depending on nature rune cost vs GE price.
+    - Heraldic variants trade at similar prices - check all five h-variants for the best buy.
+  history:
+    - date: "2006-12-05"
+      description: Item released as part of the Treasure Trails update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: Treasure Trails Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

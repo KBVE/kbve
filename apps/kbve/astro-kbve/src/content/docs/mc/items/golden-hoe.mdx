@@ -1,5 +1,6 @@
 ---
 title: Golden Hoe
+template: splash
 description: |
     Minecraft Golden Hoe — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 872
     ref: golden_hoe
     slug: golden-hoe
+    content_rev: 1
     display_name: Golden Hoe
     category: tool
     rarity: common
@@ -35,6 +37,33 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The golden hoe is a farming tool crafted from 2 gold ingots and 2 sticks,
+            used to till dirt, grass, and dirt paths into farmland. It has the highest
+            mining efficiency of any hoe (12) and the highest enchantability (22), but
+            only 32 durability in Java Edition, trading longevity for speed.
+        lore: |
+            Piglins are attracted to golden hoes and will inspect one on the ground for
+            6-8 seconds before collecting it, making it useful as a Nether distraction.
+    faq:
+        - question: Why use a golden hoe despite its low durability?
+          answer: |
+              Its mining efficiency of 12 is the highest of any hoe, making it ideal for
+              breaking plant-based blocks quickly, and its high enchantability suits
+              powerful enchantments like Mending.
+        - question: What blocks does a golden hoe break faster than other tools?
+          answer: |
+              Leaves, hay bales, and sculk-related blocks are mined significantly faster
+              with a hoe than with most other tool types.
+        - question: How can a damaged golden hoe be repaired?
+          answer: |
+              Combine two hoes in a crafting grid for a 5% durability bonus, or repair
+              one with gold ingots at an anvil, each restoring a portion of durability.
+        - question: What is the golden hoe useful for in the Nether?
+          answer: |
+              It attracts piglins, who will stop to inspect it before picking it up,
+              which can be used strategically as a distraction during Nether exploration.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

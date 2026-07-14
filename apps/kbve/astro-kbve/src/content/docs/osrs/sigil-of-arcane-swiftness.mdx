@@ -1,6 +1,6 @@
 ---
 title: Sigil of arcane swiftness | OSRS Price Data
-description: "Sigil of arcane swiftness: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP."
+description: "Sigil of arcane swiftness: A power enhancing sigil not yet attuned to you. High alch: 6,000 GP."
 osrs:
   id: 29679
   name: Sigil of arcane swiftness
@@ -12,9 +12,48 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Sigil of arcane swiftness is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Sigil of arcane swiftness is a members-only Deadman Mode sigil in Old School RuneScape that reduces magic weapon attack speed by one tick for weapons with a base speed above four."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: sigil
+    tier: rare
+    category: sigil
+  properties:
+    release_date: "2024-07-17"
+    weight: 0.1
+    tradeable: false
+    equipable: false
+    stackable: false
+    noteable: false
+    quest_item: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  relationships:
+    - item_name: Sigil of the swashbuckler
+      relationship: alternative
+      note: "Mutually exclusive with arcane swiftness — only one attack-speed sigil can be attuned at a time."
+    - item_name: Sigil of the gunslinger
+      relationship: alternative
+      note: "Mutually exclusive with arcane swiftness — only one attack-speed sigil can be attuned at a time."
+    - item_name: Deadman's skull
+      relationship: alternative
+      note: "Used to attune the sigil in Deadman Mode events."
+  market_strategy:
+    notes:
+      - "summary: \"Untradeable Deadman Mode reward; value tied to event participation rather than GE flow.\""
+      - "buy_strategy: \"Only available during Deadman Mode events from the skull shop or monster drops.\""
+      - "sell_strategy: \"Cannot be sold on the Grand Exchange — duplicates can be exchanged via Deadman's skull when supported.\""
+      - "volatility: \"none\""
+  trading_tips:
+    - "Untradeable on the main game economy outside of event drop-table windows."
+    - "Sigil slot is shared with arcane swiftness, swashbuckler, and gunslinger — only one may be attuned."
+    - "Sigil must be unattuned before it can be destroyed."
+  history:
+    - date: "2024-07-17"
+      description: "Sigil of arcane swiftness introduced with the Deadman Mode reward sigil system."
+  examine_variants:
+    - context: Inventory
+      text: "A power enhancing sigil not yet attuned to you."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

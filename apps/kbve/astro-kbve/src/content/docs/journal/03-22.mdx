@@ -9,16 +9,52 @@ description: |
     22nd of March. 0322. I am having a tough time with thinking about daily journal entries haha.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 22,'
+    accent: every year.
+    lede: 'The March 22nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 21'
+          href: /journal/03-21/
+        - label: 'Mar 23 →'
+          href: /journal/03-23/
+    related:
+        - title: 'Previous · Mar 21'
+          copy: 'Step back a day to the March 21st log.'
+          href: /journal/03-21/
+          icon: calendar
+        - title: 'Next · Mar 23'
+          copy: 'Jump ahead to the March 23rd log.'
+          href: /journal/03-23/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Github Rate Limit
 
@@ -27,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     The worse thing that could break our whole project is if github decides to rate limit.
     We got hit hard last time, hopefully we will not face the same problem in the future.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### n8n v1
 
@@ -46,8 +90,9 @@ import { Adsense } from '@/components/astropad';
     After finishing up the protobufs for redis, we can add lambda and a couple other B2B EDI integrations.
     My goal would be to expand out a decent library of protobufs that would be important for a MVP b2b application.
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### Discord
 
@@ -86,3 +131,6 @@ I am already mapping out a couple different type of components that we could use
 
 A part of me feels that it might be a bit overkill because it would make customization a bit more rough, so we shall see how we want to move forward with it.
 
+</BentoProse>
+
+</BentoDoc>

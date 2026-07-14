@@ -1,5 +1,6 @@
 ---
 title: Sugar
+template: splash
 description: |
     Minecraft Sugar — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1022
     ref: sugar
     slug: sugar
+    content_rev: 1
     display_name: Sugar
     category: brewing
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Sugar is a common food and brewing ingredient made from sugar cane or honey bottles. It is
+            required for crafting foods like cake and pumpkin pie, and for brewing Mundane Potions and
+            Potions of Swiftness, making it a staple of both the kitchen and the brewing stand.
+        lore: |
+            This simple crystalline substance fuels both culinary creations and magical brews, extracted from the sweet stalks of sugar cane or distilled from golden honey.
+    faq:
+        - question: How do I make sugar?
+          answer: |
+              Sugar can be crafted from 1 sugar cane at a crafting table, or produced by processing a
+              honey bottle into 3 sugar. Witches may also drop sugar when defeated.
+        - question: What can I craft with sugar?
+          answer: |
+              Sugar is essential for making cake (with milk, eggs, and wheat), pumpkin pie (with pumpkin
+              and egg), and fermented spider eyes (with brown mushroom and spider eye).
+        - question: Can sugar be used for brewing potions?
+          answer: |
+              Yes. Sugar can be brewed in a water bottle to create a Mundane Potion, or in an Awkward
+              Potion to create a Potion of Swiftness, which grants a temporary speed boost.
+        - question: Are there other uses for sugar?
+          answer: |
+              Sugar can be fed to horses to heal 1 HP, accelerate growth by 30 seconds, and increase
+              taming probability by 3%.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

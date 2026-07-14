@@ -12,9 +12,77 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Greenman mask is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid
+  equipment:
+    slot: head
+    weight: 0.1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Rummaging Vale offerings (Vale Totems minigame)"
+        quantity: "1"
+        rarity: "1/500"
+  shops:
+    - shop_name: "Vale Research Exchange"
+      currency: "Research points"
+      cost: 500
+      stock: 1
+  related_items:
+    - name: Greenman statue
+      relationship: product
+    - name: Greenman carving
+      relationship: product
+  about: "Greenman mask is a members-only cosmetic head slot item in Old School RuneScape. High alchemy value: 1 coin. Grand Exchange buy limit: 4 per 4 hours."
+  market_strategy:
+    notes:
+      - "Dropped at 1/500 from rummaging Vale offerings in the Vale Totems minigame, or bought for 500 research points from the Vale Research Exchange."
+      - "Six style variants unlocked by applying 300 tree leaves each (normal, oak, willow, maple, yew, magic) for 20 Fletching xp per unlock."
+      - "Stored in the magic wardrobe of a costume room, freeing bank space for collectors."
+  trading_tips:
+    - "Supply is rate-gated; expect price volatility tied to Vale Totems popularity."
+    - "Buy limit of 4 per 4 hours makes large flips slow but stable."
+    - "Demand from cosmetic collectors and POH fletchers wanting greenman statues."
+  history:
+    - date: "2025-07-23"
+      description: "Released as part of the Varlamore: The Final Dawn update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-07-23"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Change-style
+      - Destroy
+    worn_options:
+      - Change-style
+      - Remove
+    alchable: false
+    destroy: "Destroy"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

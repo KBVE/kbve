@@ -1,0 +1,81 @@
+---
+interface Props {
+	image?: string;
+	opacity?: number;
+}
+
+const {
+	image = 'https://images.unsplash.com/photo-1714334544493-8b25805a96e3?q=80&w=2904&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+	opacity = 0.3,
+} = Astro.props;
+---
+
+<div
+	class="bento-backdrop"
+	style={`--backdrop-image: url('${image}'); --backdrop-opacity: ${opacity}`}>
+	<div class="bento-backdrop__media" aria-hidden="true">
+		<div class="bento-backdrop__bg"></div>
+	</div>
+	<div class="bento-backdrop__content">
+		<slot />
+	</div>
+</div>
+
+<style>
+	.bento-backdrop {
+		position: relative;
+		background-color: var(--sl-color-black);
+	}
+
+	.bento-backdrop__media {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+	}
+
+	.bento-backdrop__bg {
+		position: sticky;
+		top: 0;
+		height: 100vh;
+	}
+
+	.bento-backdrop__bg::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: var(--backdrop-image);
+		background-size: cover;
+		background-position: center;
+		opacity: var(--backdrop-opacity, 0.3);
+		filter: saturate(0.75) brightness(0.65) contrast(1.05);
+	}
+
+	.bento-backdrop__bg::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(
+				ellipse at center,
+				transparent 25%,
+				color-mix(in srgb, var(--sl-color-black) 75%, transparent) 100%
+			),
+			linear-gradient(
+				to bottom,
+				color-mix(in srgb, var(--sl-color-black) 65%, transparent) 0%,
+				transparent 18%,
+				transparent 82%,
+				color-mix(in srgb, var(--sl-color-black) 65%, transparent) 100%
+			);
+	}
+
+	.bento-backdrop__content {
+		position: relative;
+		z-index: 1;
+	}
+
+	.bento-backdrop__content :global(.bento-section) {
+		background-color: transparent;
+	}
+</style>

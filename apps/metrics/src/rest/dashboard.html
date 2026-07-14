@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KBVE Metrics — Errors</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="https://kbve.com/favicon.ico" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { darkMode: "class" };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+    <div class="mx-auto max-w-6xl px-6 py-10">
+      <header class="flex flex-wrap items-center gap-3">
+        <a href="/" class="text-sm text-slate-400 hover:text-slate-200">← home</a>
+        <h1 class="text-lg font-semibold tracking-tight">Error Groups</h1>
+        <div class="ml-auto flex items-center gap-2">
+          <input
+            id="project"
+            placeholder="project filter (optional)"
+            class="w-44 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm outline-none focus:border-emerald-500"
+          />
+          <button
+            id="refresh"
+            class="rounded-lg bg-emerald-500/15 px-3 py-1.5 text-sm font-medium text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-500/25"
+          >
+            Load
+          </button>
+        </div>
+      </header>
+
+      <div id="tokenbar" class="mt-5 flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+        <span class="text-xs text-slate-400">Staff JWT</span>
+        <input
+          id="token"
+          type="password"
+          placeholder="paste supabase access token"
+          class="flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm outline-none focus:border-emerald-500"
+        />
+        <label class="flex items-center gap-1 text-xs text-slate-400">
+          <input id="remember" type="checkbox" class="accent-emerald-500" /> remember
+        </label>
+      </div>
+
+      <p id="msg" class="mt-4 text-sm text-slate-400"></p>
+
+      <div class="mt-4 overflow-hidden rounded-xl border border-slate-800">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-900/70 text-xs uppercase tracking-wide text-slate-400">
+            <tr>
+              <th class="px-4 py-3">Project</th>
+              <th class="px-4 py-3">Type</th>
+              <th class="px-4 py-3">Message</th>
+              <th class="px-4 py-3 text-right">Events</th>
+              <th class="px-4 py-3 text-right">Sessions</th>
+              <th class="px-4 py-3">Last seen</th>
+            </tr>
+          </thead>
+          <tbody id="rows" class="divide-y divide-slate-800/70"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const KEY = "kbve_metrics_token";
+      const saved = localStorage.getItem(KEY);
+      if (saved) {
+        $("token").value = saved;
+        $("remember").checked = true;
+      }
+
+      function esc(s) {
+        return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+        }[c]));
+      }
+
+      async function load() {
+        const token = $("token").value.trim();
+        if (!token) {
+          $("msg").textContent = "Paste a staff JWT to load error groups.";
+          return;
+        }
+        if ($("remember").checked) localStorage.setItem(KEY, token);
+        else localStorage.removeItem(KEY);
+
+        const project = $("project").value.trim();
+        const qs = new URLSearchParams({ limit: "100" });
+        if (project) qs.set("project", project);
+        $("msg").textContent = "Loading…";
+        try {
+          const res = await fetch("/api/v1/groups?" + qs.toString(), {
+            headers: { authorization: "Bearer " + token },
+          });
+          if (res.status === 401) return fail("Unauthorized — token invalid or expired.");
+          if (res.status === 403) return fail("Forbidden — account is not staff.");
+          if (!res.ok) return fail("Query failed (" + res.status + ").");
+          const data = await res.json();
+          render(data.groups || []);
+        } catch (e) {
+          fail("Network error.");
+        }
+      }
+
+      function fail(m) {
+        $("msg").textContent = m;
+        $("rows").innerHTML = "";
+      }
+
+      function render(groups) {
+        $("msg").textContent = groups.length
+          ? groups.length + " group(s)"
+          : "No error groups.";
+        $("rows").innerHTML = groups
+          .map(
+            (g) => `
+          <tr class="hover:bg-slate-900/40">
+            <td class="px-4 py-3 font-medium text-slate-200">${esc(g.project)}</td>
+            <td class="px-4 py-3 text-rose-300">${esc(g.error_type) || "—"}</td>
+            <td class="px-4 py-3 max-w-md truncate text-slate-300" title="${esc(g.sample_message)}">${esc(g.sample_message)}</td>
+            <td class="px-4 py-3 text-right tabular-nums">${esc(g.events)}</td>
+            <td class="px-4 py-3 text-right tabular-nums">${esc(g.sessions)}</td>
+            <td class="px-4 py-3 text-slate-400">${esc(g.last_seen)}</td>
+          </tr>`,
+          )
+          .join("");
+      }
+
+      $("refresh").addEventListener("click", load);
+      $("token").addEventListener("keydown", (e) => e.key === "Enter" && load());
+      $("project").addEventListener("keydown", (e) => e.key === "Enter" && load());
+      if (saved) load();
+    </script>
+  </body>
+</html>

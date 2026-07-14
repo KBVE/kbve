@@ -12,50 +12,95 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 18000
+  material:
+    type: oak
+    tier: low
   equipment:
     slot: 2h
-    type: longbow
-    attack_style: ranged
+    weapon_type: bow
     attack_speed: 6
-  requirements:
-    ranged: 5
-  stats:
-    attack:
+    weight: 2.267
+    requirements:
+      ranged: 5
+    attack_bonus:
       ranged: 14
-    other:
+    defence_bonus: {}
+    other_bonus:
       ranged_strength: 0
-    range: 9
-  fletching:
-    level: 25
-    xp: 25
-    method: Oak longbow (u) + bowstring
+  recipes:
+    - materials:
+        - item_name: Oak longbow (u)
+          quantity: 1
+        - item_name: Bow string
+          quantity: 1
+      tools: []
+      skill: Fletching
+      level: 25
+      xp: 25
+      output_quantity: 1
   shops:
     - shop_name: Lowe's Archery Emporium
       location: Varrock
+      price: 160
+    - shop_name: Hickton's Archery Emporium
+      location: Catherby
+      price: 160
+    - shop_name: Brian's Archery Supplies
+      location: Rimmington
       price: 160
   related_items:
     - item_id: 847
       item_name: Willow longbow
       slug: willow-longbow
       relationship: upgrade
-      description: Higher tier longbow
+      description: Higher tier longbow.
     - item_id: 843
       item_name: Oak shortbow
       slug: oak-shortbow
       relationship: alternative
-      description: Faster attack speed
+      description: Faster attack speed at lower range.
     - item_id: 56
       item_name: Oak longbow (u)
       slug: oak-longbow-u
       relationship: component
-      description: Unstrung version
+      description: Unstrung version used in fletching.
     - item_id: 1777
       item_name: Bow string
       slug: bow-string
       relationship: component
-      description: Stringing material
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Stringing material required to finish the bow.
+  about: "Oak longbow is a low-tier F2P two-handed ranged weapon fletched at level 25 and wieldable from Ranged level 5."
+  market_strategy:
+    notes:
+      - "GE buy limit of 18,000 supports bulk fletching alch flips when high alch (96 gp) exceeds combined material cost."
+      - "Supply is healthy thanks to F2P fletchers training to willow longbows; price tends to sit just below high alch."
+      - "Demand spikes during fletching contracts and DMM/league events that push low-level ranged gear."
+  trading_tips:
+    - "Stockpile oak longbows (u) + bowstrings when both are below GE tax break-even, then string and flip."
+    - "Use it as a step-up wield for accounts farming Ranged from 5 toward willow longbow at level 30."
+    - "Avoid relying on shop prices; the GE is consistently cheaper than Lowe's 160 gp."
+  properties:
+    release_date: "2002-03-25"
+    update: "RuneScape: Members beta"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2002-03-25"
+      description: "Released alongside the original Fletching skill content as a step in the F2P longbow progression."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

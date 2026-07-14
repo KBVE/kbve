@@ -9,26 +9,75 @@ description: |
     Daily Log for May 2nd of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 2,'
+    accent: every year.
+    lede: 'The May 2nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#quote'
+          primary: true
+        - label: '← May 1'
+          href: /journal/05-01/
+        - label: 'May 3 →'
+          href: /journal/05-03/
+    related:
+        - title: 'Previous · May 1'
+          copy: 'Step back a day to the May 1st log.'
+          href: /journal/05-01/
+          icon: calendar
+        - title: 'Next · May 3'
+          copy: 'Jump ahead to the May 3rd log.'
+          href: /journal/05-03/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1679848148238-5ebc18399015?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Quote
+<BentoProse id="quote" heading="Quote">
 
 > You give before you get.
 > — <cite>Napoleon Hill</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [X] Get AstroJS -> Flutter SAPI Working.
 
 ---
 
-## 2026
+</BentoProse>
+
+<BentoProse id="2026" heading="2026">
 
 ### Argo Syncs for Unity Cache
 
@@ -58,8 +107,9 @@ import { Adsense } from '@/components/astropad';
     I am a bit surprised that we have these issues, I figured we would have solved them by now.
     One of the other issues is that our self hosted image did not have any e2e tests, which caused it to automatically fail.
 
+</BentoProse>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### WeBinaryBytes
 
@@ -93,8 +143,9 @@ JediEnvelope
     The modular design should allow us to easily add new services and features without breaking the existing code.
     Hmm, okay, I think we now have a solid plan for the v0.2 release of the jedi crate.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **API**
 
@@ -117,9 +168,15 @@ Basically have the tool located in multiple locations, with `/tools/` giving mor
 
 Expanding out the music section is also in the works, how I will go about doing that is whole quest in itself.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 -   I spent a sold amount of time getting the hang of Flutter again. The amount of times I have seen the word widget has driven me insane.
 -   Morning ? Mid : Spent some time walking around a small park and finally had a `frankie` and it was okay, not as hot as I had hoped but the flavor made up for it.
 -   Mid Day: Ezoic just fixed the email server issue! w00t! I can finally send emails without them going into spam xD!
 -   5:15pm - I am chilling at the local library and trying to integrate a client-side database inside of Flutter. Part of me enjoys the abusive relationship because it feels great to resolve the bugs but at the same time, it slowly feeds into my Sith viewpoint of Google. They really have an amazing framework but damn, they really know how to drop the ball in certain areas. If it were not for some of the cool people that I have met through my fluffy flutter adventures, I would have definitely just jump ship and head over to react native or just skip straight to Unity.
+
+</BentoProse>
+
+</BentoDoc>

@@ -12,55 +12,72 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 15
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: crafting material
+    tier: mid-high
+  properties:
+    release_date: "2019-01-10"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.226
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  drop_table:
+    sources:
+      - source: Alchemical Hydra
+        quantity: "1"
+        rarity: 1/513
+      - source: Colossal Hydra
+        quantity: "1"
+        rarity: 1/1001
+      - source: Hydra
+        quantity: "1"
+        rarity: 1/1001
   recipes:
-    - skill: null
+    - skill: crafting
       level: 0
+      xp: 0
       materials:
-        - item_id: 13116
-          item_name: Bonecrusher
+        - item_name: Bonecrusher
           quantity: 1
-        - item_id: 19720
-          item_name: Dragonbone necklace
+        - item_name: Dragonbone necklace
           quantity: 1
-        - item_id: 22988
-          item_name: Hydra tail
+        - item_name: Hydra tail
           quantity: 1
-      product: Bonecrusher necklace
-      product_id: 22986
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 22986
-      item_name: Bonecrusher necklace
+    - item_name: Bonecrusher necklace
       slug: bonecrusher-necklace
       relationship: product
       description: Created utility necklace
-    - item_id: 13116
-      item_name: Bonecrusher
+    - item_name: Bonecrusher
       slug: bonecrusher
       relationship: component
       description: Component for bonecrusher necklace
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 0.226 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Bonecrusher necklace | Bonecrusher + Dragonbone necklace + Hydra tail |
-
-    Reversible with confirmation.
+    - item_name: Dragonbone necklace
+      slug: dragonbone-necklace
+      relationship: component
+      description: Component for bonecrusher necklace
+  about: "The Hydra tail is a rare drop from Hydra, Alchemical Hydra and Colossal Hydra. It combines with a bonecrusher and a dragonbone necklace to create the bonecrusher necklace, a utility neckwear that grinds and prays bones automatically. The recipe is reversible with confirmation."
   market_strategy:
     notes:
-      - From any Hydra variant
-      - Creates utility necklace
-      - Cheaper than other hydra drops
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Dropped from any Hydra variant"
+      - "Creates the bonecrusher necklace utility item"
+      - "Cheaper than other Hydra-exclusive drops"
+  history:
+    - date: "2019-01-10"
+      description: Added with the Karuulm Slayer Dungeon and Alchemical Hydra release.
+    - date: "2019-01-24"
+      description: Item value decreased from 1,500,000 to 100,000 coins.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,10 +12,35 @@
 			"@kbve/astro/components/*": [
 				"../../../packages/npm/astro/src/components/*"
 			],
+			"@kbve/astro/seo": ["../../../packages/npm/astro/src/seo/index.ts"],
+			"@kbve/astro/seo/*": ["../../../packages/npm/astro/src/seo/*"],
 			"@kbve/astro/utils/*": ["../../../packages/npm/astro/src/utils/*"],
+			"@kbve/astro/data/*": ["../../../packages/npm/astro/src/data/*"],
 			"@kbve/devops": ["../../../packages/npm/devops/src/index.ts"],
+			"@kbve/devops/telemetry": [
+				"../../../packages/npm/devops/src/lib/telemetry/index.ts"
+			],
 			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"],
-			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"]
+			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"],
+			"@kbve/chat": ["../../../packages/npm/chat/src/index.ts"],
+			"@kbve/chat/*": ["../../../packages/npm/chat/src/*"],
+			"@kbve/proto": [
+				"../../../packages/data/codegen/generated/index.ts"
+			],
+			"@kbve/proto/*": ["../../../packages/data/codegen/generated/*"],
+			"@kbve/core": ["../../../packages/npm/core/src/index.ts"],
+			"@kbve/observ": ["../../../packages/npm/observ/src/index.ts"],
+			"@kbve/rn": ["../../../packages/npm/rn/src/index.web.ts"],
+			"@kbve/rn/ui": ["../../../packages/npm/rn/src/ui/index.web.ts"],
+			"@kbve/rn/ui/*": ["../../../packages/npm/rn/src/ui/*"],
+			"@kbve/rn/dash": ["../../../packages/npm/rn/src/dash/index.ts"],
+			"@kbve/rn/account": [
+				"../../../packages/npm/rn/src/account/index.ts"
+			],
+			"@kbve/rn-astro": ["../../../packages/npm/rn-astro/src/index.ts"],
+			"@kbve/rn-astro/integration": [
+				"../../../packages/npm/rn-astro/src/integration.ts"
+			]
 		}
 	}
 }

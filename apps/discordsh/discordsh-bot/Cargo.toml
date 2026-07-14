@@ -1,8 +1,9 @@
 [package]
 name = "discordsh-bot"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.17"
+version = "0.1.21"
 edition = "2024"
+rust-version.workspace = true
 publish = false
 
 [dependencies]
@@ -32,8 +33,8 @@ hex = "0.4.3"
 globset = "0.4.18"
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi" }
-kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen"] }
+jedi = { path = "../../../packages/rust/jedi", features = ["valkey"] }
+kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen", "kv"] }
 bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
 bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory", default-features = false }
 bevy_battle = { path = "../../../packages/rust/bevy/bevy_battle" }
@@ -49,7 +50,7 @@ bevy_pathfinder = { path = "../../../packages/rust/bevy/bevy_pathfinder", defaul
 bevy_db = { path = "../../../packages/rust/bevy/bevy_db", default-features = false }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.6", optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
 
 [dev-dependencies]
 serial_test = "3"

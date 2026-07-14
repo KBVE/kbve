@@ -1,5 +1,6 @@
 ---
 title: Block of Amethyst
+template: splash
 description: |
     Minecraft Block of Amethyst — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 937
     ref: amethyst_block
     slug: amethyst-block
+    content_rev: 1
     display_name: Block of Amethyst
     material: stone
     hardness: 1.5
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: amethyst_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - crystal_sound
+    about:
+        description: |
+            Block of Amethyst is a decorative purple stone crafted from
+            amethyst shards. It plays a distinct chime sound when walked
+            on or struck, and it relays vibrations to nearby sculk sensors.
+        lore: |
+            Amethyst was first conceptualized in 2009 and finally revealed
+            at Minecraft Live 2020, arriving in Java Edition 1.17 as part
+            of the Caves & Cliffs update.
+    uses:
+        - title: Sculk Sensor Signal Relay
+          ref: sculk_sensor
+          detail: |
+              Placed adjacent to a sculk sensor, it re-emits any vibration
+              the sensor detects as a new vibration, letting redstone
+              signals travel wirelessly around obstacles.
+        - title: Decorative Building Block
+          ref: amethyst_block
+          detail: |
+              Used purely for its purple crystalline appearance and unique
+              chime sound effects in builds.
+    found_in:
+        - location: Amethyst geodes
+          detail: Forms the inner wall layer of geodes, surrounded by calcite and smooth basalt, generating underground in any biome.
+        - location: Crafting table
+          detail: Four amethyst shards arranged in a square craft one block.
+    faq:
+        - question: What tool do I need to mine Block of Amethyst?
+          answer: |
+              Any pickaxe, starting from wooden. Mining without a pickaxe
+              yields no drop.
+        - question: Does it require Silk Touch to drop?
+          answer: |
+              No. Any pickaxe drops the block itself; Silk Touch has no
+              extra effect here.
+        - question: Where do I find Blocks of Amethyst?
+          answer: |
+              Inside amethyst geodes, which generate underground in every
+              biome, or by crafting four amethyst shards into one block.
+        - question: What is special about its sound and redstone behavior?
+          answer: |
+              It produces a unique crystal chime sound and, when placed
+              next to a sculk sensor, retransmits detected vibrations —
+              useful for extending sculk sensor range around corners.
     data_version: "1.21.5"
 ---
 

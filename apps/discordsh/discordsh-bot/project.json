@@ -25,7 +25,7 @@
 				},
 				"ci": {
 					"commands": [
-						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/discordsh-bot:latest --file apps/discordsh/discordsh-bot/Dockerfile .",
+						"bash scripts/ci/retry-transient.sh 'BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/discordsh-bot:latest --file apps/discordsh/discordsh-bot/Dockerfile .'",
 						"VERSION=$(grep '^version' apps/discordsh/discordsh-bot/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh-bot:latest kbve/discordsh-bot:$VERSION && echo \"Tagged kbve/discordsh-bot:$VERSION\""
 					]
 				}

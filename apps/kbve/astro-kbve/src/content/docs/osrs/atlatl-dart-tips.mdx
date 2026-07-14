@@ -12,9 +12,56 @@ osrs:
   lowalch: 98
   highalch: 147
   limit: 10000
-  about: "Atlatl dart tips is a members-only item in Old School RuneScape. High alchemy value: 147 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bone
+    tier: mid
+  properties:
+    release_date: "2025-07-23"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: fletching
+      level: 74
+      xp: 10
+      materials:
+        - item_name: Broken antler
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 100
+  related_items:
+    - item_name: Broken antler
+      slug: broken-antler
+      relationship: component
+      description: Source material chiseled into dart tips
+    - item_name: Atlatl dart
+      slug: atlatl-dart
+      relationship: product
+      description: Finished dart fletched from tip and shaft
+    - item_name: Headless atlatl dart
+      slug: headless-atlatl-dart
+      relationship: component
+      description: Shaft combined with tip to form atlatl dart
+  about: "Atlatl dart tips are crafted by chiseling broken antlers (dropped by Custodian stalkers) at 74 Fletching for 10 XP each, yielding 100 tips per antler. Combine 20 tips with 20 headless atlatl darts to fletch 20 finished atlatl darts and 190 Fletching XP."
+  market_strategy:
+    notes:
+      - "Supply tied to Custodian stalker drops"
+      - "High buy limit supports bulk fletching flips"
+      - "Profitability moves with broken antler and dart prices"
+  history:
+    - date: "2025-07-23"
+      description: Released alongside the atlatl weapon and Custodian stalker content.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

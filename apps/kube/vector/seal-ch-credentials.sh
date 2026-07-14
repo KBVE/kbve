@@ -41,7 +41,7 @@ fi
 
 # --- Get credentials ---
 
-CH_ENDPOINT="${CH_ENDPOINT:-http://chi-clickhouse-cluster-cluster-1-0.clickhouse.svc.cluster.local:8123}"
+CH_ENDPOINT="${CH_ENDPOINT:-http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123}"
 CH_USERNAME="${CH_USERNAME:-logflare}"
 
 if [[ -z "${CH_PASSWORD:-}" ]]; then

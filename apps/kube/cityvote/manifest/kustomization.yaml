@@ -6,3 +6,5 @@ resources:
     - cityvote-serviceaccount.yaml
     - cityvote-deployment.yaml
     - httproute.yaml
+    - certificate.yaml
+    - reference-grant.yaml

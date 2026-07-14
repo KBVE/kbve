@@ -1,6 +1,6 @@
 ---
 title: Guthix page 2 | OSRS Price Data
-description: "Guthix page 2: This seems to have been torn from a book.... High alch: 120 GP, GE limit: 5."
+description: "Guthix page 2: This seems to have been torn from a book... High alch: 120 GP, GE limit: 5."
 osrs:
   id: 3836
   name: Guthix page 2
@@ -12,43 +12,56 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 5
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: god_page
-    god: Guthix
-    page_number: 2
+    tier: mid
+  properties:
+    release_date: "2004-11-17"
     tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Easy/Medium/Hard/Elite
-        drop_rate: Varies by tier
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
   related_items:
-    - item_id: 3835
-      item_name: Guthix page 1
+    - item_name: Guthix page 1
       slug: guthix-page-1
       relationship: set-piece
-      description: Page 1 of 4
-    - item_id: 3837
-      item_name: Guthix page 3
+      description: Page 1 of 4 of the Guthix god book
+    - item_name: Guthix page 3
       slug: guthix-page-3
       relationship: set-piece
-      description: Page 3 of 4
-    - item_id: 3838
-      item_name: Guthix page 4
+      description: Page 3 of 4 of the Guthix god book
+    - item_name: Guthix page 4
       slug: guthix-page-4
       relationship: set-piece
-      description: Page 4 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Guthix |
-    | Page | 2 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Book of balance (Guthix god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Page 4 of 4 of the Guthix god book
+    - item_name: Book of balance
+      slug: book-of-balance
+      relationship: product
+      description: Completed Guthix god book holding all 4 pages
+  about: "Guthix page 2 is a members reward page from Treasure Trail clue scrolls. Combined with pages 1, 3, and 4 and a damaged book, it completes the Book of balance, an equippable shield used for preaching and blessing holy or unholy symbols."
+  market_strategy:
+    notes:
+      - "Supply driven entirely by clue scroll completion"
+      - "Buy-limit of 5 keeps page prices stable"
+      - "Demand spikes with new Prayer training metas"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

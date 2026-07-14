@@ -1,5 +1,6 @@
 ---
 title: Cobbled Deepslate Slab
+template: splash
 description: |
     Minecraft Cobbled Deepslate Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1062
     ref: cobbled_deepslate_slab
     slug: cobbled-deepslate-slab
+    content_rev: 1
     display_name: Cobbled Deepslate Slab
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobbled_deepslate_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Cobbled Deepslate Slab is a decorative half-block variant of
+            cobbled deepslate. It generates naturally within ancient city
+            structures deep in the Deep Dark biome and can also be crafted
+            or cut from cobbled deepslate or deepslate blocks.
+        lore: |
+            It debuted alongside cobbled deepslate as "Grimstone Slab" in
+            Java Edition 21w07a before being renamed and later added to
+            ancient city generation in 1.19.
+    uses:
+        - title: Chiseled Deepslate
+          ref: chiseled_deepslate
+          detail: |
+              Two cobbled deepslate slabs stacked in a crafting grid
+              produce chiseled deepslate, a common decorative building
+              block.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as part of ancient city structures in the deep dark.
+        - location: Crafting table or stonecutter
+          detail: |
+              Crafted from 3 cobbled deepslate (yields 6 slabs), or cut
+              from cobbled deepslate or deepslate at a stonecutter.
+    faq:
+        - question: What tool do I need to mine Cobbled Deepslate Slab?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining by hand or with a
+              non-pickaxe tool destroys the block without dropping it.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one slab regardless of
+              enchantments.
+        - question: Where do I find Cobbled Deepslate Slabs?
+          answer: |
+              They generate naturally inside ancient city structures, or
+              can be crafted from cobbled deepslate.
+        - question: Can it be waterlogged?
+          answer: |
+              Yes. Like other slabs, a cobbled deepslate slab placed in
+              water keeps the water source in its empty half.
     data_version: "1.21.5"
 ---
 

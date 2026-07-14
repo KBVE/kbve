@@ -12,84 +12,84 @@ osrs:
   lowalch: 22528
   highalch: 33792
   limit: 70
+  weight: 3.628
+  about: "Obsidian helmet is a TzHaar-crafted melee head slot item requiring 60 Defence. As part of the full obsidian set, it unlocks a 10% damage and accuracy bonus with obsidian weapons that stacks multiplicatively with the berserker necklace."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: obsidian
+    tier: tier_60
   equipment:
     slot: head
-    type: melee_armor
-    tradeable: true
-    weight: 3.628
+    weapon_type: none
+    attack_speed: 1
     requirements:
       defence: 60
-    stats:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 25
+      slash: 23
+      crush: 26
+      magic: 0
+      ranged: 24
+    other_bonus:
       strength: 3
-      stab_def: 25
-      slash_def: 23
-      crush_def: 26
-      ranged_def: 24
-  set_bonus:
-    set_name: Obsidian
-    requirement: Full set + Obsidian weapon
-    damage_bonus: +10%
-    accuracy_bonus: +10%
-    stacks_with:
-      - item_id: 11128
-        item_name: Berserker necklace
-        additional_bonus: +20%
-  shop:
-    npc: TzHaar-Hur-Zal
-    location: Mor Ul Rek
-    price: 84480
-    currency: Tokkul
-  market:
-    buy_limit: 70
-    price_estimate: 650000
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: TzHaar-Hur-Zal's Equipment Store
+      location: Mor Ul Rek
+      price: 84480
+      currency: Tokkul
+      stock: 5
+  drop_table:
+    - source: TzHaar-Ket
+      level: 221
+      quantity: "1"
+      rarity: "1/2000"
+      members: true
   related_items:
-    - item_id: 21301
-      item_name: Obsidian platebody
-      slug: obsidian-platebody
+    - item_name: Obsidian platebody
       relationship: set-piece
-      description: Body armor
-    - item_id: 21304
-      item_name: Obsidian platelegs
-      slug: obsidian-platelegs
+    - item_name: Obsidian platelegs
       relationship: set-piece
-      description: Leg armor
-    - item_id: 11128
-      item_name: Berserker necklace
-      slug: berserker-necklace
+    - item_name: Toktz-xil-ak
       relationship: alternative
-      description: Stacks with set
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Strength | +3 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +25 |
-    | Slash | +23 |
-    | Crush | +26 |
-    | Ranged | +24 |
-
-    Requirements: 60 Defence
-
-    Full Obsidian Set + Obsidian Weapon:
-    - +10% damage bonus
-    - +10% accuracy bonus
-    - Stacks with Berserker necklace (+20%)
-
-    Popular for:
-    - Training at TzHaar
-    - Budget melee training
-    - Fight Caves
-
-    Part of the Obsidian training set.
+    - item_name: Berserker necklace
+      relationship: alternative
   market_strategy:
     notes:
-      - Buy with Tokkul or GE
-      - Set bonus is powerful
-      - Good for training
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "summary: \"Mid-tier melee training helm with stable demand from TzHaar set users.\""
+      - "buy_strategy: \"Buy with Tokkul at Mor Ul Rek if you have Fight Cave farm cycles; otherwise GE bids near mid-price fill quickly.\""
+      - "sell_strategy: \"List close to GE price; volume of ~491/day keeps liquidity healthy.\""
+      - "risk_level: \"medium\""
+  trading_tips:
+    - "Buy Tokkul-priced helms before TzHaar visits to flip into the GE for profit."
+    - "Set bonus only fires with the full obsidian armour + obsidian weapon — sell as a kit for higher margin."
+    - "Pairs with berserker necklace for multiplicative damage; bundle deals in chats work well."
+  history:
+    - date: "2017-06-01"
+      description: "Released with The Inferno content update as part of the obsidian armour set."
+  properties:
+    release_date: "2017-06-01"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  special_attack:
+    has_special: false
+  charges:
+    has_charges: false
+  potion:
+    is_potion: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,64 @@ osrs:
   lowalch: 256
   highalch: 384
   limit: 11000
-  about: "Magic pyre logs is a members-only item in Old School RuneScape. High alchemy value: 384 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: pyre logs
+    tier: mid
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: firemaking
+      level: 1
+      xp: 20
+      materials:
+        - item_name: Magic logs
+          quantity: 1
+        - item_name: Sacred oil(4)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Magic logs
+      slug: magic-logs
+      relationship: component
+      description: Base log treated with sacred oil to produce pyre logs.
+    - item_name: Sacred oil(4)
+      slug: sacred-oil-4
+      relationship: component
+      description: Coats logs to produce pyre variants in Shades of Mort'ton.
+    - item_name: Yew pyre logs
+      slug: yew-pyre-logs
+      relationship: downgrade
+      description: Lower-tier pyre log used at lower Firemaking levels.
+  about: |-
+    Magic pyre logs are produced by using a Sacred oil(4) on Magic logs at level 1 Firemaking, granting 20 Firemaking XP per log treated. They are the highest-tier pyre log and are used in the Shades of Mort'ton minigame to cremate shade remains.
+
+    Lighting magic pyre logs on a funeral pyre requires level 80 Firemaking and grants 404.5 Firemaking XP per cremation (606.7 XP with Morytania Diary 4). Prayer XP varies based on the type of shade remains burned, ranging from 35.5 to 100 XP per cremation.
+  market_strategy:
+    notes:
+      - "Demand driven by Shades of Mort'ton and Firemaking XP routes"
+      - "Profit from making pyre logs is usually thin — check sacred oil dose price first"
+      - "11,000 buy limit supports high-volume Firemaking strategies"
+      - "Tied closely to magic log and sacred oil supply chains"
+  history:
+    - date: "2004-10-18"
+      description: "Added with the Shades of Mort'ton minigame."
+    - date: "2024-07-31"
+      description: "Sacred oil XP standardised to a flat 5 XP per dose used."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

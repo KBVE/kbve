@@ -1,6 +1,6 @@
 ---
 title: Celastrus seed | OSRS Price Data
-description: "Celastrus seed: For growing a Celastrus tree.. High alch: 324 GP, GE limit: 200."
+description: "Celastrus seed: For growing a Celastrus tree. High alch: 324 GP, GE limit: 200."
 osrs:
   id: 22869
   name: Celastrus seed
@@ -12,53 +12,62 @@ osrs:
   lowalch: 216
   highalch: 324
   limit: 200
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: seed
+    tier: high
+  properties:
+    release_date: "2019-01-10"
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
-    requirements:
-      farming: 85
-  farming:
-    patch_type: celastrus
-    location: Farming Guild
-    growth_time: 798
-    payment: 8 potato cactus
-    xp:
-      planting: 204
-      check_health: 14130
-    yield: Battlestaves
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Abyssal Sire
+        quantity: "1"
+        rarity: rare
+      - source: Lizardman shaman
+        quantity: "1"
+        rarity: rare
+      - source: Demonic gorilla
+        quantity: "1"
+        rarity: rare
+      - source: Hespori
+        quantity: "1"
+        rarity: common
+      - source: Bird nest
+        quantity: "1"
+        rarity: rare
+      - source: Brimstone chest
+        quantity: "1"
+        rarity: uncommon
+      - source: Larran's chest
+        quantity: "1"
+        rarity: uncommon
   related_items:
-    - item_id: 1391
-      item_name: Battlestaff
+    - item_name: Battlestaff
       slug: battlestaff
       relationship: product
-      description: Harvested product from celastrus tree
-    - item_id: 3139
-      item_name: Potato cactus
+      description: Crafted from celastrus bark, the harvest product
+    - item_name: Potato cactus
       slug: potato-cactus
       relationship: alternative
-      description: Protection payment for celastrus
+      description: Protection payment for celastrus patches
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 85 Farming |
-
-    Plant in the celastrus patch (Farming Guild only).
-
-    Growth Time: 13.3 hours
-
-    Payment: 8 potato cactus (optional protection)
-
-    XP: 204 (planting) + 14,130 (check-health)
-
-    Yield: Battlestaves (used for crafting)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The celastrus seed is planted in the celastrus patch at the Farming Guild, requiring 85 Farming. Growth takes around 13.3 hours. Optional protection costs 8 potato cactus. Planting grants 204 Farming XP and checking health grants 14,130 XP. Harvested celastrus bark is used to craft battlestaves.
+  history:
+    - date: "2019-01-10"
+      description: "Released with the Kebos Lowlands update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

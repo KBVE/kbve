@@ -6,13 +6,13 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Off-thread chunk biome generation; worker thread produces, main thread consumes via ConcurrentQueues.</summary>
-    // TODO(rust-ffi): swap the C# biome generator for a Rust-owned chunk store that returns {Biomes, PersistedUnits, PersistedBuildings, PersistedDecals, PersistedPickups} in one FFI call so chunk reload restores the full ghost state.
+
     public class ChunkGeneratorService : IDisposable
     {
         public struct ChunkResult
         {
             public int2 ChunkCoord;
-            public byte[] Biomes; // ChunkSize * ChunkSize, one byte per hex
+            public byte[] Biomes;
         }
 
         const int ChunkSize = 32;
@@ -55,7 +55,7 @@ namespace RareIcon
                 }
                 else
                 {
-                    Thread.Sleep(1); // yield when idle
+                    Thread.Sleep(1);
                 }
             }
         }

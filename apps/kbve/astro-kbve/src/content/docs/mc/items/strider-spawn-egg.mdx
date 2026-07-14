@@ -1,5 +1,6 @@
 ---
 title: Strider Spawn Egg
+template: splash
 description: |
     Minecraft Strider Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1129
     ref: strider_spawn_egg
     slug: strider-spawn-egg
+    content_rev: 1
     display_name: Strider Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Strider Spawn Egg instantly summons a Strider, a passive Nether creature that walks
+            across lava unharmed. Once saddled, a Strider can be ridden and steered with a warped fungus
+            on a stick, making it a reliable way to cross lava lakes.
+        lore: |
+            Striders were the community's answer to the age-old request for lava boats.
+    faq:
+        - question: Where do Striders spawned from the egg live?
+          answer: |
+              Striders naturally inhabit Nether biomes such as Soul Sand Valley, Warped Forest, Basalt
+              Deltas, Crimson Forest, and Nether Wastes, and can be placed in any of them with the egg.
+        - question: How do you ride and control a spawned Strider?
+          answer: |
+              Equip the Strider with a saddle, then hold a warped fungus on a stick while riding to steer
+              it; it automatically walks forward across lava at roughly 4.24 blocks per second.
+        - question: What happens if you take a spawned Strider out of lava?
+          answer: |
+              The Strider turns a dull purple color and shivers, moving much slower on land, though unlike
+              most Nether mobs it survives fine outside of lava.
+        - question: Can spawn-egg Striders breed?
+          answer: |
+              Yes, feeding warped fungus to two adult Striders produces a baby Strider, with a five-minute
+              cooldown before either parent can breed again.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

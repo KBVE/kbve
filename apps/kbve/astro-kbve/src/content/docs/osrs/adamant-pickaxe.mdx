@@ -1,6 +1,6 @@
 ---
 title: Adamant pickaxe | OSRS Price Data
-description: "Adamant pickaxe: Used for mining.. High alch: 1,920 GP, GE limit: 40."
+description: "Adamant pickaxe is a free-to-play weapon slot pickaxe requiring 30 Attack and 31 Mining. High alch: 1,920 GP, GE limit: 40."
 osrs:
   id: 1271
   name: Adamant pickaxe
@@ -12,26 +12,123 @@ osrs:
   lowalch: 1280
   highalch: 1920
   limit: 40
-  item_id: 1271
-  item_type: equipment
-  slot: weapon
-  type: pickaxe
-  tradeable: true
-  weight: 2.721
-  requirements:
-    attack: 30
-    mining: 31
-  stats:
-    stab: 17
-    slash: -2
-    crush: 15
-    strength: 19
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: pickaxe
+    attack_speed: 5
+    weight: 2.721
+    requirements:
+      attack: 30
+      mining: 31
+    attack_bonus:
+      stab: 17
+      slash: -2
+      crush: 15
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 19
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Nurmof's Pickaxe Shop
+      location: Dwarven Mine
+      price: 3200
+      stock: 2
+      currency: coins
+    - shop_name: Yarsul's Prodigious Pickaxes
+      location: Mining Guild
+      price: 3200
+      stock: 2
+      currency: coins
+  drop_table:
+    sources:
+      - source: Ankou
+        quantity: "1"
+        rarity: "1/256"
+      - source: Greater demon
+        quantity: "1"
+        rarity: "uncommon"
+        notes: "Common-tier drop from greater demons in the Stronghold of Security and beyond."
+      - source: Hill Giant
+        quantity: "1"
+        rarity: "uncommon"
   related_items:
-    - slug: rune-pickaxe
-    - slug: mithril-pickaxe
-  about: Mining tool. Popular mid-level pickaxe.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1265
+      item_name: Bronze pickaxe
+      slug: bronze-pickaxe
+      relationship: downgrade
+      description: "Entry tier pickaxe."
+    - item_id: 1267
+      item_name: Iron pickaxe
+      slug: iron-pickaxe
+      relationship: downgrade
+      description: "Second-tier pickaxe."
+    - item_id: 1269
+      item_name: Steel pickaxe
+      slug: steel-pickaxe
+      relationship: downgrade
+      description: "6 Mining mid-low tier pickaxe."
+    - item_id: 1273
+      item_name: Mithril pickaxe
+      slug: mithril-pickaxe
+      relationship: downgrade
+      description: "21 Mining mid-tier pickaxe."
+    - item_id: 1275
+      item_name: Rune pickaxe
+      slug: rune-pickaxe
+      relationship: upgrade
+      description: "41 Mining top F2P pickaxe."
+    - item_name: Dragon pickaxe
+      slug: dragon-pickaxe
+      relationship: upgrade
+      description: "61 Mining members BIS pickaxe before crystal."
+  about: "Adamant pickaxe is the second-best F2P pickaxe in OSRS, wielded at 30 Attack and used at 31 Mining. It mines slightly faster than mithril and is the standard tool for F2P miners grinding adamantite ore or pushing toward 41 Mining for the rune pickaxe. Members also use it as a budget tool during ironman skilling. Sold by Nurmof in the Dwarven Mine and Yarsul in the Mining Guild, with steady drop supply from greater demons and ankou."
+  market_strategy:
+    notes:
+      - "Shop respawn floor caps the price near GE value."
+      - "F2P-available and 40 buy limit keep flips small."
+      - "Demand mostly from new F2P miners pushing 41 Mining for rune pickaxe."
+      - "Dragon pickaxe caps the upside for members; adamant stays the cheap step."
+  trading_tips:
+    - "Stock-run Yarsul during Mining Guild rush hours for fast resale."
+    - "Watch F2P content updates - new mining locations can spike short-term demand."
+    - "Limit orders only - spreads are tight near alch value."
+  history:
+    - date: "2001-01-04"
+      description: "Released with the launch metal pickaxe set."
+    - date: "2014-03-13"
+      description: "Random acceleration bug fixed across all pickaxes on F2P."
+    - date: "2022-05-04"
+      description: "F2P Mining rebalance removed pickaxe tick acceleration on free worlds."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Splitbark legs | OSRS Price Data
-description: "Splitbark legs is a members legs slot item requiring 40 Defence. High alch: 24,000 GP, GE limit: 70."
+description: "Splitbark legs is a members legs slot item requiring 40 Magic and 40 Defence. High alch: 24,000 GP, GE limit: 70."
 osrs:
   id: 3389
   name: Splitbark legs
@@ -12,8 +12,15 @@ osrs:
   lowalch: 16000
   highalch: 24000
   limit: 70
+  material:
+    type: cloth
+    tier: mid-high
   equipment:
     slot: legs
+    weight: 3.628
+    requirements:
+      magic: 40
+      defence: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,20 +38,21 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      magic: 40
-      defence: 40
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: true
+    quest_item: false
     weight: 3.628
-  recipes:
-    - skill: crafting
-      level: 62
-      xp: 186
-      inputs:
-        - item_name: Bark
-          quantity: 3
-        - item_name: Fine cloth
-          quantity: 3
-      output_quantity: 1
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
   drop_table:
     sources:
       - source: Chaos Fanatic
@@ -53,50 +61,67 @@ osrs:
         rarity: rare
         drop_rate: 1/128
         members_only: true
+        wilderness: true
+  recipes:
+    - skill: crafting
+      level: 62
+      xp: 186
+      facility: Splitbark Armoury
+      materials:
+        - item_id: 3392
+          item_name: Bark
+          quantity: 3
+        - item_id: 3470
+          item_name: Fine cloth
+          quantity: 3
+      product: Splitbark legs
+      product_id: 3389
+      output_quantity: 1
   related_items:
     - item_id: 3385
       item_name: Splitbark helm
       slug: splitbark-helm
       relationship: set-piece
-      description: Matching helm piece
+      description: Matching helm of the Splitbark set
     - item_id: 3387
       item_name: Splitbark body
       slug: splitbark-body
       relationship: set-piece
-      description: Matching body piece
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +7 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +22 |
-    | Slash | +20 |
-    | Crush | +25 |
-    | Magic | +10 |
-
-    Requirements: 40 Magic, 40 Defence
-
-    | Stat | Splitbark Legs | Mystic Robe Bottom |
-    |------|---------------|-------------------|
-    | Magic Atk | +7 | +15 |
-    | Stab Def | +22 | 0 |
-    | Slash Def | +20 | 0 |
-    | Crush Def | +25 | 0 |
-    | Magic Def | +10 | +15 |
-
-    Trades 8 Magic attack for melee defence. A reasonable trade-off for hybridding or tanking in Wilderness scenarios.
-
-    - Swampbark legs: Earth spell prayer effect variant
-    - Bloodbark legs: Blood spell healing effect variant
+      description: Matching body of the Splitbark set
+    - item_id: 25758
+      item_name: Swampbark legs
+      slug: swampbark-legs
+      relationship: upgrade
+      description: Earth-spell prayer-restoring variant created with Mort Myre fungus
+    - item_id: 25928
+      item_name: Bloodbark legs
+      slug: bloodbark-legs
+      relationship: upgrade
+      description: Blood-spell healing variant created with blood runes
+    - item_id: 4097
+      item_name: Mystic robe bottom
+      slug: mystic-robe-bottom
+      relationship: alternative
+      description: Pure magic robe legs with higher magic attack but no melee defence
   market_strategy:
     notes:
-      - Chaos Fanatic is the main drop source (Wilderness boss)
-      - Requires 3 bark + 3 fine cloth to craft
-      - Low trade volume — niche item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Trading Notes"
+      - "Chaos Fanatic is the main drop source in the Wilderness"
+      - "Crafting recipe requires 3 bark plus 3 fine cloth at level 62"
+      - "Low GE limit and thin trade volume — set niche pricing"
+      - "Often bought to seed Swampbark or Bloodbark upgrades"
+  trading_tips:
+    - Run Chaos Fanatic during Wilderness events to harvest stock
+    - Watch bark and fine cloth costs to gauge craft margin
+    - Sell into hybrid PKers chasing the swamp- and bloodbark variants
+  about: Splitbark legs are mid-tier hybrid magic-melee robe legs from the Splitbark set, dropped by Chaos Fanatic or crafted at 62 Crafting from bark and fine cloth.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2005-07-12"
+      description: "Splitbark legs released with the Splitbark armour set update."
+    - date: "2020-01-23"
+      description: "Splitbark legs gained Swampbark and Bloodbark upgrade paths."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

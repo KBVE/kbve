@@ -1,5 +1,6 @@
 ---
 title: Purple Shulker Box
+template: splash
 description: |
     Minecraft Purple Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 656
     ref: purple_shulker_box
     slug: purple-shulker-box
+    content_rev: 1
     display_name: Purple Shulker Box
     material: stone
     hardness: 2
@@ -24,10 +26,56 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Purple Shulker Box is a portable storage container dyed with
+            purple dye. Unlike most containers, breaking one preserves its
+            27 inventory slots inside the dropped item, so its contents
+            travel with it.
+        lore: |
+            Introduced in Java Edition 1.11 alongside the shulker mob, and
+            made renewable in 1.17 once shulkers could spawn from raid
+            towers and post-generation.
+    uses:
+        - title: Portable Storage
+          ref: purple_shulker_box
+          detail: |
+              Holds 27 slots like a single chest, keeps its contents when
+              mined without needing Silk Touch, and can be read by redstone
+              comparators.
+    found_in:
+        - location: Crafting
+          detail: Craft a Shulker Shell (dropped by shulkers in End cities) with any chest, then dye it purple.
+        - location: End Cities
+          detail: Undyed shulker boxes and shulkers themselves are found in End city structures.
+    faq:
+        - question: Do I need Silk Touch to keep the contents?
+          answer: |
+              No. Any tool works — the box always drops as an item and keeps
+              everything stored inside it.
+        - question: What tool mines it fastest?
+          answer: |
+              A pickaxe, though there is no minimum tier requirement to get
+              the drop.
+        - question: Can I stack multiple shulker boxes?
+          answer: |
+              No, shulker boxes cannot be placed inside other shulker boxes
+              or bundles.
+        - question: Can pistons move a shulker box?
+          answer: |
+              No. Pistons cannot push or pull shulker boxes; attempting to
+              push one breaks it and drops it as an item.
     data_version: "1.21.5"
 ---
 

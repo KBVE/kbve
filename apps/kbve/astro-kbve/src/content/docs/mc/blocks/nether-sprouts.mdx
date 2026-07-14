@@ -1,5 +1,6 @@
 ---
 title: Nether Sprouts
+template: splash
 description: |
     Minecraft Nether Sprouts — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 829
     ref: nether_sprouts
     slug: nether-sprouts
+    content_rev: 1
     display_name: Nether Sprouts
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: nether_sprouts
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - nether
+        - plant
+        - instant_break
+    about:
+        description: |
+            Nether Sprouts are small decorative fungus-like plants that
+            generate across warped forest biomes. They must be broken with
+            shears to obtain the item, since any other tool destroys them
+            with no drop.
+        lore: |
+            Added alongside the Nether Update in Java Edition 1.16, Nether
+            Sprouts have no crimson forest counterpart.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing Nether Sprouts into a composter has a 50% chance of
+              raising the compost level by one, offering a minor bone meal
+              source.
+    found_in:
+        - location: Warped forest biomes
+          detail: Naturally generates scattered across warped nylium in the Nether.
+        - location: Bone meal on warped nylium
+          detail: Applying bone meal to warped nylium can grow additional Nether Sprouts nearby.
+    faq:
+        - question: What tool do I need to harvest Nether Sprouts?
+          answer: |
+              Shears. Breaking the block with anything else, including bare
+              hands, destroys it without dropping the item.
+        - question: Can Nether Sprouts be planted anywhere?
+          answer: |
+              They can be placed on nylium, soul soil, grass blocks, podzol,
+              mycelium, moss blocks, dirt, coarse dirt, rooted dirt, and
+              farmland, but not in flower pots.
+        - question: Is there a crimson version of Nether Sprouts?
+          answer: |
+              No. Unlike most warped forest flora, Nether Sprouts have no
+              crimson forest equivalent.
+        - question: Do Nether Sprouts affect mob spawning?
+          answer: |
+              No, unlike Nether Wart Blocks they have no effect on Piglin or
+              Hoglin spawning; they are purely decorative.
     data_version: "1.21.5"
 ---
 

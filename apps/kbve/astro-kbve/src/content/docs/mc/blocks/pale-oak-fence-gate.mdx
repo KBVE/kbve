@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Fence Gate
+template: splash
 description: |
     Minecraft Pale Oak Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 602
     ref: pale_oak_fence_gate
     slug: pale-oak-fence-gate
+    content_rev: 1
     display_name: Pale Oak Fence Gate
     material: wood
     hardness: 2
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Oak Fence Gate is a switchable barrier crafted from pale
+            oak planks and sticks that connects seamlessly with fences
+            and walls, letting players pass through an enclosure without
+            climbing over it.
+        lore: |
+            It joined the game with the rest of the pale oak wood set in
+            the Garden Awakens drop (Java Edition 1.21.4).
+    uses:
+        - title: Fenced Enclosure Entry
+          ref: pale_oak_fence
+          detail: |
+              Connects to matching or other wood fences and to walls,
+              forming a continuous barrier with a controllable opening for
+              animal pens and gardens.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Like most wooden blocks, it can be smelted as furnace fuel.
+    found_in:
+        - location: Crafting
+          detail: Two sticks and four pale oak planks craft one pale oak fence gate.
+        - location: Pale Garden Builds
+          detail: Commonly used decoratively in pale garden-themed structures and builds, though it does not generate naturally.
+    faq:
+        - question: What tool do I need to mine Pale Oak Fence Gate?
+          answer: |
+              None. It breaks with any tool, or by hand, and always drops
+              itself.
+        - question: Does Pale Oak Fence Gate stop mobs from passing?
+          answer: |
+              Yes, while closed it blocks most mobs and players just like
+              a fence, but it can be opened by hand, redstone, or a wind
+              charge.
+        - question: Is Pale Oak Fence Gate flammable?
+          answer: |
+              Yes. Fence gates made of overworld wood, including pale
+              oak, can catch fire and burn.
+        - question: Can I connect Pale Oak Fence Gate to other wood fences?
+          answer: |
+              Yes. Fence gates visually and functionally connect to
+              fences of any wood type, not just matching ones.
     data_version: "1.21.5"
 ---
 

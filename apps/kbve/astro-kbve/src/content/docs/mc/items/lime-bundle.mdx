@@ -1,5 +1,6 @@
 ---
 title: Lime Bundle
+template: splash
 description: |
     Minecraft Lime Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 980
     ref: lime_bundle
     slug: lime-bundle
+    content_rev: 1
     display_name: Lime Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Lime Bundle is a lime-dyed storage item that holds a mixed stack's worth of
+            items in a single inventory slot. It is crafted by combining a regular bundle with
+            lime dye, and its contents can be viewed and retrieved through a scrollable menu.
+        lore: |
+            Inspired by ancient coin purses, this lime pouch keeps a traveler's odds and ends
+            organized in one bundle.
+        note: Dyeing does not change capacity, only the bundle's color for quick identification.
+    faq:
+        - question: How do I craft a Lime Bundle?
+          answer: |
+              Combine a regular bundle with lime dye in a crafting table.
+        - question: Does a Lime Bundle increase my total inventory capacity?
+          answer: |
+              No, a bundle only lets you store a mixed stack's worth of items in a single slot;
+              it does not add extra inventory space.
+        - question: Can I put a Shulker Box inside a Lime Bundle?
+          answer: |
+              No, shulker boxes cannot be placed inside bundles, though a bundle can be placed
+              inside a shulker box.
+        - question: What happens to a Lime Bundle's contents if it is destroyed?
+          answer: |
+              All stored items drop as separate items when the bundle is destroyed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

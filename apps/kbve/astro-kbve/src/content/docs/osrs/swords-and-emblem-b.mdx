@@ -1,20 +1,95 @@
 ---
 title: Swords and emblem (b) | OSRS Price Data
-description: "Swords and emblem (b): Sadly, the blades are only decorative."
+description: "Swords and emblem (b): Sadly, the blades are only decorative. Cosmetic Grid Master event reward."
 osrs:
   id: 31196
   name: Swords and emblem (b)
   slug: swords-and-emblem-b
-  examine: Sadly, the blades are only decorative
+  examine: Sadly, the blades are only decorative.
   members: true
   icon: Swords and emblem (b).png
   value: 100000
-  lowalch: null
-  highalch: null
+  lowalch: 40000
+  highalch: 60000
   limit: null
-  about: Swords and emblem (b) is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2025-10-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+  equipment:
+    slot: weapon
+    weapon_type: cosmetic
+    attack_speed: null
+    weight: 0.3
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Events Reward Shop
+      location: Varrock Square
+      price: 1100
+      currency: Event points
+      stock: 1
+  related_items:
+    - item_name: Swords and emblem
+      slug: swords-and-emblem
+      relationship: variant
+      description: Standard variant of the cosmetic.
+    - item_name: Swords and emblem (g)
+      slug: swords-and-emblem-g
+      relationship: variant
+      description: Gold-coloured variant.
+    - item_name: Swords and emblem (p)
+      slug: swords-and-emblem-p
+      relationship: variant
+      description: Purple-coloured variant.
+    - item_name: Grid Master tabard (b)
+      slug: grid-master-tabard-b
+      relationship: set-piece
+      description: Pairs with the blue tabard from the same event shop.
+  about: "Swords and emblem (b) is a purely cosmetic blue variant of the Grid Master event reward, sold at the Events Reward Shop in Varrock Square for 1,100 event points. The blades are decorative - all combat bonuses are zero - and the piece is intended to round out the blue Grid Master set alongside its matching tabard."
+  market_strategy:
+    notes:
+      - "No combat utility; value is driven entirely by fashionscape demand for the Grid Master set."
+      - "Supply gated by event participation and 1,100-point shop price."
+      - "No GE buy limit listed - large flips are possible but liquidity is thin."
+      - "Demand should cool once the Grid Master event window fully closes."
+  trading_tips:
+    - Buy during the active event window when point holders flood supply.
+    - Compare against gold (g) and purple (p) variants; rare colours tend to outperform.
+  history:
+    - date: "2025-10-15"
+      description: "Released as part of the Grid Master community event reward shop."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

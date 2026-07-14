@@ -1,5 +1,6 @@
 ---
 title: Light Blue Banner
+template: splash
 description: |
     Minecraft Light Blue Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 534
     ref: light_blue_banner
     slug: light-blue-banner
+    content_rev: 1
     display_name: Light Blue Banner
     material: wood
     hardness: 1
@@ -24,10 +26,64 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - renewable
+    about:
+        description: |
+            The Light Blue Banner is a tall decorative block dyed light
+            blue that can be customized at a loom with up to six pattern
+            layers. It can also be applied to shields for matching heraldry.
+        lore: |
+            Banners were introduced in Java Edition 1.8 (2014) as the game's
+            first fully player-customizable decoration.
+    uses:
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Combine with dye and an optional banner pattern item at a
+              loom to add up to six stacked pattern layers.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Crafting a patterned banner with a shield transfers the
+              pattern onto the shield.
+        - title: Map Marker
+          ref: map
+          detail: |
+              Placing a banner in the world and right-clicking it with a
+              held map marks its location on that map (Java Edition).
+    found_in:
+        - location: Crafted
+          detail: Made from six Light Blue Wool and one Stick at a crafting table.
+        - location: Dyed
+          detail: Any existing banner can be recolored with Light Blue Dye.
+    faq:
+        - question: What tool should I use to break a Light Blue Banner?
+          answer: |
+              An axe is fastest, though it requires no minimum tool tier and
+              can be broken by hand.
+        - question: How do I craft a Light Blue Banner?
+          answer: |
+              Arrange six Light Blue Wool blocks and one Stick in the sign-
+              shaped banner pattern at a crafting table.
+        - question: Can I add patterns to a Light Blue Banner?
+          answer: |
+              Yes, use a loom with dye and optionally a banner pattern item
+              to stack up to six pattern layers.
+        - question: Can a banner be used on a shield?
+          answer: |
+              Yes, crafting a patterned banner together with a shield
+              copies the pattern onto the shield.
     data_version: "1.21.5"
 ---
 

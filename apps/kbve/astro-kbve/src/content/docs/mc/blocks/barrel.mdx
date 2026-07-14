@@ -1,5 +1,6 @@
 ---
 title: Barrel
+template: splash
 description: |
     Minecraft Barrel — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 806
     ref: barrel
     slug: barrel
+    content_rev: 1
     display_name: Barrel
     material: wood
     hardness: 2.5
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: barrel
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Barrel is a wooden storage container with 27 inventory
+            slots, functionally identical to a chest but unable to connect
+            into a double container. It also serves as the job site block
+            for the fisherman villager profession.
+        lore: |
+            Barrels were introduced in Java Edition 1.14 (snapshot 18w44a)
+            as an alternative storage block that works in tight or vertical
+            spaces where chests cannot open.
+    uses:
+        - title: Item Storage
+          ref: barrel
+          detail: |
+              Provides 27 slots of storage that can be opened even when
+              blocks are placed directly above it.
+        - title: Fisherman Job Site
+          ref: barrel
+          detail: |
+              Placing a barrel near an unemployed villager assigns them the
+              fisherman profession.
+    found_in:
+        - location: Crafted by players
+          detail: Made from any planks and wooden slabs at a crafting table.
+        - location: Village fisher cottages and trial chambers
+          detail: Generates naturally in these structures and in abandoned camps.
+    faq:
+        - question: What tool do I need to break a Barrel?
+          answer: |
+              None required; any tool or bare hands will drop it, though an
+              axe breaks it fastest.
+        - question: Can Barrels connect like double chests?
+          answer: |
+              No. Unlike chests, adjacent barrels remain separate
+              27-slot containers.
+        - question: Does opening a barrel alert nearby piglins?
+          answer: |
+              No, barrels are not gold-related and do not provoke piglins.
+        - question: What profession uses a Barrel as its job site?
+          answer: |
+              The fisherman villager profession is assigned via a nearby
+              barrel.
     data_version: "1.21.5"
 ---
 

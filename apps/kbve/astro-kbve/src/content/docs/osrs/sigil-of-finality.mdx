@@ -12,9 +12,39 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 4
-  about: "Sigil of finality is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: deadman
+  special_attack:
+    name: Finality
+    description: Activate the sigil to guarantee 100% accuracy on your next special attack within the next 12 seconds. Once activated, the sigil has a cooldown.
+    energy: 0
+    effects:
+      - description: "100% accuracy on next special attack"
+      - description: "12-second activation window"
+      - description: "Cooldown varies by Deadman event (10s in original Annihilation, up to 2 minutes in Reborn)"
+  related_items: []
+  market_strategy:
+    notes:
+      - "summary: \"Deadman event exclusive sigil; not available in live Old School RuneScape outside seasonal events.\""
+      - "target_audience: \"Deadman Mode PvPers stacking guaranteed special-attack accuracy.\""
+  trading_tips:
+    - Only obtainable during Deadman events; sold via the skull shop with Deadman's skull currency.
+    - GE limit listed as 4 per 4 hours, applicable only when GE is open for the event.
+  history:
+    - date: "2021-08-25"
+      description: Sigil of finality introduced for Deadman Reborn; reused in subsequent Deadman events with varying cooldowns.
+  about: |-
+    Sigil of finality is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 4 per 4 hours.
+
+    Exclusive to Deadman Mode events. When attuned and activated, guarantees 100% accuracy on the player's next special attack within a 12-second window.
+  properties:
+    release_date: "2021-08-25"
+    weight: 0.1
+    quest_item: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

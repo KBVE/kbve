@@ -12,9 +12,63 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 10000
-  about: "Small box hedge (bagged) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: plant
+    tier: mid
+  properties:
+    release_date: "31 May 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 64
+      xp: 122
+      materials:
+        - item_name: Small box hedge (bagged)
+          quantity: 1
+      tools:
+        - Watering can (full)
+      output_quantity: 1
+  shops:
+    - shop_name: Garden Supplier
+      location: Falador Park
+      price: 15000
+      currency: coins
+      stock: 5
+    - shop_name: Farming Guild Garden Supplier
+      location: Farming Guild
+      price: 15000
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Watering can
+      slug: watering-can
+      relationship: component
+      description: "Required (filled) to plant"
+  about: "Small box hedge (bagged) is a 64 Construction decorative hedge for player-owned house formal gardens, granting 122 Construction and Farming XP per plant."
+  market_strategy:
+    notes:
+      - "Pure cosmetic with no functional benefit"
+      - "Construction XP route competes with cheaper alternatives"
+      - "Steady but low volume because hedge upgrades come from shop stock"
+  trading_tips:
+    - "Stock directly from Falador Park or Farming Guild gardeners for fixed supply"
+    - "Watch GE premium over the 15,000 coin shop price as a flip signal"
+  history:
+    - date: "31 May 2006"
+      description: "Released as a Construction garden decoration."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

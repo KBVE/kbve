@@ -1,0 +1,224 @@
+---
+title: "KBVE Gate — Supabase JWT Auth Reverse-Proxy Sidecar"
+description: KBVE Gate is a reusable auth reverse-proxy sidecar that validates a Supabase JWT plus an authz policy, then proxies HTTP and WebSocket to internal upstreams.
+sem: 1
+sidebar:
+    label: KBVE Gate
+    order: 52
+tags:
+    - docker
+    - networking
+    - auth
+key: kbve_gate
+pipeline: docker
+app_name: kbve-gate
+version: "0.1.8"
+source_path: apps/kbve/kbve-gate
+version_toml: apps/kbve/kbve-gate/version.toml
+version_target: apps/kbve/kbve-gate/Cargo.toml
+runner: ubuntu-latest
+image: kbve/kbve-gate
+deployment_yamls:
+    - apps/kube/n8n/manifest/n8n-deployment.yaml
+    - apps/kube/monitoring/manifests/grafana-gate-deployment.yaml
+    - apps/kube/argocd/manifests/argocd-gate-deployment.yaml
+    - apps/kube/storage/manifests/longhorn-gate-deployment.yaml
+    - apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml
+    - apps/kube/studio/manifests/studio-gate-deployment.yaml
+    - apps/kube/windmill/manifest/windmill-gate-deployment.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+kube:
+    stack: application
+    environment: prod
+    tier: api
+    owner: h0lybyte
+    criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is KBVE Gate?
+          answer: KBVE Gate is a thin authentication reverse-proxy built on the kbve crate's feature-gated gate module. It runs as a sidecar in front of an internal service so the upstream binds localhost and only the gate is exposed, fronting tools like n8n, Grafana, Longhorn, ArgoCD, Forgejo, and Supabase Studio.
+        - question: How does KBVE Gate authenticate requests?
+          answer: The gate accepts a Supabase JWT from an Authorization Bearer header, an sb-access-token or kbve_gate cookie, or an access_token query param. After the JWT validates it applies an authz policy — jwt-only lets any valid JWT pass, while is_staff requires forum.is_staff(sub) to return true.
+        - question: How does KBVE Gate handle cross-subdomain login?
+          answer: Because the KBVE session lives in the browser's IndexedDB, a cross-subdomain navigation carries no token, so the gate does a login bounce — it 302s unauthed navigations to GATE_LOGIN_REDIRECT, the login page returns with access_token, and the gate validates it and sets a kbve_gate cookie scoped to GATE_COOKIE_DOMAIN.
+bento:
+    badge: docker · networking · auth
+    title: Supabase JWT auth
+    accent: reverse-proxy
+    lede: >-
+        A thin authentication reverse-proxy built on the kbve crate's
+        feature-gated gate module. It runs as a sidecar in front of an internal
+        service so the upstream binds localhost and only the gate is exposed —
+        fronting n8n, Grafana, Longhorn, ArgoCD, Forgejo, and Supabase Studio.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/kbve/kbve-gate
+          primary: true
+          external: true
+        - label: Auth
+          href: "#auth"
+        - label: Deployment
+          href: "#deploy"
+    aside:
+        icon: lock
+        title: Validate then proxy
+        body: >-
+            The gate accepts a Supabase JWT from a bearer header, an
+            <code>sb-access-token</code>/<code>kbve_gate</code> cookie, or a
+            query param, then applies an authz policy before forwarding to the
+            localhost-bound upstream.
+        points:
+            - <strong>jwt-only</strong> — any valid Supabase JWT passes.
+            - <strong>is_staff</strong> — forum.is_staff(sub) must return true.
+    stats:
+        - { label: App, value: kbve-gate, icon: box }
+        - { label: Built on, value: 'kbve gate module', icon: rust }
+        - { label: Image, value: kbve/kbve-gate, icon: package }
+        - { label: Auth, value: Supabase JWT, icon: key }
+    features:
+        - title: JWT + authz policy
+          icon: key
+          body: Validates a Supabase JWT, then enforces jwt-only or is_staff via a short-lived service_role token.
+        - title: Login bounce
+          icon: route
+          body: 302s unauthed cross-subdomain navigations to the login page and sets a scoped kbve_gate cookie on return.
+        - title: Sidecar or standalone
+          icon: expand
+          body: Shares a pod with an editable upstream, or runs as its own Deployment + Service + HTTPRoute for ones we don't own.
+        - title: Downstream identity injection
+          icon: shield
+          body: Injects basic-auth, bearer tokens, or a trusted user header so gated tools trust the gate-authed staff user.
+        - title: Fronts the toolchain
+          icon: network
+          body: Guards n8n, Grafana, Longhorn, ArgoCD, Forgejo, and Supabase Studio behind one auth model.
+    related:
+        - title: Edge
+          href: /project/edge/
+          copy: KBVE edge service tier.
+          icon: network
+        - title: API
+          href: /project/api/
+          copy: The KBVE core API the gate protects access patterns around.
+          icon: server
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="auth" eyebrow="Access" heading="Auth & configuration">
+
+The gate accepts a Supabase JWT from an `Authorization: Bearer` header, an
+`sb-access-token` / `kbve_gate` cookie, or a `?access_token=` query param.
+After the JWT validates it applies an authz policy:
+
+- `jwt-only` — any valid Supabase JWT passes.
+- `is_staff` — `forum.is_staff(sub)` must return true. The gate mints a
+  short-lived `service_role` JWT from `SUPABASE_JWT_SECRET` to call PostgREST,
+  so the stale stored service-key is never used.
+
+### Configuration
+
+| Env | Default | Purpose |
+| --- | --- | --- |
+| `GATE_LISTEN` | `0.0.0.0:5678` | bind address |
+| `GATE_UPSTREAM` | `http://127.0.0.1:5679` | upstream base URL |
+| `GATE_UPSTREAM_PREFIX` | — | path prefix prepended to every upstream request (Grafana sub-path) |
+| `GATE_UPSTREAM_CA_CERT_PATH` | — | CA bundle to trust an HTTPS upstream (ArgoCD TLS) |
+| `GATE_AUTHZ` | `is_staff` | `is_staff` or `jwt-only` |
+| `GATE_STAFF_SCHEMA` | `forum` | Postgres schema holding `is_staff` |
+| `GATE_UPSTREAM_BASIC` | — | `Basic <b64>` injected downstream |
+| `GATE_UPSTREAM_BEARER` | — | `Authorization: Bearer <token>` injected downstream (ArgoCD apiKey) |
+| `GATE_FORWARD_USER_HEADER` / `GATE_FORWARD_USER_VALUE` | — | trusted identity header injected downstream (Grafana auth-proxy) |
+| `GATE_LOGIN_REDIRECT` | — | 302 target for unauthed browser navigations |
+| `GATE_COOKIE_DOMAIN` | — | domain scope for the minted session cookie (e.g. `.kbve.com`) |
+| `SUPABASE_JWT_SECRET` | — | required |
+| `SUPABASE_URL` | — | required for `is_staff` (direct PostgREST) |
+
+</BentoProse>
+
+<BentoProse id="login" eyebrow="Cross-subdomain" heading="Login bounce">
+
+The KBVE session lives in the browser (IndexedDB), so a cross-subdomain
+navigation carries no token. The gate completes auth with a bounce:
+
+<Steps>
+
+1. Unauthed navigation to a gated host → `302` to
+   `GATE_LOGIN_REDIRECT?redirect_to=<original URL>`.
+2. The login page, once a session exists, returns the browser to
+   `redirect_to?access_token=<jwt>`.
+3. The gate validates the token, sets a `kbve_gate` cookie scoped to
+   `GATE_COOKIE_DOMAIN`, and `302`s to a clean URL. Subsequent requests carry
+   the cookie.
+
+</Steps>
+
+The login page only honours `redirect_to` targets on `*.kbve.com` over https,
+so the token can never be handed to a foreign origin.
+
+</BentoProse>
+
+<BentoProse id="deploy" eyebrow="Consumers" heading="Deployment shapes">
+
+Two shapes depending on whether the upstream is in the same pod:
+
+- **Sidecar** — the gate shares a pod with the upstream, which binds
+  `127.0.0.1`. Used when the workload is ours to edit (n8n).
+- **Standalone** — the gate is its own `Deployment` + `Service` + `HTTPRoute`
+  and proxies a separate in-cluster `Service`. Used for Helm- or
+  operator-managed upstreams we don't own (Grafana, Longhorn, ArgoCD).
+
+### n8n (sidecar)
+
+The first consumer fronts n8n: n8n moves to `127.0.0.1:5681`, the gate owns the
+Service port `5678`, and `n8n.kbve.com` routes through it so the panel stays
+staff-only.
+
+### Grafana (standalone)
+
+`grafana.kbve.com` → standalone gate in `monitoring` → `monitoring-grafana:80`.
+`GATE_UPSTREAM_PREFIX=/dashboard/grafana/proxy` matches Grafana's sub-path
+`root_url`. Grafana's own login is bypassed with its auth-proxy:
+`GATE_FORWARD_USER_HEADER=X-WEBAUTH-USER` / `GATE_FORWARD_USER_VALUE=kbve-staff`,
+so the gate-authed staff user is trusted downstream.
+
+### Longhorn (standalone)
+
+`longhorn.kbve.com` → standalone gate in `longhorn-system` →
+`longhorn-frontend:80`. No prefix (the UI roots at `/`) and no upstream login —
+the gate's `is_staff` is the only auth in front of the panel.
+
+### ArgoCD (standalone)
+
+`argo.kbve.com` → standalone gate in `argocd` → `argocd-server:443` over HTTPS
+(`GATE_UPSTREAM_CA_CERT_PATH` trusts the `argocd-server-tls` CA). ArgoCD keeps
+its own login, so the gate injects an admin apiKey as `GATE_UPSTREAM_BEARER`
+(synced by ESO from the `argocd-auth` secret) on every request — the SPA then
+authenticates as that account instead of redirecting to ArgoCD's login.
+
+### Forgejo (standalone)
+
+`forgejo.kbve.com` → standalone gate in `forgejo` → `forgejo-http:3000`.
+The gate enforces `is_staff` authz while API and git operations (e.g., `/api/`,
+`/v2/`, `/KBVE/`) bypass the gate for token-based auth. Forgejo is configured
+with OAuth/OIDC to use Supabase as the identity provider, enabling automatic
+account creation and login for authenticated staff users.
+
+</BentoProse>
+
+</BentoDoc>

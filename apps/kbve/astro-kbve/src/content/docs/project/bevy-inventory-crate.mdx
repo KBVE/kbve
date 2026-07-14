@@ -1,9 +1,9 @@
 ---
-title: uevy inventory
-description: |
-    uevy inventory — Bevy game crate for the KBVE isometric engine.
+title: bevy_inventory — Slot-Based Inventory Crate for Bevy
+description: bevy_inventory is a generic slot-based inventory crate with item stacking, transfer, search, and serde snapshots — pure Rust core, optional Bevy ECS.
+sem: 1
 sidebar:
-    label: uevy inventory
+    label: bevy_inventory
 tags:
     - crates
     - rust
@@ -19,8 +19,105 @@ version_toml: packages/rust/bevy/bevy_inventory/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the bevy_inventory crate?
+          answer: bevy_inventory is a generic, slot-based inventory crate with item stacking, transfer, search, and serde-driven snapshots. It has a pure Rust core with optional Bevy ECS integration behind a feature flag.
+        - question: Does bevy_inventory require Bevy?
+          answer: No. The default build works, but the crate can run as plain Rust with zero Bevy dependency when the bevy feature is disabled, which suits FFI cdylibs (uniti) and non-Bevy consumers like discordsh-bot.
+        - question: How do I define custom item types?
+          answer: Implement the ItemKind trait on your own item enum, providing display_name and max_stack. Items then stack automatically up to max_stack per slot, and every type round-trips through serde for save files and network sync.
+bento:
+    badge: crates · rust · bevy
+    title: Slot-based inventory for
+    accent: bevy_inventory
+    lede: >-
+        A generic, slot-based inventory crate with item stacking, transfer,
+        search, and serde-driven snapshots — a pure Rust core with optional Bevy
+        ECS integration behind a feature flag.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_inventory
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: box
+        title: Bring your own item enum
+        body: >-
+            Unlike inventory crates that ship a fixed item type and a hard Bevy
+            dependency, bevy_inventory lets you bring your own item enum and stays
+            usable inside <strong>FFI cdylibs</strong> and headless consumers.
+    stats:
+        - { label: Language, value: Rust, icon: rust }
+        - { label: Version, value: "0.1.0", icon: package }
+        - { label: Bevy ECS, value: Optional, icon: box }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Bring your own item enum
+          icon: box
+          body: "Implement ItemKind (with display_name and max_stack) and the crate handles the rest."
+        - title: Automatic stacking
+          icon: gears
+          body: "Items stack up to ItemKind::max_stack per slot, splitting across slots as needed within a configurable slot capacity."
+        - title: Slot operations
+          icon: settings
+          body: "swap_slots, remove_at_slot, and get_slot support drag-and-drop UI integration, plus has_room_for capacity queries and case-insensitive search."
+        - title: Serde all the way
+          icon: package
+          body: "Inventory and ItemStack derive Serialize / Deserialize for save files, network sync, and FFI snapshots (behind the snapshot feature)."
+        - title: Optional Bevy plugin
+          icon: gears
+          body: "The bevy feature adds InventoryPlugin, LootEvent / InventoryFullEvent observers, and SplitStackAction / MergeStackAction / MoveSlotAction UI actions."
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy_inventory::{Inventory, ItemKind};
+            use serde::{Deserialize, Serialize};
+
+            #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+            enum Item { Wood, Stone, Gold }
+
+            impl ItemKind for Item {
+                fn display_name(&self) -> &'static str {
+                    match self { Item::Wood => "Wood", Item::Stone => "Stone", Item::Gold => "Gold" }
+                }
+                fn max_stack(&self) -> u32 {
+                    match self { Item::Gold => 10, _ => u32::MAX }
+                }
+            }
+
+            let mut inv = Inventory::<Item>::new(16);
+            inv.add(Item::Wood, 50);
+            inv.add(Item::Gold, 25);
+            assert_eq!(inv.count(Item::Gold), 25);
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Isometric camera crate from the same Bevy package group.
+          icon: video
+        - title: bevy_supa
+          href: /project/bevy-supa-crate
+          copy: Transport-agnostic Supabase client sibling crate.
+          icon: shield
+        - title: DiscordSH Bot
+          href: /project/discordsh-bot
+          copy: A non-Bevy consumer that uses this crate for the embed dungeon game.
+          icon: discord
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-uevy inventory Bevy crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

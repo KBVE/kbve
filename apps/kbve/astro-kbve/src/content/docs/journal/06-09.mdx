@@ -9,13 +9,54 @@ description: |
    June 9th. New Musical Process.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 9,'
+    accent: every year.
+    lede: 'The June 9th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 8'
+          href: /journal/06-08/
+        - label: 'Jun 10 →'
+          href: /journal/06-10/
+    related:
+        - title: 'Previous · Jun 8'
+          copy: 'Step back a day to the June 8th log.'
+          href: /journal/06-08/
+          icon: calendar
+        - title: 'Next · Jun 10'
+          copy: 'Jump ahead to the June 10th log.'
+          href: /journal/06-10/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1685334467005-ccd47b955315?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import {
   Adsense
 } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Daily Markets
 
@@ -38,7 +79,15 @@ import {
     hard value is the actual source of truth, similar to a true armor but a soft value would be one that gets displayed to the user.
     This will help soften shifts in the regeneration and not the UI go through a crazy loop of shifting up and down during the damanage phase, furthermore gives us a buffer room for actions and if the user opts to cancel.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Cafe**
 
@@ -86,23 +135,33 @@ Updated Atlas with the new groq features added in, next up is to utilize the par
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 3:30am - Finally got music playing through Discord, so I guess it might almost be time to launch the Discord.sh bot service. I am thinking that it will most likely be a private bot service, offering very specific and hybrid source bots for the servers. I will do a couple more test cases before launching it out in the future, it is also a bit late in the night for me.
 - 3:50am - The Discord Red bot in python seems to be good enough for what we are doing, it is running under python 3.11, which is good for the long term. I will most likely keep the bot as the core and then extend out private cogs that run inside of the bot, which would be one of the reasons that people would use our service, per say.
 - 4:30am - I was reading up on the recent changes on the Reddit API, it is a shame to see one of my favorite websites slowly fade into the depths of destruction. However there might be a silver lining in this, as more alternatives become popular, the resurgence of older forums, unique communities, decentralized projects, ect.. It will be interesting to see how this comes around when I read this passage a couple years into the future.
 - EOD - I did not keep too many notes for the day, as the lack of sleep threw me into a bit of a slow turtle mode. I am a bit sad that I will have to sell a couple hundred shares of $TSLA at $230 mark because of an of assigned weekly cover call. However it is not too bad of a deal, as I will most likely just write covered cash puts to generate capital from that point of view.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Your sacred space is where you can find yourself again and again.
 > — <cite>Joseph Campbell</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Make sure not all $TSLA stock get sold at $230! xD.
 - [ ] Unity Async Loader.
 - [ ] React Form Update.
 - [ ] Unity Login Migration.
+
+</BentoProse>
+
+</BentoDoc>

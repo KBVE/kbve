@@ -1,6 +1,6 @@
 ---
 title: Dragonstone platelegs | OSRS Price Data
-description: "Dragonstone platelegs: A stylish pair of rune platelegs inlaid with dragonstones.. High alch: 38,400 GP."
+description: "Dragonstone platelegs is a free-to-play rune-tier legs slot armour inlaid with dragonstones. High alch: 38,400 GP."
 osrs:
   id: 24040
   name: Dragonstone platelegs
@@ -12,9 +12,96 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: null
-  about: "Dragonstone platelegs is a free-to-play item in Old School RuneScape. High alchemy value: 38,400 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: high
+  equipment:
+    slot: legs
+    weight: 9.071
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 51
+      slash: 49
+      crush: 47
+      magic: -4
+      ranged: 49
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Elven Crystal Chest
+        quantity: "1"
+        rarity: rare
+  related_items:
+    - item_id: 24034
+      item_name: Dragonstone full helm
+      slug: dragonstone-full-helm
+      relationship: set-piece
+      description: Matching helm of the dragonstone armour set.
+    - item_id: 24037
+      item_name: Dragonstone platebody
+      slug: dragonstone-platebody
+      relationship: set-piece
+      description: Matching body of the dragonstone armour set.
+    - item_id: 24043
+      item_name: Dragonstone boots
+      slug: dragonstone-boots
+      relationship: set-piece
+      description: Matching boots of the dragonstone armour set.
+    - item_id: 24046
+      item_name: Dragonstone gauntlets
+      slug: dragonstone-gauntlets
+      relationship: set-piece
+      description: Matching gauntlets of the dragonstone armour set.
+    - item_id: 1079
+      item_name: Rune platelegs
+      slug: rune-platelegs
+      relationship: alternative
+      description: Standard non-dragonstone rune platelegs.
+  about: "Dragonstone platelegs are obtained as a rare reward from the Elven Crystal Chest in Prifddinas and share rune-tier defence with a fashionscape premium."
+  market_strategy:
+    notes:
+      - Supply gated entirely by Elven Crystal Chest rolls
+      - High GE price reflects fashion and set-completion demand
+      - No GE buy limit aids large arbitrage flips
+  trading_tips:
+    - Watch Song of the Elves chest reset metas for supply spikes
+    - Compare against full dragonstone set premium for piece arbitrage
+  history:
+    - date: "2019-07-25"
+      description: "Released as part of Song of the Elves."
+    - date: "2021-04-21"
+      description: "Ranged attack bonus decreased from -7 to -11."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-07-25"
+    update: "Song of the Elves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    quest: "Song of the Elves"
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

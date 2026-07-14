@@ -1,6 +1,6 @@
 ---
 title: Oak blackjack(o) | OSRS Price Data
-description: "Oak blackjack(o): An offensive blackjack.. High alch: 240 GP, GE limit: 125."
+description: "Oak blackjack(o) is the offensive oak blackjack variant requiring 10 Attack and 10 Thieving, used to knockout NPCs for pickpocketing. High alch: 240 GP, GE limit: 125."
 osrs:
   id: 6408
   name: Oak blackjack(o)
@@ -12,12 +12,94 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 125
-  about: "Oak blackjack(o) is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: oak
+    tier: low
+  properties:
+    release_date: "2005-08-15"
+    update: "Rogue Trader"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: blackjack
+    weight: 1.814
+    attack_speed: 4
+    requirements:
+      attack: 10
+      thieving: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 4
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 6406
+      item_name: Oak blackjack
+      slug: oak-blackjack
+      relationship: variant
+      description: "Standard oak blackjack with balanced offence/defence bonuses."
+    - item_id: 6410
+      item_name: Oak blackjack(d)
+      slug: oak-blackjack-d
+      relationship: variant
+      description: "Defensive oak blackjack variant - higher defence bonus, lower attack."
+    - item_id: 6412
+      item_name: Willow blackjack(o)
+      slug: willow-blackjack-o
+      relationship: upgrade
+      description: "Next-tier offensive blackjack with stronger knockout rates."
+    - item_id: 6416
+      item_name: Maple blackjack(o)
+      slug: maple-blackjack-o
+      relationship: upgrade
+      description: "Top-tier offensive blackjack for high-Thieving pickpocketing."
+  about: "Oak blackjack(o) is the offensive variant of the oak blackjack, sold by Ali's Discount Wares in Al Kharid after completing the Rogue Trader minigame. Requiring 10 Attack and 10 Thieving to wield, it favors knockout success over block-up resistance and is used in Pollnivneach to lure-and-knockout villagers, bandits, and Menaphite Thugs for repeatable Thieving XP. Mostly a stepping stone between the base oak blackjack and the willow tier."
+  market_strategy:
+    notes:
+      - "Demand is structurally tied to Pollnivneach Thieving training population."
+      - "GE buy limit of 125 per 4 hours keeps daily flips small."
+      - "Supply comes via Ali's Discount Wares at 400 gp - hard price ceiling for arbitrage."
+      - "High alch of 240 gp is below GE - never alch."
+  trading_tips:
+    - "Watch Thieving XP buff news; oak blackjack(o) sees demand spikes when Pollnivneach knockout meta returns."
+    - "Cheap NPC source caps profit potential - flip volume not margin."
+    - "Avoid if Maple blackjack is on cooldown nerf threads."
+  history:
+    - date: "2005-08-15"
+      description: "Released alongside the Rogue Trader minigame and Pollnivneach Thieving content."
+    - date: "2006-08-22"
+      description: "Renamed from 'Oak blackjack(a)' to 'Oak blackjack(o)' for consistency with offensive/defensive suffixes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

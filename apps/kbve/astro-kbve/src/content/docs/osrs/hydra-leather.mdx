@@ -12,71 +12,60 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 15
-  item:
-    type: crafting_material
-    tradeable: true
-    weight: 0.01
+  material:
+    type: hydra-leather
+    tier: high
   drop_table:
-    primary_source: Alchemical Hydra
-    best_drop_rate: 1/514
     sources:
       - source: Alchemical Hydra
-        source_id: 8621
-        combat_level: 426
         quantity: "1"
-        rarity: 1/514
-        members_only: true
-        notes: Requires 95 Slayer and Hydra Slayer task
+        rarity: "1/514"
   recipes:
-    - skill: none
-      level: 0
-      xp: 0
-      materials:
+    - materials:
         - item_name: Hydra leather
-          item_id: 22983
           quantity: 1
-      product: Ferocious gloves
-      product_id: 22981
-      product_quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 1
       facility: Lithkren Vault machinery
-      members_only: true
+      notes: "Produces Ferocious gloves. Requires Dragon Slayer II completion to access the vault."
   related_items:
-    - item_id: 22981
-      item_name: Ferocious gloves
-      slug: ferocious-gloves
+    - name: "Ferocious gloves"
       relationship: product
-      description: BiS melee gloves created from this
-    - item_id: 22966
-      item_name: Hydra's claw
-      slug: hydras-claw
+    - name: "Hydra's claw"
       relationship: alternative
-      description: Another rare Hydra drop
-    - item_id: 22975
-      item_name: Brimstone ring
-      slug: brimstone-ring
+    - name: "Brimstone ring"
       relationship: alternative
-      description: Created from Hydra ring pieces
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Stackable | No |
-    | Weight | 0.01 kg |
-
-    | Item Created | Materials | Facility |
-    |--------------|-----------|----------|
-    | Ferocious gloves | 1 Hydra leather | Lithkren Vault machinery |
-
-    Requires completion of Dragon Slayer II to access the vault.
+  about: "Hydra leather is a rare drop from Alchemical Hydra used to craft Ferocious gloves at the Lithkren Vault machinery after completing Dragon Slayer II. It requires 95 Slayer on a Hydra Slayer task to obtain."
   market_strategy:
     notes:
-      - Only source is Alchemical Hydra
-      - Creates BiS melee gloves
-      - 95 Slayer requirement is significant
-      - Dragon Slayer II required for crafting
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Only source is Alchemical Hydra at a 1/514 drop rate."
+      - "Creates the best-in-slot melee gloves (Ferocious gloves)."
+      - "95 Slayer requirement keeps supply low and prices high."
+      - "Dragon Slayer II is required to craft the gloves."
+  trading_tips:
+    - "Buy when Hydra task rotations bring extra leather to market."
+    - "Sell into demand from late-game PvMers prepping ToB/CoX setups."
+  history:
+    - date: "2019-01-10"
+      description: "Released as part of The Kebos Lowlands update introducing Alchemical Hydra."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-01-10"
+    update: "The Kebos Lowlands"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Inspect
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

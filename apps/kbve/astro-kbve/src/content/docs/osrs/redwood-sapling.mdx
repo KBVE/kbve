@@ -1,6 +1,6 @@
 ---
 title: Redwood sapling | OSRS Price Data
-description: "Redwood sapling: This sapling is ready to be replanted in a Redwood patch.. High alch: 1 GP, GE limit: 100."
+description: "Redwood sapling: This sapling is ready to be replanted in a Redwood patch. High alch: 1 GP, GE limit: 100."
 osrs:
   id: 22859
   name: Redwood sapling
@@ -9,12 +9,71 @@ osrs:
   members: true
   icon: Redwood sapling.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 100
-  about: "Redwood sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: organic
+    tier: mid-high
+  recipes:
+    - skill: Farming
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Redwood seed
+          quantity: 1
+        - item_name: Plant pot (filled)
+          quantity: 1
+      tools:
+        - Gardening trowel
+        - Watering can
+      output_quantity: 1
+  farming:
+    patch: Redwood tree patch
+    level: 90
+    plant_xp: 230
+    check_xp: 22450
+    grow_time_minutes: 6400
+    protection_payment: "6 dragonfruits"
+  related_items:
+    - item_name: Redwood seed
+      slug: redwood-seed
+      relationship: component
+    - item_name: Redwood logs
+      slug: redwood-logs
+      relationship: product
+    - item_name: Magic sapling
+      slug: magic-sapling
+      relationship: downgrade
+  about: "Redwood sapling is the planted form of a redwood seed, ready to be transferred into the Farming Guild redwood patch at 90 Farming for redwood logs."
+  market_strategy:
+    notes:
+      - Niche high-level Farming demand
+      - Buy limit 100 caps speculation
+      - Not alchable, so no alch price floor
+  trading_tips:
+    - Stock during redwood seed price drops
+    - Sell to high-level farmers running redwood runs
+  history:
+    - date: "2019-01-10"
+      description: Added to the game with the Farming Guild update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-01-10"
+    update: Farming Guild
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Check-health
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

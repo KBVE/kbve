@@ -1,5 +1,6 @@
 ---
 title: Stripped Spruce Log
+template: splash
 description: |
     Minecraft Stripped Spruce Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 61
     ref: stripped_spruce_log
     slug: stripped-spruce-log
+    content_rev: 1
     display_name: Stripped Spruce Log
     material: wood
     hardness: 2
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_spruce_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Stripped Spruce Log is the bark-free form of Spruce Log,
+            revealed by using an axe on the log. It shows the exposed wood
+            grain on every side and is a common building material in
+            taiga-themed and cabin-style structures.
+        lore: |
+            Stripping mechanics were added in Java Edition 1.13 (Update
+            Aquatic) to let players customize wooden builds without needing
+            new textures.
+    uses:
+        - title: Stripped Spruce Wood
+          ref: stripped_spruce_wood
+          detail: |
+              Combine with more stripped spruce logs to craft the
+              all-sides-stripped Stripped Spruce Wood variant used for
+              decorative pillars and posts.
+        - title: Spruce Planks
+          ref: spruce_planks
+          detail: |
+              Smelts or crafts the same as a regular spruce log for planks,
+              charcoal, and fuel, since stripping is purely cosmetic.
+    found_in:
+        - location: Taiga and snowy taiga forests
+          detail: Player-made by right-clicking any naturally generated Spruce Log with an axe.
+        - location: Snowy village houses
+          detail: Some snowy tundra village structures generate with stripped spruce logs already placed.
+    faq:
+        - question: Can I turn stripped wood back into bark-covered wood?
+          answer: |
+              No. Stripping is a one-way transformation; there is no way to
+              restore the bark texture.
+        - question: What drops when I mine it?
+          answer: |
+              Always exactly one Stripped Spruce Log, regardless of tool or
+              enchantments like Silk Touch or Fortune.
+        - question: Is an axe required to mine it?
+          answer: |
+              No, any tool or your bare hands can break it — an axe is just
+              the fastest.
+        - question: Does it burn?
+          answer: |
+              Yes, it is flammable and will be consumed by nearby fire like
+              any other overworld log.
     data_version: "1.21.5"
 ---
 

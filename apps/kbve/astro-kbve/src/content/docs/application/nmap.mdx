@@ -1,7 +1,14 @@
 ---
-title: Nmap
+title: 'Nmap Cheatsheet: Commands, Examples & Tutorials'
 description: |
-    Nmap is a network utility that performs as a scanner, mapper and discovery.
+    Nmap is a network scanner, port mapper, service fingerprinter and
+    NSE-driven security probe. Full cheatsheet with practical recipes.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Nmap
     order: 2000
@@ -10,39 +17,694 @@ img: https://images.unsplash.com/photo-1551609189-eba71b3a8566?fit=crop&w=1400&h
 tags:
     - network
     - security
+sem: 1
+ogTitle: Nmap Cheatsheet — Port Scanning, Service Detection & NSE
+ogDescription: Practical Nmap cheatsheet — host discovery, SYN vs connect scans, scanning all 65535 ports, service/OS fingerprinting, the Nmap Scripting Engine (NSE), and firewall evasion with copy-paste recipes.
+jsonld:
+    type: Article
+    section: Security
+    author: KBVE
+    datePublished: '2026-06-24'
+    dateModified: '2026-06-24'
+    keywords:
+        - nmap
+        - network scanner
+        - port scanning
+        - service detection
+        - OS fingerprinting
+        - NSE
+        - Nmap Scripting Engine
+        - vulnerability scanning
+        - penetration testing
+        - firewall evasion
+        - host discovery
+        - cybersecurity tools
+        - nmap vs masscan
+        - filtered vs closed ports
+    breadcrumb:
+        - name: KBVE
+          path: /
+        - name: Application
+          path: /application/
+        - name: Nmap
+          path: /application/nmap/
+    faq:
+        - question: Is it legal to use Nmap?
+          answer: >-
+              Nmap itself is legal, but scanning networks you do not own or
+              lack written permission to scan is illegal in most jurisdictions.
+              Stick to your own infrastructure, CTF ranges like HackTheBox or
+              TryHackMe, scanme.nmap.org, and engagements with a signed scope.
+        - question: What is the difference between an -sS and -sT scan in Nmap?
+          answer: >-
+              -sS is a TCP SYN (half-open) scan that never completes the
+              handshake, making it fast and stealthier, but it requires root.
+              -sT is a full TCP connect() scan that completes the handshake;
+              it works unprivileged but is slower and noisier.
+        - question: How do I scan all 65535 ports with Nmap?
+          answer: >-
+              Use the -p- flag, for example "sudo nmap -p- TARGET", to scan
+              every TCP port. Combine with --min-rate and -T4 for speed, e.g.
+              "sudo nmap -p- --min-rate 5000 -T4 TARGET".
+        - question: What is the Nmap Scripting Engine (NSE)?
+          answer: >-
+              NSE lets Nmap run Lua scripts for advanced discovery, version
+              detection, vulnerability checks and brute forcing. Scripts are
+              grouped into categories such as default, safe, vuln and
+              intrusive, and run via --script, for example
+              "sudo nmap --script vuln TARGET".
+        - question: What does filtered mean in an Nmap scan, and how is it different from closed?
+          answer: >-
+              "closed" means the port is reachable and the host replied, but no
+              application is listening. "filtered" means a firewall or filter
+              dropped the probe, so Nmap cannot tell whether the port is open
+              or closed. Filtered almost always indicates a firewall; re-probe
+              with -Pn, a trusted source port, or an ACK scan.
+        - question: How do I detect service versions and the operating system with Nmap?
+          answer: >-
+              Use -sV for service and version detection and -O for OS
+              fingerprinting. The -A flag bundles both with default scripts and
+              traceroute, equivalent to "-sV -sC -O --traceroute".
+bento:
+    badge: application · network · security
+    title: 'Map the network,'
+    accent: Nmap.
+    lede: >-
+        Nmap ("Network Mapper") is the default tool in every pentest playbook —
+        an open-source utility for host discovery, port scanning, service
+        detection, OS fingerprinting, and scriptable probes via the Nmap
+        Scripting Engine. This cheatsheet covers scan types, NSE, firewall
+        evasion, and copy-paste recipes for real engagements.
+    ctas:
+        - label: Install
+          href: '#install'
+          primary: true
+        - label: Port scanning
+          href: '#port-scanning'
+        - label: NSE scripting
+          href: '#nse'
+        - label: Common recipes
+          href: '#common-recipes'
+    aside:
+        icon: shield
+        title: Authorization first
+        body: >-
+            Scanning networks you don't own or have written permission to scan
+            is illegal in most jurisdictions. Stick to your own infrastructure,
+            CTF ranges, scanme.nmap.org, and engagements with a signed scope.
+        points:
+            - <strong>Discovery</strong> — find live hosts before port scanning.
+            - <strong>NSE</strong> — Lua scripts for version, vuln, and brute checks.
+            - <strong>Evasion</strong> — fragmentation, decoys, and source-port spoofing.
+    stats:
+        - { label: TCP ports, value: '65535', icon: network }
+        - { label: Default scan, value: SYN, icon: bolt }
+        - { label: NSE categories, value: '14', icon: code }
+        - { label: Timing levels, value: 'T0–T5', icon: clock }
+    features:
+        - title: Port scanning
+          icon: network
+          href: '#port-scanning'
+          body: SYN, connect, UDP, ACK, and stealth scans — the scan shape that makes Nmap fast or slow.
+        - title: NSE scripting
+          icon: code
+          href: '#nse'
+          body: The Nmap Scripting Engine — default, safe, vuln, and intrusive Lua scripts with high-value recipes.
+        - title: Firewall evasion
+          icon: shield
+          href: '#firewall-ids-evasion'
+          body: Source-port spoofing, fragmentation, decoys, and MAC spoofing for sanctioned engagements only.
+        - title: Common recipes
+          icon: route
+          href: '#common-recipes'
+          body: Subnet inventory, web-server triage, CTF first contact, and continuous monitoring workflows.
+    related:
+        - title: WireGuard
+          href: /application/wireguard/
+          copy: Secure the network you just mapped with an encrypted mesh.
+          icon: lock
+        - title: Nginx
+          href: /application/nginx/
+          copy: The web server you'll fingerprint on ports 80 and 443.
+          icon: server
+        - title: Flipper Zero
+          href: /application/flipperzero/
+          copy: A hardware companion for the wider security toolkit.
+          icon: sensor
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1551609189-eba71b3a8566?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@/components/astropad';
+import JsonLd from '@kbve/astro/seo/JsonLd.astro';
+import { seo } from '@/lib/seo';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Information
+export const nmapUrl = seo.url('/application/nmap/');
+export const howTos = [
+	{
+		'@type': 'HowTo',
+		'@id': `${nmapUrl}#howto-ctf`,
+		name: 'How to scan a CTF / HackTheBox host with Nmap',
+		description:
+			'A two-stage Nmap workflow: a fast full-port sweep, then a deep service, version, and OS scan against only the open ports.',
+		tool: [{ '@type': 'HowToTool', name: 'Nmap' }],
+		step: [
+			{
+				'@type': 'HowToStep',
+				name: 'Fast full-port discovery',
+				text: 'Scan every TCP port quickly to find what is open: sudo nmap -p- --min-rate 5000 -T4 -oN stage1.txt TARGET',
+				url: `${nmapUrl}#ctf--hackthebox-first-contact`,
+			},
+			{
+				'@type': 'HowToStep',
+				name: 'Deep scan the open ports',
+				text: 'Pull the open ports from stage 1 and run service, version, default-script, and OS detection: PORTS=$(grep ^[0-9] stage1.txt | cut -d/ -f1 | paste -sd,); sudo nmap -p "$PORTS" -sC -sV -O -oA stage2 TARGET',
+				url: `${nmapUrl}#ctf--hackthebox-first-contact`,
+			},
+		],
+	},
+	{
+		'@type': 'HowTo',
+		'@id': `${nmapUrl}#howto-inventory`,
+		name: 'How to inventory an internal subnet with Nmap',
+		description:
+			'Discover live hosts on a subnet, then run targeted TCP and UDP scans against only the hosts that responded.',
+		tool: [{ '@type': 'HowToTool', name: 'Nmap' }],
+		step: [
+			{
+				'@type': 'HowToStep',
+				name: 'Find live hosts',
+				text: 'ARP ping sweep the subnet with no port scan: sudo nmap -sn -PR -oA inv-live 10.0.0.0/24',
+				url: `${nmapUrl}#internal-subnet-inventory`,
+			},
+			{
+				'@type': 'HowToStep',
+				name: 'TCP scan the live hosts',
+				text: 'Extract the up hosts and run a top-1000 TCP scan: grep "Status: Up" inv-live.gnmap | awk \'{print $2}\' > live-hosts.txt; sudo nmap -sS --top-ports 1000 -iL live-hosts.txt -oA inv-tcp',
+				url: `${nmapUrl}#internal-subnet-inventory`,
+			},
+			{
+				'@type': 'HowToStep',
+				name: 'UDP scan the usual suspects',
+				text: 'Scan common UDP services against the live hosts: sudo nmap -sU -p 53,67,68,69,123,137,138,161,162,500,514,520,1900,5353 -iL live-hosts.txt -oA inv-udp',
+				url: `${nmapUrl}#internal-subnet-inventory`,
+			},
+		],
+	},
+];
 
--   Nmap / "Network Mapper" is an open source utility for scanning and analyzing networks within the environment; the application's primary function is for security probing and audits.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-<Adsense />
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
-## Cheatsheet
+Nmap ("Network Mapper") is an open-source utility for host discovery, port
+scanning, service detection, OS fingerprinting and scriptable probes via the
+Nmap Scripting Engine (NSE). It's the default tool in every pentest playbook
+and the first thing oncall reaches for when "is the firewall actually doing
+what we think."
 
--   You can replace all instances of `{$ip_address}` or `127.0.0.1` with the IP address that you want to scan.
--   The total ports that will be scanned are from the range of `0` to `65535`.
--   Port `0` is not a specific binding port but rather a wild card port that tells the unix system to find and allocate the next available port.
+<Aside type="caution" title="Authorization first">
+	Scanning networks you don't own or have written permission to scan is
+	illegal in most jurisdictions. Stick to your own infrastructure, CTF
+	ranges (HackTheBox / TryHackMe), `scanme.nmap.org` (provided by the
+	Nmap project for testing), and engagements with a signed scope.
+</Aside>
 
--   Scan UDP / TCP and all ports.
+</BentoProse>
 
-    -   ```shell
-        sudo nmap -sU -sT -p0-65535 {$ip_address}
-        ```
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
--   Nmap Help
+<BentoProse id="install" eyebrow="Setup" heading="Install">
 
-    -   ```shell
-        sudo nmap -h
-        ```
+<Tabs>
+	<TabItem label="Debian / Ubuntu">
+		```shell
+		sudo apt update && sudo apt install -y nmap
+		```
+	</TabItem>
+	<TabItem label="Fedora / RHEL">
+		```shell
+		sudo dnf install -y nmap
+		```
+	</TabItem>
+	<TabItem label="Arch">
+		```shell
+		sudo pacman -S nmap
+		```
+	</TabItem>
+	<TabItem label="macOS">
+		```shell
+		brew install nmap
+		```
+	</TabItem>
+	<TabItem label="Windows">
+		```shell
+		# Official installer ships Nmap + Zenmap GUI + Ncat + Nping
+		winget install -e --id Insecure.Nmap
+		```
+	</TabItem>
+</Tabs>
+
+Confirm the version + NSE script database location:
+
+```shell
+nmap --version
+nmap --script-help all | head
+```
+
+</BentoProse>
+
+<BentoProse id="target-specification" eyebrow="Targets" heading="Target Specification">
+
+Across every command below, replace `TARGET` with one or more of:
+
+- A single host: `10.0.0.5` or `scanme.nmap.org`
+- A CIDR block: `10.0.0.0/24`
+- A range: `10.0.0.1-50` or `10.0.0,1,2.1-10`
+- A file of targets: `-iL targets.txt`
+- Exclusions: `--exclude 10.0.0.1` or `--excludefile skip.txt`
+
+```shell
+# Random 100 hosts on the public internet (research only).
+sudo nmap -sn -iR 100
+```
+
+</BentoProse>
+
+<BentoProse id="host-discovery" eyebrow="Who's up" heading="Host Discovery">
+
+Find live hosts without doing a port scan first.
+
+| Flag | What it does |
+|------|--------------|
+| `-sn` | "ping scan" — host discovery, skip port scan |
+| `-Pn` | skip discovery, treat every host as up |
+| `-PE` | ICMP echo (requires root) |
+| `-PS22,80,443` | TCP SYN ping on listed ports |
+| `-PA22,80,443` | TCP ACK ping |
+| `-PU53,161` | UDP ping on listed ports |
+| `-PR` | ARP ping (LAN-only, fastest + most reliable on the local subnet) |
+| `-n` | skip reverse-DNS for every hit (a lot faster on /16+) |
+
+```shell
+# Ping sweep of a /24, no port scan, no DNS.
+sudo nmap -sn -n 10.0.0.0/24
+
+# ARP sweep on a local subnet — bypasses host firewall ICMP filters.
+sudo nmap -PR -sn 192.168.1.0/24
+
+# Assume the host is up (some hosts block all ICMP / TCP probes).
+sudo nmap -Pn TARGET
+```
+
+</BentoProse>
+
+<BentoProse id="port-scanning" eyebrow="Scan types" heading="Port Scanning">
+
+The shape of the scan is what makes Nmap fast or slow.
+
+| Flag | Scan type | When to use |
+|------|-----------|-------------|
+| `-sS` | TCP SYN (half-open) | default, fast, root only |
+| `-sT` | TCP connect() | unprivileged or when SYN drops are noisy |
+| `-sU` | UDP | DNS / SNMP / NTP / VoIP gear |
+| `-sA` | TCP ACK | map firewall rule sets (stateful vs stateless) |
+| `-sN` `-sF` `-sX` | TCP Null / FIN / Xmas | bypass naïve stateless firewalls |
+| `-sY` | SCTP INIT | telecom / SS7 gear |
+
+Port specifications:
+
+```shell
+# Top 1000 TCP ports (default).
+sudo nmap TARGET
+
+# Top 100 — fastest useful pass.
+sudo nmap --top-ports 100 TARGET
+
+# Every TCP port.
+sudo nmap -p- TARGET
+
+# Specific ports / ranges / names.
+sudo nmap -p 22,80,443,1000-2000,http* TARGET
+
+# Both TCP and UDP, every port.
+sudo nmap -sU -sS -p0-65535 TARGET
+
+# Only show open ports in the output (great for diff'ing scans).
+sudo nmap --open TARGET
+```
+
+</BentoProse>
+
+<BentoProse id="understanding-scan-results" eyebrow="Reading output" heading="Understanding Scan Results">
+
+Nmap reports one of six states per port. Knowing the difference between
+`closed` and `filtered` is the single most useful skill when reading output.
+
+| State | Meaning |
+|-------|---------|
+| `open` | An application is actively accepting connections on the port |
+| `closed` | Port is reachable (host replied) but no application is listening |
+| `filtered` | A firewall/filter dropped the probe — Nmap can't tell open vs closed |
+| `unfiltered` | Port is reachable but Nmap can't tell open vs closed (ACK scan) |
+| `open|filtered` | No reply — either open or filtered (common on UDP / FIN / Null / Xmas) |
+| `closed|filtered` | Can't tell closed vs filtered (idle scan only) |
+
+```text
+PORT     STATE    SERVICE   VERSION
+22/tcp   open     ssh       OpenSSH 8.9p1 Ubuntu 3ubuntu0.6
+80/tcp   open     http      nginx 1.18.0
+443/tcp  filtered https
+3306/tcp closed   mysql
+```
+
+<Aside type="tip">
+	`filtered` almost always means a firewall. Re-probe with `-Pn` (skip host
+	discovery), a trusted source port (`-g 53`), or a different scan type
+	(`-sA` to map the firewall rules) before concluding the port is dead.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="service-version-detection" eyebrow="Fingerprinting" heading="Service & Version Detection">
+
+```shell
+# -sV probes open ports and labels them with banner + version.
+sudo nmap -sV TARGET
+
+# Stack version detection with default NSE scripts and OS guess.
+sudo nmap -A TARGET            # = -sV -sC -O --traceroute
+
+# Tighter probe (faster, less accurate) vs aggressive (slower, more accurate).
+sudo nmap -sV --version-intensity 0 TARGET   # light banner only
+sudo nmap -sV --version-intensity 9 TARGET   # every probe
+sudo nmap -sV --version-all TARGET           # same as intensity 9
+```
+
+</BentoProse>
+
+<BentoProse id="os-detection" eyebrow="Fingerprinting" heading="OS Detection">
+
+```shell
+# Active OS fingerprint (root only, needs at least one open + one closed port).
+sudo nmap -O TARGET
+
+# Be conservative — only print a guess when confidence is high.
+sudo nmap -O --osscan-limit TARGET
+
+# Guess aggressively (useful for filtered hosts).
+sudo nmap -O --osscan-guess TARGET
+```
+
+</BentoProse>
+
+<BentoProse id="nse" eyebrow="Scripting engine" heading="NSE — Nmap Scripting Engine">
+
+NSE scripts live in `/usr/share/nmap/scripts/` (Linux) or
+`/opt/homebrew/share/nmap/scripts/` (macOS, Apple Silicon). Categories:
+`auth`, `broadcast`, `brute`, `default`, `discovery`, `dos`, `exploit`,
+`external`, `fuzzer`, `intrusive`, `malware`, `safe`, `version`, `vuln`.
+
+```shell
+# Run all "default" scripts — same as the -sC in -A.
+sudo nmap -sC TARGET
+
+# Run every "safe" script.
+sudo nmap --script "safe" TARGET
+
+# All vuln-detection scripts.
+sudo nmap --script "vuln" TARGET
+
+# A specific script with arguments.
+sudo nmap --script http-title --script-args http.useragent="kbve-scanner" TARGET
+
+# Glob multiple categories, exclude one.
+sudo nmap --script "default,vuln and not intrusive" TARGET
+
+# Update the local script database (after every nmap upgrade).
+sudo nmap --script-updatedb
+
+# Show what a script does before running it.
+nmap --script-help http-shellshock
+```
+
+High-value recipes:
+
+```shell
+# SSL/TLS posture: cipher list, cert expiry, known weak suites.
+sudo nmap -sV --script ssl-enum-ciphers,ssl-cert,sslv2,ssl-poodle -p 443 TARGET
+
+# SMB share enumeration on a Windows host / file server.
+sudo nmap -p 139,445 --script "smb-enum-shares,smb-os-discovery,smb-vuln-*" TARGET
+
+# HTTP fingerprint pack — title, headers, common dirs, robots, CSP.
+sudo nmap -sV --script "http-title,http-headers,http-enum,http-robots.txt,http-security-headers" -p 80,443,8080,8443 TARGET
+
+# DNS recon — zone transfer, NSEC walk, brute subdomains.
+sudo nmap -sn --script "dns-zone-transfer,dns-nsec-enum,dns-brute" --script-args dns-brute.domain=example.com TARGET
+
+# Vulnerability sweep (noisy, run only on owned systems).
+sudo nmap -sV --script "vuln" TARGET
+```
+
+</BentoProse>
+
+<BentoProse id="output-reporting" eyebrow="Save & diff" heading="Output & Reporting">
+
+```shell
+# Normal stdout + grepable + XML in one go.
+sudo nmap -oA scan-baseline TARGET
+# produces scan-baseline.nmap, scan-baseline.gnmap, scan-baseline.xml
+
+# Save XML for ndiff or downstream tooling.
+sudo nmap -oX scan.xml TARGET
+
+# Live progress on a long scan.
+sudo nmap -v --stats-every 30s TARGET
+
+# Diff two scans (great for "what changed since last week").
+ndiff scan-baseline.xml scan-new.xml
+```
+
+Convert the XML to HTML for sharing:
+
+```shell
+xsltproc scan.xml -o scan.html
+```
+
+</BentoProse>
+
+<BentoProse id="timing-performance" eyebrow="Speed control" heading="Timing & Performance">
+
+`-T0` (paranoid) through `-T5` (insane). Default is `-T3`.
+
+| Profile | Use |
+|---------|-----|
+| `-T0` | IDS evasion, hours-per-port |
+| `-T1` | sneaky, IDS evasion |
+| `-T2` | polite, low bandwidth |
+| `-T3` | normal (default) |
+| `-T4` | aggressive — assume a fast, reliable network |
+| `-T5` | insane — local LAN or willing-to-lose-accuracy |
+
+Tunables when `-T*` isn't precise enough:
+
+```shell
+sudo nmap \
+  --min-rate 1000 --max-rate 5000 \
+  --min-parallelism 64 --max-parallelism 256 \
+  --max-retries 2 \
+  --host-timeout 30m \
+  --max-rtt-timeout 200ms \
+  -T4 TARGET
+```
+
+</BentoProse>
+
+<BentoProse id="firewall-ids-evasion" eyebrow="Stealth" heading="Firewall & IDS Evasion">
+
+<Aside type="caution">
+	These flags exist because IDS engines like Snort / Suricata watch for
+	exactly this signature. Don't use them outside a sanctioned engagement.
+</Aside>
+
+```shell
+# Source-port spoof — many firewalls trust 53 / 80 / 443 outbound.
+sudo nmap --source-port 53 TARGET
+sudo nmap -g 53 TARGET
+
+# Fragmented packets — split TCP header across multiple IP fragments.
+sudo nmap -f TARGET
+sudo nmap --mtu 16 TARGET
+
+# Decoys — N decoy IPs appear to scan alongside your real one.
+sudo nmap -D 10.0.0.1,10.0.0.2,ME,10.0.0.4 TARGET
+
+# Proxy chain (limited support — works for TCP connect scans).
+sudo nmap --proxies socks4://127.0.0.1:9050 -sT TARGET
+
+# Randomize host order + spoof MAC vendor on the LAN.
+sudo nmap --randomize-hosts --spoof-mac Apple TARGET
+
+# Slow IDS-evasion scan (be patient).
+sudo nmap -T1 -sS -f --data-length 24 TARGET
+```
+
+</BentoProse>
+
+<BentoProse id="common-recipes" eyebrow="Workflows" heading="Common Recipes">
+
+<JsonLd graph={howTos} />
+
+### Internal subnet inventory
+
+```shell
+# 1. Find live hosts.
+sudo nmap -sn -PR -oA inv-live 10.0.0.0/24
+
+# 2. Fast TCP top-1000 against live hosts only.
+grep "Status: Up" inv-live.gnmap | awk '{print $2}' > live-hosts.txt
+sudo nmap -sS --top-ports 1000 -iL live-hosts.txt -oA inv-tcp
+
+# 3. UDP focus on the usual suspects.
+sudo nmap -sU -p 53,67,68,69,123,137,138,161,162,500,514,520,1900,5353 -iL live-hosts.txt -oA inv-udp
+```
+
+### Web-server triage
+
+```shell
+sudo nmap -p 80,443,8080,8443,8000,8888,3000,5000,9000 \
+  -sV -sC \
+  --script "http-title,http-headers,http-methods,http-enum,http-security-headers,ssl-cert,ssl-enum-ciphers" \
+  -oA web-triage TARGET
+```
+
+### CTF / HackTheBox first contact
+
+```shell
+# Stage 1: every TCP port, fast, just to see what's open.
+sudo nmap -p- --min-rate 5000 -T4 -oN stage1.txt TARGET
+
+# Stage 2: focus on the open ports from stage 1.
+PORTS=$(grep ^[0-9] stage1.txt | cut -d/ -f1 | paste -sd,)
+sudo nmap -p "$PORTS" -sC -sV -O -oA stage2 TARGET
+```
+
+### Egress-firewall test from inside the network
+
+```shell
+# Which outbound ports actually reach the internet from this host?
+sudo nmap -Pn -sS -p- --min-rate 1000 scanme.nmap.org
+```
+
+### Continuous monitoring (cron + ndiff)
+
+```shell
+# Save a daily baseline, alert on drift.
+sudo nmap -sS --top-ports 1000 -oX /var/log/nmap/$(date +%F).xml 10.0.0.0/24
+ndiff /var/log/nmap/yesterday.xml /var/log/nmap/$(date +%F).xml | tee /var/log/nmap/diff-$(date +%F).txt
+```
+
+</BentoProse>
+
+<BentoProse id="quick-reference" eyebrow="Cheatsheet" heading="Quick Reference">
+
+```shell
+nmap -h                              # built-in help
+sudo nmap -sn 10.0.0.0/24            # who's up
+sudo nmap -p- TARGET                 # every TCP port
+sudo nmap -sU TARGET                 # UDP
+sudo nmap -sV -sC -O TARGET          # service + default NSE + OS
+sudo nmap -A TARGET                  # aggressive (= -sV -sC -O --traceroute)
+sudo nmap --script vuln TARGET       # known-CVE checks
+sudo nmap -oA scan TARGET            # save all formats
+sudo nmap -T4 --min-rate 1000 TARGET # fast pass
+```
+
+</BentoProse>
+
+<BentoProse id="troubleshooting" eyebrow="Fixes" heading="Troubleshooting">
+
+Common failures and the fix.
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `You requested a scan type which requires root privileges` | `-sS`, `-sU`, `-O`, `-PE` need raw sockets | Run with `sudo`, or fall back to `-sT` (unprivileged connect scan) |
+| `Note: Host seems down. If it is really up, but blocking our ping probes, try -Pn` | Host blocks ICMP/TCP discovery probes | Add `-Pn` to skip discovery and treat the host as up |
+| All ports show `filtered` | A firewall is dropping probes | Try `-Pn`, a trusted source port (`-g 53`), or an ACK scan (`-sA`) to map rules |
+| UDP scan crawls / takes forever | UDP is rate-limited and retransmit-heavy | Limit ports (`-p 53,161,500`), raise `--min-rate`, add `--host-timeout` |
+| `dnet: Failed to open device ethX` / no results on LAN | Wrong interface or no L2 access | Pin the interface with `-e eth0`, or use `-Pn` to avoid ARP |
+| `Failed to resolve "TARGET"` | DNS lookup failed | Check the hostname, or scan the IP directly and add `-n` to skip DNS |
+| Scan is accurate but extremely slow | Default timing too polite for the link | Raise to `-T4` and set `--min-rate`; drop `-A`/`-O` if you don't need them |
+| NSE: `'X' did not match a category, filename, or directory` | Script DB is stale or the name is wrong | Run `sudo nmap --script-updatedb`; verify with `nmap --script-help X` |
+
+<Aside type="tip">
+	When a scan misbehaves, add `--reason` (shows *why* Nmap marked each port a
+	given state) and `-d` (debug, repeatable `-dd`) to see the packets Nmap
+	actually sent and received.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="nmap-vs-other-scanners" eyebrow="Comparison" heading="Nmap vs Other Scanners">
+
+Nmap is the most accurate all-rounder, but it's not the fastest at internet
+scale. Pick the right tool, then hand off to Nmap for the deep pass.
+
+| Tool | Strength | Trade-off |
+|------|----------|-----------|
+| **Nmap** | Accuracy, NSE scripts, version + OS detection | Slower on huge ranges |
+| **masscan** | Asynchronous, scans the whole IPv4 internet in minutes | No version detection, accuracy drops at high rates |
+| **RustScan** | Fast port discovery, then auto-pipes into Nmap | Just a front-end; still needs Nmap for depth |
+| **ZMap** | Single-port internet-wide research scanning | Built for one port at a time, not host audits |
+| **naabu** | Fast SYN/CONNECT discovery, scriptable pipelines | Discovery only, no service fingerprinting |
+
+A common pattern: discover open ports fast, then deep-scan only those.
+
+```shell
+# masscan finds open ports fast, Nmap fingerprints them accurately.
+sudo masscan -p1-65535 TARGET --rate 10000 -oG masscan.gnmap
+PORTS=$(grep -oP 'Ports: \K[0-9]+' masscan.gnmap | sort -un | paste -sd,)
+sudo nmap -p "$PORTS" -sC -sV -O TARGET
+```
+
+</BentoProse>
+
+<BentoProse id="related-companions" eyebrow="Bundled tools" heading="Related Companions">
+
+- **Ncat** ships with Nmap — TCP/UDP swiss army knife, replaces `nc`.
+  ```shell
+  ncat -lvnp 4444                  # listen on TCP/4444
+  ncat --ssl example.com 443       # TLS client
+  ```
+- **Nping** — packet crafter, for ad-hoc ICMP/TCP/UDP/ARP probes.
+  ```shell
+  sudo nping --tcp -p 443 --flags syn -c 5 TARGET
+  ```
+- **Ndiff** — compare two XML scans (already shown under Output).
+- **Zenmap** — official GUI; useful for first-time users + saved scan profiles.
+
+</BentoProse>
+
+</BentoDoc>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

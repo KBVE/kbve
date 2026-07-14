@@ -1,20 +1,66 @@
 ---
 title: Trinket of fortuity (active) | OSRS Price Data
-description: Trinket of fortuity (active) is a members-only OSRS item.
+description: "Trinket of fortuity (active) is a Wilderness boss luck modifier that boosts rare drop chances while skulling teleports."
 osrs:
   id: 33050
   name: Trinket of fortuity (active)
   slug: trinket-of-fortuity-active
-  examine: A magic rock! This one increases the chance of obtaining rare items. Teleportation will behave as if you were skulled.
+  examine: "A magic rock! This one increases the chance of obtaining rare items. Teleportation will behave as if you were skulled."
   members: true
   icon: Trinket of fortuity.png
   value: 0
-  lowalch: null
-  highalch: null
-  limit: null
-  about: Trinket of fortuity (active) is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  lowalch: 0
+  highalch: 0
+  limit: 0
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: trinket
+    tier: high
+  properties:
+    release_date: "2023-12-13"
+    update: "Wilderness Boss Rework"
+    tradeable: false
+    equipable: false
+    stackable: false
+    noteable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Deactivate
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  passive_effects:
+    - name: Wilderness boss luck boost
+      description: "While active, increases the chance of receiving unique drops from Callisto, Venenatis and Vet'ion (and their Calvarion/Spindel/Artio variants)."
+    - name: Skulling teleport penalty
+      description: "Teleports while the trinket is active act as if the player is skulled, so all items will be lost on death."
+  related_items:
+    - item_name: Trinket of fortuity
+      slug: trinket-of-fortuity
+      relationship: variant
+      description: Inactive form of the trinket before activation.
+    - item_name: Trinket of vengeance
+      slug: trinket-of-vengeance
+      relationship: alternative
+      description: PvP-focused alternative trinket from the same loot pool.
+  about: |-
+    Trinket of fortuity (active) is the activated form of the Trinket of fortuity, dropped from the resurrected Wilderness bosses. While active, it raises the chance of receiving the unique drops from Callisto, Venenatis, Vet'ion and their lesser variants.
+
+    Activating the trinket also imposes a skull-style teleport penalty: every teleport while it is active behaves as if the player were skulled, so any item left unprotected will drop on death.
+  market_strategy:
+    notes:
+      - "Untradeable; no Grand Exchange market."
+      - "Value is measured in Wilderness boss KC efficiency, not GE price."
+      - "Active state cannot be reset without deactivation; weigh skull risk vs. uplift."
+  trading_tips:
+    - "Activate only after committing to a focused Wilderness boss session."
+    - "Pair with non-teleport escape routes to mitigate the skulled teleport penalty."
+  history:
+    - date: "2023-12-13"
+      description: "Released alongside the Wilderness Boss Rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Pineapple ring | OSRS Price Data
-description: "Pineapple ring: Exotic fruit.. High alch: 1 GP, GE limit: 13,000."
+description: "Pineapple ring: Exotic fruit. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2118
   name: Pineapple ring
@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Pineapple ring is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-08-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Eat
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 65
+      xp: 188
+      materials:
+        - item_name: Plain pizza
+          quantity: 1
+        - item_name: Pineapple ring
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Pineapple
+      slug: pineapple
+      relationship: component
+      description: Sliced with a knife to produce 4 rings
+    - item_name: Pineapple chunks
+      slug: pineapple-chunks
+      relationship: alternative
+      description: Alternative dicing output from the same fruit
+    - item_name: Pineapple pizza
+      slug: pineapple-pizza
+      relationship: product
+      description: Created by adding a ring to a plain pizza
+  about: "Pineapple ring is produced by using a knife on a pineapple or tenti pineapple and selecting the slice option, yielding 4 rings per fruit. The primary use is adding to a plain pizza at 65 Cooking to make a pineapple pizza. Heals 2 HP when eaten."
+  market_strategy:
+    notes:
+      - "Profitable to slice from raw pineapples during low-supply windows"
+      - "Demand driven by Cooking trainers making pineapple pizzas"
+  trading_tips:
+    - Compare pineapple cost vs ring price for slicing arbitrage
+  history:
+    - date: "2002-08-15"
+      description: "Released as part of the early fruit and cooking content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

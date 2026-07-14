@@ -1,5 +1,6 @@
 ---
 title: Tube Coral
+template: splash
 description: |
     Minecraft Tube Coral — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 629
     ref: tube_coral
     slug: tube-coral
+    content_rev: 1
     display_name: Tube Coral
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            One of the five coral types found in Minecraft's warm ocean coral reefs, tube coral has a distinctive blue color and, like all coral, drops nothing when mined without Silk Touch. With a Silk Touch tool it can be collected and replanted on sand or gravel underwater as a small decorative plant.
+            It must remain adjacent to water or a waterlogged block to stay alive, dying into dead tube coral after a few seconds if that water source disappears.
+        lore: |
+            Tube coral belongs to the same five-color reef family as brain, bubble, fire, and horn coral, each modeled on a real-world coral shape.
+    faq:
+        - question: How do I collect Tube Coral?
+          answer: |
+              Mine it with a Silk Touch enchanted tool. Without Silk Touch, mining it yields nothing at all.
+        - question: Where does Tube Coral generate naturally?
+          answer: |
+              It generates as part of coral reef structures found in warm ocean biomes, alongside brain, bubble, fire, and horn coral.
+        - question: Can I grow more Tube Coral myself?
+          answer: |
+              Yes, applying bone meal to a coral block or existing coral placed underwater in a warm ocean can generate additional coral, making it a renewable decoration.
+        - question: What happens if Tube Coral loses contact with water?
+          answer: |
+              It dies and converts into dead tube coral after roughly 3 to 5 seconds without an adjacent water or waterlogged block.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

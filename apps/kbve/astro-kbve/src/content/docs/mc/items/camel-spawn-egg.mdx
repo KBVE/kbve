@@ -1,5 +1,6 @@
 ---
 title: Camel Spawn Egg
+template: splash
 description: |
     Minecraft Camel Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1077
     ref: camel_spawn_egg
     slug: camel-spawn-egg
+    content_rev: 1
     display_name: Camel Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Camel Spawn Egg is a Creative-mode-only item that instantly spawns an unsaddled
+            camel, with a small chance of producing a baby. Like all spawn eggs, it can be used
+            directly on the ground, inside dispensers, or on monster spawners to change which mob
+            the spawner produces.
+        lore: |
+            Spawn eggs let world-builders summon any creature on demand, sidestepping the natural
+            spawning rules that govern survival gameplay.
+    faq:
+        - question: How do I get a camel spawn egg in Survival mode?
+          answer: |
+              You cannot obtain it through normal survival gameplay; it is only available in
+              Creative mode's inventory or via a command such as /give @s camel_spawn_egg.
+        - question: What's the chance of spawning a baby camel with this egg?
+          answer: |
+              Camels have a 5% chance of spawning as a baby, so using the egg will occasionally
+              produce a young camel instead of an adult.
+        - question: Does using the egg on an existing camel do anything special?
+          answer: |
+              Using a spawn egg on a matching mob spawns a new creature of that same type rather
+              than affecting the existing one, so using it on a camel produces another camel.
+        - question: Do camel spawn eggs work on Peaceful difficulty?
+          answer: |
+              Yes. Since camels are passive mobs rather than hostile ones, they spawn normally
+              from the egg regardless of the world's difficulty setting.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

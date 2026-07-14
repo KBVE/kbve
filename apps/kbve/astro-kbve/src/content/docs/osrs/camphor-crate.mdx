@@ -12,9 +12,64 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 250
-  about: "Camphor crate is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Inspect
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 62
+      xp: 50
+      materials:
+        - item_name: Camphor logs
+          quantity: 1
+        - item_name: Adamantite nails
+          quantity: 4
+      tools:
+        - Hammer
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Camphor logs
+      slug: camphor-logs
+      relationship: component
+      description: Sawn wood used to assemble the crate.
+    - item_name: Adamantite nails
+      slug: adamantite-nails
+      relationship: component
+      description: Heavy nails fastening the crate panels together.
+    - item_name: Fish crate
+      slug: fish-crate
+      relationship: product
+      description: Empty fish crate created when the camphor crate is treated with an ice cooler.
+  about: "Camphor crate is a stackable Sailing-era container crafted at level 62 Crafting from one camphor log and four adamantite nails for 50 experience. Treating it with an ice cooler converts it into an empty fish crate, used to store deep sea fish caught during deep sea trawling around Aldarin."
+  market_strategy:
+    notes:
+      - "Alch values are negligible; price is driven by Sailing/trawling demand."
+      - "Buy limit of 250 lets serious crafters list a meaningful stack per window."
+      - "Stackability simplifies bulk transport for trawling sessions."
+  trading_tips:
+    - Sell into demand windows when trawling boss events are active.
+    - Bulk-craft from cheap camphor logs and nails for guaranteed XP plus GE turnover.
+    - Watch ice cooler supply; without coolers the crate's downstream use stalls.
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing update as a precursor to the empty fish crate used in deep sea trawling."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

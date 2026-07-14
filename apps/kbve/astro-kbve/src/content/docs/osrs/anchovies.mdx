@@ -12,23 +12,57 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 15000
+  food:
+    heals: 1
+    type: fish
+  recipes:
+    - skill: Cooking
+      level: 1
+      xp: 30
+      materials:
+        - item_name: Raw anchovies
+          quantity: 1
+      tools:
+        - Cooking range or fire
   related_items:
-    - item_id: 315
-      item_name: Shrimps
+    - item_name: Shrimps
       slug: shrimps
-      relationship: variant
-      description: Another net-caught fish
-    - item_id: 321
-      item_name: Raw anchovies
+      relationship: alternative
+      description: Other entry-level net-caught fish
+    - item_name: Raw anchovies
       slug: raw-anchovies
       relationship: component
       description: Uncooked version
-  about: |-
-    > _"Some nicely cooked anchovies."_
-
-    Anchovies heal 1 Hitpoint. Caught with a small fishing net at 15 Fishing. Despite low healing, they're useful as an ingredient for anchovy pizza.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Anchovy pizza
+      slug: anchovy-pizza
+      relationship: product
+      description: Pizza recipe using cooked anchovies
+  about: "Anchovies are a free-to-play cooked fish that heal 1 Hitpoint. Cooked at level 1 Cooking for 30 XP and stop burning at level 34 (level 31 on the Lumbridge range with Cook's Assistant complete)."
+  market_strategy:
+    notes:
+      - Healing too low for combat, mainly a Cooking training and pizza ingredient
+      - Stops burning at level 34 Cooking, or 31 on Lumbridge range
+      - Used in anchovy pizza recipe
+  history:
+    - date: "2001-06-11"
+      description: Released with the new Fishing skill and Cooking expansion.
+  properties:
+    release_date: "2001-06-11"
+    update: New fishing skill and more cooking
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.1
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

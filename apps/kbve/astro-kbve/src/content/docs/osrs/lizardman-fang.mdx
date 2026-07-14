@@ -12,9 +12,73 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 13000
-  about: "Lizardman fang is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: monster-drop
+    tier: mid
+  drop_table:
+    sources:
+      - source: Lizardman (level 53)
+        quantity: "1"
+        rarity: 10/87
+      - source: Lizardman (level 62)
+        quantity: "1"
+        rarity: 14/78
+      - source: Lizardman brute
+        quantity: "1"
+        rarity: 14/67
+      - source: Lizardman shaman
+        quantity: "1"
+        rarity: 40/500
+      - source: Stone chest
+        quantity: "1"
+        rarity: 85/300
+      - source: Ancient chest
+        quantity: "1"
+        rarity: 2/33
+  related_items:
+    - item_name: Xeric's talisman
+      slug: xerics-talisman
+      relationship: product
+      description: Lizardman fangs charge the Xeric's talisman teleport
+    - item_name: Xeric's talisman (inert)
+      slug: xerics-talisman-inert
+      relationship: product
+      description: Activated using lizardman fangs to create the talisman
+    - item_name: Mounted xeric's talisman
+      slug: mounted-xerics-talisman
+      relationship: product
+      description: Requires 5,000 fangs plus construction materials at 72 Construction
+  about: "Lizardman fang is a members-only stackable drop from Kourend's lizardman variants and the Stone and Ancient chests, used primarily to charge the Xeric's talisman and to assemble the mounted talisman teleport in a player-owned house."
+  market_strategy:
+    notes:
+      - Stackable so flips and stockpiling are simple
+      - Demand driven by Xeric's talisman charges and POH mounts
+      - High buy limit (13,000) supports bulk activity
+      - Supply correlates with Chambers of Xeric and lizardman shaman farming
+  trading_tips:
+    - Buy in bulk when Chambers of Xeric scaling shifts away from shaman tasks
+    - Sell into Construction meta updates when mounted talisman comes back in vogue
+    - Watch ancient chest reward rate for supply pressure
+  history:
+    - date: "2016-01-07"
+      description: Lizardman fang released as part of the Zeah - Great Kourend update introducing lizardmen and Xeric's talisman.
+  properties:
+    release_date: "2016-01-07"
+    update: "Zeah: Great Kourend"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

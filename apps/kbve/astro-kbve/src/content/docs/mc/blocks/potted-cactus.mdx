@@ -1,5 +1,6 @@
 ---
 title: Potted Cactus
+template: splash
 description: |
     Minecraft Potted Cactus — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 408
     ref: potted_cactus
     slug: potted-cactus
+    content_rev: 1
     display_name: Potted Cactus
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: cactus
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - decoration
+        - non_flammable
+    about:
+        description: |
+            Potted Cactus is a small cactus planted inside a flower pot,
+            used purely as decoration. Unlike a full-size cactus it deals
+            no contact damage, making it safe to place indoors.
+        lore: |
+            Flower pots gained the ability to hold nearly any sapling,
+            fungus, or small plant — including cacti — in the Java Edition
+            1.7 "Flower Pot" overhaul.
+    uses:
+        - title: Decoration
+          ref: flower_pot
+          detail: |
+              Purely decorative; commonly placed on shelves, desert-themed
+              builds, or windowsills. Breaking it returns both the flower
+              pot and a cactus item.
+    found_in:
+        - location: Crafted by the player
+          detail: Made by placing a cactus item into an empty flower pot; not naturally generated.
+    faq:
+        - question: Can a potted cactus hurt me?
+          answer: |
+              No. Once potted, a cactus loses its contact-damage property
+              and is completely safe to touch.
+        - question: What tool do I need to break it?
+          answer: |
+              None. It can be mined instantly by hand or with any tool.
+        - question: What does breaking it drop?
+          answer: |
+              Both the empty flower pot and a cactus item, which can be
+              replanted or repotted.
+        - question: Does bone meal make it grow?
+          answer: |
+              No. Cacti, potted or not, never respond to bone meal.
     data_version: "1.21.5"
 ---
 

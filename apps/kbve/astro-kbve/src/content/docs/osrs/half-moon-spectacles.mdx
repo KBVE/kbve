@@ -1,20 +1,92 @@
 ---
 title: Half moon spectacles | OSRS Price Data
-description: "Half moon spectacles: The two halfs would surely make a full moon?. High alch: 11,670 GP, GE limit: 4."
+description: "Half moon spectacles: The two halfs would surely make a full moon? Master clue reward. High alch: 11,670 GP, GE limit: 4."
 osrs:
   id: 20053
   name: Half moon spectacles
   slug: half-moon-spectacles
-  examine: The two halfs would surely make a full moon?
+  examine: "The two halfs would surely make a full moon?"
   members: true
   icon: Half moon spectacles.png
   value: 19450
   lowalch: 7780
   highalch: 11670
   limit: 4
-  about: "Half moon spectacles is a members-only item in Old School RuneScape. High alchemy value: 11,670 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cosmetic-headwear
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.05
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  drop_table:
+    sources:
+      - source: "Reward casket (master)"
+        quantity: "1"
+        rarity: "1/851"
+  related_items:
+    - item_name: "Reward casket (master)"
+      slug: "reward-casket-master"
+      relationship: component
+      description: "Sole source — rare reward from master Treasure Trails."
+    - item_name: "Monocle"
+      slug: "monocle"
+      relationship: alternative
+      description: "Another master clue cosmetic head-slot eyewear."
+  about: "Half moon spectacles are a cosmetic head-slot item rolled from master Treasure Trail reward caskets at roughly 1/851. They provide no combat bonuses and exist purely for fashionscape. The item is storable in the costume room treasure chest."
+  market_strategy:
+    notes:
+      - "Supply is fully gated by master clue completions — slow drip."
+      - "Buy limit of 4 / 4h makes accumulation deliberate, not casual."
+      - "Demand pulses around master-clue meta updates and PvM events that reward clues."
+  trading_tips:
+    - "Watch for spikes around new master-tier expansions or league qualifiers."
+    - "Costume-room collectors anchor the floor; cosmetic re-launches lift the ceiling."
+    - "Margin per flip is high in absolute coins but limit-capped — pace accordingly."
+  history:
+    - date: "2016-07-06"
+      description: "Added to the master clue reward pool."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

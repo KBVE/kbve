@@ -9,20 +9,64 @@ description: |
     Daily at Feb 29th! Rare Day in History!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 29,'
+    accent: every year.
+    lede: 'The February 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 28'
+          href: /journal/02-28/
+        - label: 'Mar 1 →'
+          href: /journal/03-01/
+    related:
+        - title: 'Previous · Feb 28'
+          copy: 'Step back a day to the February 28th log.'
+          href: /journal/02-28/
+          icon: calendar
+        - title: 'Next · Mar 1'
+          copy: 'Jump ahead to the March 1st log.'
+          href: /journal/03-01/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 This day does not exist. IT IS A NULL DAY! w00t!
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Unity
 
@@ -49,4 +93,6 @@ Replacing the color schemes to match with the rest of the website and then I can
 
 It seems that the Astro VE is throwing some typescript errors, so I will update the `tsconfig` and set `"jsx": "preserve",` , which should help avoid those errors.
 
+</BentoProse>
 
+</BentoDoc>

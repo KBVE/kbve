@@ -1,0 +1,140 @@
+---
+title: "Unreal RentEarth — UE5.8 Game Client Built From the Monorepo"
+description: RentEarth is a UE5.8 game client built from the monorepo shell at apps/rentearth/unreal-rentearth via the unreal_game pipeline, shipping to itch.io.
+sem: 1
+sidebar:
+    label: Unreal RentEarth
+    order: 98
+tags:
+    - ue5
+    - game
+    - rentearth
+key: unreal_rentearth
+pipeline: unreal_game
+app_name: rentearth
+source_path: apps/rentearth/unreal-rentearth
+version_toml: apps/rentearth/unreal-rentearth/version.toml
+version: "0.0.1"
+runner: arc-runner-ue
+author: h0lybyte
+license: KBVE
+status: beta
+engine:
+    version: "5.8.0"
+    project_path: apps/rentearth/unreal-rentearth
+    build_targets:
+        - Win64
+        - Linux
+external_publish:
+    itch_user: kbve
+    itch_game: rentearth
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is Unreal RentEarth?
+          answer: RentEarth is a UE5 game client built directly from the monorepo shell at apps/rentearth/unreal-rentearth via the shared unreal_game pipeline. It is a separate Unreal project from Chuck and targets Unreal Engine 5.8.
+        - question: How is RentEarth built in CI?
+          answer: The unreal_game pipeline has ci-main.yml dispatch ci-unreal.yml with task game when the MDX version outpaces version.toml or source_path files change. Win64 builds natively on the UE5-Win KubeVirt VM against prebuilt UE5.8; Linux builds in the Epic UE5.8 Docker image on arc-runner-ue.
+        - question: Where is RentEarth distributed?
+          answer: The client ships to itch.io as kbve/rentearth when deploy_to_itch is set. The client and the shared version.toml advance together. A dedicated server target is not wired yet.
+bento:
+    badge: ue5 · game · rentearth
+    title: UE5.8 game client built from the monorepo —
+    accent: RentEarth
+    lede: >-
+        A UE5.8 game client built directly from the monorepo shell at
+        apps/rentearth/unreal-rentearth via the shared unreal_game pipeline,
+        shipping to itch.io.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/rentearth/unreal-rentearth
+          primary: true
+          external: true
+        - label: Build
+          href: "#build"
+    aside:
+        icon: box
+        title: Built straight from the monorepo
+        body: >-
+            With no engine.external_repo_url, the builder checks out the monorepo
+            and builds the .uproject under engine.project_path — the same way the
+            early Chuck demo did — against prebuilt UE5.8 on the UE5-Win KubeVirt VM.
+        points:
+            - <strong>Win64</strong> — native on the UE5-Win KubeVirt VM.
+            - <strong>Linux</strong> — Epic UE5.8 Docker image on arc-runner-ue.
+    stats:
+        - { label: Engine, value: UE 5.8.0, icon: box }
+        - { label: Pipeline, value: unreal_game, icon: gears }
+        - { label: Targets, value: Win64/Linux, icon: box }
+        - { label: Ships to, value: itch.io, icon: package }
+    features:
+        - title: Monorepo shell build
+          icon: box
+          body: Compiles apps/rentearth/unreal-rentearth directly, with no external game repo.
+        - title: Shared unreal_game pipeline
+          icon: gears
+          body: Wired to the same manifest-driven pipeline as the Chuck game clients.
+        - title: Two-platform build
+          icon: box
+          body: Win64 natively on the UE5-Win KubeVirt VM and Linux in the Epic UE5.8 Docker image on arc-runner-ue.
+        - title: itch.io distribution
+          icon: package
+          body: The client ships to itch.io as kbve/rentearth when deploy_to_itch is set.
+    related:
+        - title: Unreal Chuck (dev)
+          href: /project/unreal-chuck-dev/
+          copy: The sibling UE5 game project RentEarth forked its shell from.
+          icon: branch
+        - title: KBVENet
+          href: /project/kbvenet/
+          copy: Shared UE5 networking plugin available to KBVE game clients.
+          icon: network
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="build" eyebrow="Pipeline & CI" heading="Build & distribution">
+
+## Overview
+
+RentEarth UE5 game client — a separate Unreal project from [Chuck](/project/unreal-chuck-dev).
+It compiles the monorepo shell at `apps/rentearth/unreal-rentearth` directly (no external game
+repo), the same way the early Chuck demo did, and is wired to the shared `unreal_game` pipeline.
+
+## Pipeline
+
+`pipeline: unreal_game` → `ci-main.yml` dispatches `ci-unreal.yml` (`task: game`) when the MDX
+`version:` here outpaces `version.toml`, or `source_path` files change. With no
+`engine.external_repo_url`, the builder checks out the monorepo and builds the `.uproject` under
+`engine.project_path` against the prebuilt UE5.8 on the `UE5-Win` KubeVirt VM
+(`C:\Program Files\Epic Games\UE_5.8`); the Linux client builds in the cached
+`ghcr.io/epicgames/unreal-engine:dev-5.8.0` image on `arc-runner-ue`.
+
+## Build Matrix
+
+`engine.build_targets`:
+
+- `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat, prebuilt UE5.8)
+- `Linux` — `arc-runner-ue` in the Epic UE5.8 Docker image
+
+The dedicated server is not wired yet — add `shell_path` + a `build.toml` (`server_target`,
+`repo`, UE image) under `apps/rentearth/unreal-rentearth` to fan the server build off this same
+version gate, matching the Chuck setup, once the server target exists.
+
+## Distribution
+
+Client shipped to itch.io as `kbve/rentearth` when `deploy_to_itch` is set. Client and the
+shared `version.toml` advance together.
+
+</BentoProse>
+
+</BentoDoc>

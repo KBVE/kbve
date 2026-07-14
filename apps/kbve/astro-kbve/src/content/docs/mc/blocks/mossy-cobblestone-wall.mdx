@@ -1,5 +1,6 @@
 ---
 title: Mossy Cobblestone Wall
+template: splash
 description: |
     Minecraft Mossy Cobblestone Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 379
     ref: mossy_cobblestone_wall
     slug: mossy-cobblestone-wall
+    content_rev: 1
     display_name: Mossy Cobblestone Wall
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mossy_cobblestone_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Mossy Cobblestone Wall is a taller, connecting variant of Mossy
+            Cobblestone used to fence off areas or add detail to overgrown
+            builds. It connects to adjacent walls and posts like other wall
+            blocks and blocks mob pathing while allowing arrows through.
+        lore: |
+            Added in the same 1.14 update as the Mossy Cobblestone Slab and
+            Stairs, completing the mossy stone building set.
+    uses:
+        - title: Perimeter fencing and decoration
+          ref: mossy_cobblestone_wall
+          detail: |
+              Connects to neighboring walls, fences, and solid blocks,
+              raising a post where it stands alone — common for jungle
+              temple or overgrown ruins builds.
+    found_in:
+        - location: Pillager outposts
+          detail: Generates naturally as part of outpost towers.
+        - location: Crafted from Mossy Cobblestone
+          detail: Six Mossy Cobblestone in a row yield six walls, or one block on a stonecutter yields one wall.
+    faq:
+        - question: What tool do I need to mine Mossy Cobblestone Wall?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without one drops
+              nothing.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes, always one Mossy Cobblestone Wall, unaffected by Silk
+              Touch or Fortune.
+        - question: Can mobs walk over a Mossy Cobblestone Wall?
+          answer: |
+              No, most mobs cannot path over it, though some, like spiders,
+              can climb it. Arrows and line of sight pass over the gaps.
+        - question: Is Mossy Cobblestone Wall waterloggable?
+          answer: |
+              Yes, it can hold a water source when placed in water like other
+              wall blocks.
     data_version: "1.21.5"
 ---
 

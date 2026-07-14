@@ -17,10 +17,15 @@ on:
                 type: string
                 default: ''
             install_playwright:
-                description: 'Install Playwright browsers on host (default: true). Set false for vitest-only e2e projects.'
+                description: 'Force-install Playwright browsers regardless of detection (default: auto). Leave empty to auto-detect from source_path.'
                 required: false
-                type: boolean
-                default: true
+                type: string
+                default: 'auto'
+            source_path:
+                description: 'Project source path (e.g. apps/cryptothrone). Used to auto-detect @nx/playwright usage.'
+                required: false
+                type: string
+                default: ''
             version_source:
                 description: 'Path to MDX/JSON file with version field (for pre-build sync)'
                 required: false
@@ -31,6 +36,11 @@ on:
                 required: false
                 type: string
                 default: ''
+        secrets:
+            FORGEJO_USER:
+                required: false
+            FORGEJO_TOKEN:
+                required: false
 
 jobs:
     test:
@@ -39,6 +49,13 @@ jobs:
         timeout-minutes: 180
         env:
             NX_NO_CLOUD: true
+            # cryptothrone-only: its docker test intermittently hits the Nx
+            # daemon crashing during graph processing ("Failed to process
+            # project graph"). Scope the daemon-off to that project so other
+            # (working) pipelines keep their default. The job env is inherited
+            # by both the direct `pnpm nx e2e` and the nested kbve.sh -nx
+            # container-prep build.
+            NX_DAEMON: ${{ inputs.project == 'cryptothrone' && 'false' || '' }}
         permissions:
             contents: read
             packages: write
@@ -55,9 +72,84 @@ jobs:
                   swap-storage: false
                   docker-images: true
 
+            - name: Disable flaky third-party apt sources
+              # The GitHub runner ships packages.microsoft.com / azure-cli apt
+              # sources that intermittently return 403 and break `apt-get update`
+              # inside `playwright install-deps`. We don't need them — remove so
+              # OS-dep installs stay resilient (recurring CI flake, #12373).
+              run: |
+                  sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list \
+                             /etc/apt/sources.list.d/azure-cli.list \
+                             /etc/apt/sources.list.d/microsoft*.list 2>/dev/null || true
+
             - name: Checkout the monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               continue-on-error: true
+
+            - name: Detect Forgejo LFS assets
+              id: lfs_detect
+              run: |
+                  SCOPE="${{ inputs.source_path }}"
+                  if [ -n "$SCOPE" ] && git lfs ls-files -I "$SCOPE/**" 2>/dev/null | grep -q .; then
+                    echo "uses_lfs=true" >> "$GITHUB_OUTPUT"
+                    echo "Forgejo LFS assets present under $SCOPE"
+                  else
+                    echo "uses_lfs=false" >> "$GITHUB_OUTPUT"
+                    echo "No LFS assets under '${SCOPE:-<unset>}' — skipping Forgejo credential setup"
+                  fi
+
+            - name: Configure Forgejo LFS credentials
+              if: ${{ steps.lfs_detect.outputs.uses_lfs == 'true' }}
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com (assets would ship as pointer stubs)"
+                    exit 1
+                  fi
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+                  echo "Forgejo LFS credentials configured for git.kbve.com"
+
+            - name: Pull per-game Forgejo LFS blobs
+              if: ${{ steps.lfs_detect.outputs.uses_lfs == 'true' }}
+              run: |
+                  set -euo pipefail
+                  # Stock git-lfs only resolves the repo-root .lfsconfig (rareicon
+                  # endpoint). Games whose blobs live on other Forgejo repos (arpg,
+                  # chuck, cryptothrone, ...) must be pulled through the kbve.sh
+                  # wrapper, which injects the correct per-game lfs.url. Pull every
+                  # game whose asset tree falls under this build's source_path so the
+                  # docker COPY bundles real binaries, not ~130-byte pointer stubs.
+                  SCOPE="${{ inputs.source_path }}"
+                  PREFIXES=""
+                  for game in chuck rareicon rentearth arpg cryptothrone; do
+                    prefix="$(./kbve.sh -lfs "$game" path 2>/dev/null || true)"
+                    [ -n "$prefix" ] || continue
+                    case "$prefix" in
+                      "$SCOPE"|"$SCOPE"/*)
+                        if git lfs ls-files -I "$prefix/**" 2>/dev/null | grep -q .; then
+                          echo "→ pulling $game LFS under $prefix"
+                          ./kbve.sh -lfs "$game" pull --include="$prefix/**"
+                          PREFIXES="$PREFIXES $prefix"
+                        fi
+                        ;;
+                    esac
+                  done
+                  # Fail the build if any pulled asset is still a pointer stub.
+                  # Real art is binary so -I skips it; a text match means the blob
+                  # never resolved and would ship broken (the arpg crash on
+                  # kbve.com/arcade/arpg was exactly this).
+                  if [ -n "$PREFIXES" ]; then
+                    STUBS="$(grep -rlI 'git-lfs.github.com/spec' $PREFIXES 2>/dev/null || true)"
+                    if [ -n "$STUBS" ]; then
+                      echo "::error::Forgejo LFS blobs unresolved — these would ship as pointer stubs:"
+                      echo "$STUBS"
+                      exit 1
+                    fi
+                  fi
 
             - name: Sync version from MDX to build manifest
               if: ${{ inputs.version_source != '' && inputs.version_target != '' }}
@@ -78,13 +170,35 @@ jobs:
                     echo "Synced version ${VER} → ${TGT}"
                   fi
 
+            # Installs buildx and provisions a docker-container builder that
+            # doubles as the fallback if the persistent buildkitd is down.
             - name: Setup Docker Buildx
-              uses: docker/setup-buildx-action@v4
+              uses: Wandalen/wretry.action@v3.8.0
               with:
-                  driver: docker-container
-                  driver-opts: |
-                      image=moby/buildkit:v0.24.0
-                      network=host
+                  action: docker/setup-buildx-action@v4
+                  attempt_limit: 3
+                  attempt_delay: 15000
+                  with: |
+                      driver: docker-container
+                      driver-opts: |
+                          image=moby/buildkit:v0.24.0
+                          network=host
+
+            # Prefer the persistent in-cluster buildkitd (warm .astro / cargo /
+            # sccache-local / layer cache across runs). If it is unreachable
+            # (not yet deployed, restarting), silently keep the docker-container
+            # builder above so builds never break on the cutover.
+            - name: Prefer persistent remote buildkitd
+              run: |
+                  REMOTE=tcp://buildkitd.arc-runners.svc.cluster.local:1234
+                  if docker buildx create --name kbve-remote --driver remote "$REMOTE" 2>/dev/null \
+                     && timeout 60 docker buildx inspect --bootstrap kbve-remote >/dev/null 2>&1; then
+                      docker buildx use kbve-remote
+                      echo "::notice::buildx using persistent remote buildkitd ($REMOTE)"
+                  else
+                      echo "::warning::remote buildkitd unreachable -> keeping docker-container builder"
+                      docker buildx rm kbve-remote 2>/dev/null || true
+                  fi
 
             - name: Login to GHCR
               uses: docker/login-action@v4
@@ -109,7 +223,7 @@ jobs:
               run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
-              uses: actions/cache@v5
+              uses: actions/cache@v6
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
@@ -120,31 +234,205 @@ jobs:
               timeout-minutes: 10
               env:
                   UV_THREADPOOL_SIZE: '16'
-              run: pnpm install --frozen-lockfile --prefer-offline
+              run: |
+                  set -uo pipefail
+                  # Belt-and-suspenders for the pnpm install: registry tarballs and
+                  # postinstall binary fetches (grpc-tools node-pre-gyp pulling from
+                  # node-precompiled-binaries.grpc.io) ride the shared arc-runner
+                  # egress, which browns out under DNS/timeout blips. --prefer-offline
+                  # reuses the warm store; retry rides transient egress before failing.
+                  attempt() {
+                    echo "::group::pnpm install ($1)"
+                    pnpm install --frozen-lockfile --prefer-offline
+                    local rc=$?
+                    echo "::endgroup::"
+                    return $rc
+                  }
+                  attempt "try 1" && exit 0
+                  echo "::warning::pnpm install try 1 failed; retrying"
+                  sleep 10
+                  attempt "try 2" && exit 0
+                  echo "::warning::pnpm install try 2 failed; retrying"
+                  sleep 20
+                  attempt "try 3"
 
-            - name: Setup Python + uv
-              uses: astral-sh/setup-uv@v7
+            - name: Detect Playwright usage
+              id: detect-playwright
+              run: |
+                  FORCE="${{ inputs.install_playwright }}"
+                  if [ "$FORCE" = "true" ]; then
+                    USES=true
+                  elif [ "$FORCE" = "false" ]; then
+                    USES=false
+                  else
+                    ROOT="${{ inputs.source_path }}"
+                    if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
+                      USES=false
+                    elif grep -rlq '@nx/playwright:playwright' "$ROOT" 2>/dev/null; then
+                      USES=true
+                    else
+                      USES=false
+                    fi
+                  fi
+                  echo "uses_playwright=${USES}" >> "$GITHUB_OUTPUT"
+                  if [ "$USES" != "true" ]; then
+                    echo "Playwright OFF"
+                    exit 0
+                  fi
+                  ROOT="${{ inputs.source_path }}"
+                  BROWSERS=""
+                  CFGS=$(find "$ROOT" -maxdepth 6 -type f -name "playwright.config.*" -not -path "*/node_modules/*" 2>/dev/null || true)
+                  if [ -n "$CFGS" ]; then
+                    add() {
+                      case " $BROWSERS " in
+                        *" $1 "*) ;;
+                        *) BROWSERS="${BROWSERS:+$BROWSERS }$1" ;;
+                      esac
+                    }
+                    if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Chrome'|name: *'chromium|chromium.*channel|name: *'mobile-chrome" 2>/dev/null; then add chromium; fi
+                    if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Safari|name: *'webkit|name: *'mobile-safari" 2>/dev/null; then add webkit; fi
+                    if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Firefox|name: *'firefox" 2>/dev/null; then add firefox; fi
+                  fi
+                  if [ -z "$BROWSERS" ]; then BROWSERS=chromium; fi
+                  KEY=$(echo "$BROWSERS" | tr ' ' '-')
+                  echo "browsers=${BROWSERS}" >> "$GITHUB_OUTPUT"
+                  echo "browsers_key=${KEY}" >> "$GITHUB_OUTPUT"
+                  echo "Playwright ON — browsers: ${BROWSERS}"
+
+            - name: Resolve Playwright version
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' }}
+              id: playwright-version
+              run: |
+                  VER=$(node -e "console.log(require('./node_modules/playwright/package.json').version)" 2>/dev/null || echo "unknown")
+                  echo "version=${VER}" >> "$GITHUB_OUTPUT"
+                  echo "Resolved Playwright version: ${VER}"
+
+            - name: Check baked Playwright browsers
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' }}
+              id: baked-playwright
+              env:
+                  REQ_BROWSERS: ${{ steps.detect-playwright.outputs.browsers }}
+              run: |
+                  set -euo pipefail
+                  BAKE_DIR="${PLAYWRIGHT_BROWSERS_PATH:-/opt/ms-playwright}"
+                  MISSING=""
+                  if [ ! -d "$BAKE_DIR" ]; then
+                    echo "No baked browsers at ${BAKE_DIR} — falling back to install"
+                    echo "all_present=false" >> "$GITHUB_OUTPUT"
+                    echo "missing=${REQ_BROWSERS}" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+                  for b in $REQ_BROWSERS; do
+                    case "$b" in
+                      chromium) glob="${BAKE_DIR}/chromium-"*/chrome-linux*/chrome ;;
+                      webkit)   glob="${BAKE_DIR}/webkit-"*/pw_run.sh ;;
+                      firefox)  glob="${BAKE_DIR}/firefox-"*/firefox/firefox ;;
+                      *)        glob="${BAKE_DIR}/${b}-"* ;;
+                    esac
+                    if compgen -G "$glob" >/dev/null; then
+                      echo "  ${b}: baked"
+                    else
+                      echo "  ${b}: missing"
+                      MISSING="${MISSING:+$MISSING }${b}"
+                    fi
+                  done
+                  if [ -z "$MISSING" ]; then
+                    echo "all_present=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "all_present=false" >> "$GITHUB_OUTPUT"
+                    echo "missing=${MISSING}" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Cache Playwright browsers
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' }}
+              id: playwright-cache
+              uses: actions/cache@v6
               with:
-                  enable-cache: false
+                  path: ~/.cache/ms-playwright
+                  key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-${{ steps.detect-playwright.outputs.browsers_key }}
+                  restore-keys: |
+                      ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-
+                      ${{ runner.os }}-playwright-
 
             - name: Install Playwright Browsers
-              if: ${{ inputs.install_playwright }}
-              timeout-minutes: 15
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' && steps.playwright-cache.outputs.cache-hit != 'true' }}
+              timeout-minutes: 40
               env:
-                  UV_THREADPOOL_SIZE: '16'
-              run: pnpm exec playwright install --with-deps chromium webkit
+                  UV_THREADPOOL_SIZE: '128'
+                  PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
+                  MISSING: ${{ steps.baked-playwright.outputs.missing || steps.detect-playwright.outputs.browsers }}
+                  PW_VERSION: ${{ steps.playwright-version.outputs.version }}
+              run: |
+                  set -uo pipefail
+                  # Only cdn.playwright.dev serves the Chrome-for-Testing
+                  # artifacts (prss/npmmirror/azureedge do not mirror them), so
+                  # retry the default host — UV_THREADPOOL_SIZE dodges the
+                  # chromium-extract libuv deadlock, CONNECTION_TIMEOUT + `timeout`
+                  # turn a silent 100% stall into a retryable error — then fall
+                  # back to the bundled mcr docker image.
+                  attempt() {
+                    echo "::group::playwright install ($1)"
+                    timeout 600 pnpm exec playwright install --with-deps ${MISSING}
+                    local rc=$?
+                    echo "::endgroup::"
+                    return $rc
+                  }
+                  attempt "try 1" && exit 0
+                  echo "::warning::try 1 failed/stalled; retrying"
+                  sleep 10
+                  attempt "try 2" && exit 0
+                  echo "::warning::try 2 failed/stalled; retrying"
+                  sleep 15
+                  attempt "try 3" && exit 0
+                  echo "::warning::cdn.playwright.dev exhausted; falling back to mcr playwright image"
 
-            # VALKEY_PASSWORD is injected into the runner container's
-            # process env by the actions-runner-controller values.yaml
-            # (sourced from the valkey-sccache-credentials Secret synced
-            # by ExternalSecret). It auto-inherits into `run:` steps,
-            # so no explicit env entry needed — axum-kbve's container:ci
-            # command picks it up via `${VALKEY_PASSWORD:+--secret ...}`
-            # and only attaches the build secret when present.
+                  IMG="mcr.microsoft.com/playwright:v${PW_VERSION}-jammy"
+                  DEST="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
+                  mkdir -p "$DEST"
+                  echo "::group::pull ${IMG}"
+                  if ! docker pull "$IMG"; then
+                    echo "::error::docker pull ${IMG} failed"
+                    echo "::endgroup::"
+                    exit 1
+                  fi
+                  echo "::endgroup::"
+                  CID=$(docker create "$IMG")
+                  docker cp "$CID:/ms-playwright/." "$DEST/"
+                  docker rm "$CID" >/dev/null
+                  pnpm exec playwright install-deps ${MISSING}
+                  echo "playwright browsers restored from ${IMG} into ${DEST}"
+
+            - name: Install Playwright OS deps (cache hit)
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' && steps.playwright-cache.outputs.cache-hit == 'true' }}
+              timeout-minutes: 10
+              env:
+                  BROWSERS: ${{ steps.detect-playwright.outputs.browsers }}
+              run: |
+                  set -uo pipefail
+                  # Belt-and-suspenders for the apt OS-dep install: the flaky
+                  # third-party apt source is already stripped above; retry to
+                  # ride transient mirror blips, then fall back to the full
+                  # `install --with-deps` path as a last resort.
+                  install_deps() {
+                    echo "::group::playwright install-deps ($1)"
+                    sudo apt-get update || true
+                    pnpm exec playwright install-deps ${BROWSERS}
+                    local rc=$?
+                    echo "::endgroup::"
+                    return $rc
+                  }
+                  install_deps "try 1" && exit 0
+                  echo "::warning::install-deps try 1 failed; retrying"
+                  sleep 10
+                  install_deps "try 2" && exit 0
+                  echo "::warning::install-deps exhausted; trying install --with-deps"
+                  pnpm exec playwright install --with-deps ${BROWSERS}
+
             - name: Nx e2e ${{ inputs.project }}
               env:
                   BUILDKIT_PROGRESS: plain
                   INPUT_GITHUB_TOKEN: ${{ github.token }}
+                  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && '1' || '' }}
               run: pnpm nx e2e ${{ inputs.project }} --configuration=ci --no-cloud --output-style=stream
 
             - name: Mark test passed

@@ -1,5 +1,6 @@
 ---
 title: Mushroom Stem
+template: splash
 description: |
     Minecraft Mushroom Stem — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 325
     ref: mushroom_stem
     slug: mushroom-stem
+    content_rev: 1
     display_name: Mushroom Stem
     material: wood
     hardness: 0.2
@@ -24,10 +26,60 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mushroom_stem
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: brown_mushroom
+          qty_min: 0
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Mushroom Stem is the pale, pore-covered block that makes up the
+            trunk of a huge mushroom, distinct from the colored cap blocks
+            on top. It generates as part of both brown and red huge
+            mushroom structures.
+        lore: |
+            Huge mushrooms have existed since Beta 1.8, giving mushroom
+            biomes their oversized, otherworldly fungal forests.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Mushroom stems can be placed in a composter with roughly a
+              65% chance of raising the compost level, a modest source of
+              bone meal.
+    found_in:
+        - location: Huge Mushrooms
+          detail: Forms the trunk of naturally generating huge brown and red mushrooms, especially common in mushroom fields biomes.
+        - location: Abandoned Camps
+          detail: Also appears as part of some abandoned camp structures.
+    faq:
+        - question: What tool do I need to mine a Mushroom Stem?
+          answer: |
+              None — it can be broken by hand instantly, but an axe is the
+              fastest tool.
+        - question: Does mining a Mushroom Stem drop mushrooms?
+          answer: |
+              Without Silk Touch it has a small chance to drop 0-2 mushroom
+              items; with Silk Touch it always drops the stem block itself.
+        - question: Can Mushroom Stems be used as furnace fuel?
+          answer: |
+              No, this was removed in Java Edition 1.13; they can no longer
+              be burned as fuel.
+        - question: How do I get a huge mushroom to grow?
+          answer: |
+              Grow it from a mushroom placed on suitable ground, or find it
+              already generated in mushroom fields biomes and swamps.
     data_version: "1.21.5"
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Fenkenstrain's castle teleport (tablet) | OSRS Price Data
-description: "Fenkenstrain's castle teleport (tablet): A teleport to Fenkenstrain's Castle.. High alch: 1 GP, GE limit: 10,000."
+description: "Fenkenstrain's castle teleport tablet is a single-use Magic tablet that teleports the player to Fenkenstrain's Castle. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 19621
   name: Fenkenstrain's castle teleport (tablet)
@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Fenkenstrain's castle teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: teleport-tablet
+    tier: low
+  recipes:
+    - skill: magic
+      level: 48
+      xp: 65
+      materials:
+        - item_name: Soft clay
+          item_id: 1761
+          quantity: 1
+        - item_name: Law rune
+          item_id: 563
+          quantity: 1
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 1
+      product: Fenkenstrain's castle teleport (tablet)
+      product_id: 19621
+      output_quantity: 1
+      facility: Lectern
+  related_items:
+    - item_id: 1761
+      item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Tablet substrate
+    - item_id: 563
+      item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: Required to bind the teleport
+    - item_id: 557
+      item_name: Earth rune
+      slug: earth-rune
+      relationship: component
+      description: Elemental rune used to charge the tablet
+  market_strategy:
+    notes:
+      - Niche teleport mostly used for Morytania Slayer access
+      - Demand scales with Slayer tasks pointing toward Fenkenstrain's Castle
+      - "Crafting cost is bound by law rune price; arbitrage hinges on rune market"
+  trading_tips:
+    - Compare GE price vs law + earth rune + soft clay cost before crafting
+    - Bulk-buy when planning Morytania content runs
+    - "Avoid hoarding: limited demand outside of Slayer routes"
+  about: "Fenkenstrain's castle teleport (tablet) is a members-only Magic tablet that teleports the player to Fenkenstrain's Castle in Morytania. High alchemy value: 1 coin. Grand Exchange buy limit: 10,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    alchable: true
+  history:
+    - date: "2018-02-08"
+      description: Added with the Kourend & Kebos teleport tablet expansion.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

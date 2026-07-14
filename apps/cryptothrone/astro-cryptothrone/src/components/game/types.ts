@@ -1,6 +1,11 @@
 export interface PlayerStats {
 	hp: number;
 	maxHp: number;
+	level?: number;
+	xp?: number;
+	xpNext?: number;
+	attack?: number;
+	kills?: number;
 	mp: number;
 	maxMp: number;
 	ep: number;
@@ -23,16 +28,28 @@ export interface PlayerInventory {
 	equipment: Record<EquipmentSlot, string | null>;
 }
 
+export type ItemRarity =
+	| 'common'
+	| 'uncommon'
+	| 'rare'
+	| 'epic'
+	| 'legendary'
+	| 'mythic';
+
 export interface ItemData {
 	id: string;
 	name: string;
 	type: 'weapon' | 'armor' | 'consumable' | 'material' | 'quest';
 	img: string;
+	/** Sprite-atlas slot (== itemdb `key`); frame index into itemdb-atlas.png. */
+	key: number;
 	description: string;
 	bonuses: Record<string, number>;
 	durability: number;
 	weight: number;
 	actions: ItemAction[];
+	rarity: ItemRarity;
+	lore?: string;
 }
 
 export type ItemAction = 'use' | 'equip' | 'drop' | 'inspect';
@@ -75,6 +92,20 @@ export interface NPCInteractionState {
 	npcName: string;
 	actions: NPCAction[];
 	coords: { x: number; y: number };
+	eid?: number;
+}
+
+export interface TradeShopItem {
+	ref: string;
+	name: string;
+	buyPrice: number;
+}
+
+export interface TradeModalState {
+	npcId: string;
+	npcName: string;
+	npcEid: number;
+	shopItems: TradeShopItem[];
 }
 
 export interface DialogueState {

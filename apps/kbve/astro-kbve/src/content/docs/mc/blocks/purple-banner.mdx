@@ -1,5 +1,6 @@
 ---
 title: Purple Banner
+template: splash
 description: |
     Minecraft Purple Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 541
     ref: purple_banner
     slug: purple-banner
+    content_rev: 1
     display_name: Purple Banner
     material: wood
     hardness: 1
@@ -23,11 +25,64 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+    about:
+        description: |
+            The Purple Banner is a tall, non-solid decorative block that
+            can be customized with up to six pattern layers in a loom
+            using dyes and banner patterns, then hung on walls or floors.
+        lore: |
+            Banners sway gently in place and let entities pass straight
+            through them, making them purely cosmetic despite their size.
+    uses:
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combine with a shield at a crafting table to imprint the
+              banner's pattern onto the shield face.
+        - title: Loom Customization
+          ref: loom
+          detail: |
+              Add dyes and banner pattern items at a loom to layer up to
+              six additional designs onto the banner.
+        - title: Map Marker
+          ref: map
+          detail: |
+              Place a banner and right-click a held map near it in Java
+              Edition to pin its location as a marker icon on the map.
+    found_in:
+        - location: Crafting Table
+          detail: Craft from six wool of any single color plus one stick.
+        - location: Shepherd and Cartographer Villagers
+          detail: Occasionally offered as trade rewards.
+        - location: End Cities and Woodland Mansions
+          detail: Found pre-placed as decoration, and dropped by illagers carrying ominous banners.
+    faq:
+        - question: What tool do I need to break a banner?
+          answer: |
+              None required — banners break instantly with any tool or
+              bare hands, though an axe is the fastest option.
+        - question: Can mobs or players walk through a banner?
+          answer: |
+              Yes, banners are entirely non-solid and never block movement.
+        - question: How do I add a custom pattern to a purple banner?
+          answer: |
+              Place it in a loom along with a dye and, optionally, a
+              banner pattern item to add a new design layer.
+        - question: Does a banner catch fire?
+          answer: |
+              It won't ignite from nearby fire spreading, but it will
+              burn up if dropped directly into lava.
     data_version: "1.21.5"
 ---
 

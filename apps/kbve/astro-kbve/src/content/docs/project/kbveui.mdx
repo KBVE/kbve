@@ -1,0 +1,148 @@
+---
+title: KBVEUI — Shared Slate UI Component Library for Unreal
+description: Shared Slate UI component library for KBVE Unreal games — movable frames, settings rows, hotbar, slots, tooltips, info panels, and a dev overlay.
+sem: 1
+sidebar:
+    label: KBVEUI
+    order: 90
+tags:
+    - unreal
+    - ui
+key: ue_kbveui
+pipeline: unreal
+plugin_name: KBVEUI
+plugin_path: packages/unreal/KBVEUI
+dependency_plugins: packages/unreal/KBVEROWS packages/unreal/KBVESupabase
+version: "0.1.0"
+source_path: packages/unreal/KBVEUI
+version_toml: packages/unreal/KBVEUI/version.toml
+author: h0lybyte
+license: KBVE
+status: active
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is KBVEUI?
+          answer: KBVEUI is a shared Slate UI component library for KBVE Unreal games, providing game-agnostic Core + Slate visual primitives — movable frames, settings frame and rows, hotbar, slots, tooltips, info panels, an equipment paper-doll, a loading panel, and a dev overlay HUD.
+        - question: What modules does KBVEUI ship?
+          answer: It ships KBVEUI (the pure Core + Slate base library and UI state), KBVEUIAuth (a Supabase auth surface with login and account widgets), and KBVEUIChat (an irc-gateway chat window), keeping the base module free of Engine and HTTP dependencies.
+        - question: Why is KBVEUI kept to Core and Slate only?
+          answer: Keeping the base module Core + Slate makes the primitives game-agnostic and dependency-light. Domain-aware UI such as Supabase auth or chat composes on top via KBVEUIAuth and KBVEUIChat, which pull in Engine, HTTP, and KBVESupabase only when a game links them.
+bento:
+    badge: unreal · ui
+    title: Shared Slate UI library
+    accent: KBVEUI
+    lede: >-
+        A shared Slate UI component library for KBVE Unreal games —
+        game-agnostic Core + Slate visual primitives like movable frames,
+        settings rows, hotbar, slots, tooltips, info panels, an equipment
+        paper-doll, a loading panel, and a dev overlay HUD.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEUI
+          primary: true
+          external: true
+        - label: Overview
+          href: "#overview"
+        - label: Modules
+          href: "#modules"
+    aside:
+        icon: box
+        title: Core + Slate, dependency-light
+        body: >-
+            The base module stays Core + Slate so the primitives are
+            game-agnostic. Domain-aware UI — Supabase auth, irc chat — composes
+            on top via KBVEUIAuth and KBVEUIChat, pulling in Engine, HTTP, and
+            KBVESupabase only when a game links them.
+        points:
+            - <strong>State</strong> — <code>FKBVEUIState</code> panel-flag masks.
+            - <strong>Dev HUD</strong> — <code>SKBVEDevOverlay</code> FPS/ms.
+    stats:
+        - { label: Plugin, value: KBVEUI, icon: box }
+        - { label: Modules, value: "3", icon: package }
+        - { label: Min engine, value: UE 5.4, icon: gears }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Visual primitives
+          icon: expand
+          body: Movable frames, settings rows (toggle / slider / combo), hotbar, slots, tooltips, and info panels.
+        - title: Equipment & loading panels
+          icon: inventory
+          body: SKBVEEquipmentPanel paper-doll (11 generic equip slots) and SKBVELoadingPanel full-screen loader.
+        - title: UI state helpers
+          icon: settings
+          body: FKBVEUIState tracks open panels and derives cursor / movement / camera policy without re-rolling the bitfield.
+        - title: Composable auth & chat
+          icon: message
+          body: KBVEUIAuth (Supabase login / account) and KBVEUIChat (irc-gateway window) layer on the pure base.
+    related:
+        - title: KBVESupabase
+          href: /project/kbvesupabase/
+          copy: The Supabase subsystem KBVEUIAuth and KBVEUIChat drive.
+          icon: shield
+        - title: KBVEROWS
+          href: /project/kbverows/
+          copy: A dependency plugin used by the UI stack.
+          icon: server
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="What it ships" heading="Overview">
+
+Shared Slate UI component library for KBVE Unreal games — game-agnostic visual
+primitives (Core + Slate only): movable frames, the settings frame + reusable
+settings rows (toggle / slider / combo), hotbar, slots, tooltips, info panels,
+the `SKBVEEquipmentPanel` paper-doll (11 generic equip slots via `EKBVEEquipSlot`),
+the `SKBVELoadingPanel` full-screen loader (`InitialMessage` + `UnitLabel` args,
+`SetProgress`/`SetMessage`), and the **`SKBVEDevOverlay`** debug HUD (self-computed
+FPS/ms; entity-count and ping fed via `FKBVEDevOverlayIntProvider` delegates so the
+widget needs no Engine or Mass dep — the game supplies the numbers).
+
+Also holds **UI state** — `FKBVEUIState` (panel-flag set + cursor/movement/camera
+policy masks + `Has`/`Set`/`Diff`/`NeedsCursor`/`BlocksMovement` helpers) and
+`KBVEUIFlag` common flag bits — so a controller tracks which panels are open and
+derives input/cursor mode without re-rolling the bitfield. Stays Core+Slate;
+domain-aware UI (item-aware inventory, Supabase auth/chat) composes on top.
+
+</BentoProse>
+
+<BentoProse id="modules" eyebrow="Layering" heading="Modules">
+
+- **`KBVEUI`** — base library, Core + Slate only. The agnostic visual primitives
+  and UI state above.
+- **`KBVEUIAuth`** — Supabase auth surface (`SKBVELoginWidget` email/password +
+  Discord/GitHub/Google OAuth + guest, `SKBVEAccountPanel` nick/avatar/sign-out).
+  Drives `UKBVESupabaseSubsystem`; status/profile pushed in via setters so the
+  game owns the auth event wiring. Login title is a `SLATE_ARGUMENT`. This module
+  pulls in Engine + HTTP + KBVESupabase, so the base `KBVEUI` module stays pure —
+  link `KBVEUIAuth` only when a game wants the Supabase UI. Hence
+  `dependency_plugins: packages/unreal/KBVESupabase`.
+- **`KBVEUIChat`** — irc-gateway chat window (`SKBVEChatPanel`): movable frame,
+  channel tabs, scrollback, slash commands, input history. Dispatches through
+  `UKBVESupabaseSubsystem`'s chat object; inbound lines/state are pushed in via
+  `OnChatLine(FKBVEChatLineView)` / `OnChatStateChanged(bool)` so the game owns
+  the event-bus wiring, and geometry persistence is delegated out
+  (`OnSaveGeometry`/`OnLoadGeometry`) — no game settings type leaks in. Shares the
+  same `KBVESupabase` dependency as `KBVEUIAuth`.
+
+Plugin source ships via its own PR; this entry wires it into the build/release
+pipeline alongside the other UE plugins.
+
+</BentoProse>
+
+</BentoDoc>

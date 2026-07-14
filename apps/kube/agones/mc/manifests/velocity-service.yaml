@@ -1,8 +1,3 @@
-# Headless backend Service — selects the Agones gameserver pods.
-# Velocity uses this DNS name to forward connections to the dynamically
-# allocated Fabric server pods.
-# Headless (clusterIP: None) so DNS returns pod IPs directly,
-# bypassing kube-proxy load balancing.
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,6 +6,9 @@ metadata:
     labels:
         app: mc-gameserver
         app.kubernetes.io/part-of: mc
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     clusterIP: None

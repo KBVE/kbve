@@ -1,5 +1,6 @@
 ---
 title: Warped Sign
+template: splash
 description: |
     Minecraft Warped Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 937
     ref: warped_sign
     slug: warped-sign
+    content_rev: 1
     display_name: Warped Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Warped Sign is a non-solid block crafted from Warped Planks and a stick,
+            allowing players to display up to four lines of custom text. It can be placed on
+            top of or attached to the side of blocks and, being fireproof Nether wood, resists
+            burning entirely.
+        lore: |
+            A weathered plank marker from the fungal wastes, its faint teal grain refusing
+            to catch flame.
+    faq:
+        - question: |
+              How do I craft a Warped Sign?
+          answer: |
+              Combine six Warped Planks with a stick in the crafting grid to produce 3 signs.
+        - question: |
+              Can I make the text glow?
+          answer: |
+              Yes, using a glow ink sac on the sign makes its text glow and gain an outline,
+              regardless of surrounding light level.
+        - question: |
+              Does the sign burn in lava or fire?
+          answer: |
+              No, Warped Signs are made of fireproof Nether wood and will not catch fire, and
+              like other signs they are also not destroyed by water or lava.
+        - question: |
+              Can I use a Warped Sign as furnace fuel?
+          answer: |
+              No, because it is crafted from Nether wood, it cannot be used as fuel, unlike
+              overworld wood signs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

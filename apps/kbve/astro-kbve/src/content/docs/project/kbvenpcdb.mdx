@@ -1,0 +1,120 @@
+---
+title: KBVENPCDB — Unreal NPC Database and Mass Bridge
+description: Game-agnostic Unreal plugin that loads the shared npcdb artifact into runtime NPC defs, exposes ref lookup, and spawns Mass entities from db data.
+sem: 1
+sidebar:
+    label: KBVENPCDB
+    order: 79
+tags:
+    - unreal
+    - npc
+key: ue_kbvenpcdb
+pipeline: unreal
+plugin_name: KBVENPCDB
+plugin_path: packages/unreal/KBVENPCDB
+dependency_plugins: packages/unreal/KBVEYYJson
+version: "0.1.0"
+source_path: packages/unreal/KBVENPCDB
+version_toml: packages/unreal/KBVENPCDB/version.toml
+author: h0lybyte
+license: KBVE
+status: beta
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the KBVENPCDB plugin do?
+          answer: It loads the shared npcdb codegen artifact (npcdb-data.json) into FKBVENpcDef records via the UKBVENpcDatabase subsystem, offers lookup by ref, and spawns Mass entities carrying FKBVENpcFragment from that db data.
+        - question: Where does NPC data come from?
+          answer: NPC data stays in the shared npcdb MDX and is codegen'd to npcdb-data.json. The plugin owns only the load and Mass bridge; it does not author NPC data itself.
+        - question: What is the KBVENPCSprite module?
+          answer: A render module that draws billboarded pixel-art NPC sprites in the 3D world. UKBVENpcSpriteDef defines the atlas and grid, and UKBVENpcSpriteRenderSubsystem spawns, updates, and despawns sprite handles with one HISM per def.
+bento:
+    badge: unreal · npc
+    title: NPC database & Mass bridge
+    accent: KBVENPCDB
+    lede: >-
+        A game-agnostic NPC database plus Mass Entity bridge. It loads the shared
+        npcdb artifact into runtime NPC defs, exposes ref lookup, and spawns Mass
+        entities from db data. Mirrors the itemdb loader pattern as a reusable plugin.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVENPCDB
+          primary: true
+          external: true
+        - label: Details
+          href: "#features"
+        - label: Sprite module
+          href: "#sprite"
+    aside:
+        icon: sensor
+        title: Data stays in MDX
+        body: >-
+            NPC data lives in the shared npcdb MDX and codegens to
+            <code>npcdb-data.json</code>; the plugin owns only the load and Mass
+            bridge. ChuckRPG calls it to spawn data-driven NPC entities.
+        points:
+            - <strong>Depends on</strong> — KBVEYYJson.
+            - <strong>Sprite</strong> — optional KBVENPCSprite render module.
+    stats:
+        - { label: Plugin, value: KBVENPCDB, icon: sensor }
+        - { label: Engine, value: "UE 5.4+", icon: settings }
+        - { label: Platforms, value: "Win64 · Linux · Mac", icon: box }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: NPC database
+          icon: database
+          body: UKBVENpcDatabase, a GameInstance subsystem, loads Content/Data/npcdb-data.json into FKBVENpcDef records; lookup by ref.
+        - title: Runtime NPC def
+          icon: book
+          body: FKBVENpcDef / FKBVENpcStats carry identity, stats, level, faction, abilities, tags, aggro, and first-strike.
+        - title: Mass fragment
+          icon: network
+          body: FKBVENpcFragment / FKBVENpcTag carry the NPC's db identity into the entity world.
+        - title: Spawner
+          icon: box
+          body: UKBVENpcSpawner (World subsystem) SpawnNpcEntity(Def) creates a Mass entity with the NPC fragment; the game adds its own fragments.
+    features_heading: Details
+    related:
+        - title: KBVEItemDB
+          href: /project/kbveitemdb/
+          copy: The itemdb loader this plugin's pattern mirrors.
+          icon: inventory
+        - title: ROWS
+          href: /project/rows/
+          copy: The KBVE game backend the NPC entities live alongside.
+          icon: server
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="sprite" eyebrow="Render module" heading="KBVENPCSprite module">
+
+The plugin also ships a `KBVENPCSprite` render module for billboarded pixel-art NPC
+sprites in the 3D world (data/Mass stay in the `KBVENPCDB` module; this only draws):
+
+- **`UKBVENpcSpriteDef`** — UDataAsset: atlas + sprite material + grid (columns =
+  animation frames, rows = view directions front/side/back), fps, world size, pivot.
+- **`UKBVENpcSpriteRenderSubsystem`** — `Spawn/Update/Despawn` sprite handles; one HISM
+  per def, CPU Y-locked camera billboard, atlas cell driven by per-instance custom data
+  (offset/scale UV; right view is the side row mirrored via negative U scale).
+
+P1 is standalone (assign a `UKBVENpcSpriteDef`); later it keys off the npcdb `Ref`. The
+sprite material is authored in-editor — see the module README for the custom-data contract.
+
+</BentoProse>
+
+</BentoDoc>

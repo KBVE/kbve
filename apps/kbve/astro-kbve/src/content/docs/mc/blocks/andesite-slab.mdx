@@ -1,5 +1,6 @@
 ---
 title: Andesite Slab
+template: splash
 description: |
     Minecraft Andesite Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 787
     ref: andesite_slab
     slug: andesite-slab
+    content_rev: 1
     display_name: Andesite Slab
     material: stone
     hardness: 1.5
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: andesite_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Andesite Slab is a half-height decorative building block cut
+            from andesite. It does not generate naturally and must be
+            crafted or stonecut, placeable as a bottom, top, or double slab.
+        lore: |
+            Andesite Slab was added alongside the other stone-variant slabs
+            in Java Edition 1.14 (18w43a), rounding out andesite's set of
+            building shapes.
+    uses:
+        - title: Building and Decoration
+          ref: andesite_slab
+          detail: |
+              Used as a half-height building block for stairs-adjacent
+              detailing, floors, and paths matching andesite builds.
+    found_in:
+        - location: Crafting table
+          detail: Three andesite blocks craft six slabs.
+        - location: Stonecutter
+          detail: One andesite block converts into two slabs at a better ratio than crafting.
+    faq:
+        - question: What tool do I need to mine Andesite Slab?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields
+              no drop.
+        - question: Does Andesite Slab generate naturally?
+          answer: |
+              No. It must be crafted from andesite blocks or produced with
+              a stonecutter; it does not appear in world generation.
+        - question: Can I combine two Andesite Slabs into a full block?
+          answer: |
+              Yes. Placing a slab on top of another half-slab of the same
+              type combines them into a full andesite slab block.
+        - question: Is Andesite Slab waterloggable?
+          answer: |
+              Yes. A single slab placed in water becomes waterlogged and
+              continues to emit water particles/flow like other slabs.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper Door
+template: splash
 description: |
     Minecraft Weathered Copper Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 757
     ref: weathered_copper_door
     slug: weathered-copper-door
+    content_rev: 1
     display_name: Weathered Copper Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The weathered copper door is a functional door built from copper ingots that oxidizes over time, passing through the exposed and weathered stages before reaching the fully oxidized teal look. Like other copper doors it can be opened by hand or by redstone power, without needing a lever or button nearby. Applying honeycomb waxes the door and locks it at this weathered stage, while an axe scrapes oxidation back toward fresh copper.
+        lore: |
+            Copper doors weather naturally in the open air the same way copper roofing does in the real world, slowly turning green with exposure.
+    faq:
+        - question: How do I get a weathered copper door?
+          answer: |
+              Craft one from copper ingots and let it oxidize naturally over time, or scrape a more oxidized door with an axe to bring it back to the weathered stage.
+        - question: Can I stop it from oxidizing further?
+          answer: |
+              Yes. Apply honeycomb to the door to wax it, which permanently halts further oxidation at the weathered stage.
+        - question: Do I need redstone to open a copper door?
+          answer: |
+              No. Unlike iron doors, copper doors can be opened directly by hand, as well as by villagers and certain mobs, with or without redstone power.
+        - question: Can I reverse the oxidation?
+          answer: |
+              Yes. Right-clicking an unwaxed copper door with an axe removes one stage of oxidation, and a lightning strike will fully deoxidize it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

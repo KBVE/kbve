@@ -3,6 +3,12 @@ title: Rust
 description: |
     Rust is a modern programming language known for its focus on safety, particularly memory safety, and performance.
     It is designed to provide developers with the tools to create reliable and efficient software, often used in systems programming, web assembly, and embedded applications.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Rust
     order: 404
@@ -10,31 +16,105 @@ unsplash: 1565153907400-7e01a9ab25f3
 img: https://images.unsplash.com/photo-1565153907400-7e01a9ab25f3?fit=crop&w=1400&h=700&q=75
 tags:
     - technology
+bento:
+    badge: application · technology
+    title: 'Fearless and fast,'
+    accent: Rust.
+    lede: >-
+        A modern systems language built around memory safety, concurrency, and
+        performance without giving up control. This guide walks through
+        installing the toolchain with rustup, mastering Cargo, and the corners
+        of the ecosystem the KBVE stack leans on — from Axum and Bevy to
+        Askama templating.
+    ctas:
+        - label: Install Rust
+          href: '#install'
+          primary: true
+        - label: Cargo basics
+          href: '#cargo'
+        - label: Bevy engine
+          href: '#bevy'
+        - label: Askama templates
+          href: '#askama'
+    aside:
+        icon: rust
+        title: Safety without sacrifice
+        body: >-
+            Rust's ownership model and strict compile-time checks eliminate
+            entire classes of bugs — null dereferences, buffer overflows, data
+            races — while keeping systems-level control and speed.
+        points:
+            - <strong>Toolchain</strong> — rustup manages compilers and targets.
+            - <strong>Cargo</strong> — dependencies, builds, tests, and docs.
+            - <strong>Ecosystem</strong> — Axum, Bevy, egui, Askama, and more.
+    stats:
+        - { label: Package manager, value: Cargo, icon: package }
+        - { label: Registry, value: crates.io, icon: box }
+        - { label: First stable, value: '2015', icon: clock }
+        - { label: Memory model, value: Ownership, icon: shield }
+    features:
+        - title: Install & update
+          icon: bolt
+          href: '#install'
+          body: Set up rustup on Linux, macOS, or WSL, configure your shell, and keep the toolchain current.
+        - title: Cargo workflow
+          icon: package
+          href: '#cargo'
+          body: Create projects, manage dependencies, run tests, and generate docs with Rust's build system.
+        - title: Bevy + WGPU
+          icon: render
+          href: '#bevy'
+          body: How the KBVE isometric game renders — chunk meshes, sprite animation, and custom shader materials.
+        - title: Askama templating
+          icon: code
+          href: '#askama'
+          body: Compile-time type-safe templates — Astro builds the HTML shell, Axum fills in the data.
+    related:
+        - title: Docker
+          href: /application/docker/
+          copy: Multi-stage builds and cargo-chef layer caching for Rust images.
+          icon: package
+        - title: Git
+          href: /application/git/
+          copy: CI workflows and version control for Rust projects.
+          icon: branch
+        - title: Godot
+          href: /application/godot/
+          copy: Pair Rust with Godot through the Q helper crate.
+          icon: sword
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1565153907400-7e01a9ab25f3?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-import {  Adsense } from '@/components/astropad';
-
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Rust is a modern systems programming language that aims to provide memory safety, concurrency, and high performance without sacrificing control over system resources.
 Developed by Mozilla and now maintained by the Rust Foundation, it is designed to address common issues found in other languages like C and C++, such as null pointer dereferencing and buffer overflows, through its powerful ownership model and strict compile-time checks.
 Rust's expressive type system, robust package manager (Cargo), and thriving ecosystem make it a popular choice for building reliable and efficient software, from operating systems and game engines to web servers and command-line tools.
 
----
+</BentoProse>
 
-<Adsense />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## Install
+<BentoProse id="install" eyebrow="Toolchain setup" heading="Install">
 
 <Aside>
 
@@ -161,10 +241,9 @@ After configuring your shell and verifying the installation, you'll have a fully
 
 </Steps>
 
+</BentoProse>
 
----
-
-## Update
+<BentoProse id="update" eyebrow="Stay current" heading="Update">
 
 Updating Rust is simple and straightforward using the `rustup` tool.
 By running the `rustup update` command in your terminal, you can ensure that your Rust installation and all associated components are kept up-to-date with the latest stable versions.
@@ -207,9 +286,9 @@ By running the `rustup update` command in your terminal, you can ensure that you
 
 </Steps>
 
----
+</BentoProse>
 
-## Cargo
+<BentoProse id="cargo" eyebrow="Build & packages" heading="Cargo">
 
 <Aside>
 > TLDR; Cargo is a package manager for Rust that handles the dependencies, compiling and distribution.
@@ -339,9 +418,9 @@ Cargo ensures that Rust developers can efficiently manage their projects' librar
 
 </Steps>
 
----
+</BentoProse>
 
-## Guides
+<BentoProse id="guides" eyebrow="Learning resources" heading="Guides">
 
 -   [The Rust Programming Language Book](https://doc.rust-lang.org/stable/book/title-page.html)
 
@@ -368,9 +447,9 @@ Cargo ensures that Rust developers can efficiently manage their projects' librar
     > This Rust Cookbook is a collection of simple examples that demonstrate good practices to accomplish common
     > programming tasks, using the crates of the Rust ecosystem.
 
----
+</BentoProse>
 
-## Examples
+<BentoProse id="examples" eyebrow="Sample code" heading="Examples">
 
 -   These are some examples of repos, demos, and source code written in rust!
 
@@ -379,10 +458,9 @@ Cargo ensures that Rust developers can efficiently manage their projects' librar
 This is a quick repo / guide on a Rust MySQL Microservice!
 Official [Repo](https://github.com/second-state/microservice-rust-mysql)
 
+</BentoProse>
 
----
-
-## Youki
+<BentoProse id="youki" eyebrow="Container runtime" heading="Youki">
 
 Youki is a low-level OCI-compliant container runtime written in Rust, broadly comparable to `runc` and `crun`. 
 Youki focuses on memory safety, good performance, and low resource usage, making it suitable as an alternative runtime under Docker, containerd, Podman, Kubernetes, and similar systems.
@@ -431,17 +509,17 @@ Typical use cases include:
 -   Experimenting with Rust-based container tooling
 -   Building derivative OCI runtimes that leverage Youki's core implementation while layering on extras like sandboxing, alternate exec models, or WASM support
 
----
+</BentoProse>
 
-## Axum
+<BentoProse id="axum" eyebrow="Web framework" heading="Axum">
 
     -   Axum is an ergonomic and modular Rust web application framework.
     -   [Github Repo](https://github.com/tokio-rs/axum)
     -   Axum can be extended through Tower, which is an ecosystem of middleware, services and utilities
 
----
+</BentoProse>
 
-## eGUI
+<BentoProse id="egui" eyebrow="Immediate-mode GUI" heading="eGUI">
 
 This crate is a user-friendly, easy-to-integrate, immediate-mode GUI library designed for rapid development of interactive applications in Rust.
 
@@ -466,9 +544,9 @@ This crate is a user-friendly, easy-to-integrate, immediate-mode GUI library des
             cargo install --locked trunk
             ```
 
----
+</BentoProse>
 
-## Bevy
+<BentoProse id="bevy" eyebrow="Game engine" heading="Bevy">
 
 Bevy is a data-driven game engine built in Rust, using an Entity Component System (ECS) architecture.
 The KBVE isometric game (`apps/kbve/isometric`) runs on Bevy 0.18 with WGPU as its rendering backend, targeting both native desktop (via Tauri) and WebAssembly (WebGPU).
@@ -705,9 +783,9 @@ Bevy supports `.ktx2` with basis universal transcoding for cross-platform compre
 
 All sprite creatures of the same type share identical geometry (a quad). With the uniform-driven UV approach, these could use **GPU instancing** — one draw call for all frogs, one for all wraiths — reducing draw calls from 14 to 2.
 
----
+</BentoProse>
 
-## Q
+<BentoProse id="q" eyebrow="Godot helper crate" heading="Q">
 
 Q is a powerful Godot Helper Crate designed for Rust developers using the GDExtension API.
 It provides a robust set of tools to streamline game development, including a versatile Game Manager for handling core game logic, a Music Manager for seamless audio integration, and a Bevy ECS implementation for efficient entity-component-system architecture.
@@ -719,9 +797,9 @@ Whether you're building complex systems or optimizing performance, Q is your go-
 To build the crate on the mac, we have three options, the first is through the Nx monorepo command: `./kbve.sh -nx q:build-mac`!
 The other option would be to run a [docker](/application/docker/) image to do the build process and the final option would be a [git workflow](/application/git/), more on those two later on.
 
----
+</BentoProse>
 
-## Askama
+<BentoProse id="askama" eyebrow="Type-safe templates" heading="Askama">
 
 Askama is a compile-time type-safe templating engine for Rust, inspired by Jinja2.
 It compiles templates into Rust code at build time, catching errors before runtime and producing zero-allocation rendering.
@@ -1011,27 +1089,29 @@ Askama uses Jinja2-style syntax. Here are the most common patterns used in Astro
 | kbve | `/@{username}` (not found) | — | `AskamaProfileNotFoundProvider.astro` |
 | memes | `/meme/{id}` | `askama/meme.mdx` | `AskamaMemeProvider.astro` |
 
----
+</BentoProse>
 
-## KBVE
+<BentoProse id="kbve" eyebrow="In-house crate" heading="KBVE">
 
----
 
-## JEDI
+</BentoProse>
 
----
+<BentoProse id="jedi" eyebrow="In-house crate" heading="JEDI">
 
-## ERUST
 
----
+</BentoProse>
 
-## HOLY
+<BentoProse id="erust" eyebrow="In-house crate" heading="ERUST">
 
----
 
---
+</BentoProse>
 
-## CI
+<BentoProse id="holy" eyebrow="In-house crate" heading="HOLY">
+
+
+</BentoProse>
+
+<BentoProse id="ci" eyebrow="Build pipelines" heading="CI">
 
 For continuous integration, we recommend checking out our [git](/application/git/) section for more information.
 
@@ -1052,3 +1132,7 @@ Github Actions can provide you with a cloud windows VM that will pull the source
 **Docker**
 
 Nix-ready or custom docker image that has a multi-stage build process, including a cargo chef and layer caching, provides a fast and local way to build across multiple operating systems.
+
+</BentoProse>
+
+</BentoDoc>

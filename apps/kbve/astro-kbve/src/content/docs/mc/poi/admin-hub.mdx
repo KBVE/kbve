@@ -1,0 +1,29 @@
+---
+title: Admin Hub
+template: splash
+description: Staff teleport hub — restricted access.
+sidebar:
+    label: Admin Hub
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-poi
+mc_poi:
+    poi_id: admin_hub
+    display_name: Admin Hub
+    kind: admin
+    world: minecraft:overworld
+    chunk_x: 0
+    chunk_z: 16
+    radius_chunks: 2
+    anchor_y: 80
+    icon: '⌬'
+    about:
+        summary: Staff teleport hub. Holds the lot survey console and the moderation booth.
+        notes: Reachable only via /tp by a player with the forum.is_staff bit.
+---
+
+import MCPoiPanel from '@/components/mcdb/MCPoiPanel.astro';
+
+<MCPoiPanel data={frontmatter.mc_poi} />

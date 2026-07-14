@@ -20,5 +20,19 @@ namespace RareIcon
             buffer.Add(new ProfessionChangedMessage(
                 entity, oldKind, newKind, targetHex, targetEntity, frame, reason));
         }
+
+        public static void Add(
+            ref NativeList<ProfessionChangedMessage>.ParallelWriter writer,
+            Entity entity,
+            byte oldKind,
+            byte newKind,
+            int2 targetHex,
+            Entity targetEntity,
+            uint frame,
+            ProfessionChangeReason reason)
+        {
+            writer.AddNoResize(new ProfessionChangedMessage(
+                entity, oldKind, newKind, targetHex, targetEntity, frame, reason));
+        }
     }
 }

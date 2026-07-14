@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	grafanaService,
@@ -29,9 +29,9 @@ import {
 	XAxis,
 	YAxis,
 	CartesianGrid,
-	Tooltip,
 	ResponsiveContainer,
 } from 'recharts';
+import { AXIS_STROKE, ChartTooltip, GRID_STROKE } from './chartTheme';
 
 // ---------------------------------------------------------------------------
 // Chart helpers
@@ -46,15 +46,27 @@ const tickFormatter = (t: number) =>
 const tooltipLabelFormatter = (t: number) =>
 	new Date(t * 1000).toLocaleString();
 
-const tooltipStyle = {
-	background: 'var(--sl-color-bg-nav, #111)',
-	border: '1px solid var(--sl-color-gray-5, #262626)',
-	borderRadius: '8px',
-	color: 'var(--sl-color-text, #e6edf3)',
-};
+const axisStroke = AXIS_STROKE;
+const gridStroke = GRID_STROKE;
 
-const axisStroke = 'var(--sl-color-gray-3, #8b949e)';
-const gridStroke = 'var(--sl-color-gray-5, #262626)';
+// Skeleton sized to the parent chart's exact height — keeps the page
+// layout stable while the first range query is in flight (prevents the
+// ~1050px cumulative shift on cold load).
+function ChartSkeleton({ height }: { height: number }) {
+	return (
+		<div
+			aria-hidden
+			style={{
+				width: '100%',
+				height,
+				borderRadius: '8px',
+				background:
+					'repeating-linear-gradient(90deg, var(--sl-color-gray-6, #1c1c1c) 0 24px, var(--sl-color-gray-5, #262626) 24px 48px)',
+				opacity: 0.5,
+			}}
+		/>
+	);
+}
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -83,28 +95,30 @@ function TrendIndicator({
 	const sign = isUp ? '+' : '';
 
 	return (
-		<div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-			<Icon size={12} style={{ color }} />
-			<span style={{ color, fontSize: '0.75rem', fontWeight: 500 }}>
+		<span className="kbve-stat-card__trend" style={{ color }}>
+			<Icon size={11} style={{ color }} />
+			<span style={{ color, fontSize: '0.7rem', fontWeight: 500 }}>
 				{sign}
 				{trend.percentChange.toFixed(1)}%
 			</span>
-		</div>
+		</span>
 	);
 }
 
-function SparklineChart({
+function SparklineBg({
 	data,
 	color,
 }: {
-	data: SparklinePoint[];
+	data?: SparklinePoint[];
 	color: string;
 }) {
-	if (data.length < 2) return null;
+	if (!data || data.length < 2) return null;
 	return (
-		<div style={{ width: '100%', height: 36, marginTop: 'auto' }}>
-			<ResponsiveContainer width="100%" height={36}>
-				<LineChart data={data}>
+		<div className="kbve-stat-card__spark">
+			<ResponsiveContainer width="100%" height="100%">
+				<LineChart
+					data={data}
+					margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
 					<Line
 						type="monotone"
 						dataKey="v"
@@ -130,6 +144,7 @@ function EnhancedStatCard({
 	thresholds,
 	invertTrend,
 	onClick,
+	tip,
 }: {
 	icon: React.ReactNode;
 	label: string;
@@ -141,84 +156,37 @@ function EnhancedStatCard({
 	thresholds?: { warn: number; crit: number };
 	invertTrend?: boolean;
 	onClick?: () => void;
+	tip?: string;
 }) {
-	const [hovered, setHovered] = useState(false);
 	const hasThreshold = thresholds && value != null;
 	const thresholdColor = hasThreshold
 		? getThresholdColor(value, thresholds)
 		: undefined;
-	const valueColor = thresholdColor ?? 'var(--sl-color-text, #e6edf3)';
-	const sparkColor = thresholdColor ?? '#06b6d4';
 	const accentColor = thresholdColor ?? 'var(--sl-color-accent, #06b6d4)';
-
+	const valueText = displayValue
+		? displayValue
+		: value != null
+			? `${Number.isInteger(value) ? value : value.toFixed(1)}${unit || ''}`
+			: '--';
 	return (
 		<div
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				alignItems: 'flex-start',
-				gap: '0.5rem',
-				padding: '1rem 1.25rem',
-				borderRadius: '10px',
-				border: '1px solid var(--sl-color-gray-5, #262626)',
-				background: 'var(--sl-color-bg-nav, #111)',
-				transition:
-					'border-color 0.2s, transform 0.15s, box-shadow 0.15s',
-				minHeight: 120,
-				cursor: onClick ? 'pointer' : 'default',
-				borderTop: `2px solid ${accentColor}`,
-				borderColor:
-					hovered && onClick
-						? 'var(--sl-color-gray-4, #6b7280)'
-						: undefined,
-				transform: hovered && onClick ? 'translateY(-2px)' : undefined,
-				boxShadow:
-					hovered && onClick
-						? '0 4px 12px rgba(0,0,0,0.3)'
-						: undefined,
-			}}
+			className={`kbve-stat-card${onClick ? ' is-clickable' : ''}`}
+			style={{ borderTopColor: accentColor }}
 			onClick={onClick}
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}>
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: '0.5rem',
-					width: '100%',
-				}}>
+			data-tip={tip}>
+			<div className="kbve-stat-card__header">
 				<span style={{ color: accentColor }}>{icon}</span>
-				<span
-					style={{
-						color: 'var(--sl-color-gray-3, #8b949e)',
-						fontSize: '0.75rem',
-						fontWeight: 500,
-						textTransform: 'uppercase' as const,
-						letterSpacing: '0.06em',
-					}}>
-					{label}
-				</span>
+				<span>{label}</span>
 			</div>
 			<div
-				style={{
-					fontSize: '1.75rem',
-					fontWeight: 700,
-					color: valueColor,
-					fontVariantNumeric: 'tabular-nums',
-					whiteSpace: 'nowrap' as const,
-				}}>
-				{displayValue
-					? displayValue
-					: value != null
-						? `${Number.isInteger(value) ? value : value.toFixed(1)}${unit || ''}`
-						: '--'}
+				className="kbve-stat-card__value"
+				style={thresholdColor ? { color: thresholdColor } : undefined}>
+				{valueText}
+				{trend && (
+					<TrendIndicator trend={trend} invertColors={invertTrend} />
+				)}
 			</div>
-			{trend && (
-				<TrendIndicator trend={trend} invertColors={invertTrend} />
-			)}
-			{sparkline && (
-				<SparklineChart data={sparkline} color={sparkColor} />
-			)}
+			<SparklineBg data={sparkline} color={accentColor} />
 		</div>
 	);
 }
@@ -322,27 +290,10 @@ export default function ReactGrafanaNodes() {
 	const timeRange = useStore(grafanaService.$timeRange);
 
 	return (
-		<section>
-			<h2
-				style={{
-					color: 'var(--sl-color-text, #e6edf3)',
-					margin: '0 0 1rem 0',
-					fontSize: '1.3rem',
-					fontWeight: 600,
-					paddingBottom: '0.5rem',
-					borderBottom: '1px solid var(--sl-color-gray-5, #262626)',
-				}}>
-				Nodes
-			</h2>
-
-			<div
-				style={{
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-					gap: '0.75rem',
-				}}>
+		<>
+			<div className="kbve-card-grid">
 				<EnhancedStatCard
-					icon={<Cpu size={20} />}
+					icon={<Cpu size={16} />}
 					label="CPU Usage"
 					value={snapshot.cpu}
 					unit="%"
@@ -351,9 +302,10 @@ export default function ReactGrafanaNodes() {
 					invertTrend
 					sparkline={sparklines.cpu}
 					onClick={() => grafanaService.toggleCard('cpu')}
+					tip="Cluster-wide CPU utilization (avg, 5m). Click for per-node breakdown."
 				/>
 				<EnhancedStatCard
-					icon={<HardDrive size={20} />}
+					icon={<HardDrive size={16} />}
 					label="Memory"
 					value={snapshot.memory}
 					unit="%"
@@ -362,9 +314,10 @@ export default function ReactGrafanaNodes() {
 					invertTrend
 					sparkline={sparklines.memory}
 					onClick={() => grafanaService.toggleCard('memory')}
+					tip="Cluster memory used vs total. Click for per-node breakdown."
 				/>
 				<EnhancedStatCard
-					icon={<HardDrive size={20} />}
+					icon={<HardDrive size={16} />}
 					label="Disk"
 					value={snapshot.disk}
 					unit="%"
@@ -373,30 +326,35 @@ export default function ReactGrafanaNodes() {
 					invertTrend
 					sparkline={sparklines.disk}
 					onClick={() => grafanaService.toggleCard('disk')}
+					tip="Root filesystem usage. Click for per-node breakdown."
 				/>
 				<EnhancedStatCard
-					icon={<Network size={20} />}
+					icon={<Network size={16} />}
 					label="Net RX"
 					value={snapshot.networkRx}
 					displayValue={formatBytes(snapshot.networkRx)}
+					tip="Inbound network throughput (excludes lo / veth / cni)."
 				/>
 				<EnhancedStatCard
-					icon={<Network size={20} />}
+					icon={<Network size={16} />}
 					label="Net TX"
 					value={snapshot.networkTx}
 					displayValue={formatBytes(snapshot.networkTx)}
+					tip="Outbound network throughput (excludes lo / veth / cni)."
 				/>
 				<EnhancedStatCard
-					icon={<Server size={20} />}
+					icon={<Server size={16} />}
 					label="Nodes"
 					value={snapshot.nodes}
+					tip="Total nodes registered with the kubelet."
 				/>
 				<EnhancedStatCard
-					icon={<Database size={20} />}
+					icon={<Database size={16} />}
 					label="PVC Usage"
 					value={snapshot.pvcUsage}
 					unit="%"
 					thresholds={RESOURCE_THRESHOLDS}
+					tip="Aggregate persistent volume claim utilization."
 				/>
 			</div>
 
@@ -474,24 +432,25 @@ export default function ReactGrafanaNodes() {
 			)}
 
 			{/* CPU & Memory chart */}
-			{timeSeries.length > 0 && (
-				<div
+			<div
+				className="kbve-chart-panel"
+				style={{
+					padding: '1.5rem',
+					borderRadius: '12px',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+					marginTop: '1rem',
+				}}>
+				<h3
 					style={{
-						padding: '1.5rem',
-						borderRadius: '12px',
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-						marginTop: '1rem',
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0 0 1rem 0',
+						fontSize: '1.1rem',
+						fontWeight: 600,
 					}}>
-					<h3
-						style={{
-							color: 'var(--sl-color-text, #e6edf3)',
-							margin: '0 0 1rem 0',
-							fontSize: '1.1rem',
-							fontWeight: 600,
-						}}>
-						CPU & Memory ({timeRange})
-					</h3>
+					CPU & Memory ({timeRange})
+				</h3>
+				{timeSeries.length > 0 ? (
 					<ResponsiveContainer width="100%" height={300}>
 						<AreaChart data={timeSeries}>
 							<CartesianGrid
@@ -510,8 +469,7 @@ export default function ReactGrafanaNodes() {
 								stroke={axisStroke}
 								fontSize={12}
 							/>
-							<Tooltip
-								contentStyle={tooltipStyle}
+							<ChartTooltip
 								labelFormatter={tooltipLabelFormatter}
 							/>
 							<Area
@@ -532,28 +490,31 @@ export default function ReactGrafanaNodes() {
 							/>
 						</AreaChart>
 					</ResponsiveContainer>
-				</div>
-			)}
+				) : (
+					<ChartSkeleton height={300} />
+				)}
+			</div>
 
 			{/* Network Traffic chart */}
-			{networkTimeSeries.length > 0 && (
-				<div
+			<div
+				className="kbve-chart-panel"
+				style={{
+					padding: '1.5rem',
+					borderRadius: '12px',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+					marginTop: '1rem',
+				}}>
+				<h3
 					style={{
-						padding: '1.5rem',
-						borderRadius: '12px',
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-						marginTop: '1rem',
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0 0 1rem 0',
+						fontSize: '1.1rem',
+						fontWeight: 600,
 					}}>
-					<h3
-						style={{
-							color: 'var(--sl-color-text, #e6edf3)',
-							margin: '0 0 1rem 0',
-							fontSize: '1.1rem',
-							fontWeight: 600,
-						}}>
-						Network Traffic ({timeRange})
-					</h3>
+					Network Traffic ({timeRange})
+				</h3>
+				{networkTimeSeries.length > 0 ? (
 					<ResponsiveContainer width="100%" height={250}>
 						<AreaChart data={networkTimeSeries}>
 							<CartesianGrid
@@ -573,8 +534,7 @@ export default function ReactGrafanaNodes() {
 								stroke={axisStroke}
 								fontSize={12}
 							/>
-							<Tooltip
-								contentStyle={tooltipStyle}
+							<ChartTooltip
 								labelFormatter={tooltipLabelFormatter}
 								formatter={(v: number) => formatBytes(v)}
 							/>
@@ -596,28 +556,31 @@ export default function ReactGrafanaNodes() {
 							/>
 						</AreaChart>
 					</ResponsiveContainer>
-				</div>
-			)}
+				) : (
+					<ChartSkeleton height={250} />
+				)}
+			</div>
 
 			{/* Disk Usage chart */}
-			{diskTimeSeries.length > 0 && (
-				<div
+			<div
+				className="kbve-chart-panel"
+				style={{
+					padding: '1.5rem',
+					borderRadius: '12px',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+					marginTop: '1rem',
+				}}>
+				<h3
 					style={{
-						padding: '1.5rem',
-						borderRadius: '12px',
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-						marginTop: '1rem',
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0 0 1rem 0',
+						fontSize: '1.1rem',
+						fontWeight: 600,
 					}}>
-					<h3
-						style={{
-							color: 'var(--sl-color-text, #e6edf3)',
-							margin: '0 0 1rem 0',
-							fontSize: '1.1rem',
-							fontWeight: 600,
-						}}>
-						Disk Usage ({timeRange})
-					</h3>
+					Disk Usage ({timeRange})
+				</h3>
+				{diskTimeSeries.length > 0 ? (
 					<ResponsiveContainer width="100%" height={250}>
 						<AreaChart data={diskTimeSeries}>
 							<CartesianGrid
@@ -636,8 +599,7 @@ export default function ReactGrafanaNodes() {
 								stroke={axisStroke}
 								fontSize={12}
 							/>
-							<Tooltip
-								contentStyle={tooltipStyle}
+							<ChartTooltip
 								labelFormatter={tooltipLabelFormatter}
 							/>
 							<Area
@@ -650,8 +612,10 @@ export default function ReactGrafanaNodes() {
 							/>
 						</AreaChart>
 					</ResponsiveContainer>
-				</div>
-			)}
-		</section>
+				) : (
+					<ChartSkeleton height={250} />
+				)}
+			</div>
+		</>
 	);
 }

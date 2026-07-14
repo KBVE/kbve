@@ -9,6 +9,9 @@ on:
             - 'apps/kbve/astro-kbve/src/content/**'
             - 'apps/kbve/astro-kbve/src/content.config.ts'
             - 'apps/kbve/astro-kbve/src/pages/api/ci-registry.json.ts'
+            - 'apps/kbve/astro-kbve/src/data/ci/**'
+            - 'apps/kbve/astro-kbve/src/data/schema/ICiProjectSchema.ts'
+            - 'apps/kbve/astro-kbve/scripts/gen-ci-manifest.mts'
             - '.github/ci-dispatch-manifest.json'
             - '.github/workflows/ci-manifest-guard.yml'
             - 'packages/data/proto/kbve/ci_registry.proto'
@@ -28,7 +31,7 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 15
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - uses: actions/setup-node@v6
               with:
@@ -42,7 +45,7 @@ jobs:
             - id: pnpm-store
               run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
 
-            - uses: actions/cache@v5
+            - uses: actions/cache@v6
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
@@ -51,9 +54,11 @@ jobs:
 
             - run: pnpm install --frozen-lockfile
 
-            - run: npx nx run astro-kbve:build
-
-            - run: npx nx run astro-kbve:sync:ci-manifest
+            # Regenerate the manifest straight from the project MDX via the
+            # standalone tsx generator — byte-identical to the Astro build path
+            # (shared buildManifest + ProjectSchemaWithEngine) without paying
+            # for a full Astro build.
+            - run: npx nx run astro-kbve:gen:ci-manifest
 
             - name: Diff manifest
               run: |
@@ -68,23 +73,36 @@ jobs:
                   fi
 
                   # Filter the patch down to changed lines that AREN'T `version`
-                  # fields. `git diff -U0` keeps only +/- lines (no context).
-                  # Strip file headers, then drop any line that is purely a
-                  # `"version": "..."` change. Anything left = real drift.
+                  # fields or `deployment_yamls` array entries. `git diff -U0`
+                  # keeps only +/- lines (no context). Strip file headers, then
+                  # drop:
+                  #   1. `"version": "..."` changes — post-publish auto-PR syncs.
+                  #   2. bare `"apps/.../*.yaml"` array elements — these are
+                  #      `deployment_yamls` entries, read only at publish time
+                  #      (ci-docker.yml resolves image-tag bump targets). The
+                  #      post-publish queue (utils-update-version-toml.yml)
+                  #      regenerates the FULL manifest, so a newly added deploy
+                  #      target self-heals on the next publish — at most a
+                  #      one-cycle tag-bump lag, never a wrong dispatch.
+                  # Key-value lines (`"deployment_yaml": "apps/..."`,
+                  # `"version_source": ...`, app entries) start with a quoted
+                  # KEY, so they don't match the bare-path pattern and STILL
+                  # hard-block: those break dispatch immediately.
                   STRUCTURAL_DIFF=$(git diff -U0 -- .github/ci-dispatch-manifest.json \
                       | grep -E '^[+-]' \
                       | grep -vE '^(\+\+\+|---) ' \
                       | grep -vE '^[+-][[:space:]]*"version":[[:space:]]*"[^"]*",?[[:space:]]*$' \
+                      | grep -vE '^[+-][[:space:]]*"apps/[^"]*\.ya?ml",?[[:space:]]*$' \
                       || true)
 
                   if [ -n "$STRUCTURAL_DIFF" ]; then
                       echo "::error::ci-dispatch-manifest.json has structural drift from the MDX sources."
-                      echo "::error::Run 'npx nx run astro-kbve:build && npx nx run astro-kbve:sync:ci-manifest' locally and commit the regenerated manifest."
+                      echo "::error::Run 'npx nx run astro-kbve:gen:ci-manifest' locally and commit the regenerated manifest."
                       echo "Structural diff:"
                       echo "$STRUCTURAL_DIFF"
                       git diff --stat -- .github/ci-dispatch-manifest.json
                       exit 1
                   fi
 
-                  echo "::notice::Only version-field drift detected — allowed (post-publish auto-PR will sync)."
+                  echo "::notice::Only version-field or deployment_yamls drift detected — allowed (post-publish auto-PR will sync)."
                   git diff --stat -- .github/ci-dispatch-manifest.json

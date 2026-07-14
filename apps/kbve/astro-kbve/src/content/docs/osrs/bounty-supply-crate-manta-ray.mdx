@@ -1,6 +1,6 @@
 ---
 title: Bounty supply crate (manta ray) | OSRS Price Data
-description: "Bounty supply crate (manta ray): A crate full of supplies.. GE limit: 100."
+description: "Bounty supply crate (manta ray): A crate full of supplies. GE limit: 100."
 osrs:
   id: 30616
   name: Bounty supply crate (manta ray)
@@ -12,12 +12,60 @@ osrs:
   lowalch: null
   highalch: null
   limit: 100
-  about: "Bounty supply crate (manta ray) is a members-only item in Old School RuneScape. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: container
+    tier: mid
+  properties:
+    release_date: "2025-01-29"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 5
+    options:
+      - Open
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Bounty supply crate (anglerfish)
+      slug: bounty-supply-crate-anglerfish
+      relationship: variant
+      description: Anglerfish variant of the crate
+    - item_name: Blighted manta ray
+      slug: blighted-manta-ray
+      relationship: product
+      description: Contained inside the crate
+    - item_name: Blighted karambwan
+      slug: blighted-karambwan
+      relationship: product
+      description: Contained inside the crate
+    - item_name: Blighted super restore(4)
+      slug: blighted-super-restore-4
+      relationship: product
+      description: Contained inside the crate
+  about: |-
+    Bounty supply crate (manta ray) packs 8 blighted manta ray, 2 blighted karambwans and 1 blighted super restore(4) for use inside Bounty Hunter. Players may only carry two supply crates into the minigame at a time.
+  market_strategy:
+    notes:
+      - "Sold to Bounty Hunter participants chasing convenient supply stacks"
+      - "Assembly cost roughly 4,141 coins including the 1,000 coin Bounty Hunter fee"
+      - "GE volume averages a few thousand crates per day"
+  trading_tips:
+    - "Check blighted manta ray price daily; the crate flips around manta cost shifts"
+    - "Two-crate inventory cap inside Bounty Hunter caps individual demand"
+  history:
+    - date: "2025-01-29"
+      description: "Added with the Bounty Hunter rework supply crate update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

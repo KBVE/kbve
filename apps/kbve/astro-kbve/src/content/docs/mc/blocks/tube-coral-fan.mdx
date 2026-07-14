@@ -1,5 +1,6 @@
 ---
 title: Tube Coral Fan
+template: splash
 description: |
     Minecraft Tube Coral Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 740
     ref: tube_coral_fan
     slug: tube-coral-fan
+    content_rev: 1
     display_name: Tube Coral Fan
     material: stone
     hardness: 0
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tube_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - ocean
+        - non_solid
+    about:
+        description: |
+            Tube Coral Fan is a small decorative coral plant that grows on
+            the floor of warm ocean reefs. It requires Silk Touch to
+            collect and dies permanently into its dead variant if removed
+            from water.
+        lore: |
+            Added in the Update Aquatic (1.13), coral fans decorate reef
+            floors alongside coral blocks and sea pickles.
+    uses:
+        - title: Reef decoration
+          ref: tube_coral_block
+          detail: |
+              Placed on the top or sides of blocks to decorate underwater
+              builds; commonly grown via bone meal near coral blocks.
+    found_in:
+        - location: Warm Ocean coral reefs
+          detail: Generates naturally scattered across reef floors in warm ocean biomes.
+        - location: Bone meal on coral blocks
+          detail: Applying bone meal to a Tube Coral Block in a warm ocean has a chance to grow nearby coral fans.
+    faq:
+        - question: What tool do I need to mine a Tube Coral Fan?
+          answer: |
+              Any tool breaks it instantly, but only a Silk Touch tool
+              collects it as the living block; otherwise it drops nothing.
+        - question: Can it be placed outside water?
+          answer: |
+              In Java Edition it survives briefly outside water as long as
+              an adjacent block contains water, but dies within roughly 3
+              to 5 seconds without one.
+        - question: Can pistons push a live coral fan?
+          answer: |
+              No, live coral fans cannot be pushed by pistons.
+        - question: Does the dead variant revert back to living?
+          answer: |
+              No, once a coral fan dies it permanently becomes its dead
+              counterpart with no way to revive it.
     data_version: "1.21.5"
 ---
 

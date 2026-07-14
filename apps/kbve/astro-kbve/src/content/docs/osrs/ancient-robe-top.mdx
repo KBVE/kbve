@@ -12,29 +12,70 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.005
     requirements:
       prayer: 20
+    attack_bonus:
+      magic: 4
+    defence_bonus:
+      magic: 4
     other_bonus:
       prayer: 6
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 12195
-      item_name: Ancient robe legs
+    - item_name: Ancient robe legs
       slug: ancient-robe-legs
       relationship: set-piece
-      description: Ancient vestment legs
-    - item_id: 12203
-      item_name: Ancient mitre
+      description: Matching legs of the Ancient vestment set
+    - item_name: Ancient mitre
       slug: ancient-mitre
       relationship: set-piece
-      description: Ancient vestment head
-  about: |-
-    > *"Ancient Vestments."*
-
-    The Ancient robe top is the body piece of the Ancient vestment set. It provides a +6 Prayer bonus and requires 20 Prayer to equip. Counts as a Zarosian item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Head piece of the Ancient vestment set
+    - item_name: Ancient stole
+      slug: ancient-stole
+      relationship: set-piece
+      description: Neck piece of the Ancient vestment set
+    - item_name: Ancient crozier
+      slug: ancient-crozier
+      relationship: set-piece
+      description: Weapon piece of the Ancient vestment set
+  about: "Ancient robe top is the body piece of the Ancient vestment set, requiring 20 Prayer to equip. Provides a +6 Prayer bonus with minor Magic offence and defence. Counts as a Zarosian item in the God Wars Dungeon. Dropped from easy reward caskets at a 1/1,404 rate."
+  market_strategy:
+    notes:
+      - "Prayer training cosmetic"
+      - "Easy clue exclusive"
+      - "Set collector demand"
+  history:
+    - date: "2014-06-12"
+      description: "Added to the game with the easy Treasure Trails reward table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

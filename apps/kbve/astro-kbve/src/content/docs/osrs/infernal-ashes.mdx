@@ -14,51 +14,45 @@ osrs:
   limit: 7500
   material:
     type: ashes
-    tier: highest
+    tier: high
   prayer:
     xp_scatter: 110
     xp_demonic_offering: 330
   drop_table:
     sources:
       - source: K'ril Tsutsaroth
-        source_id: 3129
-        combat_level: 650
         quantity: "1"
         rarity: always
-        members_only: true
+      - source: Tormented Demon
+        quantity: "1"
+        rarity: always
       - source: Cerberus
-        source_id: 5862
-        combat_level: 318
-        quantity: "2"
+        quantity: "1"
         rarity: always
-        members_only: true
       - source: Skotizo
-        source_id: 7286
-        combat_level: 321
-        quantity: "3"
+        quantity: "1"
         rarity: always
-        members_only: true
+      - source: Zalcano
+        quantity: "1"
+        rarity: always
   related_items:
-    - item_id: 25775
-      item_name: Abyssal ashes
+    - item_name: Abyssal ashes
       slug: abyssal-ashes
       relationship: downgrade
       description: Lower XP (85 base)
-    - item_id: 25772
-      item_name: Malicious ashes
+    - item_name: Malicious ashes
       slug: malicious-ashes
       relationship: downgrade
       description: Lower XP (65 base)
-    - item_id: 22124
-      item_name: Superior dragon bones
+    - item_name: Superior dragon bones
       slug: superior-dragon-bones
       relationship: alternative
       description: Same XP (150 buried)
-    - item_id: 536
-      item_name: Dragon bones
+    - item_name: Dragon bones
       slug: dragon-bones
       relationship: alternative
       description: Bone alternative (72 XP)
+  about: Infernal ashes are the highest-tier ashes in Old School RuneScape, dropped by powerful demonic and boss-tier creatures including K'ril Tsutsaroth, Cerberus, Skotizo, Tormented Demons, and Zalcano. Scattering them grants 110 Prayer XP, and the Demonic Offering spell (84 Magic) grants 330 Prayer XP plus 175 Magic XP per cast.
   market_strategy:
     notes:
       - High-end bosses produce supply
@@ -68,8 +62,31 @@ osrs:
       - Compare to superior dragon bones
       - Demonic Offering very efficient
       - Boss activity drives supply
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Buy in bulk when boss content is heavily farmed
+    - Pair purchases with Soul runes for Demonic Offering training
+    - Watch price spikes after Prayer training meta updates
+  history:
+    - date: "2021-06-16"
+      description: Infernal ashes released as part of the A Kingdom Divided quest update, becoming the highest-tier ashes for Prayer training.
+  properties:
+    release_date: "2021-06-16"
+    update: A Kingdom Divided
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Scatter
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

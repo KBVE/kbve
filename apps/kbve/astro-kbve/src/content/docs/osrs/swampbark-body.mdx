@@ -1,6 +1,6 @@
 ---
 title: Swampbark body | OSRS Price Data
-description: "Swampbark body: Keeps my chest protected.. High alch: 72,000 GP."
+description: "Swampbark body: Keeps my chest protected. High alch: 72,000 GP."
 osrs:
   id: 25389
   name: Swampbark body
@@ -12,9 +12,95 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: null
-  about: "Swampbark body is a members-only item in Old School RuneScape. High alchemy value: 72,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: magic armour
+    tier: mid-high
+  properties:
+    release_date: "2021-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options: ["Wear", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 4.535
+    requirements:
+      magic: 50
+      defence: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 38
+      slash: 44
+      crush: 48
+      magic: 21
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 48
+      xp: 0
+      materials:
+        - item_name: Splitbark body
+          quantity: 1
+        - item_name: Nature rune
+          quantity: 500
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Swampbark set bind bonus
+      description: "Adds 2 ticks (1.2 seconds) to bind spell duration; stacks with swampbark helm and legs for a 6-tick (3.6 second) total bonus."
+  related_items:
+    - item_name: Splitbark body
+      slug: splitbark-body
+      relationship: component
+      description: "Base body item infused at the Nature Altar to create the swampbark body"
+    - item_name: Swampbark helm
+      slug: swampbark-helm
+      relationship: set-piece
+      description: "Set piece that contributes 2 ticks to the bind duration bonus"
+    - item_name: Swampbark legs
+      slug: swampbark-legs
+      relationship: set-piece
+      description: "Set piece that contributes 2 ticks to the bind duration bonus"
+    - item_name: Runescroll of swampbark
+      slug: runescroll-of-swampbark
+      relationship: component
+      description: "Must be read before infusing splitbark armour into swampbark"
+  about: "The Swampbark body is a mid-tier Magic body armour crafted by infusing a splitbark body with 500 nature runes at the Nature Altar (48 Runecraft). It requires 50 Magic and 50 Defence to wear and is part of the swampbark set that increases bind spell duration."
+  market_strategy:
+    notes:
+      - "Crafted at the Nature Altar after reading the runescroll of swampbark"
+      - "Demand driven by PvM Mages who use Ice Barrage or Bind for crowd control"
+      - "Helm, body, and legs together grant the full 6-tick bind extension"
+  trading_tips:
+    - "Track nature rune and splitbark body prices to estimate crafting margin"
+    - "Set pieces are typically cheapest mid-week, watch for restock cycles"
+    - "Best used with other bind-extending gear for PvM specialist setups"
+  history:
+    - date: "2021-01-27"
+      description: "Swampbark body released alongside the swampbark armour set."
+    - date: "2023-06-21"
+      description: "Set bonus adjusted so maximum benefit is reached with helm, body, and legs alone."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Activator Rail
+template: splash
 description: |
     Minecraft Activator Rail — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 450
     ref: activator_rail
     slug: activator-rail
+    content_rev: 1
     display_name: Activator Rail
     material: redstone
     hardness: 0.7
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: activator_rail
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            An Activator Rail is a redstone-powered rail variant that
+            triggers effects on passing minecarts: when powered it ejects
+            riders and cargo, primes TNT minecarts, and activates command
+            block minecarts. Unpowered, it lets hopper minecarts resume
+            collecting items.
+        lore: |
+            Activator rails were first introduced in Java Edition 1.5,
+            with their texture later refined in the 1.14 update.
+    uses:
+        - title: Minecart Ejection Stations
+          ref: minecart
+          detail: |
+              Placed at the end of a minecart line and powered by redstone
+              to eject players or cargo automatically.
+        - title: TNT Minecart Detonators
+          ref: tnt_minecart
+          detail: |
+              A powered activator rail ignites a passing TNT minecart,
+              commonly used in automatic mob or terrain-clearing farms.
+    found_in:
+        - location: Crafting
+          detail: Made from 6 iron ingots, 2 sticks, and 1 redstone torch, yielding 6 activator rails.
+        - location: Mineshaft chests
+          detail: Found as loot in mineshaft and sulfur cave chests, typically 1-4 per stack.
+    faq:
+        - question: What tool mines an Activator Rail fastest?
+          answer: |
+              A pickaxe. No minimum tool tier is required, and it always
+              drops itself as an item.
+        - question: What does a powered Activator Rail do?
+          answer: |
+              It ejects passengers and cargo from minecarts riding over it,
+              ignites TNT minecarts, and disables hopper minecart pickup.
+        - question: Does an Activator Rail burn in fire?
+          answer: |
+              No. It is not flammable and does not catch fire from lava
+              or nearby flames.
+        - question: Where can I find Activator Rails without crafting them?
+          answer: |
+              In mineshaft chest loot, with roughly a 27% chance per chest
+              in regular mineshafts and 23% in sulfur cave mineshafts.
     data_version: "1.21.5"
 ---
 

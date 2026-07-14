@@ -1,6 +1,3 @@
-# Velocity proxy deployment
-# Receives all player connections on port 25565 and forwards them to
-# the Agones-managed Fabric MC server pods.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -9,24 +6,17 @@ metadata:
     labels:
         app: mc-velocity
         app.kubernetes.io/part-of: mc
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
     annotations:
-        # Stakater Reloader — auto rolling-restart when mc-velocity-config
-        # ConfigMap changes (velocity.toml or forwarding.secret).
-        configmap.reloader.stakater.com/reload: 'mc-velocity-config'
-        # Same reloader for the Discord relay token secret — rotating the
-        # token via seal-discord-token.sh + commit = auto-restart.
-        secret.reloader.stakater.com/reload: 'mc-discord-relay'
+        configmap.reloader.stakater.com/reload: mc-velocity-config
+        secret.reloader.stakater.com/reload: mc-discord-relay
 spec:
     replicas: 1
     selector:
         matchLabels:
             app: mc-velocity
-    # Recreate — required because replicas=1 binds hostPort 25565 on the
-    # dedicated-server node. A rolling update can never surge: the new pod
-    # can't schedule until the old one frees the port, and the old one
-    # can't terminate until the new one is Ready. Recreate tears the old
-    # pod down first, which accepts a short (~30s plugin-download + boot)
-    # connection gap in exchange for rollouts that actually complete.
     strategy:
         type: Recreate
     template:
@@ -35,77 +25,32 @@ spec:
                 app: mc-velocity
                 app.kubernetes.io/part-of: mc
         spec:
-            # Pin to the dedicated-server node so hostPort 25565 is
-            # reachable on the same IP that mc.kbve.com resolves to.
             nodeSelector:
                 node.kbve.com/type: dedicated-server
             containers:
                 - name: velocity
-                  # Custom Velocity image built from apps/mc/velocity.
-                  # Same itzg/bungeecord runtime under the hood, with a
-                  # pre-baked kbve-velocity-commands plugin providing
-                  # teleport aliases (/lobby, /hub, /mc, /survival),
-                  # cross-server chat bridge with /chat local|global
-                  # per-player mode, and last-server persistence so
-                  # reconnecting players land on their previous backend.
-                  #
-                  # CI/CD: bumps to apps/mc/velocity/version.toml (via
-                  # the mc-velocity.mdx version frontmatter) trigger a
-                  # rebuild + push, and post-publish updates this image
-                  # tag in place. The mc-velocity entry in ci-dispatch-
-                  # manifest.json owns this deployment_yaml exclusively,
-                  # so CI never cross-triggers with mc or mc-lobby.
-                  image: ghcr.io/kbve/mc-velocity:1.1.10
+                  image: ghcr.io/kbve/mc-velocity:1.1.11
                   env:
                       - name: TYPE
                         value: VELOCITY
                       - name: VELOCITY_VERSION
-                        value: '3.4.0-SNAPSHOT'
+                        value: 3.4.0-SNAPSHOT
                       - name: MEMORY
-                        value: '512M'
+                        value: 512M
                       - name: REPLACE_ENV_VARIABLES
                         value: 'true'
-                      # LuckPerms-Velocity — downloaded at container start via
-                      # itzg's PLUGINS env var. Makes Velocity the authoritative
-                      # owner of LuckPerms user data (keyed by the real online
-                      # UUID from Mojang auth) and pushes updates to the backend
-                      # LuckPerms-Fabric over the plugin-message channel. This
-                      # fixes the pre-login UUID mismatch kick that was caused
-                      # by FabricProxy-Lite swapping UUIDs after LuckPerms on
-                      # the backend had already tried to pre-load user data.
-                      # 5.5.17 is the latest Velocity release; 5.5.x versions
-                      # share a stable plugin-messaging wire format so the
-                      # 4-patch gap to Fabric 5.5.21 is safe.
-                      # Portal switching uses the legacy BungeeCord
-                      # plugin-message channel — Velocity translates Connect
-                      # subchannel messages natively via the
-                      # `bungee-plugin-message-channel = true` setting in
-                      # velocity-configmap.yaml. No proxy-side portal plugin
-                      # is required; the lobby's source-built kbve-mc-uplink
-                      # is the sender.
                       - name: PLUGINS
-                        value: 'https://cdn.modrinth.com/data/Vebnzrzj/versions/GZjsuCmU/LuckPerms-Velocity-5.5.17.jar'
-                      # Matches the LuckPerms env vars on the Fabric fleet pod.
-                      # EnvironmentVariableConfigAdapter overrides the on-disk
-                      # luckperms.conf without touching the PVC.
+                        value: https://cdn.modrinth.com/data/Vebnzrzj/versions/GZjsuCmU/LuckPerms-Velocity-5.5.17.jar
                       - name: LUCKPERMS_MESSAGING_SERVICE
-                        value: 'pluginmsg'
+                        value: pluginmsg
                       - name: LUCKPERMS_STORAGE_METHOD
-                        value: 'h2'
-                      # Discord relay bot token — sealed via SealedSecrets,
-                      # rotated through ./seal-discord-token.sh. Plugin reads
-                      # this env var at startup; the secret never lands in
-                      # the configmap.
+                        value: h2
                       - name: DISCORD_BOT_TOKEN
                         valueFrom:
                             secretKeyRef:
                                 name: mc-discord-relay
                                 key: DISCORD_BOT_TOKEN
                   ports:
-                      # hostPort exposes Velocity directly on the node IP at
-                      # the standard Minecraft port 25565. Bypasses Service /
-                      # LoadBalancer / Gateway entirely. Players connect to
-                      # the node's external IP (mc.kbve.com:25565).
                       - name: minecraft
                         containerPort: 25565
                         hostPort: 25565

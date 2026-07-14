@@ -12,9 +12,83 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 125
-  about: "Oak blackjack(d) is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2005-08-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: blackjack
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      defence: 10
+      thieving: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 4
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Ali's Discount Wares
+      location: Pollnivneach
+      price: 400
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Oak blackjack
+      slug: oak-blackjack
+      relationship: variant
+      description: Standard variant with balanced stats
+    - item_name: Oak blackjack(o)
+      slug: oak-blackjack-o
+      relationship: variant
+      description: Offensive variant trading defence for attack
+    - item_name: Willow blackjack(d)
+      slug: willow-blackjack-d
+      relationship: upgrade
+      description: Higher-tier defensive blackjack for Pollnivneach thieving
+  about: "Oak blackjack(d) is the defensive Pollnivneach blackjack purchased from Ali's Discount Wares. Used for luring and knocking out NPCs in the Thieving sub-game, the defensive variant trades attack speed and offence for +4 Crush defence so missed knockouts hurt less. Equip requires 10 Defence and 10 Thieving."
+  market_strategy:
+    notes:
+      - "Shop price 400 gp sets a hard floor under GE flips"
+      - "Demand spikes during Thieving training events"
+      - "Defensive variant has a smaller user base than the offensive one"
+  trading_tips:
+    - Buy from Ali's Discount Wares as a baseline arbitrage
+    - Stock up before bonus Thieving XP weekends
+  history:
+    - date: "2005-08-15"
+      description: "Released alongside the Pollnivneach Thieving content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

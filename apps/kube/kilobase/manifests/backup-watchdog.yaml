@@ -1,17 +1,3 @@
-# Backup watchdog — daily health check + metadata cleanup for CNPG backups.
-#
-# Runs daily at 3:30 AM UTC (after 2 AM backup, before 4 AM Sunday fire drill).
-#
-# 1. Health check: verifies a backup succeeded in the last 48 hours.
-#    If not → exits non-zero (Job shows as Failed in ArgoCD/monitoring).
-#    This catches silent failure streaks like the cert expiry incident.
-#
-# 2. Metadata cleanup: prunes old Backup CRDs to keep the namespace tidy.
-#    - Failed backups older than 7 days (no useful data)
-#    - Completed backups older than 60 days (keeps 2 months for audit)
-#
-# 3. Status report: logs a summary of backup health.
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -32,12 +18,21 @@ metadata:
         app.kubernetes.io/component: backup-watchdog
         app.kubernetes.io/managed-by: argocd
 rules:
-    - apiGroups: ['postgresql.cnpg.io']
-      resources: ['backups']
-      verbs: ['get', 'list', 'delete']
-    - apiGroups: ['postgresql.cnpg.io']
-      resources: ['scheduledbackups']
-      verbs: ['get', 'list']
+    - apiGroups:
+          - postgresql.cnpg.io
+      resources:
+          - backups
+      verbs:
+          - get
+          - list
+          - delete
+    - apiGroups:
+          - postgresql.cnpg.io
+      resources:
+          - scheduledbackups
+      verbs:
+          - get
+          - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -66,8 +61,11 @@ metadata:
         app.kubernetes.io/name: kilobase
         app.kubernetes.io/component: backup-watchdog
         app.kubernetes.io/managed-by: argocd
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
-    schedule: '30 3 * * *'
+    schedule: 30 3 * * *
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 3
     failedJobsHistoryLimit: 3
@@ -98,7 +96,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: watchdog
-                          image: registry.k8s.io/kubectl:1.32
+                          image: ghcr.io/kbve/kubectl:0.1.5
                           securityContext:
                               allowPrivilegeEscalation: false
                               readOnlyRootFilesystem: true
@@ -115,130 +113,74 @@ spec:
                           command:
                               - /bin/bash
                               - -c
-                              - |
-                                  set -euo pipefail
-
-                                  NAMESPACE="kilobase"
-                                  MAX_FAILED_AGE_DAYS=7
-                                  MAX_COMPLETED_AGE_DAYS=60
-                                  HEALTH_WINDOW_SECONDS=$((48 * 3600))
-
-                                  echo "=== Backup Watchdog ==="
-                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-                                  echo ""
-
-                                  # ── Step 1: Health Check ──────────────────────
-                                  echo "Step 1: Checking backup health (48h window)..."
-
-                                  NOW=$(date +%s)
-                                  HEALTHY=false
-
-                                  # Get all completed backups with their completion times
-                                  COMPLETED_BACKUPS=$(kubectl get backups.postgresql.cnpg.io \
-                                      -n "${NAMESPACE}" \
-                                      -o jsonpath='{range .items[?(@.status.phase=="completed")]}{.metadata.name},{.status.startedAt}{"\n"}{end}' \
-                                      2>/dev/null || echo "")
-
-                                  if [ -z "${COMPLETED_BACKUPS}" ]; then
-                                      echo "  WARNING: No completed backups found at all!"
-                                  else
-                                      LATEST_COMPLETED=""
-                                      LATEST_AGE_HUMAN=""
-
-                                      while IFS=',' read -r name timestamp; do
-                                          [ -z "${timestamp}" ] && continue
-                                          # Parse ISO timestamp to epoch
-                                          BACKUP_EPOCH=$(date -d "${timestamp}" +%s 2>/dev/null || \
-                                                         date -j -f "%Y-%m-%dT%H:%M:%SZ" "${timestamp}" +%s 2>/dev/null || \
-                                                         echo "0")
-                                          AGE_SECONDS=$((NOW - BACKUP_EPOCH))
-
-                                          if [ "${AGE_SECONDS}" -lt "${HEALTH_WINDOW_SECONDS}" ]; then
-                                              HEALTHY=true
-                                              LATEST_COMPLETED="${name}"
-                                              LATEST_AGE_HUMAN="$((AGE_SECONDS / 3600))h ago"
-                                              break
-                                          fi
-
-                                          # Track the most recent even if outside window
-                                          if [ -z "${LATEST_COMPLETED}" ]; then
-                                              LATEST_COMPLETED="${name}"
-                                              LATEST_AGE_HUMAN="$((AGE_SECONDS / 3600))h ago"
-                                          fi
-                                      done <<< "$(echo "${COMPLETED_BACKUPS}" | sort -t',' -k2 -r)"
-                                  fi
-
-                                  if [ "${HEALTHY}" = "true" ]; then
-                                      echo "  HEALTHY: Last successful backup: ${LATEST_COMPLETED} (${LATEST_AGE_HUMAN})"
-                                  else
-                                      echo "  UNHEALTHY: No successful backup in the last 48 hours!"
-                                      echo "  Last known successful: ${LATEST_COMPLETED:-none} (${LATEST_AGE_HUMAN:-unknown})"
-                                      echo ""
-                                      echo "  Recent backup statuses:"
-                                      kubectl get backups.postgresql.cnpg.io -n "${NAMESPACE}" \
-                                          --sort-by=.metadata.creationTimestamp \
-                                          --no-headers | tail -5
-                                      echo ""
-                                      echo "CRITICAL: Backup health check failed — no successful backup in 48h window"
-                                      exit 1
-                                  fi
-
-                                  echo ""
-
-                                  # ── Step 2: Metadata Cleanup ───────────────────
-                                  echo "Step 2: Cleaning up old Backup CRDs..."
-
-                                  DELETED_FAILED=0
-                                  DELETED_COMPLETED=0
-
-                                  # Get all backups with status and creation timestamp
-                                  ALL_BACKUPS=$(kubectl get backups.postgresql.cnpg.io \
-                                      -n "${NAMESPACE}" \
-                                      -o jsonpath='{range .items[*]}{.metadata.name},{.status.phase},{.metadata.creationTimestamp}{"\n"}{end}' \
-                                      2>/dev/null || echo "")
-
-                                  while IFS=',' read -r name phase created; do
-                                      [ -z "${name}" ] && continue
-                                      [ -z "${created}" ] && continue
-
-                                      CREATED_EPOCH=$(date -d "${created}" +%s 2>/dev/null || \
-                                                      date -j -f "%Y-%m-%dT%H:%M:%SZ" "${created}" +%s 2>/dev/null || \
-                                                      echo "0")
-                                      AGE_DAYS=$(( (NOW - CREATED_EPOCH) / 86400 ))
-
-                                      if [ "${phase}" = "failed" ] && [ "${AGE_DAYS}" -ge "${MAX_FAILED_AGE_DAYS}" ]; then
-                                          echo "  Deleting failed backup: ${name} (${AGE_DAYS}d old)"
-                                          kubectl delete backup.postgresql.cnpg.io "${name}" \
-                                              -n "${NAMESPACE}" --ignore-not-found
-                                          DELETED_FAILED=$((DELETED_FAILED + 1))
-                                      elif [ "${phase}" = "completed" ] && [ "${AGE_DAYS}" -ge "${MAX_COMPLETED_AGE_DAYS}" ]; then
-                                          echo "  Deleting old completed backup: ${name} (${AGE_DAYS}d old)"
-                                          kubectl delete backup.postgresql.cnpg.io "${name}" \
-                                              -n "${NAMESPACE}" --ignore-not-found
-                                          DELETED_COMPLETED=$((DELETED_COMPLETED + 1))
-                                      fi
-                                  done <<< "${ALL_BACKUPS}"
-
-                                  echo "  Deleted: ${DELETED_FAILED} failed, ${DELETED_COMPLETED} completed"
-                                  echo ""
-
-                                  # ── Step 3: Status Report ──────────────────────
-                                  echo "Step 3: Backup status summary"
-
-                                  TOTAL=$(kubectl get backups.postgresql.cnpg.io -n "${NAMESPACE}" --no-headers 2>/dev/null | wc -l | tr -d ' ')
-                                  COMPLETED_COUNT=$(kubectl get backups.postgresql.cnpg.io -n "${NAMESPACE}" --no-headers 2>/dev/null | grep -c "completed" || echo "0")
-                                  FAILED_COUNT=$(kubectl get backups.postgresql.cnpg.io -n "${NAMESPACE}" --no-headers 2>/dev/null | grep -c "failed" || echo "0")
-
-                                  echo "  Total Backup CRDs: ${TOTAL}"
-                                  echo "  Completed: ${COMPLETED_COUNT}"
-                                  echo "  Failed: ${FAILED_COUNT}"
-                                  echo "  Cleaned this run: ${DELETED_FAILED} failed + ${DELETED_COMPLETED} completed"
-                                  echo ""
-
-                                  # Check ScheduledBackup is active
-                                  SB_COUNT=$(kubectl get scheduledbackups.postgresql.cnpg.io -n "${NAMESPACE}" --no-headers 2>/dev/null | wc -l | tr -d ' ')
-                                  echo "  Active ScheduledBackups: ${SB_COUNT}"
-
-                                  echo ""
-                                  echo "=== Backup Watchdog PASSED ==="
-                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                              - "set -euo pipefail\n\nNAMESPACE=\"kilobase\"\nMAX_FAILED_AGE_DAYS=7\n\
+                                MAX_COMPLETED_AGE_DAYS=60\nHEALTH_WINDOW_SECONDS=$((48 * 3600))\n\n\
+                                echo \"=== Backup Watchdog ===\"\necho \"Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)\"\
+                                \necho \"\"\n\n# ── Step 1: Health Check ──────────────────────\necho\
+                                \ \"Step 1: Checking backup health (48h window)...\"\n\nNOW=$(date +%s)\n\
+                                HEALTHY=false\n\n# Get all completed backups with their completion times\n\
+                                COMPLETED_BACKUPS=$(kubectl get backups.postgresql.cnpg.io \\\n    -n\
+                                \ \"${NAMESPACE}\" \\\n    -o jsonpath='{range .items[?(@.status.phase==\"\
+                                completed\")]}{.metadata.name},{.status.startedAt}{\"\\n\"}{end}' \\\
+                                \n    2>/dev/null || echo \"\")\n\nif [ -z \"${COMPLETED_BACKUPS}\"\
+                                \ ]; then\n    echo \"  WARNING: No completed backups found at all!\"\
+                                \nelse\n    LATEST_COMPLETED=\"\"\n    LATEST_AGE_HUMAN=\"\"\n\n   \
+                                \ while IFS=',' read -r name timestamp; do\n        [ -z \"${timestamp}\"\
+                                \ ] && continue\n        # Parse ISO timestamp to epoch\n        BACKUP_EPOCH=$(date\
+                                \ -d \"${timestamp}\" +%s 2>/dev/null || \\\n                      \
+                                \ date -j -f \"%Y-%m-%dT%H:%M:%SZ\" \"${timestamp}\" +%s 2>/dev/null\
+                                \ || \\\n                       echo \"0\")\n        AGE_SECONDS=$((NOW\
+                                \ - BACKUP_EPOCH))\n\n        if [ \"${AGE_SECONDS}\" -lt \"${HEALTH_WINDOW_SECONDS}\"\
+                                \ ]; then\n            HEALTHY=true\n            LATEST_COMPLETED=\"\
+                                ${name}\"\n            LATEST_AGE_HUMAN=\"$((AGE_SECONDS / 3600))h ago\"\
+                                \n            break\n        fi\n\n        # Track the most recent even\
+                                \ if outside window\n        if [ -z \"${LATEST_COMPLETED}\" ]; then\n\
+                                \            LATEST_COMPLETED=\"${name}\"\n            LATEST_AGE_HUMAN=\"\
+                                $((AGE_SECONDS / 3600))h ago\"\n        fi\n    done <<< \"$(echo \"\
+                                ${COMPLETED_BACKUPS}\" | sort -t',' -k2 -r)\"\nfi\n\nif [ \"${HEALTHY}\"\
+                                \ = \"true\" ]; then\n    echo \"  HEALTHY: Last successful backup:\
+                                \ ${LATEST_COMPLETED} (${LATEST_AGE_HUMAN})\"\nelse\n    echo \"  UNHEALTHY:\
+                                \ No successful backup in the last 48 hours!\"\n    echo \"  Last known\
+                                \ successful: ${LATEST_COMPLETED:-none} (${LATEST_AGE_HUMAN:-unknown})\"\
+                                \n    echo \"\"\n    echo \"  Recent backup statuses:\"\n    kubectl\
+                                \ get backups.postgresql.cnpg.io -n \"${NAMESPACE}\" \\\n        --sort-by=.metadata.creationTimestamp\
+                                \ \\\n        --no-headers | tail -5\n    echo \"\"\n    echo \"CRITICAL:\
+                                \ Backup health check failed — no successful backup in 48h window\"\n\
+                                \    exit 1\nfi\n\necho \"\"\n\n# ── Step 2: Metadata Cleanup ───────────────────\n\
+                                echo \"Step 2: Cleaning up old Backup CRDs...\"\n\nDELETED_FAILED=0\n\
+                                DELETED_COMPLETED=0\n\n# Get all backups with status and creation timestamp\n\
+                                ALL_BACKUPS=$(kubectl get backups.postgresql.cnpg.io \\\n    -n \"${NAMESPACE}\"\
+                                \ \\\n    -o jsonpath='{range .items[*]}{.metadata.name},{.status.phase},{.metadata.creationTimestamp}{\"\
+                                \\n\"}{end}' \\\n    2>/dev/null || echo \"\")\n\nwhile IFS=',' read\
+                                \ -r name phase created; do\n    [ -z \"${name}\" ] && continue\n  \
+                                \  [ -z \"${created}\" ] && continue\n\n    CREATED_EPOCH=$(date -d\
+                                \ \"${created}\" +%s 2>/dev/null || \\\n                    date -j\
+                                \ -f \"%Y-%m-%dT%H:%M:%SZ\" \"${created}\" +%s 2>/dev/null || \\\n \
+                                \                   echo \"0\")\n    AGE_DAYS=$(( (NOW - CREATED_EPOCH)\
+                                \ / 86400 ))\n\n    if [ \"${phase}\" = \"failed\" ] && [ \"${AGE_DAYS}\"\
+                                \ -ge \"${MAX_FAILED_AGE_DAYS}\" ]; then\n        echo \"  Deleting\
+                                \ failed backup: ${name} (${AGE_DAYS}d old)\"\n        kubectl delete\
+                                \ backup.postgresql.cnpg.io \"${name}\" \\\n            -n \"${NAMESPACE}\"\
+                                \ --ignore-not-found\n        DELETED_FAILED=$((DELETED_FAILED + 1))\n\
+                                \    elif [ \"${phase}\" = \"completed\" ] && [ \"${AGE_DAYS}\" -ge\
+                                \ \"${MAX_COMPLETED_AGE_DAYS}\" ]; then\n        echo \"  Deleting old\
+                                \ completed backup: ${name} (${AGE_DAYS}d old)\"\n        kubectl delete\
+                                \ backup.postgresql.cnpg.io \"${name}\" \\\n            -n \"${NAMESPACE}\"\
+                                \ --ignore-not-found\n        DELETED_COMPLETED=$((DELETED_COMPLETED\
+                                \ + 1))\n    fi\ndone <<< \"${ALL_BACKUPS}\"\n\necho \"  Deleted: ${DELETED_FAILED}\
+                                \ failed, ${DELETED_COMPLETED} completed\"\necho \"\"\n\n# ── Step 3:\
+                                \ Status Report ──────────────────────\necho \"Step 3: Backup status\
+                                \ summary\"\n\nTOTAL=$(kubectl get backups.postgresql.cnpg.io -n \"\
+                                ${NAMESPACE}\" --no-headers 2>/dev/null | wc -l | tr -d ' ')\nCOMPLETED_COUNT=$(kubectl\
+                                \ get backups.postgresql.cnpg.io -n \"${NAMESPACE}\" --no-headers 2>/dev/null\
+                                \ | grep -c \"completed\" || echo \"0\")\nFAILED_COUNT=$(kubectl get\
+                                \ backups.postgresql.cnpg.io -n \"${NAMESPACE}\" --no-headers 2>/dev/null\
+                                \ | grep -c \"failed\" || echo \"0\")\n\necho \"  Total Backup CRDs:\
+                                \ ${TOTAL}\"\necho \"  Completed: ${COMPLETED_COUNT}\"\necho \"  Failed:\
+                                \ ${FAILED_COUNT}\"\necho \"  Cleaned this run: ${DELETED_FAILED} failed\
+                                \ + ${DELETED_COMPLETED} completed\"\necho \"\"\n\n# Check ScheduledBackup\
+                                \ is active\nSB_COUNT=$(kubectl get scheduledbackups.postgresql.cnpg.io\
+                                \ -n \"${NAMESPACE}\" --no-headers 2>/dev/null | wc -l | tr -d ' ')\n\
+                                echo \"  Active ScheduledBackups: ${SB_COUNT}\"\n\necho \"\"\necho \"\
+                                === Backup Watchdog PASSED ===\"\necho \"Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)\"\
+                                \n"

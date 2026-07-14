@@ -47,11 +47,6 @@ namespace RareIcon
             live.HostileEmitters.Clear();
             live.PipelineHandle = default;
 
-            // Swap Write→Read on every event stream: last frame's producers
-            // filled the WriteBuffer; this frame's consumers read it via the
-            // ReadBuffer; new producers write into a freshly cleared
-            // WriteBuffer. NativeList swap is a header-level exchange — no
-            // element copies. Inlined (generic static helpers trip Burst).
             var td = live.ThreatDetectedWriteBuffer;
             live.ThreatDetectedWriteBuffer = live.ThreatDetectedReadBuffer;
             live.ThreatDetectedReadBuffer  = td;

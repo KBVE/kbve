@@ -12,84 +12,117 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 15
+  family_ref:
+    family_slug: karil-s-leathertop
+    role: base
+  family:
+    slug: karil-s-leathertop
+    name: Karil's leathertop
+    type: degraded
+    canonical_id: 4736
+    members:
+    - id: 4736
+      slug: karil-s-leathertop
+      name: Karil's leathertop
+      icon: Karil's leathertop.png
+      role: base
+      dose: null
+      value: 50000
+      lowalch: 20000
+      highalch: 30000
+    - id: 4944
+      slug: karil-s-leathertop-0
+      name: Karil's leathertop 0
+      icon: Karil's leathertop 0.png
+      role: degraded
+      dose: null
+      value: 50000
+      lowalch: 20000
+      highalch: 30000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: barrows-leather
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 6.803
+    degradeable: true
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Remove
+      - Check
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure you want to drop it?"
   equipment:
     slot: body
-    type: barrows
-    set: Karil
-    tradeable: true
-    degradeable: true
-    weight: 6.8
     requirements:
       defence: 70
       ranged: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -15
-      attack_ranged: 30
-      defence_stab: 47
-      defence_slash: 42
-      defence_crush: 50
-      defence_magic: 65
-      defence_ranged: 57
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -15
+      ranged: 30
+    defence_bonus:
+      stab: 47
+      slash: 42
+      crush: 50
+      magic: 65
+      ranged: 57
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
   set_effect:
     name: Tainted Shot
     pieces_required: 4
-    description: 25% chance to lower opponent's Agility by 20%
-    amulet_of_damned: 25% chance to hit twice (second hit at 50% damage)
+    description: "25% chance per Karil's crossbow hit to lower opponent's Agility by 20%; with Amulet of the Damned, 25% chance for a second hit at 50% damage"
+  drop_table:
+    sources:
+      - source: Karil the Tainted
+        quantity: "1"
+        rarity: "1/392 per Barrows reward roll"
   related_items:
-    - item_id: 4732
-      item_name: Karil's coif
+    - item_name: Karil's coif
       slug: karils-coif
       relationship: set-piece
-      description: Head slot set piece
-    - item_id: 4738
-      item_name: Karil's leatherskirt
+      description: "Head slot set piece"
+    - item_name: Karil's leatherskirt
       slug: karils-leatherskirt
       relationship: set-piece
-      description: Legs slot set piece
-    - item_id: 4734
-      item_name: Karil's crossbow
+      description: "Legs slot set piece"
+    - item_name: Karil's crossbow
       slug: karils-crossbow
       relationship: set-piece
-      description: Weapon set piece
-    - item_id: 11828
-      item_name: Armadyl chestplate
+      description: "Weapon set piece"
+    - item_name: Armadyl chestplate
       slug: armadyl-chestplate
       relationship: upgrade
-      description: Upgrade path
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Ranged attack | +30 |
-    | Stab defence | +47 |
-    | Slash defence | +42 |
-    | Crush defence | +50 |
-    | Magic defence | +65 |
-    | Ranged defence | +57 |
-    | Magic attack | -15 |
-
-    Tainted Shot:
-    When wearing full Karil's (coif, leathertop, leatherskirt, crossbow):
-    - 25% chance to lower opponent's Agility by 20%
-
-    With Amulet of the Damned:
-    - 25% chance to hit twice (second hit at 50% damage)
-
-    Best For:
-    - Budget ranged body before Armadyl
-    - High magic defence situations
-    - Barrows set bonus scenarios
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Non-degrading ranged body upgrade path"
+  about: "Karil's leathertop is the body slot piece of Karil's set, dropped from Karil the Tainted at the Barrows minigame. It gives +30 ranged attack and very high magic defence at 70 Defence/70 Ranged, but degrades over 15 hours of combat through 100/75/50/25/0 stages, repairable for 90,000 gp at Bob in Lumbridge or cheaper at a POH armour stand with Smithing."
+  market_strategy:
+    notes:
+      - "Barrows drop rate of ~1/392 supplies the GE; price tracks brother-killing volume"
+      - "Magic-defence niche keeps demand steady for Cox prep and budget ranged bodies"
+      - "Repair burn caps profit on long PvM trips, factor when comparing to Armadyl"
+  trading_tips:
+    - "Buy ahead of Barrows xp events and competitive league pushes"
+    - "Stack a couple of charged spares when repair gold is short on ironman alts"
+  history:
+    - date: "2005-05-09"
+      description: "Released as part of the Barrows minigame update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

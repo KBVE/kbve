@@ -12,9 +12,52 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of woodcraft is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: sigil
+    tier: mid
+  properties:
+    release_date: "2023-08-23"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    worn_options: []
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  passive_effects:
+    - name: Plank Conversion
+      description: "Automatically converts logs into planks while woodcutting at a coin cost: 50 per regular plank, 125 per oak, 250 per teak, and 700 per mahogany."
+    - name: Restricted Areas
+      description: "Does not function in guarded areas or while using an infernal axe."
+  related_items:
+    - item_name: Deadman's skull
+      slug: deadmans-skull
+      relationship: component
+      description: Currency used at the skull shop to purchase Sigil of woodcraft and trade in duplicates.
+  about: |-
+    Sigil of woodcraft is a Deadman Mode reward that streamlines Construction prep by auto-planking logs as you chop. It is unobtainable in the live game and currently exclusive to temporary Deadman seasons such as Deadman: Annihilation.
+
+    Because the sigil consumes coins per plank, it is a quality-of-life upgrade for high-level Construction training rather than a free shortcut. Duplicates can be sold back at the skull shop for refunds.
+  market_strategy:
+    notes:
+      - "Untradeable — no GE price"
+      - "Value tied to Deadman season activity"
+      - "Sells back to skull shop for partial refund"
+  trading_tips:
+    - Pick up during Deadman seasons before duplicates flood the shop
+    - Useful as a backup utility during shorter Deadman events
+  history:
+    - date: "2023-08-23"
+      description: "Released as part of the Deadman Mode reward pool."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

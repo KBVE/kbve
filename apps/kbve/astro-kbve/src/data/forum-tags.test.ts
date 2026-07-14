@@ -19,6 +19,13 @@ function jsonResponse(body: unknown, ok = true, status = 200) {
 describe('getForumTopTags', () => {
 	beforeEach(() => {
 		vi.spyOn(console, 'warn').mockImplementation(() => {});
+		// Replace AbortSignal.timeout with a never-aborting signal so the
+		// production code's 5s real-timer can't race vitest's own 5s
+		// testTimeout under heavy CI load. The mock fetch resolves
+		// synchronously anyway, so a real timeout serves no purpose here.
+		vi.spyOn(AbortSignal, 'timeout').mockImplementation(
+			() => new AbortController().signal,
+		);
 	});
 
 	afterEach(() => {

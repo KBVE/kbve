@@ -12,9 +12,72 @@ osrs:
   lowalch: 520
   highalch: 780
   limit: 10000
-  about: "Flamtaer bracelet is a members-only item in Old School RuneScape. High alchemy value: 780 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-02-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Check
+      - Break
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weight: 0.25
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    type: depleting
+    description: Holds 80 charges; one charge is consumed each time the bracelet boosts a Shades of Mort'ton temple repair action, after which it crumbles to dust.
+  related_items:
+    - item_name: Jade bracelet
+      slug: jade-bracelet
+      relationship: component
+      description: Base bracelet enchanted into the Flamtaer bracelet
+    - item_name: Flamtaer hammer
+      slug: flamtaer-hammer
+      relationship: alternative
+      description: Companion hammer that pairs with the bracelet for Shades of Mort'ton
+  about: "Flamtaer bracelet is an enchanted jade bracelet that accelerates Shades of Mort'ton temple repair actions, boosting Sanctity gains by roughly 75% and helping players produce Serum 208 and Sacred oil faster. The bracelet holds 80 charges, depleting one charge per repair action, and shines for players grinding Shades of Mort'ton for Firemaking, Crafting, and unique loot."
+  market_strategy:
+    notes:
+      - "Niche utility item tied to Shades of Mort'ton temple repairs"
+      - "80 charges per bracelet means steady consumption from active players"
+      - "Shop price of 1,300 coins anchors the upper bound for Grand Exchange flips"
+      - "High alch yields 780 coins so alching is rarely the best exit"
+      - "Demand spikes whenever Mort'ton minigame content gets updated"
+  history:
+    - date: "2017-02-02"
+      description: "Released with the Shades of Mort'ton minigame rework."
+    - date: "2017-02-09"
+      description: "Break option added so players can drain remaining charges instantly."
+    - date: "2017-02-16"
+      description: "Inventory sprite rotated for consistency with other bracelets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

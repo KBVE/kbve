@@ -1,5 +1,6 @@
 ---
 title: Oak Door
+template: splash
 description: |
     Minecraft Oak Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 743
     ref: oak_door
     slug: oak-door
+    content_rev: 1
     display_name: Oak Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The oak door is a two-tile-tall wooden door crafted from six oak planks arranged in a 3x2 grid, yielding three doors. Players and villagers can open and close it by interacting with it, and it can also be wired to redstone so an adjacent power source opens it automatically. It offers modest protection from hostile mobs, though some zombies on Hard difficulty can break it down.
+        lore: |
+            A plank barrier between hearth and night, swinging open for neighbors and shutting fast against whatever prowls outside.
+    faq:
+        - question: How do I craft an oak door?
+          answer: |
+              Arrange six oak planks in a 3x2 pattern in a crafting table to produce three oak doors.
+        - question: Can redstone control an oak door?
+          answer: |
+              Yes, a cardinally adjacent redstone signal opens the door, and it closes again once the signal stops.
+        - question: Do villagers use oak doors?
+          answer: |
+              Villagers can open and close wooden doors on their own, letting them navigate buildings and take shelter at night.
+        - question: How well does an oak door protect against zombies?
+          answer: |
+              On Hard difficulty roughly 10% of zombies can break down a closed wooden door, though they only attempt this while the door is closed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -12,9 +12,61 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 5
-  about: "Armageddon weapon scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-08-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+      - Drop
+    alchable: true
+  shops:
+    - shop_name: Deadman Reward Store
+      location: Deadman Reborn lobby
+      price: 12000
+      currency: Deadman Points
+      stock: unlimited
+  related_items:
+    - item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: component
+      description: Eligible weapon for the Armageddon cosmetic kit.
+    - item_name: Volatile nightmare staff
+      slug: volatile-nightmare-staff
+      relationship: component
+      description: Eligible magic weapon for the Armageddon cosmetic theme.
+    - item_name: Dark bow
+      slug: dark-bow
+      relationship: component
+      description: Eligible ranged weapon for the Armageddon cosmetic theme.
+    - item_name: Voidwaker
+      slug: voidwaker
+      relationship: component
+      description: Eligible spec weapon for the Armageddon cosmetic theme.
+  about: "Armageddon weapon scroll is a cosmetic kit earned through Deadman: Armageddon participation. Players hand it to Nigel to apply an Armageddon themed reskin to an Armadyl Godsword, Volatile Nightmare Staff, Dark Bow, or Voidwaker. The cosmetic does not alter stats and survives transfers between accounts via Grand Exchange trading."
+  market_strategy:
+    notes:
+      - "Tiny five item buy limit traps long term flippers."
+      - "Demand follows nostalgia bursts and seasonal Deadman teasers."
+      - "Death's Coffer entry skews supply for sacrifice farmers."
+  trading_tips:
+    - Buy directly from the Deadman Reward Store during the season for cheapest cost.
+    - Sell scrolls bundled with eligible weapons for premium pricing.
+    - Track Death's Coffer rotation for short term sacrifice arbitrage.
+  history:
+    - date: "2024-07-17"
+      description: "Added but kept unobtainable on launch day."
+    - date: "2024-08-07"
+      description: "Made available through the Deadman Reward Store."
+    - date: "2026-03-11"
+      description: "Added to the Death's Coffer sacrifice list."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,75 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 125
-  about: "Wooden shield (g) is a free-to-play item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: shield
+    attack_speed: null
+    weight: 2.267
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 4
+      slash: 5
+      crush: 3
+      magic: 1
+      ranged: 4
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Wooden shield
+      slug: wooden-shield
+      relationship: variant
+      description: Untrimmed wooden shield with identical combat stats
+    - item_name: Oak shield
+      slug: oak-shield
+      relationship: upgrade
+      description: Next fletched shield tier
+  about: "Wooden shield (g) is the gold-trimmed cosmetic variant of the standard wooden shield, awarded from easy Treasure Trails reward caskets at roughly a 1/1,404 rate. It carries the same stats as the base wooden shield, has no wield requirements, and is most often collected for costume room display or cosmetic flips rather than serious combat use."
+  market_strategy:
+    notes:
+      - "Supply mirrors easy clue completion rate, so cosmetic scarcity holds price up"
+      - "125 per 4-hour buy limit is large relative to demand, limiting squeeze potential"
+      - "High alch is far below GE value, so the item never enters alch rotations"
+  trading_tips:
+    - Stockpile during easy clue events when reward caskets flood the market
+    - Sell when costume room collectors run set-completion challenges
+    - Treat as a long-term hold rather than a flip given low daily volume
+  history:
+    - date: "2016-07-06"
+      description: "Added to Old School RuneScape as an easy Treasure Trails reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

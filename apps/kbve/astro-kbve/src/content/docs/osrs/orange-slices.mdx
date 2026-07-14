@@ -9,12 +9,54 @@ osrs:
   members: true
   icon: Orange slices.png
   value: 2
-  lowalch: 1
+  lowalch: 0
   highalch: 1
   limit: 13000
-  about: "Orange slices is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 2
+  recipes:
+    - materials:
+        - item_name: Orange
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+      notes: "Slice an orange with a knife to produce orange slices."
+  related_items:
+    - name: Orange
+      relationship: component
+    - name: Pineapple punch
+      relationship: product
+  about: "Orange slices is a members-only food item used in gnome cocktail cooking, most notably Pineapple punch. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Slicing oranges can be a small flip when the ratio favors slices."
+      - "Demand is driven by gnome cocktail training."
+  trading_tips:
+    - "Buy whole oranges in bulk and process with a knife for a steady margin."
+    - "Stockpile during cocktail-training meta shifts."
+  history:
+    - date: "2002-12-12"
+      description: "Orange slices released as part of the Gnome Cooking content."
+    - date: "2026-04-22"
+      description: "Wiki refresh confirmed alch values and recipe."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: "Gnome Cooking"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.09
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

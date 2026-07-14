@@ -1,5 +1,6 @@
 ---
 title: Carrot
+template: splash
 description: |
     Minecraft Carrot — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1159
     ref: carrot
     slug: carrot
+    content_rev: 1
     display_name: Carrot
     category: food
     rarity: common
@@ -22,6 +24,31 @@ mc_item:
         saturation: 21.6
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The carrot is a common food and crop item that restores hunger and saturation
+            when eaten raw. It is harvested from farmland-grown carrot crops, dropped
+            rarely by zombies and their variants, and found in village farms, pillager
+            outpost chests, and shipwrecks.
+        lore: |
+            Dinnerbone chose carrots over wheat to lead pigs around after weighing the
+            comedic potential of dangling one on a stick.
+    faq:
+        - question: How long does a carrot crop take to fully mature?
+          answer: |
+              Carrots pass through 8 growth stages (4 visually distinct) and mature faster
+              on hydrated farmland or with bone meal applied.
+        - question: What can I craft with carrots?
+          answer: |
+              Carrots are used to craft golden carrots, carrot on a stick, and rabbit stew.
+        - question: Can carrots be used to breed or control animals?
+          answer: |
+              Yes — carrots breed and heal pigs, rabbits, horses, donkeys, and mules, and
+              12 carrots make a villager willing to breed.
+        - question: Do rabbits threaten my carrot farm?
+          answer: |
+              Yes, with mobGriefing enabled rabbits will eat mature carrot crops and knock
+              their growth stage back by one.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

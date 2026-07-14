@@ -12,9 +12,83 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 150
-  about: "Graahk top is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: fur
+    tier: low
+  equipment:
+    slot: body
+    weight: 0.226
+    requirements:
+      hunter: 38
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 10
+      slash: 15
+      crush: 19
+      magic: 0
+      ranged: 12
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Graahk fur
+          quantity: 1
+        - item_name: Coins
+          quantity: 150
+      tools: []
+      output_quantity: 1
+      notes: Tailored by the Fancy Clothes Store in Varrock, the Hunter Guild Seamstress, or the Prifddinas seamstress. Tattered fur also accepted.
+  shops:
+    - shop_name: Fancy Clothes Store (Varrock)
+      price: 150
+  related_items:
+    - name: Graahk legs
+      relationship: set-piece
+    - name: Graahk headdress
+      relationship: set-piece
+    - name: Larupia top
+      relationship: variant
+    - name: Kyatt top
+      relationship: variant
+  about: "Graahk top is a members-only camouflage body slot item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 150 per 4 hours."
+  market_strategy:
+    notes:
+      - Demand driven by Hunter players running Karamja jungle camo sets.
+      - Graahk fur supply from carnivorous chinchompa-tier hunting trips drives floor price.
+      - Flavor text is misleading; the set does NOT affect Hunter trap rates.
+  trading_tips:
+    - Compare GE price vs Fancy Clothes Store tailoring cost when graahk fur is cheap.
+    - Stock up around Hunter level milestones for resale spikes.
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

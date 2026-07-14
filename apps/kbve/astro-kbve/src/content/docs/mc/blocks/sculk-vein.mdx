@@ -1,5 +1,6 @@
 ---
 title: Sculk Vein
+template: splash
 description: |
     Minecraft Sculk Vein — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 963
     ref: sculk_vein
     slug: sculk-vein
+    content_rev: 1
     display_name: Sculk Vein
     material: plant
     hardness: 0.2
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sculk_vein
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - sculk
+        - waterloggable
+    about:
+        description: |
+            Sculk vein is a thin, decorative growth that clings to solid
+            block faces much like glow lichen, spreading across multiple
+            sides. It resists destruction from flowing water or lava and
+            marks the creeping corruption of the Deep Dark.
+        lore: |
+            First shown at Minecraft Live 2020, sculk vein was delayed from
+            1.17 and finally released with the deep dark biome in 1.19.
+    uses:
+        - title: Deep Dark Set Dressing
+          ref: sculk
+          detail: |
+              Spreads automatically from a sculk catalyst when mobs die
+              nearby, visually linking sculk patches across terrain.
+    found_in:
+        - location: Deep Dark Biome
+          detail: Generates naturally coating blocks throughout deep dark patches.
+        - location: Sculk Catalyst Spread
+          detail: Grows onto blocks within 8 blocks of a catalyst after a nearby mob death.
+    faq:
+        - question: What tool do I need to mine Sculk Vein?
+          answer: |
+              A hoe breaks it fastest, but any tool works. It only drops
+              itself when mined with Silk Touch.
+        - question: Does Sculk Vein need Silk Touch to drop?
+          answer: |
+              Yes. Without Silk Touch it breaks with no drop at all.
+        - question: Can Sculk Vein be destroyed by water or lava?
+          answer: |
+              No, it resists being washed away by flowing water or lava,
+              unlike most non-solid blocks.
+        - question: How many sides can Sculk Vein attach to?
+          answer: |
+              It can attach to multiple faces of a block simultaneously,
+              similar to glow lichen.
     data_version: "1.21.5"
 ---
 

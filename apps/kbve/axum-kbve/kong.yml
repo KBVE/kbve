@@ -1,0 +1,27 @@
+# Declarative Kong config — local replica of prod's supabase gateway.
+# Routes the same paths prod does so axum-kbve's SUPABASE_URL=http://kong:8000
+# resolves /auth/v1/user → gotrue and /rest/v1/* → postgrest identically.
+# gotrue + postgrest validate JWTs themselves (shared JWT secret), so for local
+# dev Kong just routes + CORS (prod additionally layers key-auth/ACL).
+_format_version: '2.1'
+
+services:
+    - name: auth-v1
+      url: http://gotrue:9999/
+      routes:
+          - name: auth-v1
+            strip_path: true
+            paths:
+                - /auth/v1/
+      plugins:
+          - name: cors
+
+    - name: rest-v1
+      url: http://postgrest:3000/
+      routes:
+          - name: rest-v1
+            strip_path: true
+            paths:
+                - /rest/v1/
+      plugins:
+          - name: cors

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1690859577314-ddcd385ee050?crop=entropy&c
 description: August 27th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 27,'
+    accent: every year.
+    lede: 'The August 27th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 26'
+          href: /journal/08-26/
+        - label: 'Aug 28 →'
+          href: /journal/08-28/
+    related:
+        - title: 'Previous · Aug 26'
+          copy: 'Step back a day to the August 26th log.'
+          href: /journal/08-26/
+          icon: calendar
+        - title: 'Next · Aug 28'
+          copy: 'Jump ahead to the August 28th log.'
+          href: /journal/08-28/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1690859577314-ddcd385ee050?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Laptop Replacement
 
@@ -29,7 +70,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     I might also look back around and try to make a lvl 19 twink, as part of the research.
     Furthermore, I should loop back around and see why the AzerothCore seems to fail at starting up.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Roma**
 I will update this entry when I get back to the cafe.
@@ -39,18 +88,29 @@ I will update this entry when I get back to the cafe.
 Let us go ahead and setup the hqplan deployment.
 The plan here would be to run a couple series of developments.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 3:10pm - I need to wrap up building this `backup` plan for work, I am going to extend it out to around 50 pages and then add a ton of graphs and visual aids! I know that it will have way too much information and no one will really read it but that will be on me to tell them over and over. I want them to memorize it once its completed! Then in a couple years, I will release it under this repo.
 - 5:04pm - Daily chores are out of the way, now I am going to fix up the Docker. 
 - 8:56pm - Added loadash to the docker image, I should push that out for now and fix up some of the notes that I would reference.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Where there is love there is life.
 > — <cite>Mahatma Gandhi</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

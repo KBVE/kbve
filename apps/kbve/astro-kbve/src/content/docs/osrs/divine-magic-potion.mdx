@@ -1,0 +1,132 @@
+---
+title: Divine magic potion | OSRS Price Data
+description: "Divine magic potion(4): 4 doses of divine magic potion.. High alch: 150 GP, GE limit: 2,000."
+osrs:
+  id: 23745
+  name: Divine magic potion
+  slug: divine-magic-potion
+  examine: 4 doses of divine magic potion.
+  members: true
+  icon: Divine magic potion(4).png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 2000
+  potion:
+    doses: 4
+    duration_minutes: 5
+    effects:
+      - description: Boosts Magic level by 4 for 5 minutes.
+      - description: Magic level does not drain below the boosted maximum during the effect.
+      - description: Costs 10 Hitpoints to drink; player must have more than 10 HP.
+  recipes:
+    - skill: herblore
+      level: 78
+      xp: 2
+      materials:
+        - item_name: Magic potion(4)
+          item_id: 3046
+          quantity: 1
+        - item_name: Crystal dust
+          item_id: 23964
+          quantity: 1
+      tools: []
+      ticks: 2
+      members_only: true
+  related_items:
+    - item_id: 23743
+      item_name: Divine magic potion(3)
+      slug: divine-magic-potion-3
+      relationship: downgrade
+      description: 3 dose version
+    - item_id: 23741
+      item_name: Divine magic potion(2)
+      slug: divine-magic-potion-2
+      relationship: downgrade
+      description: 2 dose version
+    - item_id: 23739
+      item_name: Divine magic potion(1)
+      slug: divine-magic-potion-1
+      relationship: downgrade
+      description: 1 dose version
+    - item_id: 3040
+      item_name: Magic potion(4)
+      slug: magic-potion-4
+      relationship: component
+      description: Base potion infused with crystal dust
+  about: "Divine magic potion (4) holds the +4 Magic boost for 5 minutes at the cost of 10 HP per dose, made at 78 Herblore from a magic potion and crystal dust."
+  history:
+    - date: "2020-07-02"
+      description: Inventory icon updated to match standard potion aesthetics.
+    - date: "2019-07-25"
+      description: Released with the Song of the Elves update.
+  properties:
+    release_date: "2019-07-25"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+  family_ref:
+    family_slug: divine-magic-potion
+    role: base
+  family:
+    slug: divine-magic-potion
+    name: Divine magic potion
+    type: dose
+    canonical_id: 23745
+    members:
+    - id: 23745
+      slug: divine-magic-potion
+      name: Divine magic potion
+      icon: Divine magic potion(4).png
+      role: base
+      dose: null
+      value: 250
+      lowalch: 100
+      highalch: 150
+    - id: 23754
+      slug: divine-magic-potion-1
+      name: Divine magic potion(1)
+      icon: Divine magic potion(1).png
+      role: dose
+      dose: 1
+      value: 40
+      lowalch: 16
+      highalch: 24
+    - id: 23751
+      slug: divine-magic-potion-2
+      name: Divine magic potion(2)
+      icon: Divine magic potion(2).png
+      role: dose
+      dose: 2
+      value: 90
+      lowalch: 36
+      highalch: 54
+    - id: 23748
+      slug: divine-magic-potion-3
+      name: Divine magic potion(3)
+      icon: Divine magic potion(3).png
+      role: dose
+      dose: 3
+      value: 170
+      lowalch: 68
+      highalch: 102
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

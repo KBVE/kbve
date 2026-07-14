@@ -1,6 +1,6 @@
 ---
 title: Mithril med helm | OSRS Price Data
-description: "Mithril med helm: A medium sized helmet.. High alch: 468 GP, GE limit: 125."
+description: "Mithril med helm is a free-to-play head slot item requiring 20 Defence. High alch: 468 GP, GE limit: 125."
 osrs:
   id: 1143
   name: Mithril med helm
@@ -12,25 +12,119 @@ osrs:
   lowalch: 312
   highalch: 468
   limit: 125
-  item_id: 1143
-  item_type: armor
-  slot: head
-  type: med_helm
-  tradeable: true
-  weight: 1.36
-  requirements:
-    defence: 20
-  stats:
-    stab_defence: 10
-    slash_defence: 11
-    crush_defence: 9
-    magic_defence: -1
-    ranged_defence: 10
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: mithril
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1.36
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 10
+      slash: 11
+      crush: 9
+      magic: -1
+      ranged: 10
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 33
+      xp: 50
+      materials:
+        - item_name: Mithril bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Skeleton
+        quantity: "1"
+        rarity: 1/128
+      - source: Ice warrior
+        quantity: "1"
+        rarity: 1/128
+      - source: Hill giant
+        quantity: "1"
+        rarity: 1/256
+  shops:
+    - shop_name: Cassie's Shield Shop
+      location: Falador
+      price: 780
+      currency: coins
+      stock: 0
+    - shop_name: Peksa's Helmet Shop
+      location: Barbarian Village
+      price: 780
+      currency: coins
+      stock: 0
   related_items:
-    - slug: adamant-med-helm
-    - slug: mithril-full-helm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Adamant med helm
+      slug: adamant-med-helm
+      relationship: upgrade
+      description: "Higher tier medium helmet"
+    - item_name: Mithril full helm
+      slug: mithril-full-helm
+      relationship: variant
+      description: "Full helm version with better stats"
+    - item_name: Steel med helm
+      slug: steel-med-helm
+      relationship: downgrade
+      description: "Lower tier medium helmet"
+    - item_name: Mithril bar
+      slug: mithril-bar
+      relationship: component
+      description: "Smithing material"
+  about: |-
+    The Mithril med helm is a free-to-play medium-sized helmet forged at 33 Smithing from one Mithril bar. It requires 20 Defence to wear and provides a modest stat upgrade over its Steel counterpart while remaining notably lighter than full helms.
+
+    Med helms expose the wearer's face and trade slight defensive bonuses for the unique aesthetic. The Mithril variant is a common low-level Defence training piece and a popular shop run from Cassie's Shield Shop or Peksa's Helmet Shop for early Smithing or alching capital.
+  market_strategy:
+    notes:
+      - "High-volume staple from F2P shop runs and Smithing training output"
+      - "High alch margin is thin — better as a Smithing XP byproduct than a flip target"
+      - "Demand stable from low-level pures and ironmen training Defence"
+  trading_tips:
+    - "Bulk-buy mithril bars during Smithing XP weekends for cheaper craft costs"
+    - "Compare against mithril full helm price when picking a Smithing target"
+    - "Limit of 125 per 4 hours suits steady volume flips"
+  history:
+    - date: "2001-01-04"
+      description: "Released with the original game"
+    - date: "2002-02-27"
+      description: "Smithing requirement and XP standardized across med helm tiers"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

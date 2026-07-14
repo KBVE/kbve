@@ -1,5 +1,6 @@
 import { atom } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
+import { cacheGet, cacheSet } from '@/lib/idb-cache';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -108,6 +109,31 @@ const DS_CACHE_KEY = 'cache:grafana:ds-id';
 const TR_STORAGE_KEY = 'grafana:timeRange';
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const PROXY_BASE = '/dashboard/grafana/proxy';
+const FETCH_TIMEOUT_MS = 15_000;
+
+const inflight = new Map<string, Promise<unknown>>();
+
+function dedupedQuery<T>(key: string, run: () => Promise<T>): Promise<T> {
+	const existing = inflight.get(key) as Promise<T> | undefined;
+	if (existing) return existing;
+	const p = run().finally(() => inflight.delete(key));
+	inflight.set(key, p);
+	return p;
+}
+
+async function fetchWithTimeout(
+	url: string,
+	init: RequestInit = {},
+	ms: number = FETCH_TIMEOUT_MS,
+): Promise<Response> {
+	const controller = new AbortController();
+	const handle = setTimeout(() => controller.abort(), ms);
+	try {
+		return await fetch(url, { ...init, signal: controller.signal });
+	} finally {
+		clearTimeout(handle);
+	}
+}
 
 export const TIME_RANGES: Record<TimeRangeKey, TimeRangeConfig> = {
 	'1h': { label: '1h', seconds: 3600, step: 60, restartWindow: '1h' },
@@ -260,14 +286,9 @@ function getCachedDashboard(
 
 function setCachedDashboard(data: CachedDashboard): void {
 	try {
-		for (const k of TIME_RANGE_KEYS) {
-			if (k !== data.timeRange) {
-				localStorage.removeItem(cacheKey(k));
-			}
-		}
 		localStorage.setItem(cacheKey(data.timeRange), JSON.stringify(data));
 	} catch {
-		/* quota exceeded */
+		/* quota */
 	}
 }
 
@@ -285,28 +306,33 @@ async function findPrometheusDatasourceId(
 		/* ignore */
 	}
 
-	try {
-		const resp = await fetch(`${PROXY_BASE}/api/datasources`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
-		if (resp.status === 403) throw new AccessRestrictedError();
-		if (!resp.ok) return null;
-		const sources: Array<{ id: number; type: string; name: string }> =
-			await resp.json();
-		const prom = sources.find(
-			(s) => s.type === 'prometheus' || s.name === 'Prometheus',
-		);
-		if (!prom) return null;
+	return dedupedQuery('ds:list', async () => {
 		try {
-			localStorage.setItem(DS_CACHE_KEY, String(prom.id));
-		} catch {
-			/* ignore */
+			const resp = await fetchWithTimeout(
+				`${PROXY_BASE}/api/datasources`,
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				},
+			);
+			if (resp.status === 403) throw new AccessRestrictedError();
+			if (!resp.ok) return null;
+			const sources: Array<{ id: number; type: string; name: string }> =
+				await resp.json();
+			const prom = sources.find(
+				(s) => s.type === 'prometheus' || s.name === 'Prometheus',
+			);
+			if (!prom) return null;
+			try {
+				localStorage.setItem(DS_CACHE_KEY, String(prom.id));
+			} catch {
+				/* ignore */
+			}
+			return prom.id;
+		} catch (e) {
+			if (e instanceof AccessRestrictedError) throw e;
+			return null;
 		}
-		return prom.id;
-	} catch (e) {
-		if (e instanceof AccessRestrictedError) throw e;
-		return null;
-	}
+	});
 }
 
 async function queryInstant(
@@ -314,25 +340,27 @@ async function queryInstant(
 	dsId: number,
 	expr: string,
 ): Promise<number | null> {
-	try {
-		const resp = await fetch(
-			`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
+	return dedupedQuery(`instant:${dsId}:${expr}`, async () => {
+		try {
+			const resp = await fetchWithTimeout(
+				`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${token}`,
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: `query=${encodeURIComponent(expr)}`,
 				},
-				body: `query=${encodeURIComponent(expr)}`,
-			},
-		);
-		if (!resp.ok) return null;
-		const data = await resp.json();
-		const val = data?.data?.result?.[0]?.value?.[1];
-		return val != null ? parseFloat(val) : null;
-	} catch {
-		return null;
-	}
+			);
+			if (!resp.ok) return null;
+			const data = await resp.json();
+			const val = data?.data?.result?.[0]?.value?.[1];
+			return val != null ? parseFloat(val) : null;
+		} catch {
+			return null;
+		}
+	});
 }
 
 async function queryInstantAt(
@@ -341,25 +369,27 @@ async function queryInstantAt(
 	expr: string,
 	time: number,
 ): Promise<number | null> {
-	try {
-		const resp = await fetch(
-			`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
+	return dedupedQuery(`instant-at:${dsId}:${time}:${expr}`, async () => {
+		try {
+			const resp = await fetchWithTimeout(
+				`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${token}`,
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: `query=${encodeURIComponent(expr)}&time=${time}`,
 				},
-				body: `query=${encodeURIComponent(expr)}&time=${time}`,
-			},
-		);
-		if (!resp.ok) return null;
-		const data = await resp.json();
-		const val = data?.data?.result?.[0]?.value?.[1];
-		return val != null ? parseFloat(val) : null;
-	} catch {
-		return null;
-	}
+			);
+			if (!resp.ok) return null;
+			const data = await resp.json();
+			const val = data?.data?.result?.[0]?.value?.[1];
+			return val != null ? parseFloat(val) : null;
+		} catch {
+			return null;
+		}
+	});
 }
 
 async function queryInstantMulti(
@@ -367,32 +397,34 @@ async function queryInstantMulti(
 	dsId: number,
 	expr: string,
 ): Promise<InstantResult[]> {
-	try {
-		const resp = await fetch(
-			`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
+	return dedupedQuery(`instant-multi:${dsId}:${expr}`, async () => {
+		try {
+			const resp = await fetchWithTimeout(
+				`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${token}`,
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: `query=${encodeURIComponent(expr)}`,
 				},
-				body: `query=${encodeURIComponent(expr)}`,
-			},
-		);
-		if (!resp.ok) return [];
-		const data = await resp.json();
-		return (data?.data?.result ?? []).map(
-			(r: {
-				metric: Record<string, string>;
-				value: [number, string];
-			}) => ({
-				metric: r.metric,
-				value: r.value?.[1] != null ? parseFloat(r.value[1]) : null,
-			}),
-		);
-	} catch {
-		return [];
-	}
+			);
+			if (!resp.ok) return [];
+			const data = await resp.json();
+			return (data?.data?.result ?? []).map(
+				(r: {
+					metric: Record<string, string>;
+					value: [number, string];
+				}) => ({
+					metric: r.metric,
+					value: r.value?.[1] != null ? parseFloat(r.value[1]) : null,
+				}),
+			);
+		} catch {
+			return [];
+		}
+	});
 }
 
 async function queryRange(
@@ -403,24 +435,29 @@ async function queryRange(
 	end: number,
 	step: number,
 ): Promise<Array<[number, string]>> {
-	try {
-		const resp = await fetch(
-			`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query_range`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: `query=${encodeURIComponent(expr)}&start=${start}&end=${end}&step=${step}`,
-			},
-		);
-		if (!resp.ok) return [];
-		const data = await resp.json();
-		return data?.data?.result?.[0]?.values ?? [];
-	} catch {
-		return [];
-	}
+	return dedupedQuery(
+		`range:${dsId}:${start}:${end}:${step}:${expr}`,
+		async () => {
+			try {
+				const resp = await fetchWithTimeout(
+					`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query_range`,
+					{
+						method: 'POST',
+						headers: {
+							Authorization: `Bearer ${token}`,
+							'Content-Type': 'application/x-www-form-urlencoded',
+						},
+						body: `query=${encodeURIComponent(expr)}&start=${start}&end=${end}&step=${step}`,
+					},
+				);
+				if (!resp.ok) return [];
+				const data = await resp.json();
+				return data?.data?.result?.[0]?.values ?? [];
+			} catch {
+				return [];
+			}
+		},
+	);
 }
 
 // ---------------------------------------------------------------------------
@@ -499,6 +536,21 @@ class GrafanaService {
 			}
 		} catch {
 			this.$state.set('unauthenticated');
+		}
+	}
+
+	public async ensureIdentity(): Promise<void> {
+		if (this.$userId.get()) return;
+		try {
+			await initSupa();
+			const supa = getSupa();
+			const sessionResult = await supa.getSession().catch(() => null);
+			const session = sessionResult?.session ?? null;
+			if (!session?.access_token) return;
+			this.$accessToken.set(session.access_token as string);
+			this.$userId.set(String(session.user?.id ?? '') || null);
+		} catch {
+			/* identity stays null; panel shows its own auth-needed state */
 		}
 	}
 
@@ -864,6 +916,7 @@ class GrafanaService {
 	// --- Actions ---
 
 	public setTimeRange(tr: TimeRangeKey): void {
+		if (tr === this.$timeRange.get()) return;
 		this.$timeRange.set(tr);
 		this.$expandedCard.set(null);
 		try {
@@ -873,7 +926,7 @@ class GrafanaService {
 		}
 		const token = this.$accessToken.get();
 		const uid = this.$userId.get();
-		if (token && uid) {
+		if (token && uid && !this.$refreshing.get()) {
 			this.fetchMetrics(token, uid, tr, true);
 		}
 	}
@@ -935,75 +988,60 @@ export interface PodMetrics {
 	fromCache: boolean;
 }
 
-interface CachedPodMetrics {
-	metrics: PodMetrics;
-	cached_at: number;
-	user_id: string;
-}
-
-const POD_CACHE_KEY_PREFIX = 'cache:grafana:pod';
 const POD_CACHE_TTL_MS = 5 * 60 * 1000;
 
-function podCacheKey(
-	uid: string,
-	ns: string,
-	pod: string,
-	tr: TimeRangeKey,
-): string {
-	return `${POD_CACHE_KEY_PREFIX}:${uid}:${ns}:${pod}:${tr}`;
+async function getCachedMetrics(key: string): Promise<PodMetrics | null> {
+	const m = await cacheGet<PodMetrics>(key, POD_CACHE_TTL_MS);
+	return m ? { ...m, fromCache: true } : null;
 }
 
-function getCachedPodMetrics(
-	uid: string,
-	ns: string,
-	pod: string,
-	tr: TimeRangeKey,
-): PodMetrics | null {
-	try {
-		const raw = localStorage.getItem(podCacheKey(uid, ns, pod, tr));
-		if (!raw) return null;
-		const cached: CachedPodMetrics = JSON.parse(raw);
-		if (cached.user_id !== uid) {
-			localStorage.removeItem(podCacheKey(uid, ns, pod, tr));
-			return null;
-		}
-		if (Date.now() - cached.cached_at > POD_CACHE_TTL_MS) return null;
-		return { ...cached.metrics, fromCache: true };
-	} catch {
-		return null;
-	}
-}
-
-function setCachedPodMetrics(
-	uid: string,
-	ns: string,
-	pod: string,
-	tr: TimeRangeKey,
-	metrics: PodMetrics,
-): void {
-	try {
-		const payload: CachedPodMetrics = {
-			metrics: { ...metrics, fromCache: false },
-			cached_at: Date.now(),
-			user_id: uid,
-		};
-		localStorage.setItem(
-			podCacheKey(uid, ns, pod, tr),
-			JSON.stringify(payload),
-		);
-	} catch {
-		/* quota exceeded */
-	}
+function setCachedMetrics(key: string, metrics: PodMetrics): void {
+	void cacheSet(key, { ...metrics, fromCache: false });
 }
 
 function escapeLabel(v: string): string {
 	return v.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
-function podQueries(
-	ns: string,
-	pod: string,
-): {
+function escapeRegex(v: string): string {
+	return v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Prometheus `pod=~` regex matching the pods a workload owns. `=~` is fully
+ * anchored, so each pattern matches the whole pod name and won't bleed into a
+ * sibling that merely shares a name prefix.
+ *  - Deployment → ReplicaSet → `<name>-<rs-hash>-<suffix>`
+ *  - ReplicaSet → `<name>-<suffix>`
+ *  - StatefulSet → `<name>-<ordinal>`
+ *  - DaemonSet / Job / Rollout / fallback → `<name>-<suffix>`
+ */
+function workloadPodRegex(kind: string, name: string): string {
+	const n = escapeRegex(name);
+	switch (kind) {
+		case 'Deployment':
+			return `${n}-[a-z0-9]+-[a-z0-9]+`;
+		case 'StatefulSet':
+			return `${n}-[0-9]+`;
+		default:
+			return `${n}-[a-z0-9.-]+`;
+	}
+}
+
+function podSelector(ns: string, pod: string): string {
+	return `namespace="${escapeLabel(ns)}",pod="${escapeLabel(pod)}"`;
+}
+
+function workloadSelector(ns: string, kind: string, name: string): string {
+	return `namespace="${escapeLabel(ns)}",pod=~"${workloadPodRegex(kind, name)}"`;
+}
+
+/**
+ * Build the metric query set for any pod-scoped label selector. Every series
+ * is summed, so the same shapes serve a single pod (`pod="x"`) and an
+ * aggregated workload (`pod=~"x-.+"`).
+ */
+function metricQueries(selector: string): {
 	cpu: string;
 	memory: string;
 	memoryLimit: string;
@@ -1013,40 +1051,29 @@ function podQueries(
 	restarts: string;
 	running: string;
 } {
-	const sel = `namespace="${escapeLabel(ns)}",pod="${escapeLabel(pod)}"`;
-	const containerSel = `${sel},container!="POD",container!=""`;
+	const containerSel = `${selector},container!="POD",container!=""`;
 	return {
 		cpu: `sum(rate(container_cpu_usage_seconds_total{${containerSel}}[5m]))`,
 		memory: `sum(container_memory_working_set_bytes{${containerSel}})`,
-		memoryLimit: `sum(kube_pod_container_resource_limits{${sel},resource="memory"})`,
-		netRx: `sum(rate(container_network_receive_bytes_total{${sel}}[5m]))`,
-		netTx: `sum(rate(container_network_transmit_bytes_total{${sel}}[5m]))`,
+		memoryLimit: `sum(kube_pod_container_resource_limits{${selector},resource="memory"})`,
+		netRx: `sum(rate(container_network_receive_bytes_total{${selector}}[5m]))`,
+		netTx: `sum(rate(container_network_transmit_bytes_total{${selector}}[5m]))`,
 		fs: `sum(container_fs_usage_bytes{${containerSel}})`,
-		restarts: `sum(kube_pod_container_status_restarts_total{${sel}})`,
-		running: `kube_pod_status_phase{${sel},phase="Running"}`,
+		restarts: `sum(kube_pod_container_status_restarts_total{${selector}})`,
+		running: `sum(kube_pod_status_phase{${selector},phase="Running"})`,
 	};
 }
 
-export async function fetchPodMetrics(
+async function fetchScopedMetrics(
 	token: string,
-	uid: string,
-	ns: string,
-	pod: string,
+	dsId: number,
+	selector: string,
 	tr: TimeRangeKey,
-	skipCache = false,
-): Promise<PodMetrics | null> {
-	if (!skipCache) {
-		const cached = getCachedPodMetrics(uid, ns, pod, tr);
-		if (cached) return cached;
-	}
-
-	const dsId = await findPrometheusDatasourceId(token);
-	if (dsId == null) return null;
-
+): Promise<PodMetrics> {
 	const config = TIME_RANGES[tr];
 	const now = Math.floor(Date.now() / 1000);
 	const rangeStart = now - config.seconds;
-	const q = podQueries(ns, pod);
+	const q = metricQueries(selector);
 
 	const [
 		cpuCores,
@@ -1119,7 +1146,7 @@ export async function fetchPodMetrics(
 		(a, b) => a.timestamp - b.timestamp,
 	);
 
-	const metrics: PodMetrics = {
+	return {
 		snapshot: {
 			cpuCores,
 			memoryBytes,
@@ -1134,8 +1161,56 @@ export async function fetchPodMetrics(
 		netSeries,
 		fromCache: false,
 	};
+}
 
-	setCachedPodMetrics(uid, ns, pod, tr, metrics);
+export async function fetchPodMetrics(
+	token: string,
+	uid: string,
+	ns: string,
+	pod: string,
+	tr: TimeRangeKey,
+	skipCache = false,
+): Promise<PodMetrics | null> {
+	const key = `grafana:pod:${uid}:${ns}:${pod}:${tr}`;
+	if (!skipCache) {
+		const cached = await getCachedMetrics(key);
+		if (cached) return cached;
+	}
+	const dsId = await findPrometheusDatasourceId(token);
+	if (dsId == null) return null;
+	const metrics = await fetchScopedMetrics(
+		token,
+		dsId,
+		podSelector(ns, pod),
+		tr,
+	);
+	setCachedMetrics(key, metrics);
+	return metrics;
+}
+
+export async function fetchWorkloadMetrics(
+	token: string,
+	uid: string,
+	ns: string,
+	kind: string,
+	name: string,
+	tr: TimeRangeKey,
+	skipCache = false,
+): Promise<PodMetrics | null> {
+	const key = `grafana:workload:${uid}:${ns}:${kind}:${name}:${tr}`;
+	if (!skipCache) {
+		const cached = await getCachedMetrics(key);
+		if (cached) return cached;
+	}
+	const dsId = await findPrometheusDatasourceId(token);
+	if (dsId == null) return null;
+	const metrics = await fetchScopedMetrics(
+		token,
+		dsId,
+		workloadSelector(ns, kind, name),
+		tr,
+	);
+	setCachedMetrics(key, metrics);
 	return metrics;
 }
 
@@ -1224,7 +1299,7 @@ export async function fetchAlerts(
 		if (cached) return cached;
 	}
 
-	const resp = await fetch(
+	const resp = await fetchWithTimeout(
 		`${PROXY_BASE}/api/prometheus/grafana/api/v1/alerts`,
 		{ headers: { Authorization: `Bearer ${token}` } },
 	);

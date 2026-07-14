@@ -1,6 +1,6 @@
 ---
 title: Cannon barrels | OSRS Price Data
-description: "Cannon barrels: The barrels of the multicannon.. High alch: 112,500 GP, GE limit: 70."
+description: "Cannon barrels: The barrels of the multicannon. High alch: 112,500 GP, GE limit: 70."
 osrs:
   id: 10
   name: Cannon barrels
@@ -12,6 +12,11 @@ osrs:
   lowalch: 75000
   highalch: 112500
   limit: 70
+  shops:
+    - shop_name: Nulodion's cannon shop
+      location: Dwarven Mine
+      price: 200625
+      sells: true
   related_items:
     - item_id: 6
       item_name: Cannon base
@@ -28,12 +33,36 @@ osrs:
       slug: cannon-furnace
       relationship: set-piece
       description: Multicannon furnace component
-  about: |-
-    > _"The barrels of the multicannon."_
-
-    The cannon barrels are the third component placed when assembling a dwarf multicannon. Requires completion of the Dwarf Cannon quest to use. Placed on top of the cannon stand. Tradeable on the Grand Exchange.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Cannon barrels are the third assembly piece of the dwarf multicannon, requiring the Dwarf Cannon quest to wield and place."
+  market_strategy:
+    notes:
+      - Steady demand for cannon assembly
+      - Tracks broader cannon market
+      - Buy limit of 70 caps flip size
+  trading_tips:
+    - Pair with base, stand, and furnace for full cannon flips
+    - Watch for Slayer task spikes that boost cannon demand
+  history:
+    - date: "2003-05-27"
+      update: Dwarf Cannon
+      description: Released with the Dwarf Cannon quest.
+  properties:
+    release_date: "2003-05-27"
+    update: Dwarf Cannon
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    quest: Dwarf Cannon
+    weight: 15
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

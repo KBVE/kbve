@@ -169,7 +169,7 @@ const handlers: Record<string, Handler> = {
     // --- Suspenders: let the DB RPC + table constraints do their job ---
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_create_meme", {
+    const { data, error } = await supabase.schema("meme").rpc("service_create_meme", {
       p_author_id: author_id as string,
       p_asset_url: asset_url as string,
       p_title: (title as string) ?? null,

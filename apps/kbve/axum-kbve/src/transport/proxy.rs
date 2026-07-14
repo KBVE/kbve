@@ -1,9 +1,10 @@
+use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use axum::{
     body::{Body, Bytes},
     extract::{FromRequestParts, Path, Request},
-    http::{HeaderMap, HeaderName, HeaderValue, StatusCode, header},
+    http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode, header},
     response::{IntoResponse, Response},
 };
 use reqwest::Client;
@@ -38,7 +39,7 @@ struct ServiceProxy {
 impl ServiceProxy {
     /// Authenticate the incoming request (JWT + DASHBOARD_VIEW) then forward
     /// to the upstream service.
-    async fn handle(&self, path: Option<Path<String>>, req: Request<Body>) -> Response {
+    async fn handle(&self, path: Option<Path<String>>, mut req: Request<Body>) -> Response {
         // `&Request<Body>` is not `Send` (Body is !Sync) — clone headers/query
         // before crossing the .await boundary.
         let req_headers = req.headers().clone();
@@ -50,6 +51,39 @@ impl ServiceProxy {
             return resp;
         }
 
+        // Client-supplied account scoping is never trusted on this path; only
+        // `handle_preauthorized` (fc-billing) may set it.
+        req.headers_mut().remove("x-kbve-account-id");
+        self.forward_request(path, req, None).await
+    }
+
+    /// Read methods require DASHBOARD_VIEW; mutating methods require DASHBOARD_MANAGE.
+    async fn handle_method_aware(
+        &self,
+        path: Option<Path<String>>,
+        mut req: Request<Body>,
+    ) -> Response {
+        let req_headers = req.headers().clone();
+        let raw_query = req.uri().query().map(|q| q.to_string());
+
+        let mutating = matches!(
+            req.method(),
+            &Method::POST | &Method::PUT | &Method::PATCH | &Method::DELETE
+        );
+
+        let gate = if mutating {
+            require_dashboard_manage_with_query(&req_headers, raw_query.as_deref(), self.name)
+                .await
+                .map(|_| ())
+        } else {
+            require_dashboard_view_with_query(&req_headers, raw_query.as_deref(), self.name).await
+        };
+
+        if let Err(resp) = gate {
+            return resp;
+        }
+
+        req.headers_mut().remove("x-kbve-account-id");
         self.forward_request(path, req, None).await
     }
 
@@ -69,9 +103,10 @@ impl ServiceProxy {
     async fn handle_with_auth(
         &self,
         path: Option<Path<String>>,
-        req: Request<Body>,
+        mut req: Request<Body>,
         upstream_auth: String,
     ) -> Response {
+        req.headers_mut().remove("x-kbve-account-id");
         self.forward_request(path, req, Some(upstream_auth)).await
     }
 
@@ -81,17 +116,17 @@ impl ServiceProxy {
         req: Request<Body>,
         upstream_auth_override: Option<String>,
     ) -> Response {
-        let req_headers = req.headers().clone();
         let suffix = path.map(|Path(p)| p).unwrap_or_default();
-        let query = req
-            .uri()
-            .query()
-            .map(|q| format!("?{q}"))
-            .unwrap_or_default();
-        let upstream_url = format!("{}/{}{}", self.upstream, suffix, query);
+        let (parts, body) = req.into_parts();
 
-        let method = req.method().clone();
-        let mut headers = req_headers;
+        let mut upstream_url = format!("{}/{}", self.upstream, suffix);
+        if let Some(q) = parts.uri.query() {
+            upstream_url.push('?');
+            upstream_url.push_str(q);
+        }
+
+        let method = parts.method;
+        let mut headers = parts.headers;
 
         // RFC 7230 §6.1: hop-by-hop headers must not cross proxy boundaries.
         // accept-encoding is also removed so upstream never compresses — we
@@ -101,10 +136,13 @@ impl ServiceProxy {
         headers.remove(header::ACCEPT_ENCODING);
         headers.remove(header::CONNECTION);
         headers.remove(header::COOKIE);
+        headers.remove(header::ORIGIN);
+        headers.remove(header::REFERER);
         headers.remove("te");
         headers.remove("trailers");
         headers.remove("upgrade");
         headers.remove("proxy-connection");
+        headers.remove("x-webauth-user");
 
         if let Some(val) = upstream_auth_override
             .as_deref()
@@ -121,7 +159,7 @@ impl ServiceProxy {
             headers.insert(name.clone(), value.clone());
         }
 
-        let body_bytes = match axum::body::to_bytes(req.into_body(), 10 * 1024 * 1024).await {
+        let body_bytes = match axum::body::to_bytes(body, 10 * 1024 * 1024).await {
             Ok(b) => b,
             Err(_) => {
                 return (
@@ -303,11 +341,11 @@ impl ServiceProxy {
 
 /// Extract Bearer token from Authorization header, `?access_token=` query,
 /// or `kasm_session` / `dashboard_session` cookie.
-fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String> {
+fn extract_auth_token<'a>(headers: &'a HeaderMap, query: Option<&'a str>) -> Option<&'a str> {
     if let Some(h) = headers.get(header::AUTHORIZATION) {
         if let Ok(s) = h.to_str() {
             if let Some(t) = extract_bearer_token(s) {
-                return Some(t.to_string());
+                return Some(t);
             }
         }
     }
@@ -315,7 +353,7 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
         for pair in qs.split('&') {
             if let Some(val) = pair.strip_prefix("access_token=") {
                 if !val.is_empty() {
-                    return Some(val.to_string());
+                    return Some(val);
                 }
             }
         }
@@ -330,7 +368,7 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
                     .or_else(|| pair.strip_prefix("sb-access-token="))
                 {
                     if !val.is_empty() {
-                        return Some(val.to_string());
+                        return Some(val);
                     }
                 }
             }
@@ -339,14 +377,17 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
     None
 }
 
-async fn require_dashboard_view(headers: &HeaderMap, service_name: &str) -> Result<(), Response> {
+pub(crate) async fn require_dashboard_view(
+    headers: &HeaderMap,
+    service_name: &str,
+) -> Result<(), Response> {
     require_dashboard_view_with_query(headers, None, service_name).await
 }
 
 /// Gate for sensitive proxy routes that need a higher privilege level than
 /// plain DASHBOARD_VIEW (e.g. network-enabled firecracker). Requires the
 /// same JWT checks plus DASHBOARD_MANAGE permission.
-async fn require_dashboard_manage_with_query(
+pub(crate) async fn require_dashboard_manage_with_query(
     headers: &HeaderMap,
     query: Option<&str>,
     service_name: &str,
@@ -354,6 +395,9 @@ async fn require_dashboard_manage_with_query(
     let auth_token = match extract_auth_token(headers, query) {
         Some(t) => t,
         None => {
+            warn!(
+                "{service_name} proxy access denied — missing Authorization header / access_token"
+            );
             return Err((
                 StatusCode::UNAUTHORIZED,
                 axum::Json(json!({
@@ -376,7 +420,7 @@ async fn require_dashboard_manage_with_query(
         }
     };
 
-    let token_info = match jwt_cache.verify_and_cache(&auth_token).await {
+    let token_info = match jwt_cache.verify_and_cache(auth_token).await {
         Ok(info) => info,
         Err(e) => {
             warn!("{service_name} proxy JWT rejected: {e}");
@@ -415,6 +459,9 @@ async fn require_dashboard_view_with_query(
     let auth_token = match extract_auth_token(headers, query) {
         Some(t) => t,
         None => {
+            warn!(
+                "{service_name} proxy access denied — missing Authorization header / access_token"
+            );
             return Err((
                 StatusCode::UNAUTHORIZED,
                 axum::Json(json!({
@@ -425,8 +472,6 @@ async fn require_dashboard_view_with_query(
                 .into_response());
         }
     };
-
-    let token = auth_token;
 
     let jwt_cache = match get_jwt_cache() {
         Some(c) => c,
@@ -439,7 +484,7 @@ async fn require_dashboard_view_with_query(
         }
     };
 
-    let token_info = match jwt_cache.verify_and_cache(&token).await {
+    let token_info = match jwt_cache.verify_and_cache(auth_token).await {
         Ok(info) => info,
         Err(e) => {
             warn!("{service_name} proxy JWT rejected: {e}");
@@ -564,7 +609,9 @@ pub fn init_argo_proxy() -> bool {
 
 pub async fn argo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
     match ARGO.get() {
-        Some(proxy) => proxy.handle(path, req).await,
+        // Method-aware: GET reads require DASHBOARD_VIEW; mutating verbs
+        // (sync, refresh-via-POST, delete) require DASHBOARD_MANAGE.
+        Some(proxy) => proxy.handle_method_aware(path, req).await,
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             axum::Json(json!({"error": "ArgoCD proxy not configured"})),
@@ -574,6 +621,7 @@ pub async fn argo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
 }
 
 use jedi::entity::pipe_clickhouse::alerts as ch_alerts;
+use jedi::entity::pipe_clickhouse::factorio as ch_factorio;
 use jedi::entity::pipe_clickhouse::logs as ch_logs;
 use jedi::state::sidecar::ClickHouseConfig;
 
@@ -638,6 +686,10 @@ pub struct ClickHouseLogsRequest {
     /// clamped 5..=3600. Ignored by other commands.
     #[serde(default)]
     pub bucket_seconds: Option<u32>,
+    /// Filter by Factorio `server_id` for the `factorio_*` commands. Ignored
+    /// by log/alert commands.
+    #[serde(default)]
+    pub server_id: Option<String>,
 }
 
 /// Response shape for the ClickHouse logs route. `rows` is the raw
@@ -649,6 +701,7 @@ pub struct ClickHouseLogsResponse {
     /// One JSON object per row. Shape depends on `command`:
     /// - `"query"` → `{ timestamp, pod_namespace, service, level, message, pod_name, metadata }`
     /// - `"stats"` → `{ pod_namespace, service, level, cnt }`
+    /// - `"error_groups"` → `{ pod_namespace, service, signature, cnt, last_seen, sample }`
     #[schema(value_type = Vec<serde_json::Value>)]
     pub rows: Vec<serde_json::Value>,
     pub count: usize,
@@ -715,6 +768,14 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
             };
             ch_logs::run_stats(config, &params).await
         }
+        "error_groups" => {
+            let params = ch_logs::ErrorGroupsParams {
+                pod_namespace: req.pod_namespace,
+                minutes: req.minutes,
+                limit: req.limit,
+            };
+            ch_logs::run_error_groups(config, &params).await
+        }
         "rows_request_rate" => {
             let params = ch_logs::RowsRequestRateParams {
                 minutes: req.minutes,
@@ -768,15 +829,32 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
             };
             ch_alerts::run_alerts_top(config, &params).await
         }
+        "factorio_current" | "factorio_snapshots" | "factorio_players" | "factorio_chat"
+        | "factorio_rotations" => {
+            let params = ch_factorio::FactorioParams {
+                server_id: req.server_id,
+                minutes: req.minutes,
+                limit: req.limit,
+            };
+            match req.command.as_str() {
+                "factorio_current" => ch_factorio::run_current(config, &params).await,
+                "factorio_snapshots" => ch_factorio::run_snapshots(config, &params).await,
+                "factorio_players" => ch_factorio::run_players(config, &params).await,
+                "factorio_chat" => ch_factorio::run_chat(config, &params).await,
+                _ => ch_factorio::run_rotations(config, &params).await,
+            }
+        }
         other => {
             return (
                 StatusCode::BAD_REQUEST,
                 axum::Json(json!({
                     "error": format!(
                         "unknown command '{other}', expected one of: \
-                         query, stats, rows_request_rate, rows_status_histogram, \
+                         query, stats, error_groups, rows_request_rate, rows_status_histogram, \
                          rows_top_endpoints, rows_errors, \
-                         alerts_recent, alerts_firing, alerts_by_severity, alerts_top"
+                         alerts_recent, alerts_firing, alerts_by_severity, alerts_top, \
+                         factorio_current, factorio_snapshots, factorio_players, \
+                         factorio_chat, factorio_rotations"
                     )
                 })),
             )
@@ -836,7 +914,7 @@ pub fn init_forgejo_proxy() -> bool {
 
 pub async fn forgejo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
     match FORGEJO.get() {
-        Some(proxy) => proxy.handle(path, req).await,
+        Some(proxy) => proxy.handle_method_aware(path, req).await,
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             axum::Json(json!({"error": "Forgejo proxy not configured"})),
@@ -968,19 +1046,93 @@ pub async fn kubevirt_vnc_handler(
         kubevirt.upstream, VM_NAMESPACE, vm_name
     );
     let upstream_token = kubevirt.upstream_token.clone();
-    // VM_NAMESPACE is hardcoded to angelscript; parameterise once another
-    // VM namespace lands.
     let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
+    let viewer_id = query_param(query.as_deref(), "viewer_id");
 
-    // vnc_hub shares a single upstream connection across every viewer.
     ws.protocols(["binary.k8s.io", "base64.binary.k8s.io"])
         .on_upgrade(move |browser_ws| async move {
-            if let Err(e) =
-                super::vnc_hub::join_session(vm_key, upstream_url, upstream_token, browser_ws).await
+            if let Err(e) = super::vnc_hub::join_session(
+                vm_key,
+                upstream_url,
+                upstream_token,
+                viewer_id,
+                browser_ws,
+            )
+            .await
             {
                 warn!("VNC hub error for {vm_name}: {e}");
             }
         })
+}
+
+fn query_param(query: Option<&str>, key: &str) -> Option<String> {
+    url::form_urlencoded::parse(query?.as_bytes())
+        .find(|(k, _)| k == key)
+        .map(|(_, v)| v.into_owned())
+}
+
+pub async fn kubevirt_vnc_control_handler(
+    Path(vm_name): Path<String>,
+    req: Request<Body>,
+) -> Response {
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(|q| q.to_string());
+
+    if let Err(resp) =
+        require_dashboard_view_with_query(&headers, query.as_deref(), "VNC-Control").await
+    {
+        return resp;
+    }
+
+    let body_bytes = match axum::body::to_bytes(req.into_body(), 4096).await {
+        Ok(b) => b,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "invalid body"})),
+            )
+                .into_response();
+        }
+    };
+    let payload: serde_json::Value = match serde_json::from_slice(&body_bytes) {
+        Ok(v) => v,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "invalid JSON"})),
+            )
+                .into_response();
+        }
+    };
+
+    let action = payload.get("action").and_then(|v| v.as_str()).unwrap_or("");
+    let viewer_id = payload
+        .get("viewer_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    if viewer_id.is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({"error": "missing viewer_id"})),
+        )
+            .into_response();
+    }
+
+    let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
+    let ok = match action {
+        "take" => super::vnc_hub::request_control(&vm_key, viewer_id),
+        "release" => super::vnc_hub::release_control(&vm_key, viewer_id),
+        "deny" => super::vnc_hub::deny_control(&vm_key, viewer_id),
+        _ => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "unknown action"})),
+            )
+                .into_response();
+        }
+    };
+
+    axum::Json(json!({"ok": ok})).into_response()
 }
 
 const VM_NAMESPACE: &str = "angelscript";
@@ -1003,8 +1155,15 @@ pub async fn kubevirt_vnc_info_handler(
     let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
     match super::vnc_hub::get_session_info(&vm_key) {
         Some(info) => axum::Json(info).into_response(),
-        None => axum::Json(json!({"vm_key": vm_key, "viewers": 0, "has_primary": false}))
-            .into_response(),
+        None => axum::Json(json!({
+            "vm_key": vm_key,
+            "viewers": 0,
+            "has_primary": false,
+            "controller_viewer_id": null,
+            "viewers_list": [],
+            "pending": null
+        }))
+        .into_response(),
     }
 }
 
@@ -1301,6 +1460,7 @@ async fn kasm_ws_handler(
                 session_key,
                 upstream_url.clone(),
                 config,
+                None,
                 browser_ws,
             )
             .await
@@ -1360,7 +1520,7 @@ pub async fn kasm_workspaces_handler(req: Request<Body>) -> Response {
             let body = resp.text().await.unwrap_or_default();
             (
                 StatusCode::BAD_GATEWAY,
-                axum::Json(json!({"error": format!("K8s API returned {status}: {}", &body[..body.len().min(200)])})),
+                axum::Json(json!({"error": format!("K8s API returned {status}: {}", truncate_body(&body, 200))})),
             )
                 .into_response()
         }
@@ -1457,7 +1617,7 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
             let body = resp.text().await.unwrap_or_default();
             (
                 StatusCode::BAD_GATEWAY,
-                axum::Json(json!({"error": format!("Scale failed {status}: {}", &body[..body.len().min(200)])})),
+                axum::Json(json!({"error": format!("Scale failed {status}: {}", truncate_body(&body, 200))})),
             )
                 .into_response()
         }
@@ -1514,6 +1674,27 @@ pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
 const KASM_NAV_SHIM_PORT: u16 = 9998;
 const MAX_LAUNCH_URL_LEN: usize = 2048;
 
+fn truncate_body(s: &str, max: usize) -> &str {
+    if s.len() <= max {
+        return s;
+    }
+    let mut end = max;
+    while end > 0 && !s.is_char_boundary(end) {
+        end -= 1;
+    }
+    &s[..end]
+}
+
+fn ipv4_blocked(ip: &std::net::Ipv4Addr) -> bool {
+    ip.is_loopback()
+        || ip.is_private()
+        || ip.is_link_local()
+        || ip.is_broadcast()
+        || ip.is_documentation()
+        || ip.is_unspecified()
+        || ip.is_multicast()
+}
+
 fn url_passes_policy(raw: &str) -> Result<(), &'static str> {
     if raw.is_empty() || raw.len() > MAX_LAUNCH_URL_LEN {
         return Err("invalid url length");
@@ -1540,18 +1721,19 @@ fn url_passes_policy(raw: &str) -> Result<(), &'static str> {
             }
         }
         url::Host::Ipv4(ip) => {
-            if ip.is_loopback()
-                || ip.is_private()
-                || ip.is_link_local()
-                || ip.is_broadcast()
-                || ip.is_documentation()
-                || ip.is_unspecified()
-                || ip.is_multicast()
-            {
+            if ipv4_blocked(&ip) {
                 return Err("ipv4 host not allowed");
             }
         }
         url::Host::Ipv6(ip) => {
+            // IPv4-mapped/compatible forms (::ffff:127.0.0.1, ::169.254.169.254)
+            // must run the IPv4 policy or they slip past the IPv6 checks and
+            // reach loopback / link-local (cloud metadata).
+            if let Some(v4) = ip.to_ipv4_mapped().or_else(|| ip.to_ipv4()) {
+                if ipv4_blocked(&v4) {
+                    return Err("ipv6-mapped ipv4 host not allowed");
+                }
+            }
             if ip.is_loopback()
                 || ip.is_unspecified()
                 || ip.is_multicast()
@@ -1706,7 +1888,7 @@ pub async fn kasm_launch_url_handler(Path(name): Path<String>, req: Request<Body
 async fn relay_nav_response(workspace: &str, resp: reqwest::Response) -> Response {
     let upstream_status = resp.status();
     let body = resp.text().await.unwrap_or_default();
-    let truncated = &body[..body.len().min(512)];
+    let truncated = truncate_body(&body, 512);
 
     if upstream_status.is_success() {
         return axum::Json(json!({
@@ -1813,6 +1995,198 @@ pub async fn firecracker_openapi_handler(req: Request<Body>) -> Response {
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             axum::Json(json!({"error": "Firecracker proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+static FACTORIO: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_factorio_proxy() -> bool {
+    let upstream = std::env::var("FACTORIO_CTL_URL")
+        .unwrap_or_else(|_| "http://factorio-ctl.factorio.svc.cluster.local:9002".into());
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(30))
+        .build()
+        .expect("failed to build reqwest client for factorio proxy");
+
+    FACTORIO
+        .set(ServiceProxy {
+            name: "Factorio",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: None,
+            upstream_headers: Vec::new(),
+            iframe_safe: false,
+            streaming: false,
+        })
+        .is_ok()
+}
+
+pub async fn factorio_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_view(&headers, "Factorio").await {
+        return resp;
+    }
+
+    match FACTORIO.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Factorio proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+/// Public read-only proxy for the factorio-ctl OpenAPI document. Mirrors
+/// [`firecracker_openapi_handler`]; the operations stay staff-gated through
+/// [`factorio_proxy_handler`].
+pub async fn factorio_openapi_handler(req: Request<Body>) -> Response {
+    match FACTORIO.get() {
+        Some(proxy) => {
+            proxy
+                .handle_preauthorized(Some(Path("openapi.json".to_string())), req)
+                .await
+        }
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Factorio proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+static VIBESHINE: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_vibeshine_proxy() -> bool {
+    let upstream = std::env::var("VIBESHINE_UPSTREAM_URL")
+        .unwrap_or_else(|_| "https://10.10.0.3:47990".into());
+    let token = std::env::var("VIBESHINE_API_TOKEN").ok();
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(30))
+        // Vibeshine serves a self-signed cert on the wg tunnel; traffic never
+        // leaves the encrypted tunnel so certificate identity adds nothing.
+        .danger_accept_invalid_certs(true)
+        .http1_only()
+        .build()
+        .expect("failed to build reqwest client for vibeshine proxy");
+
+    VIBESHINE
+        .set(ServiceProxy {
+            name: "Vibeshine",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: token,
+            upstream_headers: Vec::new(),
+            iframe_safe: false,
+            streaming: false,
+        })
+        .is_ok()
+}
+
+pub async fn vibeshine_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    match VIBESHINE.get() {
+        Some(proxy) => proxy.handle_method_aware(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Vibeshine proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+pub async fn vibeshine_status_handler(req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_view(&headers, "Vibeshine").await {
+        return resp;
+    }
+
+    let Some(proxy) = VIBESHINE.get() else {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Vibeshine proxy not configured"})),
+        )
+            .into_response();
+    };
+
+    let started = std::time::Instant::now();
+    let result = proxy
+        .client
+        .get(format!("{}/", proxy.upstream))
+        .timeout(Duration::from_secs(5))
+        .send()
+        .await;
+
+    match result {
+        Ok(resp) => axum::Json(json!({
+            "reachable": true,
+            "upstream_status": resp.status().as_u16(),
+            "latency_ms": started.elapsed().as_millis() as u64,
+        }))
+        .into_response(),
+        Err(e) => axum::Json(json!({
+            "reachable": false,
+            "error": e.to_string(),
+        }))
+        .into_response(),
+    }
+}
+
+static VIBESHINE_WEBRTC: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_vibeshine_webrtc_proxy() -> bool {
+    let upstream = std::env::var("VIBESHINE_UPSTREAM_URL")
+        .unwrap_or_else(|_| "https://10.10.0.3:47990".into());
+    let token = std::env::var("VIBESHINE_WEBRTC_TOKEN").ok();
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(5))
+        // No overall timeout — /api/webrtc/.../ice/stream is long-lived SSE.
+        .danger_accept_invalid_certs(true)
+        .http1_only()
+        .build()
+        .expect("failed to build reqwest client for vibeshine webrtc proxy");
+
+    VIBESHINE_WEBRTC
+        .set(ServiceProxy {
+            name: "Vibeshine-WebRTC",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: token,
+            upstream_headers: Vec::new(),
+            iframe_safe: false,
+            streaming: true,
+        })
+        .is_ok()
+}
+
+pub async fn vibeshine_webrtc_handler(Path(rest): Path<String>, req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(str::to_owned);
+    if let Err(resp) =
+        require_dashboard_view_with_query(&headers, query.as_deref(), "Vibeshine-WebRTC").await
+    {
+        return resp;
+    }
+
+    match VIBESHINE_WEBRTC.get() {
+        Some(proxy) => {
+            let upstream_path = format!("api/webrtc/{rest}");
+            proxy
+                .handle_preauthorized(Some(Path(upstream_path)), req)
+                .await
+        }
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Vibeshine WebRTC proxy not configured"})),
         )
             .into_response(),
     }
@@ -2171,14 +2545,27 @@ pub fn init_guacamole_proxy() -> bool {
 }
 
 pub async fn guacamole_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
-    match GUACAMOLE.get() {
-        Some(proxy) => proxy.handle(path, req).await,
-        None => (
-            StatusCode::SERVICE_UNAVAILABLE,
-            axum::Json(json!({"error": "Guacamole proxy not configured"})),
-        )
-            .into_response(),
+    let proxy = match GUACAMOLE.get() {
+        Some(p) => p,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "Guacamole proxy not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(|q| q.to_string());
+
+    if let Err(resp) =
+        require_dashboard_manage_with_query(&headers, query.as_deref(), "Guacamole").await
+    {
+        return resp;
     }
+
+    proxy.handle_preauthorized(path, req).await
 }
 
 /// Bridges the browser WebSocket to `/guacamole/websocket-tunnel`. The
@@ -2193,7 +2580,7 @@ pub async fn guacamole_ws_handler(
     let query = req.uri().query().map(|q| q.to_string());
 
     if let Err(resp) =
-        require_dashboard_view_with_query(&headers, query.as_deref(), "Guacamole-WS").await
+        require_dashboard_manage_with_query(&headers, query.as_deref(), "Guacamole-WS").await
     {
         return resp;
     }
@@ -2340,103 +2727,272 @@ pub async fn edge_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
     }
 }
 
-static CHUCKRPG: OnceLock<ServiceProxy> = OnceLock::new();
+/// One ROWS tenant: a main `/api/*` proxy plus its docs/openapi proxy.
+struct ChuckRpgTenant {
+    id: String,
+    label: String,
+    main: ServiceProxy,
+    docs: ServiceProxy,
+}
 
+/// Registry of all configured ROWS tenants, keyed by id, with insertion order
+/// preserved for stable listing and a default for tenant-less requests.
+struct ChuckRpgRegistry {
+    tenants: HashMap<String, ChuckRpgTenant>,
+    order: Vec<String>,
+    default_id: String,
+}
+
+static CHUCKRPG: OnceLock<ChuckRpgRegistry> = OnceLock::new();
+
+fn build_chuckrpg_client() -> Client {
+    Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(15))
+        .build()
+        .expect("failed to build reqwest client for chuckrpg proxy")
+}
+
+fn chuckrpg_guid_headers(id: &str, guid: Option<&str>) -> Vec<(HeaderName, HeaderValue)> {
+    let mut headers = Vec::new();
+    match guid.map(str::trim).filter(|g| !g.is_empty()) {
+        Some(g) => match HeaderValue::from_str(g) {
+            Ok(val) => headers.push((HeaderName::from_static("x-customerguid"), val)),
+            Err(e) => {
+                warn!(tenant = %id, error = %e, "invalid ROWS customer guid, header not injected")
+            }
+        },
+        None => warn!(tenant = %id, "no customer guid — ROWS /api/System/* will return 401"),
+    }
+    headers
+}
+
+fn make_chuckrpg_tenant(
+    id: String,
+    label: String,
+    upstream: String,
+    docs: String,
+    guid: Option<&str>,
+) -> ChuckRpgTenant {
+    let main = ServiceProxy {
+        name: "ChuckRPG",
+        client: build_chuckrpg_client(),
+        upstream,
+        upstream_token: None,
+        upstream_headers: chuckrpg_guid_headers(&id, guid),
+        iframe_safe: false,
+        streaming: false,
+    };
+    let docs = ServiceProxy {
+        name: "ChuckRPG-Docs",
+        client: build_chuckrpg_client(),
+        upstream: docs,
+        upstream_token: None,
+        upstream_headers: Vec::new(),
+        iframe_safe: false,
+        streaming: false,
+    };
+    ChuckRpgTenant {
+        id,
+        label,
+        main,
+        docs,
+    }
+}
+
+/// Parse `CHUCKRPG_TENANTS` (JSON array of {id,label,upstream,docs,guid_env}),
+/// resolving each tenant's customer guid from the env var it names. Falls back
+/// to the legacy single-tenant `CHUCKRPG_UPSTREAM_URL` envs when unset.
 pub fn init_chuckrpg_proxy() -> bool {
-    let upstream = match std::env::var("CHUCKRPG_UPSTREAM_URL") {
-        Ok(u) => u.trim_end_matches('/').to_string(),
-        Err(_) => return false,
+    let raw = match std::env::var("CHUCKRPG_TENANTS") {
+        Ok(v) if !v.trim().is_empty() => v,
+        _ => return init_chuckrpg_proxy_legacy(),
     };
 
-    let mut upstream_headers: Vec<(HeaderName, HeaderValue)> = Vec::new();
-    match std::env::var("CHUCKRPG_CUSTOMER_GUID") {
-        Ok(guid) => {
-            let trimmed = guid.trim();
-            if trimmed.is_empty() {
-                warn!("CHUCKRPG_CUSTOMER_GUID set but empty — ROWS /api/System/* will return 401");
-            } else {
-                match HeaderValue::from_str(trimmed) {
-                    Ok(val) => {
-                        upstream_headers.push((HeaderName::from_static("x-customerguid"), val))
-                    }
-                    Err(e) => {
-                        warn!(error = %e, "invalid CHUCKRPG_CUSTOMER_GUID, header not injected")
-                    }
-                }
-            }
+    let parsed: serde_json::Value = match serde_json::from_str(&raw) {
+        Ok(v) => v,
+        Err(e) => {
+            warn!(error = %e, "CHUCKRPG_TENANTS is not valid JSON — ROWS proxy disabled");
+            return false;
         }
-        Err(_) => warn!("CHUCKRPG_CUSTOMER_GUID unset — ROWS /api/System/* will return 401"),
+    };
+    let arr = match parsed.as_array() {
+        Some(a) => a,
+        None => {
+            warn!("CHUCKRPG_TENANTS must be a JSON array — ROWS proxy disabled");
+            return false;
+        }
+    };
+
+    let mut tenants = HashMap::new();
+    let mut order = Vec::new();
+    for item in arr {
+        let id = item
+            .get("id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .trim()
+            .to_string();
+        if id.is_empty() {
+            warn!("CHUCKRPG_TENANTS entry missing 'id' — skipped");
+            continue;
+        }
+        let label = item
+            .get("label")
+            .and_then(|v| v.as_str())
+            .map(str::to_string)
+            .unwrap_or_else(|| id.clone());
+        let upstream = item
+            .get("upstream")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .trim_end_matches('/')
+            .to_string();
+        if upstream.is_empty() {
+            warn!(tenant = %id, "CHUCKRPG_TENANTS entry missing 'upstream' — skipped");
+            continue;
+        }
+        let docs = item
+            .get("docs")
+            .and_then(|v| v.as_str())
+            .map(|s| s.trim_end_matches('/').to_string())
+            .unwrap_or_else(|| upstream.clone());
+        let guid = item
+            .get("guid_env")
+            .and_then(|v| v.as_str())
+            .and_then(|name| std::env::var(name).ok());
+
+        tenants.insert(
+            id.clone(),
+            make_chuckrpg_tenant(id.clone(), label, upstream, docs, guid.as_deref()),
+        );
+        order.push(id);
     }
 
-    let client = Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .connect_timeout(Duration::from_secs(5))
-        .timeout(Duration::from_secs(15))
-        .build()
-        .expect("failed to build reqwest client for chuckrpg proxy");
-
+    if tenants.is_empty() {
+        warn!("CHUCKRPG_TENANTS produced no valid tenants — ROWS proxy disabled");
+        return false;
+    }
+    let default_id = order[0].clone();
     CHUCKRPG
-        .set(ServiceProxy {
-            name: "ChuckRPG",
-            client,
-            upstream,
-            upstream_token: None,
-            upstream_headers,
-            iframe_safe: false,
-            streaming: false,
+        .set(ChuckRpgRegistry {
+            tenants,
+            order,
+            default_id,
         })
         .is_ok()
 }
 
-pub async fn chuckrpg_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+fn init_chuckrpg_proxy_legacy() -> bool {
+    let upstream = match std::env::var("CHUCKRPG_UPSTREAM_URL") {
+        Ok(u) if !u.trim().is_empty() => u.trim_end_matches('/').to_string(),
+        _ => return false,
+    };
+    let docs = std::env::var("CHUCKRPG_DOCS_URL")
+        .ok()
+        .map(|s| s.trim_end_matches('/').to_string())
+        .unwrap_or_else(|| upstream.clone());
+    let guid = std::env::var("CHUCKRPG_CUSTOMER_GUID").ok();
+    let id = "default".to_string();
+    let mut tenants = HashMap::new();
+    tenants.insert(
+        id.clone(),
+        make_chuckrpg_tenant(
+            id.clone(),
+            "ROWS".to_string(),
+            upstream,
+            docs,
+            guid.as_deref(),
+        ),
+    );
+    CHUCKRPG
+        .set(ChuckRpgRegistry {
+            tenants,
+            order: vec![id.clone()],
+            default_id: id,
+        })
+        .is_ok()
+}
+
+fn chuckrpg_not_configured() -> Response {
+    (
+        StatusCode::SERVICE_UNAVAILABLE,
+        axum::Json(json!({"error": "ChuckRPG proxy not configured"})),
+    )
+        .into_response()
+}
+
+fn chuckrpg_unknown_tenant(tenant: &str) -> Response {
+    (
+        StatusCode::NOT_FOUND,
+        axum::Json(json!({"error": format!("unknown ROWS tenant '{tenant}'")})),
+    )
+        .into_response()
+}
+
+/// `/dashboard/chuckrpg/proxy/{tenant}/{*path}` — route to the named tenant's
+/// main proxy.
+pub async fn chuckrpg_proxy_handler(
+    Path((tenant, rest)): Path<(String, String)>,
+    req: Request<Body>,
+) -> Response {
     match CHUCKRPG.get() {
-        Some(proxy) => proxy.handle(path, req).await,
-        None => (
-            StatusCode::SERVICE_UNAVAILABLE,
-            axum::Json(json!({"error": "ChuckRPG proxy not configured"})),
-        )
-            .into_response(),
+        Some(reg) => match reg.tenants.get(tenant.trim()) {
+            Some(t) => t.main.handle(Some(Path(rest)), req).await,
+            None => chuckrpg_unknown_tenant(&tenant),
+        },
+        None => chuckrpg_not_configured(),
     }
 }
 
-static CHUCKRPG_DOCS: OnceLock<ServiceProxy> = OnceLock::new();
-
-pub fn init_chuckrpg_docs_proxy() -> bool {
-    let upstream = std::env::var("CHUCKRPG_DOCS_URL")
-        .unwrap_or_else(|_| "http://rows.rows.svc.cluster.local:4323".into());
-
-    let client = Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .connect_timeout(Duration::from_secs(5))
-        .timeout(Duration::from_secs(15))
-        .build()
-        .expect("failed to build reqwest client for chuckrpg docs proxy");
-
-    CHUCKRPG_DOCS
-        .set(ServiceProxy {
-            name: "ChuckRPG-Docs",
-            client,
-            upstream: upstream.trim_end_matches('/').to_string(),
-            upstream_token: None,
-            upstream_headers: Vec::new(),
-            iframe_safe: false,
-            streaming: false,
-        })
-        .is_ok()
+/// `/dashboard/chuckrpg/tenants` — list configured tenants for the dashboard
+/// selector. Gated by DASHBOARD_VIEW like the proxied endpoints.
+pub async fn chuckrpg_tenants_handler(req: Request<Body>) -> Response {
+    let req_headers = req.headers().clone();
+    let raw_query = req.uri().query().map(|q| q.to_string());
+    if let Err(resp) =
+        require_dashboard_view_with_query(&req_headers, raw_query.as_deref(), "ChuckRPG").await
+    {
+        return resp;
+    }
+    match CHUCKRPG.get() {
+        Some(reg) => {
+            let list: Vec<_> = reg
+                .order
+                .iter()
+                .filter_map(|id| reg.tenants.get(id))
+                .map(|t| json!({"id": t.id, "label": t.label, "default": t.id == reg.default_id}))
+                .collect();
+            axum::Json(json!({"tenants": list, "default": reg.default_id})).into_response()
+        }
+        None => chuckrpg_not_configured(),
+    }
 }
 
 pub async fn chuckrpg_openapi_handler(req: Request<Body>) -> Response {
-    match CHUCKRPG_DOCS.get() {
-        Some(proxy) => {
-            proxy
-                .handle_preauthorized(Some(Path("api-docs/openapi.json".to_string())), req)
-                .await
+    let tenant = req.uri().query().and_then(|q| {
+        q.split('&')
+            .find_map(|kv| kv.strip_prefix("tenant="))
+            .map(|s| s.to_string())
+    });
+    match CHUCKRPG.get() {
+        Some(reg) => {
+            let key = tenant
+                .as_deref()
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .unwrap_or(&reg.default_id);
+            match reg.tenants.get(key) {
+                Some(t) => {
+                    t.docs
+                        .handle_preauthorized(Some(Path("api-docs/openapi.json".to_string())), req)
+                        .await
+                }
+                None => chuckrpg_unknown_tenant(key),
+            }
         }
-        None => (
-            StatusCode::SERVICE_UNAVAILABLE,
-            axum::Json(json!({"error": "ChuckRPG docs proxy not configured"})),
-        )
-            .into_response(),
+        None => chuckrpg_not_configured(),
     }
 }
 
@@ -2461,7 +3017,7 @@ mod tests {
     fn hdrs(pairs: &[(&'static str, &'static str)]) -> HeaderMap {
         let mut h = HeaderMap::new();
         for (k, v) in pairs {
-            h.insert(*k, HeaderValue::from_static(*v));
+            h.insert(*k, HeaderValue::from_static(v));
         }
         h
     }
@@ -2469,7 +3025,7 @@ mod tests {
     #[test]
     fn extract_auth_token_prefers_authorization_header() {
         let h = hdrs(&[(header::AUTHORIZATION.as_str(), "Bearer abc123")]);
-        assert_eq!(extract_auth_token(&h, None), Some("abc123".to_string()));
+        assert_eq!(extract_auth_token(&h, None), Some("abc123"));
     }
 
     #[test]
@@ -2477,20 +3033,20 @@ mod tests {
         let h = HeaderMap::new();
         assert_eq!(
             extract_auth_token(&h, Some("foo=1&access_token=xyz&bar=2")),
-            Some("xyz".to_string())
+            Some("xyz")
         );
     }
 
     #[test]
     fn extract_auth_token_accepts_kasm_session_cookie() {
         let h = hdrs(&[("cookie", "other=1; kasm_session=ksm-token")]);
-        assert_eq!(extract_auth_token(&h, None), Some("ksm-token".to_string()));
+        assert_eq!(extract_auth_token(&h, None), Some("ksm-token"));
     }
 
     #[test]
     fn extract_auth_token_accepts_dashboard_session_cookie() {
         let h = hdrs(&[("cookie", "dashboard_session=dash-token; foo=bar")]);
-        assert_eq!(extract_auth_token(&h, None), Some("dash-token".to_string()));
+        assert_eq!(extract_auth_token(&h, None), Some("dash-token"));
     }
 
     #[test]
@@ -2523,6 +3079,15 @@ mod tests {
         assert!(url_passes_policy("http://argo.argocd.svc/").is_err());
         assert!(url_passes_policy("http://foo.cluster.local/").is_err());
         assert!(url_passes_policy("http://bar.internal/").is_err());
+    }
+
+    #[test]
+    fn url_passes_policy_rejects_ipv4_mapped_ipv6() {
+        // IPv4-mapped / -compatible IPv6 must run the IPv4 blocklist, else
+        // loopback and link-local (cloud metadata) slip past the v6 checks.
+        assert!(url_passes_policy("http://[::ffff:127.0.0.1]/").is_err());
+        assert!(url_passes_policy("http://[::ffff:169.254.169.254]/").is_err());
+        assert!(url_passes_policy("http://[::ffff:10.0.0.1]/").is_err());
     }
 
     #[test]

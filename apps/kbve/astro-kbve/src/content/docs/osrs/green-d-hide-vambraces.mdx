@@ -12,87 +12,106 @@ osrs:
   lowalch: 1000
   highalch: 1500
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragonhide
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.283
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: hands
-    type: ranged_armour
-    ranged_requirement: 40
-    defence_requirement: 0
-  attack_bonuses:
-    ranged: 8
-  defence_bonuses:
-    ranged: 6
-    magic: 4
-  crafting:
-    level: 57
-    xp: 62
+    weapon_type: null
+    attack_speed: null
+    weight: 0.283
+    requirements:
+      ranged: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 8
+    defence_bonus:
+      stab: 1
+      slash: 2
+      crush: 2
+      magic: 2
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 57
       xp: 62
       materials:
         - item_name: Green dragon leather
-          item_id: 1745
           quantity: 1
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Green d'hide vambraces
-      product_id: 1065
-      product_quantity: 1
-      facility: Needle and thread
+      tools:
+        - Needle
+      output_quantity: 1
   related_items:
-    - item_id: 1753
-      item_name: Green dragonhide
+    - item_name: Green dragonhide
       slug: green-dragonhide
       relationship: component
-      description: Raw material
-    - item_id: 1745
-      item_name: Green dragon leather
+      description: Raw hide tanned into leather
+    - item_name: Green dragon leather
       slug: green-dragon-leather
       relationship: component
-      description: Tanned hide
-    - item_id: 1135
-      item_name: Green d'hide body
+      description: Tanned crafting material
+    - item_name: Green d'hide body
       slug: green-dhide-body
-      relationship: alternative
-      description: Matching body
-    - item_id: 1099
-      item_name: Green d'hide chaps
+      relationship: set-piece
+      description: Matching torso slot armour
+    - item_name: Green d'hide chaps
       slug: green-dhide-chaps
-      relationship: alternative
-      description: Matching legs
-    - item_id: 2487
-      item_name: Blue d'hide vambraces
+      relationship: set-piece
+      description: Matching legs slot armour
+    - item_name: Blue d'hide vambraces
       slug: blue-dhide-vambraces
-      relationship: alternative
-      description: Higher tier vambraces
+      relationship: upgrade
+      description: Higher tier vambraces requiring 50 Ranged
   about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Crafting | 57 | 1 Green dragon leather |
-    | XP | 62 | - |
+    Green d'hide vambraces are the lowest tier of dragonhide hand wraps and the cheapest free-to-play ranged glove option. Released 29 March 2004, they require 40 Ranged to wield and grant +8 Ranged attack alongside modest defence.
 
-    | Stat | Value |
-    |------|-------|
-    | Ranged requirement | 40 |
-    | Defence requirement | None |
-    | Ranged attack | +8 |
-    | Ranged defence | +6 |
-    | Magic defence | +4 |
+    Crafters can fashion them at level 57 Crafting for 62 XP using green dragon leather, thread, and a needle. They are a staple early Crafting target due to fast tick speed and reliable demand.
   market_strategy:
     notes:
-      - First dragonhide glove tier
-      - F2P accessible
-      - Budget ranged gear
-      - Crafting training (62 XP)
-      - F2P ranged armor
-      - Budget gear
-      - Best F2P ranged gloves
-      - 1 leather per vambraces
-      - Lowest crafting level in set
-      - Fast crafting method
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "First dragonhide glove tier and the only F2P option"
+      - "1 leather plus thread per craft keeps margins thin but steady"
+      - "Watch leather prices to time bulk crafting flips"
+      - "Crafting at 57 yields 62 XP per pair"
+  trading_tips:
+    - Crafters list large stacks during double XP weekends
+    - Pair flips with green dragon leather to capture the spread
+  history:
+    - date: "2004-03-29"
+      description: "Released alongside the original dragonhide armour set"
+    - date: "2006-01-23"
+      description: "Renamed from Dragon vambraces to Green d'hide vamb"
+    - date: "2020-04-08"
+      description: "Display name expanded to Green d'hide vambraces"
+    - date: "2021-09-22"
+      description: "Stab defence reduced from +3 to +1; crush defence reduced from +4 to +2"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

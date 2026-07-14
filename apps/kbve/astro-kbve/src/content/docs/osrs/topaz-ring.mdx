@@ -12,9 +12,89 @@ osrs:
   lowalch: 570
   highalch: 855
   limit: 10000
-  about: "Topaz ring is a members-only item in Old School RuneScape. High alchemy value: 855 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-02-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: "ring"
+    weight: 0.006
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: "crafting"
+      level: 16
+      xp: 35
+      materials:
+        - item_name: "Silver bar"
+          quantity: 1
+        - item_name: "Red topaz"
+          quantity: 1
+        - item_name: "Ring mould"
+          quantity: 1
+      tools:
+        - "Furnace"
+      output_quantity: 1
+  related_items:
+    - item_name: "Red topaz"
+      slug: "red-topaz"
+      relationship: "component"
+      description: "Gem used in the ring recipe"
+    - item_name: "Silver bar"
+      slug: "silver-bar"
+      relationship: "component"
+      description: "Metal used in the ring recipe"
+    - item_name: "Efaritay's aid"
+      slug: "efaritays-aid"
+      relationship: "product"
+      description: "Enchanted form of the topaz ring via Lvl-3 Enchant"
+    - item_name: "Sapphire ring"
+      slug: "sapphire-ring"
+      relationship: "alternative"
+      description: "Alternative gem ring"
+    - item_name: "Emerald ring"
+      slug: "emerald-ring"
+      relationship: "alternative"
+      description: "Alternative gem ring"
+  about: "Topaz ring is crafted by using a silver bar on a furnace with a red topaz and a ring mould in your inventory, requiring 16 Crafting and granting 35 XP. It has no equipment bonuses on its own but can be enchanted into Efaritay's aid via the Lvl-3 Enchant spell."
+  market_strategy:
+    notes:
+      - "GE price hinges on red topaz + silver bar input costs; profit comes from gem dips."
+      - "Demand is driven by Crafting trainers and Efaritay's aid enchanters."
+      - "Large 10,000 buy limit makes the topaz ring a workable mid-volume flip."
+  trading_tips:
+    - "Buy red topaz on dips, craft rings, and decide between selling raw or enchanting for aid."
+    - "Track silver bar pricing — major silver swings move topaz ring margins."
+  history:
+    - date: "2017-02-02"
+      description: "Released alongside the introduction of red topaz to OSRS."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

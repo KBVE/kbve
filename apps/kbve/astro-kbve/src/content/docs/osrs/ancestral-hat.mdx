@@ -12,40 +12,84 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 8
+  material:
+    type: mage_armour
+    tier: bis
+  properties:
+    release_date: "2017-01-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    weight: 0.453
+    quest_item: false
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
   equipment:
     slot: head
-    type: mage_armour
+    attack_speed: null
     requirements:
       magic: 75
       defence: 65
-    stats:
-      defence_stab: 12
-      defence_slash: 11
-      defence_crush: 13
-      defence_magic: 5
-      attack_magic: 8
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 8
+      ranged: 0
+    defence_bonus:
+      stab: 12
+      slash: 11
+      crush: 13
+      magic: 5
+      ranged: 0
+    other_bonus:
+      strength: 0
+      prayer: 0
       magic_damage_percent: 3
-  drop_sources:
-    - name: Chambers of Xeric
-      combat_level: 0
-      drop_rate: rare
-      members_only: true
+  drop_table:
+    sources:
+      - source: Chambers of Xeric
+        combat_level: 0
+        quantity: "1"
+        rarity: rare
+        members: true
   related_items:
     - item_id: 21021
       item_name: Ancestral robe top
       slug: ancestral-robe-top
       relationship: set-piece
-      description: Body slot
+      description: Body slot ancestral piece
     - item_id: 21024
       item_name: Ancestral robe bottom
       slug: ancestral-robe-bottom
       relationship: set-piece
-      description: Legs slot
+      description: Legs slot ancestral piece
     - item_id: 12931
       item_name: Serpentine helm
       slug: serpentine-helm
       relationship: alternative
-      description: Venom utility
+      description: Defensive alternative with venom utility
+  market_strategy:
+    notes:
+      - "CoX completions drive supply"
+      - "Best-in-slot mage helm sustains demand floor"
+      - "Buff to +3% magic damage in May 2024 lifted the price ceiling"
+      - "GE limit of 8 makes accumulation slow"
+  trading_tips:
+    - "Buy strategy: scale into the piece during raid content droughts"
+    - "Demand: BiS mage setup keeps a long-term price floor"
+    - "Risk: future ancestral or mage-helm releases can compress price"
+  history:
+    - date: "2017-01-05"
+      description: "Release: added as a rare reward from the Chambers of Xeric"
+    - date: "2024-05-22"
+      description: "Update: magic damage bonus increased from +2% to +3% in the mage rebalance"
   about: |-
     | Stat | Value |
     |------|-------|
@@ -69,13 +113,8 @@ osrs:
     - Essential for max magic DPS
     - Chambers of Xeric
     - Theatre of Blood
-  market_strategy:
-    notes:
-      - CoX completions affect supply
-      - Part of BiS mage setup
-      - Always in high demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

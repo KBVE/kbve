@@ -1,6 +1,6 @@
 ---
 title: Ensouled ogre head | OSRS Price Data
-description: "Ensouled ogre head: The creature's soul is still in here.. High alch: 202 GP, GE limit: 3,000."
+description: "Ensouled ogre head: The creature's soul is still in here. High alch: 202 GP, GE limit: 3,000."
 osrs:
   id: 13478
   name: Ensouled ogre head
@@ -12,9 +12,46 @@ osrs:
   lowalch: 135
   highalch: 202
   limit: 3000
-  about: "Ensouled ogre head is a members-only item in Old School RuneScape. High alchemy value: 202 coins. Grand Exchange buy limit: 3,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Ensouled ogre head is a members-only Arceuus reanimation reagent dropped by ogres. High alchemy value: 202 coins. Grand Exchange buy limit: 3,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+    weight: 0.453
+  material:
+    type: ensouled_head
+    tier: standard
+  drop_table:
+    - source: "Ogre"
+      quantity: "1"
+      rarity: "1/30"
+    - source: "Ogre chieftain"
+      quantity: "1"
+      rarity: "1/30"
+    - source: "Ogress shaman"
+      quantity: "1"
+      rarity: "1/30"
+    - source: "Ogress warrior"
+      quantity: "1"
+      rarity: "1/30"
+  history:
+    - date: "2016-01-07"
+      description: "Released alongside the Arceuus Reanimation spell suite."
+    - date: "2022-03-30"
+      description: "Ensouled heads now drop inside instanced areas."
+  trading_tips:
+    - "Adept Reanimation (level 41 Magic) grants 716 Prayer XP per reanimated ogre."
+    - "Buy in bulk during ogre slayer task downtime when supply outpaces demand."
+  market_strategy:
+    notes:
+      - "relationship: \"component\""
+      - "Demand is driven by Prayer XP/hour via reanimation; price tracks soul rune cost and clue/Arceuus meta."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

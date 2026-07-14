@@ -1,0 +1,164 @@
+---
+title: Shaders and Rendering
+description: |
+    Real-time rendering and shader fundamentals for game projects — the GPU pipeline, shader stages, common techniques, and the performance budget that governs them.
+    Own-words reference cross-linked to the KBVE projects that ship custom rendering.
+sidebar:
+    label: Shaders & Rendering
+    order: 3
+tags:
+    - gdd
+    - rendering
+    - shaders
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Introduction
+
+A shader is a small program that runs on the GPU, in parallel, for every vertex or every pixel. Rendering is the process of turning scene data into the frame the player sees. This page covers the pipeline, the shader stages, the techniques worth knowing, and the budget that keeps it all real-time.
+
+<Aside type="tip" title="Source material">
+For deep dives, see [The Book of Shaders](https://thebookofshaders.com/) (fragment shaders, GLSL), [LearnOpenGL](https://learnopengl.com/) (full pipeline), and the engine-specific docs for [Unity Shader Graph](https://docs.unity3d.com/Manual/shader-graph.html) and [Unreal Material Editor](https://docs.unrealengine.com/). This page summarizes concepts and maps them to KBVE rendering work.
+</Aside>
+
+<Adsense />
+
+---
+
+## The GPU pipeline
+
+Geometry flows through fixed and programmable stages to become pixels:
+
+1. **Vertex shader** — runs per vertex; transforms model-space positions into clip space, passes data (UVs, normals) downstream. Programmable.
+2. **Rasterization** — fixed-function; turns triangles into fragments (candidate pixels) and interpolates the vertex outputs across each triangle.
+3. **Fragment / pixel shader** — runs per fragment; computes the final color, sampling textures and evaluating lighting. Programmable. Usually the hot stage.
+4. **Output merger** — fixed-function; depth/stencil test, blending, and write to the framebuffer.
+
+<Aside>
+The vertex shader runs once per vertex; the fragment shader runs once per covered pixel — often **orders of magnitude more invocations**. Push work up to the vertex stage when you can.
+</Aside>
+
+---
+
+## Shader stages beyond vertex/fragment
+
+- **Geometry shader** — emits new primitives from input primitives (rarely used; slow on many GPUs).
+- **Tessellation (hull + domain)** — subdivides patches on the GPU for adaptive detail (terrain, displacement).
+- **Compute shader** — general-purpose GPU work outside the raster pipeline: particle simulation, culling, post-processing, image processing. Reads/writes buffers and textures directly.
+
+---
+
+## Shader languages
+
+Shaders are written in a GPU language, then compiled to the driver's native format. Which language you use is mostly dictated by your graphics API and engine.
+
+| Language | API / ecosystem | Notes |
+| --- | --- | --- |
+| **GLSL** | OpenGL, Vulkan, WebGL | The long-time cross-platform standard; C-like. Vulkan compiles GLSL to SPIR-V. |
+| **HLSL** | Direct3D, also Vulkan | Microsoft's language; the de-facto AAA standard, usable on Vulkan via SPIR-V. |
+| **WGSL** | WebGPU (wgpu) | The WebGPU Shading Language — the modern web/portable target; what you write against [wgpu](https://wgpu.rs/) (the Rust WebGPU implementation). |
+| **MSL** | Metal (Apple) | Metal Shading Language; C++-based, Apple platforms only. |
+| **SPIR-V** | Vulkan, WebGPU | Not hand-written — a binary *intermediate representation* that GLSL/HLSL/WGSL compile **to**; the driver consumes it. |
+
+<Aside>
+**SPIR-V is the hub.** Modern toolchains author in GLSL/HLSL/WGSL, compile to SPIR-V, then translate to the platform's native format (DXIL, MSL, SPIR-V). Tools like [naga](https://github.com/gfx-rs/wgpu/tree/trunk/naga) (used by wgpu) and SPIRV-Cross translate between these languages.
+</Aside>
+
+### wgpu / WGSL
+
+[wgpu](https://wgpu.rs/) is the Rust implementation of the WebGPU standard — one API that targets Vulkan, Metal, D3D12, and WebGPU-in-the-browser. You write shaders in **WGSL**; wgpu (via naga) compiles them to each backend. For Rust game/graphics work that must run native *and* on the web, this is the portable path.
+
+### Engine-specific shader languages
+
+Most engines wrap a standard language in their own material/shader layer with engine-provided inputs and node graphs:
+
+- **Godot** — [GDShader](/application/godot/#shaders) (`.gdshader`), a GLSL-derived language with Godot's render pipeline built in. Covered in the [Godot application doc](/application/godot/#shaders).
+- **Unity** — ShaderLab wrapping HLSL, plus the node-based Shader Graph.
+- **Unreal** — the node-based Material Editor compiling to HLSL under the hood.
+
+<Aside type="tip">
+This page stays language-agnostic on engine specifics. Application-specific shader languages (GDShader, ShaderLab, Unreal materials) are documented on their engine pages and linked from here, not inlined.
+</Aside>
+
+---
+
+## Spaces and transforms
+
+Vertices move through a chain of coordinate spaces:
+
+- **Model → World** — place the mesh in the scene (the model matrix).
+- **World → View** — relative to the camera (the view matrix).
+- **View → Clip** — apply perspective/orthographic projection (the projection matrix).
+- **Clip → NDC → Screen** — perspective divide and viewport mapping (fixed-function).
+
+The combined **MVP matrix** (model-view-projection) is the workhorse of the vertex shader.
+
+---
+
+## Lighting models
+
+- **Lambert (diffuse)** — brightness ∝ `dot(normal, lightDir)`; matte surfaces.
+- **Blinn-Phong** — diffuse + a specular highlight from the half-vector; cheap, classic.
+- **PBR (physically based)** — energy-conserving model driven by albedo, metallic, roughness, normal maps; the modern default for realistic look, consistent across lighting conditions.
+- **Toon / cel** — quantize lighting into bands for a stylized, illustrated look.
+
+---
+
+## Common techniques
+
+<CardGrid>
+  <Card title="Texturing & UVs" icon="seti:image">
+    Sample color/normal/roughness maps using per-vertex UV coordinates interpolated across the surface.
+  </Card>
+  <Card title="Normal mapping" icon="seti:default">
+    Fake surface detail by perturbing normals from a texture instead of adding geometry.
+  </Card>
+  <Card title="Post-processing" icon="seti:video">
+    Full-screen passes after the scene renders: bloom, tone mapping, color grading, depth of field, outlines.
+  </Card>
+  <Card title="Billboarding" icon="seti:plan">
+    Orient quads toward the camera for sprites, foliage, and impostors — cheaper than 3D geometry.
+  </Card>
+  <Card title="Instancing" icon="seti:db">
+    Draw thousands of copies of one mesh in a single draw call; per-instance data via buffers.
+  </Card>
+  <Card title="Stylized post (Kuwahara/ink)" icon="seti:pipeline">
+    Painterly filters and edge ink for a non-photoreal art direction — see KBVEPostShader below.
+  </Card>
+</CardGrid>
+
+---
+
+## Performance budget
+
+Real-time means the whole frame fits in your time slice — 16.6 ms at 60 fps, 8.3 ms at 120 fps. Rendering shares that budget with simulation.
+
+- **Overdraw** — pixels shaded then overwritten; transparency and dense foliage are the usual culprits. Sort and cull.
+- **Draw calls** — each one has CPU cost; batch and instance to cut them.
+- **Bandwidth** — texture sampling and framebuffer traffic; compress textures, use mip-maps, shrink render targets.
+- **Shader complexity** — instruction count in the fragment shader multiplied across millions of pixels; move math to the vertex stage or precompute into textures.
+
+<Aside type="caution" title="GPU-bound vs CPU-bound">
+Profile before optimizing. A frame can be limited by the CPU (draw-call submission, sim) or the GPU (shading, bandwidth). KBVE's chuck perf work found the game thread idle while the **GPU** was the wall — the fix was cutting RT/Lumen/VSM/post, not CPU work.
+</Aside>
+
+---
+
+## How KBVE applies these
+
+- **KBVEPostShader** — stylized post-process (BotW/Ghibli look) via a Kuwahara + cel + ink `FSceneViewExtension` in Unreal. Insertion point and SceneTextures binding are the two compile-verify gotchas.
+- **chuck grass** — billboard + instanced foliage drained into a global HISM, nearest-camera-first, with WPO billboards and a 120 fps cvar stack tuned against a GPU-bound profile.
+- **Isometric game** — UV-mapped grass-cap texture on the ground tileset; grass-blade billboards were disabled due to pixel swim (sub-pixel rendering instability).
+
+---
+
+## Further reading
+
+- [The Book of Shaders](https://thebookofshaders.com/) — fragment shaders and GLSL, interactive.
+- [LearnOpenGL](https://learnopengl.com/) — the full real-time pipeline from scratch.
+- [Inigo Quilez articles](https://iquilezles.org/articles/) — SDFs, noise, raymarching, shader math.
+- Unity Shader Graph and Unreal Material Editor docs for node-based authoring.
+
+<Giscus />

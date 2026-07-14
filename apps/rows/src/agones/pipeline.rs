@@ -57,6 +57,9 @@ pub struct AllocationPipeline<'a> {
     instance_id: i32,
     existing: Option<JoinMapResult>,
     lock_key: String,
+    /// Per-map empty timeout, stamped as the `empty-shutdown-minutes` allocation annotation
+    /// so the UE side can self-shutdown before the reaper backstop kicks in.
+    empty_shutdown_minutes: i32,
 }
 
 impl<'a> AllocationPipeline<'a> {
@@ -87,9 +90,20 @@ impl<'a> AllocationPipeline<'a> {
     }
 }
 
+/// Canonical spin-up lock key. The pipeline and every cleanup site must agree on this format, or a
+/// failed allocation leaks its lock and blocks the zone until the staleness timeout.
+pub fn spinup_lock_key(customer_guid: Uuid, zone: &str) -> String {
+    format!("{customer_guid}:{zone}")
+}
+
 impl<'a> AllocationPipeline<'a> {
-    pub fn new(customer_guid: Uuid, zone: &'a str, db: &'a DbPool) -> Self {
-        let lock_key = format!("{customer_guid}:{zone}");
+    pub fn new(
+        customer_guid: Uuid,
+        zone: &'a str,
+        db: &'a DbPool,
+        empty_shutdown_minutes: i32,
+    ) -> Self {
+        let lock_key = spinup_lock_key(customer_guid, zone);
         Self {
             customer_guid,
             zone,
@@ -99,6 +113,7 @@ impl<'a> AllocationPipeline<'a> {
             instance_id: 0,
             existing: None,
             lock_key,
+            empty_shutdown_minutes,
         }
     }
 
@@ -129,24 +144,32 @@ impl<'a> AllocationPipeline<'a> {
         Ok(self)
     }
 
-    /// Errors with `Conflict` when another allocation is in progress for this zone.
+    /// Errors with `Conflict` when another allocation is in progress for this zone. The
+    /// check-and-insert is done through `entry()` so it is atomic per shard — a plain
+    /// `get()` then `insert()` let two concurrent allocations for the same zone both pass.
     pub fn acquire_lock(self, locks: &DashMap<String, Instant>) -> Result<Self, RowsError> {
-        if let Some(entry) = locks.get(&self.lock_key) {
-            let age = entry.value().elapsed();
-            if age < Duration::from_secs(spinup_timeout_secs() + 10) {
-                tracing::info!(zone = %self.zone, age_secs = age.as_secs(), "Spin-up already in progress, skipping");
-                return Err(RowsError::Conflict("Allocation already in progress".into()));
+        use dashmap::mapref::entry::Entry;
+        match locks.entry(self.lock_key.clone()) {
+            Entry::Occupied(mut e) => {
+                let age = e.get().elapsed();
+                if age < Duration::from_secs(spinup_timeout_secs() + 10) {
+                    tracing::info!(zone = %self.zone, age_secs = age.as_secs(), "Spin-up already in progress, skipping");
+                    return Err(RowsError::Conflict("Allocation already in progress".into()));
+                }
+                tracing::warn!(zone = %self.zone, age_secs = age.as_secs(), "Expired stale spin-up lock");
+                e.insert(Instant::now());
             }
-            tracing::warn!(zone = %self.zone, age_secs = age.as_secs(), "Expired stale spin-up lock");
+            Entry::Vacant(e) => {
+                e.insert(Instant::now());
+            }
         }
-        locks.insert(self.lock_key.clone(), Instant::now());
         Ok(self)
     }
 
     #[tracing::instrument(skip(self, agones), fields(zone = %self.zone))]
     pub async fn allocate_via_agones(mut self, agones: &AgonesClient) -> Result<Self, RowsError> {
         let alloc = agones
-            .allocate(self.zone, 0)
+            .allocate(self.zone, 0, self.empty_shutdown_minutes)
             .await
             .map_err(|e| RowsError::Internal(format!("Agones allocation failed: {e}")))?;
 
@@ -236,6 +259,7 @@ impl<'a> AllocationPipeline<'a> {
                 self.world_server_id,
                 self.zone,
                 alloc.port,
+                &alloc.game_server_name,
             )
             .await?;
 

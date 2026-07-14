@@ -12,9 +12,11 @@ import {
 	DispatchPipelines,
 	ExternalPublishSchema,
 	GameEngineConfigSchema,
+	KubeMetadataSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
-} from '../../../../../../packages/data/codegen/generated/ci_registry-schema';
+	BentoDocSchema,
+} from '@kbve/proto/ci_registry-schema';
 
 // Re-export generated types for downstream consumers
 export {
@@ -22,15 +24,27 @@ export {
 	DispatchPipelines,
 	ExternalPublishSchema,
 	GameEngineConfigSchema,
+	KubeMetadataSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
+	BentoDocSchema,
 };
 export type {
 	CiProject,
 	DispatchPipelineValue,
 	ExternalPublish,
+	KubeMetadata,
 	TestFrameworkValue,
-} from '../../../../../../packages/data/codegen/generated/ci_registry-schema';
+	BentoDoc,
+	BentoCta,
+	BentoAside,
+	BentoStat,
+	BentoFeature,
+	BentoRelated,
+	BentoUsage,
+	BentoFaq,
+	BentoTheme,
+} from '@kbve/proto/ci_registry-schema';
 
 // ---------------------------------------------------------------------------
 // Astro-specific fields — not part of the proto contract
@@ -81,6 +95,8 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	shell_path: CiProjectSchema.shape.shell_path,
 	external_publish: ExternalPublishSchema.optional(),
 	engine: GameEngineConfigSchema.optional(),
+	kube: KubeMetadataSchema.optional(),
+	bento: BentoDocSchema.optional(),
 });
 
 export type ICiProject = z.infer<typeof ICiProjectSchema>;

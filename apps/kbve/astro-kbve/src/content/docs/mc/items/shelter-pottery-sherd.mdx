@@ -1,5 +1,6 @@
 ---
 title: Shelter Pottery Sherd
+template: splash
 description: |
     Minecraft Shelter Pottery Sherd — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1372
     ref: shelter_pottery_sherd
     slug: shelter-pottery-sherd
+    content_rev: 1
     display_name: Shelter Pottery Sherd
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Shelter Pottery Sherd is a decorative archaeology find featuring an acacia tree
+            design. It is found only by brushing suspicious sand in warm ocean ruins, making it a
+            non-renewable collectible from the game's archaeology system.
+        lore: |
+            A weathered fragment recovered from ruins sunken beneath a warm ocean.
+    faq:
+        - question: How do you get a Shelter Pottery Sherd?
+          answer: |
+              It can only be obtained by brushing suspicious sand blocks found in warm ocean
+              ruins, with roughly a 6.7% chance of appearing in that loot.
+        - question: What is the Shelter Pottery Sherd used for?
+          answer: |
+              Combine four pottery sherds (or bricks) in a crafting grid to make a decorated pot,
+              a purely decorative block.
+        - question: Is the Shelter Pottery Sherd renewable?
+          answer: |
+              No, it is non-renewable — once the suspicious sand in a given ruin has been
+              brushed, no more sherds of that kind can be found there.
+        - question: Does breaking a decorated pot return the sherd?
+          answer: |
+              Yes, breaking a decorated pot drops all four of its component sherds or bricks
+              intact.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -12,74 +12,85 @@ osrs:
   lowalch: 396000
   highalch: 594000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2013-10-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 6
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: 2h
-    type: crossbow
-    attack_style: ranged
+    weapon_type: crossbow
     attack_speed: 6
-    attack_range: 8
+    weight: 6
     requirements:
       ranged: 70
-    stats:
-      attack_ranged: 100
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 100
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 1
-  special_attack:
-    name: Armadyl Eye
-    energy: 50
-    effect: Doubles accuracy, doubles enchanted bolt proc chance
   drop_table:
     sources:
       - source: Commander Zilyana
-        source_id: 2205
-        combat_level: 596
         quantity: "1"
         rarity: 1/508
-        members_only: true
+  passive_effects:
+    - name: Armadyl Eye
+      description: "Special attack costing 50% energy: doubles overall accuracy and doubles the base chance of enchanted bolt special effects to proc"
   related_items:
-    - item_id: 26374
-      item_name: Zaryte crossbow
+    - item_name: Zaryte crossbow
       slug: zaryte-crossbow
       relationship: upgrade
-      description: Upgraded version
-    - item_id: 21012
-      item_name: Dragon hunter crossbow
+      description: "Upgrade combining the Armadyl crossbow with a nihil horn and 250 nihil shards"
+    - item_name: Dragon hunter crossbow
       slug: dragon-hunter-crossbow
       relationship: alternative
-      description: Dragon specialist
-    - item_id: 21944
-      item_name: Ruby dragon bolts (e)
+      description: "Dragon-specialist crossbow alternative for draconic targets"
+    - item_name: Ruby dragon bolts (e)
       slug: ruby-dragon-bolts-e
       relationship: component
-      description: Best bolt pairing
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Ranged attack | +100 |
-    | Prayer | +1 |
-    | Attack speed | 6 tick (3.6s) |
-    | Range | 8 tiles (10 with Longrange) |
-    | Requirements | 70 Ranged |
-
-    Armadyl Eye (50% energy):
-    - Doubles accuracy
-    - Doubles enchanted bolt proc chance
-    - Great with ruby/diamond bolts
-
-    | Upgrade | Requirements |
-    |---------|--------------|
-    | Zaryte crossbow | + Nihil horn + 250 nihil shards |
-
-    Best For:
-    - Bossing with enchanted bolts
-    - Spec weapon for bolt procs
-    - Pre-Zaryte ranged option
+      description: "Best-in-slot bolt pairing for the Armadyl Eye special"
+  about: Armadyl crossbow is the strongest pre-Zaryte crossbow, dropped by Commander Zilyana at 1/508. Its Armadyl Eye special attack doubles accuracy and enchanted-bolt proc chance, making it elite for ruby and diamond bolt bossing.
   market_strategy:
     notes:
-      - Only crossbow with prayer bonus
-      - Great spec for ruby bolt procs
-      - Upgrade path to Zaryte
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Only crossbow that grants a prayer bonus"
+      - "Premier special-attack weapon for enchanted bolt procs"
+      - "Upgrade path consumes the crossbow into a Zaryte crossbow"
+  trading_tips:
+    - "Watch Commander Zilyana team-mass events for sudden supply bumps"
+    - "Pair flips with Ruby dragon bolts (e) demand: spec-weapon cycles correlate"
+    - "Pre-Zaryte upgrade events historically spike ACB demand"
+  history:
+    - date: "2013-10-17"
+      description: "Released as part of the God Wars Dungeon's Armadyl section drops"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

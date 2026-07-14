@@ -1,7 +1,7 @@
 ---
-title: KASM Void
-description: |
-    Custom KASM workspace image. Bundles the upstream `kasmweb/discord` install with CloakBrowser (stealth Chromium fork) inside the same container, both auto-launched and supervised so the desktop stays populated even if either app crashes or is closed. Designed for in-session Discord screen-share of the bundled browser.
+title: KASM Void — Custom KASM Discord + CloakBrowser Workspace
+description: KASM Void is a custom KASM workspace image bundling Discord and CloakBrowser in one supervised container for in-session Discord screen-share of the browser.
+sem: 1
 sidebar:
     label: KASM Void
     order: 470
@@ -14,7 +14,7 @@ tags:
 key: kasm_void
 pipeline: docker
 app_name: kasm-void
-version: "0.0.2"
+version: "0.0.5"
 source_path: packages/docker/kasm-void
 version_toml: packages/docker/kasm-void/version.toml
 runner: ubuntu-latest
@@ -24,28 +24,92 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: active
+kube:
+    stack: application
+    environment: prod
+    tier: api
+    owner: h0lybyte
+    criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KASM Void image?
+          answer: kasm-void is the production workspace image used by the kasm-vpn Deployment. It extends kasmweb/discord with CloakBrowser so the KASM session exposes both Discord and a browser side-by-side, with the browser as the canonical Discord screen-share target.
+        - question: Why bundle Discord and a browser instead of using the stock image?
+          answer: The stock kasmweb/discord ships only Discord and leaves an empty desktop when closed. Bundling gives a known reproducible browser binary for consistent stream fonts and codecs and lets KBVE own resource requests and limits against a single artifact.
+        - question: How does KASM Void keep the desktop populated after a crash?
+          answer: A custom startup script spawns three supervisor loops (cloak_loop, discord_loop, nav_shim_loop) that poll every 3 to 5 seconds via pgrep and relaunch CloakBrowser, Discord, or the nav_shim if they exit, so no manual KASM session restart is needed.
+bento:
+    badge: docker · kasm · workspace · discord · cloakbrowser
+    title: Discord + browser
+    accent: workspace
+    lede: >-
+        The production workspace image used by the kasm-vpn Deployment. It
+        extends kasmweb/discord with CloakBrowser so a single KASM session
+        exposes Discord and a browser side-by-side — the browser is the
+        canonical screen-share target streamed through Discord's video feature.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/docker/kasm-void
+          primary: true
+          external: true
+        - label: Crash recovery
+          href: "#recovery"
+        - label: Runtime env
+          href: "#runtime"
+    aside:
+        icon: gears
+        title: Self-healing desktop
+        body: >-
+            A custom startup script spawns three supervisor loops that poll every
+            3–5 seconds via <code>pgrep</code> and relaunch CloakBrowser,
+            Discord, or the nav_shim if they exit — no manual session restart.
+        points:
+            - <strong>cloak_loop</strong> — respawns the bundled Chromium fork.
+            - <strong>discord_loop</strong> — respawns the upstream Discord.
+            - <strong>nav_shim_loop</strong> — respawns the URL launcher shim.
+    stats:
+        - { label: App, value: kasm-void, icon: box }
+        - { label: Base, value: kasmweb/discord, icon: package }
+        - { label: Bundles, value: CloakBrowser, icon: eye }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Discord + browser bundle
+          icon: video
+          body: One supervised container exposes Discord and a browser side-by-side for in-session screen-share.
+        - title: Supervisor auto-respawn
+          icon: gears
+          body: Three background loops relaunch any component that exits, keeping the desktop populated after a crash.
+        - title: Reproducible browser
+          icon: eye
+          body: A known Chromium build gives consistent stream fonts and codecs across sessions.
+        - title: Owned resource limits
+          icon: settings
+          body: Bundling lets KBVE own requests/limits against one artifact instead of patching a vendor tag.
+        - title: Guarded URL launcher
+          icon: shield
+          body: The nav_shim exposes only CDP Page.navigate behind bearer auth, a scheme allowlist, and a Cilium NetworkPolicy.
+    related:
+        - title: DiscordSH Bot
+          href: /project/discordsh-bot/
+          copy: Discord gateway bot in the same Discord tooling group.
+          icon: discord
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-`kasm-void` is the production workspace image used by the `kasm-vpn`
-Deployment in `apps/kube/kasm/`. It extends `kasmweb/discord` with
-[CloakBrowser](https://github.com/CloakHQ/CloakBrowser) so the KASM session
-exposes both Discord and a browser side-by-side. The browser is the canonical
-screen-share target inside Discord — the operator opens any URL in the bundled
-Chromium build and streams the window through Discord's video feature.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Why a custom image
-
-- The stock `kasmweb/discord` image ships only Discord; closing it leaves an
-  empty desktop with no way to recover.
-- We need a known, reproducible browser binary inside the workspace so the
-  Discord stream picks up consistent fonts/codecs across sessions.
-- Resource targets are higher than the stock image's defaults — bundling lets
-  us own the `requests/limits` against a single artifact instead of patching
-  a vendor tag.
-
-## Crash recovery
+<BentoProse id="recovery" eyebrow="Supervisors" heading="Crash recovery">
 
 `/dockerstartup/custom_startup.sh` spawns three background supervisors:
 
@@ -63,7 +127,42 @@ The original `kasmweb/discord` startup script is preserved as
 `/dockerstartup/discord_startup.sh` so its arg-handling, profile setup, and
 maximize logic continue to work unchanged.
 
-## Runtime env
+### Desktop shortcuts + helper scripts (v0.0.5)
+
+The Desktop ships with launcher icons so the operator does not have to
+remember paths. Each `.desktop` entry is built into the image at
+`/home/kasm-user/Desktop/` and the underlying scripts live in
+`/home/kasm-user/scripts/`.
+
+| Icon | Action |
+|------|--------|
+| Terminal | Opens `xfce4-terminal` (the package is now installed) |
+| Discord | Direct launcher for `/usr/share/discord/Discord` (host-update skipped) |
+| CloakBrowser | Direct launcher for the bundled Chromium fork |
+| Open URL in Browser | `zenity` prompt → posts to the local `nav_shim` (falls back to a fresh `cloakbrowser --new-window` if the shim is down) |
+| Reload CloakBrowser | Kills `cloakbrowser`, clears the `Singleton*` locks; the supervisor respawns it in ~3s |
+| Reset Discord | Stops Discord, clears `Cache/`/`Code Cache/`/`GPUCache/`/`Shared Dictionary/`, re-seeds `SKIP_HOST_UPDATE` |
+
+### Discord host-update gate
+
+`scripts/seed-discord-config.sh` writes `SKIP_HOST_UPDATE: true` to
+`~/.config/discord/settings.json` before every Discord launch. The
+upstream Discord-on-Linux build otherwise attempts a self-update on each
+boot, which fails inside the gluetun-tunneled namespace and leaves the
+desktop without a Discord window.
+
+### CloakBrowser stability
+
+`cloak_loop` now passes
+`--user-data-dir=/home/kasm-user/.config/cloakbrowser
+--disable-software-rasterizer` and clears stale `SingletonLock`/`SingletonSocket`
+files before each respawn. The loop also tracks an exponential backoff
+when the binary exits in under 2 seconds and tails the last few lines of
+`/tmp/cloakbrowser.log` so the failure is visible from `kubectl logs`.
+
+</BentoProse>
+
+<BentoProse id="runtime" eyebrow="Configuration" heading="Runtime env">
 
 | Variable             | Default              | Notes                                          |
 | -------------------- | -------------------- | ---------------------------------------------- |
@@ -78,7 +177,9 @@ maximize logic continue to work unchanged.
 | `VNC_PW`             | (k8s secret)         | Provided by the kasm `Deployment`              |
 | `APP_ARGS`           | (inherited)          | Discord-side Electron args, consumed upstream  |
 
-## URL launcher (`nav_shim`)
+</BentoProse>
+
+<BentoProse id="nav-shim" eyebrow="Defense in depth" heading="URL launcher (nav_shim)">
 
 The bundled browser opens whatever `START_URL` was at session start. To
 swap it without restarting the pod, the dashboard `POST`s a JSON body to
@@ -97,7 +198,9 @@ The shim is a thin HTTP front for [CDP](https://chromedevtools.github.io/devtool
 | URL policy | Scheme allowlist (http/https), no embedded creds, no loopback/private/link-local hosts, no `.cluster.local`/`.svc` |
 | Audit | Each launch request and shim response is captured via the existing Vector → ClickHouse `project_logs` pipeline |
 
-## Resources
+</BentoProse>
+
+<BentoProse id="deploy" eyebrow="Ops" heading="Resources & build">
 
 The `workspace` container in `apps/kube/kasm/manifest/deployment.yaml` is
 sized for Discord + a browser tab + a screenshare encoder running in parallel:
@@ -111,7 +214,7 @@ The Gluetun sidecar keeps its own modest profile (`100m`/`128Mi` request,
 `500m`/`384Mi` limit) — bumping it does not buy noticeable latency since
 the VPN tunnel is bandwidth-, not CPU-bound.
 
-## Build
+### Build
 
 ```sh
 npx nx run kasm-void:container
@@ -120,3 +223,7 @@ npx nx run kasm-void:test
 
 Published tags land at `ghcr.io/kbve/kasm-void:<version>`; the post-publish
 chore workflow syncs the Deployment image pin to match `version.toml`.
+
+</BentoProse>
+
+</BentoDoc>

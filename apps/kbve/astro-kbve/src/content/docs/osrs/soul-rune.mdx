@@ -12,80 +12,75 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 25000
-  rune:
-    type: catalytic
-    element: soul
-  runecraft:
-    level: 90
-    xp: 29.7
-    altar: Soul Altar
-    altar_location: Arceuus
-    essence_type: dark
-    method: Dark essence fragments
   recipes:
-    - skill: runecraft
+    - skill: Runecraft
       level: 90
-      xp: 29.7
+      experience: 29.7
       materials:
         - item_name: Dark essence fragments
-          item_id: 7938
           quantity: 1
-      product: Soul rune
-      product_id: 566
-      product_quantity: 1
-      facility: Soul altar
-      members_only: true
+      tools:
+        - Soul altar
+        - Chisel
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Dust devil
+        quantity: "1"
+        rarity: Common
+      - source: Skeletal wyvern
+        quantity: "1"
+        rarity: Common
+      - source: Cerberus
+        quantity: "1"
+        rarity: Uncommon
+      - source: Nex
+        quantity: "1"
+        rarity: Uncommon
+  shops:
+    - shop_name: Wizards' Guild Store
+      location: Yanille
+      price: 300
+      stock: 50
   related_items:
-    - item_id: 565
-      item_name: Blood rune
-      slug: blood-rune
+    - name: Blood rune
       relationship: alternative
-      description: Paired for barrages
-    - item_id: 560
-      item_name: Death rune
-      slug: death-rune
+    - name: Death rune
       relationship: alternative
-      description: Ancient magic
-    - item_id: 7938
-      item_name: Dark essence fragments
-      slug: dark-essence-fragments
+    - name: Dark essence fragments
       relationship: component
-      description: Crafting material
-    - item_id: 561
-      item_name: Nature rune
-      slug: nature-rune
+    - name: Nature rune
       relationship: alternative
-      description: Similar tier
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecraft Level | 90 |
-    | Method | Dark essence at Soul Altar |
-    | XP per rune | 29.7 |
-
-    | Spell | Soul Runes | Spellbook |
-    |-------|------------|-----------|
-    | Blood Barrage | 1 | Ancient |
-    | Shadow Barrage | 2 | Ancient |
-    | Teleother spells | 1 | Lunar |
-    | Vulnerability | 1 | Standard |
-    | Reanimation spells | Varies | Arceuus |
-    | Enchant dragonstone | 1 | Standard |
+  about: "Soul rune is a high-level catalytic rune crafted at Arceuus' Soul Altar using dark essence fragments at Runecraft 90. It powers Ancient barrage spells, Lunar teleother magic, Arceuus reanimations, and charges Tumeken's shadow."
   market_strategy:
     notes:
-      - 90 RC required (high barrier)
-      - Dark essence fragments method
-      - Profitable but intensive
-      - Blood Barrage (PvM staple)
-      - Shadow spells
-      - Arceuus reanimation
-      - High-level enchanting
-      - Used with blood runes for barrages
-      - Arceuus training creates demand
-      - Price relatively stable
-      - Fewer suppliers than blood runes
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Runecraft 90 barrier keeps supplier count low and price stable."
+      - "Demand is driven by Blood Barrage usage and Arceuus reanimation training."
+      - "GE buy limit of 25,000 supports large bulk flips."
+  trading_tips:
+    - "Pair with blood runes; their consumption ratio in Barrage spells correlates closely."
+    - "Watch for runecraft-related QoL updates that could shift the dark essence pipeline."
+  history:
+    - date: "2002-10-23"
+      description: "Added to the game alongside the original Ancient Magicks release."
+    - date: "2019-04-04"
+      description: "Soul Altar in Arceuus added, making soul runes player-craftable."
+  properties:
+    release_date: "2002-10-23"
+    update: Ancient Magicks
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

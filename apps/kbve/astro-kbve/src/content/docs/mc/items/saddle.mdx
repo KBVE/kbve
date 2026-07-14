@@ -1,5 +1,6 @@
 ---
 title: Saddle
+template: splash
 description: |
     Minecraft Saddle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 800
     ref: saddle
     slug: saddle
+    content_rev: 1
     display_name: Saddle
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Saddle lets players ride and steer tameable mounts such as horses, camels, and
+            striders. It can be crafted from leather and iron, found in structure loot
+            chests, bought from leatherworker villagers, or looted from a slain ravager.
+        lore: |
+            Simple leather and iron work, a saddle turns any tamed beast into a trusted
+            means of travel.
+    faq:
+        - question: How do I get a Saddle?
+          answer: |
+              Craft one from 3 leather and 1 iron ingot, find it in Nether Fortress, End
+              City, Bastion Remnant, or village chests, buy it from a leatherworker for 6
+              emeralds, fish it up, or take one from a slain ravager.
+        - question: What mobs can I use a Saddle on?
+          answer: |
+              Horses, donkeys, mules, skeleton horses, zombie horses, camels, camel husks,
+              and nautiluses can be ridden and steered directly; pigs need a carrot on a
+              stick and striders need a warped fungus on a stick.
+        - question: Can I enchant a Saddle?
+          answer: |
+              No, saddles cannot be enchanted in Survival mode.
+        - question: How do I remove a Saddle from a mob?
+          answer: |
+              For pigs and striders shears are the only way to remove it; for other mounts
+              you can simply take it back from their inventory or use shears.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

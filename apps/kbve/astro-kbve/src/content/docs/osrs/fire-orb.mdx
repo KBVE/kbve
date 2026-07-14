@@ -1,6 +1,6 @@
 ---
 title: Fire orb | OSRS Price Data
-description: "Fire orb: A magic glowing orb.. High alch: 180 GP, GE limit: 11,000."
+description: "Fire orb: A magic glowing orb. High alch: 180 GP, GE limit: 11,000."
 osrs:
   id: 569
   name: Fire orb
@@ -14,77 +14,94 @@ osrs:
   limit: 11000
   material:
     type: orb
-    tier: charged
-  magic:
-    charge_level: 63
-    charge_xp: 73
-    runes:
-      - item_name: Fire rune
-        item_id: 554
-        quantity: "30"
-      - item_name: Cosmic rune
-        item_id: 564
-        quantity: "3"
-    obelisk: Fire Obelisk
-    location: Taverley Dungeon
+    tier: mid
   recipes:
-    - skill: crafting
-      level: 62
-      xp: 125
-      materials:
+    - materials:
+        - item_name: Unpowered orb
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 30
+        - item_name: Cosmic rune
+          quantity: 3
+      tools:
+        - Obelisk of Fire (Taverley Dungeon)
+      output_quantity: 1
+    - materials:
         - item_name: Battlestaff
-          item_id: 1391
           quantity: 1
         - item_name: Fire orb
-          item_id: 569
           quantity: 1
-      product: Fire battlestaff
-      product_id: 1393
-      product_quantity: 1
-      facility: None
-      members_only: true
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Cerberus
+        quantity: "1"
+        rarity: Common
+      - source: Killerwatt
+        quantity: "1"
+        rarity: Uncommon
+      - source: Lava dragon
+        quantity: "1"
+        rarity: Uncommon
+      - source: Tormented demon
+        quantity: "1"
+        rarity: Uncommon
   related_items:
     - item_id: 1393
       item_name: Fire battlestaff
       slug: fire-battlestaff
       relationship: product
-      description: Final product
+      description: Crafted by attaching the fire orb to a battlestaff.
     - item_id: 567
       item_name: Unpowered orb
       slug: unpowered-orb
       relationship: component
-      description: Base item
+      description: Base item charged at the Obelisk of Fire.
     - item_id: 564
       item_name: Cosmic rune
       slug: cosmic-rune
       relationship: component
-      description: Spell component
+      description: Required to cast the Charge Fire Orb spell.
     - item_id: 1391
       item_name: Battlestaff
       slug: battlestaff
       relationship: component
-      description: Attachment base
-  about: |-
-    | Method | Level | Runes |
-    |--------|-------|-------|
-    | Charge Fire Orb | 63 Magic | 30 Fire, 3 Cosmic |
-    | Location | Fire Obelisk (Taverley Dungeon) | - |
-    | XP | 73 Magic | - |
+      description: Attachment base for the fire battlestaff.
+  about: "Fire orb is a charged orb created by casting Charge Fire Orb (Magic 63) on an unpowered orb at the Obelisk of Fire in Taverley Dungeon; it is the key component for fire battlestaves."
   market_strategy:
     notes:
-      - No Wilderness risk
-      - Taverley Dungeon location
-      - Fire battlestaff production
-      - Fire battlestaff crafting
-      - Crafting training
-      - Tome of fire combo
-      - Safe alternative to air orbs
-      - Safe location (no PKers)
-      - Lower Magic requirement
-      - Fire runes cheap
-      - Less profit than air orbs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Steady demand from Crafting trainers making fire battlestaves.
+      - Wilderness-free charging keeps the supply stable.
+      - Fire battlestaff arbitrage forms the dominant flip path.
+      - Less profitable than air orbs but lower Magic requirement.
+  trading_tips:
+    - Track fire battlestaff vs. fire orb spread for crafting margin.
+    - Stock unpowered orbs and runes for cheap mass production.
+    - Combine with Tome of fire for spell-cost savings while charging.
+    - Watch buy limit changes affecting throughput.
+  history:
+    - date: "2002-03-18"
+      description: Fire orb released alongside the Charge Fire Orb spell and Obelisk of Fire.
+    - date: "2020-09-10"
+      description: Grand Exchange buy limit raised from 10,000 to 11,000.
+  properties:
+    release_date: "2002-03-18"
+    update: Charge Orb Spells
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

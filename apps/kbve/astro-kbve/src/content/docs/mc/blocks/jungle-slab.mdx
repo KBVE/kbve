@@ -1,5 +1,6 @@
 ---
 title: Jungle Slab
+template: splash
 description: |
     Minecraft Jungle Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 570
     ref: jungle_slab
     slug: jungle-slab
+    content_rev: 1
     display_name: Jungle Slab
     material: wood
     hardness: 2
@@ -24,10 +26,55 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_slab
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Jungle Slab is a half-height building block cut from jungle
+            planks. Two slabs stacked in the same space form a full,
+            fully opaque double slab.
+        lore: |
+            Wooden slabs have existed since the earliest versions of
+            Minecraft, with jungle wood variants added alongside the
+            jungle biome in the Jungle Update.
+    uses:
+        - title: Chiseled Bookshelf
+          ref: chiseled_bookshelf
+          detail: |
+              Six wooden slabs plus three books craft a chiseled
+              bookshelf, one of several crafting recipes that use slabs.
+    found_in:
+        - location: Crafted from Jungle Planks
+          detail: Three jungle planks in a horizontal row craft six jungle slabs.
+        - location: Jungle Village Structures
+          detail: Generates naturally in some jungle village buildings and trial chambers.
+    faq:
+        - question: How many jungle slabs drop when I break one?
+          answer: |
+              A single (half) slab drops one; a double slab, formed by
+              stacking two slabs, drops two.
+        - question: Can jungle slabs be waterlogged?
+          answer: |
+              Yes. A slab placed in water keeps the water source in its
+              block space.
+        - question: Are jungle slabs flammable?
+          answer: |
+              Yes, like most overworld wood blocks. Crimson and warped
+              slabs are the fire-resistant exceptions.
+        - question: What tool should I use to break jungle slabs fastest?
+          answer: |
+              An axe. Any tool works since there is no minimum tool tier,
+              but the axe mines it quickest.
     data_version: "1.21.5"
 ---
 

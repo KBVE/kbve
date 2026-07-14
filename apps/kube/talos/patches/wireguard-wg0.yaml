@@ -1,0 +1,57 @@
+## Talos machine config patch — wg0 WireGuard tunnel to external hosts.
+## Template only. No real keys. Fill placeholders at apply.
+##
+## NOT deployed by Argo. Tracked here as the source-of-record; applied
+## manually with talosctl (same flow as kvm-node-label.yaml).
+##
+## Adds a wg0 interface so machines OUTSIDE the cluster (CI hosts, dev
+## laptops) can reach the node over an encrypted tunnel. Separate from
+## Cilium's internal cilium_wg0 — do NOT conflate the two. User-managed
+## tunnel on UDP 51820.
+##
+## Tunnel subnet: 10.10.0.0/24
+##   10.10.0.1  → Talos node (this interface)
+##   10.10.0.2  → MacBook Air CI host (act_runner + GitHub ARC)
+##   10.10.0.3  → Windows laptop
+##
+## SECRETS — nothing committed. There is no talos-wireguard secret in the
+## cluster; the node private key lives only in the applied machine config.
+## Recover it with:
+##   talosctl -n <node> get machineconfig -o yaml | grep -A2 'wireguard:'
+## Peer public keys are not secret but are still injected at apply time to
+## keep this file a pure template.
+##
+## Apply:
+##   export TALOS_WG_PRIVATE_KEY=...   # from current machineconfig, see above
+##   export PEER_MAC_PUBLIC_KEY=...
+##   export PEER_WIN_PUBLIC_KEY=...
+##   envsubst < wireguard-wg0.yaml > /tmp/wg0-apply.yaml
+##   talosctl -n <node> patch machineconfig --patch @/tmp/wg0-apply.yaml
+##   rm /tmp/wg0-apply.yaml
+##
+## MERGE GOTCHA: the strategic merge APPENDS to the peers list — re-applying
+## duplicates existing peers. After apply, verify with
+##   talosctl -n <node> get machineconfig -o yaml | grep -A12 'peers:'
+## and dedupe if needed with an RFC6902 replace patch on
+##   /machine/network/interfaces/<wg0-index>/wireguard/peers
+##
+## Peers: one list entry + one allowedIPs /32 per external host.
+
+machine:
+    network:
+        interfaces:
+            - interface: wg0
+              addresses:
+                  - 10.10.0.1/24
+              wireguard:
+                  privateKey: ${TALOS_WG_PRIVATE_KEY}
+                  listenPort: 51820
+                  peers:
+                      ## External CI host (act_runner + GitHub ARC)
+                      - publicKey: ${PEER_MAC_PUBLIC_KEY}
+                        allowedIPs:
+                            - 10.10.0.2/32
+                      ## Windows laptop
+                      - publicKey: ${PEER_WIN_PUBLIC_KEY}
+                        allowedIPs:
+                            - 10.10.0.3/32

@@ -9,12 +9,52 @@ description: |
     May 17th - The Daily Journal. Display is the Play.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 17,'
+    accent: every year.
+    lede: 'The May 17th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 16'
+          href: /journal/05-16/
+        - label: 'May 18 →'
+          href: /journal/05-18/
+    related:
+        - title: 'Previous · May 16'
+          copy: 'Step back a day to the May 16th log.'
+          href: /journal/05-16/
+          icon: calendar
+        - title: 'Next · May 18'
+          copy: 'Jump ahead to the May 18th log.'
+          href: /journal/05-18/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1715545770403-9d66037a3d93?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Minecraft Item Templates
 
@@ -24,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     This way it be easier to keep track of their unique data points but also expand it to include any custom items that we will want to include in the future.
     Examples of this will be custom food dishes and our airships, but also any unique weapons and armour as well.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Dev Session
 
@@ -95,7 +143,9 @@ export enum ItemCategoryFlags {
     Now the players can place items without any major issues but there could be some minor improvements, one being that the objects are being marked in the default layer.
     Okay, after finishing up the general build and test casing, we can move forward with adding some of the farming style logic to certain items.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 **Display**
 
@@ -117,7 +167,9 @@ The solution would be to shift a bit more towards an off tank shaco build, where
 
 The roast of holybyte was a great event, 10/10, it was exactly what I was expecting and it still delivered beyond it.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:00am - Need to get back onto the workout flow here in the states! Damn I have to stop being lazy, maybe for fun, I should make a GPS based alarm clock? The only way to turn off the alarm clock is by going to a specific GPS location. So instead of a snooze button, it would be the GPS location that would turn it off. This was a shower thought but I think it would be an interesting concept to build out.
 
@@ -131,9 +183,15 @@ The roast of holybyte was a great event, 10/10, it was exactly what I was expect
 
 - 2:00pm - The search on the main page was broken, going to go ahead and address that really quick. I think the style for the search can be improved later down, but for now, it would make sense to not over complicate things.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The least movement is of importance to all nature. The entire ocean is affected by a pebble.
 > — <cite>Blaise Pascal</cite>
 
 ---
+
+</BentoProse>
+
+</BentoDoc>

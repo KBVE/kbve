@@ -1,0 +1,188 @@
+[
+	{
+		"id": "bush",
+		"ref": "bush",
+		"name": "Bush",
+		"role": "prop_solid",
+		"image": "/assets/tiledb/bush.png",
+		"tileSize": 16,
+		"frameCount": 1,
+		"collides": true,
+		"biomes": [
+			"city",
+			"dungeon"
+		],
+		"tags": [
+			"foliage",
+			"prop"
+		],
+		"animation": null
+	},
+	{
+		"id": "ground-stone",
+		"ref": "ground-stone",
+		"name": "Stone Ground",
+		"role": "ground",
+		"image": "/assets/tiledb/ground-stone.png",
+		"tileSize": 16,
+		"frameCount": 1,
+		"collides": false,
+		"biomes": [
+			"city",
+			"dungeon"
+		],
+		"tags": [
+			"floor"
+		],
+		"animation": null
+	},
+	{
+		"id": "roof-tile-a",
+		"ref": "roof-tile-a",
+		"name": "Roof Band A",
+		"role": "roof",
+		"image": "/assets/tiledb/roof-tile-a.png",
+		"tileSize": 16,
+		"frameCount": 1,
+		"collides": true,
+		"biomes": [
+			"city"
+		],
+		"tags": [
+			"building"
+		],
+		"animation": null
+	},
+	{
+		"id": "roof-tile-b",
+		"ref": "roof-tile-b",
+		"name": "Roof Band B",
+		"role": "roof",
+		"image": "/assets/tiledb/roof-tile-b.png",
+		"tileSize": 16,
+		"frameCount": 1,
+		"collides": true,
+		"biomes": [
+			"city"
+		],
+		"tags": [
+			"building"
+		],
+		"animation": null
+	},
+	{
+		"id": "roof-tile-c",
+		"ref": "roof-tile-c",
+		"name": "Roof Band C",
+		"role": "roof",
+		"image": "/assets/tiledb/roof-tile-c.png",
+		"tileSize": 16,
+		"frameCount": 1,
+		"collides": true,
+		"biomes": [
+			"city"
+		],
+		"tags": [
+			"building"
+		],
+		"animation": null
+	},
+	{
+		"id": "wall-stone-a",
+		"ref": "wall-stone-a",
+		"name": "Stone Wall A",
+		"role": "wall",
+		"image": "/assets/tiledb/wall-stone-a.png",
+		"tileSize": 16,
+		"frameCount": 1,
+		"collides": true,
+		"biomes": [
+			"city",
+			"dungeon"
+		],
+		"tags": [
+			"building"
+		],
+		"animation": null
+	},
+	{
+		"id": "wall-stone-b",
+		"ref": "wall-stone-b",
+		"name": "Stone Wall B",
+		"role": "wall",
+		"image": "/assets/tiledb/wall-stone-b.png",
+		"tileSize": 16,
+		"frameCount": 1,
+		"collides": true,
+		"biomes": [
+			"city",
+			"dungeon"
+		],
+		"tags": [
+			"building"
+		],
+		"animation": null
+	},
+	{
+		"id": "wall-stone-c",
+		"ref": "wall-stone-c",
+		"name": "Stone Wall C",
+		"role": "wall",
+		"image": "/assets/tiledb/wall-stone-c.png",
+		"tileSize": 16,
+		"frameCount": 1,
+		"collides": true,
+		"biomes": [
+			"city",
+			"dungeon"
+		],
+		"tags": [
+			"building"
+		],
+		"animation": null
+	},
+	{
+		"id": "wall-stone-d",
+		"ref": "wall-stone-d",
+		"name": "Stone Wall D",
+		"role": "wall",
+		"image": "/assets/tiledb/wall-stone-d.png",
+		"tileSize": 16,
+		"frameCount": 1,
+		"collides": true,
+		"biomes": [
+			"city",
+			"dungeon"
+		],
+		"tags": [
+			"building"
+		],
+		"animation": null
+	},
+	{
+		"id": "water",
+		"ref": "water",
+		"name": "Water",
+		"role": "water",
+		"image": "/assets/tiledb/water.png",
+		"tileSize": 16,
+		"frameCount": 2,
+		"collides": true,
+		"biomes": [
+			"city",
+			"dungeon"
+		],
+		"tags": [
+			"liquid"
+		],
+		"animation": {
+			"hasAnimation": true,
+			"spriteSheetPath": "/assets/tiledb/water.png",
+			"frameDurations": [
+				0.5,
+				0.5
+			],
+			"loop": true
+		}
+	}
+]

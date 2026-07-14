@@ -12,9 +12,78 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Worm crunchies is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 14
+      xp: 104
+      materials:
+        - item_name: Unfinished crunchy
+          quantity: 1
+        - item_name: King worm
+          quantity: 2
+        - item_name: Equa leaves
+          quantity: 1
+        - item_name: Gnome spice
+          quantity: 1
+      tools:
+        - Range
+      output_quantity: 1
+  shops:
+    - shop_name: Hudo's Grocery Store
+      location: Grand Tree
+      price: 85
+      currency: Coins
+      stock: 3
+  related_items:
+    - item_name: Unfinished crunchy
+      slug: unfinished-crunchy
+      relationship: component
+      description: Intermediate step before cooking worm crunchies on a range.
+    - item_name: King worm
+      slug: king-worm
+      relationship: component
+      description: Primary filling ingredient used in the dough.
+    - item_name: Toad crunchies
+      slug: toad-crunchies
+      relationship: alternative
+      description: Sibling gnome cuisine crunchy with a different filling.
+    - item_name: Spicy crunchies
+      slug: spicy-crunchies
+      relationship: alternative
+      description: Spicier crunchy variant from Gnome Cooking.
+  about: "Worm crunchies are gnome cuisine cooked at level 14 Cooking for 104 experience, healing 8 hitpoints per bite. They are a popular Gnome Restaurant minigame item, and pre-made versions can be bought from gnome waiters in the Grand Tree. The bulk XP per crunchy keeps them competitive for low-level Cooking training."
+  market_strategy:
+    notes:
+      - "GE price often exceeds raw alch value due to Gnome Cooking demand."
+      - "Hudo's Grocery offers a cheap shop alternative for self-supply."
+      - "King worm scarcity periodically lifts crunchy prices."
+  trading_tips:
+    - "Stock up on king worms via Hunter to undercut GE crunchy pricing."
+    - "Watch for Gnome Restaurant delivery quest spikes — order demand boosts crunchy turnover."
+    - "Pair with the unfinished crunchy supply chain for end-to-end profit."
+  history:
+    - date: "2002-12-12"
+      description: "Added with the Gnome Restaurant minigame and Gnome Cooking expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

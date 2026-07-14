@@ -1,0 +1,44 @@
+---
+title: 'Candelabrum Stand'
+template: splash
+sidebar:
+    label: 'Candelabrum Stand'
+    hidden: true
+description: |
+    A wrought-iron floor candelabrum on a heavy cast base, its crossarms cradling a tier of tallow candles. Folds down into a bundle of black rods and a wrapped ring of candles for the pack, and stands itself back up with a twist of the central shaft.
+lore: |
+    Favored by hedge-conjurers and reading-circle adepts who cannot afford a leyline but can afford candles. The arrangement is older than any of them: light set at the cardinal points steadies a wandering mind and, the practitioners insist, lets the reserves refill a little faster between workings. Skeptics light one anyway, then quietly buy a second.
+ref: 'candelabrum-stand'
+key: 563
+id: '01KW1TG5WKZ9PQWV62AEZV278A'
+name: 'Candelabrum Stand'
+type_flags: 8704
+img: '/assets/items/furniture/candelabrum-stand.png'
+pixel_density: 64
+sorting_layer: Ground
+sorting_order: 10
+consumable: true
+stackable: true
+max_stack: 1
+rarity: 'rare'
+buy_price: 180
+emoji: '🕯️'
+action: 'consume'
+credits: |
+    Candelabrum Stand artwork by Infernus PVGames
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
+
+A deployable floor candelabrum. Plant it down and the ring of candlelight steadies the mind — anyone standing near it regenerates mana over time. Press **R** while placing to rotate the stand. Pick it back up to fold it into the pack again.

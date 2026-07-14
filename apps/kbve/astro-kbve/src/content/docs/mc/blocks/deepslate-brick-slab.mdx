@@ -1,5 +1,6 @@
 ---
 title: Deepslate Brick Slab
+template: splash
 description: |
     Minecraft Deepslate Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1074
     ref: deepslate_brick_slab
     slug: deepslate-brick-slab
+    content_rev: 1
     display_name: Deepslate Brick Slab
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: deepslate_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Deepslate Brick Slab is the half-height variant of deepslate
+            bricks, used for decorative floors, staircases, and trim. It
+            shares deepslate bricks' dark gray tone and durability.
+        lore: |
+            Introduced alongside deepslate bricks in the Caves & Cliffs
+            update, and later folded into the natural ancient city
+            generation added in 1.19.
+    uses:
+        - title: Deepslate Brick Slab
+          ref: deepslate_brick_slab
+          detail: |
+              Crafted from 3 deepslate bricks in a horizontal row for 6
+              slabs, or produced from cobbled deepslate, polished
+              deepslate, or deepslate bricks via a stonecutter.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as flooring and detailing throughout ancient city structures.
+        - location: Crafting table / Stonecutter
+          detail: Also obtained by crafting or stonecutting deepslate-family blocks.
+    faq:
+        - question: What tool do I need to mine Deepslate Brick Slab?
+          answer: |
+              Any pickaxe, wood tier or higher. Without a pickaxe it drops
+              nothing.
+        - question: Does it burn or take fire damage?
+          answer: |
+              No. Like all deepslate blocks, it is non-flammable and
+              unaffected by lava.
+        - question: Can I stack it into a full block?
+          answer: |
+              Yes. Two slabs placed in the same space combine into a full
+              Deepslate Bricks-height double slab.
+        - question: Where do these slabs come from naturally?
+          answer: |
+              They generate only in ancient city structures; otherwise
+              they must be crafted or stonecut.
     data_version: "1.21.5"
 ---
 

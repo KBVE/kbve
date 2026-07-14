@@ -1,5 +1,6 @@
 ---
 title: Weeping Vines
+template: splash
 description: |
     Minecraft Weeping Vines — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,12 @@ mc_block:
     id: 837
     ref: weeping_vines
     slug: weeping-vines
+    content_rev: 1
     display_name: Weeping Vines
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weeping_vines
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - nether
+    about:
+        description: |
+            Weeping Vines are hanging plant blocks that dangle downward from
+            the ceilings of crimson forests in the Nether. Players can climb
+            them by holding the jump key, making them a useful vertical
+            traversal tool in a dimension with no water buckets to break
+            falls.
+        lore: |
+            Added in the Nether Update (1.16), Weeping Vines are the crimson
+            counterpart to the Overworld's Twisting Vines found in warped
+            forests.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Weeping Vines can be placed in a composter for a 50% chance to
+              raise the compost level, and grown downward with bone meal to
+              build quick descent routes.
+    found_in:
+        - location: Crimson Forest (Nether)
+          detail: Grows on the underside of huge crimson fungi and cave ceilings throughout crimson forests.
+    faq:
+        - question: What is the fastest way to harvest Weeping Vines?
+          answer: |
+              Shears break them instantly and guarantee a drop; any other
+              tool also breaks them instantly but only has a 33% base chance
+              to drop the item.
+        - question: Does Fortune increase Weeping Vines drops?
+          answer: |
+              Yes. Drop chance rises to 55% with Fortune I, 77% with Fortune
+              II, and 100% with Fortune III.
+        - question: Can Weeping Vines burn in lava?
+          answer: |
+              No. Like most Nether flora, Weeping Vines do not catch fire
+              from lava contact.
+        - question: How do I extend Weeping Vines downward?
+          answer: |
+              Apply bone meal to the topmost segment to grow the vine
+              further down, letting players build custom climbing shafts.
     data_version: "1.21.5"
 ---
 

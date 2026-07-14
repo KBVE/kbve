@@ -1,0 +1,2402 @@
+name: CI - Unreal Build
+
+on:
+    workflow_call:
+        inputs:
+            mode:
+                description: 'server | game | plugin | plugin-win | win-setup | mac-setup'
+                required: true
+                type: string
+
+            shell_path:
+                description: '[server] Monorepo shell project path (e.g. apps/chuckrpg/unreal-chuck)'
+                required: false
+                type: string
+                default: ''
+
+            key:
+                description: '[game] Manifest key'
+                required: false
+                type: string
+                default: ''
+            app_name:
+                description: '[game] UE project / build name'
+                required: false
+                type: string
+                default: ''
+            project_path:
+                description: '[game] Path to dir containing the .uproject file (within the game repo)'
+                required: false
+                type: string
+                default: ''
+            engine_version:
+                description: '[game] UE version pin (e.g. 5.8.0) - docker tag derived as dev-<version>'
+                required: false
+                type: string
+                default: '5.8.0'
+            build_targets:
+                description: '[game] JSON array of UE platform targets (e.g. ["Win64","Linux"])'
+                required: false
+                type: string
+                default: '["Linux"]'
+            external_repo_url:
+                description: '[game] Game repo (owner/name) to clone'
+                required: false
+                type: string
+                default: ''
+            external_repo_ref:
+                description: '[game] Branch/ref of external_repo_url (empty = default branch)'
+                required: false
+                type: string
+                default: ''
+            server_target:
+                description: '[game] UE server target (overrides build.toml)'
+                required: false
+                type: string
+                default: ''
+            server_config:
+                description: '[game] UE -serverconfig (overrides build.toml)'
+                required: false
+                type: string
+                default: ''
+            client_config:
+                description: '[game] UE -clientconfig (default Shipping)'
+                required: false
+                type: string
+                default: ''
+            custom_config:
+                description: '[game] UE -CustomConfig client cook layer (e.g. Beta)'
+                required: false
+                type: string
+                default: ''
+            verify_baked_config:
+                description: '[game] When "true", print the cooked DefaultGame.ini OWS endpoint before packaging to confirm the per-env backend config baked (KBVE/kbve#13081). Opt-in per project; leave empty for projects without per-env backend config.'
+                required: false
+                type: string
+                default: ''
+            use_logging_in_shipping:
+                description: '[game/server] When "1", export USE_LOGGING_IN_SHIPPING=1 so the UE target keeps UE_LOG in Shipping builds (default UE strips it). Empty = leave UE default.'
+                required: false
+                type: string
+                default: ''
+            game_mode:
+                description: '[game] Server launch game mode (fleet metadata)'
+                required: false
+                type: string
+                default: ''
+            maps:
+                description: '[game] JSON array of maps to cook (empty = -allmaps)'
+                required: false
+                type: string
+                default: ''
+            version_source:
+                description: '[game] Path to version source (mdx)'
+                required: false
+                type: string
+                default: ''
+            version_toml:
+                description: '[game] Path to version.toml (published tracker)'
+                required: false
+                type: string
+                default: ''
+            manifest_version:
+                description: '[game] Version from manifest (local)'
+                required: false
+                type: string
+                default: ''
+
+
+            plugin_path:
+                description: '[plugin] Plugin dir relative to repo root'
+                required: false
+                type: string
+                default: ''
+            plugin_name:
+                description: '[plugin] Plugin name - matches the .uplugin filename'
+                required: false
+                type: string
+                default: ''
+            ue_image_tag:
+                description: '[plugin/game] Epic UE container image tag'
+                required: false
+                type: string
+                default: 'dev-5.8.0'
+            target_platforms:
+                description: '[plugin] BuildPlugin platforms (e.g. Linux, Win64, Linux+Win64)'
+                required: false
+                type: string
+                default: 'Linux'
+            release_tag_prefix:
+                description: '[plugin] GitHub Release tag prefix'
+                required: false
+                type: string
+                default: ''
+            dependency_plugin_paths:
+                description: '[plugin] Space-separated dependency plugin paths'
+                required: false
+                type: string
+                default: ''
+            engine_root:
+                description: '[plugin-win] UE5 engine root on the Windows runner'
+                required: false
+                type: string
+                default: ''
+            build_timeout:
+                description: '[plugin] Build job timeout (minutes)'
+                required: false
+                type: number
+                default: 60
+            verify_only:
+                description: '[plugin] Compile-verify only - skip release/itch (used by PR plugin verify)'
+                required: false
+                type: boolean
+                default: false
+
+            deploy_to_itch:
+                description: '[game/plugin] Deploy to itch.io after build'
+                required: false
+                type: boolean
+                default: false
+            itch_username:
+                description: '[game/plugin] Itch.io username'
+                required: false
+                type: string
+                default: 'kbve'
+            itch_game_id:
+                description: '[game/plugin] Itch.io game/project ID'
+                required: false
+                type: string
+                default: ''
+            itch_channel:
+                description: 'Itch.io channel. [game] empty = plain linux/macos/windows; set = suffix (e.g. dev -> linux-dev). [plugin] empty = plugin_name.'
+                required: false
+                type: string
+                default: ''
+            notarize:
+                description: '[game] Developer ID sign + notarize the Mac .app (requires APPLE_* secrets)'
+                required: false
+                type: boolean
+                default: false
+        secrets:
+            epic_pat:
+                description: 'PAT for ghcr.io/epicgames + game repo (falls back to UNITY_PAT)'
+                required: false
+            UNITY_PAT:
+                description: 'Org-level PAT fallback'
+                required: false
+            butler_api:
+                description: 'Itch.io Butler API key'
+                required: false
+            FORGEJO_USER:
+                description: 'Forgejo (git.kbve.com) user for per-game LFS pull'
+                required: false
+            FORGEJO_TOKEN:
+                description: 'Forgejo (git.kbve.com) token for per-game LFS pull'
+                required: false
+            APPLE_CERTIFICATE:
+                description: '[game/notarize] base64 Developer ID Application .p12'
+                required: false
+            APPLE_CERTIFICATE_PASSWORD:
+                description: '[game/notarize] .p12 export password'
+                required: false
+            APPLE_SIGNING_IDENTITY:
+                description: '[game/notarize] "Developer ID Application: Name (TEAMID)"'
+                required: false
+            APPLE_ID:
+                description: '[game/notarize] Apple ID email'
+                required: false
+            APPLE_PASSWORD:
+                description: '[game/notarize] app-specific password'
+                required: false
+            APPLE_TEAM_ID:
+                description: '[game/notarize] 10-char team id'
+                required: false
+        outputs:
+            version:
+                description: 'Resolved version (plugin/engine modes)'
+                value: ${{ jobs.plugin_check.outputs.version }}
+            should_release:
+                description: 'Whether a plugin release was created'
+                value: ${{ jobs.plugin_check.outputs.should_release }}
+
+concurrency:
+    group: ci-unreal-${{ inputs.mode }}-${{ inputs.shell_path }}${{ inputs.app_name }}${{ inputs.plugin_name }}-${{ inputs.target_platforms }}-${{ github.ref }}
+    cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v9
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo}`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      if (context.actor === 'github-actions[bot]' && context.payload.repository?.full_name === 'KBVE/kbve') {
+                        core.setOutput('allowed', 'true');
+                        return;
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access - insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    # ════════════════ SERVER (Linux dedicated server) ════════════════
+    server_config:
+        name: Server Config
+        needs: guard
+        if: inputs.mode == 'server' && needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.parse.outputs.version }}
+            project_repo: ${{ steps.parse.outputs.project_repo }}
+            project_path: ${{ steps.parse.outputs.project_path }}
+            server_target: ${{ steps.parse.outputs.server_target }}
+            ue_image_tag: ${{ steps.parse.outputs.ue_image_tag }}
+            server_config: ${{ steps.parse.outputs.server_config }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Parse shell project
+              id: parse
+              run: |
+                  SHELL="${{ inputs.shell_path }}"
+                  MANIFEST="${{ inputs.manifest_version }}"
+
+                  if [ -n "${MANIFEST}" ]; then
+                    VERSION="${MANIFEST}"
+                  elif [ -f "${SHELL}/version.toml" ]; then
+                    VERSION=$(grep -m1 '^version' "${SHELL}/version.toml" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    VERSION="0.0.1"
+                    echo "::warning::${SHELL}/version.toml not found, using fallback ${VERSION}"
+                  fi
+
+                  BUILD="${SHELL}/build.toml"
+                  if [ ! -f "${BUILD}" ]; then
+                    echo "::error::${BUILD} not found - cannot determine build config"
+                    exit 1
+                  fi
+
+                  get_val() {
+                    grep -m1 "^$1" "${BUILD}" | sed "s/$1 = \"\(.*\)\"/\1/"
+                  }
+
+                  REPO=$(get_val "repo")
+                  PROJECT_PATH=$(get_val "path")
+                  SERVER_TARGET=$(get_val "server_target")
+                  UE_IMAGE_TAG=$(get_val "ue_image_tag")
+                  SERVER_CONFIG=$(get_val "server_config")
+
+                  # Manifest entry (MDX engine.*) wins over build.toml so per-game config
+                  # lives in the registry and the workflow stays game-agnostic.
+                  [ -n "${{ inputs.server_target }}" ] && SERVER_TARGET="${{ inputs.server_target }}"
+                  [ -n "${{ inputs.server_config }}" ] && SERVER_CONFIG="${{ inputs.server_config }}"
+
+                  UE_IMAGE_TAG="${UE_IMAGE_TAG:-dev-5.8.0}"
+                  SERVER_CONFIG="${SERVER_CONFIG:-Development}"
+
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "project_repo=${REPO}" >> "$GITHUB_OUTPUT"
+                  echo "project_path=${PROJECT_PATH}" >> "$GITHUB_OUTPUT"
+                  echo "server_target=${SERVER_TARGET}" >> "$GITHUB_OUTPUT"
+                  echo "ue_image_tag=${UE_IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+                  echo "server_config=${SERVER_CONFIG}" >> "$GITHUB_OUTPUT"
+
+                  echo "::notice::Shell: ${SHELL} | v${VERSION} | ${REPO} | ${SERVER_TARGET} | UE ${UE_IMAGE_TAG} | ${SERVER_CONFIG}"
+
+    server_gate:
+        name: Server Version Gate
+        needs: [guard, server_config]
+        if: inputs.mode == 'server' && needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-ue
+        timeout-minutes: 5
+        outputs:
+            should_build: ${{ steps.check.outputs.should_build }}
+        steps:
+            - name: Check if version already deployed
+              id: check
+              run: |
+                  VERSION="${{ needs.server_config.outputs.version }}"
+                  TARGET="${{ needs.server_config.outputs.server_target }}"
+                  DEST="/mnt/longhorn/ows-server/${TARGET}/${VERSION}"
+
+                  if [ -d "${DEST}/LinuxServer" ]; then
+                    FILE_COUNT=$(find "${DEST}/LinuxServer" -type f 2>/dev/null | wc -l)
+                    if [ "${FILE_COUNT}" -gt 0 ]; then
+                      echo "::notice::v${VERSION} already deployed (${FILE_COUNT} files). Skipping build."
+                      echo "should_build=false" >> "$GITHUB_OUTPUT"
+                    else
+                      echo "::notice::v${VERSION} directory exists but is empty. Will rebuild."
+                      echo "should_build=true" >> "$GITHUB_OUTPUT"
+                    fi
+                  else
+                    echo "::notice::v${VERSION} not found on PVC. Will build."
+                    echo "should_build=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    server_build:
+        name: Build ${{ needs.server_config.outputs.server_target }} (Linux Server)
+        needs: [guard, server_config, server_gate]
+        if: inputs.mode == 'server' && needs.guard.outputs.allowed == 'true' && needs.server_gate.outputs.should_build == 'true'
+        runs-on: arc-runner-ue
+        timeout-minutes: 480
+        permissions:
+            contents: read
+            packages: read
+        env:
+            UE_IMAGE: ghcr.io/epicgames/unreal-engine:${{ needs.server_config.outputs.ue_image_tag }}
+        steps:
+            - name: Resolve PAT (epic_pat -> UNITY_PAT fallback)
+              id: pat
+              run: |
+                  TOKEN="${{ secrets.epic_pat }}"
+                  if [ -z "${TOKEN}" ]; then
+                    TOKEN="${{ secrets.UNITY_PAT }}"
+                    echo "::notice::Using UNITY_PAT (epic_pat not provided)"
+                  else
+                    echo "::notice::Using epic_pat"
+                  fi
+                  if [ -z "${TOKEN}" ]; then
+                    echo "::error::No PAT available - set epic_pat or UNITY_PAT"
+                    exit 1
+                  fi
+                  echo "::add-mask::${TOKEN}"
+                  echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
+
+            - name: Audit log
+              run: |
+                  echo "::notice::UE5 dedicated server build - repo=${{ needs.server_config.outputs.project_repo }}, target=${{ needs.server_config.outputs.server_target }}, image=${{ env.UE_IMAGE }}, version=${{ needs.server_config.outputs.version }}, actor=${{ github.actor }}"
+
+            - name: Pull UE image (in-cluster cache, ghcr fallback)
+              env:
+                  CACHE_HOST: registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
+              run: |
+                  TARGET="${{ env.UE_IMAGE }}"
+                  CACHE_REF="${TARGET/ghcr.io/$CACHE_HOST}"
+                  # Authenticate to ghcr unconditionally so a cache HIT still
+                  # leaves a valid ghcr session for any later step (and so the
+                  # fallback path needs no separate login).
+                  echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+                  if docker pull "$CACHE_REF"; then
+                    docker tag "$CACHE_REF" "$TARGET"
+                    echo "::notice::UE image served from in-cluster cache ($CACHE_REF)"
+                  else
+                    echo "::warning::cache miss/unreachable -> pulling from ghcr.io"
+                    docker pull "$TARGET"
+                  fi
+
+            - name: Checkout monorepo
+              uses: actions/checkout@v7
+              with:
+                  lfs: false
+
+            - name: Clone external game repo + materialize project
+              env:
+                  GH_TOKEN: ${{ steps.pat.outputs.token }}
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  SLUG="${{ inputs.external_repo_url }}"
+                  SLUG="${SLUG#https://github.com/}"
+                  SLUG="${SLUG#git@github.com:}"
+                  SLUG="${SLUG%.git}"
+                  SUBDIR="${{ inputs.project_path }}"
+                  REF="${{ inputs.external_repo_ref }}"
+                  echo "::notice::Cloning external game repo ${SLUG} (${REF:-default branch}), subdir '${SUBDIR}'"
+                  rm -rf /tmp/game-clone /tmp/game-project
+
+                  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 ${REF:+--branch "${REF}"} \
+                    "https://x-access-token:${GH_TOKEN}@github.com/${SLUG}.git" /tmp/game-clone
+
+                  cd /tmp/game-clone
+
+                  if [ -n "${SUBDIR}" ] && [ "${SUBDIR}" != "." ]; then
+                    INCLUDE="${SUBDIR}/**"
+                    SRC="/tmp/game-clone/${SUBDIR}"
+                  else
+                    INCLUDE="**"
+                    SRC="/tmp/game-clone"
+                  fi
+
+                  RAW_LFS=""
+                  [ -f .lfsconfig ] && RAW_LFS=$(git config -f .lfsconfig lfs.url 2>/dev/null || true)
+                  case "${RAW_LFS}" in
+                    *forgejo.kbve.com*|*git.kbve.com*|*mc.kbve.com*)
+                      if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
+                        echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
+                        exit 1
+                      fi
+                      echo "::add-mask::${FORGEJO_TOKEN}"
+                      REPO_PATH="${RAW_LFS#ssh://}"; REPO_PATH="${REPO_PATH#https://}"; REPO_PATH="${REPO_PATH#http://}"
+                      REPO_PATH="${REPO_PATH#*@}"
+                      REPO_PATH="${REPO_PATH#*/}"
+                      REPO_PATH="${REPO_PATH%/}"
+                      case "${REPO_PATH}" in
+                        */info/lfs) ;;
+                        *.git) REPO_PATH="${REPO_PATH}/info/lfs" ;;
+                        *) REPO_PATH="${REPO_PATH%.git}.git/info/lfs" ;;
+                      esac
+                      AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
+                      echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
+                      # Preflight: fail fast with a clear, classifiable error if the token is bad,
+                      # instead of burning the whole pull on a cryptic git-lfs auth error.
+                      LFS_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+                        -X POST -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/vnd.git-lfs+json' \
+                        -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
+                        --max-time 20 "${AUTH_LFS}/objects/batch" || echo 000)
+                      if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
+                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                        exit 1
+                      fi
+                      echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
+                      git -c lfs.url="${AUTH_LFS}" lfs install --local
+                      git config --local lfs.transfer.maxretries 10
+                      n=0
+                      until git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"; do
+                        n=$((n+1))
+                        if [ "$n" -ge 4 ]; then
+                          echo "::error::LFS pull from git.kbve.com failed after ${n} tries (transient 503/ingress hiccup — single-replica Forgejo rolled or LFS-store IO stalled). Re-run the job."
+                          exit 1
+                        fi
+                        echo "::warning::LFS pull attempt ${n} hit a transient git.kbve.com error; retrying in $((n*15))s"
+                        sleep $((n*15))
+                      done
+                      ;;
+                    *)
+                      echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
+                      git lfs install --local
+                      git lfs pull --include="${INCLUDE}"
+                      ;;
+                  esac
+
+                  if [ ! -d "${SRC}" ]; then
+                    echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
+                    exit 1
+                  fi
+                  mkdir -p /tmp/game-project
+                  cp -r "${SRC}/." /tmp/game-project/
+
+            - name: Build dedicated server
+              env:
+                  SERVER_TARGET: ${{ needs.server_config.outputs.server_target }}
+                  SERVER_CONFIG: ${{ needs.server_config.outputs.server_config }}
+                  USE_LOGGING_IN_SHIPPING: ${{ inputs.use_logging_in_shipping }}
+              run: |
+                  mkdir -p /tmp/ue5-build-output
+
+                  LOGGING_ENV_ARG=""
+                  [ -n "${USE_LOGGING_IN_SHIPPING}" ] && LOGGING_ENV_ARG="-e USE_LOGGING_IN_SHIPPING=${USE_LOGGING_IN_SHIPPING}"
+
+                  UPROJECT_FILE=$(find /tmp/game-project -maxdepth 1 -name '*.uproject' | head -1)
+                  if [ -z "${UPROJECT_FILE}" ]; then
+                    echo "::error::No .uproject at /tmp/game-project root (materialized from external repo)"
+                    exit 1
+                  fi
+                  UPROJECT_FILE=$(basename "${UPROJECT_FILE}")
+                  PROJECT_MOUNT="/tmp/game-project"
+
+                  echo "::notice::Mounting ${PROJECT_MOUNT} -> /project, building ${UPROJECT_FILE} (target ${SERVER_TARGET})"
+
+                  docker run --rm \
+                    -v "${PROJECT_MOUNT}:/project" \
+                    -v /tmp/ue5-build-output:/output \
+                    --mount type=tmpfs,destination=/ram,tmpfs-size=34359738368 \
+                    --env UE-LocalDataCachePath=/ram/ddc \
+                    ${LOGGING_ENV_ARG} \
+                    "${{ env.UE_IMAGE }}" \
+                    /bin/bash -c '
+                      set -euo pipefail
+
+                      # Tier the write-heavy UE local DDC onto the /ram tmpfs (RAM) so it
+                      # stays out of dockers writable layer on the longhorn-sdb PVC store.
+                      # report() measures the DDC + residual home/tmp writes so a later
+                      # pass can redirect whatever still escapes to the overlay.
+                      mkdir -p /ram/ddc
+                      report() { echo "::group::DDC tiering report"; printf "DDC=%s\n" "$(printenv UE-LocalDataCachePath || true)"; df -h /ram || true; du -sh /ram/ddc 2>/dev/null || true; echo "-- residual (redirect next if large) --"; du -sh "$HOME/.cache" "$HOME/.config" "$HOME/.nuget" "$HOME/.dotnet" /tmp 2>/dev/null || true; echo "::endgroup::"; }
+                      trap report EXIT
+
+                      RUNUAT=""
+                      for candidate in \
+                        /home/ue4/UnrealEngine \
+                        /home/epic/UnrealEngine \
+                        /UnrealEngine; do
+                        if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
+                          RUNUAT="$candidate/Engine/Build/BatchFiles/RunUAT.sh"
+                          echo "::notice::RunUAT located at: $RUNUAT"
+                          break
+                        fi
+                      done
+
+                      if [ -z "$RUNUAT" ]; then
+                        echo "::error::RunUAT.sh not found in container"
+                        find / -name "RunUAT.sh" 2>/dev/null || true
+                        exit 1
+                      fi
+
+                      "$RUNUAT" BuildCookRun \
+                        -project=/project/'"${UPROJECT_FILE}"' \
+                        -targetplatform=Linux \
+                        -target='"${SERVER_TARGET}"' \
+                        -server \
+                        -serverconfig='"${SERVER_CONFIG}"' \
+                        -cook \
+                        -allmaps \
+                        -build \
+                        -stage \
+                        -pak \
+                        -archive \
+                        -archivedirectory=/output \
+                        -unattended \
+                        -utf8output \
+                        -NoP4
+                    '
+
+            - name: Write BUILD_INFO
+              run: |
+                  VERSION="${{ needs.server_config.outputs.version }}"
+                  TARGET="${{ needs.server_config.outputs.server_target }}"
+                  CONFIG="${{ needs.server_config.outputs.server_config }}"
+                  REPO="${{ needs.server_config.outputs.project_repo }}"
+                  UE_TAG="${{ needs.server_config.outputs.ue_image_tag }}"
+
+                  CHUCK_SHA="${{ github.sha }}"
+
+                  SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
+                  if [ -z "${SERVER_DIR}" ]; then
+                    echo "::error::LinuxServer output not found"
+                    find /tmp/ue5-build-output -maxdepth 3 -type d
+                    exit 1
+                  fi
+
+                  cat > "${SERVER_DIR}/BUILD_INFO" <<-BUILDEOF
+                  version=${VERSION}
+                  server_target=${TARGET}
+                  server_config=${CONFIG}
+                  source_repo=${REPO}
+                  source_commit=${CHUCK_SHA}
+                  ue_image=ghcr.io/epicgames/unreal-engine:${UE_TAG}
+                  build_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  build_run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  actor=${{ github.actor }}
+                  BUILDEOF
+
+                  echo "::notice::BUILD_INFO written - source ${REPO}@${CHUCK_SHA:0:8}, config ${CONFIG}"
+
+            - name: Deploy server to PVC
+              run: |
+                  VERSION="${{ needs.server_config.outputs.version }}"
+                  TARGET="${{ needs.server_config.outputs.server_target }}"
+                  SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
+
+                  DEST="/mnt/longhorn/ows-server/${TARGET}/${VERSION}"
+
+                  rm -rf "${DEST}" 2>/dev/null || true
+                  mkdir -p "${DEST}"
+                  cp -r "${SERVER_DIR}/." "${DEST}/"
+                  chmod -R 755 "${DEST}"
+
+                  ln -sfn "${VERSION}" "/mnt/longhorn/ows-server/${TARGET}/latest"
+
+                  echo "::notice::${TARGET} v${VERSION} deployed to PVC ($(du -sh ${DEST} | cut -f1))"
+                  ls -la "${DEST}/" | head -10
+                  cat "${DEST}/BUILD_INFO"
+
+            - name: Prune old versions
+              run: |
+                  TARGET="${{ needs.server_config.outputs.server_target }}"
+                  PVC_DIR="/mnt/longhorn/ows-server/${TARGET}"
+                  KEEP=3
+
+                  echo "Pruning old versions in ${PVC_DIR} (keeping latest ${KEEP})..."
+                  cd "${PVC_DIR}"
+
+                  # Protect latest symlink target
+                  LATEST_TARGET=$(readlink latest 2>/dev/null || echo "")
+
+                  # Sort version dirs by semver (descending), skip first KEEP
+                  DIRS=$(ls -d [0-9]* 2>/dev/null | sort -V -r | tail -n +$((KEEP+1)))
+
+                  if [ -n "${DIRS}" ]; then
+                    for DIR in ${DIRS}; do
+                      # Skip if this is the latest symlink target
+                      if [ "${DIR}" = "${LATEST_TARGET}" ]; then
+                        echo "  Skipping ${DIR} (latest symlink target)"
+                        continue
+                      fi
+                      # Skip if in use by running server
+                      if find "${DIR}" -name ".nfs*" -print -quit 2>/dev/null | grep -q .; then
+                        echo "  Skipping ${DIR} (in use by running server)"
+                      else
+                        echo "  Removing ${DIR}"
+                        rm -rf "${DIR}"
+                      fi
+                    done
+                  else
+                    echo "  Nothing to prune."
+                  fi
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  docker logout ghcr.io 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
+                  rm -rf /tmp/game-project /tmp/ue5-build-output 2>/dev/null || true
+
+    # ════════════════ GAME (client / standalone) ════════════════
+    game_gate:
+        name: Game Version Gate
+        needs: guard
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            should_build: ${{ steps.compare.outputs.should_build }}
+            version: ${{ steps.compare.outputs.version }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Compare versions
+              id: compare
+              run: |
+                  MANIFEST="${{ inputs.manifest_version }}"
+                  TOML_PATH="${{ inputs.version_toml }}"
+
+                  if [ -n "${MANIFEST}" ]; then
+                    VERSION="${MANIFEST}"
+                  elif [ -n "${TOML_PATH}" ] && [ -f "${TOML_PATH}" ]; then
+                    VERSION=$(grep -m1 '^version' "${TOML_PATH}" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    VERSION="0.0.1"
+                  fi
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+                  PUBLISHED=""
+                  if [ -n "${TOML_PATH}" ] && [ -f "${TOML_PATH}" ]; then
+                    PUBLISHED=$(grep -m1 '^version' "${TOML_PATH}" | sed 's/version = "\(.*\)"/\1/')
+                  fi
+
+                  if [ -n "${PUBLISHED}" ] && [ "${VERSION}" = "${PUBLISHED}" ]; then
+                    echo "::notice::v${VERSION} already published - skipping build"
+                    echo "should_build=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "::notice::v${VERSION} (published ${PUBLISHED:-none}) - will build"
+                    echo "should_build=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    game_build_linux:
+        name: Game Build (Linux client)
+        needs: [guard, game_gate]
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Linux')
+        runs-on: arc-runner-ue
+        timeout-minutes: 480
+        permissions:
+            contents: read
+            packages: read
+        env:
+            UE_IMAGE: ghcr.io/epicgames/unreal-engine:dev-${{ inputs.engine_version }}
+        steps:
+            - name: Resolve PAT
+              id: pat
+              run: |
+                  TOKEN="${{ secrets.epic_pat }}"
+                  [ -z "${TOKEN}" ] && TOKEN="${{ secrets.UNITY_PAT }}"
+                  if [ -z "${TOKEN}" ]; then
+                    echo "::error::No PAT available - set epic_pat or UNITY_PAT"
+                    exit 1
+                  fi
+                  echo "::add-mask::${TOKEN}"
+                  echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
+
+            - name: Pull UE image (in-cluster cache, ghcr fallback)
+              env:
+                  CACHE_HOST: registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
+              run: |
+                  TARGET="${{ env.UE_IMAGE }}"
+                  CACHE_REF="${TARGET/ghcr.io/$CACHE_HOST}"
+                  # Authenticate to ghcr unconditionally so a cache HIT still
+                  # leaves a valid ghcr session for any later step (and so the
+                  # fallback path needs no separate login).
+                  echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+                  if docker pull "$CACHE_REF"; then
+                    docker tag "$CACHE_REF" "$TARGET"
+                    echo "::notice::UE image served from in-cluster cache ($CACHE_REF)"
+                  else
+                    echo "::warning::cache miss/unreachable -> pulling from ghcr.io"
+                    docker pull "$TARGET"
+                  fi
+
+            - name: Checkout monorepo
+              if: inputs.external_repo_url == ''
+              uses: actions/checkout@v7
+              with:
+                  lfs: false
+
+            - name: Pull game LFS (Forgejo) + materialize project
+              if: inputs.external_repo_url == ''
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  PROJ="${{ inputs.project_path }}"
+                  if [ ! -f "${PROJ}/.lfsconfig" ]; then
+                    echo "::error::${PROJ}/.lfsconfig not found - cannot resolve game LFS endpoint"
+                    exit 1
+                  fi
+                  if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
+                    exit 1
+                  fi
+                  echo "::add-mask::${FORGEJO_TOKEN}"
+                  LFS_URL=$(git config -f "${PROJ}/.lfsconfig" lfs.url)
+                  AUTH_URL="${LFS_URL/https:\/\//https://${FORGEJO_USER}:${FORGEJO_TOKEN}@}"
+                  echo "::notice::Pulling LFS for ${PROJ} from ${LFS_URL}"
+                  # Preflight: fail fast with a clear, classifiable error if the token is bad.
+                  LFS_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+                    -X POST -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/vnd.git-lfs+json' \
+                    -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
+                    --max-time 20 "${AUTH_URL}/objects/batch" || echo 000)
+                  if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
+                    echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at ${LFS_URL} - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                    exit 1
+                  fi
+                  echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
+                  git -c lfs.url="${AUTH_URL}" lfs install --local
+                  git -c lfs.url="${AUTH_URL}" lfs pull --include="${PROJ}/**"
+                  rm -rf /tmp/game-project
+                  mkdir -p /tmp/game-project
+                  cp -r "${PROJ}/." /tmp/game-project/
+
+            - name: Clone external game repo + materialize project
+              if: inputs.external_repo_url != ''
+              env:
+                  GH_TOKEN: ${{ steps.pat.outputs.token }}
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  SLUG="${{ inputs.external_repo_url }}"
+                  SLUG="${SLUG#https://github.com/}"
+                  SLUG="${SLUG#git@github.com:}"
+                  SLUG="${SLUG%.git}"
+                  SUBDIR="${{ inputs.project_path }}"
+                  REF="${{ inputs.external_repo_ref }}"
+                  echo "::notice::Cloning external game repo ${SLUG} (${REF:-default branch}), subdir '${SUBDIR}'"
+                  rm -rf /tmp/game-clone /tmp/game-project
+
+                  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 ${REF:+--branch "${REF}"} \
+                    "https://x-access-token:${GH_TOKEN}@github.com/${SLUG}.git" /tmp/game-clone
+
+                  cd /tmp/game-clone
+
+                  if [ -n "${SUBDIR}" ] && [ "${SUBDIR}" != "." ]; then
+                    INCLUDE="${SUBDIR}/**"
+                    SRC="/tmp/game-clone/${SUBDIR}"
+                  else
+                    INCLUDE="**"
+                    SRC="/tmp/game-clone"
+                  fi
+
+                  RAW_LFS=""
+                  [ -f .lfsconfig ] && RAW_LFS=$(git config -f .lfsconfig lfs.url 2>/dev/null || true)
+                  case "${RAW_LFS}" in
+                    *forgejo.kbve.com*|*git.kbve.com*|*mc.kbve.com*)
+                      if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
+                        echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
+                        exit 1
+                      fi
+                      echo "::add-mask::${FORGEJO_TOKEN}"
+                      # Derive repo path from the repo's own .lfsconfig (preserves owner/repo case -
+                      # Forgejo LFS routing is case-sensitive: KBVE/chuck = 401, kbve/chuck = 302) and
+                      # force the HTTPS ingress host git.kbve.com (.74) over the ssh/Cilium .71 route.
+                      REPO_PATH="${RAW_LFS#ssh://}"; REPO_PATH="${REPO_PATH#https://}"; REPO_PATH="${REPO_PATH#http://}"
+                      REPO_PATH="${REPO_PATH#*@}"
+                      REPO_PATH="${REPO_PATH#*/}"
+                      REPO_PATH="${REPO_PATH%/}"
+                      case "${REPO_PATH}" in
+                        */info/lfs) ;;
+                        *.git) REPO_PATH="${REPO_PATH}/info/lfs" ;;
+                        *) REPO_PATH="${REPO_PATH%.git}.git/info/lfs" ;;
+                      esac
+                      AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
+                      echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
+                      # Preflight: fail fast with a clear, classifiable error if the token is bad,
+                      # instead of burning the whole pull on a cryptic git-lfs auth error.
+                      LFS_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+                        -X POST -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/vnd.git-lfs+json' \
+                        -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
+                        --max-time 20 "${AUTH_LFS}/objects/batch" || echo 000)
+                      if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
+                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                        exit 1
+                      fi
+                      echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
+                      git -c lfs.url="${AUTH_LFS}" lfs install --local
+                      git config --local lfs.transfer.maxretries 10
+                      n=0
+                      until git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"; do
+                        n=$((n+1))
+                        if [ "$n" -ge 4 ]; then
+                          echo "::error::LFS pull from git.kbve.com failed after ${n} tries (transient 503/ingress hiccup — single-replica Forgejo rolled or LFS-store IO stalled). Re-run the job."
+                          exit 1
+                        fi
+                        echo "::warning::LFS pull attempt ${n} hit a transient git.kbve.com error; retrying in $((n*15))s"
+                        sleep $((n*15))
+                      done
+                      ;;
+                    *)
+                      echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
+                      git lfs install --local
+                      git lfs pull --include="${INCLUDE}"
+                      ;;
+                  esac
+
+                  if [ ! -d "${SRC}" ]; then
+                    echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
+                    exit 1
+                  fi
+                  mkdir -p /tmp/game-project
+                  cp -r "${SRC}/." /tmp/game-project/
+
+            - name: Build Linux client
+              run: |
+                  mkdir -p "${GITHUB_WORKSPACE}/ue5-game-output"
+                  UPROJECT_FILE=$(find /tmp/game-project -maxdepth 1 -name '*.uproject' | head -1)
+                  if [ -z "${UPROJECT_FILE}" ]; then
+                    echo "::error::No .uproject at /tmp/game-project root"
+                    exit 1
+                  fi
+                  UPROJECT_NAME=$(basename "${UPROJECT_FILE}")
+                  CLIENT_CONFIG='${{ inputs.client_config }}'; CLIENT_CONFIG="${CLIENT_CONFIG:-Shipping}"
+                  MAPS_JSON='${{ inputs.maps }}'
+                  if [ -n "${MAPS_JSON}" ] && [ "${MAPS_JSON}" != "[]" ]; then
+                    MAP_ARG="-map=$(echo "${MAPS_JSON}" | jq -r 'join("+")')"
+                  else
+                    MAP_ARG="-allmaps"
+                  fi
+                  CUSTOM_CONFIG='${{ inputs.custom_config }}'
+                  CUSTOM_CONFIG_ARG=""
+                  # -CustomConfig does NOT reliably bake into the iostore/zen cooked config: the
+                  # Config/Custom/<name> layer is "Excluded" at stage time and never lands on
+                  # Linux/Mac (KBVE/kbve#13081). Deterministically fold the layer into the BASE
+                  # Config/Default*.ini before cook — appended keys win, so the override bakes on
+                  # every platform. -CustomConfig kept as belt-and-suspenders.
+                  if [ -n "${CUSTOM_CONFIG}" ]; then
+                    CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
+                    LAYER="/tmp/game-project/Config/Custom/${CUSTOM_CONFIG}"
+                    if [ -d "${LAYER}" ]; then
+                      MERGED=0
+                      for f in "${LAYER}"/Default*.ini; do
+                        [ -e "${f}" ] || continue
+                        base="/tmp/game-project/Config/$(basename "${f}")"
+                        printf '\n; --- merged from Config/Custom/%s (ci-unreal #13081) ---\n' "${CUSTOM_CONFIG}" >> "${base}"
+                        cat "${f}" >> "${base}"
+                        echo "::notice::Merged ${f} -> ${base}"
+                        MERGED=$((MERGED + 1))
+                      done
+                      [ "${MERGED}" -eq 0 ] && echo "::warning::custom_config='${CUSTOM_CONFIG}': ${LAYER} exists but holds no Default*.ini to merge"
+                    else
+                      echo "::warning::custom_config='${CUSTOM_CONFIG}' set but ${LAYER} not found"
+                    fi
+                  fi
+                  USE_LOGGING_IN_SHIPPING='${{ inputs.use_logging_in_shipping }}'
+                  LOGGING_ENV_ARG=""
+                  [ -n "${USE_LOGGING_IN_SHIPPING}" ] && LOGGING_ENV_ARG="-e USE_LOGGING_IN_SHIPPING=${USE_LOGGING_IN_SHIPPING}"
+                  echo "::notice::Building ${UPROJECT_NAME} (Linux client, ${CLIENT_CONFIG}, ${MAP_ARG})"
+
+                  docker run --rm \
+                    -v /tmp/game-project:/project \
+                    -v "${GITHUB_WORKSPACE}/ue5-game-output:/output" \
+                    --mount type=tmpfs,destination=/ram,tmpfs-size=34359738368 \
+                    --env UE-LocalDataCachePath=/ram/ddc \
+                    ${LOGGING_ENV_ARG} \
+                    "${{ env.UE_IMAGE }}" \
+                    /bin/bash -c '
+                      set -euo pipefail
+                      # Tier the write-heavy UE local DDC onto the /ram tmpfs (RAM), out of
+                      # dockers writable layer on the longhorn-sdb PVC store. report()
+                      # measures the DDC + residual writes so a later pass can redirect them.
+                      mkdir -p /ram/ddc
+                      report() { echo "::group::DDC tiering report"; printf "DDC=%s\n" "$(printenv UE-LocalDataCachePath || true)"; df -h /ram || true; du -sh /ram/ddc 2>/dev/null || true; echo "-- residual (redirect next if large) --"; du -sh "$HOME/.cache" "$HOME/.config" "$HOME/.nuget" "$HOME/.dotnet" /tmp 2>/dev/null || true; echo "::endgroup::"; }
+                      trap report EXIT
+                      RUNUAT=""
+                      for candidate in /home/ue4/UnrealEngine /home/epic/UnrealEngine /UnrealEngine; do
+                        if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
+                          RUNUAT="$candidate/Engine/Build/BatchFiles/RunUAT.sh"; break
+                        fi
+                      done
+                      if [ -z "$RUNUAT" ]; then echo "::error::RunUAT.sh not found"; exit 1; fi
+
+                      "$RUNUAT" BuildCookRun \
+                        -project=/project/'"${UPROJECT_NAME}"' \
+                        -targetplatform=Linux \
+                        -clientconfig='"${CLIENT_CONFIG}"' \
+                        -cook '"${MAP_ARG}"' -build -stage -pak -archive \
+                        '"${CUSTOM_CONFIG_ARG}"' \
+                        -archivedirectory=/output \
+                        -unattended -utf8output -NoP4
+                    '
+
+            - name: Verify baked backend config (pre-pak, Linux)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  # Zen/iostore cooks pack config into a binary container (no loose cooked
+                  # DefaultGame.ini), so inspect the staged build's .ini config instead.
+                  STAGED=/tmp/game-project/Saved/StagedBuilds/Linux
+                  HITS=$(grep -ranE --include='*.ini' 'OWS2APIPath|OWSAPICustomerKey' "${STAGED}" 2>/dev/null || true)
+                  if [ -n "${HITS}" ]; then
+                    echo "::notice::OWS endpoint in staged Linux config:"
+                    echo "${HITS}"
+                  else
+                    echo "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)"
+                  fi
+
+            - name: Package archive
+              run: |
+                  if ! command -v zip >/dev/null 2>&1; then
+                    sudo apt-get update
+                    sudo apt-get install -y zip
+                  fi
+                  cd "${GITHUB_WORKSPACE}/ue5-game-output"
+                  zip -r "/tmp/${{ inputs.app_name }}-linux.zip" .
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-linux-v${{ needs.game_gate.outputs.version }}
+                  path: /tmp/${{ inputs.app_name }}-linux.zip
+                  retention-days: 30
+
+            - name: Deploy to itch.io
+              if: inputs.deploy_to_itch == true && inputs.itch_game_id != ''
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./ue5-game-output
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: ${{ inputs.itch_channel != '' && format('linux-{0}', inputs.itch_channel) || 'linux' }}
+                  buildNumber: ${{ needs.game_gate.outputs.version }}
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  docker logout ghcr.io 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
+                  rm -rf /tmp/game-project /tmp/game-clone "/tmp/${{ inputs.app_name }}-linux.zip" "${GITHUB_WORKSPACE}/ue5-game-output" 2>/dev/null || true
+
+    win_vm_boot:
+        name: Boot Windows VM
+        needs: [guard, game_gate]
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64')
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 20
+        permissions:
+            contents: read
+        outputs:
+            vm_ready: ${{ steps.boot.outputs.vm_ready }}
+        steps:
+            - name: Start + wait for windows-builder VM
+              id: boot
+              run: |
+                  API=https://kubernetes.default.svc
+                  SA=/var/run/secrets/kubernetes.io/serviceaccount
+                  TOKEN=$(cat "$SA/token")
+                  NS=angelscript
+                  VM=windows-builder
+                  status() {
+                    local body
+                    body=$(curl -sS --max-time 8 --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                      "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" 2>/dev/null) \
+                      || { echo "Unknown"; return 0; }
+                    printf '%s' "$body" | jq -r '.status.printableStatus? // "Unknown"' 2>/dev/null \
+                      || echo "Unknown"
+                  }
+                  request_start() {
+                    echo "Requesting start..."
+                    if ! curl -sS --max-time 15 --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                      -X PUT -H "Content-Type: application/json" -d '{}' \
+                      "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start"; then
+                      echo "::warning::start request failed (already running, RBAC, or API error) — will retry on next poll"
+                    fi
+                  }
+                  S=$(status); echo "::notice::$VM status: $S"
+                  [ "$S" != "Running" ] && request_start
+                  unknown_streak=0
+                  for i in $(seq 1 48); do
+                    S=$(status)
+                    if [ "$S" = "Running" ]; then
+                      echo "::notice::$VM is Running; Win64 build proceeds once the UE5-Win runner registers."
+                      echo "vm_ready=true" >> "$GITHUB_OUTPUT"
+                      exit 0
+                    fi
+                    if [ "$S" = "Stopped" ]; then
+                      echo "$VM is Stopped (idle-shutdown race or lost start) — re-requesting start"
+                      request_start
+                      unknown_streak=0
+                    elif [ "$S" = "Unknown" ]; then
+                      unknown_streak=$((unknown_streak + 1))
+                      if [ "$unknown_streak" -ge 4 ]; then
+                        echo "::warning::$VM status Unknown for $unknown_streak checks — re-requesting start defensively"
+                        request_start
+                        unknown_streak=0
+                      fi
+                    else
+                      unknown_streak=0
+                    fi
+                    echo "waiting for $VM to reach Running ($i/48): $S"
+                    sleep 15
+                  done
+                  echo "::warning::$VM did not reach Running in ~12m; SKIPPING the Win64 client build so the run still finishes (Linux client + dedicated server + publish unaffected)."
+                  echo "vm_ready=false" >> "$GITHUB_OUTPUT"
+
+    game_build_windows:
+        name: Game Build (Win64 client)
+        needs: [guard, game_gate, win_vm_boot]
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64') && needs.win_vm_boot.outputs.vm_ready == 'true'
+        runs-on: UE5-Win
+        timeout-minutes: 480
+        defaults:
+            run:
+                shell: powershell
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout monorepo
+              if: inputs.external_repo_url == ''
+              uses: actions/checkout@v7
+              with:
+                  lfs: false
+
+            - name: Locate Unreal Engine
+              id: engine
+              run: |
+                  $candidates = @("C:\UnrealEngine","D:\UnrealEngine","C:\Program Files\Epic Games\UE_5.8","C:\Program Files\Epic Games\UE_5.7","C:\Program Files\Epic Games\UE_5.4")
+                  $engineRoot = $null
+                  foreach ($c in $candidates) {
+                      if (Test-Path (Join-Path $c "Engine\Build\BatchFiles\RunUAT.bat")) { $engineRoot = $c; break }
+                  }
+                  if (-not $engineRoot) { Write-Host "::error::RunUAT.bat not found on runner"; exit 1 }
+                  Write-Host "::notice::Engine at $engineRoot"
+                  "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
+
+            - name: Pull game LFS (Forgejo)
+              id: monorepo_proj
+              if: inputs.external_repo_url == ''
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  $proj = '${{ inputs.project_path }}'
+                  $lfsConfig = Join-Path $proj '.lfsconfig'
+                  if (-not (Test-Path $lfsConfig)) { Write-Host "::error::$lfsConfig not found"; exit 1 }
+                  if (-not $env:FORGEJO_USER -or -not $env:FORGEJO_TOKEN) { Write-Host "::error::FORGEJO_USER / FORGEJO_TOKEN missing"; exit 1 }
+                  Write-Host "::add-mask::$($env:FORGEJO_TOKEN)"
+                  git config --global --add safe.directory "$env:GITHUB_WORKSPACE"
+                  $lfsUrl = (git config -f $lfsConfig lfs.url)
+                  $authUrl = $lfsUrl -replace '^https://', "https://$($env:FORGEJO_USER):$($env:FORGEJO_TOKEN)@"
+                  Write-Host "::notice::Pulling LFS for $proj from $lfsUrl"
+                  # Preflight: fail fast with a clear, classifiable error if the token is bad.
+                  $batchBody = Join-Path $env:RUNNER_TEMP 'lfs-batch.json'
+                  '{"operation":"download","transfers":["basic"],"objects":[]}' | Out-File -FilePath $batchBody -Encoding ascii -NoNewline
+                  $lfsCode = (curl.exe -s -o NUL -w "%{http_code}" -X POST -H "Accept: application/vnd.git-lfs+json" -H "Content-Type: application/vnd.git-lfs+json" --data "@$batchBody" --max-time 20 "$authUrl/objects/batch")
+                  if ($lfsCode -eq '401' -or $lfsCode -eq '403') { Write-Host "::error::Forgejo LFS auth failed (HTTP $lfsCode) at $lfsUrl - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."; exit 1 }
+                  Write-Host "::notice::Forgejo LFS auth OK (HTTP $lfsCode)"
+                  git -c lfs.url="$authUrl" lfs install --local
+                  git -c lfs.url="$authUrl" lfs pull --include="$proj/**"
+                  "proj_root=$(Join-Path $env:GITHUB_WORKSPACE $proj)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
+
+            - name: Clone external game repo (Win64)
+              id: ext_proj
+              if: inputs.external_repo_url != ''
+              env:
+                  EPIC_PAT: ${{ secrets.epic_pat }}
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  $token = if ($env:EPIC_PAT) { $env:EPIC_PAT } else { $env:UNITY_PAT }
+                  if (-not $token) { Write-Host "::error::No PAT available - set epic_pat or UNITY_PAT"; exit 1 }
+                  Write-Host "::add-mask::$token"
+
+                  $slug = '${{ inputs.external_repo_url }}'
+                  $slug = $slug -replace '^https://github.com/', '' -replace '^git@github.com:', '' -replace '\.git$', ''
+                  $subdir = '${{ inputs.project_path }}'
+                  $ref = '${{ inputs.external_repo_ref }}'
+                  $clone = 'C:\game-clone'
+                  if (Test-Path $clone) { Remove-Item -Recurse -Force $clone -ErrorAction SilentlyContinue }
+                  $refLabel = if ($ref) { $ref } else { 'default branch' }
+                  Write-Host "::notice::Cloning external game repo $slug ($refLabel), subdir '$subdir'"
+
+                  $env:GIT_LFS_SKIP_SMUDGE = '1'
+                  if ($ref) {
+                    git clone --depth 1 --branch $ref "https://x-access-token:$token@github.com/$slug.git" $clone
+                  } else {
+                    git clone --depth 1 "https://x-access-token:$token@github.com/$slug.git" $clone
+                  }
+                  if ($LASTEXITCODE -ne 0) { Write-Host "::error::clone failed"; exit $LASTEXITCODE }
+                  Remove-Item Env:\GIT_LFS_SKIP_SMUDGE
+
+                  Push-Location $clone
+                  if ($subdir -and $subdir -ne '.') { $include = "$subdir/**"; $src = Join-Path $clone $subdir }
+                  else { $include = '**'; $src = $clone }
+
+                  $rawLfs = if (Test-Path .lfsconfig) { (git config -f .lfsconfig lfs.url) } else { '' }
+                  if ($rawLfs -match 'kbve\.com') {
+                      if (-not $env:FORGEJO_USER -or -not $env:FORGEJO_TOKEN) { Write-Host "::error::FORGEJO_USER / FORGEJO_TOKEN missing"; exit 1 }
+                      Write-Host "::add-mask::$($env:FORGEJO_TOKEN)"
+                      $repoPath = $rawLfs -replace '^ssh://','' -replace '^https?://',''
+                      $repoPath = $repoPath -replace '^[^/]*@',''
+                      $repoPath = $repoPath -replace '^[^/]+/','' -replace '/$',''
+                      if ($repoPath -notmatch '/info/lfs$') {
+                          $repoPath = ($repoPath -replace '\.git$','') + '.git/info/lfs'
+                      }
+                      $authLfs = "https://$($env:FORGEJO_USER):$($env:FORGEJO_TOKEN)@git.kbve.com/$repoPath"
+                      Write-Host "::notice::Pulling LFS ($include) from git.kbve.com/$repoPath (normalized from $rawLfs)"
+                      # Preflight: fail fast with a clear, classifiable error if the token is bad.
+                      $batchBody = Join-Path $env:RUNNER_TEMP 'lfs-batch.json'
+                      '{"operation":"download","transfers":["basic"],"objects":[]}' | Out-File -FilePath $batchBody -Encoding ascii -NoNewline
+                      $lfsCode = (curl.exe -s -o NUL -w "%{http_code}" -X POST -H "Accept: application/vnd.git-lfs+json" -H "Content-Type: application/vnd.git-lfs+json" --data "@$batchBody" --max-time 20 "$authLfs/objects/batch")
+                      if ($lfsCode -eq '401' -or $lfsCode -eq '403') { Write-Host "::error::Forgejo LFS auth failed (HTTP $lfsCode) at git.kbve.com/$repoPath - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."; exit 1 }
+                      Write-Host "::notice::Forgejo LFS auth OK (HTTP $lfsCode)"
+                      git -c lfs.url="$authLfs" lfs install --local
+                      git -c lfs.url="$authLfs" lfs pull --include="$include"
+                  } else {
+                      Write-Host "::notice::Pulling LFS ($include) from origin (GitHub-native)"
+                      git lfs install --local
+                      git lfs pull --include="$include"
+                  }
+                  Pop-Location
+
+                  if (-not (Test-Path $src)) { Write-Host "::error::project_path '$subdir' not found in $slug"; exit 1 }
+                  "proj_root=$src" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
+
+            - name: Build Win64 client
+              run: |
+                  $projRoot = '${{ steps.monorepo_proj.outputs.proj_root }}${{ steps.ext_proj.outputs.proj_root }}'
+                  $uproject = Get-ChildItem -Path $projRoot -Filter *.uproject | Select-Object -First 1
+                  if (-not $uproject) { Write-Host "::error::No .uproject found in $projRoot"; exit 1 }
+                  $out = "C:\ue5-game-output"
+                  New-Item -ItemType Directory -Force -Path $out | Out-Null
+                  $clientConfig = if ('${{ inputs.client_config }}') { '${{ inputs.client_config }}' } else { 'Shipping' }
+                  $mapsJson = '${{ inputs.maps }}'
+                  if ($mapsJson -and $mapsJson -ne '[]') {
+                      $mapArg = '-map=' + (($mapsJson | ConvertFrom-Json) -join '+')
+                  } else {
+                      $mapArg = '-allmaps'
+                  }
+                  $customConfig = '${{ inputs.custom_config }}'
+                  $customConfigArgs = @()
+                  # -CustomConfig does NOT reliably bake into the iostore/zen cooked config: the
+                  # Config/Custom/<name> layer is "Excluded" at stage time and never lands on
+                  # Linux/Mac (KBVE/kbve#13081). Deterministically fold the layer into the BASE
+                  # Config/Default*.ini before cook — appended keys win, so the override bakes on
+                  # every platform. -CustomConfig kept as belt-and-suspenders.
+                  if ($customConfig) {
+                      $customConfigArgs += "-CustomConfig=$customConfig"
+                      $customConfigArgs += "-AdditionalCookerOptions=-CustomConfig=$customConfig"
+                      $layer = Join-Path $projRoot "Config\Custom\$customConfig"
+                      if (Test-Path $layer) {
+                          $merged = @(Get-ChildItem -Path $layer -Filter 'Default*.ini')
+                          $merged | ForEach-Object {
+                              $base = Join-Path $projRoot "Config\$($_.Name)"
+                              Add-Content -Path $base -Value "`n; --- merged from Config/Custom/$customConfig (ci-unreal #13081) ---"
+                              Add-Content -Path $base -Value (Get-Content -Raw $_.FullName)
+                              Write-Host "::notice::Merged $($_.FullName) -> $base"
+                          }
+                          if ($merged.Count -eq 0) { Write-Host "::warning::custom_config='$customConfig': $layer exists but holds no Default*.ini to merge" }
+                      } else {
+                          Write-Host "::warning::custom_config='$customConfig' set but $layer not found"
+                      }
+                  }
+                  $loggingShipping = '${{ inputs.use_logging_in_shipping }}'
+                  if ($loggingShipping) { $env:USE_LOGGING_IN_SHIPPING = $loggingShipping }
+                  Write-Host "::notice::Building $($uproject.FullName) (Win64 client, $clientConfig, $mapArg)"
+                  & '${{ steps.engine.outputs.runuat }}' BuildCookRun `
+                      -project="$($uproject.FullName)" `
+                      -targetplatform=Win64 `
+                      "-clientconfig=$clientConfig" `
+                      -cook $mapArg `
+                      -build -stage -pak -archive `
+                      @customConfigArgs `
+                      -archivedirectory="$out" `
+                      -nodebuginfo `
+                      -unattended -utf8output -NoP4
+                  if ($LASTEXITCODE -ne 0) { Write-Host "::error::BuildCookRun failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+            - name: Verify baked backend config (pre-pak, Win64)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  $projRoot = '${{ steps.monorepo_proj.outputs.proj_root }}${{ steps.ext_proj.outputs.proj_root }}'
+                  # Zen/iostore cooks pack config into a binary container (no loose cooked
+                  # DefaultGame.ini), so inspect the staged build's .ini config instead.
+                  $staged = Join-Path $projRoot 'Saved\StagedBuilds\Windows'
+                  $hits = Get-ChildItem -Path $staged -Recurse -Filter *.ini -ErrorAction SilentlyContinue | Select-String -Pattern 'OWS2APIPath','OWSAPICustomerKey'
+                  if ($hits) {
+                      Write-Host "::notice::OWS endpoint in staged Win64 config:"
+                      $hits | ForEach-Object { Write-Host ("  " + $_.Path + ": " + $_.Line.Trim()) }
+                  } else { Write-Host "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)" }
+
+            - name: Package archive
+              run: |
+                  $zip = "C:\${{ inputs.app_name }}-windows.zip"
+                  Compress-Archive -Path "C:\ue5-game-output\*" -DestinationPath $zip
+                  Write-Host "::notice::Packaged $zip"
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-windows-v${{ needs.game_gate.outputs.version }}
+                  path: C:\${{ inputs.app_name }}-windows.zip
+                  retention-days: 30
+
+            - name: Deploy to itch.io
+              if: inputs.deploy_to_itch == true && inputs.itch_game_id != ''
+              env:
+                  BUTLER_API_KEY: ${{ secrets.butler_api }}
+              run: |
+                  $zip = "$env:RUNNER_TEMP\butler.zip"
+                  curl.exe -L -s --retry 5 --retry-all-errors -o $zip "https://broth.itch.zone/butler/windows-amd64/LATEST/archive/default"
+                  Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\butler" -Force
+                  $butler = "$env:RUNNER_TEMP\butler\butler.exe"
+                  $version = "${{ needs.game_gate.outputs.version }}"
+                  $ic = '${{ inputs.itch_channel }}'
+                  $channel = if ($ic) { "windows-$ic" } else { "windows" }
+                  $target = "${{ inputs.itch_username }}/${{ inputs.itch_game_id }}:$channel"
+                  Write-Host "::notice::butler push C:\ue5-game-output -> $target (v$version)"
+                  & $butler push "C:\ue5-game-output" $target --userversion $version
+                  if ($LASTEXITCODE -ne 0) { Write-Host "::error::butler push failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  if (Test-Path C:\ue5-game-output) { Remove-Item -Recurse -Force C:\ue5-game-output -ErrorAction SilentlyContinue }
+                  if (Test-Path C:\game-clone) { Remove-Item -Recurse -Force C:\game-clone -ErrorAction SilentlyContinue }
+                  # Drain packaged build zips from the root of the persistent Win64 runner (current run + any backlog for this app)
+                  Get-ChildItem -Path 'C:\' -Filter '${{ inputs.app_name }}-*.zip' -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+
+    game_build_mac:
+        name: Game Build (Mac client)
+        needs: [guard, game_gate]
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Mac')
+        runs-on: [self-hosted, macOS, ARM64]
+        timeout-minutes: 120
+        permissions:
+            contents: read
+            packages: read
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Mac client build - ${{ inputs.app_name }} v${{ needs.game_gate.outputs.version }}"
+                  echo "Engine version: ${{ inputs.engine_version }}"
+                  echo "Client config: ${{ inputs.client_config || 'Shipping' }}"
+
+            - name: Checkout monorepo
+              uses: actions/checkout@v7
+              with:
+                  lfs: false
+
+            - name: Setup build environment
+              run: |
+                  echo "::notice::macOS runner ready for UE build"
+                  sw_vers
+                  xcodebuild -version || echo "::warning::Xcode not found"
+
+            - name: Find Unreal Engine
+              id: find_ue
+              run: |
+                  chmod +x .github/scripts/find-ue-mac.sh
+                  RUNUAT=$(.github/scripts/find-ue-mac.sh "${{ inputs.engine_version }}")
+                  echo "runuat=${RUNUAT}" >> "$GITHUB_OUTPUT"
+                  UE_ROOT="${RUNUAT%/Engine/Build/BatchFiles/RunUAT.sh}"
+                  echo "ue_root=${UE_ROOT}" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Using RunUAT: ${RUNUAT}"
+
+            - name: Clone game project
+              id: clone_project
+              env:
+                  GITHUB_PAT: ${{ secrets.epic_pat || secrets.UNITY_PAT }}
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  SLUG="${{ inputs.external_repo_url }}"
+                  SLUG="${SLUG#https://github.com/}"
+                  SLUG="${SLUG%.git}"
+                  REF="${{ inputs.external_repo_ref }}"
+                  SUBDIR="${{ inputs.project_path }}"
+                  SUBDIR="${SUBDIR#./}"
+                  SUBDIR="${SUBDIR%/}"
+
+                  CLONE_DIR="${RUNNER_TEMP}/game-clone"
+                  rm -rf "${CLONE_DIR}"
+
+                  REF_LABEL="${REF:-default branch}"
+                  echo "::notice::Cloning external game repo ${SLUG} (${REF_LABEL}), subdir '${SUBDIR}'"
+
+                  export GIT_LFS_SKIP_SMUDGE=1
+                  if [ -n "${REF}" ]; then
+                    git clone --depth 1 --branch "${REF}" "https://x-access-token:${GITHUB_PAT}@github.com/${SLUG}.git" "${CLONE_DIR}"
+                  else
+                    git clone --depth 1 "https://x-access-token:${GITHUB_PAT}@github.com/${SLUG}.git" "${CLONE_DIR}"
+                  fi
+                  unset GIT_LFS_SKIP_SMUDGE
+
+                  cd "${CLONE_DIR}"
+                  if [ -n "${SUBDIR}" ] && [ "${SUBDIR}" != "." ]; then
+                    INCLUDE="${SUBDIR}/**"
+                    SRC="${CLONE_DIR}/${SUBDIR}"
+                  else
+                    INCLUDE="**"
+                    SRC="${CLONE_DIR}"
+                  fi
+
+                  # Handle Forgejo LFS if configured
+                  RAW_LFS=$(git config -f .lfsconfig lfs.url 2>/dev/null || echo "")
+                  if echo "${RAW_LFS}" | grep -q "kbve.com"; then
+                    if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
+                      echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing for Forgejo LFS"
+                      exit 1
+                    fi
+                    echo "::add-mask::${FORGEJO_TOKEN}"
+                    REPO_PATH=$(echo "${RAW_LFS}" | sed 's|^ssh://||' | sed 's|^https\?://||' | sed 's|^[^/]*@||' | sed 's|^[^/]*/||' | sed 's|/$||')
+                    if ! echo "${REPO_PATH}" | grep -q '/info/lfs$'; then
+                      REPO_PATH="${REPO_PATH%.git}.git/info/lfs"
+                    fi
+                    AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
+                    echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH}"
+                    git -c lfs.url="${AUTH_LFS}" lfs install --local
+                    git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
+                  else
+                    echo "::notice::Pulling LFS (${INCLUDE}) from origin"
+                    git lfs install --local
+                    git lfs pull --include="${INCLUDE}"
+                  fi
+
+                  if [ ! -d "${SRC}" ]; then
+                    echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
+                    exit 1
+                  fi
+
+                  PROJECT_ROOT="${RUNNER_TEMP}/game-project"
+                  mkdir -p "${PROJECT_ROOT}"
+                  cp -r "${SRC}/." "${PROJECT_ROOT}/"
+                  echo "project_root=${PROJECT_ROOT}" >> "$GITHUB_OUTPUT"
+
+            - name: Build Mac client
+              run: |
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+
+                  UPROJECT=$(find "${PROJECT_ROOT}" -maxdepth 1 -name "*.uproject" | head -1)
+                  if [ -z "${UPROJECT}" ]; then
+                    echo "::error::No .uproject found in ${PROJECT_ROOT}"
+                    exit 1
+                  fi
+
+                  CLIENT_CONFIG="${{ inputs.client_config }}"
+                  CLIENT_CONFIG="${CLIENT_CONFIG:-Shipping}"
+
+                  MAPS_JSON='${{ inputs.maps }}'
+                  if [ -n "${MAPS_JSON}" ] && [ "${MAPS_JSON}" != "[]" ]; then
+                    MAP_ARG="-map=$(echo "${MAPS_JSON}" | python3 -c "import sys, json; print('+'.join(json.load(sys.stdin)))")"
+                  else
+                    MAP_ARG="-allmaps"
+                  fi
+
+                  CUSTOM_CONFIG="${{ inputs.custom_config }}"
+                  CUSTOM_CONFIG_ARG=""
+                  # -CustomConfig does NOT reliably bake into the iostore/zen cooked config: the
+                  # Config/Custom/<name> layer is "Excluded" at stage time and never lands on
+                  # Linux/Mac (KBVE/kbve#13081). Deterministically fold the layer into the BASE
+                  # Config/Default*.ini before cook — appended keys win, so the override bakes on
+                  # every platform. -CustomConfig kept as belt-and-suspenders.
+                  if [ -n "${CUSTOM_CONFIG}" ]; then
+                    CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
+                    LAYER="${PROJECT_ROOT}/Config/Custom/${CUSTOM_CONFIG}"
+                    if [ -d "${LAYER}" ]; then
+                      MERGED=0
+                      for f in "${LAYER}"/Default*.ini; do
+                        [ -e "${f}" ] || continue
+                        base="${PROJECT_ROOT}/Config/$(basename "${f}")"
+                        printf '\n; --- merged from Config/Custom/%s (ci-unreal #13081) ---\n' "${CUSTOM_CONFIG}" >> "${base}"
+                        cat "${f}" >> "${base}"
+                        echo "::notice::Merged ${f} -> ${base}"
+                        MERGED=$((MERGED + 1))
+                      done
+                      [ "${MERGED}" -eq 0 ] && echo "::warning::custom_config='${CUSTOM_CONFIG}': ${LAYER} exists but holds no Default*.ini to merge"
+                    else
+                      echo "::warning::custom_config='${CUSTOM_CONFIG}' set but ${LAYER} not found"
+                    fi
+                  fi
+
+                  echo "::notice::Building $(basename ${UPROJECT}) (Mac client, ${CLIENT_CONFIG}, ${MAP_ARG})"
+
+                  # No -archive: under Modern Xcode (UE 5.3+) BuildCookRun -archive copies
+                  # the exe-only Binaries/Mac bundle, not the staged one with Contents/UE
+                  # + dylibs. Stage only; package the staged .app below. (issue #12996)
+                  "${{ steps.find_ue.outputs.runuat }}" BuildCookRun \
+                    -project="${UPROJECT}" \
+                    -targetplatform=Mac \
+                    -clientconfig="${CLIENT_CONFIG}" \
+                    -cook ${MAP_ARG} \
+                    -build -stage -pak -prereqs \
+                    ${CUSTOM_CONFIG_ARG} \
+                    -nodebuginfo \
+                    -unattended -utf8output -NoP4
+
+            - name: Verify baked backend config (pre-pak, Mac)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  # Zen/iostore cooks pack config into a binary container (no loose cooked
+                  # DefaultGame.ini), so inspect the staged build's .ini config instead.
+                  STAGED="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
+                  HITS=$(grep -ranE --include='*.ini' 'OWS2APIPath|OWSAPICustomerKey' "${STAGED}" 2>/dev/null || true)
+                  if [ -n "${HITS}" ]; then
+                    echo "::notice::OWS endpoint in staged Mac config:"
+                    echo "${HITS}"
+                  else
+                    echo "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)"
+                  fi
+
+            - name: Sign + notarize Mac app
+              if: inputs.notarize
+              env:
+                  APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+                  APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+                  APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+                  APPLE_ID: ${{ secrets.APPLE_ID }}
+                  APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+                  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+              run: |
+                  set -euo pipefail
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  STAGE="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
+                  APP=$(find "${STAGE}" -maxdepth 1 -name '*.app' 2>/dev/null | head -1)
+                  [ -n "${APP}" ] || { echo "::error::no staged .app to sign"; exit 1; }
+
+                  KEYCHAIN="${RUNNER_TEMP}/ue-signing.keychain-db"
+                  KCPASS=$(uuidgen)
+                  security create-keychain -p "${KCPASS}" "${KEYCHAIN}"
+                  security set-keychain-settings -lut 21600 "${KEYCHAIN}"
+                  security unlock-keychain -p "${KCPASS}" "${KEYCHAIN}"
+                  printf '%s' "${APPLE_CERTIFICATE}" | base64 --decode > "${RUNNER_TEMP}/cert.p12"
+                  security import "${RUNNER_TEMP}/cert.p12" -k "${KEYCHAIN}" -P "${APPLE_CERTIFICATE_PASSWORD}" -T /usr/bin/codesign
+                  security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${KCPASS}" "${KEYCHAIN}" >/dev/null
+                  ORIG_KEYCHAINS=$(security list-keychains -d user | sed -e 's/"//g' -e 's/^ *//')
+                  security list-keychains -d user -s "${KEYCHAIN}" ${ORIG_KEYCHAINS}
+                  cleanup() { security delete-keychain "${KEYCHAIN}" 2>/dev/null || true; rm -f "${RUNNER_TEMP}/cert.p12" "${RUNNER_TEMP}/notarize.zip" 2>/dev/null || true; }
+                  trap cleanup EXIT
+
+                  ENT="${GITHUB_WORKSPACE}/.github/signing/ue-mac-entitlements.plist"
+                  # Sign nested mach-o inside-out, then the bundle with entitlements + hardened runtime.
+                  find "${APP}" -type f \( -name '*.dylib' -o -name '*.so' \) -print0 \
+                    | xargs -0 -I{} codesign --force --timestamp --options runtime -s "${APPLE_SIGNING_IDENTITY}" --keychain "${KEYCHAIN}" {}
+                  codesign --force --timestamp --options runtime --entitlements "${ENT}" \
+                    -s "${APPLE_SIGNING_IDENTITY}" --keychain "${KEYCHAIN}" "${APP}"
+                  codesign --verify --strict --verbose=2 "${APP}"
+
+                  ditto -c -k --keepParent "${APP}" "${RUNNER_TEMP}/notarize.zip"
+                  xcrun notarytool submit "${RUNNER_TEMP}/notarize.zip" \
+                    --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}" --wait
+                  xcrun stapler staple "${APP}"
+                  echo "::notice::Signed + notarized $(basename "${APP}")"
+
+            - name: Package staged build
+              run: |
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  STAGE="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
+
+                  APP=$(find "${STAGE}" -maxdepth 1 -name '*.app' 2>/dev/null | head -1)
+                  if [ -z "${APP}" ]; then
+                    echo "::error::No staged .app at ${STAGE}"
+                    ls -la "${PROJECT_ROOT}/Saved/StagedBuilds" 2>/dev/null || true
+                    exit 1
+                  fi
+
+                  DYLIBS=$(find "${APP}" -name '*.dylib' | wc -l | tr -d ' ')
+                  HAS_UE=$([ -d "${APP}/Contents/UE" ] && echo yes || echo no)
+                  echo "::notice::Staged $(basename "${APP}") — ${DYLIBS} dylib(s), Contents/UE: ${HAS_UE}"
+                  if [ "${DYLIBS}" -eq 0 ] || [ "${HAS_UE}" != "yes" ]; then
+                    echo "::error::Staged Mac bundle is not self-contained (no dylibs / missing Contents/UE) — would crash at @rpath/libtbb.12.dylib. See issue #12996"
+                    exit 1
+                  fi
+
+                  # -y preserves symlinks (UE bundles dylib version chains); keep the
+                  # Mac/ top-level so the artifact layout matches Linux/Windows.
+                  cd "${PROJECT_ROOT}/Saved/StagedBuilds"
+                  zip -ry "/tmp/${{ inputs.app_name }}-macos.zip" Mac
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
+                  path: /tmp/${{ inputs.app_name }}-macos.zip
+                  retention-days: 30
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  rm -rf "${RUNNER_TEMP}/game-clone" "${RUNNER_TEMP}/game-project" "${RUNNER_TEMP}/ue5-game-output" "/tmp/${{ inputs.app_name }}-macos.zip" 2>/dev/null || true
+
+    game_itch_mac:
+        name: Game Deploy to itch.io (Mac client)
+        needs: [game_gate, game_build_mac]
+        if: |
+            inputs.mode == 'game' &&
+            needs.game_gate.outputs.should_build == 'true' &&
+            needs.game_build_mac.result == 'success' &&
+            inputs.deploy_to_itch == true &&
+            inputs.itch_game_id != ''
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
+                  path: ./artifact
+
+            - name: Extract zip for butler
+              run: |
+                  mkdir -p ./deploy
+                  unzip "./artifact/${{ inputs.app_name }}-macos.zip" -d ./deploy
+
+            - name: Deploy to itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./deploy
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: ${{ inputs.itch_channel != '' && format('macos-{0}', inputs.itch_channel) || 'macos' }}
+                  buildNumber: ${{ needs.game_gate.outputs.version }}
+
+    game_post_publish:
+        name: Game Post-publish version sync
+        needs: [game_gate, game_build_linux]
+        if: |
+            inputs.mode == 'game' &&
+            needs.game_gate.outputs.should_build == 'true' &&
+            inputs.version_toml != '' &&
+            needs.game_build_linux.result == 'success'
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        uses: KBVE/kbve/.github/workflows/utils-post-publish.yml@dev
+        with:
+            app_name: ${{ inputs.app_name }}
+            version: ${{ needs.game_gate.outputs.version }}
+            version_toml_path: ${{ inputs.version_toml }}
+        secrets:
+            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
+
+    # ════════════════ PLUGIN (Linux docker + Win64 native) ════════════════
+    plugin_check:
+        name: Plugin Version Gate
+        needs: guard
+        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.extract.outputs.version }}
+            published_version: ${{ steps.extract.outputs.published_version }}
+            should_release: ${{ steps.compare.outputs.should_release }}
+            tag: ${{ steps.compare.outputs.tag }}
+            engine: ${{ steps.extract.outputs.engine }}
+            zip_linux: ${{ steps.extract.outputs.zip_linux }}
+            zip_mac: ${{ steps.extract.outputs.zip_mac }}
+            zip_win: ${{ steps.extract.outputs.zip_win }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Extract versions
+              id: extract
+              run: |
+                  UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
+                  if [ ! -f "${UPLUGIN}" ]; then echo "::error::Plugin file not found: ${UPLUGIN}"; exit 1; fi
+                  MANIFEST_V="${{ inputs.manifest_version }}"
+                  if [ -n "${MANIFEST_V}" ] && [ "${MANIFEST_V}" != "0.0.0" ]; then
+                    VERSION="${MANIFEST_V}"
+                  else
+                    VERSION=$(jq -r '.VersionName' "${UPLUGIN}")
+                  fi
+                  if [ -z "${VERSION}" ] || [ "${VERSION}" = "null" ]; then echo "::error::No version resolved for ${UPLUGIN}"; exit 1; fi
+
+                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
+                  if [ -f "${VERSION_TOML}" ]; then
+                    PUBLISHED=$(grep -m1 '^version' "${VERSION_TOML}" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    PUBLISHED="0.0.0"
+                  fi
+
+                  ENGINE=$(printf '%s' "${{ inputs.ue_image_tag }}" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)
+                  [ -z "${ENGINE}" ] && ENGINE="unknown"
+                  NAME="${{ inputs.plugin_name }}"
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "published_version=${PUBLISHED}" >> "$GITHUB_OUTPUT"
+                  echo "engine=${ENGINE}" >> "$GITHUB_OUTPUT"
+                  echo "zip_linux=${NAME}-Linux-UE${ENGINE}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "zip_mac=${NAME}-Mac-UE${ENGINE}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "zip_win=${NAME}-Win64-UE${ENGINE}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Plugin ${{ inputs.plugin_name }} - uplugin: ${VERSION}, published: ${PUBLISHED}, engine: ${ENGINE}"
+
+            - name: Compare versions
+              id: compare
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  VERSION="${{ steps.extract.outputs.version }}"
+                  PUBLISHED="${{ steps.extract.outputs.published_version }}"
+
+                  PREFIX="${{ inputs.release_tag_prefix }}"
+                  if [ -z "${PREFIX}" ]; then
+                    PREFIX=$(echo "${{ inputs.plugin_name }}" | tr '[:upper:]' '[:lower:]')-v
+                  fi
+                  TAG="${PREFIX}${VERSION}"
+                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+                  if [ "${VERSION}" = "${PUBLISHED}" ]; then
+                    echo "::notice::version.toml matches .uplugin (${VERSION}) - skipping publish"
+                    echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  elif gh release view "${TAG}" --json tagName >/dev/null 2>&1; then
+                    echo "::notice::Release ${TAG} already exists - skipping publish"
+                    echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "::notice::New version ${VERSION} (was ${PUBLISHED}) - will publish"
+                    echo "should_release=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    plugin_build_linux:
+        name: Build Plugin Linux (${{ inputs.plugin_name }})
+        needs: [guard, plugin_check]
+        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true' && contains(inputs.target_platforms, 'Linux')
+        runs-on: arc-runner-ue
+        timeout-minutes: ${{ inputs.build_timeout }}
+        permissions:
+            contents: read
+            packages: read
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, image=ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
+
+            - name: Checkout repository
+              uses: actions/checkout@v7
+
+            - name: Stamp plugin version
+              run: |
+                  UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
+                  VERSION="${{ needs.plugin_check.outputs.version }}"
+                  jq --arg v "$VERSION" '.VersionName = $v' "$UPLUGIN" > "$UPLUGIN.tmp" && mv "$UPLUGIN.tmp" "$UPLUGIN"
+                  echo "Stamped $UPLUGIN VersionName=$VERSION"
+
+            - name: Resolve PAT (epic_pat -> UNITY_PAT fallback)
+              id: pat
+              run: |
+                  TOKEN="${{ secrets.epic_pat }}"
+                  [ -z "${TOKEN}" ] && TOKEN="${{ secrets.UNITY_PAT }}"
+                  if [ -z "${TOKEN}" ]; then
+                    echo "::error::No PAT available - set epic_pat or UNITY_PAT"
+                    exit 1
+                  fi
+                  echo "::add-mask::${TOKEN}"
+                  echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
+
+            - name: Pull UE image (in-cluster cache, ghcr fallback)
+              env:
+                  CACHE_HOST: registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
+              run: |
+                  TARGET="ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
+                  CACHE_REF="${TARGET/ghcr.io/$CACHE_HOST}"
+                  # Authenticate to ghcr unconditionally so a cache HIT still
+                  # leaves a valid ghcr session for any later step (and so the
+                  # fallback path needs no separate login).
+                  echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+                  if docker pull "$CACHE_REF"; then
+                    docker tag "$CACHE_REF" "$TARGET"
+                    echo "::notice::UE image served from in-cluster cache ($CACHE_REF)"
+                  else
+                    echo "::warning::cache miss/unreachable -> pulling from ghcr.io"
+                    docker pull "$TARGET"
+                  fi
+
+            - name: Prepare dependency plugins
+              if: inputs.dependency_plugin_paths != ''
+              run: |
+                  mkdir -p "${{ github.workspace }}/_deps"
+                  for dep_path in ${{ inputs.dependency_plugin_paths }}; do
+                    dep_name=$(basename "$dep_path")
+                    cp -r "${{ github.workspace }}/${dep_path}" "${{ github.workspace }}/_deps/${dep_name}"
+                  done
+                  ls -la "${{ github.workspace }}/_deps/"
+
+            - name: Build plugin with RunUAT
+              run: |
+                  mkdir -p "${{ github.workspace }}/output"
+                  DOCKER_VOLS="-v ${{ github.workspace }}/${{ inputs.plugin_path }}:/plugin"
+                  DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/output:/output"
+                  DEP_ORDER=""
+                  if [ -d "${{ github.workspace }}/_deps" ] && [ "$(ls -A "${{ github.workspace }}/_deps")" ]; then
+                    DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/_deps:/deps:ro"
+                    for dep_path in ${{ inputs.dependency_plugin_paths }}; do
+                      DEP_ORDER="${DEP_ORDER}$(basename "$dep_path") "
+                    done
+                  fi
+
+                  docker run --rm ${DOCKER_VOLS} -e DEP_ORDER="${DEP_ORDER}" \
+                    "ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}" \
+                    /bin/bash -c '
+                      set -euo pipefail
+                      RUNUAT=""; ENGINE_ROOT=""
+                      for candidate in /home/ue4/UnrealEngine /home/epic/UnrealEngine /UnrealEngine; do
+                        if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
+                          RUNUAT="$candidate/Engine/Build/BatchFiles/RunUAT.sh"; ENGINE_ROOT="$candidate"; break
+                        fi
+                      done
+                      if [ -z "$RUNUAT" ]; then echo "::error::RunUAT.sh not found"; find / -name "RunUAT.sh" 2>/dev/null || true; exit 1; fi
+
+                      if [ -d /deps ]; then
+                        MARKETPLACE_DIR="$ENGINE_ROOT/Engine/Plugins/Marketplace"
+                        mkdir -p "$MARKETPLACE_DIR"
+                        DEP_SRC=/tmp/dep_src
+                        DEP_OUT=/tmp/dep_out
+                        mkdir -p "$DEP_SRC" "$DEP_OUT"
+                        for dep_name in ${DEP_ORDER}; do
+                          cp -r "/deps/$dep_name" "$DEP_SRC/$dep_name"
+                          dep_uplugin=$(find "$DEP_SRC/$dep_name" -maxdepth 1 -name "*.uplugin" | head -1)
+                          if [ -z "$dep_uplugin" ]; then echo "::error::No .uplugin in dependency $dep_name"; exit 1; fi
+                          echo "::group::Build dependency plugin $dep_name"
+                          "$RUNUAT" BuildPlugin \
+                            -Plugin="$dep_uplugin" \
+                            -Package="$DEP_OUT/$dep_name" \
+                            -TargetPlatforms=Linux \
+                            -Rocket
+                          rm -rf "$MARKETPLACE_DIR/$dep_name"
+                          cp -r "$DEP_OUT/$dep_name" "$MARKETPLACE_DIR/$dep_name"
+                          echo "::endgroup::"
+                        done
+                      fi
+
+                      "$RUNUAT" BuildPlugin \
+                        -Plugin=/plugin/${{ inputs.plugin_name }}.uplugin \
+                        -Package=/output/${{ inputs.plugin_name }} \
+                        -TargetPlatforms=Linux \
+                        -Rocket -StrictIncludes
+                    '
+
+            - name: Verify build output
+              run: |
+                  if [ ! -f "output/${{ inputs.plugin_name }}/${{ inputs.plugin_name }}.uplugin" ]; then
+                    echo "::error::Build output missing"
+                    ls -laR output/ 2>/dev/null | head -50 || true
+                    exit 1
+                  fi
+                  find "output/${{ inputs.plugin_name }}" -type f | head -30
+
+            - name: Package plugin zip
+              run: |
+                  cd output
+                  zip -r "${{ needs.plugin_check.outputs.zip_linux }}" "${{ inputs.plugin_name }}/"
+                  ls -lh "${{ needs.plugin_check.outputs.zip_linux }}"
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ needs.plugin_check.outputs.zip_linux }}
+                  path: output/${{ needs.plugin_check.outputs.zip_linux }}
+                  retention-days: 30
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  docker logout ghcr.io 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
+                  rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
+
+    plugin_build_win:
+        name: Build Plugin Win64 (${{ inputs.plugin_name }})
+        needs: [guard, plugin_check]
+        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true' && contains(inputs.target_platforms, 'Win64')
+        runs-on: UE5-Win
+        timeout-minutes: ${{ inputs.build_timeout }}
+        defaults:
+            run:
+                shell: powershell
+        permissions:
+            contents: read
+        steps:
+            - name: Audit log
+              run: |
+                  Write-Host "::notice::Win64 plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, platforms=${{ inputs.target_platforms }}"
+
+            - name: Checkout repository
+              uses: actions/checkout@v7
+
+            - name: Stamp plugin version
+              run: |
+                  $up = Join-Path (Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}') '${{ inputs.plugin_name }}.uplugin'
+                  $json = Get-Content $up -Raw | ConvertFrom-Json
+                  $json.VersionName = '${{ needs.plugin_check.outputs.version }}'
+                  $json | ConvertTo-Json -Depth 20 | Set-Content $up
+                  Write-Host "Stamped $up VersionName=${{ needs.plugin_check.outputs.version }}"
+
+            - name: Locate Unreal Engine
+              id: engine
+              run: |
+                  $engineInput = '${{ inputs.engine_root }}'
+                  $candidates = @($engineInput,"C:\UnrealEngine","D:\UnrealEngine","C:\Program Files\Epic Games\UE_5.8","C:\Program Files\Epic Games\UE_5.7","C:\Program Files\Epic Games\UE_5.4","C:\Program Files\Epic Games\UE_5.5") | Where-Object { $_ -ne '' }
+                  $engineRoot = $null
+                  foreach ($candidate in $candidates) {
+                      if (Test-Path (Join-Path $candidate "Engine\Build\BatchFiles\RunUAT.bat")) { $engineRoot = $candidate; Write-Host "::notice::Engine found at: $candidate"; break }
+                  }
+                  if (-not $engineRoot) {
+                      Write-Host "::error::RunUAT.bat not found. Searched:"
+                      foreach ($c in $candidates) { Write-Host "  - $c" }
+                      exit 1
+                  }
+                  "engine_root=$engineRoot" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
+                  "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
+
+            - name: Install dependency plugins
+              if: inputs.dependency_plugin_paths != ''
+              run: |
+                  $runuat = '${{ steps.engine.outputs.runuat }}'
+                  $engineRoot = '${{ steps.engine.outputs.engine_root }}'
+                  $marketplaceDir = Join-Path $engineRoot "Engine\Plugins\Marketplace"
+                  New-Item -ItemType Directory -Force -Path $marketplaceDir | Out-Null
+                  $depOut = Join-Path $env:RUNNER_TEMP 'dep_out'
+                  New-Item -ItemType Directory -Force -Path $depOut | Out-Null
+                  $deps = '${{ inputs.dependency_plugin_paths }}' -split '\s+'
+                  foreach ($depPath in $deps) {
+                      if ([string]::IsNullOrWhiteSpace($depPath)) { continue }
+                      $depName = Split-Path $depPath -Leaf
+                      $src = Join-Path $env:GITHUB_WORKSPACE $depPath
+                      $depUplugin = Get-ChildItem -Path $src -Filter *.uplugin -File | Select-Object -First 1
+                      if (-not $depUplugin) { Write-Host "::error::No .uplugin in dependency $depName"; exit 1 }
+                      $pkg = Join-Path $depOut $depName
+                      $dst = Join-Path $marketplaceDir $depName
+                      Write-Host "::group::Build dependency plugin $depName"
+                      & $runuat BuildPlugin -Plugin="$($depUplugin.FullName)" -Package="$pkg" -TargetPlatforms=Win64 -Rocket
+                      if ($LASTEXITCODE -ne 0) { Write-Host "::error::Dependency BuildPlugin failed for $depName ($LASTEXITCODE)"; exit $LASTEXITCODE }
+                      if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
+                      Copy-Item -Recurse -Force $pkg $dst
+                      Write-Host "::endgroup::"
+                  }
+
+            - name: Build plugin with RunUAT
+              run: |
+                  $runuat = '${{ steps.engine.outputs.runuat }}'
+                  $pluginPath = Join-Path (Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}') '${{ inputs.plugin_name }}.uplugin'
+                  $outputDir = Join-Path (Join-Path $env:GITHUB_WORKSPACE 'output') '${{ inputs.plugin_name }}'
+                  New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+                  & $runuat BuildPlugin `
+                      -Plugin="$pluginPath" -Package="$outputDir" `
+                      -TargetPlatforms=Win64 `
+                      -Rocket -StrictIncludes
+                  if ($LASTEXITCODE -ne 0) { Write-Host "::error::RunUAT BuildPlugin failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+            - name: Verify build output
+              run: |
+                  $uplugin = Join-Path (Join-Path (Join-Path $env:GITHUB_WORKSPACE 'output') '${{ inputs.plugin_name }}') '${{ inputs.plugin_name }}.uplugin'
+                  if (-not (Test-Path $uplugin)) {
+                      Write-Host "::error::Build output missing - .uplugin not found at $uplugin"
+                      Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output') -Recurse | Select-Object -First 30
+                      exit 1
+                  }
+                  Get-ChildItem -Path (Join-Path (Join-Path $env:GITHUB_WORKSPACE 'output') '${{ inputs.plugin_name }}') -Recurse | Select-Object -First 30
+
+            - name: Package plugin zip
+              run: |
+                  $outputDir = Join-Path $env:GITHUB_WORKSPACE 'output'
+                  $zipPath = Join-Path $outputDir '${{ needs.plugin_check.outputs.zip_win }}'
+                  Compress-Archive -Path (Join-Path $outputDir '${{ inputs.plugin_name }}') -DestinationPath $zipPath
+                  Write-Host "::notice::Packaged: $zipPath"
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ needs.plugin_check.outputs.zip_win }}
+                  path: output/${{ needs.plugin_check.outputs.zip_win }}
+                  retention-days: 30
+
+    plugin_build_mac:
+        name: Build Plugin Mac (${{ inputs.plugin_name }})
+        needs: [guard, plugin_check]
+        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true' && contains(inputs.target_platforms, 'Mac')
+        runs-on: [self-hosted, macOS, ARM64]
+        timeout-minutes: ${{ inputs.build_timeout }}
+        permissions:
+            contents: read
+        steps:
+            - name: Audit log
+              run: echo "::notice::Mac plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}"
+
+            - name: Checkout repository
+              uses: actions/checkout@v7
+
+            - name: Stamp plugin version
+              run: |
+                  UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
+                  jq --arg v "${{ needs.plugin_check.outputs.version }}" '.VersionName = $v' "$UPLUGIN" > "$UPLUGIN.tmp" && mv "$UPLUGIN.tmp" "$UPLUGIN"
+
+            - name: Find Unreal Engine
+              id: engine
+              run: |
+                  chmod +x .github/scripts/find-ue-mac.sh
+                  RUNUAT=$(.github/scripts/find-ue-mac.sh "${{ needs.plugin_check.outputs.engine }}")
+                  echo "runuat=${RUNUAT}" >> "$GITHUB_OUTPUT"
+                  echo "engine_root=${RUNUAT%/Engine/Build/BatchFiles/RunUAT.sh}" >> "$GITHUB_OUTPUT"
+
+            - name: Clean stale Marketplace plugins
+              run: |
+                  MARKETPLACE="${{ steps.engine.outputs.engine_root }}/Engine/Plugins/Marketplace"
+                  rm -rf "$MARKETPLACE"/* 2>/dev/null || true
+                  echo "::notice::Cleaned stale Marketplace plugins under $MARKETPLACE"
+
+            - name: Build dependency plugins
+              if: inputs.dependency_plugin_paths != ''
+              run: |
+                  MARKETPLACE="${{ steps.engine.outputs.engine_root }}/Engine/Plugins/Marketplace"
+                  DEP_OUT="${RUNNER_TEMP:-/tmp}/dep_out"
+                  mkdir -p "$MARKETPLACE" "$DEP_OUT"
+                  for dep_path in ${{ inputs.dependency_plugin_paths }}; do
+                    dep_name=$(basename "$dep_path")
+                    dep_uplugin=$(find "${{ github.workspace }}/${dep_path}" -maxdepth 1 -name "*.uplugin" | head -1)
+                    [ -z "$dep_uplugin" ] && { echo "::error::No .uplugin in dependency $dep_name"; exit 1; }
+                    "${{ steps.engine.outputs.runuat }}" BuildPlugin -Plugin="$dep_uplugin" -Package="$DEP_OUT/$dep_name" -TargetPlatforms=Mac -Rocket
+                    rm -rf "$MARKETPLACE/$dep_name"
+                    cp -r "$DEP_OUT/$dep_name" "$MARKETPLACE/$dep_name"
+                  done
+
+            - name: Build plugin with RunUAT
+              run: |
+                  mkdir -p "${{ github.workspace }}/output"
+                  "${{ steps.engine.outputs.runuat }}" BuildPlugin \
+                    -Plugin="${{ github.workspace }}/${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin" \
+                    -Package="${{ github.workspace }}/output/${{ inputs.plugin_name }}" \
+                    -TargetPlatforms=Mac \
+                    -Rocket -StrictIncludes
+
+            - name: Verify build output
+              run: |
+                  if [ ! -f "output/${{ inputs.plugin_name }}/${{ inputs.plugin_name }}.uplugin" ]; then
+                    echo "::error::Build output missing"
+                    ls -laR output/ 2>/dev/null | head -50 || true
+                    exit 1
+                  fi
+
+            - name: Package plugin zip
+              run: |
+                  cd output
+                  zip -ry "${{ needs.plugin_check.outputs.zip_mac }}" "${{ inputs.plugin_name }}/"
+                  ls -lh "${{ needs.plugin_check.outputs.zip_mac }}"
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ needs.plugin_check.outputs.zip_mac }}
+                  path: output/${{ needs.plugin_check.outputs.zip_mac }}
+                  retention-days: 30
+
+            - name: Cleanup
+              if: always()
+              run: rm -rf "${{ github.workspace }}/output" 2>/dev/null || true
+
+    plugin_release:
+        name: Plugin GitHub Release
+        needs:
+            [
+                plugin_check,
+                plugin_build_linux,
+                plugin_build_mac,
+                plugin_build_win,
+            ]
+        # Gate: release only when every DECLARED platform passed. A platform not
+        # in target_platforms is 'skipped' (allowed); 'failure'/'cancelled' blocks.
+        if: |
+            inputs.mode == 'plugin' &&
+            always() &&
+            inputs.verify_only != true &&
+            needs.plugin_check.outputs.should_release == 'true' &&
+            needs.plugin_build_linux.result != 'failure' &&
+            needs.plugin_build_linux.result != 'cancelled' &&
+            needs.plugin_build_mac.result != 'failure' &&
+            needs.plugin_build_mac.result != 'cancelled' &&
+            needs.plugin_build_win.result != 'failure' &&
+            needs.plugin_build_win.result != 'cancelled' &&
+            (needs.plugin_build_linux.result == 'success' || needs.plugin_build_mac.result == 'success' || needs.plugin_build_win.result == 'success')
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 10
+        permissions:
+            contents: write
+        steps:
+            - name: Download build artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  path: ./artifact
+
+            - name: Create release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  ASSETS=$(find ./artifact -name '*.zip')
+                  if [ -z "${ASSETS}" ]; then echo "::error::No plugin assets to release"; exit 1; fi
+                  echo "::notice::Releasing assets:"; echo "${ASSETS}"
+                  gh release create "${{ needs.plugin_check.outputs.tag }}" \
+                    --repo "${{ github.repository }}" \
+                    --title "${{ inputs.plugin_name }} v${{ needs.plugin_check.outputs.version }}" \
+                    --notes "${{ inputs.plugin_name }} plugin v${{ needs.plugin_check.outputs.version }} (${{ inputs.target_platforms }})" \
+                    --latest=false \
+                    ${ASSETS}
+
+    plugin_itch:
+        name: Plugin Deploy to itch.io
+        needs:
+            [
+                plugin_check,
+                plugin_build_linux,
+                plugin_build_mac,
+                plugin_build_win,
+                plugin_release,
+            ]
+        if: |
+            inputs.mode == 'plugin' &&
+            always() &&
+            needs.plugin_release.result == 'success' &&
+            needs.plugin_build_linux.result == 'success' &&
+            inputs.deploy_to_itch == true &&
+            inputs.itch_game_id != ''
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ needs.plugin_check.outputs.zip_linux }}
+                  path: ./artifact
+
+            - name: Extract zip for butler
+              run: |
+                  mkdir -p ./deploy
+                  unzip "./artifact/${{ needs.plugin_check.outputs.zip_linux }}" -d ./deploy
+
+            - name: Deploy to itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./deploy/${{ inputs.plugin_name }}
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: ${{ inputs.itch_channel != '' && inputs.itch_channel || inputs.plugin_name }}
+                  buildNumber: ${{ needs.plugin_check.outputs.version }}
+
+    # ════════════════ VM SETUP (Windows / macOS) ════════════════
+    win_setup:
+        name: Install on UE5-Win
+        needs: guard
+        if: inputs.mode == 'win-setup' && needs.guard.outputs.allowed == 'true'
+        runs-on: UE5-Win
+        defaults:
+            run:
+                shell: powershell
+        env:
+            FILE_SERVER: http://file-server.angelscript.svc:8080
+        steps:
+            - name: System Info
+              run: |
+                  Write-Host "OS: $([System.Environment]::OSVersion)"
+                  Write-Host "CPU: $((Get-CimInstance Win32_Processor).Name)"
+                  Write-Host "RAM: $([math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 1)) GB"
+                  Write-Host "Disk: $([math]::Round((Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'").FreeSpace / 1GB, 1)) GB free"
+                  git --version
+
+            - name: Tune NIC MTU for overlay path
+              run: |
+                  $a = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Sort-Object -Property Virtual | Select-Object -First 1
+                  if ($a) {
+                      netsh interface ipv4 set subinterface "$($a.InterfaceAlias)" mtu=1400 store=persistent | Out-Host
+                      Write-Host "Set MTU=1400 on $($a.InterfaceAlias)"
+                  } else {
+                      Write-Host "::warning::No active adapter found for MTU tuning."
+                  }
+                  netsh interface ipv4 show subinterfaces | Out-Host
+                  exit 0
+
+            - name: Check internet egress
+              run: |
+                  $ErrorActionPreference = 'SilentlyContinue'
+                  $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+                  Write-Host "runner elevated (admin): $admin ; user: $([Security.Principal.WindowsIdentity]::GetCurrent().Name)"
+                  Write-Host "RUNNER_TEMP: $env:RUNNER_TEMP"
+                  $code = curl.exe -s -o NUL -L -m 60 --connect-timeout 30 -w "%{http_code}" "https://dot.net/v1/dotnet-install.ps1"
+                  Write-Host "egress probe (dot.net) -> HTTP $code"
+                  Remove-Item $env:RUNNER_TEMP\egress-test.bin -ErrorAction SilentlyContinue
+                  curl.exe -s -L --retry 5 --retry-all-errors -C - -m 300 --connect-timeout 30 -o $env:RUNNER_TEMP\egress-test.bin "https://aka.ms/vs/17/release/vs_BuildTools.exe"
+                  $rc = $LASTEXITCODE
+                  $sz = (Get-Item $env:RUNNER_TEMP\egress-test.bin -ErrorAction SilentlyContinue).Length
+                  Write-Host "VS bootstrapper test download: curl exit=$rc size=$sz bytes"
+                  exit 0
+
+            - name: Install Visual Studio 2022 Build Tools
+              timeout-minutes: 90
+              run: |
+                  $vsPath = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
+                  $components = @(
+                      '--add','Microsoft.VisualStudio.Workload.VCTools',
+                      '--add','Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+                      '--add','Microsoft.VisualStudio.Component.Windows11SDK.26100',
+                      '--add','Microsoft.Component.MSBuild',
+                      '--add','Microsoft.Net.Component.4.6.2.SDK',
+                      '--add','Microsoft.Net.Component.4.6.2.TargetingPack',
+                      '--add','Microsoft.Net.Component.4.8.SDK'
+                  )
+                  Write-Host "Downloading VS Build Tools bootstrapper from aka.ms ..."
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\vs_buildtools.exe "https://aka.ms/vs/17/release/vs_BuildTools.exe"
+                  if (!(Test-Path $env:RUNNER_TEMP\vs_buildtools.exe)) { Write-Host "::warning::VS bootstrapper download failed."; exit 0 }
+                  if (Test-Path "$vsPath\VC\Tools\MSVC") {
+                      Write-Host "VS present; modifying to ensure components."
+                      $args = @('modify','--installPath',$vsPath) + $components + @('--quiet','--wait','--norestart')
+                  } else {
+                      Write-Host "VS not present; installing."
+                      $args = $components + @('--includeRecommended','--quiet','--wait','--norestart')
+                  }
+                  $p = Start-Process $env:RUNNER_TEMP\vs_buildtools.exe -ArgumentList $args -Wait -PassThru
+                  Write-Host "VS Build Tools installer exited: $($p.ExitCode)"
+                  exit 0
+
+            - name: Install .NET Framework 4.8 Dev Pack (NetFxSDK)
+              timeout-minutes: 20
+              run: |
+                  $ErrorActionPreference = 'SilentlyContinue'
+                  $keys = (Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\NETFXSDK' -ErrorAction SilentlyContinue).PSChildName
+                  if ($keys) { Write-Host "NETFXSDK already present: $($keys -join ', ')"; exit 0 }
+                  Write-Host "Downloading .NET Framework 4.8 Developer Pack ..."
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\ndp48-devpack.exe "https://go.microsoft.com/fwlink/?linkid=2088517"
+                  if (!(Test-Path $env:RUNNER_TEMP\ndp48-devpack.exe)) { Write-Host "::warning::NetFx DevPack download failed."; exit 0 }
+                  $p = Start-Process $env:RUNNER_TEMP\ndp48-devpack.exe -ArgumentList '/q','/norestart' -Wait -PassThru
+                  Write-Host "NetFx 4.8 DevPack exited: $($p.ExitCode)"
+                  $keys = (Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\NETFXSDK' -ErrorAction SilentlyContinue).PSChildName
+                  Write-Host "NETFXSDK now: $($keys -join ', ')"
+                  exit 0
+
+            - name: Install Python 3
+              run: |
+                  if (Get-Command python -ErrorAction SilentlyContinue) { Write-Host "Python already installed: $(python --version)"; exit 0 }
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\python-install.exe "https://www.python.org/ftp/python/3.12.7/python-3.12.7-amd64.exe"
+                  if (!(Test-Path $env:RUNNER_TEMP\python-install.exe)) { Write-Host "::warning::Python download failed."; exit 0 }
+                  Start-Process $env:RUNNER_TEMP\python-install.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -Wait
+                  exit 0
+
+            - name: Install .NET SDK 8.0
+              run: |
+                  if (Get-Command dotnet -ErrorAction SilentlyContinue) { Write-Host ".NET already installed: $(dotnet --version)"; exit 0 }
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\dotnet-install.ps1 "https://dot.net/v1/dotnet-install.ps1"
+                  if (!(Test-Path $env:RUNNER_TEMP\dotnet-install.ps1)) { Write-Host "::warning::dotnet-install.ps1 download failed."; exit 0 }
+                  & $env:RUNNER_TEMP\dotnet-install.ps1 -Channel 8.0 -InstallDir "C:\Program Files\dotnet"
+                  if (Test-Path "C:\Program Files\dotnet\dotnet.exe") {
+                      $machinePath = [Environment]::GetEnvironmentVariable("Path","Machine")
+                      if ($machinePath -notlike "*C:\Program Files\dotnet*") {
+                          [Environment]::SetEnvironmentVariable("Path", "$machinePath;C:\Program Files\dotnet", "Machine")
+                      }
+                      Write-Host "dotnet installed: $(& 'C:\Program Files\dotnet\dotnet.exe' --version)"
+                  }
+                  exit 0
+
+            - name: Install DirectX Runtime
+              continue-on-error: true
+              timeout-minutes: 5
+              run: |
+                  $ErrorActionPreference = 'SilentlyContinue'
+                  if (Test-Path "$env:SystemRoot\System32\d3dx9_43.dll") { Write-Host "DirectX runtime already present."; exit 0 }
+                  $dst = "$env:RUNNER_TEMP\dxredist.exe"
+                  $ext = "$env:RUNNER_TEMP\dxredist"
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -m 180 -o "$dst" "https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe"
+                  if (!(Test-Path "$dst")) { Write-Host "::warning::DirectX redist download failed (best-effort, skipping)."; exit 0 }
+                  Start-Process "$dst" -ArgumentList '/Q', "/T:$ext" -Wait
+                  $setup = Join-Path "$ext" 'DXSETUP.exe'
+                  if (Test-Path "$setup") { Start-Process "$setup" -ArgumentList '/silent' -Wait }
+                  exit 0
+
+            - name: Install CMake
+              run: |
+                  if (Get-Command cmake -ErrorAction SilentlyContinue) { Write-Host "CMake already installed: $(cmake --version | Select-Object -First 1)"; exit 0 }
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\cmake-install.msi "https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-windows-x86_64.msi"
+                  if (!(Test-Path $env:RUNNER_TEMP\cmake-install.msi)) { Write-Host "::warning::CMake download failed."; exit 0 }
+                  Start-Process msiexec.exe -ArgumentList '/i','$env:RUNNER_TEMP\cmake-install.msi','/quiet','/norestart','ADD_CMAKE_TO_PATH=System' -Wait
+                  exit 0
+
+            - name: Install Git LFS
+              run: |
+                  git lfs version 2>$null
+                  if ($LASTEXITCODE -eq 0) { git lfs install; Write-Host "Git LFS already installed: $(git lfs version)"; exit 0 }
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\git-lfs.exe "https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-windows-amd64-v3.7.1.exe"
+                  if (!(Test-Path $env:RUNNER_TEMP\git-lfs.exe)) { Write-Host "::warning::Git LFS download failed."; exit 0 }
+                  Start-Process $env:RUNNER_TEMP\git-lfs.exe -ArgumentList '/VERYSILENT','/NORESTART' -Wait
+                  git lfs install
+                  exit 0
+
+            - name: Install PowerShell 7
+              run: |
+                  if (Get-Command pwsh -ErrorAction SilentlyContinue) { Write-Host "pwsh already installed: $(pwsh --version)"; exit 0 }
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\pwsh.msi "https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/PowerShell-7.4.6-win-x64.msi"
+                  if (!(Test-Path $env:RUNNER_TEMP\pwsh.msi)) { Write-Host "::warning::pwsh MSI download failed."; exit 0 }
+                  Start-Process msiexec.exe -ArgumentList '/i','$env:RUNNER_TEMP\pwsh.msi','/quiet','/norestart','ADD_PATH=1' -Wait
+                  Write-Host "PowerShell 7 installed."
+                  exit 0
+
+            - name: Verify Installation
+              run: |
+                  $checks = @(
+                      @{ Name='git'; Cmd={ git --version } },
+                      @{ Name='git-lfs'; Cmd={ git lfs version } },
+                      @{ Name='pwsh'; Cmd={ if (Get-Command pwsh -ErrorAction SilentlyContinue) { pwsh --version } else { "NOT FOUND" } } },
+                      @{ Name='python'; Cmd={ python --version } },
+                      @{ Name='dotnet'; Cmd={ dotnet --version } },
+                      @{ Name='cmake'; Cmd={ cmake --version | Select-Object -First 1 } },
+                      @{ Name='cl.exe'; Cmd={
+                          $cl = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\cl.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+                          if ($cl) { $cl.FullName } else { "NOT FOUND" }
+                      }}
+                  )
+                  foreach ($check in $checks) {
+                      try { $r = & $check.Cmd 2>&1; Write-Host "  $($check.Name): $r" }
+                      catch { Write-Host "  $($check.Name): NOT INSTALLED" }
+                  }
+                  exit 0
+
+    mac_setup:
+        name: Install on UE5-Mac
+        needs: guard
+        if: inputs.mode == 'mac-setup' && needs.guard.outputs.allowed == 'true'
+        runs-on: [self-hosted, macOS, ARM64]
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        steps:
+            - name: System Info
+              run: |
+                  echo "::notice::macOS runner setup starting"
+                  sw_vers
+                  uname -a
+                  xcodebuild -version || echo "Xcode not installed"
+
+            - name: Check Homebrew
+              run: |
+                  if command -v brew &> /dev/null; then
+                      echo "Homebrew version: $(brew --version | head -1)"
+                  else
+                      echo "::warning::Homebrew not installed"
+                  fi
+
+            - name: Check Build Tools
+              run: |
+                  echo "Checking build tools..."
+                  command -v git && git --version || echo "git: not found"
+                  command -v cmake && cmake --version | head -1 || echo "cmake: not found"
+                  command -v python3 && python3 --version || echo "python3: not found"
+                  echo "::notice::Mac runner setup check complete. Install UE as needed."
+
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs:
+            [
+                guard,
+                server_config,
+                server_gate,
+                server_build,
+                game_gate,
+                game_build_linux,
+                game_build_windows,
+                game_build_mac,
+                plugin_check,
+                plugin_build_linux,
+                plugin_build_win,
+                plugin_release,
+                win_setup,
+                mac_setup,
+            ]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Unreal Build (${{ inputs.mode }})'
+            job_name: '${{ inputs.app_name }}${{ inputs.plugin_name }}${{ inputs.shell_path }}${{ inputs.mode }}'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
+
+    track_success:
+        name: Track Success (close resolved)
+        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+        needs:
+            [
+                guard,
+                server_config,
+                server_gate,
+                server_build,
+                game_gate,
+                game_build_linux,
+                game_build_windows,
+                game_build_mac,
+                game_post_publish,
+                plugin_check,
+                plugin_build_linux,
+                plugin_build_win,
+                plugin_release,
+                win_setup,
+                mac_setup,
+            ]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Unreal Build (${{ inputs.mode }})'
+            job_name: '${{ inputs.app_name }}${{ inputs.plugin_name }}${{ inputs.shell_path }}${{ inputs.mode }}'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'success'

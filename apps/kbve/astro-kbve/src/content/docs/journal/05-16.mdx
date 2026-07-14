@@ -9,12 +9,52 @@ description: |
    May 16th - The Daily Journal. Python Adventures.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 16,'
+    accent: every year.
+    lede: 'The May 16th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 15'
+          href: /journal/05-15/
+        - label: 'May 17 →'
+          href: /journal/05-17/
+    related:
+        - title: 'Previous · May 15'
+          copy: 'Step back a day to the May 15th log.'
+          href: /journal/05-15/
+          icon: calendar
+        - title: 'Next · May 17'
+          copy: 'Jump ahead to the May 17th log.'
+          href: /journal/05-17/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1715647252838-a92275b3234d?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### Firecracker Billing
 
@@ -26,8 +66,15 @@ import { Adsense } from '@/components/astropad';
     If I can make a wrapper around their workers, I could probably do the same with amazon's eco-system as well.
     In a weird way, I guess I am rebuilding theo's storage but with my own layer ontop of it?
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Droid Event System
 
@@ -81,8 +128,9 @@ import { Adsense } from '@/components/astropad';
     I noticed that the health check for the discordsh is wrong, so that needs to be updated too.
     Furthermore, the health checks for the supabase need to be updated too, so that means I will have to set aside some time to just go through each instance and see what the problem might be.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **Python**
 
@@ -126,7 +174,9 @@ Going to try to aim at around 30 more songs into the jukebox this week.
 Just finished watching the bullet train, it was a solid piece of work!
 The storyline ties together very well and I was entertained throughout the whole movie, it gets a solid 8 out of 10 in my review.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:00am - When I was taking my mom to her doctor's office, I noticed that they were using a full react-based eco-system! The patients would have tablets, where they would sign forms, fill out and double check their information, schedule and more!
 - 12:00pm - Spent some of the time going through the Unity project. I still need to do some updates here and there with some plugins however they might break the game in other areas. I believe test casing or a system to test case the game might have to be on my agenda down the line.
@@ -134,13 +184,21 @@ The storyline ties together very well and I was entertained throughout the whole
 - 3:00pm - One Piece, league and programming session aka Memegramming! I am trying to rotate out of Shaco and into Senna, but getting the build and learning the play style have been some issues that I wanted to resolve. Found out that Luffy pumps his own blood to get stronger but also shortens his own life.
 - 7:35pm - Read this interesting article about the `Boot Girls` aka [NPR Boot Girls](https://www.npr.org/2023/05/16/1176175801/boot-girls-atlanta-private-parking-enforcement) and its an extremely cool concept! Imagine buying a 3D printer and making unique set of keys that can unlock car boots and then selling them?! It reminds me of the blue ocean and its a great start up besides the ethics involved.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Chance is always powerful. Let your hook be always cast; in the pool where you least expect it, there will be a fish.
 > — <cite>Ovid</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Adding Search back into the KBVE Homepage.
+
+</BentoProse>
+
+</BentoDoc>

@@ -12,9 +12,84 @@ osrs:
   lowalch: 6656
   highalch: 9984
   limit: 8
-  about: "Adamant platebody (h1) is a free-to-play item in Old School RuneScape. High alchemy value: 9,984 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 11.339
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weight: 11.339
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 65
+      slash: 63
+      crush: 55
+      magic: -6
+      ranged: 63
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/1133
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_name: Adamant platebody
+      slug: adamant-platebody
+      relationship: variant
+      description: Standard adamant platebody without heraldic design
+    - item_name: Adamant platebody (h2)
+      slug: adamant-platebody-h2
+      relationship: variant
+      description: Alternate heraldic design
+    - item_name: Adamant platebody (h3)
+      slug: adamant-platebody-h3
+      relationship: variant
+      description: Alternate heraldic design
+  about: "Adamant platebody (h1) is a heraldic variant of the standard adamant platebody, obtained exclusively as a reward from medium Treasure Trails with a 1/1,133 drop rate from a Reward casket (medium). Functionally identical to the regular adamant platebody but features a unique heraldic design. Available to free-to-play players and stores in a costume room's treasure chest."
+  market_strategy:
+    notes:
+      - "Exclusive to medium clue scroll rewards"
+      - "Low buy limit reflects limited supply"
+      - "Cosmetic value drives demand"
+  trading_tips:
+    - Identical stats to standard adamant platebody — cosmetic-only premium
+    - Low volume can mean slow buy/sell at margin
+  history:
+    - date: "2019-04-11"
+      description: Released as part of the Treasure Trails Expansion update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

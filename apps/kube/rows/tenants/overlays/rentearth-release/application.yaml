@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: rows-rentearth-release
+    namespace: argocd
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    annotations:
+        kbve.com/source-path: kube/rows/tenants/overlays/rentearth-release
+        kbve.com/manifest-path: apps/kube/rows/tenants/overlays/rentearth-release
+        kbve.com/application-file: kube/rows/tenants/overlays/rentearth-release/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: game-server
+        kbve.com/stack: rows
+        kbve.com/deployment-model: multi-tenant-overlay
+        kbve.com/tenant: rentearth-release
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: main
+        path: apps/kube/rows/tenants/overlays/rentearth-release
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: rows-rentearth-release
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - PrunePropagationPolicy=foreground
+            - PruneLast=true
+        retry:
+            limit: 5
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
+    revisionHistoryLimit: 3

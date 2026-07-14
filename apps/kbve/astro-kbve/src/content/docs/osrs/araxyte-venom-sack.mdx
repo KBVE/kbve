@@ -1,6 +1,6 @@
 ---
 title: Araxyte venom sack | OSRS Price Data
-description: "Araxyte venom sack: Looks spicy!. High alch: 300 GP, GE limit: 11,000."
+description: "Araxyte venom sack is a stackable Araxxor drop that doubles as a Herblore secondary for extended anti-venom+ and as a venom-curing snack. High alch: 300 GP, GE limit: 11,000."
 osrs:
   id: 29784
   name: Araxyte venom sack
@@ -12,12 +12,97 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 11000
-  about: "Araxyte venom sack is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: secondary
+    tier: high
+  properties:
+    release_date: "2024-08-28"
+    update: "Araxxor"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  consumable:
+    type: food
+    effects:
+      - description: "Cures venom and poison on consumption."
+      - description: "Causes a 3-tick attack delay when eaten (combo-eat compatible with karambwans)."
+  recipes:
+    - skill: herblore
+      level: 94
+      xp: 80
+      materials:
+        - item_name: Anti-venom+(4)
+          quantity: 1
+        - item_name: Araxyte venom sack
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      product: Extended anti-venom+(4)
+      notes: "Used as the secondary on Anti-venom+ doses (1-4) at 94 Herblore to brew Extended anti-venom+ potions. XP scales 20/40/60/80 with dose count."
+  drops:
+    - source: Araxxor
+      combat_level: 890
+      quantity: "1 (always), +1 at 5/115, +2 at 2/115"
+      rarity: always
+    - source: Araxyte
+      combat_level: 96
+      quantity: "1 (always), +2 at 5/127"
+      rarity: always
+    - source: Araxyte
+      combat_level: 146
+      quantity: "1 (always), +4 at 5/127"
+      rarity: always
+    - source: Dreadborn araxyte
+      combat_level: 281
+      quantity: "1 (always), +4 at 3 x 5/127 rolls"
+      rarity: always
+  related_items:
+    - item_name: Anti-venom+(4)
+      slug: anti-venom-plus-4
+      relationship: component
+      description: "Base potion combined with the venom sack to brew Extended anti-venom+."
+    - item_name: Extended anti-venom+(4)
+      slug: extended-anti-venom-plus-4
+      relationship: product
+      description: "Resulting potion brewed using the venom sack at 94 Herblore."
+    - item_name: Araxyte fang
+      slug: araxyte-fang
+      relationship: alternative
+      description: "Other Araxxor common drop used in venom upgrade recipes."
+    - item_name: Karambwan
+      slug: cooked-karambwan
+      relationship: alternative
+      description: "Combo-eat partner for araxyte venom sack during PvM tick-eating."
+  about: "Araxyte venom sack is a venom-cleansing snack dropped in bulk by Araxxor and the araxyte family, doubling as the Herblore secondary used at 94 Herblore to brew Extended anti-venom+ potions (20-80 XP per dose). Players keep stacks for tick-eating venom in PvM, while Herblorists buy them in bulk off the GE to feed the extended anti-venom+ pipeline that gears up future Araxxor / Toxic content."
+  market_strategy:
+    notes:
+      - "Supply scales directly with Araxxor / araxyte kill rates; demand tracks anti-venom+ Herblore consumption"
+      - "Combo-eat utility in PvM keeps a steady consumer base independent of Herblore crafters"
+      - "Buy limit of 11,000 per 4 hours keeps this a high-volume bulk flip"
+      - "Price ceiling capped by Extended anti-venom+ margin - if margin compresses, sack price stalls"
+  trading_tips:
+    - "Track Extended anti-venom+ GE price as the upstream demand signal"
+    - "Bulk-buy after Araxxor farm streamer events that flood supply"
+    - "Watch venom-heavy PvM updates - new venom bosses spike combo-eat demand"
+  history:
+    - date: "2024-08-28"
+      description: "Released with the Araxxor boss update as both a venom-curing food and Herblore secondary."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

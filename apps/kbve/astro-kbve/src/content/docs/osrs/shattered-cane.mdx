@@ -12,12 +12,86 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: null
-  about: "Shattered cane is a members-only item in Old School RuneScape. High alchemy value: 600 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2022-03-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Skill Emote
+      - Boss Emote
+      - Quest Emote
+      - Fragment Emote
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: crush
+    attack_speed: 4
+    weight: 1.814
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Shattered hood
+      slug: shattered-hood
+      relationship: set-piece
+      description: Tier 3 Shattered Relic Hunter hood
+    - item_name: Shattered top
+      slug: shattered-top
+      relationship: set-piece
+      description: Tier 3 Shattered Relic Hunter top
+    - item_name: Shattered trousers
+      slug: shattered-trousers
+      relationship: set-piece
+      description: Tier 3 Shattered Relic Hunter trousers
+    - item_name: Shattered boots
+      slug: shattered-boots
+      relationship: set-piece
+      description: Tier 3 Shattered Relic Hunter boots
+  about: "Shattered cane is a cosmetic weapon bundled with the tier 3 Shattered Relic Hunter outfit, purchased for 15,000 League points from the Leagues Reward Shop."
+  market_strategy:
+    notes:
+      - "League cosmetic reward"
+      - "Bundled with the Shattered tier 3 outfit"
+      - "Provides skill, boss, quest, and fragment emotes"
+  trading_tips:
+    - "Supply is limited to players who completed Shattered Relics League"
+    - "Listed cane price reflects scarcity of that league cohort"
+  history:
+    - date: "2022-03-16"
+      description: "Added with the Shattered Relics League reward shop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

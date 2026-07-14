@@ -12,13 +12,78 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 18000
-  related_items: []
+  material:
+    type: textile
+    tier: low
+  shops:
+    - shop_name: Al Kharid Silk Trader
+      location: Al Kharid
+      price: 3
+      restock_time: null
+      notes: Unlimited supply, sells at 2-3 coins
+    - shop_name: Silk Merchant (East Ardougne)
+      location: East Ardougne
+      stock: 0
+      price: 60
+      restock_time: null
+      notes: Buys silk at 60 coins after the player refuses initial offer
+    - shop_name: Thessalia's Fine Clothes
+      location: Varrock
+      stock: 5
+      price: 30
+      restock_time: 1 minute
+    - shop_name: Seamstress
+      location: Prifddinas
+      stock: 5
+      price: 39
+      restock_time: 1 minute
+  recipes:
+    - skill: Crafting
+      level: 12
+      experience: 1
+      materials:
+        - item_name: Silk
+          quantity: 1
+      tools:
+        - Thread
+        - Needle
+      output_quantity: 1
+      output_item: Cleaning cloth
+  related_items:
+    - item_id: 1949
+      item_name: Chef's hat
+      slug: chefs-hat
+      relationship: alternative
+      description: Other Fancy Dress Shop textile item
+  market_strategy:
+    notes:
+      - "Classic Ardougne silk-flip route: buy from Al Kharid trader, run to East Ardougne silk merchant for 60 gp resale."
+      - "Bulk demand from Ghosts Ahoy / Enlightened Journey / Song of the Elves questers."
+  trading_tips:
+    - "Buy GE price during quest releases or quest cape rushes."
+    - "Avoid stocking heavily; price has been pinned near alch for years."
   about: |-
-    > _"It's a\"piece\" of silk."_
-
+    > _"It's a sheet of silk."_
     Silk is used in Crafting and can be sold to the silk trader in Ardougne for 60 coins (if you wait). Also used in quests and for making various items at the Fancy Dress Shop.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2001-01-04"
+      description: Released during the RuneScape beta launch.
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape Beta launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

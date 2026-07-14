@@ -12,9 +12,90 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 6000
-  about: "Cake is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.3
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 40
+      xp: 180
+      materials:
+        - item_name: Uncooked cake
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  shops:
+    - shop_name: Ardougne Baker's Stall
+      location: East Ardougne
+      price: 50
+      currency: Coins
+      stock: 3
+    - shop_name: Keldagrim's Best Bread
+      location: Keldagrim
+      price: 75
+      currency: Coins
+      stock: 3
+    - shop_name: Prifddinas Foodstuffs
+      location: Prifddinas
+      price: 50
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Uncooked cake
+      slug: uncooked-cake
+      relationship: component
+      description: "Raw input cooked at level 40 Cooking"
+    - item_name: 2/3 cake
+      slug: 2-3-cake
+      relationship: downgrade
+      description: "Result of taking one bite of a full cake"
+    - item_name: Slice of cake
+      slug: slice-of-cake
+      relationship: downgrade
+      description: "Final bite stage of the cake"
+    - item_name: Chocolate cake
+      slug: chocolate-cake
+      relationship: variant
+      description: "Chocolate-coated variant with higher heal value"
+    - item_name: Burnt cake
+      slug: burnt-cake
+      relationship: alternative
+      description: "Result of a failed cake cook"
+  about: |-
+    Plain sponge cake restoring 12 Hitpoints across three bites of 4 HP each. Cooked from an uncooked cake at level 40 Cooking on a range for 180 xp; success rate climbs with Cooking level and is guaranteed at level 74+. Stealing one from the Ardougne Baker's Stall counts toward the Ardougne easy diary.
+  market_strategy:
+    notes:
+      - "Free-to-play food with steady low-tier demand"
+      - "GE prices often undercut by shop runs in Ardougne and Prifddinas"
+      - "Bulk buyers favour uncooked cake for Cooking xp instead"
+      - "Diary-locked thieving keeps F2P supply modest"
+  trading_tips:
+    - "Compare GE price against shop stock to find arbitrage windows"
+    - "Cake heals 12 HP total but only across 3 bites - inferior to single-bite alternatives"
+    - "GE limit of 6,000 leaves room for bulk flips"
+  history:
+    - date: "2001-06-11"
+      description: "Released as part of early Cooking content"
+    - date: "2009-12-01"
+      description: "Inventory icon updated alongside many Cooking items"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,13 +12,26 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  related_items: []
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: utility
+  potion:
+    type: food
+    tier: utility
+    effects:
+      - item_name: Cure poison
+        description: Cures poison and venom instantly
+      - item_name: Poison immunity
+        duration: 18
+        description: Grants short poison immunity
+      - item_name: Run energy
+        description: Restores 30% run energy
   about: |-
     > _"I wonder what this tastes like?"_
 
     Strange fruit cures poison and venom instantly, grants ~18 seconds poison immunity, and restores 30% run energy. Does not heal Hitpoints. Useful as a lightweight anti-poison alternative.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

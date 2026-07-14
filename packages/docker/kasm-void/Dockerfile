@@ -19,6 +19,7 @@ RUN set -eux; \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates curl tar xz-utils procps \
         python3 python3-pip \
+        xfce4-terminal xdg-utils zenity \
         libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
         libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libgtk-3-0 \
         libasound2 libpango-1.0-0 libcairo2 libcups2 libdbus-1-3 fonts-liberation; \
@@ -42,12 +43,17 @@ RUN set -eux; \
     curl -fL --retry 5 -o /tmp/cloak.tar.gz "$url"; \
     if [ -n "$CLOAK_SHA256" ]; then echo "$CLOAK_SHA256  /tmp/cloak.tar.gz" | sha256sum -c -; fi; \
     mkdir -p "$CLOAK_HOME"; \
-    tar -C "$CLOAK_HOME" --strip-components=1 -xzf /tmp/cloak.tar.gz; \
+    top_count="$(tar -tzf /tmp/cloak.tar.gz | awk -F/ 'NF>0 {print $1}' | sort -u | wc -l | tr -d ' ')"; \
+    if [ "$top_count" = "1" ]; then strip=1; else strip=0; fi; \
+    tar -C "$CLOAK_HOME" --strip-components="$strip" -xzf /tmp/cloak.tar.gz; \
     rm /tmp/cloak.tar.gz; \
-    if [ ! -x "$CLOAK_BIN" ]; then \
-      candidate="$(find "$CLOAK_HOME" -maxdepth 2 -type f \( -name cloakbrowser -o -name chrome -o -name chromium \) -perm -u+x | head -1)"; \
-      [ -n "$candidate" ] && ln -sf "$candidate" "$CLOAK_BIN"; \
+    candidate="$(find "$CLOAK_HOME" -maxdepth 3 -type f \( -name cloakbrowser -o -name chrome -o -name chromium \) -perm -u+x | head -1)"; \
+    if [ -z "$candidate" ]; then \
+      echo "no browser binary found in $CLOAK_HOME" >&2; \
+      ls -la "$CLOAK_HOME" >&2; \
+      exit 1; \
     fi; \
+    ln -sf "$candidate" "$CLOAK_BIN"; \
     [ -x "$CLOAK_BIN" ]; \
     chown -R 1000:1000 "$CLOAK_HOME"
 
@@ -56,14 +62,41 @@ RUN set -eux; \
       mv /dockerstartup/custom_startup.sh /dockerstartup/discord_startup.sh; \
     fi
 
+RUN set -eux; \
+    if [ ! -x /usr/share/discord/Discord ]; then \
+      if [ ! -x /usr/share/discord/updater_bootstrap ]; then \
+        echo "no Discord binary and no updater_bootstrap — upstream base layout unexpected" >&2; \
+        ls -la /usr/share/discord/ >&2; \
+        exit 1; \
+      fi; \
+      DISCORD_APP_HOME=/usr/share/discord/app; \
+      mkdir -p "$DISCORD_APP_HOME"; \
+      /usr/share/discord/updater_bootstrap "$DISCORD_APP_HOME" stable --no-zenity || true; \
+      DISCORD_BIN="$(find "$DISCORD_APP_HOME" -maxdepth 4 -name Discord -type f -perm -u+x 2>/dev/null | sort -V | tail -1)"; \
+      if [ -z "$DISCORD_BIN" ]; then \
+        echo "updater_bootstrap finished but Discord binary not found under $DISCORD_APP_HOME" >&2; \
+        find "$DISCORD_APP_HOME" -maxdepth 4 -ls >&2 || true; \
+        exit 1; \
+      fi; \
+      ln -sf "$DISCORD_BIN" /usr/share/discord/Discord; \
+      chmod -R a+rX /usr/share/discord; \
+    fi; \
+    [ -x /usr/share/discord/Discord ]; \
+    chown -R 1000:1000 /usr/share/discord; \
+    find /usr/share/discord -type d -exec chmod u+w {} +
+
 COPY custom_startup.sh /dockerstartup/custom_startup.sh
 COPY nav_shim.py /dockerstartup/nav_shim.py
-COPY cloakbrowser.desktop /home/kasm-user/Desktop/cloakbrowser.desktop
+COPY scripts/ /opt/kasm-void/scripts/
+COPY desktop/ /opt/kasm-void/Desktop/
+COPY cloakbrowser.desktop /opt/kasm-void/Desktop/CloakBrowser.desktop
 
 RUN set -eux; \
     chmod +x /dockerstartup/custom_startup.sh /dockerstartup/nav_shim.py; \
+    chmod +x /opt/kasm-void/scripts/*.sh; \
+    chmod +x /opt/kasm-void/Desktop/*.desktop; \
     [ -f /dockerstartup/discord_startup.sh ] && chmod +x /dockerstartup/discord_startup.sh || true; \
-    chown -R 1000:1000 /home/kasm-user /dockerstartup/custom_startup.sh /dockerstartup/nav_shim.py /dockerstartup/discord_startup.sh 2>/dev/null || true
+    chown -R 1000:1000 /opt/kasm-void /dockerstartup/custom_startup.sh /dockerstartup/nav_shim.py /dockerstartup/discord_startup.sh 2>/dev/null || true
 
 USER 1000
 ENV HOME=/home/kasm-user \

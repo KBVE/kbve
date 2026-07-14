@@ -12,9 +12,58 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 4
-  about: "Sandwich lady bottom is a free-to-play item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weapon_type: none
+    weight: 0.907
+  treasure_trail:
+    tier: beginner
+    is_reward: true
+    reward_tiers:
+      - beginner
+  drop_table:
+    sources:
+      - source: "Reward casket (beginner)"
+        quantity: "1"
+        rarity: "1/360"
+  related_items:
+    - name: Sandwich lady top
+      relationship: set-piece
+    - name: Sandwich lady hat
+      relationship: set-piece
+    - name: Sandwich lady bottom (broken)
+      relationship: variant
+  about: "Sandwich lady bottom is a cosmetic leg-slot reward from beginner Treasure Trails in Old School RuneScape. Part of the three-piece Sandwich lady outfit, it provides no combat bonuses and can be stored in a player-owned house treasure chest when the beginner clue interface is open."
+  market_strategy:
+    notes:
+      - "Pure cosmetic — value driven by completionists and the outfit fashion market."
+      - "Tiny buy limit (4 per 4 hours) keeps trades thin and prices volatile on small order flow."
+      - "Demand spikes when the Sandwich lady outfit becomes a fashion meme or collector chase."
+  trading_tips:
+    - "Set-piece items often correlate; track top/hat prices for arbitrage opportunities."
+    - "Beginner clues are extremely common, but this drop is 1/360 — supply is steady but slow."
+    - "Long-hold cosmetic flips work better than rapid scalp trades due to the 4 unit buy limit."
+  history:
+    - date: "2019-04-11"
+      description: "Released as a beginner Treasure Trail cosmetic reward."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    alchable: true
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

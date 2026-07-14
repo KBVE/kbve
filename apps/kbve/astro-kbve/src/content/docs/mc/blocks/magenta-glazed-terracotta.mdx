@@ -1,5 +1,6 @@
 ---
 title: Magenta Glazed Terracotta
+template: splash
 description: |
     Minecraft Magenta Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 664
     ref: magenta_glazed_terracotta
     slug: magenta-glazed-terracotta
+    content_rev: 1
     display_name: Magenta Glazed Terracotta
     material: stone
     hardness: 1.4
     blast_resistance: 1.4
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Magenta Glazed Terracotta is a decorative block smelted from
+            magenta stained terracotta. Its glossy directional-arrow
+            pattern aligns across multiple blocks depending on placement
+            orientation, and pistons can push it despite its rigid look.
+        lore: |
+            Glazed terracotta released in Java Edition 1.12, with its
+            patterned designs inspired by Moroccan tilework.
+    uses:
+        - title: Patterned Flooring
+          ref: magenta_glazed_terracotta
+          detail: |
+              Placed in 2x2 or larger grids to form a continuous
+              directional-arrow mosaic across floors, walls, or roofs.
+    found_in:
+        - location: Smelted
+          detail: Smelting magenta stained terracotta in a furnace with any fuel produces this block.
+        - location: Mason villager trades
+          detail: Expert-level mason villagers trade emeralds for glazed terracotta of any color, including magenta.
+    faq:
+        - question: What tool do I need to mine Magenta Glazed Terracotta?
+          answer: |
+              A pickaxe of any tier, starting with wood. Breaking it
+              without a pickaxe drops nothing.
+        - question: Can pistons move Magenta Glazed Terracotta?
+          answer: |
+              Regular pistons can push it, but sticky pistons cannot pull
+              it back, and it does not stick to slime or honey blocks.
+        - question: Does the texture rotate when I place it?
+          answer: |
+              Yes. The block's directional-arrow pattern orients based on
+              the direction it was placed, letting builders line up
+              patterns across multiple blocks.
+        - question: Is Magenta Glazed Terracotta renewable?
+          answer: |
+              Yes. It can be smelted repeatedly from stained terracotta
+              or purchased from mason villagers, so supply is unlimited.
     data_version: "1.21.5"
 ---
 

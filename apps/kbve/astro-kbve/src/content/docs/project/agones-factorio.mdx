@@ -1,7 +1,7 @@
 ---
-title: Agones Factorio
-description: |
-    Agones-managed Factorio dedicated server. Custom OCI image that layers our KBVE scenario + an Agones lifecycle shim (Ready/Health + SIGTERM-driven save flush) on top of the official factoriotools/factorio rootless base.
+title: Agones Factorio — Managed Dedicated Server
+description: Agones-managed Factorio dedicated server with the KBVE scenario plus a lifecycle shim (Ready/Health, SIGTERM save flush) on the factoriotools rootless base.
+sem: 1
 sidebar:
     label: Agones Factorio
     order: 460
@@ -13,7 +13,7 @@ tags:
 key: agones_factorio
 pipeline: docker
 app_name: agones-factorio
-version: "0.0.13"
+version: "0.0.14"
 source_path: apps/agones/factorio
 version_toml: apps/agones/factorio/version.toml
 runner: ubuntu-latest
@@ -30,10 +30,93 @@ external_publish:
         - name: kbve
           source_path: apps/agones/factorio/mods-local/kbve
         - name: kbve-spider
-          source_path: apps/factorio/mods/kbve-spider
+          source_path: apps/agones/factorio/mods-src/kbve-spider
+        - name: kbve-orc
+          source_path: apps/agones/factorio/mods-src/kbve-orc
+kube:
+    stack: agones
+    environment: prod
+    tier: server
+    owner: h0lybyte
+    criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the Agones Factorio image?
+          answer: A KBVE-baked Factorio dedicated-server OCI image built to run as an Agones GameServer on the production Kubernetes cluster, layered on the factoriotools rootless base.
+        - question: How does the Agones lifecycle shim work?
+          answer: The shim execs the Factorio binary, seeds config defaults when no ConfigMap is mounted, drives Ready() plus a periodic Health() heartbeat, and traps SIGTERM so shutdowns get a clean autosave.
+        - question: Can the image run locally without Agones?
+          answer: Yes. When AGONES_SDK_HTTP is unset the SDK calls are skipped, so a plain docker run works without an Agones controller.
+bento:
+    badge: gameserver · agones · factorio
+    title: Managed dedicated
+    accent: Factorio
+    lede: >-
+        A KBVE-baked Factorio dedicated-server image built to run as an Agones
+        GameServer on the production Kubernetes cluster — a thin layer over the
+        factoriotools rootless base with an in-tree scenario and a lifecycle shim.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/agones/factorio
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Runtime knobs
+          href: "#runtime"
+    aside:
+        icon: server
+        title: Agones lifecycle shim
+        body: >-
+            <code>shim/agones-shim.sh</code> execs the Factorio binary, seeds
+            config defaults when no ConfigMap is mounted, drives <code>Ready()</code>
+            plus a periodic <code>Health()</code> heartbeat, and traps
+            <code>SIGTERM</code> so shutdowns get a clean autosave.
+        points:
+            - <strong>Rootless</strong> — runs as non-root UID 845.
+            - <strong>Local-friendly</strong> — SDK skipped when AGONES_SDK_HTTP unset.
+    stats:
+        - { label: Image, value: kbve/agones-factorio, icon: box }
+        - { label: Base, value: factoriotools 2.0.77, icon: package }
+        - { label: Orchestration, value: Agones, icon: server }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Agones lifecycle shim
+          icon: activity
+          body: <code>Ready()</code> / periodic <code>Health()</code> and SIGTERM-driven autosave on shutdown.
+        - title: KBVE scenario
+          icon: book
+          body: An in-tree Lua soft-mod layer — joins, donor perks, chat commands — redmew-inspired but written fresh.
+        - title: RCON + console-log
+          icon: network
+          body: Loopback RCON and <code>--console-log</code> feed the planned chat-relay sidecar over a shared volume.
+        - title: Rootless
+          icon: shield
+          body: Runs as non-root UID 845 so the GameServer PodSpec can require runAsNonRoot without a fight.
+    related:
+        - title: Agones Factorio Relay
+          href: /project/agones-factorio-relay/
+          copy: Chat-relay sidecar bridging RCON, IRC, and Discord.
+          icon: network
+        - title: Agones
+          href: /project/agones/
+          copy: The game-server orchestration platform.
+          icon: server
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="How it fits together" heading="Overview">
 
 KBVE-baked Factorio dedicated-server image, designed to run as an Agones `GameServer` on the production Kubernetes cluster (issue #11138).
 
@@ -44,7 +127,9 @@ The image is a thin layer on top of `factoriotools/factorio:2.0.76-rootless`:
 - **RCON + console-log plumbing** — when `FACTORIO_RCON_PASSWORD` is set the shim opens RCON bound to `127.0.0.1:27015` (loopback-only by default) and passes `--console-log` so the planned chat-relay sidecar can stream `[CHAT]/[JOIN]/[LEAVE]/[COMMAND]` markers off a shared `emptyDir` volume.
 - **Rootless** — UID 845 `factorio`, so the eventual `GameServer` PodSpec can require `runAsNonRoot: true` without a SecurityContext fight.
 
-## Phasing
+</BentoProse>
+
+<BentoProse id="phasing" eyebrow="Roadmap" heading="Phasing">
 
 | Phase | Scope |
 |---|---|
@@ -55,15 +140,15 @@ The image is a thin layer on top of `factoriotools/factorio:2.0.76-rootless`:
 | 4 | PVC + save-rotation CronJob + public download URL |
 | 5 | Observability — log shipping + RCON metrics + UPS / player-count alerts |
 
-## Container
+</BentoProse>
+
+<BentoProse id="runtime" eyebrow="Configuration" heading="Container & runtime knobs">
 
 `kbve/agones-factorio` (local) / `ghcr.io/kbve/agones-factorio` (production), built via the standard nx container target:
 
 ```bash
 ./kbve.sh -nx agones-factorio:container
 ```
-
-## Runtime knobs
 
 | Env | Default | Notes |
 |---|---|---|
@@ -78,8 +163,8 @@ The image is a thin layer on top of `factoriotools/factorio:2.0.76-rootless`:
 | `AGONES_READY_DELAY` | `30` | Seconds before `Ready()` |
 | `AGONES_HEALTH_INTERVAL` | `5` | `Health()` cadence |
 
-## References
+**References** — Issue #11138 (original planning ticket) · factoriotools/factorio (upstream rootless image) · [Agones GameServer CRD](https://agones.dev/site/docs/reference/gameserver/).
 
-- Issue #11138 — original planning ticket
-- factoriotools/factorio — upstream image (rootless variant)
-- Agones `GameServer` CRD — https://agones.dev/site/docs/reference/gameserver/
+</BentoProse>
+
+</BentoDoc>

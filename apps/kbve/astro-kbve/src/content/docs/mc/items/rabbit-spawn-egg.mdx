@@ -1,5 +1,6 @@
 ---
 title: Rabbit Spawn Egg
+template: splash
 description: |
     Minecraft Rabbit Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1115
     ref: rabbit_spawn_egg
     slug: rabbit-spawn-egg
+    content_rev: 1
     display_name: Rabbit Spawn Egg
     category: food
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Rabbit Spawn Egg is a Creative-mode item used to instantly spawn a
+            rabbit by using it on a block surface. It is only obtainable through the
+            Creative inventory or commands, and is consumed when used unless in
+            Creative mode.
+        lore: |
+            Naming a rabbit spawn egg "Toast" on an anvil before use spawns a rare,
+            secretly-skinned killer rabbit variant.
+    faq:
+        - question: How do I get a Rabbit Spawn Egg in Survival?
+          answer: |
+              You cannot obtain it normally in Survival; it is only available in the
+              Creative inventory or via the /give command.
+        - question: What happens when I use it?
+          answer: |
+              A rabbit spawns with its feet adjacent to the surface you used the egg
+              on, and its ambient sound plays immediately.
+        - question: Can naming the egg change the spawned rabbit?
+          answer: |
+              Yes, renaming the egg "Toast" on an anvil spawns a rare white-and-brown
+              "killer rabbit" skin variant instead of a normal rabbit.
+        - question: Is the egg consumed after use?
+          answer: |
+              In Survival or Adventure mode it is consumed after spawning the mob; in
+              Creative mode it remains in your inventory.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

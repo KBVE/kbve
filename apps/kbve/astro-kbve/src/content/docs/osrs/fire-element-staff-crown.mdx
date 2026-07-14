@@ -12,9 +12,56 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 8
-  about: "Fire element staff crown is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magic
+    tier: high
+  properties:
+    release_date: "2025-02-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Branda the Fire Queen
+        quantity: "1"
+        rarity: 1/75
+  related_items:
+    - item_name: Ice element staff crown
+      slug: ice-element-staff-crown
+      relationship: component
+      description: Sister crown also required to craft the twinflame staff
+    - item_name: Twinflame staff
+      slug: twinflame-staff
+      relationship: product
+      description: Resulting end-game magic weapon crafted from both crowns plus a battlestaff
+    - item_name: Battlestaff
+      slug: battlestaff
+      relationship: component
+      description: Base staff used during twinflame assembly
+  about: "The fire element staff crown is a rare drop from Branda the Fire Queen at the Royal Titans boss encounter. It is a crafting component used together with the ice element staff crown and a battlestaff to build the twinflame staff, one of the strongest magic weapons in the game. Because both crowns are required, demand and price closely track the value of the finished twinflame staff."
+  market_strategy:
+    notes:
+      - "Supply gated by Royal Titans clears at a 1/75 drop rate"
+      - "Tiny 8-per-4-hour limit creates volatile percentage moves"
+      - "Pair-priced with the ice crown since both are required to assemble twinflame"
+  trading_tips:
+    - Watch ice crown supply for divergence trades when one outpaces the other
+    - Track Royal Titans group LFG activity to forecast drop floods
+  history:
+    - date: "2025-02-05"
+      description: "Released with the Royal Titans boss, dropped by Branda the Fire Queen for use in crafting the twinflame staff."
+
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

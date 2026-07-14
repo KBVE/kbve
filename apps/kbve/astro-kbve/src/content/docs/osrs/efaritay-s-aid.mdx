@@ -1,6 +1,6 @@
 ---
 title: Efaritay's aid | OSRS Price Data
-description: "Efaritay's aid: Aids the user against vampyres.. High alch: 855 GP, GE limit: 10,000."
+description: "Efaritay's aid is a P2P enchanted topaz ring that boosts vampyre damage. High alch: 855 GP, GE limit: 10,000."
 osrs:
   id: 21140
   name: Efaritay's aid
@@ -12,9 +12,106 @@ osrs:
   lowalch: 570
   highalch: 855
   limit: 10000
-  about: "Efaritay's aid is a members-only item in Old School RuneScape. High alchemy value: 855 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0.006
+  properties:
+    release_date: "2017-02-02"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: misc
+    tier: gold
+    category: jewelry
+  equipment:
+    slot: ring
+    weapon_type: ring
+    attack_speed: 1
+    requirements:
+      magic: 49
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    has_special: false
+  charges:
+    has_charges: true
+    max_charges: 200
+    notes: "Loses one charge per successful hit against vampyres; shatters at 0."
+  recipes:
+    - skill: "Magic"
+      level: 49
+      xp: 59
+      output_quantity: 1
+      item_name: "Efaritay's aid"
+      tools: []
+      inputs:
+        - item_name: "Topaz ring"
+          quantity: 1
+        - item_name: "Cosmic rune"
+          quantity: 1
+        - item_name: "Fire rune"
+          quantity: 5
+      notes: "Cast Lvl-3 Enchant on a topaz ring."
+  related_items:
+    - item_id: 1639
+      item_name: Topaz ring
+      slug: topaz-ring
+      relationship: component
+      description: "Base ring enchanted into Efaritay's aid"
+    - item_id: 24576
+      item_name: Blisterwood flail
+      slug: blisterwood-flail
+      relationship: alternative
+      description: "Pairs well against vampyres"
+    - item_id: 11824
+      item_name: Black mask
+      slug: black-mask
+      relationship: alternative
+      description: "Slayer multiplier stacks with Efaritay's aid"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy when topaz ring prices dip; high alch arbitrage is rarely profitable.\""
+      - "sell_strategy: \"Sell to Slayers on vampyre tasks.\""
+      - "price_trend: \"Stable with Vyrewatch/blisterwood content popularity.\""
+      - "profit_margin: \"Slim; mostly utility purchase.\""
+  trading_tips:
+    - "Bring two on a Vyrewatch task — 200 charges goes fast at high KPH."
+    - "Enchant your own from topaz ring for the cheapest source."
+    - "Damage bonus stacks with black mask / slayer helm."
+  history:
+    - date: "2017-02-02"
+      update: "Sins of the Father quest"
+      description: "Efaritay's aid introduced during the Sins of the Father storyline content."
+  about: |-
+    Efaritay's aid is a damage-boost ring used against vampyres.
+
+    | Effect | Value |
+    |--------|-------|
+    | Damage vs vampyres | +10% |
+    | Accuracy vs vampyres | +15% |
+    | Charges | 200 hits |
+    | Bypass | Non-silver/blisterwood weapons deal half damage to Tier 2 vampyres |
+
+    Pairs with the blisterwood flail / silver weapons and slayer helm bonuses.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

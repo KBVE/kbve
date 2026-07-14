@@ -3,6 +3,24 @@ import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import istanbul from 'vite-plugin-istanbul';
+
+const coverage = process.env.COVERAGE === '1';
+const coveragePlugins = coverage
+	? [
+			istanbul({
+				include: 'src/**/*.{ts,tsx}',
+				exclude: [
+					'node_modules',
+					'**/*.spec.ts',
+					'**/*.test.ts',
+					'**/*.d.ts',
+				],
+				extension: ['.ts', '.tsx'],
+				forceBuildInstrument: false,
+			}),
+		]
+	: [];
 
 export default defineConfig({
 	site: 'https://cryptothrone.com',
@@ -29,13 +47,21 @@ export default defineConfig({
 					label: 'Guides',
 					items: [{ autogenerate: { directory: 'guides' } }],
 				},
+				{
+					label: 'Account',
+					items: [{ autogenerate: { directory: 'auth' } }],
+				},
 			],
 		}),
 		react(),
 		sitemap(),
 	],
 	vite: {
-		plugins: [tailwindcss()],
+		plugins: [tailwindcss(), ...coveragePlugins],
+		esbuild: { keepNames: true },
+		resolve: {
+			dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
+		},
 		build: {
 			chunkSizeWarningLimit: 1200,
 			rollupOptions: {

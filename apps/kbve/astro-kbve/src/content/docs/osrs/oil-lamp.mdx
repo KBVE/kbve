@@ -12,9 +12,56 @@ osrs:
   lowalch: 11
   highalch: 16
   limit: 40
-  about: "Oil lamp is a members-only item in Old School RuneScape. High alchemy value: 16 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2005-03-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Light
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Miltog's Lamps
+      location: Dorgesh-Kaan
+      price: 42
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Empty oil lamp
+      slug: empty-oil-lamp
+      relationship: component
+      description: "Filled with lamp oil to produce a usable Oil lamp."
+    - item_name: Lamp oil
+      slug: lamp-oil
+      relationship: component
+      description: "Fuel used to fill the empty oil lamp."
+    - item_name: Oil lantern
+      slug: oil-lantern
+      relationship: upgrade
+      description: "Brighter light source crafted from the Oil lamp body."
+    - item_name: Tinderbox
+      slug: tinderbox
+      relationship: component
+      description: "Required to light the oil lamp once filled."
+  about: "Oil lamp is a low-tier light source used for cave exploration, requiring level 12 Firemaking to ignite and a tinderbox to light. It is dangerous in gas-filled areas such as Lumbridge Swamp Caves, where it can trigger explosions. High alchemy value: 16 coins. Grand Exchange buy limit: 40 per 4 hours."
+  market_strategy:
+    notes:
+      - "Demand is one-off; players rarely need more than a single lamp."
+      - "Shop stock at 42 gp in Dorgesh-Kaan keeps the GE price soft."
+  trading_tips:
+    - "Buy from Miltog's Lamps if any GE markup pushes above ~50 gp."
+  history:
+    - date: "2005-03-14"
+      description: "Released as a low-tier cave light source alongside the Lumbridge Swamp Caves."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1691349448434-8330ea70c317?crop=entropy&c
 description: September 3rd. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 3,'
+    accent: every year.
+    lede: 'The September 3rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 2'
+          href: /journal/09-02/
+        - label: 'Sep 4 →'
+          href: /journal/09-04/
+    related:
+        - title: 'Previous · Sep 2'
+          copy: 'Step back a day to the September 2nd log.'
+          href: /journal/09-02/
+          icon: calendar
+        - title: 'Next · Sep 4'
+          copy: 'Jump ahead to the September 4th log.'
+          href: /journal/09-04/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1691349448434-8330ea70c317?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Notification Bot
 
@@ -23,7 +64,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     I noticed that the container does use around 70MB at idle, we can resolve that with jemalloc, maybe get it down to 40-60MB idle ram by the end of the week.
     Another cool thing could be that we swap out to a tokio based handler, which could put just above axum but with faster deployment.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Supabase**
 
@@ -42,7 +91,9 @@ The whole deckhouse was a cluster kubber phuck!
 We ran into so many issues, ended up staying up until 4am trying to debug them.
 The documentation for deckhouse was trash and we spent so much time going through the operations that I feel the need to take a break from it.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 5:05am - On the PC this early? I woke up way tooo early, the sun is not even out yet and this screen is way too bright for my eyes. 
 
@@ -50,13 +101,21 @@ The documentation for deckhouse was trash and we spent so much time going throug
 
 - 11:36am - A couple hours of just chilling and now I am getting ready to mount the CPU heatsink onto the tower. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Give a man a fish and you feed him for a day. Teach him how to fish and you feed him for a lifetime.
 > — <cite>Laozi</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

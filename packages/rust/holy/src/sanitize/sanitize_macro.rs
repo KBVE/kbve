@@ -25,35 +25,34 @@ enum FieldTypeKind {
 }
 
 fn is_string_type(ty: &Type) -> bool {
-    if let Type::Path(type_path) = ty {
-        if let Some(segment) = type_path.path.segments.last() {
-            return segment.ident == "String";
-        }
+    if let Type::Path(type_path) = ty
+        && let Some(segment) = type_path.path.segments.last()
+    {
+        return segment.ident == "String";
     }
     false
 }
 
 fn classify_type(ty: &Type) -> FieldTypeKind {
-    if let Type::Path(type_path) = ty {
-        if let Some(segment) = type_path.path.segments.last() {
-            let ident = segment.ident.to_string();
-            if ident == "Option" {
-                if let PathArguments::AngleBracketed(args) = &segment.arguments {
-                    if let Some(GenericArgument::Type(inner)) = args.args.first() {
-                        if is_string_type(inner) {
-                            return FieldTypeKind::OptionString;
-                        }
-                    }
-                }
-                return FieldTypeKind::Other;
+    if let Type::Path(type_path) = ty
+        && let Some(segment) = type_path.path.segments.last()
+    {
+        let ident = segment.ident.to_string();
+        if ident == "Option" {
+            if let PathArguments::AngleBracketed(args) = &segment.arguments
+                && let Some(GenericArgument::Type(inner)) = args.args.first()
+                && is_string_type(inner)
+            {
+                return FieldTypeKind::OptionString;
             }
-            return match ident.as_str() {
-                "String" => FieldTypeKind::String,
-                "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "f32" | "f64"
-                | "isize" | "usize" => FieldTypeKind::Numeric,
-                _ => FieldTypeKind::Other,
-            };
+            return FieldTypeKind::Other;
         }
+        return match ident.as_str() {
+            "String" => FieldTypeKind::String,
+            "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "f32" | "f64"
+            | "isize" | "usize" => FieldTypeKind::Numeric,
+            _ => FieldTypeKind::Other,
+        };
     }
     FieldTypeKind::Other
 }

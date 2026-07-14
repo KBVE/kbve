@@ -1,0 +1,328 @@
+@import 'tailwindcss';
+
+:root {
+	color-scheme: dark;
+
+	--ck-firelight: #d4a44c;
+	--ck-firelight-dim: #b8893d;
+	--ck-firelight-bright: #e8c06a;
+	--ck-parchment: #e8dcc8;
+	--ck-iron: #2a2a2e;
+	--ck-stone: #1a1a1f;
+	--ck-stone-deep: #0f0e0c;
+	--ck-leather: #3d2e1e;
+	--ck-forest: #1b3a2a;
+	--ck-blood: #8b2020;
+}
+
+html,
+body,
+#root {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	background: var(--ck-stone-deep);
+	color: var(--ck-parchment);
+	font-family: 'Lora', 'Georgia', serif;
+}
+
+#root {
+	position: relative;
+	overflow: hidden;
+}
+
+/* ── Ambient backdrop: stone + forest/leather glow ── */
+.ck-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	background:
+		radial-gradient(
+			ellipse at 30% 30%,
+			rgba(27, 58, 42, 0.22) 0%,
+			transparent 60%
+		),
+		radial-gradient(
+			ellipse at 70% 70%,
+			rgba(61, 46, 30, 0.2) 0%,
+			transparent 55%
+		),
+		radial-gradient(ellipse at 50% 50%, rgba(15, 14, 12, 0.4) 0%, transparent 100%);
+}
+
+.ck-vignette {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	background: radial-gradient(
+		ellipse at center,
+		transparent 35%,
+		rgba(0, 0, 0, 0.75) 100%
+	);
+}
+
+/* ── Floating ember particles ── */
+.ck-embers {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	background-image:
+		radial-gradient(1px 1px at 20% 30%, rgba(212, 164, 76, 0.6), transparent),
+		radial-gradient(1px 1px at 40% 70%, rgba(212, 164, 76, 0.4), transparent),
+		radial-gradient(1px 1px at 60% 20%, rgba(212, 164, 76, 0.5), transparent),
+		radial-gradient(1px 1px at 80% 50%, rgba(212, 164, 76, 0.3), transparent),
+		radial-gradient(1.5px 1.5px at 15% 60%, rgba(232, 192, 106, 0.6), transparent),
+		radial-gradient(1.5px 1.5px at 55% 85%, rgba(232, 192, 106, 0.4), transparent),
+		radial-gradient(1px 1px at 75% 15%, rgba(184, 137, 61, 0.5), transparent),
+		radial-gradient(1px 1px at 90% 75%, rgba(184, 137, 61, 0.3), transparent);
+	animation: ck-ember-drift 12s ease-in-out infinite alternate;
+}
+
+@keyframes ck-ember-drift {
+	0% {
+		transform: translateY(0) translateX(0);
+		opacity: 0.55;
+	}
+	100% {
+		transform: translateY(-20px) translateX(10px);
+		opacity: 1;
+	}
+}
+
+/* ── Scrollbar: dark iron ── */
+::-webkit-scrollbar {
+	width: 8px;
+}
+::-webkit-scrollbar-track {
+	background: var(--ck-stone);
+}
+::-webkit-scrollbar-thumb {
+	background: var(--ck-leather);
+	border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: var(--ck-firelight-dim);
+}
+
+:focus-visible {
+	outline: 2px solid var(--ck-firelight);
+	outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* ── Card: weathered stone panel ── */
+.ck-panel {
+	position: relative;
+	background:
+		linear-gradient(180deg, rgba(42, 42, 46, 0.65) 0%, rgba(26, 26, 31, 0.85) 100%);
+	border: 1px solid var(--ck-leather);
+	border-radius: 6px;
+	box-shadow:
+		0 0 0 1px rgba(212, 164, 76, 0.08),
+		0 20px 60px rgba(0, 0, 0, 0.6),
+		inset 0 1px 0 rgba(232, 220, 200, 0.05);
+}
+
+/* Firelight top hairline */
+.ck-panel::before {
+	content: '';
+	position: absolute;
+	inset-inline: 1.5rem;
+	top: 0;
+	height: 1px;
+	background: linear-gradient(
+		to right,
+		transparent,
+		var(--ck-firelight-dim),
+		transparent
+	);
+}
+
+.ck-emblem {
+	color: var(--ck-firelight);
+	filter: drop-shadow(0 0 12px rgba(212, 164, 76, 0.45));
+}
+
+.ck-title {
+	font-family: 'Cinzel', 'Palatino Linotype', serif;
+	font-weight: 700;
+	color: var(--ck-parchment);
+	letter-spacing: 0.04em;
+	text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
+}
+
+.ck-title-accent {
+	color: var(--ck-firelight);
+	font-style: italic;
+	text-shadow: 0 0 24px rgba(212, 164, 76, 0.35);
+}
+
+.ck-label {
+	font-family: 'Cinzel', serif;
+	letter-spacing: 0.32em;
+	text-transform: uppercase;
+	color: var(--ck-firelight);
+}
+
+/* ── Primary action button: iron + firelight sweep ── */
+.ck-btn {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-family: 'Cinzel', serif;
+	font-weight: 600;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	overflow: hidden;
+	border-radius: 3px;
+	transition: all 0.3s ease;
+	cursor: pointer;
+}
+
+.ck-btn--primary {
+	background: var(--ck-parchment);
+	color: var(--ck-stone);
+	border: 1px solid var(--ck-firelight-dim);
+}
+
+.ck-btn__fill {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 150%;
+	height: 150%;
+	background: var(--ck-firelight);
+	transform: translate(-110%, 60%) rotate(45deg);
+	transition: transform 0.5s ease;
+}
+
+.ck-btn--primary:not(:disabled):hover .ck-btn__fill {
+	transform: translate(-10%, -10%) rotate(45deg);
+}
+
+.ck-btn__text {
+	position: relative;
+	z-index: 1;
+}
+
+.ck-btn--primary:disabled {
+	background: var(--ck-iron);
+	color: var(--ck-stone);
+	border-color: var(--ck-leather);
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+.ck-btn--ghost {
+	background: transparent;
+	border: 1px solid transparent;
+	color: var(--ck-firelight-dim);
+}
+
+.ck-btn--ghost:not(:disabled):hover {
+	color: var(--ck-firelight-bright);
+	border-color: rgba(212, 164, 76, 0.3);
+	background: rgba(212, 164, 76, 0.08);
+}
+
+/* ── Secondary: weathered iron slab ── */
+.ck-btn--secondary {
+	gap: 0.5rem;
+	background: linear-gradient(
+		180deg,
+		rgba(61, 46, 30, 0.45) 0%,
+		rgba(26, 26, 31, 0.7) 100%
+	);
+	border: 1px solid var(--ck-leather);
+	color: var(--ck-parchment);
+	box-shadow: inset 0 1px 0 rgba(232, 220, 200, 0.04);
+}
+
+.ck-btn--secondary:not(:disabled):hover {
+	border-color: var(--ck-firelight-dim);
+	color: var(--ck-firelight-bright);
+	transform: translateY(-1px);
+}
+
+.ck-btn--secondary:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.ck-btn__icon {
+	width: 0.95rem;
+	height: 0.95rem;
+	flex-shrink: 0;
+}
+
+/* Provider brand accents on hover */
+.ck-btn--github:not(:disabled):hover {
+	border-color: #6e7681;
+	color: #fff;
+	background: linear-gradient(
+		180deg,
+		rgba(48, 54, 61, 0.65) 0%,
+		rgba(26, 26, 31, 0.8) 100%
+	);
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.ck-btn--discord:not(:disabled):hover {
+	border-color: #5865f2;
+	color: #fff;
+	background: linear-gradient(
+		180deg,
+		rgba(88, 101, 242, 0.28) 0%,
+		rgba(26, 26, 31, 0.8) 100%
+	);
+	box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35);
+}
+
+/* ── Progress: molten firelight ── */
+.ck-progress-track {
+	background: var(--ck-stone-deep);
+	border: 1px solid var(--ck-leather);
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+.ck-progress-fill {
+	height: 100%;
+	background: linear-gradient(
+		90deg,
+		var(--ck-firelight-dim),
+		var(--ck-firelight),
+		var(--ck-firelight-bright)
+	);
+	box-shadow: 0 0 12px rgba(212, 164, 76, 0.5);
+	transition: width 0.3s ease;
+}
+
+.ck-row {
+	border-bottom: 1px solid rgba(61, 46, 30, 0.5);
+}
+
+.ck-spin {
+	animation: ck-spin 1s linear infinite;
+}
+
+@keyframes ck-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}

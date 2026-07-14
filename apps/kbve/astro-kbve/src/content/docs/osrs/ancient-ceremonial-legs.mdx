@@ -12,9 +12,88 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Ancient ceremonial legs is a members-only item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Ancient ceremonial legs is a Zarosian prayer-bonus leg slot from the Ancient Prison. Part of the Ancient ceremonial robes set. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: misc
+    tier: ancient
+  properties:
+    release_date: "2022-01-05"
+    tradeable: true
+    equipable: true
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.8
+  equipment:
+    slot: legs
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      prayer: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 5
+  drop_table:
+    - source: Spiritual mage (Ancient Prison)
+      quantity: "1"
+      rarity: "1/640"
+    - source: Spiritual ranger (Ancient Prison)
+      quantity: "1"
+      rarity: "1/640"
+    - source: Spiritual warrior (Ancient Prison)
+      quantity: "1"
+      rarity: "1/640"
+    - source: Blood Reaver
+      quantity: "1"
+      rarity: "1/640"
+    - source: Fumus
+      quantity: "1"
+      rarity: "1/1000"
+    - source: Umbra
+      quantity: "1"
+      rarity: "1/1000"
+    - source: Cruor
+      quantity: "1"
+      rarity: "1/1000"
+    - source: Glacies
+      quantity: "1"
+      rarity: "1/1000"
+  relationships:
+    - item_name: Ancient ceremonial top
+      relationship: set-piece
+    - item_name: Ancient ceremonial mask
+      relationship: set-piece
+    - item_name: Ancient ceremonial gloves
+      relationship: set-piece
+    - item_name: Ancient ceremonial boots
+      relationship: set-piece
+  market_strategy:
+    notes:
+      - "short_term: \"Demand is tied to GWD Nex teams wanting the cosmetic Zarosian protection set; prices oscillate with Nex content interest.\""
+      - "long_term: \"Cosmetic + tiny prayer bonus; long-term price floor depends on continued Ancient Prison interest and set collectors.\""
+      - "risk_level: \"medium\""
+  trading_tips:
+    - "Buy when Nex content trends are quiet — collectors return predictably with each rework or event."
+    - "Pair with the full set (top/mask/gloves/boots) for resale; complete sets carry a premium."
+  history:
+    - date: "2022-01-05"
+      description: "Released alongside Nex and the Ancient Prison in the God Wars Dungeon update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

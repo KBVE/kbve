@@ -1,5 +1,6 @@
 ---
 title: Torchflower Crop
+template: splash
 description: |
     Minecraft Torchflower Crop — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 630
     ref: torchflower_crop
     slug: torchflower-crop
+    content_rev: 1
     display_name: Torchflower Crop
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: torchflower_seeds
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: torchflower
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - crops
+        - bee_growables
+        - non_solid
+    about:
+        description: |
+            Torchflower Crop is the growing plant produced by planting
+            Torchflower Seeds. It passes through three growth stages;
+            breaking it early returns the seed, while breaking the fully
+            grown crop yields a Torchflower flower instead.
+        lore: |
+            Introduced in Java Edition 1.19.4 as "ancient seeds," it became
+            fully renewable once Sniffers were made obtainable in 1.20.
+    uses:
+        - title: Torchflower
+          ref: torchflower
+          detail: |
+              Allowing the crop to reach full growth and breaking it
+              produces a Torchflower, used for dye and suspicious stew.
+    found_in:
+        - location: Farmland
+          detail: Plant Torchflower Seeds on tilled farmland; farmer villagers can plant but not harvest mature crops.
+        - location: Sniffer digging
+          detail: Sniffers occasionally dig up Torchflower Seeds with a 50% chance after finishing a dig.
+    faq:
+        - question: What do I get from mining an immature Torchflower Crop?
+          answer: |
+              Breaking it before it reaches the final growth stage returns
+              one Torchflower Seed with no other drops.
+        - question: What do I get from a fully grown Torchflower Crop?
+          answer: |
+              Breaking the mature crop yields one Torchflower; the seed
+              itself is not returned at that stage.
+        - question: What tool do I need to harvest it?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: Is the Torchflower Crop renewable?
+          answer: |
+              Yes, since Sniffers can dig up an unlimited supply of
+              Torchflower Seeds to replant.
     data_version: "1.21.5"
 ---
 

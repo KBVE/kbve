@@ -1,5 +1,6 @@
 ---
 title: Horn Coral Block
+template: splash
 description: |
     Minecraft Horn Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 724
     ref: horn_coral_block
     slug: horn-coral-block
+    content_rev: 1
     display_name: Horn Coral Block
     material: stone
     hardness: 1.5
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_horn_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: horn_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - ocean
+        - coral
+    about:
+        description: |
+            Horn Coral Block is the yellow-colored variant of coral block
+            that generates in coral reef structures in warm ocean biomes. It
+            must stay adjacent to water or it dies and turns into Dead Horn
+            Coral Block.
+        lore: |
+            Introduced in Java Edition 1.13, part of the Update Aquatic's
+            five coral color variants.
+    uses:
+        - title: Building & decoration
+          ref: horn_coral_block
+          detail: |
+              Used for underwater builds and aquariums; sea pickles planted
+              nearby on a live coral block can spread across it via bone
+              meal.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as part of coral reef structures in warm ocean biomes.
+        - location: Wandering trader
+          detail: Occasionally sold for 3 emeralds.
+    faq:
+        - question: What happens if Horn Coral Block leaves water?
+          answer: |
+              It dies within a few seconds and becomes Dead Horn Coral Block
+              permanently — it cannot be revived once dead.
+        - question: Do I need Silk Touch to keep it alive?
+          answer: |
+              Yes. Mining without Silk Touch always drops the dead variant;
+              only Silk Touch drops the living Horn Coral Block itself.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe works — there is no minimum tier requirement, so
+              even a wooden pickaxe drops it.
+        - question: Is Fortune useful on coral blocks?
+          answer: |
+              No. Fortune has no effect on the drop; you get exactly one
+              block either way.
     data_version: "1.21.5"
 ---
 

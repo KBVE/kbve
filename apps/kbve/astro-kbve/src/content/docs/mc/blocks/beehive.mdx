@@ -1,5 +1,6 @@
 ---
 title: Beehive
+template: splash
 description: |
     Minecraft Beehive — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 871
     ref: beehive
     slug: beehive
+    content_rev: 1
     display_name: Beehive
     material: wood
     hardness: 0.6
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: beehive
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            A Beehive is a player-crafted wooden home for bees that stores
+            honey as bees pollinate flowers nearby. It functions much like
+            the naturally generating bee nest, holding up to three bees and
+            filling with honey over time.
+        lore: |
+            Added in the Buzzy Bees update (1.15), the Beehive gave players a
+            portable, craftable alternative to the wild bee nest.
+    uses:
+        - title: Honey Bottle
+          ref: honey_bottle
+          detail: |
+              Right-click a full hive with a glass bottle to collect honey
+              without angering the bees, resetting the honey level to zero.
+        - title: Honeycomb
+          ref: honeycomb
+          detail: |
+              Shearing a full hive yields three Honeycombs but angers any
+              bees inside unless a lit campfire burns within five blocks
+              below the hive.
+    found_in:
+        - location: Crafted, not natural
+          detail: |
+              Crafted from 6 wood planks and 3 Honeycombs; the similar Bee
+              Nest generates naturally in the world instead.
+    faq:
+        - question: What tool do I need to mine a Beehive?
+          answer: |
+              None — it can be broken by hand, though an axe is fastest.
+        - question: Does breaking a Beehive release the bees?
+          answer: |
+              Yes, unless mined with Silk Touch, which keeps any bees sealed
+              inside the dropped block.
+        - question: How do I harvest honey safely?
+          answer: |
+              Light a campfire within five blocks below the hive before
+              harvesting with shears or a bottle; the smoke keeps bees calm.
+        - question: Can a Beehive generate naturally in the world?
+          answer: |
+              No. Only the Bee Nest generates naturally; the Beehive must be
+              crafted from planks and honeycombs.
     data_version: "1.21.5"
 ---
 

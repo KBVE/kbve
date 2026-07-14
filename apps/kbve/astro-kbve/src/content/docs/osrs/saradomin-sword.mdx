@@ -12,87 +12,91 @@ osrs:
   lowalch: 52000
   highalch: 78000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: godsword
+    tier: high
+  properties:
+    release_date: "2013-10-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wield
+      - Drop
+    alchable: true
   equipment:
     slot: 2h
-    type: godsword
-    attack_style: melee
+    weapon_type: Two-handed sword
     attack_speed: 4
+    weight: 3
     requirements:
       attack: 70
-    stats:
-      attack_slash: 82
-      attack_crush: 60
+    attack_bonus:
+      stab: 0
+      slash: 82
+      crush: 60
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 82
       prayer: 2
-    special_attack:
-      name: Saradomin's Lightning
-      energy: 100
-      effect: +10% melee damage + 1-16 magic damage
+  special_attack:
+    name: Saradomin's Lightning
+    description: "Deals 10% additional melee damage plus a 1-16 magic damage hit that rolls against magic defence."
+    energy: 100
   drop_table:
     sources:
       - source: Commander Zilyana
-        source_id: 2205
-        combat_level: 596
         quantity: "1"
         rarity: 1/127
-        members_only: true
-      - source: Zilyana bodyguards
-        source_id: 0
-        combat_level: 148
+      - source: Starlight
         quantity: "1"
-        rarity: 3/16,129
-        members_only: true
+        rarity: 3/16129
+      - source: Bree
+        quantity: "1"
+        rarity: 3/16129
+      - source: Growler
+        quantity: "1"
+        rarity: 3/16129
   related_items:
-    - item_id: 12809
-      item_name: Saradomin's blessed sword
+    - item_name: Saradomin's blessed sword
       slug: saradomins-blessed-sword
       relationship: upgrade
-      description: Upgraded version
-    - item_id: 12804
-      item_name: Saradomin's tear
+      description: Upgraded variant requiring Saradomin's tear
+    - item_name: Saradomin's tear
       slug: saradomins-tear
       relationship: component
-      description: Upgrade component
-    - item_id: 4151
-      item_name: Abyssal whip
+      description: Required upgrade component
+    - item_name: Abyssal whip
       slug: abyssal-whip
       relationship: alternative
-      description: Alternative weapon
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Slash | +82 |
-    | Crush | +60 |
-    | Strength | +82 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +2 |
-
-    Requirements: 70 Attack
-
-    Saradomin's Lightning (100% energy):
-    - +10% melee damage
-    - Additional 1-16 magic damage
-    - Rolls against magic defence
-
-    Popular for:
-    - Strength training (4-tick 2h)
-    - Mid-game weapon
-    - Upgrade to Blessed sword
-
-    Matches scimitar speed while 2-handed.
+      description: Comparable mid-tier melee weapon
+  about: "Saradomin sword is a two-handed slash weapon dropped by Commander Zilyana and her bodyguards in the Saradomin boss room of the God Wars Dungeon. It requires 70 Attack to wield and shares the 4-tick attack speed of a scimitar despite being two-handed. The Saradomin's Lightning special attack costs 100% energy, dealing 10 percent extra melee damage plus a separate 1-16 magic hit that rolls against magic defence. It can be upgraded to Saradomin's blessed sword using a Saradomin's tear."
   market_strategy:
     notes:
-      - Very affordable
-      - Good training weapon
-      - Upgrade with tear for blessed
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Very affordable for its damage output"
+      - "Strong slash strength training option at mid-game"
+      - "Upgrade path to Blessed sword adds liquidity floor"
+      - "Buy limit of 8 every 4 hours keeps swings small"
+  trading_tips:
+    - Compare cost vs Abyssal whip + dragon defender pair
+    - Demand spikes when Saradomin GWD becomes popular
+    - Watch Blessed sword premium to spot conversion opportunities
+  history:
+    - date: "2013-10-17"
+      description: "Item released with the Old School Saradomin GWD update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,0 +1,66 @@
+---
+interface Props {
+	adKey?: string;
+	src?: string;
+	label?: string;
+	class?: string;
+}
+
+const {
+	adKey = '0755355327191f72faebfb9b15d3d52e',
+	src = 'https://pl29665769.effectivecpmnetwork.com/0755355327191f72faebfb9b15d3d52e/invoke.js',
+	label = 'Advertisement',
+	class: className = '',
+} = Astro.props;
+
+const containerId = `container-${adKey}`;
+---
+
+<aside
+	class:list={[
+		'not-content mx-auto my-6 block w-full max-w-full overflow-hidden rounded-lg border border-[var(--sl-color-gray-5)] bg-[var(--sl-color-bg-sidebar)] p-3 box-border [contain:layout_paint] sm:my-4 sm:p-2',
+		className,
+	]}
+	role="complementary"
+	aria-label={label}>
+	<span
+		class="mb-2 block text-center text-[0.7rem] font-medium uppercase tracking-wider text-[var(--sl-color-gray-3)] opacity-80">
+		{label}
+	</span>
+	<div id={containerId} class="relative w-full max-w-full overflow-hidden">
+	</div>
+</aside>
+<!-- 
+// <script is:inline define:vars={{ containerId, src }} data-astro-rerun>
+// 	(function () {
+// 		const cleanup = () => {
+// 			document
+// 				.querySelectorAll(`script[data-adsterra-for="${containerId}"]`)
+// 				.forEach((el) => el.remove());
+// 			const container = document.getElementById(containerId);
+// 			if (container) {
+// 				container.innerHTML = '';
+// 				delete container.dataset.adsterraLoaded;
+// 			}
+// 		};
+
+// 		const mount = () => {
+// 			const container = document.getElementById(containerId);
+// 			if (!container || container.dataset.adsterraLoaded === 'true')
+// 				return;
+// 			container.dataset.adsterraLoaded = 'true';
+
+// 			const loader = document.createElement('script');
+// 			loader.async = true;
+// 			loader.src = src;
+// 			loader.setAttribute('data-cfasync', 'false');
+// 			loader.setAttribute('data-adsterra-for', containerId);
+// 			document.body.appendChild(loader);
+// 		};
+
+// 		document.addEventListener('astro:before-swap', cleanup, { once: true });
+// 		window.addEventListener('pagehide', cleanup, { once: true });
+
+// 		mount();
+// 	})();
+// </script> -->

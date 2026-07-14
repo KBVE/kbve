@@ -1,6 +1,6 @@
 ---
 title: Ring of pursuit | OSRS Price Data
-description: "Ring of pursuit: This ring can reveal a hunter creature's track.. High alch: 630 GP, GE limit: 100."
+description: "Ring of pursuit reveals hunter creature tracks from noose wand catches. High alch: 630 GP, GE limit: 100."
 osrs:
   id: 21126
   name: Ring of pursuit
@@ -12,9 +12,95 @@ osrs:
   lowalch: 420
   highalch: 630
   limit: 100
-  about: "Ring of pursuit is a members-only item in Old School RuneScape. High alchemy value: 630 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: enchanted-jewellery
+    tier: mid
+  properties:
+    release_date: "2 February 2017"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - "Wear"
+      - "Check"
+      - "Break"
+      - "Drop"
+    worn_options:
+      - "Check"
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ring
+    weapon_type: null
+    attack_speed: null
+    weight: 0.006
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Reveal Tracks
+      description: "Reveals the entire track of hunter creatures caught with noose wands (excluding herbiboars). Provides 10 charges before disappearing. Guaranteed activation as of May 2024."
+  recipes:
+    - skill: magic
+      level: 7
+      xp: 17.5
+      materials:
+        - item_name: Opal ring
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Opal ring
+      slug: opal-ring
+      relationship: component
+      description: Base ring enchanted via Lvl-1 Enchant
+    - item_name: Noose wand
+      slug: noose-wand
+      relationship: alternative
+      description: Hunter tool used alongside the ring
+  about: |-
+    > _"This ring can reveal a hunter creature's track."_
+
+    Ring of pursuit is an enchanted opal ring that reveals hunter creature tracks when noosing prey. Carries 10 charges before crumbling. Created with Lvl-1 Enchant on an opal ring (7 Magic).
+  market_strategy:
+    notes:
+      - "Cosmic rune and opal ring prices set the floor; flip when hunter content drops."
+      - "Demand jumped after May 2024 made activation guaranteed."
+  trading_tips:
+    - "Stock up before Hunter Guild events; charge usage drives steady churn."
+  history:
+    - date: "2 February 2017"
+      description: "Released with the Hunter ring update."
+    - date: "April 2024"
+      description: "Can now be stored in the huntsman's kit."
+    - date: "May 2024"
+      description: "Activation changed from 25% chance to guaranteed per noose catch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

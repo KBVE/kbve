@@ -11,7 +11,7 @@
 [![NPM Devops](https://img.shields.io/npm/v/%40kbve%2Fdevops?label=devops%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/devops)
 
 <center>
-<a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve.com/main/public/assets/img/letter_logo.png" width="200"></a>
+<a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://kbve.com/assets/images/brand/letter_logo.webp" width="200"></a>
 </center>
 
 ---
@@ -40,9 +40,7 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), b
 > cRap , pronounced, Ceee-Rap. 💩 ... uhh wait I meant to say carp. 🐟
 
 - C#
-
     - [saber](https://github.com/KBVE/kbve/tree/main/apps/saber)
-
         - Unity | v2022.3.12f1
             - `dev` has a playable build on [Itch.io - Saber Dev](https://kbve.itch.io/dev-saber)
                 - The monorepo builds and ships the `dev`-branch build to Itch.io
@@ -57,9 +55,7 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), b
         - Extremely WIP with submodules removed by default.
 
 - R for Rust
-
     - [kbve](https://crates.io/creates/kbve)
-
         - Axum
             - Prebuilt Axum routes for the KBVE backend.
         - Diesel
@@ -71,9 +67,7 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), b
         - Rust [Crates.io Package Source](https://github.com/KBVE/kbve/tree/main/packages/erust)
 
 - A for Astro
-
     - [AstroVE](https://github.com/KBVE/kbve/tree/main/packages/astro-ve/)
-
         - Astro Components Library
         - TODO: NPM Release
         - React
@@ -82,7 +76,6 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), b
             - TODO: Refactor the Svelte Components.
 
     - [KhashVault](https://github.com/KBVE/kbve/tree/main/packages/khashvault/)
-
         - Typescript JS Library
         - TODO: `engine.ts` - Integrating Axum (`kbve`) backend with frontend libraries.
         - TODO: NPM Release
@@ -93,10 +86,8 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), b
         - Rust Bindings
 
 - P for Python
-
     - This part of the stack is under massive development, so we advise to skip this until we get the bindings sorted.
     - `Atlas` under [kbve pip package](https://pypi.org/project/kbve/)
-
         - TODO: Full `atlas` refactor with `autogen` and `taskweaver`.
 
     - Pyo3
@@ -118,14 +109,12 @@ The Richard Stack is known as `Dockerized Integrated Container Kubes`.
     - KBVE Docker Images via [Hub](https://hub.docker.com/u/kbve)
         - [kbve:atlas](https://hub.docker.com/r/kbve/atlas)
 - I for Integrations
-
     - Github Actions
         - We use GHA to help build the docker images for x86 and ARM.
     - GitLab
         - We use a private GitLab for `private` codebase projects.
 
 - C for Containers
-
     - [Proxmox](https://kbve.com/application/proxmox/)
         - qEMU
             - The QEMU handles running our docker swarm and k8s.
@@ -145,16 +134,13 @@ Examples of monorepos:
 Perks of a monorepo include:
 
 - Consistent Developer Environment and Experience.
-
     - A monorepo can provide a consistent environment and set of tools for all developers, which can be especially beneficial in large organizations with many projects.
     - Easier AI Training, as the codebase is all within a controlled repo.
 
 - Less clutter, keeping a single source of truth.
-
     - The monorepo acts as a centralized source of truth for all projects, configurations, and dependencies.
 
 - Atomic Changes.
-
     - Developers can make cross-cutting changes across multiple projects within a single atomic commit.
 
 - Scalable.

@@ -1,6 +1,6 @@
 ---
 title: Blighted entangle sack | OSRS Price Data
-description: "Blighted entangle sack is a members-only OSRS item. High alch: 18 GP, GE limit: 15,000."
+description: "Blighted entangle sack is a P2P Wilderness PvP consumable that casts Entangle without runes. High alch: 18 GP, GE limit: 15,000."
 osrs:
   id: 24613
   name: Blighted entangle sack
@@ -12,9 +12,82 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 15000
-  about: "Blighted entangle sack is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0
+  properties:
+    release_date: "2020-04-23"
+    tradeable: true
+    equipable: false
+    stackable: true
+    noteable: false
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: misc
+    tier: bronze
+    category: consumable
+  shops:
+    - shop_name: "Justine's stuff for the Last Shopper Standing"
+      price: 1
+      currency: "Last Man Standing points"
+      location: "Ferox Enclave"
+      notes: "Sold in bundles of 70 sacks per point."
+    - shop_name: "Nomad's store"
+      price: 10
+      currency: "Zeal Tokens"
+      location: "Soul Wars lobby"
+      notes: "Sold per bundle for Soul Wars Zeal Tokens."
+  drop_table:
+    - source: "Revenant"
+      quantity: "1"
+      rarity: "Common"
+      notes: "Dropped by Revenants in the Forinthry Dungeon."
+    - source: "Wilderness Slayer monsters"
+      quantity: "1"
+      rarity: "Uncommon"
+      notes: "Various Wilderness Slayer Cave NPCs drop sacks."
+  related_items:
+    - item_id: 24611
+      item_name: Blighted manta ray
+      slug: blighted-manta-ray
+      relationship: alternative
+      description: "Blighted food, Wilderness-only"
+    - item_id: 24598
+      item_name: Blighted ancient ice sack
+      slug: blighted-ancient-ice-sack
+      relationship: alternative
+      description: "Wilderness-only Ice Barrage cast"
+    - item_id: 24615
+      item_name: Blighted teleport spell sack
+      slug: blighted-teleport-spell-sack
+      relationship: alternative
+      description: "Wilderness-only teleport"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Stock up before Wilderness PvP events or bounty rotations.\""
+      - "sell_strategy: \"Sell to PKers during high-activity hours.\""
+      - "price_trend: \"Tracks Wilderness PvP popularity.\""
+      - "profit_margin: \"Thin; arbitrage via LMS/Soul Wars conversions.\""
+  trading_tips:
+    - "Cheaper than buying nature/earth/water runes if you only PvP in Wilderness."
+    - "Each cast consumes one sack regardless of hit success."
+    - "Stock bulk via LMS points if you grind the minigame."
+  history:
+    - date: "2020-04-23"
+      update: "Wilderness Bounty Hunter rework"
+      description: "Blighted entangle sack added alongside the wider blighted-spell-sack lineup."
+  about: |-
+    Blighted entangle sack lets you cast Entangle (or Snare/Bind) in PvP areas without carrying runes.
+
+    | Property | Value |
+    |----------|-------|
+    | Magic level | 79 (for Entangle) |
+    | Stackable | Yes |
+    | Areas | Wilderness, Ferox Enclave, Mage Arena bank, PvP worlds, Castle/Clan/Soul Wars |
+    | Consumes | 1 sack per cast |
+
+    Pairs naturally with blighted food sacks for full Wilderness PK loadouts.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Soul Campfire
+template: splash
 description: |
     Minecraft Soul Campfire — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1283
     ref: soul_campfire
     slug: soul-campfire
+    content_rev: 1
     display_name: Soul Campfire
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Soul Campfire is a dimmer variant of the regular campfire, burning with a turquoise
+            flame and dealing double the damage to anything standing in it. It is crafted from soul
+            sand or soul soil, sticks, and any type of wood, and it can be used for cooking food or
+            harvesting honey without angering bees.
+        lore: |
+            Its ghostly blue-green flame is said to be fueled by the tormented souls bound within
+            soul sand, marking it as a distinctly Nether-touched flame.
+    faq:
+        - question: How is a Soul Campfire different from a regular campfire?
+          answer: |
+              It burns with a turquoise flame, deals double the damage per tick, and repels piglins
+              within an 8-block radius instead of scaring them.
+        - question: How do I craft a Soul Campfire?
+          answer: |
+              Combine soul sand or soul soil, sticks, and any wood planks or logs in the campfire
+              crafting pattern.
+        - question: Is Soul Campfire a renewable source of soul soil?
+          answer: |
+              Yes, it is the only renewable source of soul soil; craft the campfire with soul sand,
+              then break it without Silk Touch to recover soul soil instead.
+        - question: Does a Soul Campfire melt nearby snow and ice?
+          answer: |
+              No, unlike other light sources it does not melt snow or ice despite emitting a light
+              level of 10.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

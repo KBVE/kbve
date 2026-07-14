@@ -1,6 +1,6 @@
 ---
 title: Batta tin | OSRS Price Data
-description: "Batta tin: A deep tin used for baking gnome battas in.. High alch: 6 GP, GE limit: 40."
+description: "Batta tin: A deep tin used for baking gnome battas in. High alch: 6 GP, GE limit: 40."
 osrs:
   id: 2164
   name: Batta tin
@@ -12,9 +12,61 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 40
-  about: "Batta tin is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: utensil
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Grand Tree Groceries
+      location: Grand Tree
+      price: 10
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Gnome batta
+      slug: gnome-batta
+      relationship: product
+      description: Gnome cuisine baked inside the batta tin.
+    - item_name: Bowl
+      slug: bowl
+      relationship: alternative
+      description: Standard cooking vessel for non-gnome recipes.
+  about: |-
+    Batta tin is the dedicated baking vessel for gnome battas in the Tree Gnome Stronghold cuisine recipes. It is consumed once per batta and must be restocked between cooking sessions.
+
+    Hudo at Grand Tree Groceries stocks five tins at 10 coins each, making the shop the cheapest source for ironmen and gnome chefs working through the Recipe for Disaster sub-quests.
+  market_strategy:
+    notes:
+      - "Tiny buy limit caps flipping volume"
+      - "Shop restock is the floor price"
+      - "Demand tied to gnome cooking and RFD prep"
+  trading_tips:
+    - Restock at Grand Tree Groceries when GE price spikes above shop value
+    - Buy in 40-unit chunks for full RFD attempts
+  history:
+    - date: "2003-12-01"
+      description: "Added to the RS2 Beta cache."
+    - date: "2004-02-02"
+      description: "Became obtainable during the RS2 Beta."
+    - date: "2004-03-29"
+      description: "Released with the RS2 launch."
+    - date: "2006-08-07"
+      description: "Graphical update and value increased from 1 to 10 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

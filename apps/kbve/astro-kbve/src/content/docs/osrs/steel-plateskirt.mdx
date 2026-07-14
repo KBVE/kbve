@@ -12,9 +12,123 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 125
-  about: "Steel plateskirt is a free-to-play item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: "2001-02-13"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: cloth
+    tier: steel
+    primary_material: steel
+  equipment:
+    slot: legs
+    weight: 8.164
+    tradeable: true
+    requirements:
+      defence: 5
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 17
+      defence_slash: 16
+      defence_crush: 15
+      defence_magic: -4
+      defence_ranged: -11
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - item_name: Steel plateskirt
+      skill: Smithing
+      level: 46
+      xp: 112.5
+      tools:
+        - Hammer
+        - Anvil
+      materials:
+        - item_id: 2353
+          item_name: Steel bar
+          slug: steel-bar
+          quantity: 3
+      output_quantity: 1
+  shops:
+    - shop_name: Zeke's Superior Scimitars
+      location: Al Kharid
+      price: 1000
+      stock: 0
+    - shop_name: Shayzien Armour Shop
+      location: Shayzien
+      price: 1000
+      stock: 0
+    - shop_name: Civitas illa Fortis Armour Shop
+      location: Civitas illa Fortis
+      price: 1000
+      stock: 0
+  related_items:
+    - item_id: 1069
+      item_name: Steel platelegs
+      slug: steel-platelegs
+      relationship: variant
+      description: Heavier legs piece with identical defensive stats.
+    - item_id: 1119
+      item_name: Steel platebody
+      slug: steel-platebody
+      relationship: set-piece
+      description: Matching body piece of steel armour.
+    - item_id: 1157
+      item_name: Steel full helm
+      slug: steel-full-helm
+      relationship: set-piece
+      description: Matching helm piece of steel armour.
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: component
+      description: Required to smith the plateskirt.
+  about: |-
+    Steel plateskirt is a low-level legs slot piece equivalent to steel platelegs but lighter.
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Defence | 5 |
+    | Smithing | 46 (112.5 XP) |
+
+    Made by smithing 3 steel bars at an anvil with a hammer.
+
+    | Defence | Bonus |
+    |---------|-------|
+    | Stab | +17 |
+    | Slash | +16 |
+    | Crush | +15 |
+    | Magic | -4 |
+    | Ranged | -11 |
+
+    Used for:
+    - F2P early melee training
+    - Smithing XP product
+    - Light loadout vs platelegs
+  market_strategy:
+    notes:
+      - "F2P-friendly with steady demand"
+      - "Smithing alternative to platelegs"
+      - "Lighter weight appeals to F2P pures"
+  trading_tips:
+    - Track steel bar Smithing margins for crafting profit.
+    - GE buy limit of 125 every 4 hours supports moderate flipping.
+    - Demand bumps during F2P bond/membership promos.
+  history:
+    - date: "2001-02-13"
+      description: "Released as part of base armour."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

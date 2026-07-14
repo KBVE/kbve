@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Stairs
+template: splash
 description: |
     Minecraft Pale Oak Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 487
     ref: pale_oak_stairs
     slug: pale-oak-stairs
+    content_rev: 1
     display_name: Pale Oak Stairs
     material: wood
     hardness: 2
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Oak Stairs are a shaped building block crafted from Pale
+            Oak Planks, letting players build sloped surfaces and staircases
+            with the bleached-white Pale Oak wood tone.
+        lore: |
+            Introduced alongside the Pale Garden biome, Pale Oak wood evokes
+            the pale, lifeless trees found in that eerie forest.
+    uses:
+        - title: Pale Oak Stairs
+          ref: pale_oak_stairs
+          detail: |
+              Crafted from 6 Pale Oak Planks arranged in a staircase pattern
+              to produce 4 stairs, used for rooftops, ramps, and decorative
+              staircases.
+    found_in:
+        - location: Crafting table
+          detail: Crafted directly from 6 Pale Oak Planks, yielding 4 stairs.
+        - location: Pale Garden structures
+          detail: Occasionally found as part of naturally generated Pale Garden buildings.
+    faq:
+        - question: What tool do I need to mine Pale Oak Stairs?
+          answer: |
+              Any tool works, including bare hands, though an axe breaks it
+              fastest.
+        - question: Do Pale Oak Stairs support all standard stair shapes?
+          answer: |
+              Yes, they can form straight, inner-corner, and outer-corner
+              shapes, and can be placed upside down for ceiling details.
+        - question: Are Pale Oak Stairs flammable?
+          answer: |
+              Yes, like most Overworld wood blocks they can catch fire from
+              nearby flames or lava.
+        - question: Can Pale Oak Stairs be waterlogged?
+          answer: |
+              Yes, they can be waterlogged when placed in or against water
+              source blocks.
     data_version: "1.21.5"
 ---
 

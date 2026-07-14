@@ -1,7 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
-import { getNPCById, getDialogueById } from '../data/npcs';
-import type { NPCAction } from '../types';
+import {
+	getNPCById,
+	getNpcDbEntry,
+	getDialogueById,
+	getGreetingDialogueId,
+} from '../data/npcs';
+import { getItemById, getItemPrice } from '../data/items';
+import type { NPCAction, TradeShopItem } from '../types';
+import { PixelPanel } from './PixelPanel';
 
 export function ActionMenu() {
 	const npc = useGameSelector((s) => s.npcInteraction);
@@ -47,11 +54,9 @@ export function ActionMenu() {
 			case 'talk': {
 				const npcData = getNPCById(npc.npcId);
 				if (!npcData) break;
-				const dialogueId =
-					npc.npcId === 'npc_barkeep'
-						? 'dlg_barkeep_greeting'
-						: 'dlg_monk_greeting';
-				const dialogue = getDialogueById(dialogueId);
+				const dialogue = getDialogueById(
+					getGreetingDialogueId(npc.npcId),
+				);
 				if (dialogue) {
 					dispatch({
 						type: 'SET_DIALOGUE',
@@ -78,16 +83,37 @@ export function ActionMenu() {
 					},
 				});
 				break;
-			case 'trade':
+			case 'trade': {
+				const ref = npc.npcId.replace(/^npc_/, '');
+				const entry = getNpcDbEntry(ref);
+				const refs = entry?.shop_items ?? [];
+				if (npc.eid == null || refs.length === 0) {
+					dispatch({
+						type: 'ADD_NOTIFICATION',
+						payload: {
+							title: 'Trade',
+							message: `${npc.npcName} has nothing to trade right now.`,
+							type: 'info',
+						},
+					});
+					break;
+				}
+				const shopItems: TradeShopItem[] = refs.map((r) => ({
+					ref: r,
+					name: getItemById(r)?.name ?? r,
+					buyPrice: getItemPrice(r).buy,
+				}));
 				dispatch({
-					type: 'ADD_NOTIFICATION',
+					type: 'SET_TRADE',
 					payload: {
-						title: 'Trade',
-						message: `${npc.npcName} has nothing to trade right now.`,
-						type: 'info',
+						npcId: npc.npcId,
+						npcName: npc.npcName,
+						npcEid: npc.eid,
+						shopItems,
 					},
 				});
 				break;
+			}
 			case 'inspect':
 				dispatch({
 					type: 'ADD_NOTIFICATION',
@@ -106,10 +132,12 @@ export function ActionMenu() {
 	if (!npc) return null;
 
 	return (
-		<div
+		<PixelPanel
 			ref={menuRef}
-			className="fixed bg-zinc-900 border border-yellow-300 rounded-md p-2 z-[100]"
-			style={{ left: `${position.x}px`, top: `${position.y}px` }}>
+			className="fixed z-[100] min-w-[10rem] p-2 text-white"
+			style={{ left: `${position.x}px`, top: `${position.y}px` }}
+			slice={8}
+			scale={2}>
 			<div className="flex justify-between items-center mb-2">
 				<h3 className="font-bold text-sm text-white">{npc.npcName}</h3>
 				<button
@@ -131,6 +159,6 @@ export function ActionMenu() {
 				className="block w-full text-xs py-1 px-2 mt-2 bg-red-500 hover:bg-red-600 rounded text-white">
 				Close
 			</button>
-		</div>
+		</PixelPanel>
 	);
 }

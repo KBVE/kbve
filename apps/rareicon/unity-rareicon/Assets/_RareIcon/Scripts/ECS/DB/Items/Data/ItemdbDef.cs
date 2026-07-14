@@ -82,7 +82,7 @@ namespace RareIcon
 
     public sealed class SkillingInfoDef
     {
-        [JsonProperty("skill")]          public string Skill;   // "foraging" | "woodcutting" | "mining" | …
+        [JsonProperty("skill")]          public string Skill;
         [JsonProperty("skill_level")]    public int? SkillLevel;
         [JsonProperty("xp_reward")]      public float? XpReward;
         [JsonProperty("tool_required")]  public string ToolRequired;

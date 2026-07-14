@@ -3,16 +3,16 @@ import {
   type GuildVaultRequest,
   invalidateOwnershipCache,
   jsonResponse,
-  validateDescription,
-  validateProviderToken,
-  validateService,
-  validateSnowflake,
-  validateTokenName,
-  validateTokenValue,
-  validateUuid,
-  verifyGuildOwnership,
+  verifyOwnedGuildsClaim,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
+import {
+  DeleteTokenRequestSchema,
+  ListTokensRequestSchema,
+  PeekTokenRequestSchema,
+  SetTokenRequestSchema,
+  ToggleTokenRequestSchema,
+} from "../_shared/agents-schema.ts";
 
 // ---------------------------------------------------------------------------
 // Guild token CRUD handlers — all use service client + Discord ownership
@@ -31,44 +31,34 @@ const PEEKABLE_SERVICES = new Set([
 ]);
 
 const handlers: Record<string, Handler> = {
-  async set_token({ userId, body }) {
+  async set_token({ userId, claims, body }) {
     const {
       server_id,
       token_name,
       service,
       token_value,
       description,
-      provider_token,
     } = body;
 
-    const ptErr = validateProviderToken(provider_token);
-    if (ptErr) return ptErr;
+    const parsed = SetTokenRequestSchema.safeParse({
+      server_id,
+      service,
+      token_name,
+      token_value,
+      description: description ?? undefined,
+    });
+    if (!parsed.success) {
+      return jsonResponse(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        400,
+      );
+    }
 
-    const sidErr = validateSnowflake(server_id, "server_id");
-    if (sidErr) return sidErr;
-
-    const tnErr = validateTokenName(token_name);
-    if (tnErr) return tnErr;
-
-    const svcErr = validateService(service);
-    if (svcErr) return svcErr;
-
-    const tvErr = validateTokenValue(token_value);
-    if (tvErr) return tvErr;
-
-    const descErr = validateDescription(description);
-    if (descErr) return descErr;
-
-    // Discord API ownership verification (cached 5 min)
-    const ownerErr = await verifyGuildOwnership(
-      userId,
-      server_id as string,
-      provider_token as string,
-    );
+    const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_set_guild_token", {
+    const { data, error } = await supabase.schema("discordsh").rpc("service_set_guild_token", {
       p_owner_id: userId,
       p_server_id: server_id as string,
       p_service: service as string,
@@ -96,24 +86,22 @@ const handlers: Record<string, Handler> = {
     );
   },
 
-  async list_tokens({ userId, body }) {
-    const { server_id, provider_token } = body;
+  async list_tokens({ userId, claims, body }) {
+    const { server_id } = body;
 
-    const ptErr = validateProviderToken(provider_token);
-    if (ptErr) return ptErr;
+    const parsed = ListTokensRequestSchema.safeParse({ server_id });
+    if (!parsed.success) {
+      return jsonResponse(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        400,
+      );
+    }
 
-    const sidErr = validateSnowflake(server_id, "server_id");
-    if (sidErr) return sidErr;
-
-    const ownerErr = await verifyGuildOwnership(
-      userId,
-      server_id as string,
-      provider_token as string,
-    );
+    const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_list_guild_tokens", {
+    const { data, error } = await supabase.schema("discordsh").rpc("service_list_guild_tokens", {
       p_owner_id: userId,
       p_server_id: server_id as string,
     });
@@ -123,31 +111,27 @@ const handlers: Record<string, Handler> = {
       return safeRpcError(error, "guild_vault_rpc");
     }
 
-    const tokens = Array.isArray(data) ? data : [];
+    const rows = Array.isArray(data) ? data : [];
+    const tokens = rows.map((t) => ({ ...t, token_id: t.id }));
     return jsonResponse({ success: true, tokens, count: tokens.length });
   },
 
-  async delete_token({ userId, body }) {
-    const { server_id, token_id, provider_token } = body;
+  async delete_token({ userId, claims, body }) {
+    const { server_id, token_id } = body;
 
-    const ptErr = validateProviderToken(provider_token);
-    if (ptErr) return ptErr;
+    const parsed = DeleteTokenRequestSchema.safeParse({ server_id, token_id });
+    if (!parsed.success) {
+      return jsonResponse(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        400,
+      );
+    }
 
-    const sidErr = validateSnowflake(server_id, "server_id");
-    if (sidErr) return sidErr;
-
-    const tidErr = validateUuid(token_id, "token_id");
-    if (tidErr) return tidErr;
-
-    const ownerErr = await verifyGuildOwnership(
-      userId,
-      server_id as string,
-      provider_token as string,
-    );
+    const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.schema("discordsh").rpc(
       "service_delete_guild_token",
       {
         p_owner_id: userId,
@@ -175,34 +159,26 @@ const handlers: Record<string, Handler> = {
     );
   },
 
-  async toggle_token({ userId, body }) {
-    const { server_id, token_id, is_active, provider_token } = body;
+  async toggle_token({ userId, claims, body }) {
+    const { server_id, token_id, is_active } = body;
 
-    const ptErr = validateProviderToken(provider_token);
-    if (ptErr) return ptErr;
-
-    const sidErr = validateSnowflake(server_id, "server_id");
-    if (sidErr) return sidErr;
-
-    const tidErr = validateUuid(token_id, "token_id");
-    if (tidErr) return tidErr;
-
-    if (typeof is_active !== "boolean") {
+    const parsed = ToggleTokenRequestSchema.safeParse({
+      server_id,
+      token_id,
+      is_active,
+    });
+    if (!parsed.success) {
       return jsonResponse(
-        { error: "is_active (boolean) is required" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
         400,
       );
     }
 
-    const ownerErr = await verifyGuildOwnership(
-      userId,
-      server_id as string,
-      provider_token as string,
-    );
+    const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.schema("discordsh").rpc(
       "service_toggle_guild_token_status",
       {
         p_owner_id: userId,
@@ -230,17 +206,16 @@ const handlers: Record<string, Handler> = {
       row.success ? 200 : 400,
     );
   },
-	async peek_token({ userId, body }) {
-		const { server_id, service, provider_token } = body;
+	async peek_token({ userId, claims, body }) {
+		const { server_id, service } = body;
 
-		const ptErr = validateProviderToken(provider_token);
-		if (ptErr) return ptErr;
-
-		const sidErr = validateSnowflake(server_id, "server_id");
-		if (sidErr) return sidErr;
-
-		const svcErr = validateService(service);
-		if (svcErr) return svcErr;
+		const parsed = PeekTokenRequestSchema.safeParse({ server_id, service });
+		if (!parsed.success) {
+			return jsonResponse(
+				{ error: parsed.error.issues[0]?.message ?? "Invalid request" },
+				400,
+			);
+		}
 
 		if (!PEEKABLE_SERVICES.has(service as string)) {
 			return jsonResponse(
@@ -252,11 +227,7 @@ const handlers: Record<string, Handler> = {
 			);
 		}
 
-		const ownerErr = await verifyGuildOwnership(
-			userId,
-			server_id as string,
-			provider_token as string,
-		);
+		const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
 		if (ownerErr) return ownerErr;
 
 		const supabase = createServiceClient();

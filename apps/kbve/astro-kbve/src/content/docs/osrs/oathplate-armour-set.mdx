@@ -1,6 +1,6 @@
 ---
 title: Oathplate armour set | OSRS Price Data
-description: "Oathplate armour set: A set containing a Oathplate helm, Oathplate chest, and Oathplate legs.. High alch: 87,000 GP."
+description: "Oathplate armour set: A set containing an Oathplate helm, Oathplate chest, and Oathplate legs. High alch: 87,000 GP."
 osrs:
   id: 30744
   name: Oathplate armour set
@@ -12,9 +12,68 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: null
-  about: "Oathplate armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    weight: 0.05
+    release_date: '2025-05-14'
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: misc
+    tier: oathplate
+    primary_resource: oathplate
+  obtaining:
+    methods:
+      - source: Grand Exchange Sets Interface
+        quantity: "1"
+        description: Exchange individual Oathplate helm, chest, and legs with a Grand Exchange clerk using the Sets interface to bundle them.
+  related_items:
+    - item_id: 30738
+      item_name: Oathplate helm
+      slug: oathplate-helm
+      relationship: component
+      description: Head slot piece included in the armour set.
+    - item_id: 30740
+      item_name: Oathplate chest
+      slug: oathplate-chest
+      relationship: component
+      description: Body slot piece included in the armour set.
+    - item_id: 30742
+      item_name: Oathplate legs
+      slug: oathplate-legs
+      relationship: component
+      description: Leg slot piece included in the armour set.
+  history:
+    - date: '2025-05-14'
+      description: "Oathplate armour set was released alongside Oathplate armour pieces."
+  about: |-
+    > *"A set containing a Oathplate helm, Oathplate chest, and Oathplate legs."*
+
+    The Oathplate armour set is a Grand Exchange convenience bundle of the three Oathplate armour pieces. It cannot be equipped directly — players must exchange the set with a Grand Exchange clerk to receive the individual components.
+
+    | Detail | Value |
+    |--------|-------|
+    | Set Pieces | Oathplate helm, chest, legs |
+    | Tradeable | Yes |
+    | Equipable | No |
+    | Obtained | Grand Exchange Sets interface |
+
+    Sets are commonly used by traders to consolidate liquidity in a single high-value item. The bundled set typically carries a small premium over the sum of the individual pieces.
+  market_strategy:
+    notes:
+      - "Bundle is a Grand Exchange Sets convenience item"
+      - "Price tracks the sum of the three Oathplate pieces plus a small premium"
+      - "High-value flip target for late-game traders"
+      - "Members only item"
+  trading_tips:
+    - Watch each individual piece on the GE; the set premium can be arbitraged when components dip.
+    - Large capital required per flip due to multi-hundred-million GP price.
+    - Daily volume is thin; use limit orders rather than market buys to avoid slippage.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

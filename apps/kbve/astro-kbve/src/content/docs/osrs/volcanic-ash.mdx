@@ -1,6 +1,6 @@
 ---
 title: Volcanic ash | OSRS Price Data
-description: "Volcanic ash: One of the ingredients for making ultra compost.. High alch: 120 GP, GE limit: 13,000."
+description: "Volcanic ash: One of the ingredients for making ultracompost. High alch: 120 GP, GE limit: 13,000."
 osrs:
   id: 21622
   name: Volcanic ash
@@ -12,56 +12,119 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 13000
-  material:
-    type: mining_resource
+  about: Volcanic ash is a members-only mining-skilling resource gathered from ash piles on Fossil Island. It is the primary catalyst for upgrading supercompost into ultracompost and powers the Fertile Soil Lunar spell, making it a staple input for high-yield Farming runs.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2017-04-12"
+    update: Fossil Island
     tradeable: true
     stackable: true
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
-  gathering:
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  material:
+    type: mining_resource
+    tier: low
+  mining:
     skill: mining
     level: 22
-    location: Fossil Island Volcano ash piles
-    yield: 1-6 ash per action based on Mining level
+    xp: 10
+    tool: Pickaxe
+    locations:
+      - Fossil Island volcano ash piles
+      - Mushroom forest ash deposits
+    members_only: true
   drop_table:
     sources:
-      - source: Wyverns
-      - source: Ancient zygomites
-      - source: Fossil Island creatures
-  uses:
-    - result_id: 21483
-      result_name: Ultracompost
-      method: Add 2 ash to supercompost bucket
-    - use: Fertile Soil spell
-  market:
-    buy_limit: 13000
-    price_estimate: 111
+      - source: Ash covered tomb
+        quantity: "1"
+        rarity: always
+      - source: Cave horror
+        quantity: "1"
+        rarity: common
+      - source: Ancient zygomite
+        quantity: "1"
+        rarity: common
+      - source: Mutated zygomite
+        quantity: "1"
+        rarity: common
+  recipes:
+    - skill: farming
+      level: 21
+      xp: 0
+      materials:
+        - item_name: Supercompost
+          quantity: 1
+        - item_name: Volcanic ash
+          quantity: 2
+      product: Ultracompost
+      product_id: 21483
+      output_quantity: 1
+      facility: Compost bin
+      members_only: true
+    - skill: magic
+      level: 83
+      xp: 87
+      materials:
+        - item_name: Volcanic ash
+          quantity: 2
+        - item_name: Astral rune
+          quantity: 3
+        - item_name: Nature rune
+          quantity: 2
+        - item_name: Earth rune
+          quantity: 15
+      product: Fertile Soil cast
+      facility: Lunar spellbook
+      members_only: true
+  shops:
+    - shop_name: Petrified Pete's Ore Shop
+      location: Fossil Island
+      price: 200
+      stock: 0
+      currency: Coins
   related_items:
     - item_id: 21483
       item_name: Ultracompost
       slug: ultracompost
       relationship: product
-      description: Created product
+      description: Premium farming compost made by adding 2 ash to supercompost
     - item_id: 6034
       item_name: Supercompost
       slug: supercompost
-      relationship: alternative
-      description: Required base
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Mining Resource |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 22 Mining |
-
-    Primary ingredient for ultracompost.
-
-    Add 2 to supercompost for ultracompost.
-
-    Used with Fertile Soil spell.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: component
+      description: Base compost upgraded with volcanic ash
+    - item_id: 21626
+      item_name: Volcanic mine ash
+      slug: volcanic-mine-ash
+      relationship: variant
+      description: Untradeable variant from the Volcanic Mine activity
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Demand spikes when Farming bots are banned"
+      - "Mining at level 22+ is the cheapest source for ironmen"
+      - "Stockpile before league or Farming-XP events"
+      - "Higher Mining levels boost yield per pile up to 6 ash"
+  trading_tips:
+    - "Buy in 13k bulk to maximise ultracompost margins"
+    - "Watch for price drops post-Farming-update windows"
+    - "Pair with limpwurt seeds or magic seeds for set runs"
+  history:
+    - date: "2017-04-12"
+      update: Fossil Island
+      description: "Volcanic ash added with Fossil Island and the ultracompost recipe."
+    - date: "2017-08-10"
+      update: QoL Update
+      description: "Mining yield scaled with Mining level: 1 ash at 22+, up to 6 ash at 92+."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

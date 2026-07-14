@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Wood
+template: splash
 description: |
     Minecraft Pale Oak Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 20
     ref: pale_oak_wood
     slug: pale-oak-wood
+    content_rev: 1
     display_name: Pale Oak Wood
     material: wood
     hardness: 2
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Oak Wood is a bark-covered building block crafted from
+            Pale Oak Logs, showing the pale, washed-out bark texture on all
+            six faces rather than just the sides.
+        lore: |
+            Pale Oak Wood comes from the Pale Garden biome's ghostly trees,
+            giving builders an eerie, bleached alternative to standard Oak
+            Wood.
+    uses:
+        - title: Pale Oak Wood
+          ref: pale_oak_wood
+          detail: |
+              Crafted from 4 Pale Oak Logs arranged in a 2x2 square to make
+              3 wood blocks, used as a fuel source and for bulk building
+              where an all-bark texture is desired.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from 4 Pale Oak Logs, yielding 3 wood blocks.
+        - location: Pale Garden biome
+          detail: Pale Oak trees generate throughout the Pale Garden, providing the logs used to craft this block.
+    faq:
+        - question: What tool do I need to mine Pale Oak Wood?
+          answer: |
+              Any tool works, including bare hands, though an axe breaks it
+              fastest.
+        - question: How is Pale Oak Wood different from Pale Oak Log?
+          answer: |
+              Pale Oak Wood shows bark texture on every face, while Pale
+              Oak Log shows the ring pattern on its top and bottom faces.
+        - question: Can Pale Oak Wood be stripped?
+          answer: |
+              Yes, using an axe on it converts it to Stripped Pale Oak Wood,
+              removing the bark texture from all sides.
+        - question: Is Pale Oak Wood flammable?
+          answer: |
+              Yes, like most Overworld wood blocks it can catch fire from
+              nearby flames or lava.
     data_version: "1.21.5"
 ---
 

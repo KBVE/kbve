@@ -12,9 +12,50 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  about: "Bananas(5) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: fruit-basket
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.17
+    options:
+      - Fill
+      - Remove-one
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Fruit basket
+      slug: fruit-basket
+      relationship: component
+      description: "Empty basket filled with bananas"
+    - item_name: Banana
+      slug: banana
+      relationship: component
+      description: "Individual fruit used to fill the basket"
+  about: "Bananas(5) is a fruit basket fully stocked with five bananas. Baskets are filled by using individual bananas on an empty fruit basket and are most commonly used to supply farmers during Farming runs (notably for monkeys requiring banana payment)."
+  market_strategy:
+    notes:
+      - "Demand spikes for Farming run protection payments to monkeys at fruit tree patches."
+      - "Supply scales with banana farming and Karamja banana plantation activity."
+  trading_tips:
+    - "Stock up around large Farming league updates or league-style game modes."
+    - "GE volume is thin; expect to sit on bids for several hours."
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill update."
+    - date: "2018-03-22"
+      description: "Empty option added and shift-click behaviour updated for single-banana baskets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

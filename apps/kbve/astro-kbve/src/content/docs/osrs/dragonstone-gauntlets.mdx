@@ -1,6 +1,6 @@
 ---
 title: Dragonstone gauntlets | OSRS Price Data
-description: "Dragonstone gauntlets: A stylish pair of rune gauntlets inlaid with dragonstones.. High alch: 7,500 GP."
+description: "Dragonstone gauntlets: A stylish pair of rune gauntlets inlaid with dragonstones. High alch: 7,500 GP."
 osrs:
   id: 24046
   name: Dragonstone gauntlets
@@ -12,9 +12,85 @@ osrs:
   lowalch: 5000
   highalch: 7500
   limit: null
-  about: "Dragonstone gauntlets is a members-only item in Old School RuneScape. High alchemy value: 7,500 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragonstone
+    tier: high
+  properties:
+    release_date: "25 July 2019"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weight: 0.226
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 8
+      slash: 8
+      crush: 8
+      magic: -4
+      ranged: -3
+    defence_bonus:
+      stab: 8
+      slash: 8
+      crush: 8
+      magic: -4
+      ranged: 4
+    other_bonus:
+      strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Elven Crystal Chest
+        quantity: "1"
+        rarity: 1/2500
+  related_items:
+    - item_name: Ruby gauntlets
+      slug: ruby-gauntlets
+      relationship: variant
+      description: Ruby-inlaid sibling from the same chest
+    - item_name: Emerald gauntlets
+      slug: emerald-gauntlets
+      relationship: variant
+      description: Emerald-inlaid sibling from the same chest
+    - item_name: Sapphire gauntlets
+      slug: sapphire-gauntlets
+      relationship: variant
+      description: Sapphire-inlaid sibling from the same chest
+    - item_name: Elven crystal chest
+      slug: elven-crystal-chest
+      relationship: component
+      description: Sole obtain method
+  about: |-
+    > _"A stylish pair of rune gauntlets inlaid with dragonstones."_
+
+    Dragonstone gauntlets are an uncommon reward from the Elven Crystal Chest in Prifddinas, with stats matching the best-in-slot melee hand options short of Barrows gloves and Ferocious gloves. They are widely used by accounts that want melee-quality hands without needing Recipe for Disaster.
+  market_strategy:
+    notes:
+      - "Supply is bound to Elven Crystal Chest opens; price reacts to clue/Prif content updates."
+      - "Demand floors at the cost of equivalent crystal key chest expectation, capping downside."
+  trading_tips:
+    - "Buy after large Crystal Key dumps when supply briefly outstrips demand."
+    - "Sell during mid-game gear meta shifts when accounts gear up before RFD."
+  history:
+    - date: "25 July 2019"
+      description: "Added to the game alongside the Song of the Elves Elven Crystal Chest rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

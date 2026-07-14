@@ -12,9 +12,86 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Grey hat is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-06-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barker's Haberdashery
+      location: Canifis
+      price: 650
+      currency: Coins
+      stock: 2
+  related_items:
+    - item_name: Red hat
+      slug: red-hat
+      relationship: variant
+      description: "Red variant of the Canifis pointed hat."
+    - item_name: Yellow hat
+      slug: yellow-hat
+      relationship: variant
+      description: "Yellow variant of the Canifis pointed hat."
+    - item_name: Teal hat
+      slug: teal-hat
+      relationship: variant
+      description: "Teal variant of the Canifis pointed hat."
+    - item_name: Purple hat
+      slug: purple-hat
+      relationship: variant
+      description: "Purple variant of the Canifis pointed hat."
+  about: "Grey hat is one of five colored pointed hats sold by Barker in Canifis. Originally called 'Hat', it was renamed to Grey hat in December 2014. Provides +3 magic attack and defence with no requirements, making it a low-cost head slot pick for early-magic builds."
+  market_strategy:
+    notes:
+      - "Stock comes from Barker's Haberdashery — shop sink keeps supply available."
+      - "Demand is steady but thin; daily volume around 750 units."
+  trading_tips:
+    - "Buy from Barker at 650 gp to flip when GE price spikes above shop cost."
+    - "Pair with other Canifis robes for fashionscape listings."
+  history:
+    - date: "2004-06-29"
+      description: "Released with Canifis and the Priest in Peril quest area."
+    - date: "2014-12-04"
+      description: "Renamed from 'Hat' to 'Grey hat' for clarity."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

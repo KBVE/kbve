@@ -31,19 +31,13 @@ namespace RareIcon
 
         public void OnUpdate(ref SystemState state)
         {
-            // Pruning runs at low cadence — Active map + History are tiny
-            // (≤8 entries each) and stale entries cause no behavior bugs
-            // until the next Possess call. Throttling keeps the per-frame
-            // cost off the hot path entirely.
+
             _frameCounter++;
             bool prune = _frameCounter >= PruneCadenceFrames;
 
             ref var reg = ref SystemAPI.GetSingletonRW<CharacterOrchestratorSingleton>().ValueRW;
             if (!reg.Active.IsCreated) return;
 
-            // Adopt-existing-holder still runs every frame so a King spawned
-            // mid-frame gets registered immediately. The validity sweep
-            // below is the cadence-throttled portion.
             if (!reg.Active.ContainsKey(ControllerId.Local))
             {
                 using var arr = _controlledQuery.ToEntityArray(Allocator.Temp);

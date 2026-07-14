@@ -12,12 +12,59 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: null
-  about: "Hueycoatl hide armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour-set
+    tier: high
+  properties:
+    release_date: "2025-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Hueycoatl hide coif
+      slug: hueycoatl-hide-coif
+      relationship: set-piece
+      description: Head slot ranged armour in the set
+    - item_name: Hueycoatl hide body
+      slug: hueycoatl-hide-body
+      relationship: set-piece
+      description: Body slot ranged armour in the set
+    - item_name: Hueycoatl hide chaps
+      slug: hueycoatl-hide-chaps
+      relationship: set-piece
+      description: Legs slot ranged armour in the set
+    - item_name: Hueycoatl hide vambraces
+      slug: hueycoatl-hide-vambraces
+      relationship: set-piece
+      description: Hands slot ranged armour in the set
+  about: "The Hueycoatl hide armour set is a placeholder bundle for the four Hueycoatl hide pieces (coif, body, chaps, vambraces). Players combine the pieces into the set at a Grand Exchange clerk via the Sets interface, primarily to list all four parts in a single trade. The set carries no combat stats on its own; only the unpacked components are equippable."
+  market_strategy:
+    notes:
+      - "Bundle premium hinges on full-component supply at the GE"
+      - "Convenience item for sellers; not equippable directly"
+      - "Tracks the combined price of all four Hueycoatl pieces"
+  trading_tips:
+    - "Compare set price vs. sum of components; flip the cheaper side"
+    - "Component shortages widen the bundle premium"
+  history:
+    - date: "2025-08-20"
+      description: "Added to the game alongside the Hueycoatl hide armour pieces."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

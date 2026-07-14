@@ -3,25 +3,18 @@ import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
 import { X, Maximize2, Minimize2, Keyboard, Users, Crown } from 'lucide-react';
 
-// noVNC RFB client — loaded from vendored ESM in public/vendor/novnc/.
-// The npm package (@novnc/novnc) ships CJS with a top-level await in
-// browser.js that Rollup cannot parse, so it cannot be bundled directly.
-// Vendored ESM (from noVNC GitHub) is the primary path; npm kept as
-// @vite-ignore dev fallback only.
 let RFB: any = null;
 async function loadRFB() {
 	if (!RFB) {
 		try {
-			// Primary: vendored ESM — bypasses Vite module graph via full URL
 			const vendorUrl = `${window.location.origin}/vendor/novnc/core/rfb.js`;
 			const mod = await import(/* @vite-ignore */ vendorUrl);
 			RFB = mod.default ?? mod;
 		} catch (vendorErr) {
 			console.warn('noVNC vendored ESM failed:', vendorErr);
 			try {
-				// Fallback: npm package (dev mode only, not bundleable)
 				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore — @novnc/novnc has no type declarations
+				// @ts-ignore
 				const mod = await import(
 					/* @vite-ignore */ '@novnc/novnc/lib/rfb'
 				);
@@ -52,36 +45,53 @@ export default function ReactVMVncViewer() {
 	const [keyboardVisible, setKeyboardVisible] = useState(false);
 	const [viewerCount, setViewerCount] = useState(0);
 	const [isPrimary, setIsPrimary] = useState(false);
+	const [viewerId] = useState(() =>
+		typeof crypto !== 'undefined' && crypto.randomUUID
+			? crypto.randomUUID()
+			: `v-${Math.random().toString(36).slice(2)}`,
+	);
+	const [isController, setIsController] = useState(false);
+	const [pending, setPending] = useState<{
+		requester_viewer_id: string;
+		seconds_remaining: number;
+	} | null>(null);
 	const reconnectAttemptRef = useRef(0);
 	const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
 		null,
 	);
 	const intentionalCloseRef = useRef(false);
 
-	// Poll viewer count while connected
+	const refreshInfo = useCallback(async () => {
+		if (!vncTarget) return;
+		try {
+			const info = await vmService.getVNCSessionInfo(vncTarget);
+			if (info) {
+				setViewerCount(info.viewers);
+				setIsPrimary(info.has_primary);
+				setIsController(info.controller_viewer_id === viewerId);
+				setPending(info.pending);
+			}
+		} catch {
+			/* ignore */
+		}
+	}, [vncTarget, viewerId]);
+
 	useEffect(() => {
 		if (!vncTarget || !connected) {
 			setViewerCount(0);
 			setIsPrimary(false);
+			setIsController(false);
+			setPending(null);
 			return;
 		}
-
-		const pollViewerCount = async () => {
-			try {
-				const info = await vmService.getVNCSessionInfo(vncTarget);
-				if (info) {
-					setViewerCount(info.viewers);
-					setIsPrimary(info.has_primary);
-				}
-			} catch {
-				// Silently ignore — the connection may have dropped
-			}
-		};
-
-		pollViewerCount();
-		const interval = setInterval(pollViewerCount, 5000);
+		refreshInfo();
+		const interval = setInterval(refreshInfo, 2000);
 		return () => clearInterval(interval);
-	}, [vncTarget, connected]);
+	}, [vncTarget, connected, refreshInfo]);
+
+	useEffect(() => {
+		if (rfbRef.current) rfbRef.current.viewOnly = !isController;
+	}, [isController, connected]);
 
 	const cleanup = useCallback(() => {
 		if (reconnectTimerRef.current) {
@@ -96,6 +106,8 @@ export default function ReactVMVncViewer() {
 		setStatus('Disconnected');
 		setViewerCount(0);
 		setIsPrimary(false);
+		setIsController(false);
+		setPending(null);
 	}, []);
 
 	const connectVNC = useCallback(async (target: string) => {
@@ -104,7 +116,7 @@ export default function ReactVMVncViewer() {
 
 		viewerEl.innerHTML = '';
 
-		const wsUrl = vmService.getVNCWebSocketURL(target);
+		const wsUrl = vmService.getVNCWebSocketURL(target, viewerId);
 		setStatus(
 			reconnectAttemptRef.current > 0
 				? `Reconnecting (${reconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})...`
@@ -113,6 +125,9 @@ export default function ReactVMVncViewer() {
 
 		try {
 			const RFBClass = await loadRFB();
+			if (intentionalCloseRef.current || viewerRef.current !== viewerEl) {
+				return;
+			}
 			const rfb = new RFBClass(viewerEl, wsUrl, {
 				wsProtocols: ['binary.k8s.io', 'base64.binary.k8s.io'],
 			});
@@ -123,6 +138,7 @@ export default function ReactVMVncViewer() {
 			rfb.showDotCursor = true;
 			rfb.qualityLevel = 6;
 			rfb.compressionLevel = 2;
+			rfb.viewOnly = true;
 
 			rfb.addEventListener('connect', () => {
 				setConnected(true);
@@ -147,7 +163,6 @@ export default function ReactVMVncViewer() {
 						setStatus('Connection lost — attempting reconnect...');
 					}
 
-					// Auto-reconnect on unexpected disconnects
 					if (reconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
 						reconnectAttemptRef.current += 1;
 						const delay =
@@ -196,7 +211,87 @@ export default function ReactVMVncViewer() {
 		};
 	}, [vncTarget, connectVNC, cleanup]);
 
-	// Manual retry handler
+	useEffect(() => {
+		const teardown = () => {
+			intentionalCloseRef.current = true;
+			cleanup();
+			if (
+				typeof document !== 'undefined' &&
+				document.fullscreenElement === containerRef.current
+			) {
+				document.exitFullscreen().catch(() => undefined);
+			}
+		};
+		document.addEventListener('astro:before-swap', teardown);
+		document.addEventListener('astro:before-preparation', teardown);
+		window.addEventListener('pagehide', teardown);
+		return () => {
+			document.removeEventListener('astro:before-swap', teardown);
+			document.removeEventListener('astro:before-preparation', teardown);
+			window.removeEventListener('pagehide', teardown);
+		};
+	}, [cleanup]);
+
+	useEffect(() => {
+		const onFsChange = () => {
+			const active = document.fullscreenElement === containerRef.current;
+			setFullscreen(active);
+		};
+		document.addEventListener('fullscreenchange', onFsChange);
+		return () =>
+			document.removeEventListener('fullscreenchange', onFsChange);
+	}, []);
+
+	useEffect(() => {
+		if (!rfbRef.current) return;
+		const rafId = requestAnimationFrame(() => {
+			window.dispatchEvent(new Event('resize'));
+		});
+		return () => cancelAnimationFrame(rafId);
+	}, [fullscreen]);
+
+	useEffect(() => {
+		if (!connected) return;
+		const viewerEl = viewerRef.current;
+		if (!viewerEl || typeof ResizeObserver === 'undefined') return;
+		const rescale = () => {
+			const rfb = rfbRef.current;
+			if (rfb) {
+				try {
+					rfb.scaleViewport = true;
+				} catch {
+					/* */
+				}
+			}
+			window.dispatchEvent(new Event('resize'));
+		};
+		const t0 = requestAnimationFrame(rescale);
+		const t1 = setTimeout(rescale, 150);
+		const t2 = setTimeout(rescale, 600);
+		const ro = new ResizeObserver(rescale);
+		ro.observe(viewerEl);
+		return () => {
+			cancelAnimationFrame(t0);
+			clearTimeout(t1);
+			clearTimeout(t2);
+			ro.disconnect();
+		};
+	}, [connected]);
+
+	const toggleFullscreen = useCallback(() => {
+		const el = containerRef.current;
+		if (!el) return;
+		if (document.fullscreenElement === el) {
+			document.exitFullscreen().catch(() => setFullscreen(false));
+			return;
+		}
+		if (typeof el.requestFullscreen === 'function') {
+			el.requestFullscreen().catch(() => setFullscreen((f) => !f));
+		} else {
+			setFullscreen((f) => !f);
+		}
+	}, []);
+
 	const handleRetry = useCallback(() => {
 		if (vncTarget && !connected) {
 			reconnectAttemptRef.current = 0;
@@ -204,12 +299,28 @@ export default function ReactVMVncViewer() {
 		}
 	}, [vncTarget, connected, connectVNC]);
 
-	// Ctrl+Alt+Del sender
+	const takeControl = useCallback(async () => {
+		if (!vncTarget) return;
+		await vmService.vncControl(vncTarget, 'take', viewerId);
+		refreshInfo();
+	}, [vncTarget, viewerId, refreshInfo]);
+
+	const releaseControl = useCallback(async () => {
+		if (!vncTarget) return;
+		await vmService.vncControl(vncTarget, 'release', viewerId);
+		refreshInfo();
+	}, [vncTarget, viewerId, refreshInfo]);
+
+	const denyControl = useCallback(async () => {
+		if (!vncTarget) return;
+		await vmService.vncControl(vncTarget, 'deny', viewerId);
+		refreshInfo();
+	}, [vncTarget, viewerId, refreshInfo]);
+
 	const sendCtrlAltDel = useCallback(() => {
 		rfbRef.current?.sendCtrlAltDel();
 	}, []);
 
-	// Toggle virtual keyboard (mobile/tablet)
 	const toggleKeyboard = useCallback(() => {
 		if (rfbRef.current) {
 			rfbRef.current.focusOnClick = !keyboardVisible;
@@ -239,11 +350,12 @@ export default function ReactVMVncViewer() {
 				flexDirection: 'column',
 				height: fullscreen ? '100vh' : undefined,
 			}}>
-			{/* noVNC renders into this container */}
 			<div
 				ref={viewerRef}
+				className="vnc-surface"
 				onClick={!connected ? handleRetry : undefined}
 				style={{
+					position: 'relative',
 					flex: 1,
 					minHeight: fullscreen ? undefined : 480,
 					height: fullscreen ? undefined : 480,
@@ -256,12 +368,14 @@ export default function ReactVMVncViewer() {
 				}}
 			/>
 
-			{/* Bottom toolbar — controls + status */}
 			<div
 				style={{
 					borderTop: '1px solid var(--sl-color-gray-5, #30363d)',
 					background: 'var(--sl-color-gray-6, #161b22)',
 					flexShrink: 0,
+					pointerEvents: 'auto',
+					position: 'relative',
+					zIndex: 1,
 				}}>
 				<div
 					style={{
@@ -295,7 +409,6 @@ export default function ReactVMVncViewer() {
 							}}>
 							{status}
 						</span>
-						{/* Viewer count badge */}
 						{connected && viewerCount > 0 && (
 							<span
 								style={{
@@ -324,8 +437,51 @@ export default function ReactVMVncViewer() {
 							</span>
 						)}
 					</div>
-					<div style={{ display: 'flex', gap: 4 }}>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 4,
+						}}>
 						{connected && (
+							<span
+								style={{
+									fontSize: '0.6rem',
+									fontWeight: 700,
+									letterSpacing: 0.3,
+									padding: '2px 6px',
+									borderRadius: 4,
+									textTransform: 'uppercase',
+									background: isController
+										? 'rgba(34, 197, 94, 0.15)'
+										: 'rgba(139, 148, 158, 0.15)',
+									color: isController ? '#22c55e' : '#8b949e',
+								}}>
+								{isController ? 'Controlling' : 'View only'}
+							</span>
+						)}
+						{connected && !isController && (
+							<button
+								onClick={takeControl}
+								disabled={
+									pending?.requester_viewer_id === viewerId
+								}
+								title="Request control of this VM"
+								style={controlBtnStyle(false)}>
+								{pending?.requester_viewer_id === viewerId
+									? `Requesting… ${pending?.seconds_remaining ?? ''}s`
+									: 'Take control'}
+							</button>
+						)}
+						{connected && isController && (
+							<button
+								onClick={releaseControl}
+								title="Release control (become view-only)"
+								style={controlBtnStyle(false)}>
+								Release
+							</button>
+						)}
+						{connected && isController && (
 							<>
 								<ToolbarButton
 									title="Send Ctrl+Alt+Del"
@@ -349,7 +505,7 @@ export default function ReactVMVncViewer() {
 							title={
 								fullscreen ? 'Exit fullscreen' : 'Fullscreen'
 							}
-							onClick={() => setFullscreen(!fullscreen)}>
+							onClick={toggleFullscreen}>
 							{fullscreen ? (
 								<Minimize2 size={14} />
 							) : (
@@ -367,6 +523,35 @@ export default function ReactVMVncViewer() {
 						</ToolbarButton>
 					</div>
 				</div>
+				{connected &&
+					isController &&
+					pending &&
+					pending.requester_viewer_id !== viewerId && (
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'space-between',
+								gap: 8,
+								padding: '0.4rem 1rem',
+								borderTop:
+									'1px solid var(--sl-color-gray-5, #30363d)',
+								background: 'rgba(245, 158, 11, 0.12)',
+								fontSize: '0.7rem',
+								color: '#f59e0b',
+							}}>
+							<span>
+								Another viewer is requesting control —
+								transferring in {pending.seconds_remaining}s
+							</span>
+							<button
+								onClick={denyControl}
+								title="Deny the control request"
+								style={controlBtnStyle(true)}>
+								Deny
+							</button>
+						</div>
+					)}
 				<div
 					style={{
 						padding: '0.25rem 1rem 0.4rem',
@@ -383,6 +568,19 @@ export default function ReactVMVncViewer() {
 			</div>
 		</div>
 	);
+}
+
+function controlBtnStyle(danger: boolean): React.CSSProperties {
+	return {
+		fontSize: '0.65rem',
+		fontWeight: 600,
+		padding: '3px 8px',
+		borderRadius: 4,
+		cursor: 'pointer',
+		border: `1px solid ${danger ? 'rgba(239, 68, 68, 0.4)' : 'var(--sl-color-gray-5, #30363d)'}`,
+		background: danger ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+		color: danger ? '#ef4444' : 'var(--sl-color-text, #e6edf3)',
+	};
 }
 
 function ToolbarButton({

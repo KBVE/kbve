@@ -1,6 +1,6 @@
 ---
 title: Ahrim's armour set | OSRS Price Data
-description: "Ahrim's armour set: A set containing an Ahrim's hood, robetop, robeskirt and staff.. High alch: 120,000 GP, GE limit: 8."
+description: "Ahrim's armour set: A set containing an Ahrim's hood, robetop, robeskirt and staff. High alch: 120,000 GP, GE limit: 8."
 osrs:
   id: 12881
   name: Ahrim's armour set
@@ -12,9 +12,63 @@ osrs:
   lowalch: 80000
   highalch: 120000
   limit: 8
-  about: "Ahrim's armour set is a members-only item in Old School RuneScape. High alchemy value: 120,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: "2014-12-10"
+    quest_item: false
+    destroy: Drop
+  material:
+    type: misc
+    tier: barrows
+  related_items:
+    - item_id: 4708
+      item_name: Ahrim's hood
+      slug: ahrim-s-hood
+      relationship: component
+      description: Magic helmet component of the set
+    - item_id: 4712
+      item_name: Ahrim's robetop
+      slug: ahrim-s-robetop
+      relationship: component
+      description: Magic body component of the set
+    - item_id: 4714
+      item_name: Ahrim's robeskirt
+      slug: ahrim-s-robeskirt
+      relationship: component
+      description: Magic legs component of the set
+    - item_id: 4710
+      item_name: Ahrim's staff
+      slug: ahrim-s-staff
+      relationship: component
+      description: Magic weapon component of the set
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Set contents | Hood, robetop, robeskirt, staff |
+    | GE limit | 8 |
+    | Tier | Barrows |
+
+    - Members-only Barrows magic gear
+    - Combined via Grand Exchange Sets option
+    - Convenient bundle to flip the full kit
+
+    Used to transfer or sell Ahrim's gear in one trade:
+    - Saves four GE slots when listing
+    - Premium item for arbitrage between component price and set price
+    - Drops nothing on its own; combine to use pieces
+  market_strategy:
+    notes:
+      - "Compare set price to sum of components for arbitrage"
+      - "GE limit 8 caps churn but unit value is high"
+      - "Demand follows magic meta and Barrows updates"
+  trading_tips:
+    - Decombine via GE clerk's Sets option when components trade for more
+    - Watch Ahrim's robetop and robeskirt as the price drivers
+    - Holiday training rushes can lift bundle demand
+  history:
+    - date: "2014-12-10"
+      description: "Set added with the Grand Exchange sets system."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

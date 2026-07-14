@@ -1,5 +1,6 @@
 ---
 title: Wandering Trader Spawn Egg
+template: splash
 description: |
     Minecraft Wandering Trader Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,45 @@ mc_item:
     id: 1137
     ref: wandering_trader_spawn_egg
     slug: wandering-trader-spawn-egg
+    content_rev: 1
     display_name: Wandering Trader Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Use this spawn egg to summon a Wandering Trader, a passive merchant mob that
+            normally appears at random near players in the Overworld, always escorted by
+            two leashed trader llamas. The trader buys common resources like hay bales
+            and water bottles for emeralds, and sells biome-specific plants, dyes, coral,
+            and other nature-related goods.
+        lore: |
+            The wandering trader was inspired by traveling merchants from RPGs who supply
+            players with useful items in dangerous places, echoing Terraria's Traveling
+            Merchant.
+    faq:
+        - question: |
+              Does using the spawn egg also spawn the trader llamas?
+          answer: |
+              On Bedrock Edition, using a spawn egg or the summon command brings the two
+              trader llamas along automatically; behavior can vary slightly on Java.
+        - question: |
+              Will the summoned trader despawn like a naturally spawned one?
+          answer: |
+              Yes, it still despawns after about 40 minutes on Java (or 2-3 in-game days on
+              Bedrock), and naming it with a name tag does not prevent this.
+        - question: |
+              Do wandering traders from a spawn egg have the same trades as wild ones?
+          answer: |
+              Yes, they generate randomized biome-specific trades just like naturally
+              spawned traders, and unlike villagers their trades never unlock further.
+        - question: |
+              Are the accompanying llamas hostile?
+          answer: |
+              The trader llamas will spit at attackers if their trader is hit, except in
+              Peaceful difficulty, defending their master much like villager golems.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

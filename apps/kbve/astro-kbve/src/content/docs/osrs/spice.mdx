@@ -12,9 +12,80 @@ osrs:
   lowalch: 92
   highalch: 138
   limit: 11000
-  about: "Spice is a members-only item in Old School RuneScape. High alchemy value: 138 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Spice is a members-only cooking ingredient in Old School RuneScape used to make curry and several spicy food items. High alchemy value: 138 coins. Grand Exchange buy limit: 11,000 per 4 hours."
+  drop_table:
+    sources:
+      - source: Gourmet implings
+        quantity: "1"
+        rarity: Common
+      - source: Baby implings
+        quantity: "1"
+        rarity: Uncommon
+      - source: Opulent salvage
+        quantity: "1"
+        rarity: Uncommon
+  shops:
+    - shop_name: "Culinaromancer's Chest"
+      location: Lumbridge Castle cellar
+      stock: 10
+      price: 299
+    - shop_name: Ardougne Spice Stall
+      location: East Ardougne market
+      stock: 1
+      price: 230
+    - shop_name: Prifddinas Spice Stall
+      location: Prifddinas
+      stock: 1
+      price: 230
+    - shop_name: Fortis Spice Stall
+      location: Fortis
+      stock: 1
+      price: 230
+  recipes:
+    - name: Uncooked curry
+      skill: Cooking
+      level: 60
+      xp: 0
+      materials:
+        - item_name: Uncooked stew
+          quantity: 1
+        - item_name: Spice
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Uncooked curry
+      relationship: product
+    - name: Curry
+      relationship: product
+    - name: Spicy stew
+      relationship: product
+  market_strategy:
+    notes:
+      - Gourmet implings are the primary farming source for bulk supply.
+      - Demand is steady but modest; price tends to track impling hunting popularity.
+  trading_tips:
+    - Buy from Spice stalls if Thieving 65 is available for a profitable margin.
+    - Watch for Recipe for Disaster reward shop discounts via Lumbridge Diary.
+  history:
+    - date: "2002-04-30"
+      description: Spice was introduced to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-04-30"
+    update: Latest RuneScape News (30 April 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

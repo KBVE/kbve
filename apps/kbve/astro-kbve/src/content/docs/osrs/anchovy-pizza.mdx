@@ -12,9 +12,72 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 10000
-  about: "Anchovy pizza is a free-to-play item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.9
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 55
+      xp: 39
+      materials:
+        - item_name: Plain pizza
+          quantity: 1
+        - item_name: Anchovies
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Healing
+      description: "Restores 18 Hitpoints split across two 9 HP bites, currently the top-tier free-to-play food per inventory slot."
+  related_items:
+    - item_name: Plain pizza
+      slug: plain-pizza
+      relationship: component
+      description: Base pizza topped with anchovies to make an anchovy pizza.
+    - item_name: Anchovies
+      slug: anchovies
+      relationship: component
+      description: Topping cooked onto a plain pizza at 55 Cooking.
+    - item_name: 1/2 anchovy pizza
+      slug: 12-anchovy-pizza
+      relationship: variant
+      description: Remaining half after the first bite is eaten.
+    - item_name: Pineapple pizza
+      slug: pineapple-pizza
+      relationship: upgrade
+      description: Members-only upgrade that heals more per pizza than the anchovy variant.
+  about: "Anchovy pizza is a free-to-play, two-bite cooking food made by adding anchovies to a plain pizza at 55 Cooking for 39 XP. It heals 18 Hitpoints in two 9 HP bites and remains the best healing-per-slot food available to F2P accounts."
+  market_strategy:
+    notes:
+      - "Volume product - 10k buy limit makes it easy to scale flips through quests and events."
+      - "F2P PKers create reliable demand spikes during F2P Bounty Hunter and tournament worlds."
+      - "Margins are razor thin because plain pizzas and anchovies are mass-produced by bots."
+  trading_tips:
+    - Time buys around F2P tournament weekends when pizza demand spikes.
+    - Cook from scratch when GE pizza spread is below 5gp per pizza.
+    - Watch combat update polls that might change F2P food tiering.
+  history:
+    - date: "2001-06-11"
+      description: "Added to the game during the early RuneScape Classic Cooking expansion."
+    - date: "2015-02-26"
+      description: "Update ensured pizzas remain in the same inventory slot after the first half is eaten."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

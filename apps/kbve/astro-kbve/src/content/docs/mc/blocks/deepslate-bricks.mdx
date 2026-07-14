@@ -1,5 +1,6 @@
 ---
 title: Deepslate Bricks
+template: splash
 description: |
     Minecraft Deepslate Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1072
     ref: deepslate_bricks
     slug: deepslate-bricks
+    content_rev: 1
     display_name: Deepslate Bricks
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: deepslate_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Deepslate Bricks are a processed, brick-patterned deepslate
+            variant used heavily in ancient city architecture. They are
+            fully opaque, dark gray, and share deepslate's toughness.
+        lore: |
+            Added in Java Edition 1.17 as "grimstone bricks" during Caves
+            & Cliffs development, later renamed, and made the signature
+            building material of ancient cities in 1.19.
+    uses:
+        - title: Deepslate Bricks
+          ref: deepslate_bricks
+          detail: |
+              Crafted from 4 polished deepslate in a 2x2 grid, or
+              stonecut from cobbled deepslate, polished deepslate, or raw
+              deepslate. Also crafts into deepslate brick stairs, slabs,
+              walls, and deepslate tiles.
+        - title: Cracked Deepslate Bricks
+          ref: cracked_deepslate_bricks
+          detail: |
+              Smelting deepslate bricks in a furnace produces the cracked
+              variant, a purely decorative texture used for aging effects.
+    found_in:
+        - location: Ancient Cities
+          detail: Forms the primary walls, floors, and structures throughout ancient city generation.
+        - location: Crafting table / Stonecutter
+          detail: Also obtained by processing cobbled or polished deepslate.
+    faq:
+        - question: What tool do I need to mine Deepslate Bricks?
+          answer: |
+              Any pickaxe, wood tier or higher. Without a pickaxe it drops
+              nothing.
+        - question: How do I get Deepslate Bricks without visiting an ancient city?
+          answer: |
+              Craft 4 polished deepslate into bricks, or stonecut cobbled
+              or polished deepslate directly into bricks.
+        - question: What is the difference from cracked deepslate bricks?
+          answer: |
+              Cracked deepslate bricks are purely a cosmetic variant made
+              by smelting regular deepslate bricks; both share identical
+              hardness and blast resistance.
+        - question: Are they flammable?
+          answer: |
+              No. Deepslate bricks are non-flammable and unaffected by
+              lava.
     data_version: "1.21.5"
 ---
 

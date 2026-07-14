@@ -1,6 +1,6 @@
 ---
 title: Armadyl stole | OSRS Price Data
-description: "Armadyl stole is a members neck slot item. High alch: 1,500 GP, GE limit: 8."
+description: "Armadyl stole: An Armadyl stole. High alch: 1,500 GP, GE limit: 8."
 osrs:
   id: 12257
   name: Armadyl stole
@@ -12,24 +12,98 @@ osrs:
   lowalch: 1000
   highalch: 1500
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: vestment
+    tier: high
+  properties:
+    release_date: "2010-08-04"
+    update: God Vestments
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
+    weapon_type: none
+    weight: 0.453
+    attack_speed: 1
     requirements:
       prayer: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 10
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
   related_items:
     - item_id: 12263
       item_name: Armadyl crozier
       slug: armadyl-crozier
       relationship: set-piece
-      description: Armadyl vestment weapon
+      description: "Weapon piece of the Armadyl vestment set"
+    - item_id: 12253
+      item_name: Armadyl mitre
+      slug: armadyl-mitre
+      relationship: set-piece
+      description: "Head piece of the Armadyl vestment set"
+    - item_id: 12259
+      item_name: Armadyl cloak
+      slug: armadyl-cloak
+      relationship: set-piece
+      description: "Cape piece of the Armadyl vestment set"
+    - item_id: 12261
+      item_name: Armadyl robe top
+      slug: armadyl-robe-top
+      relationship: set-piece
+      description: "Body piece of the Armadyl vestment set"
+    - item_name: Holy symbol
+      slug: holy-symbol
+      relationship: alternative
+      description: "Cheaper +8 prayer neck slot alternative without God affiliation"
   about: |-
-    > *"An Armadyl stole."*
+    > _"An Armadyl stole."_
 
-    The Armadyl stole is a neck slot item from the Armadyl vestment set. It provides a +10 Prayer bonus and requires 60 Prayer to equip. One of the highest prayer bonus items available in the neck slot. Counts as an Armadylean item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The Armadyl stole is a neck slot piece of the Armadyl vestment set, awarded from elite Treasure Trails. It provides a +10 Prayer bonus, tying with other God stoles for the highest non-degradable Prayer bonus in the neck slot, and requires 60 Prayer to equip. Counts as an Armadylean item inside the God Wars Dungeon, preventing aggression from Armadyl followers in Kree'arra's lair.
+  market_strategy:
+    notes:
+      - "Elite clue exclusive — supply locked to clue completion rate"
+      - "Tied for best-in-slot Prayer bonus neck with other vestment stoles"
+      - "GWD utility item for safespotting Kree'arra without a mimic"
+      - "Buy limit 8 per 4 hours throttles bulk speculation"
+  trading_tips:
+    - "Track clue scroll meta — elite cluers dump stoles on streak ends"
+    - "Compare price against other God stoles for Prayer bonus parity"
+  history:
+    - date: "2010-08-04"
+      description: "Armadyl stole released as part of the God Vestments elite Treasure Trail expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

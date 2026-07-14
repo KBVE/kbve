@@ -1,5 +1,6 @@
 ---
 title: Brown Stained Glass Pane
+template: splash
 description: |
     Minecraft Brown Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 480
     ref: brown_stained_glass_pane
     slug: brown-stained-glass-pane
+    content_rev: 1
     display_name: Brown Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Brown Stained Glass Pane is the thin, dye-colored counterpart to
+            brown stained glass, giving the same tint while using far less
+            material to cover an area. It has no assigned tool and breaks at
+            the same speed regardless of what mines it.
+        lore: |
+            Panes were added alongside plain glass panes to let builders
+            glaze windows without the bulk of full glass blocks.
+    uses:
+        - title: Window glazing
+          ref: brown_stained_glass_pane
+          detail: |
+              Six brown stained glass blocks craft into sixteen panes, giving
+              over two and a half times the coverage per block used.
+    found_in:
+        - location: Crafting table
+          detail: Craft from 6 brown stained glass (or glass panes plus brown dye).
+        - location: Abandoned villages
+          detail: Generates naturally as window glazing in some abandoned village structures.
+    faq:
+        - question: What tool do I need to mine Brown Stained Glass Pane?
+          answer: |
+              None in particular — it breaks at the same rate with any tool
+              or bare hands.
+        - question: Does it drop without Silk Touch?
+          answer: |
+              No. Without Silk Touch it breaks and drops nothing; only a
+              Silk Touch tool yields the pane itself.
+        - question: Can adjacent panes connect visually?
+          answer: |
+              Yes. Panes automatically connect their thin frames to adjacent
+              panes and solid blocks, similar to iron bars.
+        - question: Is it flammable?
+          answer: |
+              No. Like all glass, stained glass panes do not burn or ignite
+              from nearby fire or lava.
     data_version: "1.21.5"
 ---
 

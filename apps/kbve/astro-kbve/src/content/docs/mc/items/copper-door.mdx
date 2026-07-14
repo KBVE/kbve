@@ -1,5 +1,6 @@
 ---
 title: Copper Door
+template: splash
 description: |
     Minecraft Copper Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 755
     ref: copper_door
     slug: copper-door
+    content_rev: 1
     display_name: Copper Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A copper door is a functional door crafted from six copper
+            ingots into three doors, openable by hand or redstone signal
+            without needing a lever. Like other copper blocks it oxidizes
+            through four visual stages unless waxed with honeycomb.
+        lore: |
+            A sturdy portal of weathering metal, standing guard in trial
+            chambers long since abandoned.
+    faq:
+        - question: How do you craft a copper door?
+          answer: |
+              Arrange six copper ingots in the door crafting pattern to
+              produce three copper doors.
+        - question: Do copper doors need a lever to open?
+          answer: |
+              No, they can be opened and closed by hand or respond to weak
+              redstone power from adjacent blocks without a lever.
+        - question: Do copper doors oxidize like other copper blocks?
+          answer: |
+              Yes, they progress through copper, exposed, weathered, and
+              oxidized stages, and can be waxed with honeycomb to stop the
+              process.
+        - question: Where do copper doors generate naturally?
+          answer: |
+              Copper doors generate naturally in trial chambers and can
+              also be broken by vindicators and zombies on Hard difficulty
+              when closed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -11,74 +11,94 @@ osrs:
   value: 20000
   lowalch: 8000
   highalch: 12000
-  limit: null
+  limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magic-tome
+    tier: high
+  properties:
+    release_date: "2024-09-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wield
+      - Pages
+      - Drop
+    worn_options:
+      - Pages
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    type: magic_book
-    tradeable: true
+    weapon_type: null
+    attack_speed: null
     weight: 1
     requirements:
       magic: 50
-    stats:
-      attack_magic: 8
-      defence_magic: 8
-  charging:
-    material_name: Soiled page
-    max_charges: 20000
-    charged_version_id: 30064
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 8
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 8
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   drop_table:
     sources:
       - source: The Hueycoatl
-        rate: 1/90
-  market:
-    buy_limit: 8
-    price_estimate: 366115
+        quantity: "1"
+        rarity: 1/90
   related_items:
-    - item_id: 30064
-      item_name: Tome of earth
+    - item_name: Tome of earth
       slug: tome-of-earth
       relationship: variant
-      description: Charged version
-    - item_id: 25574
-      item_name: Tome of water
+      description: Charged variant that grants the earth magic boost
+    - item_name: Soiled page
+      slug: soiled-page
+      relationship: component
+      description: Charging material; each page adds 20 charges
+    - item_name: Tome of water
       slug: tome-of-water
       relationship: alternative
-      description: Water tome variant
-    - item_id: 20714
-      item_name: Tome of fire
+      description: Water spell counterpart tome
+    - item_name: Tome of fire
       slug: tome-of-fire
       relationship: alternative
-      description: Fire tome variant
+      description: Fire spell counterpart tome
   about: |-
-    | Stat | Bonus |
-    |------|-------|
-    | Magic Attack | +8 |
-    | Magic Defence | +8 |
+    Tome of earth (empty) is the uncharged form of the earth spell tome released 25 September 2024. It is dropped by The Hueycoatl at a 1/90 rate and requires 50 Magic to wield in the shield slot.
 
-    Note: The empty tome provides only the base stats. To gain the earth spell damage bonus and infinite earth runes effect, you must charge it with Soiled pages.
-
-    To activate the tome's full potential, you need to charge it:
-
-    - Charging Material: Soiled page
-    - Maximum Charges: 20,000
-    - Charged Version: Tome of earth (ID: 30064)
-
-    Each Soiled page adds charges to the tome. When charged, the tome transforms into the active Tome of earth.
-
-    The empty tome is primarily used as:
-    - A stepping stone to the charged Tome of earth
-    - Budget magic off-hand for players who cannot afford pages
-    - Investment item for charging and reselling
-
-    Recommendation: Charge the tome with Soiled pages to unlock the 10% earth spell damage boost and infinite earth runes effect.
+    The empty tome provides +8 Magic attack and +8 Magic defence but offers no spellcasting bonuses until charged. Players add Soiled pages, with each page contributing 20 charges up to a 1,000-charge cap, transforming the empty tome into the active Tome of earth.
   market_strategy:
     notes:
-      - Price gap between empty and charged version indicates page value
-      - Consider buying empty tomes when Hueycoatl is heavily farmed
-      - Empty tomes are more liquid than charged versions
-      - Compare cost of charging vs buying pre-charged
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Price tracks Hueycoatl drop supply and Soiled page demand"
+      - "Empty tomes liquidate faster than charged variants on the GE"
+      - "Buy limit of 8 keeps short-term flipping tight"
+  trading_tips:
+    - Watch Hueycoatl popularity during DMM or new content droughts
+    - Compare empty tome price plus pages versus pre-charged listings
+  history:
+    - date: "2024-09-25"
+      description: "Released alongside The Hueycoatl boss"
+    - date: "2024-10-09"
+      description: "Empty and charged variants now share a bank placeholder"
+    - date: "2025-03-05"
+      description: "Bank interface gained a charge configuration option"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

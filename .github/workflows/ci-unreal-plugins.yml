@@ -1,0 +1,134 @@
+name: CI - Unreal Plugins (verify)
+
+on:
+    workflow_dispatch:
+        inputs:
+            scope:
+                description: 'all = every plugin; changed = changed vs base'
+                type: choice
+                options:
+                    - all
+                    - changed
+                default: all
+            ue_image_tag:
+                description: 'Epic UE container image tag'
+                type: string
+                default: 'dev-5.8.0'
+    pull_request:
+        paths:
+            - 'packages/unreal/**'
+            - '.github/workflows/ci-unreal-plugins.yml'
+            - '.github/workflows/ci-unreal-build.yml'
+            - '.github/scripts/ue-plugin-matrix.mjs'
+
+permissions:
+    contents: write
+    packages: write
+    issues: write
+    pull-requests: write
+    actions: write
+
+concurrency:
+    group: ci-unreal-plugins-${{ github.ref }}-${{ github.sha }}
+    cancel-in-progress: false
+
+jobs:
+    discover:
+        name: Discover plugins
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        outputs:
+            linux: ${{ steps.matrix.outputs.linux }}
+            win: ${{ steps.matrix.outputs.win }}
+            mac: ${{ steps.matrix.outputs.mac }}
+            has_linux: ${{ steps.matrix.outputs.has_linux }}
+            has_win: ${{ steps.matrix.outputs.has_win }}
+            has_mac: ${{ steps.matrix.outputs.has_mac }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Collect changed files
+              id: changed
+              run: |
+                  if [ "${{ github.event_name }}" = "pull_request" ]; then
+                      BASE="${{ github.event.pull_request.base.sha }}"
+                      git diff --name-only "$BASE" "${{ github.sha }}" > /tmp/changed.txt || true
+                  else
+                      : > /tmp/changed.txt
+                  fi
+                  echo "count=$(wc -l < /tmp/changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+            - name: Build matrix
+              id: matrix
+              env:
+                  MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.scope || 'changed' }}
+                  UE_IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.ue_image_tag || 'dev-5.8.0' }}
+              run: |
+                  CHANGED_FILES="$(cat /tmp/changed.txt)" \
+                  node .github/scripts/ue-plugin-matrix.mjs
+
+    verify_mac:
+        name: Verify (Mac)
+        needs: discover
+        if: needs.discover.outputs.has_mac == 'true'
+        strategy:
+            fail-fast: false
+            max-parallel: 1
+            matrix: ${{ fromJson(needs.discover.outputs.mac) }}
+        uses: ./.github/workflows/ci-unreal-build.yml
+        with:
+            mode: plugin
+            plugin_name: ${{ matrix.plugin_name }}
+            plugin_path: ${{ matrix.plugin_path }}
+            dependency_plugin_paths: ${{ matrix.dependency_plugins }}
+            target_platforms: Mac
+            verify_only: true
+        secrets: inherit
+
+    verify_linux:
+        name: Verify (Linux)
+        needs: discover
+        if: >-
+            needs.discover.outputs.has_linux == 'true' &&
+            (github.event_name == 'workflow_dispatch' ||
+             github.event.pull_request.base.ref == 'main' ||
+             contains(github.event.pull_request.labels.*.name, 'ci-full-plugins'))
+        strategy:
+            fail-fast: false
+            max-parallel: 4
+            matrix: ${{ fromJson(needs.discover.outputs.linux) }}
+        uses: ./.github/workflows/ci-unreal-build.yml
+        with:
+            mode: plugin
+            plugin_name: ${{ matrix.plugin_name }}
+            plugin_path: ${{ matrix.plugin_path }}
+            dependency_plugin_paths: ${{ matrix.dependency_plugins }}
+            ue_image_tag: ${{ matrix.ue_image_tag }}
+            target_platforms: Linux
+            verify_only: true
+        secrets: inherit
+
+    verify_win:
+        name: Verify (Win64)
+        needs: discover
+        if: >-
+            needs.discover.outputs.has_win == 'true' &&
+            (github.event_name == 'workflow_dispatch' ||
+             github.event.pull_request.base.ref == 'main' ||
+             contains(github.event.pull_request.labels.*.name, 'ci-full-plugins'))
+        strategy:
+            fail-fast: false
+            max-parallel: 2
+            matrix: ${{ fromJson(needs.discover.outputs.win) }}
+        uses: ./.github/workflows/ci-unreal-build.yml
+        with:
+            mode: plugin
+            plugin_name: ${{ matrix.plugin_name }}
+            plugin_path: ${{ matrix.plugin_path }}
+            dependency_plugin_paths: ${{ matrix.dependency_plugins }}
+            target_platforms: Win64
+            verify_only: true
+        secrets: inherit

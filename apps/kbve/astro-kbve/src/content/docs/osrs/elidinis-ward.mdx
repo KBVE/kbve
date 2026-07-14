@@ -12,94 +12,96 @@ osrs:
   lowalch: 2000000
   highalch: 3000000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: magic-armour
+    tier: high
+  properties:
+    release_date: "2022-08-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.708
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    type: magic
+    weapon_type: null
+    attack_speed: null
+    weight: 0.708
     requirements:
       magic: 80
       defence: 80
       prayer: 80
-    stats:
-      attack_magic: 5
+    attack_bonus:
+      magic: 5
+    defence_bonus:
+      stab: 5
+      slash: 3
+      crush: 9
+      ranged: 6
+    other_bonus:
       magic_damage: 3
-      defence_stab: 5
-      defence_slash: 3
-      defence_crush: 9
-      defence_ranged: 6
       prayer: 1
-  upgrade:
-    result_name: Elidinis' ward (f)
-    component_id: 12825
-    component_name: Arcane sigil
-    material_id: 566
-    material_name: Soul rune
-    material_quantity: 10000
-    requirements:
-      prayer: 90
-      smithing: 90
   drop_table:
     sources:
       - source: Tombs of Amascut
-        source_id: 11751
-        combat_level: 0
         quantity: "1"
-        rarity: Rare
-        drop_rate: 3/24 of unique
-        members_only: true
+        rarity: 1/24 unique
+  recipes:
+    - skill: prayer
+      level: 90
+      xp: 260
+      materials:
+        - item_name: Elidinis' ward
+          quantity: 1
+        - item_name: Arcane sigil
+          quantity: 1
+        - item_name: Soul rune
+          quantity: 10000
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 12825
-      item_name: Arcane spirit shield
-      slug: arcane-spirit-shield
-      relationship: alternative
-      description: Alternative
-    - item_id: 12827
-      item_name: Arcane sigil
+    - item_name: Elidinis' ward (f)
+      slug: elidinis-ward-f
+      relationship: upgrade
+      description: "Fortified, untradeable version after combining with Arcane sigil"
+    - item_name: Arcane sigil
       slug: arcane-sigil
       relationship: component
-      description: For fortifying
-    - item_id: 25818
-      item_name: Book of the dead
+      description: "Required component for the fortified ward"
+    - item_name: Arcane spirit shield
+      slug: arcane-spirit-shield
+      relationship: alternative
+      description: "Alternative magic shield using the Arcane sigil"
+    - item_name: Book of the dead
       slug: book-of-the-dead
       relationship: alternative
-      description: Budget option
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Magic | +5 |
-    | Magic Damage | +3% |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +5 |
-    | Slash | +3 |
-    | Crush | +9 |
-    | Ranged | +6 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +1 |
-
-    Requirements: 80 Magic, 80 Defence, 80 Prayer
-
-    Combine with:
-    - Arcane sigil
-    - 10,000 soul runes
-
-    Requires: 90 Prayer, 90 Smithing
-
-    BiS for:
-    - All mage combat (fortified)
-    - ToA
-    - General magic
-
-    Best magic shield in the game (fortified).
+      description: "Budget magic offhand option"
+  about: "Elidinis' ward is a tier-90 magic shield dropped from Tombs of Amascut at a 1/24 unique rate. Combine it with an Arcane sigil and 10,000 soul runes at 90 Prayer and 90 Smithing to produce the fortified version with stronger bonuses."
   market_strategy:
     notes:
-      - From Tombs of Amascut
-      - Fortify with arcane sigil
-      - High requirements
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply tied to Tombs of Amascut uniques"
+      - "Demand high for fortified upgrade path"
+      - "Added to GE item sink January 2023"
+  trading_tips:
+    - "Sink and ToA drop rate keep floor pricing firm"
+    - "Fortifying makes the shield untradeable, watch unfortified premium"
+    - "Compare against Book of the dead for budget Magic loadouts"
+  history:
+    - date: "2022-08-24"
+      description: "Released with the Tombs of Amascut update."
+    - date: "2023-01-11"
+      description: "Added to the Grand Exchange item sink list."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

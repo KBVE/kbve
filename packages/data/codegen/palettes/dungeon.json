@@ -1,0 +1,24 @@
+{
+	"ref": "dungeon",
+	"name": "Stone Dungeon",
+	"biome": "BIOME_DUNGEON",
+	"tileSize": 16,
+	"columns": 8,
+	"roles": {
+		"GROUND": ["ground-stone"],
+		"PLAZA": ["ground-stone"],
+		"ROAD": ["ground-stone"],
+		"GRASS": ["ground-stone"],
+		"DOOR": ["ground-stone"],
+		"PROP": ["ground-stone"],
+		"WALL": [
+			"wall-stone-a",
+			"wall-stone-b",
+			"wall-stone-c",
+			"wall-stone-d"
+		],
+		"ROOF": ["wall-stone-a", "wall-stone-c"],
+		"PROP_SOLID": ["bush"],
+		"WATER": ["water"]
+	}
+}

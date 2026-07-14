@@ -12,79 +12,85 @@ osrs:
   lowalch: 181
   highalch: 271
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: nest
-    tier: processed
+    tier: mid
+  properties:
+    release_date: "6 June 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Search
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: herblore
       level: 81
       xp: 180
       materials:
         - item_name: Toadflax
-          item_id: 2998
           quantity: 1
         - item_name: Crushed nest
-          item_id: 5075
           quantity: 1
-      product: Saradomin brew(3)
-      product_id: 6687
-      product_quantity: 1
-      members_only: true
+      tools:
+        - Vial of water
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Bird house trap
+        quantity: "1"
+        rarity: 65/100
+      - source: Wyson the gardener (mole skins)
+        quantity: "1"
+        rarity: 8/100
+      - source: Woodcutting (random event)
+        quantity: "1"
+        rarity: Varies
   related_items:
-    - item_id: 5070
-      item_name: Bird nest (empty)
-      slug: bird-nest-empty
-      relationship: component
-      description: Source material
-    - item_id: 2998
-      item_name: Toadflax
+    - item_name: Crushed nest
+      slug: crushed-nest
+      relationship: product
+      description: Made by crushing with pestle and mortar
+    - item_name: Toadflax
       slug: toadflax
       relationship: component
-      description: Paired ingredient
-    - item_id: 6685
-      item_name: Saradomin brew(4)
+      description: Paired Herblore ingredient
+    - item_name: Saradomin brew(4)
       slug: saradomin-brew-4
       relationship: product
-      description: End product
-    - item_id: 233
-      item_name: Pestle and mortar
+      description: End Herblore product
+    - item_name: Pestle and mortar
       slug: pestle-and-mortar
       relationship: component
-      description: Tool required
+      description: Required to crush the nest
   about: |-
-    Use Pestle and mortar on an empty Bird nest.
-
-    | Method | Cost |
-    |--------|------|
-    | Manual | Free |
-    | Wesley (Nardah) | 50 GP each |
-
-    | Potion | Herblore Level | Primary Herb |
-    |--------|----------------|--------------|
-    | Saradomin brew | 81 | Toadflax |
+    Empty bird nests are crushed with a pestle and mortar to create crushed nests, the Saradomin brew secondary. Drops from bird houses, Wyson, and woodcutting random events.
   market_strategy:
-    title: |-
-      - Buy empty nests → Crush → Sell
-      - Calculate: `Crushed nest - Bird nest (empty) = Profit`
-      - Wesley for bulk processing
-    profit_formulas:
-      - Crushed nest - Bird nest (empty) = Profit
     notes:
-      - Buy empty nests → Crush → Sell
-      - "Calculate:"
-      - Wesley for bulk processing
-      - Essential secondary ingredient
-      - Price follows Sara brew demand
-      - Raid consumption drives prices
-      - Woodcutting (random chance)
-      - Wyson the Gardener (mole skins)
-      - Kingdom of Miscellania
-      - Price tied to Sara brew market
-      - Giant Mole farms produce nests
-      - Check ring/seed nest values too
-      - Bulk crush at Wesley
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Saradomin brew demand is the price driver"
+      - "Bird house runs flood supply daily"
+      - "Wesley in Nardah bulk-crushes for 50 GP each"
+  trading_tips:
+    - Buy nest, crush, flip the crushed nest spread for profit
+    - Track raid roster popularity for brew demand
+  history:
+    - date: "6 June 2005"
+      description: "Bird nests added to OSRS."
+    - date: "14 April 2016"
+      description: "Notification color changed to red when nests fall during woodcutting."
+    - date: "27 October 2016"
+      description: "Made tradeable and bank-noteable."
+    - date: "22 June 2022"
+      description: "Ground despawn time raised from 30 seconds to 2 minutes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

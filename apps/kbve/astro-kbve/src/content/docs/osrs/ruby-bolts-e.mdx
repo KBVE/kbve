@@ -12,54 +12,94 @@ osrs:
   lowalch: 55
   highalch: 82
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: enchanted-bolts
+    tier: mid-high
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    type: enchanted_bolts
-    tradeable: true
+    weapon_type: bolts
+    attack_speed: null
     weight: 0
     requirements:
       ranged: 46
-  effect:
-    name: Blood Forfeit
-    description: Deals 20% of target's current HP as damage
-    max_damage: 100
-    cost: 10% of your HP
-  enchanting:
-    spell: Enchant Crossbow Bolt (Ruby)
-    magic_level: 49
-    runes:
-      - item_name: Fire rune
-        quantity: "5"
-      - item_name: Blood rune
-        quantity: "1"
-      - item_name: Cosmic rune
-        quantity: "1"
-    bolts_per_cast: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 103
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Blood Forfeit
+      description: "Has a 6% chance (PvM, 6.6% with Hard Kandarin Diary) of dealing damage equal to 20% of the target's current HP, capped at 100. The user loses 10% of their own HP when the effect activates. PvP activation chance is 11% (12.1% with diary)."
+  recipes:
+    - skill: magic
+      level: 49
+      xp: 59
+      materials:
+        - item_name: Ruby bolts
+          quantity: 10
+        - item_name: Fire rune
+          quantity: 5
+        - item_name: Blood rune
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+      tools: []
+      output_quantity: 10
   related_items:
-    - item_id: 9339
-      item_name: Ruby bolts
+    - item_name: Ruby bolts
       slug: ruby-bolts
       relationship: component
-      description: Unenchanted version
-    - item_id: 9243
-      item_name: Diamond bolts (e)
+      description: Unenchanted base used in the Enchant Crossbow Bolt (Ruby) spell.
+    - item_name: Diamond bolts (e)
       slug: diamond-bolts-e
       relationship: alternative
-      description: Alternative for low HP targets
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Ammo |
-    | Type | Enchanted Bolts |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 46 Ranged |
-
-    Blood Forfeit: Deals 20% of target's current HP as damage.
-
-    Maximum 100 damage cap. Costs 10% of your HP.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Flat damage proc preferred against low-HP / high-defence targets.
+    - item_name: Onyx bolts (e)
+      slug: onyx-bolts-e
+      relationship: upgrade
+      description: Higher-tier enchanted bolt with a life-leech proc.
+  about: "Ruby bolts (e) carry the Blood Forfeit special effect, making them strong against bosses with very large HP pools such as Vorkath and Corporeal Beast. They are produced via the Enchant Crossbow Bolt (Ruby) spell at 49 Magic, ten bolts per cast."
+  market_strategy:
+    notes:
+      - "Long-standing PvM staple at Vorkath and other high-HP bosses"
+      - "Demand spikes with each new boss with large HP pool"
+      - "Enchanters typically buy ruby bolts cheap and sell (e) variants for margin"
+  trading_tips:
+    - Stack inventory before new boss releases
+    - Flip with rune cost swings; Blood/Cosmic runes drive enchant profit
+  history:
+    - date: "2006-07-31"
+      description: "Added with the original Enchant Crossbow Bolt expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

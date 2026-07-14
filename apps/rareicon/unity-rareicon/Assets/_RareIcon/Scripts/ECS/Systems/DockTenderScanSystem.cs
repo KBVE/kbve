@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Writes <see cref="TenderMultiplier"/>.Value = 1 when any Craftsman-intent unit stands on a Dock's hex; otherwise 0. <see cref="DockProductionSystem"/> reads the multiplier to halve the boat-build cadence while the dock is manned. Mirrors <see cref="FarmTenderScanSystem"/>.</summary>
+    /// <summary>Writes <see cref="TenderMultiplier"/>.Value = 1 when any Craftsman-intent unit stands on a Dock's hex; otherwise 0. <see cref="DockProductionSystem"/> reads the multiplier to halve the boat-build cadence while the dock is manned. Prep scan runs as a parallel IJobEntity into NativeParallelHashSet.ParallelWriter, replacing the prior main-thread foreach.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ProfessionDispatchSystem))]
@@ -17,20 +17,31 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var tendedHexes = new NativeHashSet<int2>(8, Allocator.TempJob);
-            foreach (var (intent, movement) in
-                     SystemAPI.Query<RefRO<ProfessionIntent>, RefRO<UnitMovement>>())
+            var tendedHexes = new NativeParallelHashSet<int2>(256, Allocator.TempJob);
+
+            var prepHandle = new CollectCraftsmanHexesJob
             {
-                if (intent.ValueRO.Kind != ProfessionKind.Craftsman) continue;
-                tendedHexes.Add(movement.ValueRO.CurrentHex);
-            }
+                Writer = tendedHexes.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
 
             state.Dependency = new DockTenderJob
             {
-                TendedHexes = tendedHexes.AsReadOnly(),
-            }.ScheduleParallel(state.Dependency);
+                TendedHexes = tendedHexes,
+            }.ScheduleParallel(prepHandle);
 
             state.Dependency = tendedHexes.Dispose(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct CollectCraftsmanHexesJob : IJobEntity
+    {
+        public NativeParallelHashSet<int2>.ParallelWriter Writer;
+
+        void Execute(in ProfessionIntent intent, in UnitMovement movement)
+        {
+            if (intent.Kind != ProfessionKind.Craftsman) return;
+            Writer.Add(movement.CurrentHex);
         }
     }
 
@@ -38,7 +49,7 @@ namespace RareIcon
     [WithAll(typeof(DockTag))]
     public partial struct DockTenderJob : IJobEntity
     {
-        [ReadOnly] public NativeHashSet<int2>.ReadOnly TendedHexes;
+        [ReadOnly] public NativeParallelHashSet<int2> TendedHexes;
 
         void Execute(in Building building, ref TenderMultiplier tender)
         {

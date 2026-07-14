@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { preflight, withCors } from "../_shared/cors.ts";
+import { logError } from "../_shared/logging.ts";
+import { rateLimit, rateLimitKey } from "../_shared/ratelimit.ts";
 import { enforceBodySizeLimit } from "../_shared/validators.ts";
 import {
   extractToken,
@@ -51,11 +53,11 @@ async function argoFetch(
 
     return { status: resp.status, body, elapsed, size: text.length };
   } catch (err) {
+    logError("argo", err);
     const elapsed = Math.round(performance.now() - start);
-    const message = err instanceof Error ? err.message : String(err);
     return {
       status: 0,
-      body: { error: message },
+      body: { error: "Upstream request failed" },
       elapsed,
       size: 0,
     };
@@ -64,7 +66,7 @@ async function argoFetch(
   }
 }
 
-async function handleApplications() {
+async function handleApplications(): Promise<Record<string, unknown>> {
   const result = await argoFetch("/api/v1/applications");
   const apps =
     result.status === 200 && typeof result.body === "object" && result.body
@@ -93,7 +95,7 @@ async function handleApplications() {
   };
 }
 
-async function handleAppStatus(name: string) {
+async function handleAppStatus(name: string): Promise<Record<string, unknown>> {
   const result = await argoFetch(`/api/v1/applications/${encodeURIComponent(name)}`);
   return {
     upstream_status: result.status,
@@ -103,7 +105,7 @@ async function handleAppStatus(name: string) {
   };
 }
 
-async function handleHealth() {
+async function handleHealth(): Promise<Record<string, unknown>> {
   const result = await argoFetch("/healthz", 10000);
   return {
     argocd_reachable: result.status === 200,
@@ -114,28 +116,30 @@ async function handleHealth() {
   };
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
+async function handle(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
-  }
-
-  if (!ARGOCD_URL || !ARGOCD_TOKEN) {
-    return jsonResponse(
-      { error: "Service unavailable" },
-      503,
-    );
   }
 
   try {
     const token = extractToken(req);
     const claims = await parseJwt(token);
 
+    const rl = rateLimit(
+      rateLimitKey("argo", req, claims?.sub as string | undefined),
+      { limit: 30, windowMs: 60_000 },
+    );
+    if (rl) return rl;
+
     const denied = await requireStaffOrServiceRole(token, claims);
     if (denied) return denied;
+
+    if (!ARGOCD_URL || !ARGOCD_TOKEN) {
+      return jsonResponse(
+        { error: "Service unavailable: ArgoCD upstream not configured" },
+        503,
+      );
+    }
 
     const sizeErr = enforceBodySizeLimit(req);
     if (sizeErr) return sizeErr;
@@ -176,10 +180,20 @@ serve(async (req) => {
 
     return jsonResponse(result);
   } catch (err) {
-    console.error("argo error:", err);
+    logError("argo", err);
     const message = err instanceof Error ? err.message : "Internal server error";
     const status =
       message.includes("authorization") || message.includes("JWT") ? 401 : 500;
-    return jsonResponse({ error: message }, status);
+    return jsonResponse(
+      { error: status === 401 ? "Unauthorized" : "Internal server error" },
+      status,
+    );
   }
+}
+
+serve(async (req): Promise<Response> => {
+  if (req.method === "OPTIONS") {
+    return preflight(req);
+  }
+  return withCors(await handle(req), req);
 });

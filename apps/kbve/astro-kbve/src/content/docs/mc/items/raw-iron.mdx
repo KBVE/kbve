@@ -1,5 +1,6 @@
 ---
 title: Raw Iron
+template: splash
 description: |
     Minecraft Raw Iron — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 850
     ref: raw_iron
     slug: raw-iron
+    content_rev: 1
     display_name: Raw Iron
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Raw iron is a material obtained by mining iron ore or deepslate iron ore with a stone pickaxe or better. Players smelt raw iron in a furnace or blast furnace to produce iron ingots, which are essential for crafting tools, weapons, armor, and other iron items. It stacks up to 64 and is non-renewable.
+        lore: |
+            Raw iron represents the unrefined ore extracted directly from the earth, waiting to be processed into usable metal.
+    faq:
+        - question: How do I get raw iron?
+          answer: |
+              Iron ore and deepslate iron ore mined with a stone pickaxe or a higher-tier pickaxe drop 1 unit of raw iron, with Fortune enchantments increasing yields up to 4 units.
+        - question: Can I store raw iron more efficiently?
+          answer: |
+              Yes, you can craft 9 raw iron into a block of raw iron for compact storage, then break it back down into individual units when needed.
+        - question: What's the best way to turn raw iron into ingots?
+          answer: |
+              Smelt raw iron in a furnace or blast furnace to produce iron ingots, with blast furnaces offering faster processing speeds.
+        - question: Is raw iron renewable?
+          answer: |
+              No, raw iron is a non-renewable resource, meaning once you've mined all available ore, you cannot generate more without special commands.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

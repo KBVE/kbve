@@ -1,6 +1,6 @@
 ---
 title: Halibut | OSRS Price Data
-description: "Halibut: Some nicely cooked halibut.. High alch: 102 GP."
+description: "Halibut: Some nicely cooked halibut. High alch: 102 GP."
 osrs:
   id: 32336
   name: Halibut
@@ -11,10 +11,70 @@ osrs:
   value: 170
   lowalch: 68
   highalch: 102
-  limit: null
-  about: "Halibut is a members-only item in Old School RuneScape. High alchemy value: 102 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 6000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: mid-high
+  properties:
+    release_date: "2003-12-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 50
+      xp: 90
+      materials:
+        - item_name: Raw halibut
+          quantity: 1
+      tools:
+        - Range
+      output_quantity: 1
+  passive_effects:
+    - name: Healing
+      description: "Restores 18 Hitpoints when eaten"
+  related_items:
+    - item_name: Raw halibut
+      slug: raw-halibut
+      relationship: component
+      description: "Raw fish caught with a harpoon at 50 Fishing"
+    - item_name: Burnt halibut
+      slug: burnt-halibut
+      relationship: alternative
+      description: "Result of burning a halibut while cooking"
+    - item_name: Bass
+      slug: bass
+      relationship: alternative
+      description: "Comparable mid-tier cooked fish healing 13 HP"
+  about: |-
+    > _"Some nicely cooked halibut."_
+
+    Halibut is a members cooked fish that restores 18 Hitpoints when eaten. Cooked from a raw halibut at level 50 Cooking, yielding 90 Cooking XP. Raw halibut are caught using a harpoon at 50 Fishing in places such as the Fishing Guild and Catherby. Players stop burning halibut on a normal range at 88 Cooking, or 74 with cooking gauntlets equipped.
+  market_strategy:
+    notes:
+      - "Most halibut on the Grand Exchange come from F2P-friendly cooking trips and harpoon fishing"
+      - "Used as filler food on mid-level slayer tasks before sharks and monkfish are available"
+      - "Cooking gauntlets dramatically improve flip margin by reducing burnt halibut waste"
+  trading_tips:
+    - "Buy raw halibut during harpoon fishing meta dips and cook for steady margin"
+    - "Buy limit: 6,000 per 4 hours — scale flips accordingly"
+  history:
+    - date: "2003-12-08"
+      description: "Halibut added to the game with the Fishing Guild update."
+    - date: "2018-10-25"
+      description: "Item icon refreshed alongside other cooked fish in the high-resolution sprite pass."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

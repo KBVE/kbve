@@ -12,9 +12,68 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 250
-  about: "Redwood bird house is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: wood
+    tier: high
+  properties:
+    release_date: "2018-01-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 90
+      xp: 55
+      materials:
+        - item_name: Redwood logs
+          quantity: 1
+        - item_name: Clockwork
+          quantity: 1
+      tools:
+        - Chisel
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Magic bird house
+      slug: magic-bird-house
+      relationship: downgrade
+      description: Lower-tier bird house from magic logs
+    - item_name: Yew bird house
+      slug: yew-bird-house
+      relationship: downgrade
+      description: Mid-tier bird house from yew logs
+    - item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: Inserted into the bird house frame to complete it
+    - item_name: Redwood logs
+      slug: redwood-logs
+      relationship: component
+      description: Carved into the bird house frame
+  about: "Redwood bird house is the highest-tier bird house in Old School RuneScape, crafted at 90 Crafting from a redwood log and a clockwork for 55 Crafting XP. Placed on the four Fossil Island bird house trap spots and baited with seeds, each redwood house grants 1,200 Hunter XP plus bird nests when emptied after roughly 50 minutes. It requires 89 Hunter to use and headlines passive Hunter training that integrates with Farming run rotations."
+  market_strategy:
+    notes:
+      - "Daily passive Hunter training drives stable bulk demand"
+      - "Redwood log and clockwork supply set the floor crafting cost"
+      - "GE buy limit of 250 limits how aggressively bulk hunters can stock up"
+      - "Seed price spikes can divert players to cheaper bird house tiers"
+  trading_tips:
+    - Buy redwood logs and clockworks separately when each is in a dip
+    - Stack 4-at-a-time for full Fossil Island runs
+    - Resell empty crafted bird houses on GE for steady margin during DMM seasons
+  history:
+    - date: "2018-01-18"
+      description: Released as the top-tier bird house alongside Fossil Island bird house expansion.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

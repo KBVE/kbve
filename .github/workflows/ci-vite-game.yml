@@ -1,0 +1,235 @@
+name: CI - Vite Game
+
+run-name: 'CI - Vite Game / ${{ fromJSON(inputs.engine).app_name }}'
+
+on:
+    workflow_dispatch:
+        inputs:
+            key:
+                description: 'Manifest key'
+                required: true
+                type: string
+            engine:
+                description: 'GameEngineConfig JSON blob (app_name, project_path, build_targets)'
+                required: true
+                type: string
+            version:
+                description: 'Version JSON blob (source, toml, manifest)'
+                required: true
+                type: string
+            publish:
+                description: 'Publish JSON blob (deploy_to_itch, itch_user, itch_game, itch_channel)'
+                required: false
+                type: string
+                default: '{}'
+            dispatched_at:
+                description: 'Unix timestamp when this was dispatched (queue guard)'
+                required: true
+                type: string
+
+concurrency:
+    group: vite-game-${{ inputs.key }}
+    cancel-in-progress: true
+
+permissions: {}
+
+env:
+    NODE_VERSION: '24'
+    PNPM_VERSION: '10.33.0'
+
+jobs:
+    queue_guard:
+        name: Queue Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - run: |
+                  AGE=$(( $(date +%s) - ${{ inputs.dispatched_at }} ))
+                  echo "vite-game/${{ fromJSON(inputs.engine).app_name }} queued ${AGE}s"
+                  if [ "$AGE" -gt 7200 ]; then
+                    echo "::error::Queue timeout: ${AGE}s > 2h"
+                    exit 1
+                  fi
+
+    version_gate:
+        name: Version Gate
+        needs: [queue_guard]
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            should_publish: ${{ steps.check.outputs.should_publish }}
+            local_version: ${{ steps.check.outputs.local }}
+        steps:
+            - uses: actions/checkout@v7
+            - id: check
+              env:
+                  V_MANIFEST: ${{ fromJSON(inputs.version).manifest }}
+                  V_TOML: ${{ fromJSON(inputs.version).toml }}
+              run: |
+                  LOCAL="$V_MANIFEST"
+                  PUB="0.0.0"
+                  if [ -n "$V_TOML" ] && [ -f "$V_TOML" ]; then
+                    PUB=$(grep -m1 '^version' "$V_TOML" | sed 's/version = "\(.*\)"/\1/' || echo "0.0.0")
+                  fi
+                  echo "local=$LOCAL" >> "$GITHUB_OUTPUT"
+                  if [ -z "$LOCAL" ] || [ "$LOCAL" = "0.0.0" ] || [ "$LOCAL" = "$PUB" ]; then
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                    echo "::notice::No version bump (local=$LOCAL, published=$PUB) — publish skipped."
+                  else
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                    echo "::notice::v$LOCAL > v$PUB — will publish."
+                  fi
+
+    build:
+        name: Build (${{ fromJSON(inputs.engine).app_name }})
+        needs: [version_gate]
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+        env:
+            NX_NO_CLOUD: true
+            APP_NAME: ${{ fromJSON(inputs.engine).app_name }}
+            PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 1
+
+            - name: Configure Forgejo LFS credentials
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull vite-game LFS from git.kbve.com (assets would ship as pointer stubs)"
+                    exit 1
+                  fi
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+                  git lfs install --local
+
+            - name: Pull vite-game LFS blobs
+              run: |
+                  CFG=$(git ls-files -- '**/.lfsconfig' | grep "^${PROJECT_PATH}/" | head -1)
+                  if [ -z "$CFG" ]; then
+                    echo "::error::No nested .lfsconfig under ${PROJECT_PATH} — cannot resolve per-game LFS endpoint"
+                    exit 1
+                  fi
+                  URL=$(git config -f "$CFG" lfs.url)
+                  if [ -z "$URL" ]; then
+                    echo "::error::$CFG has no lfs.url"
+                    exit 1
+                  fi
+                  echo "::notice::Pulling LFS for ${PROJECT_PATH} from $URL"
+                  git -c lfs.url="$URL" lfs pull -I "${PROJECT_PATH}/**"
+
+            - name: Setup Node.js ${{ env.NODE_VERSION }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+
+            - name: Setup pnpm ${{ env.PNPM_VERSION }}
+              uses: pnpm/action-setup@v5
+              with:
+                  version: ${{ env.PNPM_VERSION }}
+                  run_install: false
+
+            - name: Get pnpm store path
+              id: pnpm-store
+              shell: bash
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm cache
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build ${{ env.APP_NAME }}
+              run: ./kbve.sh -nx "${APP_NAME}:build" --skip-nx-cache
+
+            - name: Verify build output
+              run: |
+                  if [ ! -f "dist/${PROJECT_PATH}/index.html" ]; then
+                    echo "::error::Build output missing dist/${PROJECT_PATH}/index.html"
+                    exit 1
+                  fi
+                  STUBS=$(grep -rl 'git-lfs.github.com/spec' "dist/${PROJECT_PATH}" || true)
+                  if [ -n "$STUBS" ]; then
+                    echo "::error::LFS pointer stubs shipped in build output — assets were not smudged. Offending files:"
+                    echo "$STUBS"
+                    exit 1
+                  fi
+                  ls -la "dist/${PROJECT_PATH}"
+
+            - name: Upload build artefact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ env.APP_NAME }}-vite
+                  path: dist/${{ env.PROJECT_PATH }}
+                  if-no-files-found: error
+
+    itch:
+        name: Itch.io Publish
+        needs: [version_gate, build]
+        if: ${{ needs.version_gate.outputs.should_publish == 'true' && fromJSON(inputs.publish).deploy_to_itch == true && fromJSON(inputs.publish).itch_user != '' && fromJSON(inputs.publish).itch_game != '' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/download-artifact@v8
+              with:
+                  name: ${{ fromJSON(inputs.engine).app_name }}-vite
+                  path: ./build
+
+            - name: Deploy to itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.ITCH_API }}
+                  gameData: ./build
+                  itchUsername: ${{ fromJSON(inputs.publish).itch_user }}
+                  itchGameId: ${{ fromJSON(inputs.publish).itch_game }}
+                  buildChannel: ${{ fromJSON(inputs.publish).itch_channel != '' && fromJSON(inputs.publish).itch_channel || 'html5' }}
+                  buildNumber: ${{ needs.version_gate.outputs.local_version }}
+
+    post_publish_sync:
+        name: Post-publish version sync
+        needs: [version_gate, build, itch]
+        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.itch.result == 'success' || needs.itch.result == 'skipped') && fromJSON(inputs.version).toml != '' }}
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        uses: KBVE/kbve/.github/workflows/utils-post-publish.yml@main
+        with:
+            app_name: ${{ fromJSON(inputs.engine).app_name }}
+            version: ${{ fromJSON(inputs.version).manifest }}
+            version_toml_path: ${{ fromJSON(inputs.version).toml }}
+        secrets:
+            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
+
+    track_build:
+        name: Track build
+        if: always() && needs.build.result != 'cancelled' && needs.build.result != 'skipped'
+        needs: [version_gate, build]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Vite Game'
+            job_name: ${{ fromJSON(inputs.engine).app_name }}
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.build.result }}
+            version: ${{ needs.version_gate.outputs.local_version }}

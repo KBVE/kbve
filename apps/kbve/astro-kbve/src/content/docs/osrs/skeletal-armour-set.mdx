@@ -1,6 +1,6 @@
 ---
 title: Skeletal armour set | OSRS Price Data
-description: "Skeletal armour set is a members-only OSRS item. High alch: 87,000 GP, GE limit: 2."
+description: "Skeletal armour set: A set containing a Skeletal helm, Skeletal top, Skeletal bottoms, Skeletal boots and Skeletal gloves. High alch: 87,000 GP, GE limit: 2."
 osrs:
   id: 31154
   name: Skeletal armour set
@@ -12,9 +12,60 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: 2
-  about: "Skeletal armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins. Grand Exchange buy limit: 2 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bone
+    tier: mid
+  about: "Skeletal armour set is a members-only Grand Exchange Sets bundle containing all five Skeletal armour pieces. Players exchange the five individual pieces with a Grand Exchange clerk to receive the set, primarily to save trade slots when flipping or transferring the gear."
+  related_items:
+    - item_name: Skeletal helm
+      slug: skeletal-helm
+      relationship: set-piece
+      description: Headgear component of the set.
+    - item_name: Skeletal top
+      slug: skeletal-top
+      relationship: set-piece
+      description: Body component of the set.
+    - item_name: Skeletal bottoms
+      slug: skeletal-bottoms
+      relationship: set-piece
+      description: Legs component of the set.
+    - item_name: Skeletal gloves
+      slug: skeletal-gloves
+      relationship: set-piece
+      description: Hands component of the set.
+    - item_name: Skeletal boots
+      slug: skeletal-boots
+      relationship: set-piece
+      description: Feet component of the set.
+  properties:
+    release_date: "2025-08-20"
+    update: "More Doom Tweaks, Poll 84, & Summer Sweep Up Changes"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  market_strategy:
+    notes:
+      - "Set arbitrage opportunity between bundle price and the five-piece component basket."
+      - "Low GE buy limit of 2 per 4 hours throttles large-scale flipping."
+      - "Watch component prices on Skeletal helm and gloves, which dominate the basket value."
+  trading_tips:
+    - "Calculate basket value of all five pieces before buying or selling the set."
+    - "Use the set form to consolidate trade slots when moving between alts."
+    - "Sell at peak hours when prayer/training demand spikes."
+  history:
+    - date: "2025-08-20"
+      description: "Added as a Grand Exchange Sets bundle with the Summer Sweep Up update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

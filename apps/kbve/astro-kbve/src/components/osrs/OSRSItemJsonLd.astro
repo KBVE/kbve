@@ -47,27 +47,32 @@ function categoryFor(item: OSRSExtended): string {
 
 const product = {
 	'@context': 'https://schema.org',
-	'@type': 'Product',
-	'@id': `${ITEM_URL}#product`,
+	'@type': 'DefinedTerm',
+	'@id': `${ITEM_URL}#item`,
 	name: item.name,
 	description: descFor(item),
 	image: ICON_URL,
 	url: ITEM_URL,
-	sku: `osrs-${item.id}`,
-	productID: String(item.id),
 	identifier: String(item.id),
-	category: categoryFor(item),
-	brand: {
-		'@type': 'Brand',
-		name: 'Jagex',
-	},
-	audience: {
-		'@type': 'Audience',
-		audienceType: item.members
-			? 'Old School RuneScape members'
-			: 'Old School RuneScape free-to-play players',
+	termCode: String(item.id),
+	inDefinedTermSet: {
+		'@type': 'DefinedTermSet',
+		name: 'OSRS Item Database',
+		url: `${SITE}/osrs/`,
 	},
 	additionalProperty: [
+		{
+			'@type': 'PropertyValue',
+			name: 'Category',
+			value: categoryFor(item),
+		},
+		{
+			'@type': 'PropertyValue',
+			name: 'Audience',
+			value: item.members
+				? 'Old School RuneScape members'
+				: 'Old School RuneScape free-to-play players',
+		},
 		{
 			'@type': 'PropertyValue',
 			name: 'Item ID',
@@ -119,22 +124,17 @@ const product = {
 					},
 				]
 			: []),
+		...(item.value !== null && item.value !== undefined
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Value (gp)',
+						value: item.value,
+						unitText: 'gp',
+					},
+				]
+			: []),
 	],
-	offers: {
-		'@type': 'Offer',
-		url: GE_URL,
-		priceCurrency: 'GP',
-		price: item.value,
-		availability:
-			item.properties?.tradeable_ge === false
-				? 'https://schema.org/InStoreOnly'
-				: 'https://schema.org/InStock',
-		itemCondition: 'https://schema.org/NewCondition',
-		seller: {
-			'@type': 'Organization',
-			name: 'Grand Exchange',
-		},
-	},
 	sameAs: [WIKI_URL, GE_URL],
 };
 
@@ -274,6 +274,23 @@ function buildHowToLd(h: HowToInput) {
 }
 
 const howtoLd = howtos.map(buildHowToLd);
+
+const faqLd =
+	item.faq && item.faq.length > 0
+		? {
+				'@context': 'https://schema.org',
+				'@type': 'FAQPage',
+				'@id': `${ITEM_URL}#faq`,
+				mainEntity: item.faq.map((f) => ({
+					'@type': 'Question',
+					name: f.question,
+					acceptedAnswer: {
+						'@type': 'Answer',
+						text: f.answer,
+					},
+				})),
+			}
+		: null;
 ---
 
 <script
@@ -294,4 +311,13 @@ const howtoLd = howtos.map(buildHowToLd);
 			set:html={JSON.stringify(ld)}
 		/>
 	))
+}
+{
+	faqLd && (
+		<script
+			type="application/ld+json"
+			is:inline
+			set:html={JSON.stringify(faqLd)}
+		/>
+	)
 }

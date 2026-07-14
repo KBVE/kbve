@@ -9,13 +9,52 @@ description: |
     Daily Log for April 21st of each year.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 21,'
+    accent: every year.
+    lede: 'The April 21st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Apr 20'
+          href: /journal/04-20/
+        - label: 'Apr 22 →'
+          href: /journal/04-22/
+    related:
+        - title: 'Previous · Apr 20'
+          copy: 'Step back a day to the April 20th log.'
+          href: /journal/04-20/
+          icon: calendar
+        - title: 'Next · Apr 22'
+          copy: 'Jump ahead to the April 22nd log.'
+          href: /journal/04-22/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1679939099475-384a2ff77e90?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Svelte Panels
 
@@ -25,7 +64,15 @@ import { Adsense } from '@/components/astropad';
     The eventual goal would be to replace all the alpine plugins with pre-compiled svelte components, keeping the alpine for dynamic virtual DOM changes and future concepts.
     Basically design and build using the Alpine library, then if its worth keeping, we loop back around and turn it into a svelte component.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 I am thinking of updating the journal entry so that it becomes less deep nested.
 It gets a bit annoying to nest in the different entries, I like the flexibility that comes with the mdx format.
@@ -41,23 +88,35 @@ Going to update the Astro to version 4.6.x and then update a bunch of NX plugins
 We will be migrating to the latest Nx aka 18.3.x and then upgrade Astro extension to the latest version.
 However there are two plugins that we still need to update, the first being the python and then the rust, however I will do that after I update the website.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 **India**
 
 -   I spent most of the day eating and relaxing.
 -   The next phase will be setting up AppWrite register, login and profile.
 
-## Notes
+</BentoProse>
+
+<BentoProse id="notes" heading="Notes">
 
 Cleaning up the default journal entry format within the mdx.
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 -   [ ] Homepage 2024 Update
 -   [x] No major tasks left.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The most certain sign of wisdom is cheerfulness.
 > — <cite>Michel de Montaigne</cite>
+
+</BentoProse>
+
+</BentoDoc>

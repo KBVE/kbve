@@ -1,6 +1,6 @@
 ---
 title: Blighted teleport spell sack | OSRS Price Data
-description: "Blighted teleport spell sack is a members-only OSRS item. High alch: 19 GP, GE limit: 10,000."
+description: "Blighted teleport spell sack lets 85 Magic players cast Tele Block or Teleport to Target in the Wilderness without runes. High alch: 19 GP, GE limit: 10,000."
 osrs:
   id: 24615
   name: Blighted teleport spell sack
@@ -12,9 +12,84 @@ osrs:
   lowalch: 12
   highalch: 19
   limit: 10000
-  about: "Blighted teleport spell sack is a members-only item in Old School RuneScape. High alchemy value: 19 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: consumable
+    tier: low
+  properties:
+    release_date: "2020-04-23"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Wilderness-only Tele Block / Teleport to Target
+      description: "Consumed on cast to substitute for the runes of Tele Block or Teleport to Target; only usable in the Wilderness and requires 85 Magic"
+  shops:
+    - shop_name: "Justine's stuff for the Last Shopper Standing"
+      location: "Ferox Enclave"
+      price: 1
+      currency: "Last Man Standing point"
+      stock: 50
+    - shop_name: "Soul Wars Reward Shop"
+      location: "Ferox Enclave"
+      price: 10
+      currency: "Zeal Token"
+      stock: 50
+  drop_table:
+    sources:
+      - source: Revenants
+        quantity: "1-10"
+        rarity: "1/24"
+      - source: Wilderness dragons
+        quantity: "1-10"
+        rarity: "1/12"
+      - source: Wilderness demons
+        quantity: "1-10"
+        rarity: "1/12"
+  related_items:
+    - item_name: Blighted manta ray
+      slug: blighted-manta-ray
+      relationship: alternative
+      description: "Other Wilderness-only blighted consumable"
+    - item_name: Blighted super restore(4)
+      slug: blighted-super-restore-4
+      relationship: alternative
+      description: "Wilderness-only blighted super restore"
+    - item_name: Blighted anglerfish
+      slug: blighted-anglerfish
+      relationship: alternative
+      description: "Wilderness-only blighted food"
+    - item_name: Blighted vengeance sack
+      slug: blighted-vengeance-sack
+      relationship: alternative
+      description: "Wilderness-only Vengeance spell sack"
+  about: |-
+    The blighted teleport spell sack is a Wilderness-only consumable that lets players with 85 Magic cast Tele Block or Teleport to Target without supplying the corresponding runes. The sack is consumed on cast and stacks in the inventory, which trims rune slots when packing for PKing.
+
+    It originally only substituted for Tele Block on release and was renamed from "Blighted teleblock sack" when the 14 May 2020 update extended its function to also cover Teleport to Target.
+  market_strategy:
+    notes:
+      - "PvP-driven demand — spikes during Wilderness updates and bounty hunter resets"
+      - "Stackable — bulk flips are easy to hold"
+      - "Justine's shop and Soul Wars reward shop set a soft floor for big stocks"
+  trading_tips:
+    - "Compare GE price to the cost of casting with raw runes — players will swap whichever is cheaper"
+    - "Watch Wilderness boss drop table tweaks for supply shocks"
+  history:
+    - date: "2020-04-23"
+      description: "Released as the Blighted teleblock sack alongside other Wilderness blighted consumables."
+    - date: "2020-05-14"
+      description: "Renamed to Blighted teleport spell sack and expanded to also substitute for Teleport to Target."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Redstone Repeater
+template: splash
 description: |
     Minecraft Redstone Repeater — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 284
     ref: repeater
     slug: repeater
+    content_rev: 1
     display_name: Redstone Repeater
     material: redstone
     hardness: 0
@@ -21,13 +23,66 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: repeater
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+        - redstone_component
+        - non_solid
+    about:
+        description: |
+            The Redstone Repeater boosts a redstone signal back up to full
+            strength, delays it by 1-4 redstone ticks, and acts as a diode
+            that only passes signal in one direction.
+        lore: |
+            Added in Java Edition Beta 1.3, the repeater's delay settings
+            were tuned from an early 1/2/5/7-tick design down to the
+            current 1/2/3/4-tick scale for better circuit balance.
+    uses:
+        - title: Signal Boosting & Delay
+          ref: redstone_wire
+          detail: |
+              Placed inline on redstone wire, right-clicking cycles its
+              delay between 1, 2, 3, and 4 redstone ticks, letting builders
+              synchronize timing-sensitive contraptions.
+        - title: One-Way Diode
+          ref: redstone_torch
+          detail: |
+              Signals can only pass through in the direction the repeater
+              faces, making it useful for preventing backfeed in complex
+              circuits.
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: |
+              Crafted from 2 redstone torches, 1 redstone dust, and 3 stone
+              at a crafting table; not found in world generation.
+    faq:
+        - question: What tool do I need to mine a Repeater?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: How do I craft a Redstone Repeater?
+          answer: |
+              Combine 3 stone, 2 redstone torches, and 1 redstone dust in a
+              crafting table, torches on the sides and dust in the middle.
+        - question: How do I change the delay?
+          answer: |
+              Right-click the placed repeater to cycle through 2, 4, 6, and
+              8 game-tick delays (1-4 redstone ticks).
+        - question: Can signal pass backward through a repeater?
+          answer: |
+              No. It only transmits in the direction it's facing, acting
+              as a one-way diode for redstone signals.
     data_version: "1.21.5"
 ---
 

@@ -9,16 +9,64 @@ description: |
     7th of April.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 7,'
+    accent: every year.
+    lede: 'The April 7th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Apr 6'
+          href: /journal/04-06/
+        - label: 'Apr 8 →'
+          href: /journal/04-08/
+    related:
+        - title: 'Previous · Apr 6'
+          copy: 'Step back a day to the April 6th log.'
+          href: /journal/04-06/
+          icon: calendar
+        - title: 'Next · Apr 8'
+          copy: 'Jump ahead to the April 8th log.'
+          href: /journal/04-08/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1712251351568-1c56602c31aa?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
+<BentoProse id="notes" heading="Notes">
 
 Prepare the side account for the IRS bill.
 
-## 2026
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2026" heading="2026">
 
 ### Firecracker VM
 
@@ -28,7 +76,9 @@ Later on we can even go as far as extending it out so that it automatically crea
 
 However, the main focus is to get a couple functional services out and about, with them all operating safely.
 
-## 2025
+</BentoProse>
+
+<BentoProse id="2025" heading="2025">
 
 ### TempleState
 
@@ -37,7 +87,9 @@ However, the main focus is to get a couple functional services out and about, wi
     Next part of the `jedi` package will be to refactor the whole `TempleState` to use the fred package instead of the `redis` package.
     Hmm, this will be a big change, but I think it will be worth it in the end.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### Rust
 
@@ -257,3 +309,7 @@ fn get_env_var(name: &str) -> Result<String, String> {
 ```
 
 <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

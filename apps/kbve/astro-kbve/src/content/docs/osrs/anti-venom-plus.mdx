@@ -1,0 +1,130 @@
+---
+title: Anti-venom+ | OSRS Price Data
+description: "Anti-venom+(4): 4 doses of super antivenom potion.. High alch: 266 GP, GE limit: 2,000."
+osrs:
+  id: 12913
+  name: Anti-venom+
+  slug: anti-venom-plus
+  examine: 4 doses of super antivenom potion.
+  members: true
+  icon: Anti-venom+(4).png
+  value: 444
+  lowalch: 177
+  highalch: 266
+  limit: 2000
+  potion:
+    doses: 4
+    effects:
+      - description: "Instantly cures venom and poison on consumption."
+      - description: "Grants poison immunity."
+        duration: 900
+      - description: "Grants venom immunity (approximately 3.6 minutes)."
+        duration: 216
+  recipes:
+    - materials:
+        - item_name: "Anti-venom(4)"
+          quantity: 1
+        - item_name: Torstol
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skills:
+        - skill: Herblore
+          level: 94
+          xp: 125
+      notes: "Unfinished torstol potions can substitute for torstol since 16 November 2022."
+  related_items:
+    - name: "Anti-venom(4)"
+      relationship: downgrade
+    - name: "Anti-venom+(3)"
+      relationship: variant
+    - name: "Extended anti-venom+(4)"
+      relationship: upgrade
+    - name: Torstol
+      relationship: component
+  about: "Anti-venom+(4) is a four-dose super antivenom potion used to cure poison and venom instantly, with long immunity windows essential at Zulrah, Vorkath, Araxxor, and Verzik Vitur. High alchemy value: 266 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Material cost tracks torstol and Zulrah scale supply; margin is thin but stable."
+      - "Decanting between dose sizes can yield arbitrage in volatile windows."
+  trading_tips:
+    - "Watch torstol prices for buy-side margins on Herblore production."
+    - "Combine with Extended anti-venom+ flips around boss meta shifts."
+  history:
+    - date: "2015-01-08"
+      description: "Anti-venom+ released alongside Zulrah."
+    - date: "2022-11-16"
+      description: "Unfinished torstol potions accepted as a torstol substitute in the recipe."
+    - date: "2026-04-22"
+      description: "Wiki refresh confirmed alch and recipe details."
+  family_ref:
+    family_slug: anti-venom-plus
+    role: base
+  family:
+    slug: anti-venom-plus
+    name: Anti-venom+
+    type: dose
+    canonical_id: 12913
+    members:
+    - id: 12913
+      slug: anti-venom-plus
+      name: Anti-venom+
+      icon: Anti-venom+(4).png
+      role: base
+      dose: null
+      value: 444
+      lowalch: 177
+      highalch: 266
+    - id: 12919
+      slug: anti-venom-1-12919
+      name: Anti-venom+(1)
+      icon: Anti-venom+(1).png
+      role: dose
+      dose: 1
+      value: 111
+      lowalch: 44
+      highalch: 66
+    - id: 12917
+      slug: anti-venom-2-12917
+      name: Anti-venom+(2)
+      icon: Anti-venom+(2).png
+      role: dose
+      dose: 2
+      value: 222
+      lowalch: 88
+      highalch: 133
+    - id: 12915
+      slug: anti-venom-3-12915
+      name: Anti-venom+(3)
+      icon: Anti-venom+(3).png
+      role: dose
+      dose: 3
+      value: 333
+      lowalch: 133
+      highalch: 199
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  properties:
+    release_date: "2015-01-08"
+    update: "Zulrah"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

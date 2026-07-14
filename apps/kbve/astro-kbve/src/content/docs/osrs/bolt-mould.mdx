@@ -12,9 +12,57 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 40
-  about: "Bolt mould is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Dommik's Crafting Store
+      location: Al Kharid
+      price: 25
+      currency: coins
+      stock: 10
+    - shop_name: Rommik's Crafty Supplies
+      location: Rimmington
+      price: 25
+      currency: coins
+      stock: 10
+    - shop_name: Artima's Crafting Supplies
+      location: Civitas illa Fortis
+      price: 25
+      currency: coins
+      stock: 4
+  related_items:
+    - item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: "Used with the bolt mould to cast unfinished silver bolts."
+    - item_name: Silver bolts (unf)
+      slug: silver-bolts-unf
+      relationship: product
+      description: "Ten unfinished silver bolts produced per silver bar."
+  about: "Bolt mould is a Crafting tool used to cast unfinished silver crossbow bolts. Requires 61 Crafting to use a silver bar in a furnace, granting 50 experience per bar and producing 10 unfinished silver bolts. High alchemy value: 15 coins. Grand Exchange buy limit: 40 per 4 hours."
+  market_strategy:
+    notes:
+      - "Demand is one-and-done; most Fletchers buy a single mould and keep it forever."
+      - "Shop stock at 25 gp keeps the GE price tightly anchored."
+  trading_tips:
+    - "Buy directly from Dommik or Rommik instead of paying GE markup."
+  history:
+    - date: "2006-07-31"
+      description: "Released alongside silver bolt Smithing and Fletching support."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

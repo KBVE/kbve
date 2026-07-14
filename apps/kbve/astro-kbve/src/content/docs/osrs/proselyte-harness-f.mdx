@@ -12,9 +12,51 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 70
-  about: "Proselyte harness f is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour set
+    tier: mid
+  properties:
+    release_date: "2006-09-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 14.514
+    options: ["Unpack", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Proselyte sallet
+      slug: proselyte-sallet
+      relationship: set-piece
+      description: Head slot piece (female variant).
+    - item_name: Proselyte hauberk
+      slug: proselyte-hauberk
+      relationship: set-piece
+      description: Body slot piece.
+    - item_name: Proselyte tasset
+      slug: proselyte-tasset
+      relationship: set-piece
+      description: Legs slot piece (female variant).
+    - item_name: Proselyte harness m
+      slug: proselyte-harness-m
+      relationship: alternative
+      description: Male-cut variant of the same pack.
+  about: "Proselyte harness f packs the female-cut Proselyte armour pieces (sallet, hauberk, tasset) into a single tradeable bundle from the Grand Exchange Sets clerk. Useful when transferring a complete Proselyte kit between accounts without juggling individual slots."
+  market_strategy:
+    notes:
+      - "Compare set GE price to sum of individual pieces to spot arbitrage."
+      - "Demand tracks low-level Prayer-bonus tank gearing."
+  history:
+    - date: "2006-09-20"
+      description: Released alongside the Proselyte armour set.
+    - date: "2014-12-10"
+      description: Renamed from "Pros'yte harness f" to "Proselyte harness f".
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

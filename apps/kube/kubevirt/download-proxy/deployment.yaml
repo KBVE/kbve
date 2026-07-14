@@ -47,33 +47,28 @@ spec:
                 seccompProfile:
                     type: RuntimeDefault
             containers:
-                # aria2c — minimal Alpine image, runs as non-root
-                # RPC on port 6800, downloads to /downloads (shared PVC)
                 - name: aria2
-                  image: alpine:3.21
+                  image: ghcr.io/kbve/aria2-proxy:0.1.0
                   command:
-                      - /bin/sh
-                      - -c
-                      - |
-                          apk add --no-cache aria2 && \
-                          exec aria2c \
-                            --enable-rpc=true \
-                            --rpc-listen-all=true \
-                            --rpc-listen-port=6800 \
-                            --rpc-allow-origin-all=true \
-                            --dir=/downloads \
-                            --max-connection-per-server=16 \
-                            --split=16 \
-                            --min-split-size=10M \
-                            --max-concurrent-downloads=5 \
-                            --max-tries=10 \
-                            --retry-wait=5 \
-                            --continue=true \
-                            --auto-file-renaming=false \
-                            --allow-overwrite=true \
-                            --file-allocation=falloc \
-                            --console-log-level=notice \
-                            --summary-interval=30
+                      - aria2c
+                  args:
+                      - --enable-rpc=true
+                      - --rpc-listen-all=true
+                      - --rpc-listen-port=6800
+                      - --rpc-allow-origin-all=true
+                      - --dir=/downloads
+                      - --max-connection-per-server=16
+                      - --split=16
+                      - --min-split-size=10M
+                      - --max-concurrent-downloads=5
+                      - --max-tries=10
+                      - --retry-wait=5
+                      - --continue=true
+                      - --auto-file-renaming=false
+                      - --allow-overwrite=true
+                      - --file-allocation=falloc
+                      - --console-log-level=notice
+                      - --summary-interval=30
                   ports:
                       - containerPort: 6800
                         name: rpc
@@ -93,9 +88,8 @@ spec:
                       capabilities:
                           drop:
                               - ALL
-                # HTTP file server — serves completed downloads to the VM
                 - name: file-server
-                  image: python:3.12-alpine
+                  image: ghcr.io/kbve/aria2-proxy:0.1.0
                   command:
                       [
                           'python3',

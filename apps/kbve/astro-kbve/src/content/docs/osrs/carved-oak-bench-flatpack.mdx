@@ -12,9 +12,36 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Carved oak bench (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: flatpack
+    tier: oak
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    options:
+      - drop
+  recipes:
+    - skill: construction
+      level: 38
+      xp: 240
+      materials:
+        - item_name: Oak plank
+          quantity: 4
+      output_quantity: 1
+      notes: "Built on a Workbench 2 or higher in the Workshop"
+  related_items:
+    - item_id: 8537
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Required material to flatpack
+  about: |-
+    A flatpacked version of the carved oak bench. Used by players to build furniture in another player's house, or sold to the Grand Exchange for profit when training Construction.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -14,6 +14,10 @@ import { generateAndWriteZod } from '../../npm/devops/src/lib/codegen/index.js';
 import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+
+const DENO_ZOD_IMPORT =
+	"import { z } from 'https://deno.land/x/zod@v3.23.8/mod.ts';";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const protoRoot = resolve(__dirname, '../proto');
@@ -39,6 +43,11 @@ const protos = [
 		package: 'item',
 	},
 	{
+		name: 'spelldb',
+		protoFile: 'spell/spelldb.proto',
+		package: 'spell',
+	},
+	{
 		name: 'questdb',
 		protoFile: 'quest/questdb.proto',
 		package: 'quest',
@@ -54,14 +63,44 @@ const protos = [
 		package: 'clickhouse',
 	},
 	{
+		name: 'argocd',
+		protoFile: 'jedi/argocd.proto',
+		package: 'argocd',
+		vendorTo: [
+			{ path: '../../npm/devops/src/lib/codegen/generated/argocd-schema.ts' },
+		],
+	},
+	{
 		name: 'osrs',
 		protoFile: 'kbve/osrs.proto',
 		package: 'kbve.osrs',
 	},
 	{
+		name: 'agents',
+		protoFile: 'kbve/agents.proto',
+		package: 'kbve.agents',
+		vendorTo: [
+			{ path: '../../npm/droid/src/lib/agents/generated/agents-schema.ts' },
+			{
+				path: '../../../apps/kbve/edge/functions/_shared/agents-schema.ts',
+				denoZod: true,
+			},
+		],
+	},
+	{
 		name: 'discordsh',
 		protoFile: 'kbve/discordsh.proto',
 		package: 'kbve.discordsh',
+	},
+	{
+		name: 'discordsh_agents',
+		protoFile: 'kbve/discordsh.proto',
+		package: 'kbve.discordsh',
+		vendorTo: [
+			{
+				path: '../../npm/droid/src/lib/agents/generated/discordsh-agents-schema.ts',
+			},
+		],
 	},
 	{
 		name: 'ci_registry',
@@ -130,8 +169,18 @@ const protos = [
 	},
 	{
 		name: 'github',
-		protoFile: 'jedi/github.proto',
+		protoFile: 'git/github.proto',
 		package: 'github',
+	},
+	{
+		name: 'git_common',
+		protoFile: 'git/git_common.proto',
+		package: 'git',
+	},
+	{
+		name: 'forgejo',
+		protoFile: 'git/forgejo.proto',
+		package: 'forgejo',
 	},
 	{
 		name: 'snapshot',
@@ -162,6 +211,33 @@ const protos = [
 		name: 'icons',
 		protoFile: 'icon/icons.proto',
 		package: 'icon',
+	},
+	{
+		name: 'mc_lot',
+		protoFile: 'kbve/mc/mc_lot.proto',
+		package: 'kbve.mc',
+	},
+	{
+		name: 'jobboard',
+		protoFile: 'jobboard/jobboard.proto',
+		package: 'jobboard',
+	},
+	{
+		name: 'chat',
+		protoFile: 'kbve/chat.proto',
+		package: 'kbve.chat',
+		vendorTo: [{ path: '../../npm/chat/src/generated/chat-schema.ts' }],
+	},
+	{
+		name: 'telemetry',
+		protoFile: 'kbve/telemetry.proto',
+		package: 'kbve.telemetry',
+		vendorTo: [
+			{ path: '../../npm/observ/src/generated/telemetry-schema.ts' },
+			{
+				path: '../../npm/devops/src/lib/telemetry/generated/telemetry-schema.ts',
+			},
+		],
 	},
 ];
 
@@ -209,6 +285,23 @@ for (const proto of selected) {
 		protoPackage: proto.package,
 	});
 	console.log(`  ✓ ${proto.name}-schema.ts`);
+
+	for (const dest of proto.vendorTo ?? []) {
+		const destPath = resolve(__dirname, dest.path);
+		mkdirSync(dirname(destPath), { recursive: true });
+		let body = readFileSync(outputPath, 'utf8');
+		if (dest.denoZod) {
+			body = body.replace(/^import \{ z \} from 'zod';$/m, DENO_ZOD_IMPORT);
+		}
+		if (dest.astroZod) {
+			body = body.replace(
+				/^import \{ z \} from 'zod';$/m,
+				"import { z } from 'astro/zod';",
+			);
+		}
+		writeFileSync(destPath, body);
+		console.log(`    ↳ vendored → ${dest.path}`);
+	}
 }
 
 console.log('\n=== Done ===');

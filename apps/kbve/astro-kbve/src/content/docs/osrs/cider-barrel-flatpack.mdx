@@ -12,9 +12,63 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Cider barrel (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    description: "Flat-pack barrel furniture for the Kitchen of a player-owned house, providing cider when used by guests."
+    hotspot: Barrel
+    room: Kitchen
+  recipes:
+    - skill: Construction
+      level: 12
+      xp: 91
+      materials:
+        - item_name: Plank
+          quantity: 3
+        - item_name: Cider
+          quantity: 8
+        - item_name: Steel nails
+          quantity: 3
+      tools:
+        - Hammer
+        - Saw
+        - Wooden workbench (Workshop)
+      output_quantity: 1
+      requirements:
+        - "Cooking level 14 (to brew the cider used)."
+  related_items:
+    - name: Cider
+      relationship: component
+    - name: Plank
+      relationship: component
+    - name: Steel nails
+      relationship: component
+  about: "Cider barrel (flatpack) is a members Construction flatpack for the player-owned house Kitchen. Crafted at a Workshop wooden workbench (12 Construction, 91 XP), it offers a small profit-flip route once cider supply and steel-nail prices are favourable."
+  market_strategy:
+    notes:
+      - "Tight buy limit (500/4 hr) keeps the market thin and prone to spread arbitrage."
+      - "Profit is heavily tied to cider GE price — brewing your own cider widens the margin."
+      - "Niche flatpack: demand comes from POH decorators and Construction trainers using flatpacks for low-effort XP."
+  trading_tips:
+    - "Brew bulk cider at Keldagrim or Port Phasmatys when grape supply is abundant to cut raw cost."
+    - "List finished flatpacks at the high end of the spread — limited buy limit means thin orders sell at premium."
+  history:
+    - date: "2006-05-31"
+      description: "Released alongside the player-owned house Construction update; available as a Workshop flatpack."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: "Player-Owned Houses (Construction launch)"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

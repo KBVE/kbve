@@ -1,9 +1,4 @@
-// Thread-safe packet bridge between managed SteamNetworkingService (main
-// thread) and Burst-compiled Unity Transport jobs. Uses native queues so
-// both sides stay allocator-friendly without GC churn. Static singleton
-// pattern — Unity Transport's INetworkInterface is instantiated inside a
-// NetworkDriver value type and can't carry managed refs, so the bridge
-// has to be reachable from Burst via a static accessor.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
@@ -18,7 +13,7 @@ namespace RareIcon.Platform.Netcode
     {
         public const int MaxPayload = 1200;
 
-        public NetworkEndpoint Endpoint;   // IPv6-encoded SteamID; see SteamEndpoint.Encode
+        public NetworkEndpoint Endpoint;
         public int             Length;
         public unsafe fixed byte Data[MaxPayload];
 
@@ -28,7 +23,7 @@ namespace RareIcon.Platform.Netcode
     /// <summary>Encodes 64-bit SteamIDs as IPv6 NetworkEndpoints so UTP's address routing sees them as regular peers. The first 8 bytes of the v6 address carry the SteamID little-endian; the remaining 8 + port are zero. Uses NativeArray per the Unity.Transport 2.x SetRawAddressBytes contract.</summary>
     public static class SteamEndpoint
     {
-        const ushort SteamPort = 0;  // Steam routes by identity, not port.
+        const ushort SteamPort = 0;
 
         public static NetworkEndpoint Encode(ulong steamId)
         {

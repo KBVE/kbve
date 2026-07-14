@@ -1,5 +1,6 @@
 ---
 title: Oak Boat
+template: splash
 description: |
     Minecraft Oak Boat — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 810
     ref: oak_boat
     slug: oak-boat
+    content_rev: 1
     display_name: Oak Boat
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The oak boat is a simple watercraft crafted from five oak planks that lets a player and one passenger float and steer across water. It moves fastest gliding over ice, making it a popular tool for fast overworld or nether transportation networks. Boats can be broken by hitting them and are vulnerable to sinking near magma blocks or explosions.
+        lore: |
+            Five planks and a prayer, ferrying travelers wherever the current allows.
+    faq:
+        - question: How do I craft an oak boat?
+          answer: |
+              Arrange five oak planks in a U-shape in a crafting table; any Overworld plank type works, but crimson and warped planks cannot be used for boats.
+        - question: How many passengers can an oak boat carry?
+          answer: |
+              It can carry up to two passengers, though mobs riding along cannot exit on their own.
+        - question: What is the fastest way to travel by boat?
+          answer: |
+              Boats move extremely quickly when gliding over ice, especially blue ice, making ice canals a popular fast-travel method.
+        - question: What happens if a boat passes over a magma block's bubble column?
+          answer: |
+              All passengers are expelled and the boat sinks, so it must be manually retrieved afterward.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

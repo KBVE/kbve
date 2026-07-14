@@ -1,5 +1,6 @@
 ---
 title: Orange Bundle
+template: splash
 description: |
     Minecraft Orange Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 976
     ref: orange_bundle
     slug: orange-bundle
+    content_rev: 1
     display_name: Orange Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Orange Bundle is a bundle dyed orange that stores a stack's worth of mixed
+            item types within a single inventory slot, with items consuming space proportional
+            to their max stack size. It does not stack itself, can hold nested bundles, and
+            shows a fullness bar on its icon once items are stored inside.
+        lore: |
+            Inspired by ancient coin purses, this colorful bundle brings practical organization
+            to any adventurer's gear.
+    faq:
+        - question: How much can an Orange Bundle hold?
+          answer: |
+              It stores the equivalent of one full inventory slot's worth of mixed items, where
+              a stack of 64 items uses 1/64 of its capacity and non-stackable items use it all.
+        - question: Can I put another bundle inside an Orange Bundle?
+          answer: |
+              Yes. A nested bundle consumes 1/16 of the outer bundle's capacity plus the space
+              taken by its own contents.
+        - question: How do I retrieve items from my Orange Bundle?
+          answer: |
+              Right-click the bundle to remove the most recently added item, or scroll to
+              select and remove a specific item from its contents.
+        - question: Why dye a bundle orange specifically?
+          answer: |
+              Bundles can be dyed any of 16 colors purely for organization, letting players
+              quickly identify a bundle's contents or purpose by color at a glance.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -75,7 +75,7 @@ namespace RareIcon
 
         void BuildUI(VisualElement root)
         {
-            // Full-screen scrim. Clicks dismiss the modal via the controller.
+
             _backdrop = new VisualElement();
             _backdrop.style.position = Position.Absolute;
             _backdrop.style.top = 0;
@@ -87,8 +87,6 @@ namespace RareIcon
             _backdrop.style.justifyContent = Justify.Center;
             _backdrop.RegisterCallback<ClickEvent>(_ => _appState.RequestExitToWorld());
 
-            // Modal body — heavier chrome than a side panel: opaque ModalBg
-            // and 2px border to read as primary focus over the scrim.
             var modal = new VisualElement().ApplyPanelChrome(
                 background: UIStyles.Palette.ModalBg,
                 borderWidth: 2f,
@@ -100,8 +98,6 @@ namespace RareIcon
             _titleLabel = UIStyles.MakeHeading("Enter Tile", fontSize: 22);
             _titleLabel.style.marginBottom = 20;
 
-            // Visual rhythm under the title — ties the modal to the rest
-            // of the YoRHA UI vocabulary.
             var titleStrip = UIStyles.MakeStrip(thickness: 2f);
             titleStrip.style.width = new Length(60, LengthUnit.Percent);
             titleStrip.style.marginBottom = 20;
@@ -115,8 +111,6 @@ namespace RareIcon
             _confirmButton.style.width = 120;
             _confirmButton.style.height = 36;
 
-            // Cancel uses the alert palette so it reads as a destructive
-            // action. Hover-invert behaviour from MakeButton still applies.
             _cancelButton = UIStyles.MakeButton("Cancel", OnCancel);
             _cancelButton.style.width = 120;
             _cancelButton.style.height = 36;
@@ -161,7 +155,7 @@ namespace RareIcon
         {
             var msg = _appState.LastClickedHex;
             _enterPublisher.Publish(new EnterTileMessage(msg.Q, msg.R, msg.BiomeId));
-            // Controller flips to InTile when it sees EnterTileMessage.
+
         }
 
         void OnCancel() => _appState.RequestExitToWorld();

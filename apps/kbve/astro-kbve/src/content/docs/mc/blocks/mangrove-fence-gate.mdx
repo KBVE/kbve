@@ -1,5 +1,6 @@
 ---
 title: Mangrove Fence Gate
+template: splash
 description: |
     Minecraft Mangrove Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 603
     ref: mangrove_fence_gate
     slug: mangrove-fence-gate
+    content_rev: 1
     display_name: Mangrove Fence Gate
     material: wood
     hardness: 2
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+    about:
+        description: |
+            Mangrove Fence Gate combines the access control of a door with
+            the connectivity of a fence, forming a switchable opening in
+            fence lines. It can be opened by hand, redstone signal, or a
+            wind charge.
+        lore: |
+            Fence gates were introduced in Beta 1.8; the mangrove variant
+            arrived with the Mangrove Swamp update (1.19).
+    uses:
+        - title: Fence Line Access Point
+          ref: mangrove_fence_gate
+          detail: |
+              Opens and closes to let players and animals pass through a
+              fenced enclosure without breaking the fence.
+        - title: Furnace Fuel
+          ref: mangrove_fence_gate
+          detail: |
+              Wooden fence gates can be smelted as furnace fuel at 1.5 items
+              per gate.
+    found_in:
+        - location: Crafted from Mangrove Planks and Sticks
+          detail: 2 planks and 2 sticks craft one fence gate.
+    faq:
+        - question: What tool do I need to mine a Mangrove Fence Gate?
+          answer: |
+              None — any tool works by hand, though an axe is fastest.
+        - question: Does a Mangrove Fence Gate connect to fences?
+          answer: |
+              Yes, it visually and functionally connects to adjacent fences
+              of any wood type.
+        - question: Can mobs jump over a closed fence gate?
+          answer: |
+              Most mobs cannot jump the 1.5-block-high barrier when closed.
+        - question: Is Mangrove Fence Gate flammable?
+          answer: |
+              Yes, being wood it can catch fire and burn.
     data_version: "1.21.5"
 ---
 

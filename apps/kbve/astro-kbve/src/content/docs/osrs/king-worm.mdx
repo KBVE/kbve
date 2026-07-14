@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "King worm is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.12
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: King worm scenery (Tree Gnome Stronghold, Taverley, Molch Island)
+        quantity: "1"
+        rarity: Always
+      - source: Gnome (thieving)
+        quantity: "1"
+        rarity: 3/128
+      - source: Gnome child (thieving)
+        quantity: "1"
+        rarity: 3/128
+      - source: Gnome woman (thieving)
+        quantity: "1"
+        rarity: 3/128
+  related_items:
+    - item_name: Druid pouch
+      slug: druid-pouch
+      relationship: alternative
+      description: Aerial fishing also uses worms but druid pouch is a separate ghast tool.
+    - item_name: Bird snare
+      slug: bird-snare
+      relationship: alternative
+      description: King worms bait aerial fishing spots alongside hunter trap items.
+  about: |-
+    King worms are a members-only food item gathered from worm spawns across the Tree Gnome Stronghold, Taverley, and Molch Island, or pickpocketed from gnomes. They heal 2 Hitpoints when eaten and act as bait for Molch Island aerial fishing.
+  market_strategy:
+    notes:
+      - "Aerial fishing demand sets a steady floor on the price."
+      - "Supply spikes when gnome thieving methods are popular."
+  trading_tips:
+    - Stack purchases in advance of aerial fishing meta updates.
+    - Resell in noted form to aerial fishers who hop banks in Prifddinas.
+  history:
+    - date: "2002-12-12"
+      description: "King worm released as a gnome delicacy and aerial fishing bait precursor."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

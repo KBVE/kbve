@@ -11,19 +11,34 @@ use axum::{
     http::{HeaderMap, StatusCode, header},
     response::{IntoResponse, Response},
 };
+use jedi::entity::error::JediError;
+use jedi::state::pg::PgCallerReadFut;
 use kbve::wallet::{
     CreditRequest, CurrencyKind, DebitRequest, SourceKind, TransferRequest, WalletError,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use std::sync::Arc;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::https::auth_user_id;
 use crate::auth::{extract_bearer_token, get_jwt_cache};
-use crate::db::get_wallet_client;
+use crate::db::{get_kv_cache, get_pg_cluster, get_wallet_client};
 
-#[derive(Serialize, ToSchema)]
+const BALANCE_SQL: &str = "
+    SELECT account_id, credits, khash, updated_at
+      FROM public.proxy_wallet_get_balance_readonly()
+";
+
+const COUPONS_SQL: &str = "
+    SELECT coupon_id, template_code, template_label,
+           reward_kind::text, reward_payload,
+           status::text, granted_at, expires_at, redeemed_at
+      FROM public.proxy_wallet_list_coupons_readonly()
+";
+
+#[derive(Serialize, Deserialize, ToSchema)]
 pub(crate) struct BalanceDto {
     pub account_id: Uuid,
     pub credits: i64,
@@ -31,7 +46,7 @@ pub(crate) struct BalanceDto {
     pub updated_at: String,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub(crate) struct CouponDto {
     pub coupon_id: i64,
     pub template_code: String,
@@ -164,6 +179,42 @@ pub(crate) async fn me_balance(headers: HeaderMap) -> Response {
         Err(resp) => return resp,
     };
 
+    if let Some(cluster) = get_pg_cluster() {
+        let cluster = Arc::clone(cluster);
+        let result = match get_kv_cache() {
+            Some(cache) => {
+                let key = format!("caller:{user_id}:balance");
+                cluster
+                    .cached_caller_read_tagged(
+                        cache,
+                        &key,
+                        None,
+                        user_id,
+                        None,
+                        |tx| -> PgCallerReadFut<'_, BalanceDto> { Box::pin(balance_query(tx)) },
+                        move |b: &BalanceDto| {
+                            vec![
+                                format!("wallet:caller:{user_id}"),
+                                format!("wallet:account:{}", b.account_id),
+                            ]
+                        },
+                    )
+                    .await
+            }
+            None => {
+                cluster
+                    .with_caller_read(user_id, None, |tx| -> PgCallerReadFut<'_, BalanceDto> {
+                        Box::pin(balance_query(tx))
+                    })
+                    .await
+            }
+        };
+        return match result {
+            Ok(b) => Json(b).into_response(),
+            Err(e) => jedi_error_response(e),
+        };
+    }
+
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),
@@ -179,6 +230,62 @@ pub(crate) async fn me_balance(headers: HeaderMap) -> Response {
         .into_response(),
         Err(e) => wallet_error_response(e),
     }
+}
+
+async fn balance_query(
+    tx: &jedi::state::pg::tokio_postgres::Transaction<'_>,
+) -> Result<BalanceDto, JediError> {
+    let row = tx
+        .query_one(BALANCE_SQL, &[])
+        .await
+        .map_err(JediError::from)?;
+    let updated_at: chrono::DateTime<chrono::Utc> = row.get(3);
+    Ok(BalanceDto {
+        account_id: row.get(0),
+        credits: row.get(1),
+        khash: row.get(2),
+        updated_at: updated_at.to_rfc3339(),
+    })
+}
+
+async fn coupons_query(
+    tx: &jedi::state::pg::tokio_postgres::Transaction<'_>,
+) -> Result<Vec<CouponDto>, JediError> {
+    let rows = tx.query(COUPONS_SQL, &[]).await.map_err(JediError::from)?;
+    rows.iter()
+        .map(|r| {
+            let granted_at: chrono::DateTime<chrono::Utc> = r.get(6);
+            let expires_at: Option<chrono::DateTime<chrono::Utc>> = r.get(7);
+            let redeemed_at: Option<chrono::DateTime<chrono::Utc>> = r.get(8);
+            Ok(CouponDto {
+                coupon_id: r.get(0),
+                template_code: r.get(1),
+                template_label: r.get(2),
+                reward_kind: r.get(3),
+                reward_payload: r.get(4),
+                status: r.get(5),
+                granted_at: granted_at.to_rfc3339(),
+                expires_at: expires_at.map(|t| t.to_rfc3339()),
+                redeemed_at: redeemed_at.map(|t| t.to_rfc3339()),
+            })
+        })
+        .collect()
+}
+
+fn jedi_error_response(err: JediError) -> Response {
+    let msg = err.to_string();
+    let (status, code) = match &err {
+        JediError::Timeout => (StatusCode::REQUEST_TIMEOUT, "timeout"),
+        JediError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized"),
+        JediError::Forbidden => (StatusCode::FORBIDDEN, "forbidden"),
+        JediError::NotFound => (StatusCode::NOT_FOUND, "not_found"),
+        JediError::BadRequest(_) => (StatusCode::BAD_REQUEST, "invalid_argument"),
+        _ => {
+            tracing::error!(error = %err, "wallet PgCluster path failed");
+            (StatusCode::INTERNAL_SERVER_ERROR, "internal")
+        }
+    };
+    (status, Json(json!({ "error": code, "message": msg }))).into_response()
 }
 
 /// `GET /api/v1/wallet/me/coupons` — returns the caller's coupons
@@ -199,6 +306,37 @@ pub(crate) async fn me_coupons(headers: HeaderMap) -> Response {
         Ok(id) => id,
         Err(resp) => return resp,
     };
+
+    if let Some(cluster) = get_pg_cluster() {
+        let cluster = Arc::clone(cluster);
+        let result = match get_kv_cache() {
+            Some(cache) => {
+                let key = format!("caller:{user_id}:coupons");
+                cluster
+                    .cached_caller_read_tagged(
+                        cache,
+                        &key,
+                        None,
+                        user_id,
+                        None,
+                        |tx| -> PgCallerReadFut<'_, Vec<CouponDto>> { Box::pin(coupons_query(tx)) },
+                        move |_: &Vec<CouponDto>| vec![format!("wallet:caller:{user_id}")],
+                    )
+                    .await
+            }
+            None => {
+                cluster
+                    .with_caller_read(user_id, None, |tx| -> PgCallerReadFut<'_, Vec<CouponDto>> {
+                        Box::pin(coupons_query(tx))
+                    })
+                    .await
+            }
+        };
+        return match result {
+            Ok(rows) => Json(rows).into_response(),
+            Err(e) => jedi_error_response(e),
+        };
+    }
 
     let client = match get_wallet_client() {
         Some(c) => c,
@@ -263,14 +401,40 @@ pub(crate) async fn me_redeem_coupon(
         .user_redeem_coupon(user_id, body.coupon_id, body.idempotency_key)
         .await
     {
-        Ok(r) => Json(RedeemCouponDto {
-            success: r.success,
-            reward_kind: r.reward_kind.as_pg().to_string(),
-            reward_payload: r.reward_payload,
-            ledger_id: r.ledger_id,
-        })
-        .into_response(),
+        Ok(r) => {
+            invalidate_caller_cache(user_id).await;
+            Json(RedeemCouponDto {
+                success: r.success,
+                reward_kind: r.reward_kind.as_pg().to_string(),
+                reward_payload: r.reward_payload,
+                ledger_id: r.ledger_id,
+            })
+            .into_response()
+        }
         Err(e) => wallet_error_response(e),
+    }
+}
+
+/// Invalidate every cached entry tagged with this caller's user_id.
+/// Hooks into wallet write paths after a successful commit so the
+/// next /me/balance / /me/coupons / /me/ledger read can't serve
+/// stale data within the L1/L2 TTL window. Best-effort.
+pub(crate) async fn invalidate_caller_cache(user_id: Uuid) {
+    let Some(cache) = get_kv_cache() else { return };
+    let tag = format!("wallet:caller:{user_id}");
+    if let Err(e) = cache.invalidate_tag(&tag).await {
+        tracing::warn!(error = %e, user_id = %user_id, "[wallet] invalidate_tag(caller) failed");
+    }
+}
+
+/// Invalidate every cached entry tagged with this account_id. Hooks
+/// into account-keyed service writes (credit / debit / transfer)
+/// where the caller's user_id isn't readily available. Best-effort.
+pub(crate) async fn invalidate_account_cache(account_id: Uuid) {
+    let Some(cache) = get_kv_cache() else { return };
+    let tag = format!("wallet:account:{account_id}");
+    if let Err(e) = cache.invalidate_tag(&tag).await {
+        tracing::warn!(error = %e, account_id = %account_id, "[wallet] invalidate_tag(account) failed");
     }
 }
 
@@ -296,7 +460,7 @@ pub(crate) fn service_unavailable() -> Response {
 /// Gate service routes: requires a Supabase JWT whose `role` claim is
 /// `service_role`. Used by backend callers (MC mod, cron jobs, internal
 /// scripts). Anon/authenticated JWTs are rejected.
-async fn require_service_role(headers: &HeaderMap) -> Result<(), Response> {
+pub(crate) async fn require_service_role(headers: &HeaderMap) -> Result<(), Response> {
     let auth_header = headers
         .get(header::AUTHORIZATION)
         .and_then(|h| h.to_str().ok())
@@ -361,6 +525,20 @@ fn parse_source_kind(s: &str) -> Result<SourceKind, Response> {
         )
             .into_response()
     })
+}
+
+/// Reject non-positive amounts at the handler. The SQL functions enforce this
+/// too, but a negative credit read as a disguised debit (or vice versa) is bad
+/// enough to guard against before the value ever reaches the DB.
+fn require_positive_amount(amount: i64) -> Result<(), Response> {
+    if amount > 0 {
+        return Ok(());
+    }
+    Err((
+        StatusCode::BAD_REQUEST,
+        Json(json!({"error": "invalid amount", "message": "amount must be > 0"})),
+    )
+        .into_response())
 }
 
 pub(crate) fn wallet_error_response(err: WalletError) -> Response {
@@ -468,6 +646,9 @@ pub(crate) async fn service_credit(
         Ok(s) => s,
         Err(r) => return r,
     };
+    if let Err(r) = require_positive_amount(body.amount) {
+        return r;
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),
@@ -482,8 +663,12 @@ pub(crate) async fn service_credit(
         ref_id: body.ref_id,
         idempotency_key: body.idempotency_key,
     };
+    let account_id = req.account_id;
     match client.credit(req).await {
-        Ok(ledger_id) => Json(ServiceLedgerDto { ledger_id }).into_response(),
+        Ok(ledger_id) => {
+            invalidate_account_cache(account_id).await;
+            Json(ServiceLedgerDto { ledger_id }).into_response()
+        }
         Err(e) => wallet_error_response(e),
     }
 }
@@ -521,6 +706,9 @@ pub(crate) async fn service_debit(
         Ok(s) => s,
         Err(r) => return r,
     };
+    if let Err(r) = require_positive_amount(body.amount) {
+        return r;
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),
@@ -535,8 +723,12 @@ pub(crate) async fn service_debit(
         ref_id: body.ref_id,
         idempotency_key: body.idempotency_key,
     };
+    let account_id = req.account_id;
     match client.debit(req).await {
-        Ok(ledger_id) => Json(ServiceLedgerDto { ledger_id }).into_response(),
+        Ok(ledger_id) => {
+            invalidate_account_cache(account_id).await;
+            Json(ServiceLedgerDto { ledger_id }).into_response()
+        }
         Err(e) => wallet_error_response(e),
     }
 }
@@ -574,6 +766,9 @@ pub(crate) async fn service_transfer(
         Ok(s) => s,
         Err(r) => return r,
     };
+    if let Err(r) = require_positive_amount(body.amount) {
+        return r;
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),
@@ -589,8 +784,14 @@ pub(crate) async fn service_transfer(
         ref_id: body.ref_id,
         idempotency_key: body.idempotency_key,
     };
+    let from_account = req.from_account;
+    let to_account = req.to_account;
     match client.transfer(req).await {
-        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+        Ok(()) => {
+            invalidate_account_cache(from_account).await;
+            invalidate_account_cache(to_account).await;
+            StatusCode::NO_CONTENT.into_response()
+        }
         Err(e) => wallet_error_response(e),
     }
 }
@@ -756,6 +957,9 @@ pub(crate) async fn service_credit_user(
         Ok(s) => s,
         Err(r) => return r,
     };
+    if let Err(r) = require_positive_amount(body.amount) {
+        return r;
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),
@@ -777,11 +981,15 @@ pub(crate) async fn service_credit_user(
         idempotency_key: body.idempotency_key,
     };
     match client.credit(req).await {
-        Ok(ledger_id) => Json(ServiceCreditUserDto {
-            account_id,
-            ledger_id,
-        })
-        .into_response(),
+        Ok(ledger_id) => {
+            invalidate_caller_cache(body.user_id).await;
+            invalidate_account_cache(account_id).await;
+            Json(ServiceCreditUserDto {
+                account_id,
+                ledger_id,
+            })
+            .into_response()
+        }
         Err(e) => wallet_error_response(e),
     }
 }

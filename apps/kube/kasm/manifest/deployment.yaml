@@ -7,11 +7,11 @@ metadata:
         app: kasm-vpn
         app.kubernetes.io/part-of: kasm
         app.kubernetes.io/component: workspace
+        kbve.com/category: virtualization
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        # Avoid `auto: true` — gen-vnc-pw patches kasm-vnc-pw on every
-        # pod start and `auto` would reroll forever. Explicit list keeps
-        # wireguard rotation while ignoring the per-session VNC_PW churn.
-        secret.reloader.stakater.com/reload: 'vpn-wireguard'
+        secret.reloader.stakater.com/reload: vpn-wireguard
 spec:
     replicas: 0
     selector:
@@ -44,7 +44,10 @@ spec:
             initContainers:
                 - name: fix-pvc-perms
                   image: busybox:1.37
-                  command: ['sh', '-c', 'chown -R 1000:1000 /home/kasm-user']
+                  command:
+                      - sh
+                      - -c
+                      - chown -R 1000:1000 /home/kasm-user
                   securityContext:
                       runAsUser: 0
                       runAsGroup: 0
@@ -61,25 +64,19 @@ spec:
                   volumeMounts:
                       - name: discord-profile
                         mountPath: /home/kasm-user
-
                 - name: gen-vnc-pw
                   image: curlimages/curl:8.10.1
                   command:
                       - sh
                       - -c
-                      - |
-                          set -eu
-                          PASSWORD=$(head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 32)
-                          B64=$(printf '%s' "$PASSWORD" | base64 | tr -d '\n')
-                          TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-                          NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
-                          curl -sf -X PATCH \
-                            -H "Authorization: Bearer $TOKEN" \
-                            -H "Content-Type: application/strategic-merge-patch+json" \
-                            --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
-                            -d "{\"data\":{\"password\":\"$B64\"}}" \
-                            "https://kubernetes.default.svc/api/v1/namespaces/$NS/secrets/kasm-vnc-pw" >/dev/null
-                          echo "kasm-vnc-pw rotated for new session"
+                      - "set -eu\nPASSWORD=$(head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9'\
+                        \ | head -c 32)\nB64=$(printf '%s' \"$PASSWORD\" | base64 | tr -d '\\n')\n\
+                        TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)\nNS=$(cat\
+                        \ /var/run/secrets/kubernetes.io/serviceaccount/namespace)\ncurl -sf -X\
+                        \ PATCH \\\n  -H \"Authorization: Bearer $TOKEN\" \\\n  -H \"Content-Type:\
+                        \ application/strategic-merge-patch+json\" \\\n  --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\
+                        \ \\\n  -d \"{\\\"data\\\":{\\\"password\\\":\\\"$B64\\\"}}\" \\\n  \"https://kubernetes.default.svc/api/v1/namespaces/$NS/secrets/kasm-vnc-pw\"\
+                        \ >/dev/null\necho \"kasm-vnc-pw rotated for new session\"\n"
                   securityContext:
                       runAsNonRoot: true
                       runAsUser: 65532
@@ -115,25 +112,25 @@ spec:
                             name: vpn-wireguard
                   env:
                       - name: UPDATER_PERIOD
-                        value: '24h'
+                        value: 24h
                       - name: TZ
-                        value: 'UTC'
+                        value: UTC
                       - name: HTTPPROXY
                         value: 'on'
                       - name: HTTPPROXY_LOG
                         value: 'off'
                       - name: FIREWALL_INPUT_PORTS
-                        value: '6901,9998,9999'
+                        value: 6901,9998,9999
                       - name: FIREWALL_OUTBOUND_SUBNETS
-                        value: '10.0.0.0/8,172.16.0.0/12'
+                        value: 10.0.0.0/8,172.16.0.0/12
                       - name: DOT
                         value: 'off'
                       - name: DNS_ADDRESS
-                        value: '1.1.1.1'
+                        value: 1.1.1.1
                       - name: HEALTH_VPN_DURATION_INITIAL
-                        value: '30s'
+                        value: 30s
                       - name: HEALTH_SERVER_ADDRESS
-                        value: '0.0.0.0:9999'
+                        value: 0.0.0.0:9999
                   livenessProbe:
                       httpGet:
                           path: /
@@ -151,14 +148,13 @@ spec:
                       timeoutSeconds: 10
                   resources:
                       requests:
-                          memory: '128Mi'
-                          cpu: '100m'
+                          memory: 128Mi
+                          cpu: 100m
                       limits:
-                          memory: '384Mi'
-                          cpu: '500m'
-
+                          memory: 384Mi
+                          cpu: 500m
                 - name: workspace
-                  image: ghcr.io/kbve/kasm-void:0.0.0
+                  image: ghcr.io/kbve/kasm-void:0.0.5
                   imagePullPolicy: IfNotPresent
                   securityContext:
                       runAsNonRoot: true
@@ -201,11 +197,11 @@ spec:
                                 name: kasm-vnc-pw
                                 key: password
                       - name: APP_ARGS
-                        value: >-
-                            --no-sandbox --disable-gpu --disable-dev-shm-usage
-                            --user-agent="Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0"
+                        value:
+                            --no-sandbox --disable-gpu --disable-dev-shm-usage --user-agent="Mozilla/5.0
+                            (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0"
                       - name: START_URL
-                        value: 'https://kbve.com'
+                        value: https://kbve.com
                       - name: LAUNCH_DISCORD
                         value: '1'
                       - name: LAUNCH_CLOAK
@@ -221,10 +217,10 @@ spec:
                         mountPath: /home/kasm-user
                   resources:
                       requests:
-                          memory: '4Gi'
+                          memory: 4Gi
                           cpu: '2'
                       limits:
-                          memory: '8Gi'
+                          memory: 8Gi
                           cpu: '4'
             volumes:
                 - name: discord-profile
@@ -234,7 +230,6 @@ spec:
                   hostPath:
                       path: /dev/net/tun
                       type: CharDevice
-
 ---
 apiVersion: v1
 kind: Service
@@ -243,6 +238,9 @@ metadata:
     namespace: kasm
     labels:
         app: kasm-vpn
+        kbve.com/category: virtualization
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

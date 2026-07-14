@@ -12,9 +12,91 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 4
-  about: "Bone spear is a members-only item in Old School RuneScape. High alchemy value: 360 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bone
+    tier: low
+  properties:
+    release_date: "2005-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 6
+    weight: 1.36
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 11
+      slash: 11
+      crush: 11
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 13
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Cave goblin guard
+        quantity: "1"
+        rarity: 20/128
+      - source: Master clue scroll (Hard)
+        quantity: "1"
+        rarity: common
+  shops:
+    - shop_name: Nardok's Bone Weapons
+      location: Dorgesh-Kaan mine
+      price: 600
+      currency: coins
+      stock: 5
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_name: Bone dagger
+      slug: bone-dagger
+      relationship: alternative
+      description: Dorgeshuun stab dagger
+    - item_name: Bone club
+      slug: bone-club
+      relationship: alternative
+      description: Dorgeshuun crush club
+    - item_name: Dorgeshuun crossbow
+      slug: dorgeshuun-crossbow
+      relationship: alternative
+      description: Companion ranged Dorgeshuun weapon
+  about: "Bone spear is the only one-handed spear in OSRS, allowing it to pair with a shield or defender. Crafted by the Dorgeshuun and sold by Nardok in the Dorgesh-Kaan mine, it boasts spear-tier stab, slash, and crush bonuses with +13 strength but cannot be poisoned."
+  market_strategy:
+    notes:
+      - "Niche pickup for ironmen lacking better one-handed stab weapons"
+      - "Hard clue reward keeps a small but consistent supply"
+  history:
+    - date: "2005-05-31"
+      description: Bone spear released with The Lost Tribe quest.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Acacia Button
+template: splash
 description: |
     Minecraft Acacia Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 415
     ref: acacia_button
     slug: acacia-button
+    content_rev: 1
     display_name: Acacia Button
     material: redstone
     hardness: 0.5
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Acacia Button is a small redstone activation device crafted from
+            a single acacia plank. Once pressed by a player, projectile, or
+            entity, it stays powered for 1.5 seconds before popping back out.
+        lore: |
+            Wooden buttons received their own distinct click sound apart from
+            stone buttons in Java Edition 1.9, giving redstone builds an
+            audible material identity.
+    uses:
+        - title: Redstone Circuits
+          ref: redstone_dust
+          detail: |
+              Wires a short pulse into doors, dispensers, and other redstone
+              contraptions; can be triggered by hand, arrows, or tripwires.
+        - title: Furnace Fuel
+          ref: acacia_button
+          detail: |
+              Overworld wood buttons can be burned as furnace fuel, smelting
+              a small number of items per button.
+    found_in:
+        - location: Crafting
+          detail: One acacia plank crafts one acacia button.
+        - location: Desert Villages
+          detail: Wooden buttons of the local wood type occasionally generate as part of village structures.
+    faq:
+        - question: What tool do I need to mine an acacia button?
+          answer: |
+              Any tool works; an axe breaks it fastest, but hand-breaking is
+              fine since it always drops itself.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops as itself regardless of enchantments.
+        - question: How long does the button stay pressed?
+          answer: |
+              Acacia (wooden) buttons stay powered for 1.5 seconds after being
+              triggered, longer than stone buttons.
+        - question: Can it be used as furnace fuel?
+          answer: |
+              Yes, Overworld wood buttons burn as fuel; Nether wood button
+              variants do not.
     data_version: "1.21.5"
 ---
 

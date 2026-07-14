@@ -1,0 +1,24 @@
+; Git LFS endpoint for the cryptothrone isometric game art (sprites, tilesets,
+; atlases, NPC/monster sheets, animated webp backgrounds).
+;
+; Pointer files (~150 byte text stubs) live in this GitHub monorepo; the real
+; PNG/WEBP blobs live on the self-hosted Forgejo instance at
+; git.kbve.com/KBVE/cryptothrone.git. Routing is via ingress-nginx (.74) not the
+; Cilium gateway (.71) for the same Cloudflare-origin reason documented in the
+; rareicon .lfsconfig at the repo root.
+;
+; LIMITATION: stock git-lfs only honors `lfs.url` from the .lfsconfig at the
+; *repository root* (this nested file is ignored by git-lfs itself). The
+; repo-root .lfsconfig still points at KBVE/rareicon. To push/pull cryptothrone
+; LFS blobs to the correct endpoint, use the kbve.sh wrapper:
+;
+;   ./kbve.sh -lfs cryptothrone push origin <branch>
+;   ./kbve.sh -lfs cryptothrone pull
+;   ./kbve.sh -lfs cryptothrone fetch --all
+;   ./kbve.sh -lfs cryptothrone register
+;
+; The wrapper injects `-c lfs.url=<this url>` so devs never have to remember it.
+; This .lfsconfig stays as the documented source of truth for the endpoint value
+; the wrapper hard-codes.
+[lfs]
+    url = https://git.kbve.com/KBVE/cryptothrone.git/info/lfs

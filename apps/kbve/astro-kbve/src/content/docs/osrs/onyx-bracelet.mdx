@@ -12,46 +12,96 @@ osrs:
   lowalch: 80400
   highalch: 120600
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: gem
+    tier: high
+  properties:
+    release_date: "2007-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.25
     requirements:
       crafting: 84
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 84
       xp: 125
-      inputs:
+      materials:
         - item_name: Onyx
           quantity: 1
         - item_name: Gold bar
           quantity: 1
+      tools:
+        - Bracelet mould
+        - Furnace
       output_quantity: 1
   related_items:
-    - item_id: 11115
-      item_name: Dragonstone bracelet
+    - item_name: Onyx
+      slug: onyx
+      relationship: component
+      description: Premium gem crafted with a gold bar to form the bracelet.
+    - item_name: Dragonstone bracelet
       slug: dragonstone-bracelet
       relationship: downgrade
-      description: Previous tier bracelet
-    - item_id: 11133
-      item_name: Regen bracelet
+      description: Previous-tier bracelet requiring lower Crafting and gem cost.
+    - item_name: Regen bracelet
       slug: regen-bracelet
       relationship: upgrade
-      description: Enchanted version (2x HP regen)
-  about: |-
-    Crafting (Level 84): Onyx + Gold bar at a furnace with bracelet mould (125 XP)
-
-    > *"An onyx bracelet."*
-
-    Lvl-6 Enchant (87 Magic): 1 cosmic rune + 20 fire runes + 20 earth runes (97 XP)
-
-    The Regen bracelet doubles natural HP regeneration (2 HP/min instead of 1). Also provides solid combat stats (+8 melee attack, +7 Str) — making it the best gloves for 1 Defence pures.
+      description: Lvl-6 Enchant of the onyx bracelet — doubles natural HP regeneration.
+    - item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Required base metal smelted before bracelet crafting.
+  about: "The onyx bracelet is a members-only jewellery piece crafted at level 84 Crafting from an onyx and a gold bar at a furnace using a bracelet mould (125 XP). On its own it has no combat bonuses, but when enchanted with Lvl-6 Enchant (87 Magic) it becomes a regen bracelet that doubles natural Hitpoint regeneration and grants +8 melee attack and +7 Strength — making it a staple for low-Defence pures."
   market_strategy:
     notes:
-      - Onyx is the main cost component
-      - Regen bracelet popular with pures
-      - High-value enchant — check margins
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Onyx supply dominates margin — track TzHaar token exchanges and Sliske drops."
+      - "Demand peaks from pures upgrading to regen bracelets."
+      - "Enchanting overhead via Magic spells eats margin; compute fully-enchanted profit."
+  trading_tips:
+    - "Buy unenchanted bracelets when Magic-trainer supply spikes."
+    - "Sell as enchanted regen bracelets to pure communities for premium."
+    - "Watch onyx price floors — TzHaar token farming bursts can compress margins."
+  history:
+    - date: "2007-04-30"
+      description: "Added to the game alongside the introduction of onyx gems."
+    - date: "2018-02-22"
+      description: "Inventory sprite rotated to differentiate from enchanted jewellery variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

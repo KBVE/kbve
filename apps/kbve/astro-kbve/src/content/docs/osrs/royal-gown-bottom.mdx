@@ -12,9 +12,60 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Royal gown bottom is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 1.36
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - item_name: Royal gown top
+      slug: royal-gown-top
+      relationship: set-piece
+      description: Matching top of the royal outfit
+    - item_name: Royal crown
+      slug: royal-crown
+      relationship: set-piece
+      description: Crown component of the royal outfit
+    - item_name: Royal sceptre
+      slug: royal-sceptre
+      relationship: set-piece
+      description: Sceptre component of the royal outfit
+  about: "Royal gown bottom is a purely cosmetic legs-slot reward from elite Treasure Trails. It is part of the royal outfit alongside the royal crown, royal gown top and royal sceptre, all of which can be stored in the costume room treasure chest."
+  market_strategy:
+    notes:
+      - "Cosmetic elite clue reward at 1/1,275 rarity"
+      - "Buy limit of 4 keeps volume thin and price reactive"
+      - "Demand is driven by collectors completing the royal outfit"
+  trading_tips:
+    - Margins widen during dry stretches in elite clue completions
+    - Track the matching royal pieces; a sale on one often pulls the whole set
+  history:
+    - date: "2014-06-12"
+      description: "Added with the Treasure Trail expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

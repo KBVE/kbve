@@ -1,5 +1,6 @@
 ---
 title: Closed Eyeblossom
+template: splash
 description: |
     Minecraft Closed Eyeblossom — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 231
     ref: closed_eyeblossom
     slug: closed-eyeblossom
+    content_rev: 1
     display_name: Closed Eyeblossom
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Closed eyeblossom is the daytime state of the eyeblossom flower, a plant exclusive to the pale garden biome that grows on grass or pale moss blocks and can be spread with bone meal. Eyeblossoms alternate between open at night and closed during the day, and nearby eyeblossoms signal each other to switch states together within a small radius.
+            In its closed form it is used to craft gray dye and, when brewed into suspicious stew, inflicts a nausea effect on the player who eats it.
+        lore: |
+            The eyeblossom was added as part of "The Garden Awakens" update, giving the eerie pale garden biome a flower that visibly reacts to the day-night cycle.
+    faq:
+        - question: What is a closed eyeblossom?
+          answer: |
+              It is the daytime state of the eyeblossom flower found in the pale garden biome; the same flower opens at night and closes again during the day.
+        - question: What can closed eyeblossom be used for?
+          answer: |
+              It can be crafted into gray dye, or used to make suspicious stew that gives the nausea effect when eaten.
+        - question: Where do closed eyeblossoms grow?
+          answer: |
+              They grow naturally on grass or pale moss blocks within the pale garden biome and can be propagated there with bone meal.
+        - question: Why do nearby eyeblossoms open and close together?
+          answer: |
+              Eyeblossoms signal other eyeblossoms within roughly a 7x5x7 block radius to open or close at the same time, so clusters tend to switch states in sync.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

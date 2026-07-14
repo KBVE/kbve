@@ -1,5 +1,6 @@
 ---
 title: Gold Ore
+template: splash
 description: |
     Minecraft Gold Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 42
     ref: gold_ore
     slug: gold-ore
+    content_rev: 1
     display_name: Gold Ore
     material: stone
     hardness: 3
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,67 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: raw_gold
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: gold_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - overworld
+        - ore
+    about:
+        description: |
+            Gold Ore is an Overworld ore that yields Raw Gold when mined
+            with an iron pickaxe or better; any lesser tool destroys the
+            block without a drop. It is far more common in badlands
+            biomes than elsewhere.
+        lore: |
+            Gold Ore has existed since Minecraft's earliest versions, and
+            switched from dropping a gold block to dropping raw gold in
+            Java Edition 1.17 alongside the introduction of its deepslate
+            variant.
+    uses:
+        - title: Raw Gold smelting
+          ref: gold_ingot
+          detail: |
+              Smelt Raw Gold in a furnace or blast furnace to produce Gold
+              Ingots, the base material for gold tools, armor, and blocks.
+    found_in:
+        - location: Overworld (Y -64 to 32)
+          detail: |
+              Generates in blobs of 0–13 blocks, four times per chunk,
+              peaking around Y=-16, with a 50% chance of extra deposits
+              below Y=-48.
+        - location: Badlands biomes
+          detail: |
+              Spawns abundantly — around 50 blobs per chunk, distributed
+              uniformly from Y=32 to Y=256.
+    faq:
+        - question: What tool do I need to mine Gold Ore?
+          answer: |
+              An iron pickaxe or better. Wood, stone, or gold pickaxes (and
+              bare hands) break the block but drop nothing.
+        - question: Does Fortune increase Gold Ore drops?
+          answer: |
+              Yes. Fortune I, II, or III yields 1–2, 1–3, or 1–4 Raw Gold
+              per block respectively.
+        - question: Does Silk Touch work on Gold Ore?
+          answer: |
+              Yes. Silk Touch drops the ore block itself instead of Raw
+              Gold, letting you relocate or smelt it directly later.
+        - question: Why is gold so common in badlands?
+          answer: |
+              Badlands biomes generate roughly 50 gold ore blobs per chunk
+              spread from Y=32 to Y=256, far more than the 4 blobs per
+              chunk found elsewhere in the Overworld.
     data_version: "1.21.5"
 ---
 

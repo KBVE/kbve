@@ -12,27 +12,25 @@ osrs:
   lowalch: 640
   highalch: 960
   limit: 50
-  item:
-    type: cosmetic material
-    tradeable: true
-    weight: 0.5
-  obtaining:
-    - source: Zalcano
-      drop_rate: 1/750 - 1/1,500
-      notes: Drop rate scales with contribution
+  material:
+    type: cosmetic
+    tier: mid-high
+  drop_table:
+    sources:
+      - source: Zalcano
+        quantity: "1"
+        rarity: "1/750-1/1,500"
   recipes:
-    - skill: smithing
+    - materials:
+        - item_name: Zalcano shard
+          quantity: 1
+        - item_name: Dragon pickaxe
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: smithing
       level: 1
-      materials:
-        - item_id: 23908
-          item_name: Zalcano shard
-          quantity: 1
-        - item_id: 11920
-          item_name: Dragon pickaxe
-          quantity: 1
       product: Dragon pickaxe (or)
-      product_id: 23677
-      notes: Shard is reusable when reverting
   related_items:
     - item_id: 11920
       item_name: Dragon pickaxe
@@ -44,20 +42,25 @@ osrs:
       slug: dragon-pickaxe-or
       relationship: product
       description: Cosmetic recolor only
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Cosmetic Material |
-    | Tradeable | Yes |
-    | Weight | 0.5 kg |
-
-    | Item Created | Effect |
-    |--------------|--------|
-    | Dragon pickaxe (or) | Cosmetic recolor only |
-
-    Shard is reusable when reverting.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Zalcano shard is a cosmetic material dropped by Zalcano used to apply the orange recolor to the Dragon pickaxe; the shard remains in inventory when reverting and is reusable."
+  history:
+    - date: "2019-07-25"
+      description: Released with the Song of the Elves update.
+  properties:
+    release_date: "2019-07-25"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

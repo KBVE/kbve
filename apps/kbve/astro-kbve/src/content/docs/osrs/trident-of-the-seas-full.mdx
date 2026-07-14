@@ -12,83 +12,99 @@ osrs:
   lowalch: 27600
   highalch: 41400
   limit: 8
+  material:
+    type: powered_staff
+    tier: high
+  properties:
+    release_date: "2014-01-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options: ["Wield", "Check", "Drop"]
+    worn_options: ["Check", "Uncharge"]
+    alchable: true
   equipment:
     slot: weapon
-    type: powered_staff
-    tradeable: true
+    weapon_type: powered_staff
+    attack_speed: 4
     weight: 1.814
     requirements:
       magic: 75
-    stats:
-      attack_magic: 15
-  charging:
-    max_charges: 2500
-    cost_per_cast: ~220 gp
-    materials:
-      - item_id: 560
-        item_name: Death rune
-        quantity: "1"
-      - item_id: 562
-        item_name: Chaos rune
-        quantity: "1"
-      - item_id: 554
-        item_name: Fire rune
-        quantity: "5"
-      - item_name: Coins
-        quantity: "10"
-  obtaining:
-    methods:
-      - source: Kraken (boss)
-        drop_rate: 1/512
-        variant: charged
-        requirements:
-          slayer: 87
-      - source: Cave kraken
-        drop_rate: 1/200
-        variant: uncharged
-        requirements:
-          slayer: 87
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 15
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    type: rune_consumption
+    description: Holds up to 2,500 charges. Each charge consumes 1 death rune, 1 chaos rune, 5 fire runes, and 10 coins (approximately 322 coins per charge, around 805,000 coins for a full recharge).
+  recipes:
+    - skill: magic
+      level: 75
+      xp: 0
+      materials:
+        - item_name: Death rune
+          quantity: 1
+        - item_name: Chaos rune
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 5
+        - item_name: Coins
+          quantity: 10
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 0
-      item_name: Kraken
-      slug: kraken
-      relationship: component
-      description: Boss drop
-    - item_id: 12899
-      item_name: Trident of the swamp
+    - item_name: Trident of the seas (e)
+      slug: trident-of-the-seas-e
+      relationship: variant
+      description: Enhanced variant created with a kraken tentacle
+    - item_name: Trident of the swamp
       slug: trident-of-the-swamp
       relationship: upgrade
-      description: Upgrade
-    - item_id: 12932
-      item_name: Magic fang
+      description: Toxic upgrade using a magic fang
+    - item_name: Kraken
+      slug: kraken
+      relationship: component
+      description: Boss source of the charged trident drop
+    - item_name: Magic fang
       slug: magic-fang
       relationship: component
-      description: Upgrade material
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Magic | +15 |
-
-    | Resource | Amount |
-    |----------|--------|
-    | Death rune | 1 |
-    | Chaos rune | 1 |
-    | Fire rune | 5 |
-    | Coins | 10 |
-    | Cost per cast | ~220 gp |
-    | Max charges | 2,500 |
-
-    Used for:
-    - Budget powered staff
-    - Early Zulrah
-    - General magic
-
-    Upgrade to Trident of the swamp.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Upgrade material to combine into the swamp trident
+  about: "Trident of the seas (full) is the fully charged form of the popular powered staff, dropped by the Kraken boss at roughly 1/512 and unlocked at 75 Magic. It autocasts a magic attack on a 4-tick speed for 7-tile range (9 with longrange), pulling runes and 10 coins from your inventory per cast. The full variant is tradeable so it can be flipped or sold post-grind, and can be upgraded into the Toxic trident of the swamp with a magic fang."
+  market_strategy:
+    notes:
+      - "Tradeable only when uncharged or fully charged"
+      - "GE buy limit of 8 keeps order books shallow"
+      - "Demand tied to Slayer/Zulrah usage and league cycles"
+      - "Watch death/chaos rune prices for charging arbitrage"
+  trading_tips:
+    - Compare charged price to uncharged + recharge cost
+    - Watch Kraken task popularity for supply swings
+  history:
+    - date: "2014-01-30"
+      description: Released with the Kraken boss update.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -12,22 +12,94 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: 8
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 9.979
     requirements:
       defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 82
+      slash: 80
+      crush: 72
+      magic: -6
+      ranged: 80
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 23209
-      item_name: Rune platebody (h1)
+    - item_name: Rune platebody
+      slug: rune-platebody
+      relationship: variant
+      description: Standard rune platebody with identical stats
+    - item_name: Rune platebody (h1)
       slug: rune-platebody-h1
       relationship: variant
       description: Heraldic variant 1
+    - item_name: Rune platebody (h2)
+      slug: rune-platebody-h2
+      relationship: variant
+      description: Heraldic variant 2
+    - item_name: Rune platebody (h3)
+      slug: rune-platebody-h3
+      relationship: variant
+      description: Heraldic variant 3
+    - item_name: Rune platebody (h5)
+      slug: rune-platebody-h5
+      relationship: variant
+      description: Heraldic variant 5
   about: |-
     > *"Provides excellent protection with a heraldic design."*
 
-    The rune platebody (h4) is a heraldic cosmetic variant of the rune platebody. Identical stats, requiring 40 Defence and Dragon Slayer I quest.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The rune platebody (h4) is a heraldic cosmetic variant of the rune platebody. It carries the same combat statistics as the standard plate, requiring 40 Defence and the Dragon Slayer I quest completion to equip.
+
+    The (h4) variant is obtained exclusively as a reward from hard Treasure Trails caskets at a roughly 1/8,125 rate. F2P-eligible cosmetic, popular among collectors for matching heraldic kits.
+  market_strategy:
+    notes:
+      - "Supply is entirely driven by hard clue completion rates."
+      - "Heraldic crests trend with fashionscape demand and event cosmetics."
+      - "Buy limit of 8 per 4 hours suits low-volume flipping."
+  trading_tips:
+    - Stock during Treasure Trail content updates when supply spikes.
+    - Sets featuring matching plateskirt and kiteshield carry pricing power.
+  history:
+    - date: "2019-04-11"
+      description: "Added to the hard Treasure Trail reward pool as part of the clue scroll expansion."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

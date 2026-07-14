@@ -1,0 +1,117 @@
+---
+title: Netcode and Multiplayer
+description: |
+    Networking models, replication, and latency-hiding for multiplayer games — authority, prediction, and the trade-offs between client-server and peer-to-peer.
+    Own-words reference cross-linked to KBVE's transport and server projects.
+sidebar:
+    label: Netcode & Multiplayer
+    order: 5
+tags:
+    - gdd
+    - netcode
+    - multiplayer
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Introduction
+
+Netcode is the layer that keeps multiple players in sync over an unreliable, latent network while the game still feels responsive. The hard part is physics: light takes time, packets drop, and you must hide that from the player. This page covers topologies, replication, latency hiding, and the security stance — mapped to KBVE's transport stack.
+
+<Aside type="tip" title="Source material">
+The canonical reads are Gabriel Gambetta's [Fast-Paced Multiplayer](https://www.gabrielgambetta.com/client-server-game-architecture.html) series, Valve's [Source Multiplayer Networking](https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking), and the [Gaffer On Games](https://gafferongames.com/) networking articles. This page summarizes and maps them to KBVE.
+</Aside>
+
+<Adsense />
+
+---
+
+## Topologies
+
+- **Client-server (authoritative)** — the server owns the truth; clients send input, receive state. The standard for competitive and persistent games because it's the only practical way to resist cheating.
+- **Peer-to-peer** — peers talk directly; lower infrastructure cost but trust and NAT problems, and "who is authoritative?" gets messy.
+- **Lockstep (deterministic)** — peers exchange only inputs and run identical simulations in step. Tiny bandwidth, scales to huge unit counts (RTS), but demands bitwise determinism and stalls on the slowest peer.
+
+<Aside>
+Authoritative client-server is the default unless you have a specific reason (RTS unit counts → lockstep; tiny co-op → maybe P2P).
+</Aside>
+
+---
+
+## Replication
+
+Replication is keeping client state in sync with server state efficiently:
+
+- **State replication** — server sends snapshots of relevant game state; clients render it. Robust to packet loss (next snapshot supersedes the lost one).
+- **Delta compression** — send only what changed since the client's last acknowledged snapshot.
+- **Relevancy / interest management** — only replicate what a client can perceive (area of interest, distance, visibility). Bandwidth is the budget; don't send the whole world.
+- **Reliability tiers** — UDP by default; layer your own reliability only where needed (RPCs, events) and leave fast-changing state unreliable.
+
+---
+
+## Latency hiding
+
+The techniques that make a laggy network feel instant:
+
+<CardGrid>
+  <Card title="Client-side prediction" icon="rocket">
+    The client applies the player's input immediately instead of waiting for the server round-trip, so movement feels instant.
+  </Card>
+  <Card title="Server reconciliation" icon="seti:default">
+    When the authoritative state arrives, the client rewinds and re-applies any inputs the server hadn't processed yet, correcting drift.
+  </Card>
+  <Card title="Entity interpolation" icon="seti:clock">
+    Render *other* players slightly in the past, smoothly interpolating between received snapshots to hide the gaps.
+  </Card>
+  <Card title="Lag compensation" icon="seti:crystal">
+    The server rewinds the world to the shooter's view-time when validating a hit, so well-aimed shots register despite latency.
+  </Card>
+</CardGrid>
+
+<Aside type="caution">
+Prediction can mispredict — the correction must be smoothed (not snapped) or it looks like rubber-banding. Interpolation adds intentional latency to *other* entities; that's the price of smoothness.
+</Aside>
+
+---
+
+## Tick rate and timing
+
+- **Tick rate** — how often the server simulates and snapshots (e.g. 30/60 Hz). Higher = more responsive, more bandwidth/CPU.
+- **Fixed timestep** — the simulation must advance in fixed steps for determinism and fair prediction; decouple it from render framerate (see the [Game Loop pattern](/gdd/patterns/)).
+- **Clock sync** — clients estimate server time + RTT to schedule input and interpolation correctly.
+
+---
+
+## Security
+
+The first rule: **never trust the client.**
+
+- Validate every input server-side; the client sends *intent*, the server decides *outcome*.
+- Movement, hits, economy, and item grants are server-authoritative.
+- Rate-limit and sanity-check inputs; clamp to physically possible actions.
+- Keep authority and transport concerns separated and never mix transports in shared structs.
+
+<Aside>
+KBVE's services treat auth as server-side truth: OWS gates world access on a Supabase JWT/UUID, enforces character-ownership with a 403, and resolves identity from the `sub` claim rather than client-supplied names.
+</Aside>
+
+---
+
+## How KBVE applies these
+
+- **Transport isolation** — WS and WT transports are kept strictly isolated; never mixed in shared structs, following the lightyear examples. This is a recorded engineering rule.
+- **rareicon (Unity NetCode)** — NetCode splits the world; gameplay is client-only and UI/services must scan `World.All` for `KingTag` rather than the default injection world.
+- **Authoritative auth** — OWS/ROWS resolve `userguid = sub` from the Supabase JWT, gate world-IP on bearer-or-session, and 403 on character-ownership mismatch.
+- **Known issue** — the isometric game's WASM WebSocket handshake reports `linked = true` but the netcode never completes the handshake; native works fine.
+
+---
+
+## Further reading
+
+- Gabriel Gambetta — [Fast-Paced Multiplayer](https://www.gabrielgambetta.com/client-server-game-architecture.html).
+- [Gaffer On Games](https://gafferongames.com/) — networked physics, reliability over UDP, snapshot interpolation.
+- Valve — [Source Multiplayer Networking](https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking).
+- [Architecture Patterns](/gdd/patterns/) — Event Queue and Double Buffer recur in netcode.
+
+<Giscus />

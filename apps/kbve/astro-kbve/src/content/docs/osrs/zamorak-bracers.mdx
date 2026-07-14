@@ -1,6 +1,6 @@
 ---
 title: Zamorak bracers | OSRS Price Data
-description: "Zamorak bracers is a members hands slot item requiring 70 Ranged. High alch: 2,400 GP, GE limit: 8."
+description: "Zamorak bracers are Zamorakian blessed d'hide vambraces with +11 ranged attack and +1 prayer, dropped from hard clues. High alch: 2,400 GP, GE limit: 8."
 osrs:
   id: 10368
   name: Zamorak bracers
@@ -12,8 +12,34 @@ osrs:
   lowalch: 1600
   highalch: 2400
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragonhide
+    tier: high
+  properties:
+    release_date: "2006-12-05"
+    update: "God blessed clue rewards"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: hands
+    weapon_type: vambraces
+    weight: 1
+    requirements:
+      ranged: 70
     attack_bonus:
       stab: 0
       slash: 0
@@ -24,55 +50,65 @@ osrs:
       stab: 6
       slash: 5
       crush: 7
-      magic: 6
-      ranged: 8
+      magic: 8
+      ranged: 0
     other_bonus:
       melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 1
-    requirements:
-      ranged: 70
+  drop_table:
+    sources:
+      - source: Hard Treasure Trails reward casket
+        rarity: 1/1625
+        members_only: true
   related_items:
+    - item_id: 10366
+      item_name: Saradomin bracers
+      slug: saradomin-bracers
+      relationship: variant
+      description: "Saradomin-aligned blessed dragonhide bracers with identical stats."
     - item_id: 10376
       item_name: Guthix bracers
       slug: guthix-bracers
       relationship: variant
+      description: "Guthix-aligned blessed dragonhide bracers with identical stats."
     - item_id: 12498
       item_name: Bandos bracers
       slug: bandos-bracers
       relationship: variant
+      description: "Bandos-aligned blessed dragonhide bracers with identical stats."
     - item_id: 12506
       item_name: Armadyl bracers
       slug: armadyl-bracers
       relationship: variant
+      description: "Armadyl-aligned blessed dragonhide bracers with identical stats."
     - item_id: 12490
       item_name: Ancient bracers
       slug: ancient-bracers
       relationship: variant
+      description: "Ancient-aligned blessed dragonhide bracers with identical stats."
     - item_id: 2491
       item_name: Black d'hide vambraces
       slug: black-d-hide-vambraces
       relationship: downgrade
-      description: Standard version requiring 40 Defence
-  about: |-
-    > *"Zamorak blessed dragonhide vambraces."*
-
-    | Stat | Blessed | Black D'hide |
-    |------|--------:|-----------:|
-    | Ranged Attack | +11 | +11 |
-    | Prayer | +1 | 0 |
-    | Ranged Req | 70 | 70 |
-    | Defence Req | None | 40 |
-
-    No Defence requirement makes these ideal for 1-Defence pures. The +1 prayer bonus is an additional advantage.
+      description: "Base black vambraces with the same +11 ranged attack but no prayer bonus."
+  about: "Zamorak bracers are the Zamorakian flavour of god-blessed dragonhide vambraces, dropped from hard clue caskets at a 1/1,625 rate. They share the +11 ranged attack of black d'hide vambraces but add a +1 prayer bonus and (since the September 2021 rework) carry no Defence requirement, making them a long-running favourite for 1-Defence Ranged pures and prayer-flicking PvM."
   market_strategy:
     notes:
-      - Hard clue exclusive
-      - Best-in-slot ranged gloves for pures
-      - All god variants are functionally identical
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Hard-clue exclusive supply keeps prices sensitive to clue meta and event hype."
+      - "GE buy limit of 8 per 4 hours is tight - merchanters watch large orders carefully."
+      - "High alch of 2,400 gp is well below GE - never an alch target."
+      - "All six god bracers are stat-identical; demand splits by player faction preference."
+  trading_tips:
+    - "Cross-check Saradomin and Guthix bracer pricing for cosmetic arbitrage."
+    - "Watch pure community streams - 1-Defence build hype lifts demand sharply."
+    - "Hard-clue rate increases or boosts (e.g., new clue scrolls) flood supply temporarily."
+  history:
+    - date: "2006-12-05"
+      description: "Released alongside the original god blessed dragonhide clue scroll rewards."
+    - date: "2021-09"
+      description: "40 Defence requirement removed, unlocking the bracers for 1-Defence Ranged pures."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

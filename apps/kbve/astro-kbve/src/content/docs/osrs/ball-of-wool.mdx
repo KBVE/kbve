@@ -12,9 +12,72 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Ball of wool is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.012
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 2.5
+      materials:
+        - item_name: Wool
+          quantity: 1
+      tools:
+        - Spinning wheel
+      output_quantity: 1
+  shops:
+    - shop_name: Neitiznot Supplies
+      location: Neitiznot
+      price: 14
+      currency: coins
+      stock: 100
+    - shop_name: Hamab's Crafting Emporium
+      location: Ape Atoll
+      price: 14
+      currency: coins
+      stock: 100
+  about: "Ball of wool is a free-to-play Crafting material spun from wool on a spinning wheel (1 Crafting, 2.5 XP per ball). Primarily used to string unstrung amulets (sapphire, emerald, ruby, diamond, gold, holy symbol, etc.). Required by Sheep Shearer (20), Prince Ali Rescue (3) and Regicide (4). High alchemy value: 1 coin. Grand Exchange buy limit: 13,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Steady demand from amulet stringers training Crafting at all levels"
+      - "F2P availability + shop spawns keep prices anchored near shop value"
+      - "Bulk reliable supply makes it ideal for high-volume low-margin flipping"
+  trading_tips:
+    - Spin wool yourself when shop supply runs out to capture small margins on amulet stringers
+    - Stock alongside unstrung amulets for Crafting bundle resellers
+  related_items:
+    - item_name: Wool
+      slug: wool
+      relationship: component
+      description: Raw material spun on a spinning wheel to produce ball of wool
+    - item_name: Holy symbol
+      slug: holy-symbol
+      relationship: product
+      description: Strung with a ball of wool to complete the holy symbol
+    - item_name: Gold amulet (u)
+      slug: gold-amulet-u
+      relationship: product
+      description: Common unstrung amulet completed with ball of wool
+  history:
+    - date: "2001-01-04"
+      description: "Added to the game at RuneScape's launch as a basic Crafting material."
+    - date: "2024-01-01"
+      description: "Examine text updated to reflect alpaca-sourced wool variations."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

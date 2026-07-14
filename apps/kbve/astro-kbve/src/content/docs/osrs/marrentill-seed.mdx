@@ -1,6 +1,6 @@
 ---
 title: Marrentill seed | OSRS Price Data
-description: "Marrentill seed: A marrentill seed - plant in a herb patch.. High alch: 1 GP, GE limit: 600."
+description: "Marrentill seed: A marrentill seed - plant in a herb patch. High alch: 1 GP, GE limit: 600."
 osrs:
   id: 5292
   name: Marrentill seed
@@ -12,65 +12,102 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  seed:
-    type: herb
+  material:
+    type: seed
     tier: low
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: true
+    noteable: true
+    equipable: false
+    quest_item: false
+    weight: 0.0
+    options:
+      - Use
+      - Drop
+      - Examine
+    alchable: true
   farming:
-    level: 14
-    xp_plant: 13.5
-    xp_harvest: 15
+    farming_level: 14
+    plant_xp: 13.5
+    harvest_xp: 15
+    check_health_xp: 0
+    patch_type: herb
     growth_time: 80
-    patches: 9
-    product_id: 201
-    product_name: Grimy marrentill
+    growth_cycles: 4
+    cycle_minutes: 20
+    seed_id: 5292
+    seed_name: Marrentill seed
+    produce_id: 201
+    produce_name: Grimy marrentill
+    min_yield: 3
+    max_yield: 28
+    compost_type: ultracompost
+    disease_free: false
+  drop_table:
+    sources:
+      - source: Master Farmer
+        combat_level: 38
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/74
+        members_only: true
+      - source: Hespori
+        quantity: "1-2"
+        rarity: common
+        members_only: true
+      - source: Bird nest (seed)
+        quantity: "1"
+        rarity: uncommon
+        members_only: false
   related_items:
     - item_id: 201
       item_name: Grimy marrentill
       slug: grimy-marrentill
       relationship: product
-      description: Harvested product
+      description: Harvested herb product
     - item_id: 251
       item_name: Marrentill
       slug: marrentill
       relationship: product
-      description: Cleaned herb
-    - item_id: 2430
+      description: Cleaned herb at Herblore level 5
+    - item_id: 2446
       item_name: Antipoison(4)
       slug: antipoison-4
       relationship: product
-      description: Made from marrentill
+      description: Made from clean marrentill as an Antipoison Herblore product
     - item_id: 5291
       item_name: Guam seed
       slug: guam-seed
-      relationship: alternative
-      description: Lower tier herb seed
+      relationship: downgrade
+      description: Lower-tier herb seed
     - item_id: 5293
       item_name: Tarromin seed
       slug: tarromin-seed
       relationship: upgrade
-      description: Next tier herb seed
-  about: |-
-    Plant in a herb patch to grow Grimy marrentill.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 14 |
-    | Growth time | 80 minutes |
-    | XP (plant) | 13.5 |
-    | XP (harvest) | 15 per herb |
+      description: Next-tier herb seed
   market_strategy:
     notes:
-      - Low-tier herb seed
-      - Used for antipoison potions
-      - Low value, good for early training
-      - Ultracompost (essential)
-      - Magic secateurs (10% more yield)
-      - Farming cape (5% more yield)
-      - 9 herb patches available
-      - ~10 minute runs, 80 minute regrowth
-      - Consider upgrading to higher tier seeds for profit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Trading Notes"
+      - "Low-tier herb seed with minimal direct profit"
+      - "Used mainly for Antipoison and Serum 207 chains"
+      - "Master Farmer pickpocketing drives most supply"
+      - "Ultracompost is essential for disease-free runs"
+      - "Magic secateurs add 10 percent more yield"
+      - "Farming cape stacks another 5 percent yield bonus"
+      - "Roughly 10 minute herb runs with 80 minute regrowth"
+      - "Skip past low tiers once Farming hits 32 for tarromin or 38 for ranarr"
+  trading_tips:
+    - Pair planting with low-Herblore alts to drain cheap seed supply
+    - Bird nests during Wintertodt sessions supplement seed income
+    - Sell grimy yields when herb prices spike during Bond weeks
+  about: Marrentill seed is a low-tier members herb seed planted in herb patches at Farming level 14 to grow grimy marrentill for Antipoison potions.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2005-03-09"
+      description: "Marrentill seed added with the Farming skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper
+template: splash
 description: |
     Minecraft Weathered Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 96
     ref: weathered_copper
     slug: weathered-copper
+    content_rev: 1
     display_name: Weathered Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Weathered copper is the third of four oxidation stages of a block of copper, appearing mostly green with brown spotting. It is a compact storage block equivalent to nine copper ingots, and it continues to naturally oxidize into the fully oxidized stage unless waxed with honeycomb. It can also be cut, stonecut into slabs and stairs, or scraped back a stage with an axe.
+        lore: |
+            Copper blocks oxidize the same way real copper roofing and statues do, slowly turning from bright orange-brown to green as they age in the weather.
+    faq:
+        - question: How do I get weathered copper?
+          answer: |
+              Craft a block of copper from nine ingots and let it oxidize naturally over time, or scrape an oxidized block with an axe to bring it back one stage to weathered.
+        - question: Can I stop it from oxidizing further?
+          answer: |
+              Yes. Applying honeycomb waxes the block, permanently locking it at the weathered stage so it never reaches fully oxidized.
+        - question: Can I turn it back into copper ingots?
+          answer: |
+              No. Only the unoxidized, unwaxed block of copper can be crafted back into ingots; weathered copper is decorative only at that point.
+        - question: How do I reverse the oxidation?
+          answer: |
+              Right-click the block with an axe to scrape off one stage of oxidation, or strike it with lightning to fully deoxidize it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

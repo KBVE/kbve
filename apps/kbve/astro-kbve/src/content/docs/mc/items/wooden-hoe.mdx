@@ -1,5 +1,6 @@
 ---
 title: Wooden Hoe
+template: splash
 description: |
     Minecraft Wooden Hoe — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 862
     ref: wooden_hoe
     slug: wooden-hoe
+    content_rev: 1
     display_name: Wooden Hoe
     category: tool
     rarity: common
@@ -35,6 +37,24 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The wooden hoe is an early-game tool crafted from planks and sticks, primarily used to convert dirt blocks into farmland for agriculture. It is the lowest-tier hoe with minimal mining efficiency, though it can break leaves and other organic blocks faster than an empty hand. Worn-out wooden hoes can also be burned as furnace fuel.
+        lore: |
+            Every farmer's first tool - humble wood that prepares the earth for growth.
+    faq:
+        - question: How do I craft a wooden hoe?
+          answer: |
+              Combine any type of planks with sticks in a crafting table. The recipe uses two planks arranged horizontally with two sticks arranged vertically below them.
+        - question: What blocks can a wooden hoe till into farmland?
+          answer: |
+              Hoes are used to turn dirt, grass blocks, and dirt paths into farmland. Mycelium and podzol must first be converted to dirt with a shovel before they can be tilled.
+        - question: How much durability does a wooden hoe have?
+          answer: |
+              Java Edition gives it 59 uses while Bedrock Edition gives 60. Each tilling action or weapon strike consumes one point of durability.
+        - question: Can a wooden hoe be repaired?
+          answer: |
+              Yes. Combine two damaged wooden hoes in a crafting grid or anvil for bonus durability, or repair one with planks on an anvil, where each plank restores roughly 25% of maximum durability.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

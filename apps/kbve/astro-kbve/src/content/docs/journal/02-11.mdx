@@ -8,14 +8,52 @@ img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=s
 description: Daily Log for February 11th for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 11,'
+    accent: every year.
+    lede: 'The February 11th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 10'
+          href: /journal/02-10/
+        - label: 'Feb 12 →'
+          href: /journal/02-12/
+    related:
+        - title: 'Previous · Feb 10'
+          copy: 'Step back a day to the February 10th log.'
+          href: /journal/02-10/
+          icon: calendar
+        - title: 'Next · Feb 12'
+          copy: 'Jump ahead to the February 12th log.'
+          href: /journal/02-12/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Migrations Nx SubFolders
 
@@ -169,7 +207,15 @@ impl ClockMasterExt for Gd<Node> {
     Resuable timers should restart but there might be a part where the godot might remove it?
     Race condition for the timer was not an issue with the wasm but it was on the mac.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 The characters might have issues with multi-worlds and cause issues if they are being played oln multiple worlds/game sessions, so we need a way to lock them out to prevent this from occuring.
 
@@ -249,3 +295,7 @@ Here is the current clockbased weather formula:
 ```
 
 However, I think for the performance of the game, we need to rewrite some of it to use the tick system instead.
+
+</BentoProse>
+
+</BentoDoc>

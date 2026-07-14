@@ -1,6 +1,6 @@
 ---
 title: Adamant cane | OSRS Price Data
-description: "Adamant cane is a members weapon slot item with +23 melee strength requiring 28 Attack. High alch: 864 GP, GE limit: 4."
+description: "Adamant cane is the Medium clue cosmetic crush weapon, +25 crush attack and +3 prayer bonus requiring 28 Attack. High alch: 864 GP, GE limit: 4."
 osrs:
   id: 12377
   name: Adamant cane
@@ -12,10 +12,36 @@ osrs:
   lowalch: 576
   highalch: 864
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2009-11-09"
+    update: "Treasure Trails Reloaded"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: spiked
+    weapon_type: spiked
     attack_speed: 5
+    attack_range: 1
+    weight: 0.453
+    requirements:
+      attack: 28
     attack_bonus:
       stab: 13
       slash: -2
@@ -33,65 +59,48 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 3
-    requirements:
-      attack: 28
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Medium
-        drop_rate: 1/1,133
-        description: Rare reward from medium clue scrolls
+  drop_table:
+    sources:
+      - source: Medium clue scroll casket
+        quantity: "1"
+        rarity: 1/1133
+        notes: "Rare reward from a Medium Treasure Trail."
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - item_id: 12379
-      item_name: Rune cane
-      slug: rune-cane
-      relationship: upgrade
-      description: Higher-tier cane from hard clues
-    - item_id: 12375
-      item_name: Mithril cane
+    - item_name: Mithril cane
       slug: mithril-cane
       relationship: downgrade
-      description: Lower-tier cane from easy clues
-    - item_id: 12381
-      item_name: Dragon cane
+      description: "Lower-tier cane from Easy clues"
+    - item_name: Rune cane
+      slug: rune-cane
+      relationship: upgrade
+      description: "Higher-tier cane from Hard clues"
+    - item_name: Dragon cane
       slug: dragon-cane
       relationship: upgrade
-      description: Highest-tier cane from elite clues
-  about: |-
-    > *"A diamond topped cane."*
-
-    | Style | Type | Experience |
-    |-------|------|-----------|
-    | Pound | Crush | Attack |
-    | Pummel | Crush | Strength |
-    | Spike | Stab | Shared |
-    | Block | Crush | Defence |
-
-    | Property | Mithril Cane | Adamant Cane | Rune Cane | Dragon Cane |
-    |----------|-------------|--------------|-----------|-------------|
-    | Crush Attack | +17 | +25 | +39 | +50 |
-    | Strength | +16 | +23 | +36 | +48 |
-    | Prayer | +2 | +3 | +4 | +5 |
-    | Attack Req | 20 | 28 | 40 | 60 |
-    | Clue Tier | Easy | Medium | Hard | Elite |
-
-    Each cane tier increases in stats and prayer bonus, matching progressively harder clue scroll requirements.
+      description: "Highest-tier cane from Elite clues"
+  about: "Adamant cane is the Medium clue exclusive cosmetic crush weapon, requiring 28 Attack and giving +25 crush attack, +23 melee strength, and +3 prayer bonus. It belongs to the cane progression (Mithril/Adamant/Rune/Dragon) where each tier ups the strength, crush, prayer bonus, and Attack requirement. The cane pairs with Gentleman's outfit fashionscape (top hat, monocle) and is primarily a collection log target rather than a combat weapon."
   market_strategy:
-    title: Investment Notes
     notes:
-      - Medium clue exclusive cosmetic weapon
-      - Low Attack requirement makes it accessible
-      - Prayer bonus is notable for the tier
-      - Primarily a fashionscape and collection log item
-      - Not efficient for combat compared to adamant scimitar
-      - Gentleman's outfit fashionscape pairs well with top hat and monocle
-      - Medium clues are fast to farm, so supply is reasonable
-      - Collection log completionists provide steady demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Medium clue exclusive cosmetic; demand is split with the other cane tiers"
+      - "Low Attack requirement makes it accessible to pures and early accounts"
+      - "Prayer bonus is unusual for the tier and modestly props the price floor"
+      - "GE limit of 4 per 4 hours strongly throttles bulk flipping"
+  trading_tips:
+    - "Compare cane tier prices against their clue rarity; cheapest cosmetic per gp wins"
+    - "Stockpile during Medium clue event weekends when supply temporarily spikes"
+    - "Pair with top hat and monocle listings to catch full Gentleman's outfit buyers"
+  history:
+    - date: "2009-11-09"
+      description: "Released with the Treasure Trails Reloaded cane reward expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

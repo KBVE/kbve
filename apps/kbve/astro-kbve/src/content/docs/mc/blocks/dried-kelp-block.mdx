@@ -1,5 +1,6 @@
 ---
 title: Dried Kelp Block
+template: splash
 description: |
     Minecraft Dried Kelp Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 712
     ref: dried_kelp_block
     slug: dried-kelp-block
+    content_rev: 1
     display_name: Dried Kelp Block
     material: plant
     hardness: 0.5
@@ -24,10 +26,60 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dried_kelp_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Dried Kelp Block is a compact storage form equivalent to nine
+            Dried Kelp items. It also serves as an efficient furnace fuel,
+            smelting twenty items per block, and stacks up to sixty-four
+            per inventory slot.
+        lore: |
+            Added in Java Edition 18w07a as a storage and fuel use for the
+            large amounts of Kelp farmed in ocean biomes.
+    uses:
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns for 200 seconds in a furnace, blast furnace, or smoker,
+              smelting up to 20 items per block — among the best renewable
+              fuels in the game.
+        - title: Dried Kelp
+          ref: dried_kelp
+          detail: |
+              Breaking it back down in a crafting grid yields nine Dried
+              Kelp items for easier stacking or eating.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from nine Dried Kelp, itself smoked from raw Kelp harvested in oceans.
+        - location: Villager Trading
+          detail: Butcher villagers buy 10 Dried Kelp Blocks for 1 Emerald.
+    faq:
+        - question: What tool mines it fastest?
+          answer: |
+              A hoe. Any tool or bare hands still break it, just more slowly.
+        - question: Can it be used as fuel?
+          answer: |
+              Yes. It is one of the best renewable furnace fuels, smelting
+              20 items per block.
+        - question: Does it burn?
+          answer: |
+              Yes, it is flammable and can catch fire when exposed to flames
+              or lava.
+        - question: How do I make more?
+          answer: |
+              Farm Kelp in an ocean, smelt it into Dried Kelp, then craft
+              nine Dried Kelp into one block.
     data_version: "1.21.5"
 ---
 

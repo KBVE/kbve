@@ -1,6 +1,6 @@
 ---
 title: Xerician fabric | OSRS Price Data
-description: "Xerician fabric: An old scrap of cloth, containing remnants of Xeric's forgotten magicks.. High alch: 1 GP, GE limit: 13,000."
+description: "Xerician fabric: An old scrap of cloth, containing remnants of Xeric's forgotten magicks. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 13383
   name: Xerician fabric
@@ -12,75 +12,93 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  item:
-    type: crafting material
-    tradeable: true
-    weight: 0.5
-  obtaining:
-    methods:
-      - source: Shayzien Agility Course
-        requirements:
-          agility: 45
-        description: Spawns randomly on course obstacles
-        rate: ~1 per 5 laps
-      - source: Lizardman Canyon
-        description: Dropped by Lizardman NPCs
-        drop_rate: 1/20
-      - source: Lizardman Brute
-        description: Dropped by Lizardman Brutes
-        drop_rate: 1/15
+  material:
+    type: cloth
+    tier: low
+  drop_table:
+    sources:
+      - source: Lizardman
+        quantity: "1"
+        rarity: 1/20
+      - source: Lizardman brute
+        quantity: "1"
+        rarity: 1/15
+      - source: Lizardman shaman
+        quantity: "1"
+        rarity: Common
+      - source: Stone chest
+        quantity: "1"
+        rarity: 66/300
+  recipes:
+    - skill: Crafting
+      level: 14
+      xp: 66
+      materials:
+        - item_name: Xerician fabric
+          quantity: 3
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
+    - skill: Crafting
+      level: 17
+      xp: 88
+      materials:
+        - item_name: Xerician fabric
+          quantity: 4
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
+    - skill: Crafting
+      level: 22
+      xp: 110
+      materials:
+        - item_name: Xerician fabric
+          quantity: 5
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
   related_items:
-    - item_id: 13385
-      item_name: Xerician hat
+    - item_name: Xerician hat
       slug: xerician-hat
       relationship: product
-      description: Crafted from fabric
-    - item_id: 13387
-      item_name: Xerician top
+    - item_name: Xerician top
       slug: xerician-top
       relationship: product
-      description: Crafted from fabric
-    - item_id: 13389
-      item_name: Xerician robe
+    - item_name: Xerician robe
       slug: xerician-robe
       relationship: product
-      description: Crafted from fabric
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Stackable | No |
-    | Members Only | Yes |
-    | Weight | 0.5 kg |
-
-    Xerician fabric is the primary material for crafting Xerician robes, a budget magic armour set.
-
-    ### Crafting Requirements
-
-    | Item | Fabric | Crafting Level |
-    |------|--------|----------------|
-    | Xerician hat | 3 | 22 |
-    | Xerician top | 4 | 22 |
-    | Xerician robe | 3 | 22 |
-    | Full Set | 10 | 22 |
-
-    Xerician fabric is obtained from various sources in the Shayzien region of Great Kourend. The Shayzien Agility Course is a popular method to collect fabric while training Agility.
-
-    ### Shayzien Agility Course
-
-    - Requires 45 Agility
-    - Gives approximately 20,000-25,000 XP per hour
-    - Fabric spawns on obstacles during laps
-    - Also gives chance at marks of grace
+  about: "Xerician fabric is a crafting material dropped by lizardmen and looted from the Shayzien stone chest, used with a needle to craft the Xerician robe set for early Magic training."
   market_strategy:
-    title: Trading Notes
     notes:
       - Demand driven by Ironmen crafting Xerician robes
       - Budget magic armour option for early game
-      - Price fluctuates based on supply from agility trainers
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Supply fluctuates with lizardman slayer popularity
+      - Stone chest thieving adds steady inflow
+  trading_tips:
+    - Buy during slayer task spikes for lizardmen
+    - Stock around new Ironman League launches
+  history:
+    - date: "2016-01-07"
+      description: Added to the game with the Great Kourend release.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: Great Kourend
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.06
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

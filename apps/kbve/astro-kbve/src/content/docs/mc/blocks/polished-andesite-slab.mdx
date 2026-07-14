@@ -1,5 +1,6 @@
 ---
 title: Polished Andesite Slab
+template: splash
 description: |
     Minecraft Polished Andesite Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 789
     ref: polished_andesite_slab
     slug: polished-andesite-slab
+    content_rev: 1
     display_name: Polished Andesite Slab
     material: stone
     hardness: 1.5
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_andesite_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - slab
+        - not_flammable
+        - waterloggable
+    about:
+        description: |
+            Polished Andesite Slab is a half-height decorative building
+            block cut from Polished Andesite, used for detailing floors,
+            steps, and trim in stone-themed builds.
+        lore: |
+            Added in Java Edition 18w43a for the Village & Pillage update,
+            with its texture refined a snapshot later in 18w44a.
+    uses:
+        - title: Building & Trim
+          ref: polished_andesite_slab
+          detail: |
+              Common as a half-block detail piece for floors, roofing
+              layers, and steps in stone builds alongside full Polished
+              Andesite blocks.
+    found_in:
+        - location: Crafting
+          detail: Three Polished Andesite blocks in a row craft six slabs.
+        - location: Stonecutter
+          detail: One Andesite or Polished Andesite block cuts into two slabs.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe works and drops the slab; mining without a
+              pickaxe yields nothing.
+        - question: How do I craft Polished Andesite Slabs?
+          answer: |
+              Arrange three Polished Andesite blocks in a horizontal row in
+              a crafting grid for six slabs, or cut Andesite/Polished
+              Andesite with a stonecutter for two slabs each.
+        - question: Can two slabs form a full block?
+          answer: |
+              Yes. Placing one slab on top of another in the same space
+              creates a full Polished Andesite Slab double-block.
+        - question: Is it waterloggable?
+          answer: |
+              Yes, like other slabs it can hold a water source when placed
+              underwater or waterlogged with a water bucket.
     data_version: "1.21.5"
 ---
 

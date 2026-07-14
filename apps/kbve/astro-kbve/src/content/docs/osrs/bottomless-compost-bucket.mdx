@@ -12,19 +12,19 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 5
-  item:
-    type: farming tool
-    tradeable: true
-    weight:
-      empty: 1
-      full: 3
-    capacity: 10000
-  effect:
-    description: Stores up to 10,000 charges of a single compost type. Each bucket added grants 2 charges (doubles compost).
-    compatible_compost:
-      - Compost
-      - Supercompost
-      - Ultracompost
+  material:
+    type: farming_tool
+    tier: high
+  charges:
+    max_charges: 10000
+    description: Stores up to 10,000 compost charges of a single type; each bucket added grants 2 charges, effectively doubling compost usage.
+  farming:
+    use: Doubles compost when applied to allotments, herbs, flowers, and similar patches
+  drop_table:
+    sources:
+      - source: Hespori
+        quantity: "1"
+        rarity: 1/35
   related_items:
     - item_id: 6420
       item_name: Ultracompost
@@ -36,24 +36,40 @@ osrs:
       slug: compost-bucket
       relationship: alternative
       description: Regular compost container
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Farming Tool |
-    | Tradeable | Yes (empty only) |
-    | Weight | 1 kg (empty), 3 kg (full) |
-
-    Capacity: 10,000 charges maximum (single compost type).
-
-    Efficiency: Each bucket added grants 2 charges (doubles compost).
-
-    Compatible: Compost, supercompost, ultracompost.
-
-    - Store with Tool Leprechaun in dedicated slot
-    - Cannot transfer compost back to empty buckets
-    - Untradeable when filled
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: A members-only farming tool dropped by Hespori that holds 10,000 charges of a single compost type and doubles compost applied to patches.
+  market_strategy:
+    notes:
+      - Only tradeable when empty
+      - Limited supply due to rare Hespori drop
+      - High-tier farming utility for serial farmers
+  trading_tips:
+    - Empty before listing on Grand Exchange
+    - Demand from Farming pet hunters and bulk farmers
+  history:
+    - date: "2019-01-10"
+      description: Item released with The Kebos Lowlands update.
+    - date: "2024-01-01"
+      description: Hotfix corrected filling from compost bins to grant two charges per bucket.
+    - date: "2025-08-27"
+      description: Added Empty option when bucket contains compost.
+  properties:
+    release_date: "2019-01-10"
+    update: The Kebos Lowlands
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Fill
+      - Check
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: forgejo
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/forgejo
+        kbve.com/manifest-path: kube/forgejo
+        kbve.com/application-file: kube/forgejo/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: ci-cd
+        kbve.com/stack: core
 spec:
     project: default
     sources:
@@ -13,14 +21,11 @@ spec:
               valuesObject:
                   global:
                       storageClass: longhorn
-
                   replicaCount: 1
-
                   image:
                       registry: codeberg.org
                       repository: forgejo/forgejo
-                      tag: '12'
-
+                      tag: '15'
                   service:
                       http:
                           type: ClusterIP
@@ -29,54 +34,32 @@ spec:
                           type: NodePort
                           port: 2222
                           nodePort: 30022
-
                   ingress:
                       enabled: false
-
                   persistence:
                       enabled: true
                       size: 50Gi
                       storageClass: longhorn
                       accessModes:
                           - ReadWriteOnce
-
-                  deployment:
-                      annotations:
-                          # Bump this value to force a pod rollout when config/secrets change.
-                          # ArgoCD detects the annotation change → new ReplicaSet → pod restart.
-                          kbve.com/config-revision: '2026-04-25-git-canonical-url'
-
+                  podAnnotations:
+                      kbve.com/config-revision: 2026-06-29-restricted-default-no-org
                   gitea:
                       admin:
                           existingSecret: forgejo-admin
                       config:
                           server:
-                              # Canonical user-facing URL is git.kbve.com (CNAME →
-                              # talos.kbve.com, ingress-nginx on .74). The Cilium
-                              # gateway HTTPRoute on forgejo.kbve.com (.71) is kept
-                              # alive but Cloudflare's path to .71 returns 522 on
-                              # the LFS batch endpoint, so all generated URLs
-                              # (clone, LFS batch, LFS upload) must point at
-                              # git.kbve.com to avoid a redirect into the broken
-                              # path. SSH continues to use forgejo.kbve.com on
-                              # port 2222 (SSH bypasses Cloudflare entirely).
                               DOMAIN: git.kbve.com
                               ROOT_URL: https://git.kbve.com
                               SSH_DOMAIN: forgejo.kbve.com
                               SSH_PORT: 2222
                               SSH_LISTEN_PORT: 2222
                               LFS_START_SERVER: true
-                              # LFS_JWT_SECRET is injected at runtime via the
-                              # additionalConfigFromEnvs block below — sealed
-                              # in apps/kube/forgejo/manifest/sealed-lfs-jwt.yaml.
-                              # Leaving blank here means Helm won't render a
-                              # value into the auto-generated Secret; the env
-                              # var override (FORGEJO__SERVER__LFS_JWT_SECRET)
-                              # is what Forgejo actually reads at startup.
                               LFS_JWT_SECRET: ''
+                              LFS_MAX_FILE_SIZE: 524288000
                           database:
                               DB_TYPE: postgres
-                              HOST: supabase-cluster-rw.kilobase.svc.cluster.local:5432
+                              HOST: kilobase-rw.kilobase.svc.cluster.local:5432
                               NAME: supabase
                               USER: forgejo
                               SSL_MODE: require
@@ -85,8 +68,27 @@ spec:
                               STORAGE_TYPE: local
                               PATH: /data/lfs
                           service:
-                              DISABLE_REGISTRATION: true
+                              DISABLE_REGISTRATION: false
                               REQUIRE_SIGNIN_VIEW: true
+                              ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+                              SHOW_REGISTRATION_BUTTON: false
+                              # New accounts (incl. OAuth auto-registrations) are
+                              # restricted by default: they can only interact with
+                              # repos/orgs where they are explicitly added as a
+                              # collaborator, and cannot access public repos on
+                              # this instance.
+                              DEFAULT_USER_IS_RESTRICTED: true
+                              # New users cannot create organizations by default
+                              # (org creation must be granted per-user by an admin).
+                              DEFAULT_ALLOW_CREATE_ORGANIZATION: false
+                          openid:
+                              ENABLE_OPENID_SIGNIN: true
+                              ENABLE_OPENID_SIGNUP: true
+                          oauth2_client:
+                              ENABLE_AUTO_REGISTRATION: true
+                              ACCOUNT_LINKING: auto
+                              UPDATE_AVATAR: true
+                              USERNAME: preferred_username
                           actions:
                               ENABLED: true
                           repository:
@@ -101,6 +103,19 @@ spec:
                           mirror:
                               ENABLED: true
                               DEFAULT_INTERVAL: 10m
+                          quota:
+                              ENABLED: true
+                          cron:
+                              git_gc_repos:
+                                  ENABLED: true
+                                  RUN_AT_START: false
+                                  SCHEDULE: '@every 24h'
+                                  TIMEOUT: 120s
+                              gc_lfs:
+                                  ENABLED: true
+                                  RUN_AT_START: false
+                                  SCHEDULE: 0 1 * * 0
+                                  OLDER_THAN: 168h
                       additionalConfigFromEnvs:
                           - name: FORGEJO__SERVER__LFS_JWT_SECRET
                             valueFrom:
@@ -115,31 +130,25 @@ spec:
                           - name: REDIS_PASSWORD
                             valueFrom:
                                 secretKeyRef:
-                                    name: forgejo-redis
-                                    key: password
+                                    name: valkey-auth
+                                    key: valkey-password
                           - name: FORGEJO__CACHE__HOST
-                            value: redis://default:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379/0?pool_size=100&idle_timeout=180s
+                            value: redis://default:$(REDIS_PASSWORD)@valkey.valkey.svc.cluster.local:6379/0?pool_size=100&idle_timeout=180s
                           - name: FORGEJO__SESSION__PROVIDER_CONFIG
-                            value: redis://default:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379/2?pool_size=100&idle_timeout=180s
+                            value: redis://default:$(REDIS_PASSWORD)@valkey.valkey.svc.cluster.local:6379/2?pool_size=100&idle_timeout=180s
                           - name: FORGEJO__QUEUE__CONN_STR
-                            value: redis://default:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379/1
-
+                            value: redis://default:$(REDIS_PASSWORD)@valkey.valkey.svc.cluster.local:6379/1
                   valkey-cluster:
                       enabled: false
-
                   redis-cluster:
                       enabled: false
-
                   postgresql:
                       enabled: false
-
                   postgresql-ha:
                       enabled: false
-
         - repoURL: https://github.com/KBVE/kbve.git
           targetRevision: main
           path: apps/kube/forgejo/manifest
-
     destination:
         server: https://kubernetes.default.svc
         namespace: forgejo

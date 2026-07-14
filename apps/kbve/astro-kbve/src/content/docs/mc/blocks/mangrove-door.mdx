@@ -1,5 +1,6 @@
 ---
 title: Mangrove Door
+template: splash
 description: |
     Minecraft Mangrove Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 621
     ref: mangrove_door
     slug: mangrove-door
+    content_rev: 1
     display_name: Mangrove Door
     material: wood
     hardness: 3
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+    about:
+        description: |
+            Mangrove Door is a wooden door variant crafted from Mangrove
+            Planks that players, villagers, piglins, and vindicators can
+            open and close by hand or with a redstone signal. It blocks
+            movement while allowing light through when open.
+        lore: |
+            Wooden doors date back to Java Edition Infdev (2010); the
+            mangrove variant was added with the Mangrove Swamp update
+            (1.19).
+    uses:
+        - title: Passable Barrier
+          ref: mangrove_door
+          detail: |
+              Opens and closes on player interaction or redstone power,
+              blocking mob movement while letting the player through.
+        - title: Furnace Fuel
+          ref: mangrove_door
+          detail: |
+              Overworld wood doors can be burned as furnace fuel.
+    found_in:
+        - location: Crafted from Mangrove Planks
+          detail: 6 planks in a 3x2 grid craft 3 mangrove doors.
+        - location: Generated structures
+          detail: Found in villages, mangrove swamp huts, and other wood-themed builds.
+    faq:
+        - question: What tool do I need to mine a Mangrove Door?
+          answer: |
+              None — it can be broken by hand, though an axe is fastest.
+        - question: Does a Mangrove Door burn?
+          answer: |
+              Yes, it is flammable like other wooden blocks.
+        - question: Can mobs open Mangrove Doors?
+          answer: |
+              Villagers, piglins, and vindicators can open wooden doors;
+              most hostile mobs cannot.
+        - question: How many doors does one crafting yield?
+          answer: |
+              6 mangrove planks craft 3 mangrove doors.
     data_version: "1.21.5"
 ---
 

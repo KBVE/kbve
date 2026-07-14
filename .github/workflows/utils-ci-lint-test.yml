@@ -24,6 +24,7 @@ jobs:
         timeout-minutes: 120
         env:
             NX_NO_CLOUD: true
+            NX_DAEMON: false
         permissions:
             contents: read
         steps:
@@ -39,7 +40,7 @@ jobs:
                   docker-images: true
 
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
@@ -77,7 +78,7 @@ jobs:
               run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
-              uses: actions/cache@v5
+              uses: actions/cache@v6
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
@@ -95,14 +96,18 @@ jobs:
                   token: ${{ github.token }}
 
             - name: Install uv
-              uses: astral-sh/setup-uv@v7
+              uses: Wandalen/wretry.action@v3.8.0
               with:
-                  github-token: ${{ github.token }}
+                  action: astral-sh/setup-uv@v7
+                  attempt_limit: 3
+                  attempt_delay: 15000
+                  with: |
+                      github-token: ${{ github.token }}
 
-            - name: Setup Rust 1.94
+            - name: Setup Rust 1.96
               uses: dtolnay/rust-toolchain@stable
               with:
-                  toolchain: '1.94'
+                  toolchain: '1.96'
                   components: clippy
 
             - name: Install system libraries for wry/webkit2gtk + protoc
@@ -122,53 +127,15 @@ jobs:
                   mkdir -p ~/.pgrx
                   printf '[configs]\npg17 = "/usr/lib/postgresql/17/bin/pg_config"\n' > ~/.pgrx/config.toml
 
-            # Godot 4.6.3 for nexus-defense:test / :test-e2e.
-            #
-            # Cached under /opt/godot so cold installs (~30 s, downloads
-            # the ~80 MB linux release zip from godotengine/godot-builds)
-            # only happen on the first run per cache key. Subsequent runs
-            # are a no-op restore. scripts/test{,-e2e}.sh both honour the
-            # GODOT_BIN env var the final step exports, so no script
-            # change is needed for CI to start using the cached binary.
-            #
-            # When godot ships a new patch, bump GODOT_VERSION below and
-            # cache key flips automatically.
-            - name: Cache Godot 4.6.3 (Linux x86_64)
-              id: godot-cache
-              uses: actions/cache@v5
-              with:
-                  path: /opt/godot
-                  key: godot-${{ runner.os }}-4.6.3-stable
-
-            - name: Install Godot 4.6.3
-              if: steps.godot-cache.outputs.cache-hit != 'true'
-              env:
-                  GODOT_VERSION: 4.6.3-stable
-                  GODOT_BUILD: Godot_v4.6.3-stable_linux.x86_64
-              run: |
-                  set -euo pipefail
-                  curl -fsSL --retry 3 -o /tmp/godot.zip \
-                    "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/${GODOT_BUILD}.zip"
-                  sudo mkdir -p /opt/godot
-                  sudo unzip -q /tmp/godot.zip -d /opt/godot
-                  sudo mv "/opt/godot/${GODOT_BUILD}" /opt/godot/godot
-                  sudo chmod +x /opt/godot/godot
-                  rm /tmp/godot.zip
-
-            - name: Expose GODOT_BIN
-              run: |
-                  echo "GODOT_BIN=/opt/godot/godot" >> "$GITHUB_ENV"
-                  /opt/godot/godot --version
-
             # Force a fresh nx project graph before affected lint/test runs.
             # Without this, the @nx/dependency-checks ESLint rule has a known
             # race when a dep + its first import land in back-to-back PRs:
             # the daemon's cached graph sees the dep in package.json but
             # not yet the import in src/, so it falsely flags the package
             # as unused (see #10607). `nx reset` clears the cache and stops
-            # any stale daemon — the next nx invocation spawns a fresh daemon
-            # and rebuilds the graph from disk, so daemon caching still helps
-            # the rest of the run.
+            # any stale daemon; NX_DAEMON=false (job env) then keeps every nx
+            # invocation daemonless, rebuilding the graph from disk each time
+            # so CI never hits the "Failed to process project graph" daemon flake.
             - name: Reset nx graph
               run: pnpm nx reset
 

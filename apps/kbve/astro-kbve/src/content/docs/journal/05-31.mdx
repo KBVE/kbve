@@ -9,13 +9,52 @@ description: |
    May 31st. End of May.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 31,'
+    accent: every year.
+    lede: 'The May 31st daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← May 30'
+          href: /journal/05-30/
+        - label: 'Jun 1 →'
+          href: /journal/06-01/
+    related:
+        - title: 'Previous · May 30'
+          copy: 'Step back a day to the May 30th log.'
+          href: /journal/05-30/
+          icon: calendar
+        - title: 'Next · Jun 1'
+          copy: 'Jump ahead to the June 1st log.'
+          href: /journal/06-01/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1624221023334-16e25184b8b0?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Unity ItemDB
 
@@ -35,8 +74,15 @@ import { Adsense } from '@/components/astropad';
     Our goal would be to prepare the NPC MDX, so not only will be able to add items at a large scale, we can also start producing the NPCs at the same rate.
     As for the NPC animation and the state management, both of those can be handled with this system.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 Got a great idea for a new tool, I figured that I might build it out really quick since I am stuck on the invoicing and resume tool.
 The worst feeling in the world is when you can not finish a tool and then you start another tool, and then you dont finish that one and start another tool.
@@ -45,19 +91,28 @@ It is like the ADHD programming problem.
 Yet I think the key is to find ways to make the different and unique tools work together, kinda like building multiple lego sets but the goal is not to actually build out the final set but rather discover the different pieces that you can make?
 Like imagine you have a single 1 by 1 lego piece and then you realize that it is easier to build with 2 by 2 square pieces! Yet sometimes you need to split the 2 by 2 with 4 of the 1 by 1 pieces.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 10:00am - Most of this day will be spent working on the Conch react script but also figuring out the basics of the cloud functions. The idea here will be to isolate as much of the script(s) that I am building and move a certain amount of the logic into cloud functions. I do also want to move certain functions into their own worker threads but that will be something that I can work on later down the line.
 - 1:00pm - It looks like we can continue development of RogueJester but at a limited scale, at least until we get a better understanding of the whole project. Starting Monday, we will begin a month of active but slow development. We will be doing about 3 weeks of development currently but hopefully it is enough to get the whole game to at least beta / demo.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Love yourself first and everything else falls into line. You really have to love yourself to get anything done in this world.
 > — <cite>Lucille Ball</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

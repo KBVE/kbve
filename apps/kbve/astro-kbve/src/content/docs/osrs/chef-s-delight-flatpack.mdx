@@ -12,9 +12,58 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
+  material:
+    type: wood
+    tier: low
+  recipes:
+    - materials:
+        - item_name: Oak plank
+          quantity: 3
+        - item_name: Steel bar
+          quantity: 2
+        - item_name: Chef's delight
+          quantity: 8
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+      requirements: "Requires 48 Construction. Built at a steel framed workbench in a player-owned house. Grants 224 Construction experience."
+  related_items:
+    - name: Chef's delight
+      relationship: component
+    - name: Oak plank
+      relationship: component
+    - name: Steel bar
+      relationship: component
   about: "Chef's delight (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - "Built at a steel framed workbench requiring 48 Construction, granting 224 experience per flatpack."
+      - "Used at the Barrel space hotspot in the Kitchen of a player-owned house."
+      - "Often traded for cheap Construction experience or to skip skill requirements."
+  trading_tips:
+    - "Margin comes from selling to lazy Construction trainers who skip oak plank gathering."
+    - "Check the GE buy limit of 500 per 4 hours per account when bulk flipping."
+    - "Compare cost vs. raw oak planks + chef's delights + steel bars to find arbitrage."
+  history:
+    - date: "2006-05-31"
+      description: "Released alongside the Construction skill update introducing player-owned houses."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: "Construction (Player-Owned Houses)"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

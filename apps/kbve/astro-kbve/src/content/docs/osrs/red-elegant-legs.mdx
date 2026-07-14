@@ -5,28 +5,91 @@ osrs:
   id: 10406
   name: Red elegant legs
   slug: red-elegant-legs
-  examine: A rather elegant pair of men's red pantaloons.
+  examine: "A rather elegant pair of men's red pantaloons."
   members: true
   icon: Red elegant legs.png
   value: 2000
   lowalch: 800
   highalch: 1200
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-05-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weight: 0.4
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: "1/1,133"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
     - item_id: 10404
       item_name: Red elegant shirt
       slug: red-elegant-shirt
       relationship: set-piece
-      description: Matching elegant shirt
-  about: |-
-    > *"A rather elegant pair of men's red pantaloons."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the red elegant clothing set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching elegant shirt for the red set."
+    - item_name: Blue elegant legs
+      slug: blue-elegant-legs
+      relationship: variant
+      description: "Blue colour variant from the same clue tier."
+    - item_name: Green elegant legs
+      slug: green-elegant-legs
+      relationship: variant
+      description: "Green colour variant from the same clue tier."
+  about: "Red elegant legs are purely cosmetic legwear obtained as a medium clue scroll reward, with no combat stats or requirements. Worn alongside the matching red elegant shirt, they form one of the classic medium-clue fashionscape sets favoured by collectors."
+  market_strategy:
+    notes:
+      - "Tiny GE buy limit of 4 keeps spreads wide and price reactive."
+      - "Demand is fashionscape and collection log only."
+      - "Supply tied to medium clue completion rates."
+  trading_tips:
+    - "Pair listings with the matching shirt for full-set buyers."
+    - "Buy after clue burnout weekends; sell at content launches."
+  history:
+    - date: "2006-05-10"
+      description: "Added as part of the elegant clothing medium clue rewards."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

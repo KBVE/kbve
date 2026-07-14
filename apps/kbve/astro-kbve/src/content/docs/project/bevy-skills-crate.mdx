@@ -1,7 +1,7 @@
 ---
-title: uevy skills
-description: |
-    uevy skills — Bevy game crate for the KBVE isometric engine.
+title: bevy_skills — Skill Progression Crate for Bevy
+description: bevy_skills is a Rust skill-progression crate — a pure-Rust core tracking per-entity XP, levels, and skill checks, with an optional Bevy ECS plugin and events.
+sem: 1
 sidebar:
     label: uevy skills
 tags:
@@ -19,8 +19,99 @@ version_toml: packages/rust/bevy/bevy_skills/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the bevy_skills crate do?
+          answer: bevy_skills is a skill-progression system for games. It tracks per-entity skill XP and levels, fires events on level-up, and provides skill checks for gating interactions such as mining, woodcutting, cooking, smithing, alchemy, and combat.
+        - question: Can bevy_skills be used without Bevy?
+          answer: Yes. The core is plain Rust with a quadratic XpCurve, SkillRegistry, and SkillProfile and has zero Bevy dependency. The optional bevy feature (on by default) adds the BevySkillsPlugin, Component and Message derives, and the ECS systems, and can be disabled for FFI cdylibs and headless consumers.
+        - question: How does XP progression work in bevy_skills?
+          answer: Each skill uses a configurable quadratic XpCurve. Sending a GrantXpMsg for an entity and skill adds XP; when a threshold is crossed the crate emits a LevelUpMsg, and SkillCheckMsg / SkillCheckResultMsg gate interactions by level.
+bento:
+    badge: crates · rust · bevy
+    title: Skill progression for
+    accent: bevy_skills
+    lede: >-
+        A skill-progression crate for Bevy — per-entity XP, levels, and skill
+        checks in a pure-Rust core, with an optional Bevy ECS plugin and event
+        pipeline layered on top.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_skills
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: box
+        title: Pure-Rust core, optional Bevy
+        body: >-
+            The core is plain Rust with a quadratic XpCurve, SkillRegistry, and
+            SkillProfile, so it also serves <strong>FFI cdylibs</strong> and
+            headless consumers with zero Bevy dependency.
+        points:
+            - <strong>Core</strong> — XP, levels, and skill checks in plain Rust.
+            - <strong>bevy feature</strong> — optional ECS plugin, on by default.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Edition, value: "2024", icon: settings }
+        - { label: Categories, value: game-dev, icon: gears }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Skill catalogue
+          icon: book
+          body: <code>SkillRegistry</code>, <code>SkillDef</code>, and <code>SkillId</code> register named skills with a category and optional icon.
+        - title: Per-entity state
+          icon: activity
+          body: <code>SkillProfile</code> and <code>SkillEntry</code> track XP and level per entity.
+        - title: Quadratic XP curve
+          icon: chart
+          body: <code>XpCurve</code> is configurable per skill.
+        - title: Message pipeline
+          icon: message
+          body: <em>(bevy feature)</em> <code>GrantXpMsg</code>, <code>LevelUpMsg</code>, <code>SkillCheckMsg</code>, and <code>SkillCheckResultMsg</code> drive a publish/subscribe flow.
+        - title: Optional Bevy plugin
+          icon: package
+          body: <code>BevySkillsPlugin</code> registers resources, messages, and systems. The <code>bevy</code> feature is on by default and can be disabled so the crate compiles with zero Bevy dependency for FFI and headless use.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy::prelude::*;
+            use bevy_skills::{BevySkillsPlugin, SkillRegistry, SkillDef, GrantXpMsg, LevelUpMsg};
+
+            App::new()
+                .add_plugins(BevySkillsPlugin)
+                .add_systems(Startup, |mut registry: ResMut<SkillRegistry>| {
+                    registry.register(SkillDef {
+                        r#ref: "mining".into(),
+                        name: "Mining".into(),
+                        xp_curve: None,
+                        category: "gathering".into(),
+                        icon: None,
+                    });
+                });
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Isometric camera crate for the same engine.
+          icon: video
+        - title: bevy_chat
+          href: /project/bevy-chat-crate
+          copy: Chat and event bridge crate that shares the optional-Bevy-plugin pattern.
+          icon: message
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-uevy skills Bevy crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

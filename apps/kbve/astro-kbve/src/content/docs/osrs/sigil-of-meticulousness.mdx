@@ -1,6 +1,6 @@
 ---
 title: Sigil of meticulousness | OSRS Price Data
-description: "Sigil of meticulousness: A power enhancing sigil not yet attuned to you.. High alch: 18,000 GP."
+description: "Sigil of meticulousness: A power enhancing sigil not yet attuned to you. High alch: 18,000 GP."
 osrs:
   id: 29649
   name: Sigil of meticulousness
@@ -11,10 +11,82 @@ osrs:
   value: 30000
   lowalch: 12000
   highalch: 18000
-  limit: null
-  about: "Sigil of meticulousness is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 100
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2024-07-17"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - "Attune"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    > *"A power enhancing sigil not yet attuned to you."*
+
+    The sigil of meticulousness is a tier-3 Deadman Mode combat sigil that, once attuned, grants a passive 75% boost to attack accuracy across all combat styles for every monster the player attacks. The sigil drops in its untuned, tradeable form from monsters during seasonal Deadman events and can also be purchased from the skull shop introduced in Deadman: Annihilation. Attuning the sigil makes it a permanent unlock on the account, and players can stack multiple active sigils at once without conflict. Because the sigil is exclusive to Deadman Mode, it has no gameplay effect on standard or Ironman game modes despite still being tradeable on the seasonal Grand Exchange.
+  passive_effects:
+    - name: Accuracy aura
+      description: "While attuned and active during a Deadman event, every combat style gains a flat 75% accuracy multiplier against every monster, making it one of the strongest DPS sigils in the high-tier rotation."
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table
+        location: Deadman Mode event worlds
+        quantity: "1"
+        rarity: Rare
+        members: true
+        notes: "Drops as a rare from most monsters on the shared Deadman Mode drop table during seasonal events; supply dries up when an event ends."
+  shops:
+    - shop_name: "Skull Shop (Deadman: Annihilation)"
+      location: "Deadman: Annihilation worlds"
+      price: 1
+      stock: 1
+      currency: Skulls
+      members: true
+      notes: "Available for skull tokens earned through Deadman: Annihilation PvP activity; pricing varies by event."
+  history:
+    - date: "2024-07-17"
+      update: "Deadman: Apocalypse"
+      description: "Sigil of meticulousness debuted with the Deadman: Apocalypse summer event as part of the new tier-3 sigil rotation."
+    - date: "2025-02-12"
+      update: "Deadman: Annihilation"
+      description: "Re-issued in the Annihilation event via the skull shop, letting players buy the sigil directly instead of relying purely on RNG."
+  related_items:
+    - item_id: 29647
+      item_name: Sigil of precision
+      slug: sigil-of-precision
+      relationship: alternative
+      description: "Another accuracy-flavoured sigil from the Deadman tier-3 pool, focused on hitchance smoothing rather than flat accuracy."
+    - item_id: 29651
+      item_name: Sigil of devotion
+      slug: sigil-of-devotion
+      relationship: alternative
+      description: "Defensive tier-3 sigil that pairs well in Deadman combat builds for stack survival."
+    - item_id: 29645
+      item_name: Sigil of slaughter
+      slug: sigil-of-slaughter
+      relationship: alternative
+      description: "Damage-focused tier-3 sigil typically stacked with meticulousness for max DPS in Deadman."
+  market_strategy:
+    notes:
+      - "Active only in seasonal Deadman events: GE price collapses outside of an event window."
+      - "Pre-event hype usually spikes price 2-3 weeks before launch; flip into that window."
+      - "Skull shop supply caps the in-event ceiling: avoid over-paying when shop alternative is available."
+  trading_tips:
+    - "Time purchases around Deadman event reveal posts: prices typically gap up the same day."
+    - "Watch event hot-fixes: any nerf to the 75% accuracy modifier instantly tanks the sigil."
+    - "Avoid attuning early in an event if you plan to resell: attuned sigils cannot be retraded."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

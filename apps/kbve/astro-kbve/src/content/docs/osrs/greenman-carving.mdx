@@ -12,9 +12,56 @@ osrs:
   lowalch: 3698
   highalch: 5547
   limit: null
-  about: "Greenman carving is a members-only item in Old School RuneScape. High alchemy value: 5,547 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Greenman mask
+          quantity: 1
+        - item_name: Ent branch
+          quantity: 5
+        - item_name: Yew logs
+          quantity: 1
+      tools:
+        - Knife
+        - Fletching level 79
+      output_quantity: 1
+      skill: Fletching
+      experience: 70
+  related_items:
+    - name: Greenman mask
+      relationship: component
+    - name: Ent branch
+      relationship: component
+    - name: Yew logs
+      relationship: component
+  about: "Greenman carving is a Fletching-crafted decoration built from a Greenman mask, 5 ent branches and yew logs; mounted in player-owned house dining, combat, or throne rooms."
+  market_strategy:
+    notes:
+      - "No GE buy limit listed — can move volume but supply is thin."
+      - "Recipe profit depends on Greenman mask spread (the dominant cost input)."
+      - "High alch 5,547 gp well below GE price — never alch."
+  trading_tips:
+    - "Demand from POH builders chasing Construction XP / fashionscape POHs."
+    - "Watch Greenman mask price (Halloween event drop) — it dominates carving cost."
+  history:
+    - date: "2025-07-23"
+      description: "Released with the Varlamore: The Final Dawn update."
+  properties:
+    release_date: "2025-07-23"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Build
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

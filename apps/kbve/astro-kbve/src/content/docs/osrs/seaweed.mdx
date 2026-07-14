@@ -1,6 +1,6 @@
 ---
 title: Seaweed | OSRS Price Data
-description: "Seaweed: Slightly damp seaweed.. High alch: 1 GP, GE limit: 13,000."
+description: "Seaweed is a crafting material cooked into soda ash for glass making. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 401
   name: Seaweed
@@ -14,11 +14,12 @@ osrs:
   limit: 13000
   material:
     type: crafting
-    tier: basic
+    tier: low
   shops:
-    - shop_name: Trader Stan's Trading Posts
+    - shop_name: "Trader Stan's Trading Posts"
       price: 5
       currency: Coins
+      stock: 0
   drop_table:
     sources:
       - source: Rock crab
@@ -31,10 +32,6 @@ osrs:
         quantity: "1"
         rarity: common
         members_only: true
-  processing:
-    method: Cook on range
-    product_id: 1781
-    product_name: Soda ash
   recipes:
     - skill: cooking
       level: 1
@@ -45,42 +42,52 @@ osrs:
           quantity: 1
       product: Soda ash
       product_id: 1781
-      product_quantity: 1
+      output_quantity: 1
       facility: Range
   related_items:
     - item_id: 21504
       item_name: Giant seaweed
       slug: giant-seaweed
       relationship: upgrade
-      description: Superior variant (6x)
+      description: Superior variant worth 6 regular seaweed
     - item_id: 1781
       item_name: Soda ash
       slug: soda-ash
       relationship: product
-      description: Cooked form
+      description: Cooked form used in glass making
     - item_id: 1775
       item_name: Molten glass
       slug: molten-glass
       relationship: product
-      description: End product
+      description: End product of soda ash plus sand
     - item_id: 1783
       item_name: Bucket of sand
       slug: bucket-of-sand
       relationship: component
-      description: Glass making partner
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 0.2 kg |
-
-    Cook on range to create soda ash for glass making.
-
-    Also used directly in Superglass Make spell.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Pairs with soda ash to make molten glass
+  market_strategy:
+    notes:
+      - Glassmaking pipeline input; price is bound to giant seaweed and soda ash
+      - Steady demand from Crafting trainers via Superglass Make
+      - Supply leans on impling and Rock crab drop tables plus shop runs
+  trading_tips:
+    - Compare giant seaweed per unit vs seaweed price for arbitrage
+    - Buy in bulk before crafting bottle / glassblowing events
+    - "Skip seaweed if Superglass Make herblore unlock makes giant seaweed cheaper"
+  about: "Seaweed is a members-only crafting material harvested from drops and shops, cooked on a range into soda ash for glass making. High alchemy value: 1 coin. Grand Exchange buy limit: 13,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    alchable: true
+  history:
+    - date: "2001-12-12"
+      description: Seaweed added with the Crafting skill and glass making pipeline.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

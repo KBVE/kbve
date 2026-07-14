@@ -12,9 +12,87 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Piscarilius hood is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/851
+  related_items:
+    - item_name: Reward casket (master)
+      slug: reward-casket-master
+      relationship: component
+      description: "Source casket from master Treasure Trails"
+    - item_name: Hosidius hood
+      slug: hosidius-hood
+      relationship: alternative
+      description: "Other Great Kourend house hood from master clues"
+    - item_name: Lovakengj hood
+      slug: lovakengj-hood
+      relationship: alternative
+      description: "Lovakengj cosmetic counterpart"
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  about: |-
+    The Piscarilius hood is a master Treasure Trail cosmetic head slot reward themed around the Great Kourend house. It offers no combat bonuses and is collected for fashionscape, storable in a mahogany costume room treasure chest.
+  market_strategy:
+    notes:
+      - "Cosmetic master clue reward, niche demand"
+      - "Buy limit of 4 caps quick flips"
+      - "Long-term value tied to master clue supply"
+  trading_tips:
+    - "Stock during master clue droughts for resale spikes"
+    - "Watch casket master volume for incoming supply"
+    - "Patient buy orders, daily volume is low"
+  history:
+    - date: "2016-07-06"
+      description: "Added with the Treasure Trail Expansion update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

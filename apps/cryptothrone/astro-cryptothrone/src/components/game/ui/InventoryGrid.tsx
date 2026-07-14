@@ -1,5 +1,17 @@
 import { useState, useCallback } from 'react';
+import { laserEvents } from '@kbve/laser';
 import { getItemById } from '../data/items';
+import { ItemIcon } from './ItemIcon';
+import { PixelPanel } from './PixelPanel';
+
+const RARITY_BORDER: Record<string, string> = {
+	common: 'border-stone-400/50',
+	uncommon: 'border-green-400/60',
+	rare: 'border-blue-400/60',
+	epic: 'border-purple-400/70',
+	legendary: 'border-amber-400/80',
+	mythic: 'border-rose-400/80',
+};
 
 interface InventoryGridProps {
 	backpack: string[];
@@ -38,11 +50,45 @@ export function InventoryGrid({ backpack }: InventoryGridProps) {
 							className="relative hover:scale-[1.3] transition ease-in-out duration-100"
 							onMouseEnter={(e) => showTooltip(item.id, e)}
 							onMouseLeave={hideTooltip}>
-							<img
-								src={item.img}
-								alt={item.name}
-								className="w-8 h-8 border border-yellow-400/50"
-							/>
+							<button
+								type="button"
+								aria-label={
+									item.type === 'consumable'
+										? `Use ${item.name}`
+										: item.type === 'weapon' ||
+											  item.type === 'armor'
+											? `Equip ${item.name}`
+											: item.name
+								}
+								className={
+									item.type === 'consumable' ||
+									item.type === 'weapon' ||
+									item.type === 'armor'
+										? 'cursor-pointer'
+										: 'cursor-default'
+								}
+								onClick={() => {
+									if (item.type === 'consumable') {
+										laserEvents.emit('item:use', {
+											ref: item.id,
+										});
+									} else if (
+										item.type === 'weapon' ||
+										item.type === 'armor'
+									) {
+										laserEvents.emit('item:equip', {
+											ref: item.id,
+										});
+									}
+								}}>
+								<ItemIcon
+									item={item}
+									className={`border ${
+										RARITY_BORDER[item.rarity] ??
+										'border-yellow-400/50'
+									}`}
+								/>
+							</button>
 						</li>
 					);
 				})}
@@ -52,12 +98,13 @@ export function InventoryGrid({ backpack }: InventoryGridProps) {
 					const item = getItemById(tooltipItem.id);
 					if (!item) return null;
 					return (
-						<div
+						<PixelPanel
+							variant="iron"
 							style={{
 								top: tooltipItem.y,
 								left: tooltipItem.x,
 							}}
-							className="fixed bg-gray-700 text-white p-2 rounded shadow-lg z-50 pointer-events-none">
+							className="fixed text-white p-2 z-50 pointer-events-none">
 							<p className="text-sm font-semibold">{item.name}</p>
 							<p className="text-xs">Type: {item.type}</p>
 							<p className="text-xs">{item.description}</p>
@@ -69,7 +116,7 @@ export function InventoryGrid({ backpack }: InventoryGridProps) {
 										.join(', ')}
 								</p>
 							)}
-						</div>
+						</PixelPanel>
 					);
 				})()}
 		</div>

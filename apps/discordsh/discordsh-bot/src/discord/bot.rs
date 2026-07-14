@@ -242,6 +242,45 @@ async fn event_handler(
 
         serenity::FullEvent::Message { new_message } => {
             super::relay::handle_discord_message(new_message, &data.app).await;
+            super::gh_reverse::handle_reverse_message(new_message, &data.app).await;
+        }
+
+        serenity::FullEvent::MessageUpdate { new, event, .. } => {
+            let (author, content) = match new {
+                Some(msg) => (
+                    Some(
+                        msg.author
+                            .global_name
+                            .clone()
+                            .unwrap_or_else(|| msg.author.name.clone()),
+                    ),
+                    Some(msg.content.clone()),
+                ),
+                None => (
+                    event
+                        .author
+                        .as_ref()
+                        .map(|a| a.global_name.clone().unwrap_or_else(|| a.name.clone())),
+                    event.content.clone(),
+                ),
+            };
+            super::gh_reverse::handle_reverse_edit(
+                event.channel_id,
+                event.id,
+                author,
+                content,
+                &data.app,
+            )
+            .await;
+        }
+
+        serenity::FullEvent::MessageDelete {
+            channel_id,
+            deleted_message_id,
+            ..
+        } => {
+            super::gh_reverse::handle_reverse_delete(*channel_id, *deleted_message_id, &data.app)
+                .await;
         }
 
         _ => {}

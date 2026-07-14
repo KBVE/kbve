@@ -1,0 +1,176 @@
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: rows-chuckrpg-beta
+    namespace: arc-runners
+    labels:
+        app: ows-gameserver
+        app.kubernetes.io/part-of: ows
+        app.kubernetes.io/instance: chuckrpg-beta
+spec:
+    replicas: 0
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 25%
+            maxUnavailable: 25%
+    template:
+        metadata:
+            labels:
+                app: ows-gameserver
+                app.kubernetes.io/part-of: ows
+                app.kubernetes.io/instance: chuckrpg-beta
+        spec:
+            container: ue5-server
+            ports:
+                - name: game
+                  portPolicy: Dynamic
+                  containerPort: 7777
+                  protocol: UDP
+            health:
+                initialDelaySeconds: 30
+                periodSeconds: 15
+                failureThreshold: 5
+            template:
+                spec:
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        runAsGroup: 1000
+                        fsGroup: 1000
+                    initContainers:
+                        - name: build-reporter-init
+                          image: ghcr.io/kbve/kubectl:0.1.5
+                          command: ['/bin/sh', '-c', 'sh /scripts/report.sh']
+                          env:
+                              - name: OWS_API_PATH
+                                value: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322/
+                              - name: OWS_API_CUSTOMER_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-gameserver-secrets-chuckrpg-beta
+                                        key: customer-guid
+                          volumeMounts:
+                              - name: server-binary
+                                mountPath: /server
+                                subPath: chuckServer
+                                readOnly: true
+                              - name: build-reporter-script
+                                mountPath: /scripts
+                          resources:
+                              requests:
+                                  memory: 16Mi
+                                  cpu: 10m
+                              limits:
+                                  memory: 32Mi
+                                  cpu: 50m
+                    containers:
+                        - name: ue5-server
+                          image: ubuntu:24.04
+                          command:
+                              - /bin/bash
+                              - -c
+                              - |
+                                  SERVER_DIR=$(find /server -maxdepth 2 -name "LinuxServer" -type d | sort -V | tail -1)
+                                  if [ -z "${SERVER_DIR}" ]; then
+                                    SERVER_DIR=$(find /server -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -1)
+                                  fi
+                                  if [ -z "${SERVER_DIR}" ]; then
+                                    echo "ERROR: no server build found on PVC"
+                                    ls -la /server/ 2>/dev/null
+                                    exit 1
+                                  fi
+                                  SERVER_BIN=$(find "${SERVER_DIR}" -maxdepth 1 -name "*Server.sh" | head -1)
+                                  if [ -z "${SERVER_BIN}" ]; then
+                                    echo "ERROR: no *Server.sh found under ${SERVER_DIR}"
+                                    ls -la "${SERVER_DIR}/" 2>/dev/null
+                                    exit 1
+                                  fi
+                                  echo "Starting UE5 dedicated server from ${SERVER_BIN}"
+                                  exec "${SERVER_BIN}" \
+                                    -server \
+                                    -log \
+                                    -nosteam \
+                                    -unattended \
+                                    -port=${GAME_PORT:-7777} \
+                                    -GameMode=${OWS_GAME_MODE} \
+                                    ${OWS_EXTRA_ARGS:-}
+                          env:
+                              - name: GAME_PORT
+                                value: '7777'
+                              - name: OWS_GAME_MODE
+                                value: /Script/Chuck.ChuckGameMode
+                              - name: OWS_API_PATH
+                                value: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322/
+                              - name: OWS_INSTANCE_MANAGEMENT_PATH
+                                value: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322/
+                              - name: OWS_CHARACTER_PERSISTENCE_PATH
+                                value: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322/
+                              - name: OWS_GLOBAL_DATA_PATH
+                                value: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322/
+                              - name: OWS_API_CUSTOMER_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-gameserver-secrets-chuckrpg-beta
+                                        key: customer-guid
+                              - name: OWS_ENCRYPTION_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-gameserver-secrets-chuckrpg-beta
+                                        key: encryption-key
+                              - name: OWS_SERVICE_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-service-key-chuckrpg-beta
+                                        key: service-key
+                                        optional: true
+                          resources:
+                              requests:
+                                  memory: 2Gi
+                                  cpu: '1'
+                              limits:
+                                  memory: 4Gi
+                                  cpu: '2'
+                          volumeMounts:
+                              - name: server-binary
+                                mountPath: /server
+                                subPath: chuckServer
+                        - name: build-reporter
+                          image: ghcr.io/kbve/kubectl:0.1.5
+                          command:
+                              [
+                                  '/bin/sh',
+                                  '-c',
+                                  'while true; do sh /scripts/report.sh; sleep 60; done',
+                              ]
+                          env:
+                              - name: OWS_API_PATH
+                                value: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322/
+                              - name: OWS_API_CUSTOMER_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-gameserver-secrets-chuckrpg-beta
+                                        key: customer-guid
+                          volumeMounts:
+                              - name: server-binary
+                                mountPath: /server
+                                subPath: chuckServer
+                                readOnly: true
+                              - name: build-reporter-script
+                                mountPath: /scripts
+                          resources:
+                              requests:
+                                  memory: 16Mi
+                                  cpu: 10m
+                              limits:
+                                  memory: 32Mi
+                                  cpu: 50m
+                    volumes:
+                        - name: server-binary
+                          persistentVolumeClaim:
+                              claimName: ows-server-build
+                        - name: build-reporter-script
+                          configMap:
+                              name: ows-build-reporter
+                              defaultMode: 0555

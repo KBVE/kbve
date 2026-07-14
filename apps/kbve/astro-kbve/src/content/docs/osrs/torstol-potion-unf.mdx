@@ -12,70 +12,70 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 10000
-  potion:
-    type: unfinished
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: unfinished-potion
     tier: high
-  herblore:
-    level: 78
-    xp: 0
-    method: Add torstol to vial of water
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: herblore
       level: 78
       xp: 0
       materials:
         - item_name: Vial of water
-          item_id: 227
           quantity: 1
         - item_name: Torstol
-          item_id: 269
           quantity: 1
-      product: Torstol potion (unf)
-      product_id: 111
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 269
-      item_name: Torstol
+    - item_name: Torstol
       slug: torstol
       relationship: component
-      description: Herb ingredient
-    - item_id: 227
-      item_name: Vial of water
+      description: "Clean herb added to the vial"
+    - item_name: Vial of water
       slug: vial-of-water
       relationship: component
-      description: Base liquid
-    - item_id: 247
-      item_name: Jangerberries
-      slug: jangerberries
-      relationship: component
-      description: Secondary for zamorak brew
-    - item_id: 189
-      item_name: Zamorak brew(3)
+      description: "Base liquid for the unfinished potion"
+    - item_name: Zamorak brew(3)
       slug: zamorak-brew-3
       relationship: product
-      description: Attack boost potion
-    - item_id: 3042
-      item_name: Super combat potion(4)
+      description: "Finished with jangerberries at 78 Herblore"
+    - item_name: Super combat potion(4)
       slug: super-combat-potion-4
       relationship: product
-      description: Ultimate combat potion
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 78 Herblore |
-
-    Add secondary ingredient to create:
-    - Zamorak brew (+ jangerberries)
-    - Super combat potion (combined with other potions)
-
-    High-level herblore content.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Combined with super attack/strength/defence at 90 Herblore"
+    - item_name: Anti-venom+(4)
+      slug: anti-venom-plus-4
+      relationship: product
+      description: "Finished at 94 Herblore for venom immunity"
+  about: "Torstol potion (unf) is the unfinished base for several high-level herblore products including zamorak brew, super combat potion, surge potion, and anti-venom+. Made by combining torstol with a vial of water at 78 Herblore."
+  market_strategy:
+    notes:
+      - "Tracks torstol and vial supply tightly"
+      - "Bulk-made for super combat shop runs"
+      - "Used by Herblore alts to bank XP/hr"
+  trading_tips:
+    - "Buy unfinished and finish into super combat(4) for predictable margin"
+    - "Watch torstol farming patch cycles for supply swings"
+  history:
+    - date: "2002-12-12"
+      description: "Released alongside the Herblore skill rework introducing torstol-based potions"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,84 @@ osrs:
   lowalch: 1440
   highalch: 2160
   limit: 125
+  material:
+    type: dragonhide
+    tier: high
+  equipment:
+    slot: hands
+    weight: 0.283
+    requirements:
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 10
+    defence_bonus:
+      stab: 5
+      slash: 4
+      crush: 6
+      magic: 6
+      ranged: 0
+    other_bonus:
+      strength: 2
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Red d'hide vambraces
+          quantity: 1
+        - item_name: Kebbit claws
+          quantity: 1
+      tools: []
+      skill: Crafting
+      level: 32
+      experience: 5.8
+      output_quantity: 1
+  related_items:
+    - name: Green spiky vambraces
+      relationship: variant
+    - name: Blue spiky vambraces
+      relationship: variant
+    - name: Black spiky vambraces
+      relationship: variant
+    - name: Red d'hide vambraces
+      relationship: component
+    - name: Kebbit claws
+      relationship: component
   about: "Red spiky vambraces is a members-only item in Old School RuneScape. High alchemy value: 2,160 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - High alch value 2,160 gp; viable for alch training when bought below high alch.
+      - Crafted from red d'hide vambraces plus kebbit claws at 32 Crafting.
+      - Modest demand from Ranged players seeking extra strength bonus.
+  trading_tips:
+    - Compare crafting cost vs GE price before buying out the materials.
+    - Eclectic implings provide a steady noted supply that pressures price ceilings.
+  history:
+    - date: "2006-11-21"
+      description: Released with the kebbit claw spiky vambraces variants.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

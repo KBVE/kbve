@@ -12,9 +12,78 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 70
-  about: "Mystic robe bottom (dusk) is a members-only item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: enchanted cloth
+    tier: mid-high
+  properties:
+    release_date: "2019-01-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  equipment:
+    slot: legs
+    weight: 1.814
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 11
+      slash: 9
+      crush: 13
+      magic: 15
+      ranged: 11
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Brimstone chest
+        quantity: "1"
+        rarity: 1/1000
+  related_items:
+    - item_name: Mystic robe top (dusk)
+      slug: mystic-robe-top-dusk
+      relationship: set-piece
+      description: Matching torso piece of the dusk mystic set.
+    - item_name: Mystic hat (dusk)
+      slug: mystic-hat-dusk
+      relationship: set-piece
+      description: Headgear that completes the dusk mystic outfit.
+    - item_name: Mystic robe bottom
+      slug: mystic-robe-bottom
+      relationship: variant
+      description: Standard dark blue mystic legs with identical stats.
+  about: "Mystic robe bottom (dusk) is a recoloured cosmetic variant of the standard mystic robe bottom, sharing identical combat stats. Players obtain it from the Brimstone chest looted with Wilderness slayer keys, making it a long term grind reward rather than a steady drop. Its niche demand and capped 70 buy limit keep prices volatile."
+  market_strategy:
+    notes:
+      - "Supply is gated entirely by Brimstone chest rolls."
+      - "Demand spikes during fashionscape events and PvP cosmetic crazes."
+      - "Margins widen during dry Wilderness slayer weeks."
+  trading_tips:
+    - Watch Wilderness slayer engagement trends for supply hints.
+    - Pair with matching top and hat for set sales at a premium.
+    - Set buy offers below GE mid since volume is low and trades are slow.
+  history:
+    - date: "2019-01-11"
+      description: "Added as a rare Brimstone chest cosmetic drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

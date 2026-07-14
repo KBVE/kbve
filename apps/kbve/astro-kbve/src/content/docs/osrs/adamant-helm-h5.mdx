@@ -1,6 +1,6 @@
 ---
 title: Adamant helm (h5) | OSRS Price Data
-description: "Adamant helm (h5): An adamant helmet with a heraldic design.. High alch: 2,112 GP, GE limit: 70."
+description: "Adamant helm (h5) is a heraldic adamant helmet from medium clue scroll rewards bearing the Saradomin crest. High alch: 2,112 GP, GE limit: 70."
 osrs:
   id: 10304
   name: Adamant helm (h5)
@@ -12,12 +12,105 @@ osrs:
   lowalch: 1408
   highalch: 2112
   limit: 70
-  about: "Adamant helm (h5) is a free-to-play item in Old School RuneScape. High alchemy value: 2,112 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: adamantite
+    tier: mid
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails, spiders and sheep"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weight: 3.175
+    attack_speed: 4
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 19
+      slash: 21
+      crush: 16
+      magic: -1
+      ranged: 19
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: "1/1,133"
+        notes: "Medium clue scroll exclusive heraldic reward."
+  related_items:
+    - item_name: Adamant helm (h1)
+      slug: adamant-helm-h1
+      relationship: variant
+      description: "Saradomin crest variant of the heraldic adamant helm."
+    - item_name: Adamant helm (h2)
+      slug: adamant-helm-h2
+      relationship: variant
+      description: "Zamorak crest variant of the heraldic adamant helm."
+    - item_name: Adamant helm (h3)
+      slug: adamant-helm-h3
+      relationship: variant
+      description: "Guthix crest variant of the heraldic adamant helm."
+    - item_name: Adamant helm (h4)
+      slug: adamant-helm-h4
+      relationship: variant
+      description: "Heraldic adamant helm with a fourth crest design."
+    - item_name: Rune helm (h5)
+      slug: rune-helm-h5
+      relationship: upgrade
+      description: "Higher tier rune version of the same heraldic crest."
+    - item_name: Black helm (h5)
+      slug: black-helm-h5
+      relationship: downgrade
+      description: "Lower tier black version of the same heraldic crest."
+  about: "Adamant helm (h5) is a cosmetic heraldic medium clue scroll reward at the adamant tier, sharing the stat profile of a standard adamant full helm with 30 Defence required. It is part of the heraldic five-crest set spanning black, adamant, and rune tiers, prized by collectors for clue log completion."
+  market_strategy:
+    notes:
+      - "Supply is gated entirely on medium clue casket completion volume."
+      - "Demand is collector-driven: small float keeps spreads wide."
+      - "GE limit of 70 per 4 hours supports steady accumulation without splash."
+  trading_tips:
+    - "Buy during medium clue meta lulls when adamant heraldic supply outpaces collector demand."
+    - "Track collection log completion threads on the official forums for sentiment."
+  history:
+    - date: "2006-12-05"
+      update: "Treasure Trails, spiders and sheep"
+      description: "Adamant helm (h5) added as a medium clue scroll reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

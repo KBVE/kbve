@@ -1,6 +1,6 @@
 ---
 title: Ankou top | OSRS Price Data
-description: "Ankou top: This top will make your flesh transparent.. High alch: 1 GP, GE limit: 4."
+description: "Ankou top: This top will make your flesh transparent. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 20098
   name: Ankou top
@@ -12,9 +12,88 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Ankou top is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.5
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/12765
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_id: 20096
+      item_name: Ankou mask
+      slug: ankou-mask
+      relationship: set-piece
+      description: Ankou outfit head slot
+    - item_id: 20100
+      item_name: Ankou legs
+      slug: ankou-legs
+      relationship: set-piece
+      description: Ankou outfit legs slot
+    - item_id: 20102
+      item_name: Ankou gloves
+      slug: ankou-gloves
+      relationship: set-piece
+      description: Ankou outfit hands slot
+    - item_id: 20104
+      item_name: Ankou socks
+      slug: ankou-socks
+      relationship: set-piece
+      description: Ankou outfit feet slot
+  about: Ankou top is a cosmetic body-slot item rewarded as a rare drop from Master clue caskets at 1/12,765. Part of the Ankou outfit and storable in a mahogany costume room treasure chest. Provides no combat bonuses.
+  market_strategy:
+    notes:
+      - "Master clue exclusive: supply gated by clue completion rates"
+      - "Buy limit only 4 per 4 hours: low liquidity"
+      - Cosmetic demand drives multi-million GP price
+  trading_tips:
+    - Stack with full Ankou outfit for collection log entries
+    - Watch Halloween seasonal hype for short-term price bumps
+  history:
+    - date: "2016-07-06"
+      description: Added to the game as a Master clue reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

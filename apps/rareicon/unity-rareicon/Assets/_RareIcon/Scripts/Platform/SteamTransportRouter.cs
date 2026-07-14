@@ -1,12 +1,4 @@
-// Game-level transport helper that sits on top of SteamNetworkingService.
-// Provides host/client semantics derived from the current Steam lobby's
-// owner and simple SendToHost / BroadcastToMembers methods, plus a
-// typed channel map so game code doesn't hard-code raw channel numbers.
-//
-// This is NOT a Unity NetCode custom transport (that'd be a full custom
-// INetworkInterface + NativeArray marshaling pass). When NetCode is
-// wired, swap this layer for a real UTP transport; the game-level send
-// API stays stable because it's just "bytes to peer / broadcast".
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
@@ -72,13 +64,10 @@ namespace RareIcon.Platform
 
         public void Start()
         {
-            // Event hooks for future auto-session open/close. Today the
-            // networking service creates sessions on demand (first Send
-            // triggers a handshake); if we want pre-warmed sessions we'd
-            // issue a zero-length Send on join here.
-            _dJoined = _subJoined.Subscribe(_ => { /* placeholder */ });
-            _dLeft   = _subLeft.Subscribe(_   => { /* placeholder */ });
-            _dMember = _subMember.Subscribe(_ => { /* placeholder */ });
+
+            _dJoined = _subJoined.Subscribe(_ => {  });
+            _dLeft   = _subLeft.Subscribe(_   => {  });
+            _dMember = _subMember.Subscribe(_ => {  });
         }
 
         public void Dispose()

@@ -1,6 +1,6 @@
 ---
 title: Tinderbox | OSRS Price Data
-description: "Tinderbox: Useful for lighting a fire.. High alch: 1 GP, GE limit: 40."
+description: "Tinderbox: the essential Firemaking tool used to light logs. Bought for 1 GP at general stores. High alch: 1 GP, GE limit: 40."
 osrs:
   id: 590
   name: Tinderbox
@@ -12,13 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 40
-  related_items: []
-  about: |-
-    > _"Useful for lighting fires."_
-
-    The tinderbox is used to light fires with logs (1 Firemaking) and light various light sources. One of the most essential tools in the game. Can be stored in a tool belt equivalent.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about:
+    text: "The tinderbox is the core Firemaking tool in Old School RuneScape, used to light logs and to ignite candles, lanterns, and quest light sources. It is available to free-to-play players from the very start and is stocked by general stores across Gielinor for 1 coin, making it one of the cheapest yet most universally carried items in the game. Every standard Firemaking action — from burning regular logs at level 1 to magic logs at level 75 — requires a tinderbox in the inventory."
+    sections:
+      - heading: How to use a tinderbox for Firemaking
+        anchor: usage
+        body: "To train Firemaking, select 'use' on the tinderbox and then click a log you have the level to burn. The game shows 'You attempt to light the logs.' followed by 'The fire catches and the logs begin to burn.', awarding Firemaking experience. If your level is too low you get 'You need a Firemaking level of X to burn these logs', and on some tiles you cannot start a fire at all ('You can't light a fire here.'). The tinderbox is never consumed, so a single one lasts your whole account."
+      - heading: Where to buy a tinderbox
+        anchor: buying
+        body: "Tinderboxes are sold at most general stores for 1 coin and restock roughly every minute, so they are effectively free. The Grand Exchange price sits around 100 coins with a buy limit of 40 per 4 hours, but buying from a general store is almost always cheaper than the GE."
+  related_items:
+    - item_id: 1511
+      item_name: Logs
+      slug: logs
+      relationship: alternative
+      description: Most basic log lit with a tinderbox for Firemaking XP
+    - item_id: 20720
+      item_name: Bruma torch
+      slug: bruma-torch
+      relationship: alternative
+      description: Wintertodt reward that doubles as a light source
+  trading_tips:
+    - "Floor-priced at 1 GP — bought from any general store, so GE flips never beat shop stock"
+    - "Demand is driven entirely by new accounts and Firemaking trainers"
+  trivia:
+    - "The Wise Old Man's house in Draynor contains an infinite tinderbox spawn — and an in-game note questioning why he keeps so many."
+    - "The tinderbox has existed since the RuneScape beta launch on 4 January 2001, making it one of the oldest items in the game."
+    - "It is never consumed when lighting fires, so players only ever need a single tinderbox."
+  faq:
+    - question: Is a tinderbox members-only?
+      answer: "No. The tinderbox is free-to-play and can be bought and used on any world."
+    - question: Do you lose the tinderbox when you light a fire?
+      answer: "No. The tinderbox is a reusable tool and is not consumed when lighting logs, so one lasts forever."
+    - question: Can a tinderbox be used as a weapon?
+      answer: "No. The tinderbox is not equipable and has no combat stats — it is purely a Firemaking tool."
+    - question: Where is the cheapest place to get a tinderbox?
+      answer: "General stores sell tinderboxes for 1 coin each and restock about once a minute, which is far cheaper than the Grand Exchange price of roughly 100 coins."
+  history:
+    - date: "2001-01-04"
+      description: Added to the game when RuneScape Beta launched.
+  properties:
+    release_date: "2001-01-04"
+    update: Runescape beta is now online!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Tinderbox"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  url: https://kbve.com/osrs/tinderbox/
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

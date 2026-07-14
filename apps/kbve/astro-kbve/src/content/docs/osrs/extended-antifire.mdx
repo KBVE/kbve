@@ -1,0 +1,136 @@
+---
+title: Extended antifire | OSRS Price Data
+description: "Extended antifire(4) is a 4-dose members potion that grants dragonfire protection. High alch: 264 GP, GE limit: 2,000."
+osrs:
+  id: 11951
+  name: Extended antifire
+  slug: extended-antifire
+  examine: 4 doses of extended anti-firebreath potion.
+  members: true
+  icon: Extended antifire(4).png
+  value: 440
+  lowalch: 176
+  highalch: 264
+  limit: 2000
+  family_ref:
+    family_slug: extended-antifire
+    role: base
+  family:
+    slug: extended-antifire
+    name: Extended antifire
+    type: dose
+    canonical_id: 11951
+    members:
+    - id: 11951
+      slug: extended-antifire
+      name: Extended antifire
+      icon: Extended antifire(4).png
+      role: base
+      dose: null
+      value: 440
+      lowalch: 176
+      highalch: 264
+    - id: 11957
+      slug: extended-antifire-1
+      name: Extended antifire(1)
+      icon: Extended antifire(1).png
+      role: dose
+      dose: 1
+      value: 110
+      lowalch: 44
+      highalch: 66
+    - id: 11955
+      slug: extended-antifire-2
+      name: Extended antifire(2)
+      icon: Extended antifire(2).png
+      role: dose
+      dose: 2
+      value: 220
+      lowalch: 88
+      highalch: 132
+    - id: 11953
+      slug: extended-antifire-3
+      name: Extended antifire(3)
+      icon: Extended antifire(3).png
+      role: dose
+      dose: 3
+      value: 330
+      lowalch: 132
+      highalch: 198
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2014-03-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Slight dragonfire protection on its own; combined with an anti-dragon shield or dragonfire shield grants full immunity to dragonfire."
+        duration: 720
+  recipes:
+    - skill: herblore
+      level: 84
+      xp: 110
+      materials:
+        - item_name: Antifire potion(4)
+          quantity: 1
+        - item_name: Lava scale shard
+          quantity: 4
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Antifire potion(4)
+      slug: antifire-potion-4
+      relationship: component
+      description: Base potion before extension
+    - item_name: Lava scale shard
+      slug: lava-scale-shard
+      relationship: component
+      description: Upgrade material from lava dragons
+    - item_name: Super antifire(4)
+      slug: super-antifire-4
+      relationship: alternative
+      description: Full standalone dragonfire immunity variant
+    - item_name: Extended super antifire(4)
+      slug: extended-super-antifire-4
+      relationship: upgrade
+      description: Combined extended and super effect
+  about: "Extended antifire(4) doubles the duration of a regular antifire potion to 12 minutes per dose, granting partial dragonfire protection alone and full immunity when paired with an anti-dragon or dragonfire shield. Created at 84 Herblore by adding 4 lava scale shards to an Antifire potion(4) for 110 Herblore experience. High alchemy value: 264 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Lava scale shards from Wilderness lava dragons gate supply"
+      - "Popular for long Vorkath and dragon Slayer tasks"
+      - "12 min per dose vs 6 min on regular antifire halves potion swaps"
+  trading_tips:
+    - Buy lava scale shards on dips and convert for steady Herblore profit
+    - Track Vorkath and dragon Slayer task popularity for demand spikes
+  history:
+    - date: "2014-03-27"
+      description: "Extended antifire potions released with Herblore expansion."
+    - date: "2018-01-25"
+      description: "Renamed from 'Extended antifire (n)' to 'Extended antifire(n)'."
+    - date: "2025-01-08"
+      description: "Players can now start the Make-X creation process without cancelling movement."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

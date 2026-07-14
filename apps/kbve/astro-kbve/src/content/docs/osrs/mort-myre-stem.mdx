@@ -1,6 +1,6 @@
 ---
 title: Mort myre stem | OSRS Price Data
-description: "Mort myre stem: A cutting from a budding branch.. High alch: 1 GP, GE limit: 13,000."
+description: "Mort myre stem: A cutting from a budding branch. Druid Pouch refill and Nature Spirit ingredient; high alch 1 GP; GE limit 13,000."
 osrs:
   id: 2972
   name: Mort myre stem
@@ -12,9 +12,76 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Mort myre stem is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: gathered
+    tier: low
+  gathering:
+    skill: prayer
+    level: 1
+    locations:
+      - Mort Myre Swamp (around Nature Grotto)
+    tool: Druid pouch
+    members_only: true
+  drop_table:
+    sources:
+      - source: Rotten log (Mort Myre Swamp)
+        quantity: "1"
+        rarity: 1/3
+      - source: Dead branch (Mort Myre Swamp)
+        quantity: "1"
+        rarity: 1/3
+  related_items:
+    - item_id: 2970
+      item_name: Mort myre fungus
+      slug: mort-myre-fungus
+      relationship: alternative
+      description: Cheaper Mort Myre gather, lower spawn value
+    - item_id: 2974
+      item_name: Mort myre pear
+      slug: mort-myre-pear
+      relationship: variant
+      description: Rare Mort Myre gather with the highest spawn rate
+    - item_id: 1925
+      item_name: Druid pouch
+      slug: druid-pouch
+      relationship: component
+      description: Required to spawn Mort Myre plants
+    - item_id: 2978
+      item_name: Silver sickle (b)
+      slug: silver-sickle-b
+      relationship: component
+      description: Blessed sickle that spawns Mort Myre plants from rotten logs
+  about: "Mort myre stems are a Mort Myre Swamp gather collected by Bloom on rotten logs with the Blessed silver sickle and Druid pouch, after the Nature Spirit quest. They serve as Druid Pouch refill charges (allowing Ghasts to be visible) and as a base for several Herblore creations and Familiar Pouches in higher-tier content. They are noteably one of the higher value spawn drops in Mort Myre, prized over Mort Myre fungus."
+  market_strategy:
+    notes:
+      - "Supply driven by Mort Myre Bloom farmers and Familiar Pouch consumers"
+      - "Demand from Druid Pouch refills keeps a baseline price floor"
+      - "13,000 GE limit supports bulk supply lanes for clan restocks"
+      - "Highalch is 1 coin — never alchable, used as a flip-only commodity"
+  trading_tips:
+    - "Bulk play: 13k GE limit makes this a viable supply lane for clan restocks"
+    - "Watch Summoning-equivalent or Mort Myre-content news (the swamp gets occasional rebalances)"
+    - "Compare against Mort Myre fungus and pear — relative pricing shifts with content updates"
+  history:
+    - date: "2004-07-13"
+      description: "Released with the Nature Spirit quest and the Mort Myre Bloom mechanic."
+  properties:
+    release_date: "2004-07-13"
+    update: Nature Spirit
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Nature Spirit
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

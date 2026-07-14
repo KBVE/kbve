@@ -12,60 +12,53 @@ osrs:
   lowalch: 60000
   highalch: 90000
   limit: 8
-  item:
-    type: material
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: crafting material
+    tier: high
+  properties:
+    release_date: "2023-01-11"
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
+    options:
+      - Combine
+      - Drop
+    worn_options: []
+    alchable: true
   drop_table:
     sources:
       - source: Phantom Muspah
-        rate: 1/100
+        quantity: "1"
+        rarity: 1/100
       - source: Frozen cache
-        rate: 1/500
-  recipes:
-    - skill: crafting
-      materials:
-        - item_id: 27614
-          item_name: Venator shard
-          quantity: 5
-      product: Venator bow
-      product_id: 27610
-    - skill: processing
-      materials:
-        - item_id: 27614
-          item_name: Venator shard
-          quantity: 1
-      product: Ancient essence
-      product_id: 27616
-      yield: 50000
+        quantity: "1"
+        rarity: 1/500
   related_items:
-    - item_id: 27610
-      item_name: Venator bow
+    - item_name: Venator bow
       slug: venator-bow
       relationship: product
-      description: Created weapon (5 shards)
-    - item_id: 27616
-      item_name: Ancient essence
+      description: Created weapon (5 shards required)
+    - item_name: Ancient essence
       slug: ancient-essence
       relationship: product
       description: Breakdown product (50,000 per shard)
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-
-    | Use | Materials |
-    |-----|-----------|
-    | Venator bow | 5 shards |
-    | Ancient essence | 1 shard -> 50,000 essence |
-
-    Note: Breaking down for essence results in significant loss.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "The Venator shard is a broken fragment of an ancient weapon dropped by the Phantom Muspah and from Frozen caches. Five shards combine into the uncharged Venator bow, or a single shard can be ground with a pestle and mortar into 50,000 ancient essence. Released 11 January 2023, its value was reduced from 3,000,000 to 150,000 coins on 18 January 2023."
+  market_strategy:
+    notes:
+      - "Combine 5 shards into Venator bow (irreversible)"
+      - "Breaking down 1 shard yields 50,000 ancient essence at significant loss"
+      - "Drop sources are Phantom Muspah and Frozen caches only"
+  history:
+    - date: "2023-01-11"
+      description: Released as a drop from the Phantom Muspah.
+    - date: "2023-01-18"
+      description: Item value reduced from 3,000,000 to 150,000 coins.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

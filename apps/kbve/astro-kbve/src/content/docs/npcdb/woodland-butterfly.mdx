@@ -1,5 +1,9 @@
 ---
 title: 'Woodland Butterfly'
+template: splash
+sidebar:
+    label: 'Woodland Butterfly'
+    hidden: true
 description: |
     A colorful butterfly that flutters through sunlit meadows, entering from the edges and wandering lazily on the breeze.
 ref: 'woodland-butterfly'
@@ -46,7 +50,10 @@ credits: |
     KBVE Isometric ambient creature system.
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A colorful butterfly that flutters through sunlit meadows, entering from the edges and wandering lazily on the breeze.
+
+</NpcLeaf>

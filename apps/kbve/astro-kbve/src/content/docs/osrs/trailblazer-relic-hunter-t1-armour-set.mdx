@@ -12,9 +12,64 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: null
-  about: "Trailblazer relic hunter (t1) armour set is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic set
+    tier: high
+  properties:
+    release_date: "2021-01-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options: ["Exchange", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Trailblazer hood (t1)
+      slug: trailblazer-hood-t1
+      relationship: set-piece
+      description: "Headpiece component of the Trailblazer relic hunter (t1) set"
+    - item_name: Trailblazer top (t1)
+      slug: trailblazer-top-t1
+      relationship: set-piece
+      description: "Body component of the Trailblazer relic hunter (t1) set"
+    - item_name: Trailblazer trousers (t1)
+      slug: trailblazer-trousers-t1
+      relationship: set-piece
+      description: "Legs component of the Trailblazer relic hunter (t1) set"
+    - item_name: Trailblazer boots (t1)
+      slug: trailblazer-boots-t1
+      relationship: set-piece
+      description: "Boots component of the Trailblazer relic hunter (t1) set"
+    - item_name: Trailblazer relic hunter (t2) armour set
+      slug: trailblazer-relic-hunter-t2-armour-set
+      relationship: upgrade
+      description: "Tier 2 Trailblazer League cosmetic armour set"
+    - item_name: Trailblazer relic hunter (t3) armour set
+      slug: trailblazer-relic-hunter-t3-armour-set
+      relationship: upgrade
+      description: "Tier 3 Trailblazer League cosmetic armour set"
+  about: "The Trailblazer relic hunter (t1) armour set is a cosmetic bundle containing the Trailblazer hood (t1), Trailblazer top (t1), Trailblazer trousers (t1), and Trailblazer boots (t1). It was earned by participants of the Trailblazer League and can be exchanged at the Grand Exchange to retrieve the individual pieces."
+  market_strategy:
+    notes:
+      - "Closed-supply cosmetic from the Trailblazer League"
+      - "Set price reflects bundling premium over the four individual pieces"
+      - "Tier 1 is the most affordable Trailblazer League cosmetic set"
+  trading_tips:
+    - "Compare set price against the four component pieces before exchanging"
+    - "Watch demand around League nostalgia events"
+    - "Exchange via the Grand Exchange to split into individual pieces for resale"
+  history:
+    - date: "2021-01-06"
+      description: "Trailblazer relic hunter (t1) armour set released as Trailblazer League rewards."
+    - date: "2022-01-19"
+      description: "Display image corrected to show the Trailblazer top."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

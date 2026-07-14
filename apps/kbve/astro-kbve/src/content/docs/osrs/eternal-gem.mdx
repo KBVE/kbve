@@ -1,6 +1,6 @@
 ---
 title: Eternal gem | OSRS Price Data
-description: "Eternal gem: Like the enchanted gem sold by Slayer Masters, only with an eternal charge.. High alch: 5,700 GP, GE limit: 8."
+description: "Eternal gem: Like the enchanted gem sold by Slayer Masters, only with an eternal charge. High alch: 5,700 GP, GE limit: 8."
 osrs:
   id: 21270
   name: Eternal gem
@@ -12,44 +12,59 @@ osrs:
   lowalch: 3800
   highalch: 5700
   limit: 8
+  properties:
+    release_date: "2017-05-04"
+    quest_item: false
+    destroy: Drop
   material:
-    type: crafting_material
-    tradeable: true
-    weight: 0.004
-  drop_table:
-    sources:
-      - source: Superior slayer monsters
-        notes: Requires Bigger and Badder unlock (50 Slayer points)
-      - source: Nuclear smoke devil
-        rate: 1/200
-      - source: Night beast
-        rate: 1/256
-  uses:
-    - result_id: 21273
-      result_name: Eternal slayer ring
+    type: gem
+    tier: slayer-reward
+  recipes:
+    - skill: crafting
+      level: 75
+      xp: 15
+      item_name: Eternal slayer ring
+      tools:
+        - Ring mould
       materials:
-        - Eternal gem
-        - Gold bar
-      requirements:
-        crafting: 75
-      notes: Irreversible - ring is untradeable
-  special_effect:
+        - item_name: Eternal gem
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+      product: Eternal slayer ring
+      product_id: 21273
+      product_quantity: 1
+      output_quantity: 1
+      members_only: true
+  drop_table:
+    primary_source: Superior slayer monsters
+    sources:
+      - source: Night beast
+        quantity: "1"
+        rarity: "1/256"
+        members_only: true
+      - source: Nuclear smoke devil
+        quantity: "1"
+        rarity: "1/200"
+        members_only: true
+      - source: Guardian drake
+        quantity: "1"
+        rarity: "1/368"
+        members_only: true
+  special_attack:
     name: Enchanted Gem Function
-    description: Functions as enchanted gem for Slayer masters
-  market:
-    buy_limit: 8
-    price_estimate: 9500000
+    description: Functions as enchanted gem for Slayer Masters; tracks tasks but cannot craft a Slayer helmet.
   related_items:
     - item_id: 21273
       item_name: Eternal slayer ring
       slug: eternal-slayer-ring
-      relationship: product
-      description: Created item
+      relationship: upgrade
+      description: Crafted from this gem with a gold bar
     - item_id: 11866
       item_name: Slayer ring
       slug: slayer-ring
       relationship: alternative
-      description: Standard version
+      description: Standard teleport ring
   about: |-
     | Property | Value |
     |----------|-------|
@@ -61,16 +76,23 @@ osrs:
     |--------------|-----------|--------------|
     | Eternal slayer ring | Eternal gem + Gold bar | 75 Crafting |
 
-    Irreversible - ring is untradeable.
+    Irreversible — ring is untradeable.
 
     Also functions as enchanted gem for Slayer masters.
   market_strategy:
     notes:
-      - Farm high-level superiors
-      - Creates infinite teleport ring
-      - 75 Crafting to use
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply gated by Bigger and Badder superior slayer task unlock"
+      - "Demand from slayer mains crafting eternal rings"
+      - "GE limit 8 forces patience on big positions"
+  trading_tips:
+    - Farm high-level superiors like Night beast for best rate
+    - 75 Crafting + Ring bling unlock needed for ring conversion
+    - Hold during ring meta or slayer XP events for premium
+  history:
+    - date: "2017-05-04"
+      description: "Released with the superior slayer monster rework."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

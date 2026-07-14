@@ -12,8 +12,14 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 70
+  material:
+    type: rune
+    tier: high
   equipment:
     slot: legs
+    weight: 8.164
+    requirements:
+      defence: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -27,48 +33,67 @@ osrs:
       magic: -4
       ranged: 49
     other_bonus:
-      melee_strength: 0
+      strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 40
-    weight: 8.164
+  recipes:
+    - skill: Smithing
+      level: 99
+      experience: 225
+      materials:
+        - item_name: Runite bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
-    - item_id: 1079
-      item_name: Rune platelegs
-      slug: rune-platelegs
+    - name: Rune platelegs
       relationship: alternative
-      description: Identical stats, different appearance
-    - item_id: 4585
-      item_name: Dragon plateskirt
-      slug: dragon-plateskirt
+    - name: Dragon plateskirt
       relationship: upgrade
-      description: 60 Defence upgrade
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +51 |
-    | Slash | +49 |
-    | Crush | +47 |
-    | Ranged | +49 |
-    | Magic | -4 |
-
-    Requirements: 40 Defence | Weight: 8.16 kg
-
-    The rune plateskirt has exactly the same stats as the rune platelegs. The only difference is cosmetic. The plateskirt is typically slightly cheaper.
-
-    As the best F2P leg armour, the rune plateskirt/platelegs are essential for:
-    - F2P PKing — standard leg slot
-    - F2P PvM — best available defence
-    - Treasure Trail rewards — common F2P clue reward
+  about: "Rune plateskirt is the best free-to-play leg armour, identical in stats to rune platelegs but cosmetically a skirt and slightly cheaper. Requires 40 Defence to wear and 99 Smithing to craft from 3 runite bars."
+  shops:
+    - shop_name: Champions' Guild
+      location: Champions' Guild
+    - shop_name: Nardah armour shop
+      location: Nardah
+    - shop_name: Blast Furnace shop
+      location: Keldagrim
+    - shop_name: Prifddinas armour shop
+      location: Prifddinas
   market_strategy:
     notes:
-      - F2P accessible — broad demand
-      - Usually cheaper than rune platelegs
-      - Smithing requires 99 (3 runite bars)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - F2P accessible — broad demand across PKing and PvM.
+      - Usually cheaper than rune platelegs since stats are identical and many players prefer the platelegs cosmetic.
+      - Smithing requires 99 with 3 runite bars; supply is hand-crafted plus shop and drop sources.
+      - Common reward from F2P treasure trails.
+  trading_tips:
+    - Compare price against rune platelegs to gauge the cosmetic discount.
+    - Buy after F2P clue cycles when supply spikes from treasure trail rewards.
+  history:
+    - date: "2001-07-26"
+      description: Released into the game as part of the rune armour set.
+  properties:
+    release_date: "2001-07-26"
+    update: RuneScape Classic launch era
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 8.164
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

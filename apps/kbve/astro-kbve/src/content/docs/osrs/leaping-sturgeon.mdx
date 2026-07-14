@@ -1,6 +1,6 @@
 ---
 title: Leaping sturgeon | OSRS Price Data
-description: "Leaping sturgeon: A bloated sturgeon.. High alch: 2 GP, GE limit: 13,000."
+description: "Leaping sturgeon: A bloated sturgeon. High-level Barbarian Fishing catch that can be gutted into caviar and fish offcuts. High alch: 2 GP, GE limit: 13,000."
 osrs:
   id: 11332
   name: Leaping sturgeon
@@ -12,9 +12,72 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
-  about: "Leaping sturgeon is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 15
+      materials:
+        - item_name: Leaping sturgeon
+          quantity: 1
+        - item_name: Knife
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Barbarian Fishing (Otto's Grotto)
+        quantity: "1"
+        rarity: Always (70 Fishing, 45 Strength, 45 Agility)
+      - source: Barbarian Fishing (Mount Quidamortem)
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Caviar
+      slug: caviar
+      relationship: product
+      description: Gutted from sturgeon with a knife.
+    - item_name: Fish offcuts
+      slug: fish-offcuts
+      relationship: product
+      description: Secondary product when gutting sturgeon.
+    - item_name: Leaping salmon
+      slug: leaping-salmon
+      relationship: alternative
+      description: Lower-tier Barbarian Fishing catch.
+    - item_name: Leaping trout
+      slug: leaping-trout
+      relationship: alternative
+      description: Entry-tier Barbarian Fishing catch.
+  about: "Leaping sturgeon is caught from Barbarian Fishing spots using a barbarian rod with appropriate bait. It cannot be cooked, but using a knife on it gives caviar (chance scaling with Cooking level) plus fish offcuts and 15 Cooking XP. Catching requires 70 Fishing, 45 Strength, and 45 Agility."
+  market_strategy:
+    notes:
+      - "Supply is locked to high-level Barbarian Fishers; price is sensitive to caviar demand."
+      - "Value was reduced from 75 to 4 in March 2017, anchoring alch to low single digits."
+  trading_tips:
+    - Buy in bulk when caviar/Sulliuscep meta drives caviar prices up.
+    - Convert into caviar yourself for higher margins if you have spare Cooking levels.
+  history:
+    - date: "2007-07-03"
+      description: "Leaping sturgeon added with Barbarian Training fishing."
+    - date: "2017-03-16"
+      description: "Item value reduced from 75 to 4 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

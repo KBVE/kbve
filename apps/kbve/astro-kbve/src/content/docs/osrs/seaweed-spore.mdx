@@ -12,75 +12,91 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 600
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
   material:
     type: seed
     tier: mid
+  properties:
+    release_date: "2017-09-07"
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
-      - source: Fossil Island underwater
-      - source: Seaweed patch harvesting
-      - source: Drift net fishing
-  farming:
-    level: 23
-    location: Underwater seaweed patch
-    growth_time_minutes: 40
-    patches: 2
-    product_id: 21504
-    product_name: Giant seaweed
-  market:
-    buy_limit: 600
-    price_estimate: 50
+      - source: Fossil Island underwater spawn
+        quantity: "1"
+        rarity: Common
+      - source: Ammonite Crab
+        quantity: "1"
+        rarity: Uncommon
+      - source: Lobstrosity
+        quantity: "1"
+        rarity: Uncommon
+      - source: Fossil Island Wyvern
+        quantity: "1"
+        rarity: Uncommon
+      - source: Master Farmer
+        quantity: "1"
+        rarity: Rare
+  shops:
+    - shop_name: Mairin's Market
+      location: Fossil Island underwater area
+      price: 20
+      currency: Mermaid's tears
+      stock: 100
+  recipes:
+    - skill: farming
+      level: 23
+      xp: 19
+      materials:
+        - item_name: Seaweed spore
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 21504
-      item_name: Giant seaweed
+    - item_name: Giant seaweed
       slug: giant-seaweed
       relationship: product
-      description: Harvest product
-    - item_id: 1775
-      item_name: Molten glass
+      description: "Harvest product of the seaweed patch"
+    - item_name: Molten glass
       slug: molten-glass
       relationship: product
-      description: End product
-    - item_id: 1783
-      item_name: Bucket of sand
+      description: "End product when used with Superglass Make"
+    - item_name: Bucket of sand
       slug: bucket-of-sand
       relationship: alternative
-      description: Partner for glass
-    - item_id: 22016
-      item_name: Drift net
+      description: "Companion ingredient for molten glass"
+    - item_name: Drift net
       slug: drift-net
       relationship: component
-      description: Alternative source
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 23 |
-    | Location | Underwater seaweed patch |
-    | Growth time | 40 minutes |
-    | Yield | Giant seaweed |
+      description: "Alternative source via underwater fishing"
+  about: "Seaweed spore is the only farmable input for giant seaweed and a backbone of the Superglass Make / molten glass crafting chain. It grows at 23 Farming in the underwater Fossil Island patches in 40 minutes, yielding three or more per patch with high-tier compost."
   market_strategy:
-    title: |-
-      - Giant seaweed farming
-      - Superglass Make chain
-      - Ironman accounts
-      - Crafting training
     notes:
-      - Only way to farm giant seaweed
-      - Low buy limit
-      - Essential for Crafting
-      - Giant seaweed farming
-      - Superglass Make chain
-      - Ironman accounts
-      - Crafting training
-      - Very low buy limit (600)
-      - Spawn underwater on Fossil Island
-      - Harvest gives more spores
-      - 2 patches available
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand driven by molten glass and Superglass Make"
+      - "Buy limit 600 keeps flips small per cycle"
+      - "Underwater patches favored by ironmen"
+  trading_tips:
+    - "Track Crafting training trends for demand spikes"
+    - "Mermaid's tears alternative caps GE upside"
+    - "Master Farmer pickpocketing adds passive supply"
+  history:
+    - date: "2017-09-07"
+      description: "Released with the Fossil Island update."
+    - date: "2018-05-31"
+      description: "Mairin's Market price dropped from 50 to 20 mermaid's tears."
+    - date: "2020-09-16"
+      description: "Added to the Master Farmer loot table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

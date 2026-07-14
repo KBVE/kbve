@@ -18,7 +18,22 @@ describe('CORS Preflight Handling', () => {
 		expect(res.ok).toBe(true);
 	});
 
-	it('should include CORS headers in the OPTIONS response', async () => {
+	it('should echo an allowlisted origin in the OPTIONS response', async () => {
+		const res = await fetch(`${BASE_URL}/vault-reader`, {
+			method: 'OPTIONS',
+			headers: {
+				Origin: 'https://kbve.com',
+				'Access-Control-Request-Method': 'POST',
+			},
+		});
+		const allowOrigin = res.headers.get('access-control-allow-origin');
+		const allowHeaders = res.headers.get('access-control-allow-headers');
+		expect(allowOrigin).toBe('https://kbve.com');
+		expect(allowHeaders).toContain('authorization');
+		expect(allowHeaders).toContain('content-type');
+	});
+
+	it('should not echo a non-allowlisted origin', async () => {
 		const res = await fetch(`${BASE_URL}/vault-reader`, {
 			method: 'OPTIONS',
 			headers: {
@@ -26,10 +41,6 @@ describe('CORS Preflight Handling', () => {
 				'Access-Control-Request-Method': 'POST',
 			},
 		});
-		const allowOrigin = res.headers.get('access-control-allow-origin');
-		const allowHeaders = res.headers.get('access-control-allow-headers');
-		expect(allowOrigin).toBe('*');
-		expect(allowHeaders).toContain('authorization');
-		expect(allowHeaders).toContain('content-type');
+		expect(res.headers.get('access-control-allow-origin')).toBeNull();
 	});
 });

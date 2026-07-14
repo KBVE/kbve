@@ -1,6 +1,6 @@
 ---
 title: Jade dragon bolts | OSRS Price Data
-description: "Jade dragon bolts: Dragon crossbow bolts, tipped with jade.. High alch: 360 GP, GE limit: 11,000."
+description: "Jade dragon bolts: Dragon crossbow bolts, tipped with jade. High alch: 360 GP, GE limit: 11,000."
 osrs:
   id: 21957
   name: Jade dragon bolts
@@ -12,9 +12,86 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 11000
-  about: "Jade dragon bolts is a members-only item in Old School RuneScape. High alchemy value: 360 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: ammunition
+    tier: high
+  properties:
+    release_date: "2018-01-04"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options: []
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: null
+    attack_speed: null
+    weight: 0
+    requirements:
+      ranged: 64
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 122
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 84
+      xp: 2.4
+      materials:
+        - item_name: Dragon bolts
+          quantity: 1
+        - item_name: Jade bolt tips
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Dragon bolts
+      slug: dragon-bolts
+      relationship: component
+      description: "Base dragon bolts used to craft jade-tipped variant."
+    - item_name: Jade bolt tips
+      slug: jade-bolt-tips
+      relationship: component
+      description: "Cut from jade gems and attached to dragon bolts."
+    - item_name: Jade dragon bolts (e)
+      slug: jade-dragon-bolts-e
+      relationship: upgrade
+      description: "Enchanted variant with the Flare special effect."
+  about: "Jade dragon bolts are high-tier crossbow bolts created by tipping dragon bolts with jade gem tips. Requiring 64 Ranged to wield and 84 Fletching to make, they offer +122 ranged strength and are commonly enchanted with the Enchant Crossbow Bolt (Jade) spell to gain the Flare special effect, which is popular in PvP for disabling Protect from Missiles."
+  market_strategy:
+    notes:
+      - "Unenchanted bolts are an intermediate between dragon bolts and the enchanted PvP variant."
+      - "Fletching profit (around 144 gp/bolt) sets a soft floor when dragon bolts + jade tip prices stay stable."
+      - "Demand spikes in PK weekends and Bounty Hunter resets when Jade (e) consumption rises."
+  trading_tips:
+    - "Track jade bolt tip and dragon bolt prices for arbitrage windows."
+    - "Compare to onyx/opal/ruby dragon bolts to gauge relative PvM/PvP demand."
+    - "11,000 limit allows large flip volume - watch the buy limit reset window."
+  history:
+    - date: "2018-01-04"
+      description: "Released alongside Dragon Slayer II with the Smouldering Stone unlocking gem-tipped dragon bolts."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Damaged monkey tail is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: organic
+    tier: low
+  properties:
+    release_date: "2016-05-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Maniacal monkey
+        quantity: "1"
+        rarity: 4999/5000
+  recipes:
+    - skill: crafting
+      level: 10
+      xp: 15
+      materials:
+        - item_name: Damaged monkey tail
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Monkey tail
+      slug: monkey-tail
+      relationship: alternative
+      description: Undamaged variant used as a ballista string
+    - item_name: Sinew
+      slug: sinew
+      relationship: product
+      description: Crafted from a damaged monkey tail
+  about: "Damaged monkey tail is a members-only Hunter byproduct obtained while catching maniacal monkeys at level 60 Hunter in the Kruk's Dungeon area. Unlike a regular monkey tail, the damaged variant cannot be used to string a heavy ballista, but it can be processed into sinew with 10 Crafting for 15 experience, making it a steady drop for ballista runners and crafters alike."
+  market_strategy:
+    notes:
+      - "Drop is near-guaranteed (4999/5000) from maniacal monkeys, so supply tracks Hunter trainer throughput."
+      - "Demand is split between Crafting XP cost-savers and players who want sinew without raw cowhide processing."
+      - "Buy limit is generous at 13,000, but daily GE volume is light, so post slightly above mid to fill quickly."
+  trading_tips:
+    - Stack purchases on slow GE days when maniacal monkey hunters are flipping inventories at low prices.
+    - Margins are thin in coin terms but consistent for AFK Crafting XP routes.
+  history:
+    - date: "2016-05-26"
+      description: "Added to the game with the release of Monkey Madness II."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

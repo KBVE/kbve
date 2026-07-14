@@ -1,6 +1,6 @@
 ---
 title: Mithril platelegs (t) | OSRS Price Data
-description: "Mithril platelegs (t): Mithril platelegs with trim.. High alch: 1,560 GP, GE limit: 8."
+description: "Mithril platelegs (t) is a trimmed free-to-play legs slot item requiring 20 Defence. High alch: 1,560 GP, GE limit: 8."
 osrs:
   id: 12289
   name: Mithril platelegs (t)
@@ -12,9 +12,95 @@ osrs:
   lowalch: 1040
   highalch: 1560
   limit: 8
-  about: "Mithril platelegs (t) is a free-to-play item in Old School RuneScape. High alchemy value: 1,560 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: mithril
+    tier: low
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 7.711
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 7.711
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: -11
+    defence_bonus:
+      stab: 24
+      slash: 22
+      crush: 20
+      magic: -4
+      ranged: 22
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Medium Treasure Trails reward casket
+        quantity: "1"
+        rarity: "1/1,133"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_name: Mithril platelegs
+      slug: mithril-platelegs
+      relationship: variant
+      description: "Untrimmed standard mithril platelegs"
+    - item_name: Mithril platelegs (g)
+      slug: mithril-platelegs-g
+      relationship: variant
+      description: "Gold-trim version of the platelegs"
+    - item_name: Mithril platebody (t)
+      slug: mithril-platebody-t
+      relationship: set-piece
+      description: "Matching trimmed body slot piece"
+    - item_name: Mithril full helm (t)
+      slug: mithril-full-helm-t
+      relationship: set-piece
+      description: "Matching trimmed full helm"
+  about: |-
+    Mithril platelegs (t) are the trimmed cosmetic variant of mithril platelegs, sharing identical stats with the standard pair but stamped with a silver-blue trim. They are free-to-play and require 20 Defence to wear.
+
+    Trimmed mithril enters the economy from medium Treasure Trails reward caskets at roughly 1/1,133, keeping supply thin enough for the variant to trade at a multiple of the regular legs.
+  market_strategy:
+    notes:
+      - "Cosmetic variant — trim premium drives the price"
+      - "Buy limit of 8 keeps daily flips small"
+      - "Set value can outpace individual piece value when collectors are accumulating"
+  trading_tips:
+    - "Track medium clue drop weighting updates — supply moves with it"
+    - "Compare against the (g) gold-trim variant before listing"
+  history:
+    - date: "2014-06-12"
+      description: "Released as part of the Treasure Trail Expansion."
+    - date: "2021-04-21"
+      description: "Ranged attack penalty adjusted in an equipment rebalance."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

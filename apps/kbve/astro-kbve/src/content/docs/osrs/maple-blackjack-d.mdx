@@ -1,6 +1,6 @@
 ---
 title: Maple blackjack(d) | OSRS Price Data
-description: "Maple blackjack(d): A defensive blackjack.. High alch: 960 GP, GE limit: 125."
+description: "Maple blackjack(d): A defensive blackjack. High alch: 960 GP, GE limit: 125."
 osrs:
   id: 6420
   name: Maple blackjack(d)
@@ -12,9 +12,94 @@ osrs:
   lowalch: 640
   highalch: 960
   limit: 125
-  about: "Maple blackjack(d) is a members-only item in Old School RuneScape. High alchemy value: 960 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2005-06-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Knock-Out
+      - Lure
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    type: blackjack
+    attack_speed: 4
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 12
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 8
+      slash: 8
+      crush: 6
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 10
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 30
+      thieving: 30
+  shops:
+    - shop_name: "Martin Thwait: Lost and Found"
+      location: Rogues' Den
+      price: 1200
+      currency: coins
+      members_only: true
+  related_items:
+    - item_id: 6408
+      item_name: Maple blackjack
+      slug: maple-blackjack
+      relationship: variant
+      description: "Standard maple blackjack, balanced offence/defence"
+    - item_id: 6422
+      item_name: Maple blackjack(o)
+      slug: maple-blackjack-o
+      relationship: variant
+      description: "Offensive maple variant with higher crush bonus"
+    - item_id: 6410
+      item_name: Oak blackjack(d)
+      slug: oak-blackjack-d
+      relationship: downgrade
+      description: "Lower-tier defensive blackjack at 20 Thieving"
+    - item_id: 6424
+      item_name: Willow blackjack(d)
+      slug: willow-blackjack-d
+      relationship: upgrade
+      description: "Higher-tier defensive blackjack at 40 Thieving"
+  about: |-
+    The Maple blackjack(d) is the defensive variant of the maple blackjack, used for knocking out menaphite thugs and bandits in Pollnivneach during Thieving training. It requires 30 Attack and 30 Thieving to wield and is purchased from Martin Thwait in the Rogues' Den for 1,200 coins after completion of Feud.
+
+    The defensive variant grants better Knock-Out success rates against tougher targets than the offensive (o) version, at the cost of lower damage. Maple-tier blackjacks are the mid-tier option between oak and willow.
+  market_strategy:
+    notes:
+      - "Pure shop-bought item; no Grand Exchange margin opportunity"
+      - "Demand spikes from Thieving trainers grinding Pollnivneach bandits"
+      - "Alch value (960) is below shop price (1,200) — not profitable to alch fresh stock"
+  trading_tips:
+    - "Buy direct from Martin Thwait when shop stock is full"
+    - "Volume is low — set tight buy/sell margins on the GE"
+  history:
+    - date: "2005-06-13"
+      description: "Released alongside the Feud quest as part of the blackjacking Thieving expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

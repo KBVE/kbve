@@ -1,5 +1,6 @@
 ---
 title: Red Wool
+template: splash
 description: |
     Minecraft Red Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 154
     ref: red_wool
     slug: red-wool
+    content_rev: 1
     display_name: Red Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Red Wool is white wool dyed red, obtained by shearing or
+            killing red sheep or by crafting white wool with red dye. It
+            catches fire easily and is a common material for beds,
+            banners, and carpets.
+        lore: |
+            Wool has been a core building and crafting material since
+            Minecraft's earliest versions, long before dye customization
+            was added.
+    uses:
+        - title: Bed
+          ref: red_bed
+          detail: |
+              Combine 3 Red Wool with 3 planks of any wood type to craft a
+              Red Bed.
+        - title: Carpet
+          ref: red_carpet
+          detail: |
+              Craft 2 Red Wool side by side to produce 3 Red Carpet.
+    found_in:
+        - location: Sheep
+          detail: Shear or kill a naturally spawned or dyed red sheep.
+        - location: Crafting
+          detail: Craft from White Wool plus Red Dye.
+    faq:
+        - question: What is the fastest way to mine Red Wool?
+          answer: |
+              Shears, which break wool almost instantly. A sword or any
+              other tool works but is slower.
+        - question: Does Red Wool burn?
+          answer: |
+              Yes. Wool is flammable and will catch fire from nearby
+              flames or lava.
+        - question: Can I get Red Wool without dye?
+          answer: |
+              Yes, by shearing or killing a sheep that has naturally
+              spawned or been dyed red.
+        - question: Is Fortune useful for mining wool?
+          answer: |
+              No. Wool always drops exactly one block regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

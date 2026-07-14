@@ -1,6 +1,6 @@
 ---
 title: Green dark bow paint | OSRS Price Data
-description: "Green dark bow paint: Paints things green!. High alch: 1 GP, GE limit: 4."
+description: "Green dark bow paint: Paints things green! High alch: 1 GP, GE limit: 4."
 osrs:
   id: 12759
   name: Green dark bow paint
@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Green dark bow paint is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Green dark bow paint is a cosmetic item from the Last Man Standing reward shop that recolours a dark bow green. Purely visual with no stat effect."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2014-09-18"
+    weight: 0.001
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    options:
+      - Use
+      - Drop
+      - Examine
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  shops:
+    - shop_name: Justine's stuff for the Last Shopper Standing
+      location: Last Man Standing lobby
+      price: 25
+      currency: Last Man Standing points
+      stock: 100
+      notes: "Purchased with LMS points; resold on the Grand Exchange"
+  related_items:
+    - item_id: 11235
+      item_name: Dark bow
+      slug: dark-bow
+      relationship: component
+      description: Target weapon for recolour
+    - item_id: 12757
+      item_name: Blue dark bow paint
+      slug: blue-dark-bow-paint
+      relationship: alternative
+      description: Blue dark bow recolour variant
+    - item_id: 12761
+      item_name: Yellow dark bow paint
+      slug: yellow-dark-bow-paint
+      relationship: alternative
+      description: Yellow dark bow recolour variant
+    - item_id: 12763
+      item_name: White dark bow paint
+      slug: white-dark-bow-paint
+      relationship: alternative
+      description: White dark bow recolour variant
+  market_strategy:
+    notes:
+      - "Pure cosmetic — supply driven by LMS engagement"
+      - "Tiny 4-per-4h GE limit caps flips"
+      - "Applies a permanent green recolour to a dark bow"
+  trading_tips:
+    - "Cost: 25 LMS points per paint"
+    - "GE buy limit: 4 per 4 hours"
+    - "Recolour is permanent and untradeable once applied"
+  history:
+    - date: "2014-09-18"
+      description: "Released with the original Bounty Hunter / LMS-precursor cosmetic shop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

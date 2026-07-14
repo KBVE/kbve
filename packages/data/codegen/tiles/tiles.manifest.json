@@ -1,0 +1,100 @@
+{
+	"source": {
+		"image": "apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png",
+		"columns": 45,
+		"tileSize": 16
+	},
+	"tiles": [
+		{
+			"ref": "ground-stone",
+			"name": "Stone Ground",
+			"role": "ground",
+			"gids": [368],
+			"biomes": ["city", "dungeon"],
+			"collides": false,
+			"tags": ["floor"]
+		},
+		{
+			"ref": "wall-stone-a",
+			"name": "Stone Wall A",
+			"role": "wall",
+			"gids": [518],
+			"biomes": ["city", "dungeon"],
+			"collides": true,
+			"tags": ["building"]
+		},
+		{
+			"ref": "wall-stone-b",
+			"name": "Stone Wall B",
+			"role": "wall",
+			"gids": [519],
+			"biomes": ["city", "dungeon"],
+			"collides": true,
+			"tags": ["building"]
+		},
+		{
+			"ref": "wall-stone-c",
+			"name": "Stone Wall C",
+			"role": "wall",
+			"gids": [524],
+			"biomes": ["city", "dungeon"],
+			"collides": true,
+			"tags": ["building"]
+		},
+		{
+			"ref": "wall-stone-d",
+			"name": "Stone Wall D",
+			"role": "wall",
+			"gids": [526],
+			"biomes": ["city", "dungeon"],
+			"collides": true,
+			"tags": ["building"]
+		},
+		{
+			"ref": "roof-tile-a",
+			"name": "Roof Band A",
+			"role": "roof",
+			"gids": [484],
+			"biomes": ["city"],
+			"collides": true,
+			"tags": ["building"]
+		},
+		{
+			"ref": "roof-tile-b",
+			"name": "Roof Band B",
+			"role": "roof",
+			"gids": [485],
+			"biomes": ["city"],
+			"collides": true,
+			"tags": ["building"]
+		},
+		{
+			"ref": "roof-tile-c",
+			"name": "Roof Band C",
+			"role": "roof",
+			"gids": [486],
+			"biomes": ["city"],
+			"collides": true,
+			"tags": ["building"]
+		},
+		{
+			"ref": "bush",
+			"name": "Bush",
+			"role": "prop_solid",
+			"gids": [1112],
+			"biomes": ["city", "dungeon"],
+			"collides": true,
+			"tags": ["foliage", "prop"]
+		},
+		{
+			"ref": "water",
+			"name": "Water",
+			"role": "water",
+			"gids": [108, 109],
+			"biomes": ["city", "dungeon"],
+			"collides": true,
+			"tags": ["liquid"],
+			"frameDurations": [0.5, 0.5]
+		}
+	]
+}

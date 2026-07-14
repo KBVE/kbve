@@ -1,5 +1,6 @@
 ---
 title: Potted Lily of the Valley
+template: splash
 description: |
     Minecraft Potted Lily of the Valley — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 403
     ref: potted_lily_of_the_valley
     slug: potted-lily-of-the-valley
+    content_rev: 1
     display_name: Potted Lily of the Valley
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: lily_of_the_valley
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Lily of the Valley is a decorative block made by placing
+            a Lily of the Valley flower into a flower pot. It displays the
+            flower on a small dirt mound inside the pot without occupying a
+            full block of growing space.
+        lore: |
+            Potted flowers were added in Java Edition 1.14 as part of the
+            Village & Pillage update's overhaul of flower pots.
+    found_in:
+        - location: Woodland Mansions
+          detail: Pre-potted lily of the valley occasionally decorates mansion rooms.
+        - location: Crafted by hand
+          detail: Place a Lily of the Valley item into an empty Flower Pot to create it.
+    faq:
+        - question: What tool do I need to break a potted lily of the valley?
+          answer: |
+              None. Flower pots and their contents break instantly with any
+              tool or bare hands.
+        - question: What does it drop?
+          answer: |
+              The empty Flower Pot and the Lily of the Valley flower drop as
+              two separate items — pick the flower back up and reuse the pot.
+        - question: Can I get the flower back without breaking the pot?
+          answer: |
+              Yes. Pressing use on the pot removes the flower into your
+              inventory and leaves the empty pot in place.
+        - question: Is Lily of the Valley dangerous like Wither Rose?
+          answer: |
+              No. Lily of the Valley is purely decorative and safe to walk
+              near; only the Wither Rose damages entities.
     data_version: "1.21.5"
 ---
 

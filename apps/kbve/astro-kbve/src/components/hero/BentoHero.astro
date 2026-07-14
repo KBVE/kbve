@@ -1,0 +1,1956 @@
+---
+import StackLogos from './StackLogos.astro';
+
+interface Props {
+	titleLines?: string[];
+	rotatingWord?: string;
+	rotatingWords?: string[];
+	description?: string;
+	primaryCta?: { label: string; href: string };
+	secondaryCta?: { label: string; href: string };
+	news?: Array<{ date: string; title: string; href?: string }>;
+	wallpaper?: string;
+	wallpaperCredit?: {
+		title: string;
+		artist?: string;
+		meta?: string;
+		href?: string;
+	};
+}
+
+const {
+	titleLines = ['KBVE is the best', 'way to build', 'games.'],
+	rotatingWord = 'games',
+	rotatingWords = [
+		'games',
+		'apps',
+		'software',
+		'servers',
+		'worlds',
+		'tools',
+		'engines',
+		'bots',
+		'mods',
+		'sites',
+		'shaders',
+		'plugins',
+		'pipelines',
+		'agents',
+		'clusters',
+		'libraries',
+	],
+	description = 'KBVE is where games, tools, and worlds get built in public. Play what we ship, or join the studio and help bring the next project to life.',
+	primaryCta = {
+		label: 'Start Building',
+		href: '/register/',
+	},
+	secondaryCta = { label: 'See How It Works →', href: '#how-it-works' },
+	news = [
+		{
+			date: 'Jul 2026',
+			title: 'Homepage bento redesign goes live',
+			href: '/journal/',
+		},
+		{
+			date: 'Jun 2026',
+			title: 'Desktop launcher ships with single sign-on',
+			href: '/arcade/',
+		},
+		{
+			date: 'Jun 2026',
+			title: 'ARPG character persistence enters testing',
+			href: '/arcade/',
+		},
+	],
+	wallpaper = '1781099270897-ca214439f99e',
+	wallpaperCredit = {
+		title: 'Under the Wave off Kanagawa — The Great Wave',
+		artist: 'Katsushika Hokusai (1760–1849)',
+		meta: 'Edo period · Thirty-six Views of Mount Fuji · via Unsplash',
+		href: 'https://unsplash.com',
+	},
+} = Astro.props;
+
+const wallpaperUrl = `https://images.unsplash.com/photo-${wallpaper}?q=80&w=1600&auto=format&fit=crop`;
+
+const dock = [
+	{
+		key: 'default',
+		label: 'Home',
+		icon: 'm3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10',
+	},
+	{
+		key: 'community',
+		label: 'Members',
+		icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+	},
+	{
+		key: 'opensource',
+		label: 'Monorepo',
+		icon: 'M16 18 22 12 16 6M8 6 2 12 8 18',
+	},
+	{
+		key: 'servers',
+		label: 'Servers',
+		icon: 'M6 12h4m-2-2v4m7-3h.01M18 10h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z',
+	},
+	{
+		key: 'uptime',
+		label: 'Status',
+		icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
+	},
+];
+---
+
+<div class="bento-hero bento-section not-content">
+	<div class="bento-hero__shell bento-frame">
+		<section class="bento-hero__section">
+			<div class="bento-hero__glow" aria-hidden="true"></div>
+
+			<div class="bento-hero__inner">
+				<div class="bento-hero__grid">
+					<div class="bento-hero__headline">
+						<h1 class="bento-hero__title">
+							{
+								titleLines.map((line) => (
+									<span class="bento-hero__title-line">
+										{line.includes(rotatingWord) ? (
+											<>
+												{line.split(rotatingWord)[0]}
+												<span
+													class="bento-hero__slot"
+													data-rotate={JSON.stringify(
+														rotatingWords,
+													)}>
+													{rotatingWord}
+												</span>
+												{line.split(rotatingWord)[1]}
+											</>
+										) : (
+											line
+										)}
+									</span>
+								))
+							}
+						</h1>
+
+						<div class="bento-hero__stack">
+							<p class="bento-hero__stack-label">
+								Built with our stack
+							</p>
+							<div class="bento-hero__stack-logos">
+								<slot name="logos">
+									<StackLogos />
+								</slot>
+							</div>
+						</div>
+					</div>
+
+					<div class="bento-hero__side">
+						<p class="bento-hero__description">
+							<slot name="description">{description}</slot>
+						</p>
+
+						<div class="bento-hero__cta-tray">
+							<div class="bento-hero__cta-row">
+								<a
+									class="bento-hero__cta bento-hero__cta--primary"
+									href={primaryCta.href}>
+									{primaryCta.label}
+								</a>
+								<a
+									class="bento-hero__cta bento-hero__cta--ghost"
+									href={secondaryCta.href}>
+									{secondaryCta.label}
+								</a>
+							</div>
+							<div
+								class="bento-hero__providers"
+								data-hero-providers
+								aria-label="Sign in options">
+								<div
+									class="bento-hero__providers-divider"
+									aria-hidden="true">
+									<span class="bento-hero__providers-line">
+									</span>
+									<span class="bento-hero__providers-label">
+										or sign in with
+									</span>
+									<span class="bento-hero__providers-line">
+									</span>
+								</div>
+								<div class="bento-hero__providers-row">
+									<button
+										class="bento-hero__provider"
+										type="button"
+										id="hero-oauth-github"
+										data-oauth="github"
+										aria-label="Sign in with GitHub">
+										<svg
+											viewBox="0 0 16 16"
+											width="16"
+											height="16"
+											fill="currentColor"
+											aria-hidden="true">
+											<path
+												d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+											</path>
+										</svg>
+										<span
+											class="bento-hero__provider-tip"
+											role="tooltip">
+											<span
+												class="bento-hero__provider-tip-arrow"
+												aria-hidden="true">
+											</span>
+											<span
+												class="bento-hero__provider-tip-label">
+												Sign in with GitHub
+											</span>
+											<span
+												class="bento-hero__provider-tip-meta">
+												OAuth
+											</span>
+										</span>
+									</button>
+									<button
+										class="bento-hero__provider"
+										type="button"
+										id="hero-oauth-twitch"
+										data-oauth="twitch"
+										aria-label="Sign in with Twitch">
+										<svg
+											viewBox="0 0 16 16"
+											width="16"
+											height="16"
+											fill="currentColor"
+											aria-hidden="true">
+											<path
+												d="M3.857 0 1 2.857v10.286h3.429V16l2.857-2.857H9.57L14.714 8V0H3.857zm9.714 7.429-2.285 2.285H9l-2 2v-2H4.429V1.143h9.142v6.286zM11.857 3.143h-1.143V6.57h1.143V3.143zm-3.143 0H7.571V6.57h1.143V3.143z">
+											</path>
+										</svg>
+										<span
+											class="bento-hero__provider-tip"
+											role="tooltip">
+											<span
+												class="bento-hero__provider-tip-arrow"
+												aria-hidden="true">
+											</span>
+											<span
+												class="bento-hero__provider-tip-label">
+												Sign in with Twitch
+											</span>
+											<span
+												class="bento-hero__provider-tip-meta">
+												OAuth
+											</span>
+										</span>
+									</button>
+									<button
+										class="bento-hero__provider"
+										type="button"
+										id="hero-oauth-discord"
+										data-oauth="discord"
+										aria-label="Sign in with Discord">
+										<svg
+											viewBox="0 0 16 16"
+											width="16"
+											height="16"
+											fill="currentColor"
+											aria-hidden="true">
+											<path
+												d="M13.545 2.907a13.227 13.227 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 0 0-3.658 0 8.258 8.258 0 0 0-.412-.833.051.051 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.041.041 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.276 13.276 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019c.308-.42.582-.863.818-1.329a.05.05 0 0 0-.01-.059.051.051 0 0 0-.018-.011 8.875 8.875 0 0 1-1.248-.595.05.05 0 0 1-.02-.066.051.051 0 0 1 .015-.019c.084-.063.168-.129.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.052.052 0 0 1 .053.007c.08.066.164.132.248.195a.051.051 0 0 1-.004.085 8.254 8.254 0 0 1-1.249.594.05.05 0 0 0-.03.03.052.052 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.235 13.235 0 0 0 4.001-2.02.049.049 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.034.034 0 0 0-.02-.019Zm-8.198 7.307c-.789 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612Zm5.316 0c-.788 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612Z">
+											</path>
+										</svg>
+										<span
+											class="bento-hero__provider-tip"
+											role="tooltip">
+											<span
+												class="bento-hero__provider-tip-arrow"
+												aria-hidden="true">
+											</span>
+											<span
+												class="bento-hero__provider-tip-label">
+												Sign in with Discord
+											</span>
+											<span
+												class="bento-hero__provider-tip-meta">
+												OAuth
+											</span>
+										</span>
+									</button>
+									<button
+										class="bento-hero__provider bento-hero__provider--soon"
+										type="button"
+										id="hero-oauth-apple"
+										data-oauth-soon="apple"
+										aria-disabled="true"
+										aria-label="Sign in with Apple (coming soon)">
+										<svg
+											viewBox="0 0 16 16"
+											width="16"
+											height="16"
+											fill="currentColor"
+											aria-hidden="true">
+											<path
+												d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516.024.034 1.52.087 2.475-1.258.955-1.345.762-2.391.728-2.43Zm3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422.212-2.189 1.675-2.789 1.698-2.854.023-.065-.597-.79-1.254-1.157a3.692 3.692 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56.244.729.625 1.924 1.273 2.796.576.984 1.34 1.667 1.659 1.899.319.232 1.219.386 1.843.067.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758.347-.79.505-1.217.473-1.282Z">
+											</path>
+										</svg>
+										<span
+											class="bento-hero__provider-tip"
+											role="tooltip">
+											<span
+												class="bento-hero__provider-tip-arrow"
+												aria-hidden="true">
+											</span>
+											<span
+												class="bento-hero__provider-tip-label">
+												Sign in with Apple
+											</span>
+											<span
+												class="bento-hero__provider-tip-meta">
+												Coming soon
+											</span>
+										</span>
+									</button>
+									<button
+										class="bento-hero__provider bento-hero__provider--soon"
+										type="button"
+										id="hero-oauth-google"
+										data-oauth-soon="google"
+										aria-disabled="true"
+										aria-label="Sign in with Google (coming soon)">
+										<svg
+											viewBox="0 0 16 16"
+											width="16"
+											height="16"
+											fill="currentColor"
+											aria-hidden="true">
+											<path
+												d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z">
+											</path>
+										</svg>
+										<span
+											class="bento-hero__provider-tip"
+											role="tooltip">
+											<span
+												class="bento-hero__provider-tip-arrow"
+												aria-hidden="true">
+											</span>
+											<span
+												class="bento-hero__provider-tip-label">
+												Sign in with Google
+											</span>
+											<span
+												class="bento-hero__provider-tip-meta">
+												Coming soon
+											</span>
+										</span>
+									</button>
+								</div>
+							</div>
+						</div>
+
+						<nav class="bento-hero__news" aria-label="Latest news">
+							<span class="bento-hero__news-eyebrow">News</span>
+							<ul class="bento-hero__news-list">
+								{
+									news.map((n) => (
+										<li class="bento-hero__news-item">
+											<span class="bento-hero__news-date">
+												{n.date}
+											</span>
+											{n.href ? (
+												<a
+													class="bento-hero__news-title"
+													href={n.href}>
+													{n.title}
+												</a>
+											) : (
+												<span class="bento-hero__news-title">
+													{n.title}
+												</span>
+											)}
+										</li>
+									))
+								}
+							</ul>
+						</nav>
+
+						<div
+							class="bento-hero__ticker bento-card--glass"
+							data-hero-ticker
+							aria-live="off">
+							<span
+								class="bento-hero__ticker-dot"
+								aria-hidden="true">
+							</span>
+							<span class="bento-hero__ticker-label">
+								Shipped
+							</span>
+							<span
+								class="bento-hero__ticker-text"
+								data-ticker-text>
+								axum-kbve v1.0.222 · production
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="bento-hero__showcase">
+					<div class="bento-hero__frame">
+						<img
+							class="bento-hero__wallpaper"
+							src={wallpaperUrl}
+							alt=""
+							loading="lazy"
+							decoding="async"
+							draggable="false"
+							aria-hidden="true"
+						/>
+						<div class="bento-hero__menubar">
+							<span
+								class="bento-hero__menubar-icon"
+								aria-hidden="true">
+								<svg
+									viewBox="0 0 24 24"
+									width="13"
+									height="13"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path
+										d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01">
+									</path>
+								</svg>
+							</span>
+							<span
+								class="bento-hero__menubar-icon"
+								aria-hidden="true">
+								<svg
+									viewBox="0 0 24 24"
+									width="13"
+									height="13"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path
+										d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6">
+									</path>
+								</svg>
+							</span>
+							<button
+								type="button"
+								class="bento-hero__menubar-icon bento-hero__menubar-help"
+								data-wallpaper-help
+								aria-label="About this wallpaper"
+								aria-expanded="false"
+								title="About this wallpaper">
+								<svg
+									viewBox="0 0 24 24"
+									width="13"
+									height="13"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path
+										d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01">
+									</path>
+								</svg>
+							</button>
+							<span class="bento-hero__clock" data-bento-clock>
+								00:00 AM
+							</span>
+						</div>
+						<div
+							class="bento-hero__credit"
+							data-wallpaper-credit
+							hidden>
+							<span class="bento-hero__credit-title">
+								{wallpaperCredit.title}
+							</span>
+							{
+								wallpaperCredit.artist && (
+									<span class="bento-hero__credit-artist">
+										{wallpaperCredit.artist}
+									</span>
+								)
+							}
+							{
+								wallpaperCredit.meta && (
+									<span class="bento-hero__credit-meta">
+										{wallpaperCredit.meta}
+									</span>
+								)
+							}
+							{
+								wallpaperCredit.href && (
+									<a
+										class="bento-hero__credit-link"
+										href={wallpaperCredit.href}
+										target="_blank"
+										rel="noopener noreferrer">
+										View source →
+									</a>
+								)
+							}
+						</div>
+						<div class="bento-hero__window" data-bento-window>
+							<div
+								class="bento-hero__window-header"
+								data-bento-drag>
+								<div class="bento-hero__traffic">
+									<span
+										class="bento-hero__light bento-hero__light--close">
+									</span>
+									<span
+										class="bento-hero__light bento-hero__light--min">
+									</span>
+									<span
+										class="bento-hero__light bento-hero__light--max">
+									</span>
+								</div>
+								<div class="bento-hero__window-title">
+									<span class="bento-hero__window-name">
+										KBVE
+									</span>
+									<span class="bento-hero__window-sep">
+										/
+									</span>
+									<span
+										class="bento-hero__window-crumb"
+										data-bento-crumb>
+										Preview
+									</span>
+								</div>
+							</div>
+							<div class="bento-hero__window-body">
+								<slot name="showcase">
+									<div class="bento-hero__placeholder">
+										<span>showcase slot</span>
+									</div>
+								</slot>
+							</div>
+						</div>
+						<nav
+							class="bento-hero__dock"
+							aria-label="Showcase pages">
+							{
+								dock.map((item) => (
+									<button
+										type="button"
+										class="bento-hero__dock-item"
+										data-dock-key={item.key}
+										data-dock-label={item.label}
+										data-active={
+											item.key === 'default'
+												? ''
+												: undefined
+										}
+										title={item.label}
+										aria-label={item.label}>
+										<svg
+											viewBox="0 0 24 24"
+											width="18"
+											height="18"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="1.75"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											aria-hidden="true">
+											<path d={item.icon} />
+										</svg>
+									</button>
+								))
+							}
+						</nav>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<style>
+	.bento-hero {
+		position: relative;
+	}
+
+	.bento-hero__section {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.bento-hero__glow {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		opacity: 0.4;
+		background: radial-gradient(
+			circle at center top,
+			var(--sl-color-accent-low) 0%,
+			transparent 62%
+		);
+		pointer-events: none;
+	}
+
+	.bento-hero__inner {
+		position: relative;
+		z-index: 1;
+		margin-inline: auto;
+		max-width: 80rem;
+		padding: 4rem 1rem 0;
+	}
+
+	.bento-hero__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1.5rem;
+		align-items: start;
+	}
+
+	.bento-hero__headline {
+		min-width: 0;
+	}
+
+	.bento-hero__title {
+		font-size: clamp(2rem, 6vw, 4.2rem);
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		line-height: 1.02;
+		color: var(--sl-color-white);
+		max-width: 40rem;
+	}
+
+	.bento-hero__title-line {
+		display: block;
+		white-space: nowrap;
+	}
+
+	.bento-hero__slot {
+		display: inline-block;
+		white-space: nowrap;
+		color: var(--sl-color-accent-high);
+		transition: width 320ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	.bento-hero__slot :global(.bento-hero__char) {
+		display: inline-block;
+		transition:
+			transform 320ms cubic-bezier(0.25, 1, 0.5, 1),
+			opacity 320ms ease;
+	}
+
+	.bento-hero__slot :global(.bento-hero__char--out) {
+		transform: translateY(-0.55em);
+		opacity: 0;
+	}
+
+	.bento-hero__slot :global(.bento-hero__char--pre) {
+		transform: translateY(0.55em);
+		opacity: 0;
+		transition: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__slot :global(.bento-hero__char) {
+			transition: none;
+		}
+	}
+
+	.bento-hero__stack {
+		margin-top: 1.5rem;
+		max-width: 40rem;
+	}
+
+	.bento-hero__stack-label {
+		margin-bottom: 0.75rem;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-hero__stack-logos {
+		display: flex;
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	.bento-hero__side {
+		min-width: 0;
+		max-width: 30rem;
+	}
+
+	.bento-hero__description {
+		font-size: 0.9375rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-2);
+	}
+
+	.bento-hero__cta-tray {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		width: fit-content;
+		margin-top: 1.5rem;
+		margin-inline: auto;
+		padding: 0.625rem;
+		border-radius: 1rem;
+		box-shadow:
+			0 0 0 1px
+				color-mix(in srgb, var(--sl-color-accent-high) 45%, transparent),
+			0 0 18px
+				color-mix(in srgb, var(--sl-color-accent-high) 12%, transparent);
+		backdrop-filter: blur(12px);
+	}
+
+	.bento-hero__cta-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: stretch;
+		gap: 0.625rem;
+	}
+
+	.bento-hero__cta {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		min-height: 2.5rem;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		text-decoration: none;
+		white-space: nowrap;
+		transition:
+			background-color 140ms ease,
+			color 140ms ease;
+	}
+
+	.bento-hero__cta::after {
+		content: '';
+		position: absolute;
+		top: -150%;
+		right: 0;
+		width: 2rem;
+		height: 400%;
+		background-color: var(--sl-color-white);
+		opacity: 0.1;
+		transform: translateX(3rem) rotate(12deg);
+		transition: transform 1000ms ease;
+		pointer-events: none;
+	}
+
+	.bento-hero__cta:hover::after {
+		transform: translateX(-14rem) rotate(12deg);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__cta::after {
+			display: none;
+		}
+	}
+
+	.bento-hero__cta--primary {
+		background-color: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		border: 1px solid var(--sl-color-accent-high);
+	}
+
+	.bento-hero__cta--primary:hover {
+		background-color: var(--sl-color-accent-high);
+	}
+
+	.bento-hero__cta--ghost {
+		background-color: transparent;
+		color: var(--sl-color-gray-2);
+		border: 1px solid var(--bento-hairline-strong);
+	}
+
+	.bento-hero__cta--ghost:hover {
+		background-color: var(--sl-color-gray-6);
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__providers {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.25rem 0.375rem 0.125rem;
+	}
+
+	.bento-hero__providers-divider {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		align-self: stretch;
+	}
+
+	.bento-hero__providers-line {
+		flex: 1;
+		height: 1px;
+		background-color: var(--bento-hairline-strong);
+	}
+
+	:global(html[data-auth-tone='auth']) .bento-hero__providers,
+	:global(html[data-auth-tone='staff']) .bento-hero__providers {
+		display: none;
+	}
+
+	.bento-hero__providers-label {
+		font-size: 0.6875rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+		white-space: nowrap;
+	}
+
+	.bento-hero__providers-row {
+		display: inline-flex;
+		gap: 0.5rem;
+	}
+
+	.bento-hero__provider {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		padding: 0;
+		color: var(--sl-color-gray-2);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: 0.5rem;
+		cursor: pointer;
+		transition:
+			color 140ms ease,
+			border-color 140ms ease,
+			background-color 140ms ease,
+			transform 140ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	.bento-hero__provider:hover {
+		color: var(--sl-color-white);
+		border-color: var(--sl-color-accent-high);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 10%,
+			transparent
+		);
+		transform: translateY(-1px);
+	}
+
+	.bento-hero__provider:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px var(--sl-color-accent-low);
+	}
+
+	.bento-hero__provider[disabled] {
+		opacity: 0.5;
+		cursor: wait;
+	}
+
+	.bento-hero__provider--soon {
+		opacity: 0.35;
+		cursor: not-allowed;
+	}
+
+	.bento-hero__provider--soon:hover {
+		color: var(--sl-color-gray-2);
+		border-color: var(--bento-hairline-strong);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			transparent
+		);
+		transform: none;
+	}
+
+	.bento-hero__provider-tip {
+		position: absolute;
+		top: calc(100% + 0.625rem);
+		left: 50%;
+		z-index: 60;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.125rem;
+		padding: 0.4375rem 0.75rem 0.5rem;
+		border-radius: 0.625rem;
+		white-space: nowrap;
+		background: color-mix(in srgb, var(--sl-color-black) 82%, transparent);
+		border: 1px solid
+			color-mix(
+				in srgb,
+				var(--sl-color-accent-high) 30%,
+				var(--bento-hairline-strong, transparent)
+			);
+		box-shadow:
+			0 18px 36px -6px
+				color-mix(in srgb, var(--sl-color-black) 75%, transparent),
+			0 6px 14px
+				color-mix(in srgb, var(--sl-color-black) 45%, transparent),
+			0 0 14px
+				color-mix(in srgb, var(--sl-color-accent-high) 12%, transparent),
+			inset 0 1px 0
+				color-mix(in srgb, var(--sl-color-white) 8%, transparent);
+		backdrop-filter: blur(10px);
+		opacity: 0;
+		transform: translateX(-50%) translateY(4px) scale(0.96);
+		transform-origin: top center;
+		pointer-events: none;
+		transition:
+			opacity 200ms ease,
+			transform 200ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	.bento-hero__provider-tip-arrow {
+		position: absolute;
+		top: -4.5px;
+		left: 50%;
+		width: 8px;
+		height: 8px;
+		transform: translateX(-50%) rotate(45deg);
+		background: color-mix(in srgb, var(--sl-color-black) 92%, transparent);
+		border-top: 1px solid
+			color-mix(in srgb, var(--sl-color-accent-high) 35%, transparent);
+		border-left: 1px solid
+			color-mix(in srgb, var(--sl-color-accent-high) 35%, transparent);
+	}
+
+	.bento-hero__provider-tip-label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		line-height: 1.2;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__provider-tip-meta {
+		font-size: 0.625rem;
+		line-height: 1.2;
+		color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 75%,
+			var(--sl-color-gray-3)
+		);
+	}
+
+	.bento-hero__provider--soon .bento-hero__provider-tip {
+		border-color: var(--bento-hairline-strong);
+		box-shadow:
+			0 18px 36px -6px
+				color-mix(in srgb, var(--sl-color-black) 75%, transparent),
+			0 6px 14px
+				color-mix(in srgb, var(--sl-color-black) 45%, transparent);
+	}
+
+	.bento-hero__provider--soon .bento-hero__provider-tip-arrow {
+		border-color: var(--bento-hairline-strong);
+	}
+
+	.bento-hero__provider--soon .bento-hero__provider-tip-meta {
+		color: var(--sl-color-gray-4);
+	}
+
+	.bento-hero__provider.is-tip-open {
+		z-index: 50;
+	}
+
+	.bento-hero__provider.is-tip-open .bento-hero__provider-tip {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0) scale(1);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__provider-tip {
+			transition: opacity 1ms linear;
+		}
+	}
+
+	.bento-hero__news {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-top: 1.25rem;
+	}
+
+	.bento-hero__news-eyebrow {
+		font-size: 0.625rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-hero__news-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.bento-hero__news-item {
+		display: flex;
+		align-items: baseline;
+		gap: 0.625rem;
+		font-size: 0.75rem;
+		line-height: 1.4;
+	}
+
+	.bento-hero__news-date {
+		flex-shrink: 0;
+		font-size: 0.625rem;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-4);
+	}
+
+	.bento-hero__news-title {
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+	}
+
+	a.bento-hero__news-title:hover {
+		color: var(--sl-color-white);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.bento-hero__ticker {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4375rem;
+		max-width: 100%;
+		margin-top: 0.875rem;
+		padding: 0.375rem 0.75rem;
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: 9999px;
+		font-size: 0.6875rem;
+		line-height: 1.2;
+	}
+
+	.bento-hero__ticker-dot {
+		flex-shrink: 0;
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: 9999px;
+		background-color: var(--kbve-status-healthy, #34d399);
+		box-shadow: 0 0 6px
+			color-mix(
+				in srgb,
+				var(--kbve-status-healthy, #34d399) 70%,
+				transparent
+			);
+		animation: bento-hero-ticker-pulse 2.4s ease-in-out infinite;
+	}
+
+	@keyframes bento-hero-ticker-pulse {
+		50% {
+			opacity: 0.45;
+		}
+	}
+
+	.bento-hero__ticker-label {
+		flex-shrink: 0;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-hero__ticker-text {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		color: var(--sl-color-white);
+		transition: opacity 220ms ease;
+	}
+
+	.bento-hero__ticker[data-swapping] .bento-hero__ticker-text {
+		opacity: 0;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__ticker-dot {
+			animation: none;
+		}
+	}
+
+	.bento-hero__showcase {
+		margin-top: 2rem;
+	}
+
+	.bento-hero__frame {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
+		padding: 1.25rem;
+		padding-bottom: 4.5rem;
+		background-color: var(--sl-color-black);
+		border: 1px solid var(--bento-hairline);
+	}
+
+	.bento-hero__wallpaper {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		opacity: 0.9;
+		pointer-events: none;
+		user-select: none;
+		-webkit-user-drag: none;
+	}
+
+	.bento-hero__frame::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		background: linear-gradient(
+			to bottom,
+			color-mix(in srgb, var(--sl-color-black) 30%, transparent) 0%,
+			color-mix(in srgb, var(--sl-color-black) 55%, transparent) 100%
+		);
+		pointer-events: none;
+	}
+
+	.bento-hero__menubar {
+		position: absolute;
+		top: 0.75rem;
+		right: 0.875rem;
+		z-index: 10;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.3125rem 0.625rem;
+		border-radius: 9999px;
+		background: color-mix(in srgb, var(--sl-color-black) 62%, transparent);
+		border: 1px solid var(--bento-hairline-strong);
+		backdrop-filter: blur(12px);
+	}
+
+	.bento-hero__menubar-icon {
+		display: inline-flex;
+		align-items: center;
+		padding: 0;
+		border: none;
+		background: transparent;
+		color: var(--sl-color-gray-2);
+	}
+
+	button.bento-hero__menubar-icon {
+		cursor: pointer;
+		transition: color 160ms ease;
+	}
+
+	button.bento-hero__menubar-icon:hover,
+	button.bento-hero__menubar-icon:focus-visible {
+		color: var(--sl-color-accent-high);
+		outline: none;
+	}
+
+	.bento-hero__clock {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.02em;
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__clock :global(.bento-hero__clock-digit) {
+		display: inline-block;
+		transition:
+			transform 320ms cubic-bezier(0.25, 1, 0.5, 1),
+			opacity 320ms ease;
+	}
+
+	.bento-hero__clock :global(.bento-hero__clock-digit--pre) {
+		transform: translateY(-0.6em);
+		opacity: 0;
+		transition: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__clock :global(.bento-hero__clock-digit) {
+			transition: none;
+		}
+	}
+
+	.bento-hero__credit[hidden] {
+		display: none;
+	}
+
+	.bento-hero__credit {
+		position: absolute;
+		top: 2.875rem;
+		right: 0.875rem;
+		z-index: 11;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		max-width: 18rem;
+		padding: 0.875rem 1rem;
+		border-radius: 0.75rem;
+		background: color-mix(in srgb, var(--sl-color-black) 82%, transparent);
+		border: 1px solid var(--bento-hairline-strong);
+		box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+		backdrop-filter: blur(12px);
+	}
+
+	.bento-hero__credit-title {
+		font-size: 0.75rem;
+		font-weight: 600;
+		line-height: 1.35;
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__credit-artist {
+		font-size: 0.6875rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	.bento-hero__credit-meta {
+		font-size: 0.625rem;
+		line-height: 1.4;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-hero__credit-link {
+		margin-top: 0.25rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--sl-color-accent-high);
+		text-decoration: none;
+	}
+
+	.bento-hero__dock {
+		position: absolute;
+		bottom: 0.875rem;
+		left: 50%;
+		z-index: 10;
+		display: inline-flex;
+		align-items: flex-end;
+		gap: 0.375rem;
+		padding: 0.375rem 0.5rem;
+		border-radius: 0.875rem;
+		transform: translateX(-50%);
+		background: color-mix(in srgb, var(--sl-color-black) 62%, transparent);
+		border: 1px solid var(--bento-hairline-strong);
+		box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(12px);
+	}
+
+	.bento-hero__dock-item {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 34px;
+		height: 34px;
+		padding: 0;
+		border: none;
+		border-radius: 0.5rem;
+		background: transparent;
+		color: var(--sl-color-gray-2);
+		cursor: pointer;
+		transform-origin: bottom center;
+		transition:
+			transform 200ms cubic-bezier(0.25, 1, 0.5, 1),
+			color 160ms ease,
+			background-color 160ms ease;
+	}
+
+	@media (hover: hover) {
+		.bento-hero__dock-item:hover,
+		.bento-hero__dock-item:focus-visible {
+			transform: scale(1.3) translateY(-3px);
+			color: var(--sl-color-accent-high);
+			outline: none;
+		}
+	}
+
+	.bento-hero__dock-item:active {
+		transform: scale(0.92);
+	}
+
+	.bento-hero__dock-item[data-active] {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 10%,
+			transparent
+		);
+	}
+
+	.bento-hero__dock-item[data-active]::after {
+		content: '';
+		position: absolute;
+		bottom: -0.3rem;
+		left: 50%;
+		width: 3px;
+		height: 3px;
+		border-radius: 9999px;
+		transform: translateX(-50%);
+		background-color: var(--sl-color-accent-high);
+	}
+
+	@media (max-width: 1023.98px) {
+		.bento-hero__dock {
+			bottom: 0.625rem;
+			left: 0.75rem;
+			right: 0.75rem;
+			justify-content: space-around;
+			gap: 0;
+			padding: 0.5rem 0.625rem;
+			border-radius: 1.375rem;
+			transform: none;
+		}
+
+		.bento-hero__dock-item {
+			width: 42px;
+			height: 42px;
+			border-radius: 0.75rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__dock-item,
+		.bento-hero__dock-item:hover {
+			transform: none;
+			transition:
+				color 160ms ease,
+				background-color 160ms ease;
+		}
+	}
+
+	@media (max-width: 639.98px) {
+		.bento-hero__frame {
+			max-width: 24rem;
+			margin-inline: auto;
+			padding: 0.75rem;
+			padding-top: 3rem;
+			padding-bottom: 3.5rem;
+			border: 7px solid #17171a;
+			border-radius: 3rem;
+			box-shadow:
+				0 0 0 1px var(--bento-hairline-strong),
+				0 24px 48px rgba(0, 0, 0, 0.45);
+		}
+
+		.bento-hero__frame::before {
+			content: '';
+			position: absolute;
+			top: 0.75rem;
+			left: 50%;
+			z-index: 12;
+			width: 6rem;
+			height: 1.5rem;
+			border-radius: 9999px;
+			transform: translateX(-50%);
+			background-color: #0b0b0d;
+			box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+		}
+
+		.bento-hero__menubar {
+			top: 0.875rem;
+			right: 0.625rem;
+			gap: 0.5rem;
+			padding: 0.25rem 0.5rem;
+			border-color: transparent;
+			background: transparent;
+			backdrop-filter: none;
+		}
+
+		.bento-hero__menubar-icon:not(.bento-hero__menubar-help) {
+			display: none;
+		}
+
+		.bento-hero__credit {
+			top: 2.75rem;
+			right: 0.625rem;
+			left: 0.625rem;
+			max-width: none;
+		}
+
+		.bento-hero__window {
+			border-radius: 1.25rem;
+		}
+
+		.bento-hero__dock {
+			bottom: 0.5rem;
+		}
+	}
+
+	.bento-hero__window {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		flex-direction: column;
+		height: 620px;
+		overflow: hidden;
+		border-radius: 10px;
+		outline: 1px solid var(--bento-hairline-strong);
+		outline-offset: -1px;
+		background: linear-gradient(
+			var(--sl-color-gray-6) 0%,
+			var(--sl-color-black) 100%
+		);
+		box-shadow: var(--sl-shadow-lg);
+	}
+
+	.bento-hero__window-header {
+		display: flex;
+		flex-shrink: 0;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		padding: 0.25rem 0.625rem;
+		background-color: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--bento-hairline);
+	}
+
+	.bento-hero__traffic {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding-right: 0.25rem;
+	}
+
+	.bento-hero__light {
+		width: 0.75rem;
+		height: 0.75rem;
+		border-radius: 9999px;
+		opacity: 0.5;
+	}
+
+	.bento-hero__light--close {
+		background-color: #ff5f57;
+	}
+
+	.bento-hero__light--min {
+		background-color: #febc2e;
+	}
+
+	.bento-hero__light--max {
+		background-color: #28c840;
+	}
+
+	.bento-hero__window-title {
+		display: flex;
+		min-width: 0;
+		align-items: baseline;
+		gap: 0.375rem;
+		white-space: nowrap;
+	}
+
+	.bento-hero__window-name {
+		font-size: 12px;
+		line-height: 1;
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__window-sep,
+	.bento-hero__window-crumb {
+		font-size: 10px;
+		line-height: 1;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-hero__window-body {
+		position: relative;
+		flex: 1;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.bento-hero__placeholder {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-4);
+		background-image: repeating-linear-gradient(
+			45deg,
+			transparent,
+			transparent 24px,
+			var(--bento-hairline) 24px,
+			var(--bento-hairline) 25px
+		);
+	}
+
+	@media (min-width: 640px) {
+		.bento-hero__inner {
+			padding-inline: 1.5rem;
+		}
+
+		.bento-hero__frame {
+			padding: 2rem;
+		}
+
+		.bento-hero__window {
+			height: 680px;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.bento-hero__inner {
+			padding-top: 6rem;
+		}
+
+		.bento-hero__frame {
+			padding: 2.5rem;
+		}
+
+		.bento-hero__window {
+			height: 576px;
+		}
+	}
+
+	@media (min-width: 1280px) {
+		.bento-hero__grid {
+			grid-template-columns: minmax(0, 0.95fr) minmax(320px, 420px);
+			gap: 2rem;
+		}
+
+		.bento-hero__window {
+			height: 712px;
+		}
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+	import {
+		$activeTooltip,
+		$bentoShipment,
+		closeTooltip,
+		openTooltip,
+		shipBentoWord,
+	} from '@kbve/droid';
+
+	const STAGGER_MS = 24;
+	const SWAP_MS = 340;
+	const HOLD_MS = 5200;
+
+	const renderChars = (slot: HTMLElement, word: string, pre: boolean) => {
+		slot.textContent = '';
+		for (let i = 0; i < word.length; i++) {
+			const span = document.createElement('span');
+			span.className = pre
+				? 'bento-hero__char bento-hero__char--pre'
+				: 'bento-hero__char';
+			span.style.transitionDelay = `${i * STAGGER_MS}ms`;
+			span.textContent = word[i];
+			slot.appendChild(span);
+		}
+	};
+
+	const setupWindow = (teardowns: Array<() => void>) => {
+		const win = document.querySelector<HTMLElement>('[data-bento-window]');
+		if (!win) return;
+
+		const handle = win.querySelector<HTMLElement>('[data-bento-drag]');
+		const crumb = win.querySelector<HTMLElement>('[data-bento-crumb]');
+		const frame = win.parentElement;
+
+		if (handle && frame) {
+			const dragMedia = window.matchMedia('(min-width: 640px)');
+			let startX = 0;
+			let startY = 0;
+			let baseX = 0;
+			let baseY = 0;
+			let x = 0;
+			let y = 0;
+			let dragging = false;
+
+			const onMove = (e: PointerEvent) => {
+				if (!dragging) return;
+				const pad = 12;
+				const maxX = frame.clientWidth - win.offsetWidth + pad;
+				const maxY = frame.clientHeight - win.offsetHeight + pad;
+				x = Math.min(
+					Math.max(baseX + e.clientX - startX, -pad - win.offsetLeft),
+					Math.max(maxX, 0),
+				);
+				y = Math.min(
+					Math.max(baseY + e.clientY - startY, -pad - win.offsetTop),
+					Math.max(maxY, 0),
+				);
+				win.style.transform = `translate(${x}px, ${y}px)`;
+			};
+
+			const onUp = () => {
+				dragging = false;
+				handle.style.cursor = 'grab';
+			};
+
+			const onDown = (e: PointerEvent) => {
+				if (!dragMedia.matches) return;
+				if ((e.target as HTMLElement).closest('button')) return;
+				dragging = true;
+				startX = e.clientX;
+				startY = e.clientY;
+				baseX = x;
+				baseY = y;
+				handle.style.cursor = 'grabbing';
+				e.preventDefault();
+			};
+
+			const applyDragMode = () => {
+				handle.style.cursor = dragMedia.matches ? 'grab' : '';
+				handle.style.touchAction = dragMedia.matches ? 'none' : '';
+				if (!dragMedia.matches) onUp();
+			};
+
+			applyDragMode();
+			dragMedia.addEventListener('change', applyDragMode);
+			handle.addEventListener('pointerdown', onDown);
+			window.addEventListener('pointermove', onMove);
+			window.addEventListener('pointerup', onUp);
+			teardowns.push(() => {
+				dragMedia.removeEventListener('change', applyDragMode);
+				handle.removeEventListener('pointerdown', onDown);
+				window.removeEventListener('pointermove', onMove);
+				window.removeEventListener('pointerup', onUp);
+			});
+		}
+
+		const dockItems =
+			document.querySelectorAll<HTMLButtonElement>('[data-dock-key]');
+
+		dockItems.forEach((item) => {
+			const onClick = () => {
+				window.dispatchEvent(
+					new CustomEvent('bento:showcase', {
+						detail: {
+							key: item.dataset.dockKey,
+							label:
+								item.dataset.dockKey === 'default'
+									? 'Preview'
+									: item.dataset.dockLabel,
+						},
+					}),
+				);
+			};
+			item.addEventListener('click', onClick);
+			teardowns.push(() => item.removeEventListener('click', onClick));
+		});
+
+		const onShowcase = (e: Event) => {
+			const { key, label } = (e as CustomEvent).detail ?? {};
+			if (!key) return;
+			const panels = document.querySelectorAll<HTMLElement>(
+				'[data-showcase-panel]',
+			);
+			let matched = false;
+			panels.forEach((p) => {
+				const active = p.dataset.showcasePanel === key;
+				p.toggleAttribute('data-active', active);
+				if (active) matched = true;
+			});
+			if (!matched) {
+				panels.forEach((p) =>
+					p.toggleAttribute(
+						'data-active',
+						p.dataset.showcasePanel === 'default',
+					),
+				);
+			}
+			dockItems.forEach((item) =>
+				item.toggleAttribute(
+					'data-active',
+					item.dataset.dockKey === (matched ? key : 'default'),
+				),
+			);
+			if (crumb) crumb.textContent = matched ? (label ?? key) : 'Preview';
+		};
+
+		window.addEventListener('bento:showcase', onShowcase);
+		teardowns.push(() =>
+			window.removeEventListener('bento:showcase', onShowcase),
+		);
+
+		const clock = document.querySelector<HTMLElement>('[data-bento-clock]');
+		if (clock) {
+			let current = '';
+			const timeNow = () =>
+				new Date().toLocaleTimeString('en-US', {
+					hour: '2-digit',
+					minute: '2-digit',
+					hour12: true,
+				});
+
+			const spinTo = (next: string) => {
+				if (next === current) return;
+				current = next;
+				clock.textContent = '';
+				for (let i = 0; i < next.length; i++) {
+					const span = document.createElement('span');
+					span.className =
+						'bento-hero__clock-digit bento-hero__clock-digit--pre';
+					span.style.transitionDelay = `${i * 40}ms`;
+					span.textContent = next[i] === ' ' ? ' ' : next[i];
+					clock.appendChild(span);
+				}
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => {
+						clock
+							.querySelectorAll('.bento-hero__clock-digit--pre')
+							.forEach((el) =>
+								el.classList.remove(
+									'bento-hero__clock-digit--pre',
+								),
+							);
+					}),
+				);
+			};
+
+			spinTo(timeNow());
+			const id = setInterval(() => {
+				if (osVisible) spinTo(timeNow());
+			}, 15_000);
+			teardowns.push(() => clearInterval(id));
+		}
+
+		const helpBtn = document.querySelector<HTMLButtonElement>(
+			'[data-wallpaper-help]',
+		);
+		const credit = document.querySelector<HTMLElement>(
+			'[data-wallpaper-credit]',
+		);
+		if (helpBtn && credit) {
+			const setOpen = (open: boolean) => {
+				credit.hidden = !open;
+				helpBtn.setAttribute('aria-expanded', String(open));
+			};
+			const onToggle = (e: MouseEvent) => {
+				e.stopPropagation();
+				setOpen(Boolean(credit.hidden));
+			};
+			const onOutside = (e: MouseEvent) => {
+				if (credit.hidden) return;
+				const t = e.target as HTMLElement;
+				if (!credit.contains(t) && !helpBtn.contains(t)) setOpen(false);
+			};
+			const onEsc = (e: KeyboardEvent) => {
+				if (e.key === 'Escape') setOpen(false);
+			};
+			helpBtn.addEventListener('click', onToggle);
+			document.addEventListener('click', onOutside);
+			document.addEventListener('keydown', onEsc);
+			teardowns.push(() => {
+				helpBtn.removeEventListener('click', onToggle);
+				document.removeEventListener('click', onOutside);
+				document.removeEventListener('keydown', onEsc);
+			});
+		}
+	};
+
+	let osVisible = true;
+
+	onMount(() => {
+		const reduced = window.matchMedia(
+			'(prefers-reduced-motion: reduce)',
+		).matches;
+		const timers: ReturnType<typeof setInterval | typeof setTimeout>[] = [];
+		const teardowns: Array<() => void> = [];
+
+		const frame = document.querySelector('.bento-hero__section');
+		if (frame) {
+			const io = new IntersectionObserver(
+				([entry]) => {
+					osVisible = entry.isIntersecting;
+				},
+				{ threshold: 0.05 },
+			);
+			io.observe(frame);
+			teardowns.push(() => io.disconnect());
+		}
+
+		setupWindow(teardowns);
+
+		document
+			.querySelectorAll<HTMLButtonElement>(
+				'[data-hero-providers] [data-oauth]',
+			)
+			.forEach((btn) => {
+				const onClick = async () => {
+					const provider = btn.dataset.oauth as
+						| 'github'
+						| 'twitch'
+						| 'discord';
+					const row = btn.closest<HTMLElement>(
+						'[data-hero-providers]',
+					);
+					row?.querySelectorAll<HTMLButtonElement>(
+						'button[data-oauth]',
+					).forEach((b) => (b.disabled = true));
+					try {
+						const { authBridge } =
+							await import('@/components/auth');
+						await authBridge.signInWithOAuth(provider);
+					} catch (error) {
+						console.error(`${provider} sign-in error:`, error);
+						row?.querySelectorAll<HTMLButtonElement>(
+							'button[data-oauth]',
+						).forEach((b) => (b.disabled = false));
+					}
+				};
+				btn.addEventListener('click', onClick);
+				teardowns.push(() => btn.removeEventListener('click', onClick));
+			});
+
+		document
+			.querySelectorAll<HTMLElement>(
+				'[data-hero-providers] .bento-hero__provider',
+			)
+			.forEach((item) => {
+				const id = item.id;
+				if (!id) return;
+
+				const open = () => openTooltip(id);
+				const close = () => closeTooltip(id);
+
+				item.addEventListener('pointerenter', open);
+				item.addEventListener('pointerleave', close);
+				item.addEventListener('focus', open);
+				item.addEventListener('blur', close);
+
+				const unsub = $activeTooltip.subscribe((activeId) => {
+					item.classList.toggle('is-tip-open', activeId === id);
+				});
+
+				teardowns.push(() => {
+					item.removeEventListener('pointerenter', open);
+					item.removeEventListener('pointerleave', close);
+					item.removeEventListener('focus', open);
+					item.removeEventListener('blur', close);
+					unsub();
+				});
+			});
+
+		const ticker =
+			document.querySelector<HTMLElement>('[data-hero-ticker]');
+		const tickerText =
+			ticker?.querySelector<HTMLElement>('[data-ticker-text]');
+		if (ticker && tickerText) {
+			const feed = [
+				'axum-kbve v1.0.222 · production',
+				'irc-gateway v0.1.28 · production',
+				'chisel-ubuntu-axum v24.04.10 · production',
+				'kong ServerSideDiff fix · cluster',
+				'rentearth ServerSideDiff fix · cluster',
+			];
+			let feedIndex = 0;
+			let swapTimer = 0;
+
+			const swap = (text: string) => {
+				if (reduced) {
+					tickerText.textContent = text;
+					return;
+				}
+				ticker.setAttribute('data-swapping', '');
+				window.clearTimeout(swapTimer);
+				swapTimer = window.setTimeout(() => {
+					tickerText.textContent = text;
+					ticker.removeAttribute('data-swapping');
+				}, 220);
+			};
+
+			timers.push(
+				setInterval(() => {
+					feedIndex = (feedIndex + 1) % feed.length;
+					swap(feed[feedIndex]);
+				}, 6500),
+			);
+
+			const unsub = $bentoShipment.listen((s) => {
+				if (s?.stage !== 'delivered') return;
+				swap(`WF #${s.id} · ${s.word} pipeline · live on kbve.com`);
+			});
+			teardowns.push(unsub);
+			teardowns.push(() => window.clearTimeout(swapTimer));
+		}
+
+		document
+			.querySelectorAll<HTMLElement>('.bento-hero__slot[data-rotate]')
+			.forEach((slot) => {
+				let words: string[] = [];
+				try {
+					words = JSON.parse(slot.dataset.rotate ?? '[]');
+				} catch {
+					return;
+				}
+				if (words.length < 2) return;
+
+				let index = 0;
+				renderChars(slot, words[0], false);
+
+				timers.push(
+					setInterval(() => {
+						const shipped = words[index];
+						index = (index + 1) % words.length;
+						const next = words[index];
+						shipBentoWord(shipped);
+						if (reduced || !osVisible) {
+							renderChars(slot, next, false);
+							return;
+						}
+						slot.querySelectorAll('.bento-hero__char').forEach(
+							(el) => el.classList.add('bento-hero__char--out'),
+						);
+						timers.push(
+							setTimeout(() => {
+								const prevWidth = slot.offsetWidth;
+								renderChars(slot, next, true);
+								slot.style.width = 'auto';
+								const nextWidth = slot.offsetWidth;
+								slot.style.width = `${prevWidth}px`;
+								void slot.offsetWidth;
+								slot.style.width = `${nextWidth}px`;
+								requestAnimationFrame(() =>
+									requestAnimationFrame(() => {
+										slot.querySelectorAll(
+											'.bento-hero__char--pre',
+										).forEach((el) =>
+											el.classList.remove(
+												'bento-hero__char--pre',
+											),
+										);
+									}),
+								);
+							}, SWAP_MS),
+						);
+					}, HOLD_MS),
+				);
+			});
+
+		return () => {
+			timers.forEach((t) => clearInterval(t as number));
+			teardowns.forEach((fn) => fn());
+		};
+	});
+</script>

@@ -1,5 +1,6 @@
 ---
 title: Block of Redstone
+template: splash
 description: |
     Minecraft Block of Redstone — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 689
     ref: redstone_block
     slug: redstone-block
+    content_rev: 1
     display_name: Block of Redstone
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Block of Redstone is a compact storage block crafted from nine redstone dust in a
+            3x3 grid, equivalent to nine dust. Unlike a redstone torch it cannot be turned off, and it
+            constantly provides strong power to itself and weak power to adjacent blocks, making it a
+            reliable always-on power source in redstone circuits.
+        lore: |
+            Nine units of redstone dust compressed into one dense, perpetually glowing block.
+    faq:
+        - question: How do you craft a Block of Redstone?
+          answer: |
+              Fill a crafting grid's nine slots with redstone dust to produce one block of redstone,
+              which can later be crafted back into nine dust if needed.
+        - question: Can a Block of Redstone be turned off?
+          answer: |
+              No. It is always powered and continuously emits a signal strength of 15 to adjacent
+              blocks, unlike redstone torches which can be toggled off by a strong signal.
+        - question: Can pistons move a Block of Redstone?
+          answer: |
+              Yes. Unlike redstone torches, blocks of redstone do not need a supporting block beneath
+              them and can be pushed or pulled by pistons like any normal solid block.
+        - question: Where can Blocks of Redstone be found naturally?
+          answer: |
+              A couple of blocks of redstone generate as part of the secret redstone circuitry found
+              inside ancient cities, in addition to being craftable from mined redstone dust.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

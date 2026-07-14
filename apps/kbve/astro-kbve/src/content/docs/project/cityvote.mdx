@@ -1,7 +1,7 @@
 ---
-title: CityVote
-description: |
-    Open source collection of software for private projects.
+title: CityVote — Deckbuilder Civ Strategy Game
+description: CityVote is a KBVE game concept blending Civ-style empire building with Balatro-like deckbuilding — card suits drive Gold, Food, Labor, and Faith resources.
+sem: 1
 sidebar:
     label: CityVote
     order: 10
@@ -9,7 +9,71 @@ unsplash: 1477959858617-67f85cf4f1df
 img: https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?fit=crop&w=1400&h=700&q=75
 tags:
     - design
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is CityVote?
+          answer: CityVote is a KBVE game concept that mixes Civilization-style empire building with a Balatro-inspired deckbuilder, using card suits to drive four core resources.
+        - question: What resources does CityVote use?
+          answer: Four resources — Gold, Food, Labor, and Faith — mapped to Diamonds, Hearts, Spades, and Clubs, forming an economic loop where each resource feeds the next.
+        - question: Is CityVote turn-based or real-time?
+          answer: Both. The design keeps a turn-based combat and economy system while adding some real-time movement and combat, with turn-based state used to interpolate the real-time layer.
+bento:
+    badge: design
+    title: Deckbuilder civ strategy
+    accent: CityVote
+    lede: >-
+        A KBVE game concept blending Civilization-style empire building with a
+        Balatro-inspired deckbuilder. Card suits map to four core resources — Gold,
+        Food, Labor, and Faith — that feed one another in an economic loop, over a
+        turn-based economy with a real-time movement layer.
+    ctas:
+        - label: Design notes
+          href: '#design'
+    stats:
+        - { label: Project, value: CityVote, icon: crown }
+        - { label: Type, value: Deckbuilder civ, icon: crown }
+        - { label: Inspiration, value: 'Civ, Balatro', icon: info }
+        - { label: Resources, value: Gold/Food/Labor/Faith, icon: database }
+        - { label: Status, value: Concept, icon: book }
+    features:
+        - title: Deckbuilder core
+          icon: crown
+          body: Card suits produce and consume empire resources.
+        - title: Four-resource economy
+          icon: database
+          body: Diamonds (Gold), Hearts (Food), Spades (Labor), Clubs (Faith).
+        - title: Economic loop
+          icon: gears
+          body: Each resource funds the production of the next.
+        - title: Hybrid pacing
+          icon: clock
+          body: Turn-based system with a real-time movement and combat layer.
+    features_eyebrow: The design
+    features_heading: Features
+    related:
+        - title: Unreal Rareicon
+          href: /project/unreal-rareicon/
+          copy: Another KBVE strategy game project.
+          icon: sword
+        - title: KBVEGameplay
+          href: /project/kbvegameplay/
+          copy: Shared gameplay effect framework.
+          icon: gears
+    related_heading: Related
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="design" eyebrow="Design notes" heading="Resources & economy">
 
 ## Information
 
@@ -96,3 +160,7 @@ The notes for cityvote.com are still a bit out-dated, but I will get back to upd
 ## REF
 
 References for the cityvote project have to be updated as well.
+
+</BentoProse>
+
+</BentoDoc>

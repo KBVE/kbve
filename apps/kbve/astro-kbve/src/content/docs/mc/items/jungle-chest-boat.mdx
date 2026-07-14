@@ -1,5 +1,6 @@
 ---
 title: Jungle Boat with Chest
+template: splash
 description: |
     Minecraft Jungle Boat with Chest — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 817
     ref: jungle_chest_boat
     slug: jungle-chest-boat
+    content_rev: 1
     display_name: Jungle Boat with Chest
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The jungle boat with chest combines a jungle boat and a chest, giving it a built-in 27-slot inventory alongside its normal watercraft function. The chest takes up the passenger seat, so it can only carry a single rider instead of the usual two.
+            It can interact with nearby hoppers for automated loading and unloading, and like its plain counterpart it can be used as furnace fuel.
+        lore: |
+            Combining everyday storage with a simple raft turned the jungle boat into a small mobile cargo vessel for hauling loot across rivers and oceans.
+    faq:
+        - question: How do I craft a jungle boat with chest?
+          answer: |
+              Combine one chest with one jungle boat in any crafting grid to produce the jungle boat with chest.
+        - question: How much can it store?
+          answer: |
+              It has the same 27-slot inventory as a standard chest, accessible while riding or by sneaking and interacting with it from outside.
+        - question: Can it still carry two passengers?
+          answer: |
+              No. The chest occupies the passenger seat, so a jungle boat with chest can only carry one rider at a time.
+        - question: Is it safe to open near piglins?
+          answer: |
+              No. Opening or breaking a boat with chest angers nearby piglins, causing them to attack the player.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

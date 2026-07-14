@@ -1,6 +1,6 @@
 ---
 title: Dual sai | OSRS Price Data
-description: "Dual sai: A pair of aggressive Sai.. High alch: 3,600 GP, GE limit: 8."
+description: "Dual sai is a members hard clue reward; a stab two-handed weapon with +14 melee strength. High alch: 3,600 GP, GE limit: 8."
 osrs:
   id: 23206
   name: Dual sai
@@ -12,9 +12,94 @@ osrs:
   lowalch: 2400
   highalch: 3600
   limit: 8
-  about: "Dual sai is a members-only item in Old School RuneScape. High alchemy value: 3,600 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: weapon
+    tier: mid
+  equipment:
+    slot: 2h
+    weapon_type: 2h-sword
+    attack_speed: 5
+    weight: 1.36
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 11
+      slash: 8
+      crush: -4
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 14
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  drop_table:
+    primary_source: Reward casket (hard)
+    best_drop_rate: 1/1,625
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/1,625
+        members_only: true
+  related_items:
+    - item_id: 23200
+      item_name: Bowl wig
+      slug: bowl-wig
+      relationship: alternative
+      description: Other cosmetic hard clue reward from the same drop pool.
+    - item_id: 23203
+      item_name: Afro
+      slug: afro
+      relationship: alternative
+      description: Hard clue cosmetic released alongside the dual sai.
+  about: |-
+    The dual sai is a two-handed stab weapon obtained from hard Treasure Trail reward caskets. While the
+    base stats trail dedicated stab options like the abyssal dagger, the dual sai's +14 melee strength
+    bonus and unique stab-style attack make it a collectible flex piece more than a meta DPS choice.
+  market_strategy:
+    title: Hard Clue Supply
+    notes:
+      - Supply scales with the hard clue scroll meta; popular farming methods inflate listings
+      - Cosmetic appeal and small buy limit (8) keep retail prices above pure stat value
+      - Track hard clue Wiki pages and content patches for unlock rate changes
+      - Hold during sustained clue droughts; flip aggressively during double-cast events
+  trading_tips:
+    - Compare to abyssal dagger when pricing — collectors are the main demand driver
+    - Buy out crashes after major drop-rate buffs to the hard clue table
+    - Avoid stockpiling deep; the 8 buy limit slows clearing on lows
+  history:
+    - date: "2019-04-11"
+      description: Added as a hard Treasure Trail reward in the 2019 clue scroll expansion.
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Blue moon armour set | OSRS Price Data
-description: "Blue moon armour set is a members-only OSRS item. High alch: 87,000 GP, GE limit: 2."
+description: "Blue moon armour set bundles the helm, chestplate, tassets, and spear from Perilous Moons. High alch: 87,000 GP, GE limit: 2."
 osrs:
   id: 31139
   name: Blue moon armour set
@@ -12,9 +12,59 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: 2
-  about: "Blue moon armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins. Grand Exchange buy limit: 2 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: high
+  related_items:
+    - item_id: 29009
+      item_name: Blue moon helm
+      slug: blue-moon-helm
+      relationship: set-piece
+      description: Head slot piece from the set
+    - item_id: 29011
+      item_name: Blue moon chestplate
+      slug: blue-moon-chestplate
+      relationship: set-piece
+      description: Body slot piece from the set
+    - item_id: 29013
+      item_name: Blue moon tassets
+      slug: blue-moon-tassets
+      relationship: set-piece
+      description: Legs slot piece from the set
+    - item_id: 29007
+      item_name: Blue moon spear
+      slug: blue-moon-spear
+      relationship: set-piece
+      description: Weapon piece from the set
+  about: "Blue moon armour set is a Grand Exchange clerk bundle of the Perilous Moons blue moon pieces, used to sell or move a full set in a single trade."
+  market_strategy:
+    notes:
+      - Premium vs individual pieces averages 200-300k coins
+      - Limit of 2 forces patient flipping
+      - Track perilous moons supply for floor moves
+  trading_tips:
+    - Convert from pieces only when premium exceeds GE tax
+    - Watch event drop-rate buffs that flood supply
+  history:
+    - date: "2025-08-20"
+      description: Released with the More Doom Tweaks, Poll 84, and Summer Sweep Up Changes update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-08-20"
+    update: "More Doom Tweaks, Poll 84, & Summer Sweep Up Changes"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

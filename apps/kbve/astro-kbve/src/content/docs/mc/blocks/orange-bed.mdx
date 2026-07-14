@@ -1,5 +1,6 @@
 ---
 title: Orange Bed
+template: splash
 description: |
     Minecraft Orange Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 111
     ref: orange_bed
     slug: orange-bed
+    content_rev: 1
     display_name: Orange Bed
     material: stone
     hardness: 0.2
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Orange Bed lets players sleep through the night, set their
+            spawn point, and skip storms. In the Nether or End it instead
+            explodes violently when used, making it a tool as well as furniture.
+        lore: |
+            Beds have been in Minecraft since its earliest versions,
+            originally only in red, before dye-colored variants arrived
+            with the Wool update.
+    uses:
+        - title: Sleeping & Spawn Point
+          ref: orange_bed
+          detail: |
+              Right-click to sleep at night, skipping to morning and
+              setting your respawn point at the bed's location.
+        - title: Nether/End Explosive
+          ref: tnt
+          detail: |
+              Using a bed in the Nether or the End detonates it with an
+              explosion power of 5, useful for clearing netherrack around
+              ancient debris.
+    found_in:
+        - location: Savanna villages
+          detail: Generates naturally inside some savanna village houses.
+        - location: Crafting table
+          detail: Crafted from three orange wool and three wood planks.
+        - location: Shepherd villagers
+          detail: Purchasable from shepherd villagers for 3 emeralds.
+    faq:
+        - question: What tool do I need to mine an Orange Bed?
+          answer: |
+              None — any tool or bare hands break it instantly and it
+              always drops itself.
+        - question: Why does my bed explode?
+          answer: |
+              Beds explode when used in the Nether or the End, with a
+              blast power of 5 — this is intentional and often used to
+              mine ancient debris.
+        - question: Can multiple players use one bed?
+          answer: |
+              Yes, multiple players can set their spawn point to the same
+              bed, though only one player can sleep in it at a time.
+        - question: Does landing on a bed reduce fall damage?
+          answer: |
+              Yes, beds act as a bouncy block, reducing fall damage by
+              roughly half when landed on.
     data_version: "1.21.5"
 ---
 

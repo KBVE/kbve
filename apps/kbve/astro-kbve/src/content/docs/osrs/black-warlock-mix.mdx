@@ -1,0 +1,108 @@
+---
+title: Black warlock mix | OSRS Price Data
+description: "Black warlock mix (2): There's a black warlock butterfly in here.. High alch: 42 GP."
+osrs:
+  id: 29189
+  name: Black warlock mix
+  slug: black-warlock-mix
+  examine: There's a black warlock butterfly in here.
+  members: true
+  icon: Black warlock mix (2).png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: null
+  potion:
+    doses: 2
+    effects:
+      - description: Boosts Strength by floor(Strength level × 15 / 100) + 4 — for example +18 at 99 Strength.
+      - description: In multicombat areas, up to three nearby players with Accept Aid on receive the same boost.
+    duration: Single boost per dose.
+  recipes:
+    - product: Black warlock mix (2)
+      skill: Hunter
+      materials:
+        - item_name: Black warlock
+          quantity: 1
+        - item_name: Raw barb-tailed kebbit
+          quantity: 1
+        - item_name: Pestle and mortar
+          quantity: 1
+          tool: true
+      notes: 3-tick craft. Cheapest meat is raw barb-tailed kebbit; recipe currently loses roughly 360 coins per mix.
+  related_items:
+    - item_name: Black warlock
+      slug: black-warlock
+      relationship: component
+      description: Butterfly ingredient
+    - item_name: Raw barb-tailed kebbit
+      slug: raw-barb-tailed-kebbit
+      relationship: component
+      description: Cheapest raw meat used in the mix
+  market_strategy:
+    notes:
+      - Demand follows multicombat group boss meta
+      - Loss-per-mix means players sink supply rather than print
+      - No buy limit — speculative bulk possible
+      - Group iron shareability widens audience
+  history:
+    - date: "2024-03-20"
+      update: Varlamore — Part One
+      description: Black warlock mix released alongside hunter mixes in Varlamore.
+    - date: "2024-04-03"
+      update: Group Ironman sharing
+      description: Group Ironmen can now correctly share hunter mixes and butterflies with their group.
+  about: Black warlock mix (2) is a 2-dose hunter mix that boosts Strength and can share the buff with three nearby allies in multicombat areas.
+  family_ref:
+    family_slug: black-warlock-mix
+    role: base
+  family:
+    slug: black-warlock-mix
+    name: Black warlock mix
+    type: dose
+    canonical_id: 29189
+    members:
+    - id: 29189
+      slug: black-warlock-mix
+      name: Black warlock mix
+      icon: Black warlock mix (2).png
+      role: base
+      dose: null
+      value: 70
+      lowalch: 28
+      highalch: 42
+    - id: 29207
+      slug: black-warlock-mix-1
+      name: Black warlock mix (1)
+      icon: Black warlock mix (1).png
+      role: dose
+      dose: 1
+      value: 70
+      lowalch: 28
+      highalch: 42
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore — Part One
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

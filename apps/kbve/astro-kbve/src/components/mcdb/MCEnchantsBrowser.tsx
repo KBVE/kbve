@@ -59,7 +59,11 @@ function matchesGroup(e: EnchantEntry, group: GroupFilter): boolean {
 
 function EnchantCard({ e }: { e: EnchantEntry }) {
 	return (
-		<a href={`/mc/enchants/${e.slug}/`} className="mcdb-browse__card">
+		<a
+			href={`/mc/enchants/${e.slug}/`}
+			data-mc-card="enchant"
+			data-mc-slug={e.slug}
+			className="mcdb-browse__card">
 			<div className="mcdb-browse__icon mcdb-browse__icon--text">
 				<span>{e.display_name.charAt(0)}</span>
 			</div>

@@ -12,12 +12,59 @@ osrs:
   lowalch: null
   highalch: null
   limit: 5
-  about: "Annihilation teleport scroll is a members-only item in Old School RuneScape. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic-unlock
+    tier: high
+  properties:
+    release_date: "2026-01-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Annihilation weapon scroll
+      slug: annihilation-weapon-scroll
+      relationship: alternative
+      description: "Other Deadman: Annihilation cosmetic unlock"
+    - item_name: Annihilation blueprints
+      slug: annihilation-blueprints
+      relationship: alternative
+      description: Construction-themed Deadman reward
+  about: |-
+    The Annihilation teleport scroll is a Deadman: Annihilation reward that unlocks a wilderness-lever themed Home Teleport animation override. Once read, the override is permanent on the account and can be toggled from the Home Teleport spell.
+
+    The scroll is purchased from the Deadman Reward Store for Deadman points earned during seasonal events.
+  market_strategy:
+    notes:
+      - "Buy limit of 5 keeps supply tight"
+      - "Demand spikes immediately after Deadman seasons end"
+      - "One-time consumable for the account — repeat buyers are rare"
+  trading_tips:
+    - Hold scrolls between seasons; price tends to climb as supply dries up
+    - Avoid flipping during the reward window — supply is highest then
+    - Watch Jagex Deadman announcements for catalysts
+  history:
+    - date: "2026-01-21"
+      description: "Added to the game but initially unobtainable."
+    - date: "2026-02-25"
+      description: "Made available for purchase from the Deadman Reward Store."
+    - date: "2026-03-11"
+      description: "Can now be sacrificed to Death's Coffer."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

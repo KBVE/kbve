@@ -28,7 +28,7 @@ use crate::db::{
     CommentRow, DiscordClient, FeedQuery, FeedRow, SpaceRow, ThreadRow, UserProfile,
     extract_texture_hash, get_discord_client, get_forum_service, get_mc_service, get_osrs_cache,
     get_profile_cache, get_profile_service, get_rentearth_service, get_role_names,
-    get_twitch_client, validate_username,
+    get_twitch_client, osrs_ready, validate_username,
 };
 use askama::Template;
 
@@ -49,14 +49,16 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/application/bevy", "/application/rust/#bevy"),
     ("/application/bevy/", "/application/rust/#bevy"),
     ("/health/", "/health"),
-    // axum doesn't normalize trailing slashes; route table only
-    // registers the no-slash form for /api/v1/* GET endpoints.
     ("/api/v1/forum/tags/", "/api/v1/forum/tags"),
     ("/api/v1/forum/spaces/", "/api/v1/forum/spaces"),
     ("/api/v1/me/", "/api/v1/me"),
     ("/api/v1/me/staff/", "/api/v1/me/staff"),
     ("/dogevideo", "/crypto/"),
     ("/dogevideo/", "/crypto/"),
+    ("/donation", "/donate/"),
+    ("/donation/", "/donate/"),
+    ("/donations", "/donate/"),
+    ("/donations/", "/donate/"),
     ("/tta", "/project/"),
     ("/tta/", "/project/"),
     (
@@ -73,9 +75,6 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/t/", "/forum/tags"),
     ("/arcade/towerdefence", "/arcade/towerdefense/"),
     ("/arcade/towerdefence/", "/arcade/towerdefense/"),
-    // Askama SSG source pages ship HTML in dist/ but are not public
-    // URLs — live versions are served by axum routes that interpolate
-    // placeholders. Funnel to canonical so crawlers don't index them.
     ("/askama/forum/feed", "/forum/"),
     ("/askama/forum/feed/", "/forum/"),
     ("/askama/forum/thread", "/forum/"),
@@ -92,6 +91,16 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/askama/profile_not_found/", "/dashboard/profile/"),
     ("/askama/osrs_not_found", "/osrs/"),
     ("/askama/osrs_not_found/", "/osrs/"),
+    ("/account", "/dashboard/account/"),
+    ("/account/", "/dashboard/account/"),
+    ("/profile", "/dashboard/profile/"),
+    ("/profile/", "/dashboard/profile/"),
+    ("/profile/account", "/dashboard/account/"),
+    ("/profile/account/", "/dashboard/account/"),
+    ("/profile/market", "/dashboard/market/"),
+    ("/profile/market/", "/dashboard/market/"),
+    ("/dashboard/rows", "/dashboard/gameops/rows/"),
+    ("/dashboard/rows/", "/dashboard/gameops/rows/"),
 ];
 
 async fn lang_strip_root() -> Redirect {
@@ -263,6 +272,7 @@ fn router(state: AppState) -> Router {
         .route("/es/", get(lang_strip_root))
         .route("/es/{*rest}", get(lang_strip_handler))
         .route("/health", get(health))
+        .route("/health/pg", get(health_pg))
         .route("/health.html", get(health_html))
         .route("/api/status", get(api_status))
         .route("/api/openapi.json", get(crate::openapi::openapi_json))
@@ -271,12 +281,25 @@ fn router(state: AppState) -> Router {
             get(super::proxy::firecracker_openapi_handler),
         )
         .route(
+            "/api/factorio/openapi.json",
+            get(super::proxy::factorio_openapi_handler),
+        )
+        .route(
             "/api/rows/openapi.json",
             get(super::proxy::chuckrpg_openapi_handler),
         )
         .route("/api/v1/osrs/{item_id}", get(osrs_api_handler))
         .route("/api/v1/profile/me", get(profile_me_handler))
         .route("/api/v1/profile/username", post(set_username_handler))
+        // Discord Activity session bridge (arpg embed): OAuth code -> Discord
+        // token -> linked KBVE profile -> Supabase HS256 JWT. The Activity itself
+        // is served from arpg.kbve.com/discord/arpg/ (portal root); it reaches
+        // this kbve.com endpoint cross-origin through the portal URL Mapping
+        // /arpg-session -> kbve.com, fetching /.proxy/arpg-session/api/v1/discord/session.
+        .route(
+            "/api/v1/discord/session",
+            post(super::discord_session::session),
+        )
         .route("/api/v1/profile/{username}", get(profile_api_handler))
         .route(
             "/api/v1/auth/game-token",
@@ -292,6 +315,75 @@ fn router(state: AppState) -> Router {
             get(mc_player_by_uuid_handler),
         )
         .route("/api/v1/mc/textures/{hash}", get(mc_texture_handler))
+        .route(
+            "/api/v1/webhooks/github/{guild_id}",
+            post(super::webhooks::github_webhook),
+        )
+        .route(
+            "/api/v1/mc/lots/schematics",
+            get(super::mc_lot::list_schematics),
+        )
+        .route("/api/v1/mc/lots/vacant", get(super::mc_lot::list_vacant))
+        .route(
+            "/api/v1/mc/lots/viewport",
+            get(super::mc_lot::list_viewport),
+        )
+        .route(
+            "/api/v1/mc/lots/me/active",
+            get(super::mc_lot::list_my_active),
+        )
+        .route(
+            "/api/v1/mc/lots/me/transitional",
+            get(super::mc_lot::list_my_transitional),
+        )
+        .route(
+            "/api/v1/mc/lots/me/purchase",
+            post(super::mc_lot::me_purchase),
+        )
+        .route(
+            "/api/v1/mc/lots/me/queue-build",
+            post(super::mc_lot::me_queue_build),
+        )
+        .route(
+            "/api/v1/mc/lots/me/queue-demolish",
+            post(super::mc_lot::me_queue_demolish),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/failed",
+            get(super::mc_lot::staff_list_failed),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/retry",
+            post(super::mc_lot::staff_retry),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/release-user",
+            post(super::mc_lot::staff_release_user),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/repair-orphan",
+            post(super::mc_lot::staff_repair_orphan),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/{lot_id}",
+            get(super::mc_lot::staff_get_lot),
+        )
+        .route(
+            "/api/v1/mc/lots/service/claim",
+            post(super::mc_lot::service_claim),
+        )
+        .route(
+            "/api/v1/mc/lots/service/mark-applied",
+            post(super::mc_lot::service_mark_applied),
+        )
+        .route(
+            "/api/v1/mc/lots/service/mark-failed",
+            post(super::mc_lot::service_mark_failed),
+        )
+        .route(
+            "/api/v1/mc/lots/service/requeue-stale",
+            post(super::mc_lot::service_requeue_stale),
+        )
         .route(
             "/api/v1/rcon/{game}/{server}/exec",
             post(crate::rcon::exec_handler),
@@ -361,15 +453,11 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/forum/tags", get(api_list_tags))
         .route("/api/v1/wallet/me/balance", get(super::wallet::me_balance))
         .route("/api/v1/wallet/me/coupons", get(super::wallet::me_coupons))
+        .route("/api/v1/wallet/me/ledger", get(super::ledger::me_ledger))
         .route(
             "/api/v1/wallet/me/redeem-coupon",
             post(super::wallet::me_redeem_coupon),
         )
-        // Anonymous referral redirect surface. Client IP arrives via the
-        // ingress's X-Forwarded-For / CF-Connecting-IP headers; the
-        // handler hashes them with REFERRAL_HASH_SECRET before any DB
-        // write. Phase 2 backend for /referral/@<handle>/[<slug>]/ on
-        // the astro side.
         .route(
             "/api/v1/referral/{handle}",
             get(super::referral::redirect_default),
@@ -378,15 +466,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/referral/{handle}/{slug}",
             get(super::referral::redirect_slug),
         )
-        // Pretty public URL. Same handlers as the API route. Axum matches
-        // routes before falling through to the static resolver, so these
-        // win over any /referral/<...>/index.html that may still ship in
-        // the astro dist.
-        //
-        // Each form gets two routes so a trailing slash on the public URL
-        // (e.g. /referral/@fudster/ vs /referral/@fudster) doesn't 404.
-        // axum's path matching is exact — there's no built-in
-        // trailing-slash normalization.
         .route("/referral/{handle}", get(super::referral::redirect_default))
         .route(
             "/referral/{handle}/",
@@ -400,8 +479,6 @@ fn router(state: AppState) -> Router {
             "/referral/{handle}/{slug}/",
             get(super::referral::redirect_slug),
         )
-        // API surface also tolerates trailing slashes for parity with the
-        // public URLs above.
         .route(
             "/api/v1/referral/{handle}/",
             get(super::referral::redirect_default),
@@ -410,9 +487,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/referral/{handle}/{slug}/",
             get(super::referral::redirect_slug),
         )
-        // Phase 3a self-service management. All `/me/*` routes require
-        // a Supabase user JWT; user_id is pulled from the JWT `sub`
-        // claim, never trusted from the path or body.
         .route(
             "/api/v1/referral/me/targets",
             get(super::referral::me_list_targets),
@@ -430,10 +504,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/referral/me/targets/{slug}/set-default",
             post(super::referral::me_set_default),
         )
-        // service_role JWT required; anon / authenticated JWTs are rejected with 403.
-        // Yuki dock — SSE chat stream. Phase C is a deterministic
-        // canned reply; Phase D swaps the handler body for a real
-        // LLM round-trip without touching the route or the front-end.
         .route("/api/v1/yuki/chat", get(super::yuki::chat_handler))
         .route(
             "/api/v1/wallet/service/balance/{user_id}",
@@ -467,7 +537,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/wallet/service/verify-balance/{account_id}",
             get(super::wallet::service_verify_balance),
         )
-        // marketplace — anon browse + authenticated trade/management.
         .route(
             "/api/v1/market/listings",
             get(super::market::list_active).post(super::market::create_listing),
@@ -497,12 +566,15 @@ fn router(state: AppState) -> Router {
         .route("/forum/c/{slug}", get(forum_c_redirect))
         .route("/forum/c/{slug}/", get(forum_c_redirect));
 
-    let public_router =
-        mount_permanent_redirects(public_router, PERMANENT_REDIRECTS).with_state(state.clone());
+    let public_router = mount_permanent_redirects(public_router, PERMANENT_REDIRECTS);
+    let public_router = mount_permanent_redirects(
+        public_router,
+        crate::transport::osrs_family_redirects::OSRS_FAMILY_REDIRECTS,
+    )
+    .with_state(state.clone());
 
     let main_app = static_router.merge(public_router).layer(middleware);
 
-    // Proxy + WebSocket routes bypass global middleware (no 10s timeout, no 1MB body limit).
     let mut bypass_router = Router::new();
     if let Some(mcp_svc) = crate::mcp::build_service() {
         bypass_router = bypass_router
@@ -542,6 +614,7 @@ fn router(state: AppState) -> Router {
             "/dashboard/forgejo/proxy",
             any(super::proxy::forgejo_proxy_handler),
         )
+        .merge(super::forgejo_api::routes())
         .route(
             "/dashboard/vm/proxy/{*path}",
             any(super::proxy::kubevirt_proxy_handler),
@@ -559,6 +632,10 @@ fn router(state: AppState) -> Router {
             axum::routing::get(super::proxy::kubevirt_vnc_info_handler),
         )
         .route(
+            "/dashboard/vm/vnc-control/{name}",
+            axum::routing::post(super::proxy::kubevirt_vnc_control_handler),
+        )
+        .route(
             "/dashboard/vm/vnc-sessions",
             axum::routing::get(super::proxy::kubevirt_vnc_sessions_handler),
         )
@@ -569,6 +646,30 @@ fn router(state: AppState) -> Router {
         .route(
             "/dashboard/firecracker/proxy",
             any(super::proxy::firecracker_proxy_handler),
+        )
+        .route(
+            "/dashboard/factorio/proxy/{*path}",
+            any(super::proxy::factorio_proxy_handler),
+        )
+        .route(
+            "/dashboard/factorio/proxy",
+            any(super::proxy::factorio_proxy_handler),
+        )
+        .route(
+            "/dashboard/vibeshine/proxy/{*path}",
+            any(super::proxy::vibeshine_proxy_handler),
+        )
+        .route(
+            "/dashboard/vibeshine/proxy",
+            any(super::proxy::vibeshine_proxy_handler),
+        )
+        .route(
+            "/api/v1/vibeshine/status",
+            axum::routing::get(super::proxy::vibeshine_status_handler),
+        )
+        .route(
+            "/api/v1/vibeshine/webrtc/{*rest}",
+            any(super::proxy::vibeshine_webrtc_handler),
         )
         .route(
             "/dashboard/firecracker-net/proxy/{*path}",
@@ -595,11 +696,6 @@ fn router(state: AppState) -> Router {
             any(super::proxy::firecracker_fc_handler),
         )
         .route("/fc/{name}", any(super::proxy::firecracker_fc_handler))
-        // No JWT gate here; firecracker-ctl-net rejects with 403 when
-        // the endpoint was not deployed with `visibility: "public"`.
-        // Single catch-all (vs. {name} + {name}/{*path}) so the trailing-
-        // slash form `/fc/public/my-api/` still matches and does not fall
-        // through to the staff-gated `/fc/{name}/{*path}` route.
         .route(
             "/fc/public/{*rest}",
             any(super::proxy::firecracker_fc_public_handler),
@@ -653,11 +749,11 @@ fn router(state: AppState) -> Router {
             any(super::proxy::edge_proxy_handler),
         )
         .route(
-            "/dashboard/chuckrpg/proxy/{*path}",
-            any(super::proxy::chuckrpg_proxy_handler),
+            "/dashboard/chuckrpg/tenants",
+            axum::routing::get(super::proxy::chuckrpg_tenants_handler),
         )
         .route(
-            "/dashboard/chuckrpg/proxy",
+            "/dashboard/chuckrpg/proxy/{tenant}/{*path}",
             any(super::proxy::chuckrpg_proxy_handler),
         );
 
@@ -677,6 +773,60 @@ pub(crate) async fn health() -> impl IntoResponse {
         status: "ok",
         version: crate::version::current(),
     })
+}
+
+#[derive(serde::Serialize, utoipa::ToSchema)]
+pub(crate) struct PgRoleHealthDto {
+    pub role: String,
+    pub ok: bool,
+    pub latency_ms: u64,
+    pub last_error: Option<String>,
+}
+
+#[derive(serde::Serialize, utoipa::ToSchema)]
+pub(crate) struct PgClusterHealthDto {
+    pub all_ok: bool,
+    pub rw: PgRoleHealthDto,
+    pub ro: PgRoleHealthDto,
+    pub any: PgRoleHealthDto,
+}
+
+#[utoipa::path(
+    get,
+    path = "/health/pg",
+    tag = "system",
+    responses(
+        (status = 200, description = "Per-role PgCluster liveness", body = PgClusterHealthDto),
+        (status = 503, description = "PgCluster not configured"),
+    ),
+)]
+pub(crate) async fn health_pg() -> Response {
+    let Some(cluster) = crate::db::get_pg_cluster() else {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(serde_json::json!({"error": "PgCluster not configured"})),
+        )
+            .into_response();
+    };
+    let h = cluster.health().await;
+    let to_dto = |r: jedi::state::pg::PgRoleHealth| PgRoleHealthDto {
+        role: match r.role {
+            jedi::state::pg::PgRole::Rw => "rw",
+            jedi::state::pg::PgRole::Ro => "ro",
+            jedi::state::pg::PgRole::Any => "any",
+        }
+        .into(),
+        ok: r.ok,
+        latency_ms: r.latency.as_millis() as u64,
+        last_error: r.last_error,
+    };
+    Json(PgClusterHealthDto {
+        all_ok: h.all_ok(),
+        rw: to_dto(h.rw),
+        ro: to_dto(h.ro),
+        any: to_dto(h.any),
+    })
+    .into_response()
 }
 
 async fn health_html(State(state): State<AppState>) -> impl IntoResponse {
@@ -721,22 +871,20 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
         }
     };
 
-    // Concurrent misses collapse to one enrichment via get_or_load.
     let profile = if let Some(cache) = get_profile_cache() {
         cache
             .get_or_load(&validated_username, |u| async move {
                 fetch_enriched_profile(&u).await
             })
             .await
-            .map(|arc| (*arc).clone())
     } else {
-        fetch_profile_from_db(&validated_username).await
+        fetch_profile_from_db(&validated_username)
+            .await
+            .map(std::sync::Arc::new)
     };
 
     match profile {
         Some(profile) => {
-            // Forum block bypasses the profile cache so post counts and
-            // recent activity stay current.
             let forum_block = fetch_forum_profile_block(&profile.user_id).await;
             let response =
                 render_profile_template(&validated_username, &profile, forum_block.as_ref());
@@ -1114,8 +1262,6 @@ fn render_profile_template(
         rentearth_characters,
         rentearth_total_playtime_hours,
         rentearth_last_activity,
-        // Empty defaults when forum lookup found no row (user has never
-        // posted) so the template hides the section via forum_present.
         forum_present: forum.is_some(),
         forum_karma: forum.map(|f| f.karma).unwrap_or(0),
         forum_post_count: forum.map(|f| f.post_count).unwrap_or(0),
@@ -1427,6 +1573,17 @@ pub(crate) async fn osrs_api_handler(Path(item_id): Path<String>) -> impl IntoRe
         }
     };
 
+    // Cache still loading its mapping — answer 503 rather than a misleading 404.
+    if !osrs_ready() {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(json!({
+                "error": "OSRS cache is warming up, retry shortly"
+            })),
+        )
+            .into_response();
+    }
+
     let result = if let Ok(id) = item_id.parse::<u32>() {
         cache.get_by_id(id).await
     } else {
@@ -1653,16 +1810,16 @@ pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl In
         }
     };
 
-    // Concurrent misses collapse to one enrichment via get_or_load.
     let profile = if let Some(cache) = get_profile_cache() {
         cache
             .get_or_load(&validated_username, |u| async move {
                 fetch_enriched_profile(&u).await
             })
             .await
-            .map(|arc| (*arc).clone())
     } else {
-        fetch_profile_from_db(&validated_username).await
+        fetch_profile_from_db(&validated_username)
+            .await
+            .map(std::sync::Arc::new)
     };
 
     match profile {
@@ -2006,12 +2163,7 @@ async fn cache_headers(request: Request, next: Next) -> Response {
     let mut response = next.run(request).await;
 
     let cache_value = if path.starts_with("/_astro/") {
-        // Content-hashed Vite bundles — cache forever.
         "public, max-age=31536000, immutable"
-    } else if path.starts_with("/pagefind/") || path.starts_with("/images/") {
-        "public, max-age=86400"
-    } else if path.ends_with(".html") || path == "/" || !path.contains('.') {
-        "public, max-age=86400"
     } else {
         "public, max-age=86400"
     };
@@ -2142,8 +2294,6 @@ async fn fetch_forum_profile_block(user_id: &str) -> Option<ForumProfileBlock> {
     let mut recent_comments_html = String::with_capacity(comments.len() * 256);
     let ctx = forum_render_ctx();
     for c in &comments {
-        // Strip rendered markdown to plain text — the anchor wrapping
-        // the row would otherwise nest HTML.
         let rendered = kbve::markdown::render(&c.body, &ctx);
         let excerpt = plain_excerpt(&rendered.html, FORUM_PROFILE_COMMENT_EXCERPT);
         let partial = ProfileForumCommentRowPartial {
@@ -2488,7 +2638,26 @@ pub(crate) async fn api_list_tags() -> Response {
                 .into_response();
         }
     };
-    match svc.list_tags(200).await {
+
+    let result = if let Some(cache) = crate::db::get_kv_cache() {
+        cache
+            .get_or_fetch_json_tagged(
+                "forum:tags:limit=200",
+                None,
+                || async {
+                    svc.list_tags(200)
+                        .await
+                        .map_err(|e| jedi::entity::error::JediError::Database(e.into()))
+                },
+                |_: &Vec<crate::db::TagRow>| vec!["forum:tags".to_string()],
+            )
+            .await
+            .map_err(|e| e.to_string())
+    } else {
+        svc.list_tags(200).await
+    };
+
+    match result {
         Ok(rows) => (
             StatusCode::OK,
             [(header::CACHE_CONTROL, "public, max-age=300")],
@@ -2529,7 +2698,26 @@ pub(crate) async fn api_list_spaces() -> Response {
                 .into_response();
         }
     };
-    match svc.list_spaces().await {
+
+    let result = if let Some(cache) = crate::db::get_kv_cache() {
+        cache
+            .get_or_fetch_json_tagged(
+                "forum:spaces",
+                None,
+                || async {
+                    svc.list_spaces()
+                        .await
+                        .map_err(|e| jedi::entity::error::JediError::Database(e.into()))
+                },
+                |_: &Vec<crate::db::SpaceRow>| vec!["forum:spaces".to_string()],
+            )
+            .await
+            .map_err(|e| e.to_string())
+    } else {
+        svc.list_spaces().await
+    };
+
+    match result {
         Ok(rows) => (
             StatusCode::OK,
             [(header::CACHE_CONTROL, "public, max-age=300")],
@@ -2800,7 +2988,6 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
     let ctx = forum_render_ctx();
     let body_rendered = kbve::markdown::render(&thread.body, &ctx);
 
-    // Batch-resolve thread author + every commenter to a username.
     let usernames_by_id = match get_profile_service() {
         Some(profile_svc) => {
             let mut ids: Vec<String> = Vec::with_capacity(comments.len() + 1);
@@ -2921,7 +3108,6 @@ pub(crate) struct CreateThreadBody {
     // double-encode &amp; etc.
     #[holy(sanitize = "trim, control_strip, truncate(180)")]
     pub title: String,
-    // body is markdown — control_strip would eat \n / \t.
     #[holy(sanitize = "nul_strip, truncate(50000)")]
     pub body: String,
     #[serde(default = "default_thread_type")]
@@ -3024,8 +3210,6 @@ pub(crate) async fn api_create_thread(
         }
         Err(e) => {
             tracing::warn!("forum.service_create_thread error: {}", e);
-            // Surface RPC message so the client can render "username
-            // required" / "title length" / etc directly.
             (StatusCode::BAD_REQUEST, Json(json!({"error": e}))).into_response()
         }
     }
@@ -3035,7 +3219,6 @@ pub(crate) async fn api_create_thread(
 pub(crate) struct CreateCommentBody {
     #[holy(sanitize = "nul_strip, truncate(50000)")]
     pub body: String,
-    // UUID — RPC rejects malformed values, no sanitize needed.
     #[serde(default)]
     pub parent_comment_id: Option<String>,
 }
@@ -3716,5 +3899,52 @@ mod tests {
             before,
             "PERMANENT_REDIRECTS source paths must be unique"
         );
+    }
+
+    #[tokio::test]
+    async fn osrs_family_redirects_are_unique_and_disjoint() {
+        use crate::transport::osrs_family_redirects::OSRS_FAMILY_REDIRECTS;
+        // Internal uniqueness — duplicate routes panic axum at startup.
+        let mut sources: Vec<_> = OSRS_FAMILY_REDIRECTS.iter().map(|(s, _)| *s).collect();
+        sources.sort_unstable();
+        let before = sources.len();
+        sources.dedup();
+        assert_eq!(
+            sources.len(),
+            before,
+            "OSRS_FAMILY_REDIRECTS source paths must be unique"
+        );
+        // Disjoint from the hand-written table — both get mounted.
+        let hand: std::collections::HashSet<_> =
+            PERMANENT_REDIRECTS.iter().map(|(s, _)| *s).collect();
+        for (src, _) in OSRS_FAMILY_REDIRECTS {
+            assert!(
+                !hand.contains(src),
+                "family redirect {src} collides with PERMANENT_REDIRECTS"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn osrs_family_redirect_fires_to_base() {
+        use crate::transport::osrs_family_redirects::OSRS_FAMILY_REDIRECTS;
+        let app = mount_permanent_redirects(Router::<()>::new(), OSRS_FAMILY_REDIRECTS);
+        for uri in [
+            "/osrs/dragon-dagger-p",
+            "/osrs/dragon-dagger-p/",
+            "/osrs/dragon-dagger-p-5698",
+            "/osrs/dragon-dagger-p-5698/",
+        ] {
+            let response = app
+                .clone()
+                .oneshot(Request::builder().uri(uri).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::PERMANENT_REDIRECT);
+            assert_eq!(
+                response.headers().get(header::LOCATION).unwrap(),
+                "/osrs/dragon-dagger/"
+            );
+        }
     }
 }

@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1688764896020-c448693ec24e?crop=entropy&c
 description: August 9th. Map Map Map.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 9,'
+    accent: every year.
+    lede: 'The August 9th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 8'
+          href: /journal/08-08/
+        - label: 'Aug 10 →'
+          href: /journal/08-10/
+    related:
+        - title: 'Previous · Aug 8'
+          copy: 'Step back a day to the August 8th log.'
+          href: /journal/08-08/
+          icon: calendar
+        - title: 'Next · Aug 10'
+          copy: 'Jump ahead to the August 10th log.'
+          href: /journal/08-10/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1688764896020-c448693ec24e?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Operator of Secrets
 
@@ -20,7 +62,15 @@ import { Adsense } from '@/components/astropad';
     End of the night notes, most of it was just around the secrets operator from the other day.
     Most of today was just relaxing, so this entry will be short.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **MapDB**
 The first map that we will be building for the initial main city will be around `1000x1000` large and it will be used as the main city of operations.
@@ -42,22 +92,29 @@ These are changes that we need to make within this next couple weeks, then I wil
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 12:15am - I should get ready to sleep! Going to spend the early morning setting up Supabase and migrating the tri-force to near perfection.
 - 6:24am - SSS Completed. It took some time for my system to boot up because of a Windows update B0UT I am all cylinders ready to go! The first couple course of actions would be to setup the Redis cache system, so that we are not hitting the database too hard with our queries. 
 - 7:35am - The n8n and Supabase integration will start with the general profile, I should expand it out slowly as I get more information and time to work with it.
 
-## Notes
+</BentoProse>
 
-
-## Quote
+<BentoProse id="quote" heading="Quote">
 
 > Everyone in the world ought to do the things for which he is specially adapted. It is the part of wisdom to recognize what each one of us is best fitted for, and it is the part of education to perfect and utilize such predispositions. Because education can direct and aid nature but can never transform her.
 > — <cite>Maria Montessori</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

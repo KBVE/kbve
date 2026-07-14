@@ -12,9 +12,53 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Wood camo legs (equipped) is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weapon_type: unarmed
+    requirements:
+      attack: 1
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  recipes:
+    - materials:
+        - item_name: Common kebbit fur
+          quantity: "2"
+        - item_name: Coins
+          quantity: "20"
+      tools:
+        - Fancy Clothes Store
+      skill: Hunter
+      level: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Wood camo top
+      relationship: set-piece
+      description: Matching Hunter camouflage top
+  about: "Wood camo legs disguise the wearer in wooded Hunter areas and reduce inventory weight by 2 kg after the Varlamore Part One update."
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill update.
+    - date: "2024-03-20"
+      description: Added 2 kg weight reduction with the Varlamore Part One release.
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter skill
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

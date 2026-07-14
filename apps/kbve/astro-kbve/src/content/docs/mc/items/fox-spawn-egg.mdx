@@ -1,5 +1,6 @@
 ---
 title: Fox Spawn Egg
+template: splash
 description: |
     Minecraft Fox Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1091
     ref: fox_spawn_egg
     slug: fox-spawn-egg
+    content_rev: 1
     display_name: Fox Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The fox spawn egg is a Creative-mode-only item that instantly spawns a fox when used
+            on a block. Foxes appear as either the red or snowy variant depending on the biome
+            they are spawned into, and always spawn untamed and untrusting of players.
+        lore: |
+            A pocketful of forest, ready to dart away the moment it lands.
+    faq:
+        - question: How do I get a fox spawn egg?
+          answer: |
+              Fox spawn eggs can only be obtained in Creative mode, either from the Creative
+              inventory or by using the pick block feature on an existing fox.
+        - question: Does the fox spawn egg always create the same type of fox?
+          answer: |
+              No, the fox it spawns will be the red variant or the snowy variant depending on
+              the biome where it is used, and there is also a small chance it spawns a baby fox.
+        - question: Are foxes spawned from the egg tamed?
+          answer: |
+              No, foxes always spawn untamed and distrustful of the player regardless of how
+              they were created.
+        - question: Can foxes spawned this way still despawn?
+          answer: |
+              Yes, unlike mobs that were given a name tag, foxes spawned from a spawn egg can
+              still despawn naturally over time.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

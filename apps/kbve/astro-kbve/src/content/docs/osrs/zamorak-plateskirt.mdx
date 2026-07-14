@@ -12,9 +12,76 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 8
-  about: "Zamorak plateskirt is a free-to-play item in Old School RuneScape. High alchemy value: 38,400 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Rune
+    tier: mid-high
+  equipment:
+    slot: legs
+    weight: 9.071
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 51
+      slash: 49
+      crush: 47
+      magic: -4
+      ranged: 49
+    other_bonus:
+      strength: 0
+      prayer: 1
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - name: Rune plateskirt
+      relationship: variant
+    - name: Zamorak platebody
+      relationship: set-piece
+    - name: Zamorak full helm
+      relationship: set-piece
+    - name: Zamorak kiteshield
+      relationship: set-piece
+    - name: Zamorak platelegs
+      relationship: alternative
+  about: "Zamorak plateskirt is a rune-tier plateskirt obtained from hard Treasure Trail rewards; wearing any Zamorak armour piece pacifies followers of Zamorak in the God Wars Dungeon."
+  market_strategy:
+    notes:
+      - "Drop rate 1/1625 from hard reward caskets keeps supply scarce."
+      - "Tiny GE limit (8 per 4 hours) — best for slow accumulation, not high-velocity flips."
+      - "High alch 38.4k typically well below GE price — never alch."
+  trading_tips:
+    - "Demand from GWD passage-style trips and collection log hunters."
+    - "Watch prices around Treasure Trail content updates and DMM seasons."
+  history:
+    - date: "2004-10-26"
+      description: "Released as a hard clue scroll reward in the Treasure Trails update."
+  properties:
+    release_date: "2004-10-26"
+    update: "Treasure Trails"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

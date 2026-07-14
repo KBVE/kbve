@@ -1,6 +1,12 @@
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 import { useStore } from '@nanostores/react';
-import { forgejoService, formatSize, langColor } from './forgejoService';
+import {
+	forgejoService,
+	formatSize,
+	langColor,
+	timeAgo,
+} from './forgejoService';
+import { useTabActive } from './forgejoUi';
 import {
 	Loader2,
 	AlertTriangle,
@@ -10,6 +16,9 @@ import {
 	Tag,
 	Lock,
 	Archive,
+	Activity,
+	GitBranch,
+	Package,
 } from 'lucide-react';
 
 function StatCard({
@@ -73,14 +82,52 @@ function StatCard({
 	);
 }
 
+const STORAGE_HEALTH_LABEL: Record<string, string> = {
+	schema_drift:
+		'Schema drift — Forgejo repository columns changed. Per-repo git/LFS split disabled until the storage layer contract is updated.',
+	access_denied:
+		'DB access denied — app role lost SELECT on forgejo.repository. Per-repo git/LFS split unavailable.',
+	db_error:
+		'Storage DB error — per-repo git/LFS split unavailable, falling back to combined size.',
+	unconfigured: 'Per-repo storage DB layer not configured.',
+};
+
 function StorageBreakdown() {
 	const repos = useStore(forgejoService.$repos);
+	const storage = useStore(forgejoService.$storage);
+	const health = useStore(forgejoService.$storageHealth);
+
+	const healthIssue =
+		health && health.status !== 'ok' && health.status !== 'unknown'
+			? {
+					label:
+						STORAGE_HEALTH_LABEL[health.status] ??
+						`Storage layer: ${health.status}`,
+					detail: health.detail,
+					critical: health.status !== 'unconfigured',
+				}
+			: null;
+
+	const { totalSize, top } = useMemo(() => {
+		const sorted = [...repos].sort((a, b) => b.size - a.size);
+		return {
+			totalSize: sorted.reduce((s, r) => s + r.size, 0),
+			top: sorted.slice(0, 8),
+		};
+	}, [repos]);
+
+	const drift = useMemo(() => {
+		if (!storage?.quota_enabled) return null;
+		const quotaKb = (storage.repos_bytes + storage.lfs_bytes) / 1024;
+		const repoSumKb = repos.reduce((s, r) => s + r.size, 0);
+		const missingKb = quotaKb - repoSumKb;
+		if (quotaKb <= 0 || missingKb <= 0) return null;
+		const pct = (missingKb / quotaKb) * 100;
+		if (pct < 5 || missingKb < 100 * 1024) return null;
+		return { missingKb, pct };
+	}, [repos, storage]);
 
 	if (repos.length === 0) return null;
-
-	const sorted = [...repos].sort((a, b) => b.size - a.size);
-	const totalSize = sorted.reduce((s, r) => s + r.size, 0);
-	const top = sorted.slice(0, 8);
 
 	return (
 		<div style={{ marginBottom: '1.5rem' }}>
@@ -99,6 +146,50 @@ function StorageBreakdown() {
 				<HardDrive size={12} />
 				Storage by Repository
 			</div>
+			{healthIssue && (
+				<div
+					title={healthIssue.detail ?? undefined}
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 6,
+						padding: '0.5rem 0.7rem',
+						borderRadius: 8,
+						marginBottom: 8,
+						background: healthIssue.critical
+							? 'rgba(239, 68, 68, 0.1)'
+							: 'rgba(139, 148, 158, 0.1)',
+						border: healthIssue.critical
+							? '1px solid rgba(239, 68, 68, 0.3)'
+							: '1px solid rgba(139, 148, 158, 0.3)',
+						fontSize: '0.72rem',
+						color: healthIssue.critical ? '#ef4444' : '#8b949e',
+					}}>
+					<AlertTriangle size={14} />
+					{healthIssue.label}
+				</div>
+			)}
+			{drift && (
+				<div
+					title="Per-repo sizes are summed from Forgejo's repository.size, which only updates on push or gc. The owner quota totals include LFS that some repos haven't recomputed yet — run a Forgejo size recalculation (admin → garbage collect repositories)."
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 6,
+						padding: '0.5rem 0.7rem',
+						borderRadius: 8,
+						marginBottom: 8,
+						background: 'rgba(234, 179, 8, 0.1)',
+						border: '1px solid rgba(234, 179, 8, 0.3)',
+						fontSize: '0.72rem',
+						color: '#eab308',
+					}}>
+					<AlertTriangle size={14} />
+					Stale repo sizes: ~{formatSize(drift.missingKb)} of LFS (
+					{drift.pct.toFixed(0)}%) not yet reflected per-repo.
+					Recompute Forgejo sizes.
+				</div>
+			)}
 			{/* Stacked bar */}
 			<div
 				style={{
@@ -158,6 +249,15 @@ function StorageBreakdown() {
 							<span style={{ opacity: 0.6, fontSize: '0.65rem' }}>
 								{formatSize(repo.size)}
 							</span>
+							{repo.lfs_size > 0 && (
+								<span
+									style={{
+										color: '#8b5cf6',
+										fontSize: '0.6rem',
+									}}>
+									LFS {formatSize(repo.lfs_size)}
+								</span>
+							)}
 						</div>
 					);
 				})}
@@ -240,7 +340,92 @@ function LanguageBar() {
 	);
 }
 
+function RecentActivity() {
+	const repos = useStore(forgejoService.$repos);
+	if (repos.length === 0) return null;
+	const recent = [...repos]
+		.filter((r) => r.updated_at)
+		.sort(
+			(a, b) =>
+				new Date(b.updated_at).getTime() -
+				new Date(a.updated_at).getTime(),
+		)
+		.slice(0, 8);
+	if (recent.length === 0) return null;
+	return (
+		<div style={{ marginBottom: '1.5rem' }}>
+			<div
+				style={{
+					fontSize: '0.75rem',
+					fontWeight: 600,
+					color: 'var(--sl-color-gray-3, #8b949e)',
+					marginBottom: 8,
+					textTransform: 'uppercase',
+					letterSpacing: '0.05em',
+					display: 'flex',
+					alignItems: 'center',
+					gap: 4,
+				}}>
+				<Activity size={12} />
+				Recent Activity
+			</div>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+				{recent.map((r) => (
+					<div
+						key={r.id}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							padding: '0.35rem 0.6rem',
+							borderRadius: 6,
+							background: 'var(--sl-color-bg, #0d1117)',
+							fontSize: '0.78rem',
+						}}>
+						<GitBranch
+							size={11}
+							style={{
+								color: 'var(--sl-color-gray-4, #6b7280)',
+								flexShrink: 0,
+							}}
+						/>
+						<span
+							style={{
+								color: 'var(--sl-color-white, #e6edf3)',
+								fontWeight: 500,
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								whiteSpace: 'nowrap',
+								flex: 1,
+							}}>
+							{r.full_name}
+						</span>
+						{r.lfs_size > 0 && (
+							<span
+								style={{
+									color: '#8b5cf6',
+									fontSize: '0.65rem',
+								}}>
+								LFS {formatSize(r.lfs_size)}
+							</span>
+						)}
+						<span
+							style={{
+								color: 'var(--sl-color-gray-4, #6b7280)',
+								fontSize: '0.68rem',
+								whiteSpace: 'nowrap',
+							}}>
+							{timeAgo(r.updated_at)}
+						</span>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
 export default function ReactForgejoSummary() {
+	const active = useTabActive('overview');
 	const loading = useStore(forgejoService.$loading);
 	const error = useStore(forgejoService.$error);
 	const totalRepos = useStore(forgejoService.$totalRepos);
@@ -250,10 +435,51 @@ export default function ReactForgejoSummary() {
 	const totalUsers = useStore(forgejoService.$totalUsers);
 	const totalSize = useStore(forgejoService.$totalSize);
 	const totalReleases = useStore(forgejoService.$totalReleases);
+	const stats = useStore(forgejoService.$stats);
+	const storage = useStore(forgejoService.$storage);
 
-	useEffect(() => {
-		forgejoService.loadCacheAndFetch();
-	}, []);
+	if (!active) return null;
+
+	const sizeValue = stats ? stats.total_size_kb : totalSize;
+	const repoValue = stats ? stats.repo_count : totalRepos;
+	const publicValue = stats ? stats.public : publicCount;
+	const privateValue = stats ? stats.private : privateCount;
+	const archivedValue = stats ? stats.archived : archivedCount;
+
+	const usingQuota = !!storage?.quota_enabled;
+
+	const gitKb = usingQuota
+		? Math.round(storage!.repos_bytes / 1024)
+		: (stats?.git_size_kb ?? 0);
+	const lfsKb = usingQuota
+		? Math.round(storage!.lfs_bytes / 1024)
+		: (stats?.lfs_size_kb ?? 0);
+	const contentKb = usingQuota ? gitKb + lfsKb : sizeValue;
+	const contentSub =
+		lfsKb > 0
+			? `git ${formatSize(gitKb)} · LFS ${formatSize(lfsKb)}`
+			: `across ${repoValue} repositories`;
+
+	const nonRepoKb = usingQuota
+		? Math.round(
+				(storage!.artifacts_bytes +
+					storage!.packages_bytes +
+					storage!.attachments_bytes) /
+					1024,
+			)
+		: 0;
+	const nonRepoSub = usingQuota
+		? [
+				storage!.artifacts_bytes > 0 &&
+					`CI ${formatSize(storage!.artifacts_bytes / 1024)}`,
+				storage!.packages_bytes > 0 &&
+					`pkg ${formatSize(storage!.packages_bytes / 1024)}`,
+				storage!.attachments_bytes > 0 &&
+					`attach ${formatSize(storage!.attachments_bytes / 1024)}`,
+			]
+				.filter(Boolean)
+				.join(' · ')
+		: '';
 
 	if (loading && totalRepos === 0) {
 		return (
@@ -306,17 +532,26 @@ export default function ReactForgejoSummary() {
 				}}>
 				<StatCard
 					icon={<HardDrive size={12} />}
-					label="Total Storage"
-					value={formatSize(totalSize)}
+					label="Repository Storage"
+					value={formatSize(contentKb)}
 					color="#06b6d4"
-					sub={`across ${totalRepos} repositories`}
+					sub={contentSub}
 				/>
+				{usingQuota && nonRepoKb > 0 && (
+					<StatCard
+						icon={<Package size={12} />}
+						label="CI & Packages"
+						value={formatSize(nonRepoKb)}
+						color="#f97316"
+						sub={nonRepoSub}
+					/>
+				)}
 				<StatCard
 					icon={<BookOpen size={12} />}
 					label="Repositories"
-					value={totalRepos}
+					value={repoValue}
 					color="#22c55e"
-					sub={`${publicCount} public · ${privateCount} private${archivedCount > 0 ? ` · ${archivedCount} archived` : ''}`}
+					sub={`${publicValue} public · ${privateValue} private${archivedValue > 0 ? ` · ${archivedValue} archived` : ''}`}
 				/>
 				<StatCard
 					icon={<Tag size={12} />}
@@ -338,6 +573,8 @@ export default function ReactForgejoSummary() {
 
 			{/* Language breakdown */}
 			<LanguageBar />
+
+			<RecentActivity />
 		</div>
 	);
 }

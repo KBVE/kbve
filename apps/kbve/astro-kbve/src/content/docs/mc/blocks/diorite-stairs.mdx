@@ -1,5 +1,6 @@
 ---
 title: Diorite Stairs
+template: splash
 description: |
     Minecraft Diorite Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 777
     ref: diorite_stairs
     slug: diorite-stairs
+    content_rev: 1
     display_name: Diorite Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: diorite_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Diorite Stairs are a decorative stairs variant of diorite, letting
+            builders match the speckled black-and-white stone in staircases
+            and roof lines. They are waterloggable and partially transparent
+            in Java Edition.
+        lore: |
+            Announced October 8, 2018 and added in Java Edition 1.14
+            (snapshot 18w43a) alongside the other stone-type stairs.
+    uses:
+        - title: Building & Decoration
+          ref: diorite
+          detail: |
+              Used as a stair-shaped counterpart to diorite blocks for
+              staircases, roofs, and trim in stone builds.
+    found_in:
+        - location: Snowy Tundra Villages
+          detail: Generates naturally as part of snowy tundra village structures.
+        - location: Crafted or Stonecut
+          detail: |
+              Crafted from six diorite blocks, or produced one-for-one from a
+              single diorite block using a stonecutter.
+    faq:
+        - question: What tool do I need to mine Diorite Stairs?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields no
+              drop.
+        - question: What do Diorite Stairs drop?
+          answer: |
+              The stairs block itself, one per stair mined with an
+              appropriate pickaxe.
+        - question: Can I make Diorite Stairs without a crafting table recipe?
+          answer: |
+              Yes — a stonecutter converts a single diorite block into a
+              diorite stair with no waste.
+        - question: Are Diorite Stairs flammable?
+          answer: |
+              No. Like other stone-type blocks, they do not burn or catch
+              fire from lava.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Cake with Brown Candle
+template: splash
 description: |
     Minecraft Cake with Brown Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,57 @@ mc_block:
     id: 933
     ref: brown_candle_cake
     slug: brown-candle-cake
+    content_rev: 1
     display_name: Cake with Brown Candle
     material: stone
     hardness: 0.5
     blast_resistance: 0.5
-    best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Brown Candle is a decorative combination formed by
+            placing a Brown Candle on top of a Cake. It cannot be eaten
+            while the candle is on it and drops nothing when broken.
+        lore: |
+            Candle-topped cakes arrived with Candles in the Caves &
+            Cliffs update, giving cake decorations a lightable birthday
+            candle look.
+    uses:
+        - title: Decorative Lighting
+          ref: brown_candle
+          detail: |
+              Lighting the candle with flint and steel emits light level
+              3, letting the cake double as a small light source.
+    found_in:
+        - location: Placed by hand only
+          detail: Created by placing a Brown Candle directly onto an already-placed Cake block; it does not generate naturally.
+    faq:
+        - question: Can I eat Cake with Brown Candle?
+          answer: |
+              No. The candle must be removed by breaking it off (which
+              destroys it) before the cake underneath can be eaten slice
+              by slice.
+        - question: What does Cake with Brown Candle drop when mined?
+          answer: |
+              Nothing. Like plain cake, it cannot be recollected once
+              placed.
+        - question: How much light does it give off when lit?
+          answer: |
+              Light level 3, the same as a single unlit-then-lit candle
+              block.
+        - question: How do I make Cake with Brown Candle?
+          answer: |
+              Place a Cake block, then place a Brown Candle on top of it.
     data_version: "1.21.5"
 ---
 

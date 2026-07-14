@@ -1,6 +1,6 @@
 ---
 title: Jade dragon bolts (e) | OSRS Price Data
-description: "Jade dragon bolts (e) is a members ammo slot item with +122 ranged strength. High alch: 378 GP, GE limit: 11,000."
+description: "Jade dragon bolts (e) are enchanted dragon-tier crossbow bolts with +122 ranged strength and a 6% Earth's Fury knockdown stun. High alch: 378 GP, GE limit: 11,000."
 osrs:
   id: 21934
   name: Jade dragon bolts (e)
@@ -12,59 +12,100 @@ osrs:
   lowalch: 252
   highalch: 378
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2018-01-04"
+    update: "Dragon Slayer II"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
+    weight: 0
+    requirements: {}
     attack_bonus:
       stab: 0
       slash: 0
       crush: 0
       magic: 0
       ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      melee_strength: 0
       ranged_strength: 122
+      magic_damage: 0
       prayer: 0
-    requirements: {}
+  passive_effects:
+    - name: "Earth's Fury"
+      description: "6% chance per hit (boosted to 6.6% with Hard Kandarin Diary) to knock the target to the ground and stun them for 8 game ticks (4.8 seconds). The roll is contested against the target's Agility level, so high-Agility opponents may resist."
   recipes:
     - skill: magic
       level: 14
       xp: 19
-      inputs:
+      materials:
         - item_name: Jade dragon bolts
+          item_id: 21932
           quantity: 10
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 2
+      facility: Enchant Crossbow Bolt (Jade)
+      product: Jade dragon bolts (e)
+      product_id: 21934
       output_quantity: 10
   related_items:
+    - item_id: 21932
+      item_name: Jade dragon bolts
+      slug: jade-dragon-bolts
+      relationship: component
+      description: "Unenchanted dragon bolt base required for Enchant Crossbow Bolt (Jade)."
     - item_id: 9237
       item_name: Jade bolts (e)
       slug: jade-bolts-e
       relationship: downgrade
-      description: Regular crossbow version
-  about: |-
-    > *"Enchanted Dragon crossbow bolts, tipped with jade."*
-
-    Jade dragon bolts (e) carry the Earth's Fury enchantment. On activation, there is a 6% chance to knock the target to the ground for 8 ticks (4.8 seconds), temporarily stunning them. However, agile opponents may resist the knockdown effect. This makes jade bolts a crowd-control option, though the low activation rate limits reliability.
-
-    Enchant Crossbow Bolt (Jade) requires Magic level 14 and grants 19 XP per cast. Each cast enchants 10 bolts at a time.
-
-    | Component | Quantity |
-    |-----------|----------|
-    | Jade dragon bolts | 10 |
-    | Cosmic rune | 1 |
-    | Earth rune | 2 |
-
-    | Stat | Dragon (e) | Regular (e) |
-    |------|-----------|-------------|
-    | Ranged Str | +122 | +31 |
-    | Base bolt | Dragon crossbow bolt | Blurite bolt |
-
-    The dragon bolt base provides significantly higher ranged strength while retaining the same knockdown enchantment.
+      description: "Blurite-tier counterpart with the same Earth's Fury proc but only +31 ranged strength."
+    - item_id: 21902
+      item_name: Dragon crossbow
+      slug: dragon-crossbow
+      relationship: alternative
+      description: "Highest-tier crossbow capable of firing dragon bolts to maximise ranged strength scaling."
+  about: "Jade dragon bolts (e) are dragon-tier crossbow bolts enchanted via the standard-spellbook Enchant Crossbow Bolt (Jade) spell at 14 Magic for 19 XP per 10-bolt cast. They carry the Earth's Fury proc - a 6% chance to stun the target for 4.8 seconds - and combine that crowd-control with a strong +122 ranged strength bonus, making them a stun-utility option for Slayer trash, multi-target PvM, and PvP setups where the knockdown lockout matters more than DPS optimisation."
   market_strategy:
     notes:
-      - Stun effect lasts 4.8 seconds when triggered
-      - Only 6% activation rate
-      - Many opponents resist the knockdown
-      - Low enchant requirement (Magic 14)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply is fletch-side - dragon bolts plus jade tips plus the enchant cycle."
+      - "GE buy limit of 11,000 per 4 hours supports steady mid-volume flipping."
+      - "High alch of 378 gp may exceed GE price during glut windows - alch when spread positive."
+      - "Demand is niche; players typically pick diamond/onyx/ruby dragon bolts (e) over jade for DPS."
+  trading_tips:
+    - "Cross-reference Jade dragon bolts unenchanted plus rune costs to spot enchant arbitrage."
+    - "Watch PvP meta and stun-utility content (e.g. Wilderness bosses) that may bump demand."
+    - "Compare against ruby/diamond/onyx (e) - substitution risk caps upside."
+  history:
+    - date: "2018-01-04"
+      description: "Released as part of Dragon Slayer II, which unlocked dragon crossbow ammunition crafting."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

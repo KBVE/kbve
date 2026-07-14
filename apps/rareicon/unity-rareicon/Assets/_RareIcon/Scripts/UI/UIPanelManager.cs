@@ -35,7 +35,6 @@ namespace RareIcon
         {
             _uiDocument = GetComponent<UIDocument>();
 
-            // Load PanelSettings from Resources, or create fallback
             if (_uiDocument.panelSettings == null)
             {
                 var ps = Resources.Load<PanelSettings>("UI/PanelSettings");
@@ -47,7 +46,6 @@ namespace RareIcon
                     ps.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
                     ps.match = 0.5f;
 
-                    // Try to load default theme
                     var theme = Resources.Load<ThemeStyleSheet>("UnityThemes/UnityDefaultRuntimeTheme");
                     if (theme != null) ps.themeStyleSheet = theme;
                 }
@@ -93,7 +91,6 @@ namespace RareIcon
             var panel = new UIPanel(key, root);
             _panels[key] = panel;
 
-            // Parent it under the UIDocument root
             _uiDocument.rootVisualElement.Add(root);
 
             return panel;

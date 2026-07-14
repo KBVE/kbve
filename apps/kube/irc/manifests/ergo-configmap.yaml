@@ -3,139 +3,47 @@ kind: ConfigMap
 metadata:
     name: ergo-config
     namespace: irc
+    labels:
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 data:
-    ircd.yaml: |
-        # Ergo IRC Server Configuration
-
-        network:
-          name: "KBVE-Network"
-
-        server:
-          name: irc.kbve.com
-          enforce-utf8: true
-          max-sendq: "1MB"
-          connection-limits:
-            enabled: true
-            cidr-len-ipv4: 32
-            cidr-len-ipv6: 64
-            connections-per-cidr: 12
-            throttle-duration: "10m"
-            exempted:
-              - "localhost"
-              - "127.0.0.1"
-          listeners:
-            ":6667": {}
-            ":6697":
-              tls:
-                cert: /etc/ssl/certs/tls.crt
-                key: /etc/ssl/certs/tls.key        
-            ":8080":
-              websocket: true
-            ":8067":
-              websocket: true
-
-        # Data storage
-        datastore:
-          path: /ircd/db/ircd.db
-          autoupgrade: true
-          mysql:
-            enabled: false
-
-        # Accounts and registration
-        accounts:
-          authentication-enabled: true
-          registration:
-            enabled: true
-            allow-before-connect: true
-            throttling:
-              enabled: true
-              duration: 10m
-              max-attempts: 30
-            bcrypt-cost: 4
-            verify-timeout: "120h"
-            enabled-callbacks:
-              - none
-          nick-reservation:
-            enabled: true
-            additional-nick-limit: 2
-            method: strict
-            allow-custom-enforcement: true
-            rename-timeout: 30s
-            rename-prefix: "Guest-"
-            force-nick-equals-account: true
-          multiclient:
-            enabled: true
-            allowed-by-default: true
-            always-on: "opt-in"
-            auto-away: "opt-in"
-            always-on-expiration: "720h"
-
-        # Channels
-        channels:
-          default-modes: +ntC
-          max-channels-per-client: 100
-          registration:
-            enabled: true
-            max-channels-per-account: 15
-
-        # Operator configuration
-        opers:
-          admin:
-            class: "server-admin"
-            whois-line: "is a server administrator"
-            password: "$2a$04$LiytCxaY0lI.guDj2pBN4eSRcunHZskZn0t6wF1sJCqzx9HNKbONu"
-          nd-bot:
-            class: "game-relay"
-            whois-line: "is the Nexus Defense match-chat relay"
-            password: "$2a$04$REPLACE_ME_WITH_BCRYPT_HASH"
-
-        oper-classes:
-          "server-admin":
-            title: Server Admin
-            capabilities:
-              - "rehash"
-              - "die"
-              - "accreg"
-              - "sajoin"
-              - "samode"
-              - "vhosts"
-              - "chanreg"
-              - "history"
-              - "defcon"
-              - "ban"
-          "game-relay":
-            title: Game Chat Relay
-            capabilities:
-              - "history"
-              - "chanreg"
-
-        # Limits
-        limits:
-          nicklen: 32
-          channellen: 64
-          awaylen: 390
-          kicklen: 390
-          topiclen: 390
-          monitor-entries: 100
-          whowas-entries: 100
-          registration-messages: 1024
-
-        # History
-        history:
-          enabled: true
-          channel-length: 2048
-          client-length: 256
-          autoresize-window: 3d
-          autoreplay-on-join: 0
-          chathistory-maxmessages: 100
-          znc-maxmessages: 2048
-          query-restrictions:
-            expire-time: 168h
-            query-cutoff: 720h
-            grace-period: 1h
-
-        # Debug and logging
-        logging:
-          - method: stderr
-            type: "*"
-            level: info
+    ircd.yaml:
+        "# Ergo IRC Server Configuration\n\nnetwork:\n  name: \"KBVE-Network\"\
+        \n\nserver:\n  name: irc.kbve.com\n  enforce-utf8: true\n  max-sendq: \"1MB\"\n\
+        \  connection-limits:\n    enabled: true\n    cidr-len-ipv4: 32\n    cidr-len-ipv6:\
+        \ 64\n    connections-per-cidr: 12\n    throttle-duration: \"10m\"\n    exempted:\n\
+        \      - \"localhost\"\n      - \"127.0.0.1\"\n  listeners:\n    \":6667\": {}\n\
+        \    \":6697\":\n      tls:\n        cert: /etc/ssl/certs/tls.crt\n        key:\
+        \ /etc/ssl/certs/tls.key        \n    \":8080\":\n      websocket: true\n    \"\
+        :8067\":\n      websocket: true\n\n# Data storage\ndatastore:\n  path: /ircd/db/ircd.db\n\
+        \  autoupgrade: true\n  mysql:\n    enabled: false\n\n# Accounts and registration\n\
+        accounts:\n  authentication-enabled: true\n  registration:\n    enabled: true\n\
+        \    allow-before-connect: true\n    throttling:\n      enabled: true\n      duration:\
+        \ 10m\n      max-attempts: 30\n    bcrypt-cost: 4\n    verify-timeout: \"120h\"\
+        \n    enabled-callbacks:\n      - none\n  nick-reservation:\n    enabled: true\n\
+        \    additional-nick-limit: 2\n    method: strict\n    allow-custom-enforcement:\
+        \ true\n    rename-timeout: 30s\n    rename-prefix: \"Guest-\"\n    force-nick-equals-account:\
+        \ true\n  multiclient:\n    enabled: true\n    allowed-by-default: true\n    always-on:\
+        \ \"opt-in\"\n    auto-away: \"opt-in\"\n    always-on-expiration: \"720h\"\n\n\
+        # Channels\nchannels:\n  default-modes: +ntC\n  max-channels-per-client: 100\n\
+        \  registration:\n    enabled: true\n    max-channels-per-account: 15\n\n# Operator\
+        \ configuration\nopers:\n  admin:\n    class: \"server-admin\"\n    whois-line:\
+        \ \"is a server administrator\"\n    password: \"$2a$04$LiytCxaY0lI.guDj2pBN4eSRcunHZskZn0t6wF1sJCqzx9HNKbONu\"\
+        \n  # nd-bot oper disabled — the placeholder bcrypt hash was rejected by\n  #\
+        \ ergo's config validator (\"invalid password hash\") which killed chat\n  # for\
+        \ everyone. Re-enable when Nexus Defense ships a real hash.\n  # nd-bot:\n  #\
+        \   class: \"game-relay\"\n  #   whois-line: \"is the Nexus Defense match-chat\
+        \ relay\"\n  #   password: \"$2a$04$<REAL_BCRYPT_HASH_HERE>\"\n\noper-classes:\n\
+        \  \"server-admin\":\n    title: Server Admin\n    capabilities:\n      - \"rehash\"\
+        \n      - \"die\"\n      - \"accreg\"\n      - \"sajoin\"\n      - \"samode\"\n\
+        \      - \"vhosts\"\n      - \"chanreg\"\n      - \"history\"\n      - \"defcon\"\
+        \n      - \"ban\"\n  \"game-relay\":\n    title: Game Chat Relay\n    capabilities:\n\
+        \      - \"history\"\n      - \"chanreg\"\n\n# Limits\nlimits:\n  nicklen: 32\n\
+        \  channellen: 64\n  awaylen: 390\n  kicklen: 390\n  topiclen: 390\n  monitor-entries:\
+        \ 100\n  whowas-entries: 100\n  registration-messages: 1024\n\n# History\nhistory:\n\
+        \  enabled: true\n  channel-length: 2048\n  client-length: 256\n  autoresize-window:\
+        \ 3d\n  autoreplay-on-join: 0\n  chathistory-maxmessages: 100\n  znc-maxmessages:\
+        \ 2048\n  query-restrictions:\n    expire-time: 168h\n    query-cutoff: 720h\n\
+        \    grace-period: 1h\n\n# Debug and logging\nlogging:\n  - method: stderr\n \
+        \   type: \"*\"\n    level: info\n"

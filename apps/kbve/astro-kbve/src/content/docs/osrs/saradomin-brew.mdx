@@ -1,0 +1,174 @@
+---
+title: Saradomin brew | OSRS Price Data
+description: "Saradomin brew(4) is a 4-dose members potion that heals 15 percent plus 2 of max HP, boosts Defence, and lowers other combat stats per sip. High alch: 120 GP, GE limit: 2,000."
+osrs:
+  id: 6685
+  name: Saradomin brew
+  slug: saradomin-brew
+  examine: 4 doses of Saradomin brew.
+  members: true
+  icon: Saradomin brew(4).png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 2000
+  family_ref:
+    family_slug: saradomin-brew
+    role: base
+  family:
+    slug: saradomin-brew
+    name: Saradomin brew
+    type: dose
+    canonical_id: 6685
+    members:
+    - id: 6685
+      slug: saradomin-brew
+      name: Saradomin brew
+      icon: Saradomin brew(4).png
+      role: base
+      dose: null
+      value: 200
+      lowalch: 80
+      highalch: 120
+    - id: 6691
+      slug: saradomin-brew-1
+      name: Saradomin brew(1)
+      icon: Saradomin brew(1).png
+      role: dose
+      dose: 1
+      value: 125
+      lowalch: 50
+      highalch: 75
+    - id: 6689
+      slug: saradomin-brew-2
+      name: Saradomin brew(2)
+      icon: Saradomin brew(2).png
+      role: dose
+      dose: 2
+      value: 150
+      lowalch: 60
+      highalch: 90
+    - id: 6687
+      slug: saradomin-brew-3
+      name: Saradomin brew(3)
+      icon: Saradomin brew(3).png
+      role: dose
+      dose: 3
+      value: 175
+      lowalch: 70
+      highalch: 105
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2005-12-12"
+    update: "Herblore High Level Update"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    edible: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    doses: 4
+    herblore_level: 81
+    herblore_xp: 180
+    effect: "Heals 15 percent plus 2 of max HP, boosts Defence, lowers other combat stats."
+    effects:
+      - stat: hitpoints
+        boost_type: heal
+        boost_formula: "floor(level * 0.15) + 2"
+        description: "Heals 15 percent of max HP plus 2 per dose."
+      - stat: defence
+        boost_type: boost
+        boost_formula: "floor(level * 0.20) + 2"
+        description: "Boosts Defence by 20 percent plus 2 per dose."
+      - stat: attack
+        boost_type: drain
+        boost_formula: "-(floor(level * 0.10) + 2)"
+        description: "Lowers Attack by 10 percent plus 2 per dose."
+      - stat: strength
+        boost_type: drain
+        boost_formula: "-(floor(level * 0.10) + 2)"
+        description: "Lowers Strength by 10 percent plus 2 per dose."
+      - stat: magic
+        boost_type: drain
+        boost_formula: "-(floor(level * 0.10) + 2)"
+        description: "Lowers Magic by 10 percent plus 2 per dose."
+      - stat: ranged
+        boost_type: drain
+        boost_formula: "-(floor(level * 0.10) + 2)"
+        description: "Lowers Ranged by 10 percent plus 2 per dose."
+  recipes:
+    - skill: herblore
+      level: 81
+      xp: 180
+      materials:
+        - item_name: Toadflax potion (unf)
+          item_id: 3002
+          quantity: 1
+        - item_name: Crushed nest
+          item_id: 6693
+          quantity: 1
+      facility: Inventory
+      ticks: 2
+      members_only: true
+      output_quantity: 1
+  related_items:
+    - item_id: 2152
+      item_name: Toadflax
+      slug: toadflax
+      relationship: component
+      description: Primary herb used to make the unfinished potion base.
+    - item_id: 6693
+      item_name: Crushed nest
+      slug: crushed-nest
+      relationship: component
+      description: Secondary ingredient added to the toadflax base.
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: alternative
+      description: Commonly paired with brews at a 3:1 ratio to restore lowered stats.
+    - item_id: 13441
+      item_name: Anglerfish
+      slug: anglerfish
+      relationship: alternative
+      description: Overheal food often used alongside brews for raid healing.
+    - item_id: 6687
+      item_name: Saradomin brew(3)
+      slug: saradomin-brew-3
+      relationship: variant
+      description: 3-dose variant produced after one sip.
+  about: "Saradomin brew(4) is a 4-dose Herblore potion mixed at 81 Herblore from a Toadflax potion (unf) and a Crushed nest for 180 xp. Each sip overheals up to 15 percent plus 2 of the player's max HP and boosts Defence by 20 percent plus 2, at the cost of draining Attack, Strength, Magic and Ranged levels. It is the core sustain potion for Chambers of Xeric, Theatre of Blood, Tombs of Amascut, the Inferno and most god-wars style PvM."
+  market_strategy:
+    notes:
+      - "Demand is set by raid throughput more than herblore training supply"
+      - "Crushed nest price drives the bulk of mixing margin"
+      - "Toadflax plus Vial of water yields the unfinished base before mixing"
+      - "Brews are typically paired with Super restore at a 3:1 ratio for raids"
+  trading_tips:
+    - "Watch crushed nest spikes from bird-house and chompy hunt updates"
+    - "Track raid event windows for short-term brew price pumps"
+    - "Compare margin vs Sanfew serum and Super restore for herblore xp/hr planning"
+  history:
+    - date: "2005-12-12"
+      description: "Released with the Herblore high-level update that added 81+ potions."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

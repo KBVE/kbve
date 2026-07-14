@@ -169,7 +169,7 @@ pub struct AiEpoch {
 }
 
 impl AiEpoch {
-    pub fn next(&mut self) -> u64 {
+    pub fn advance(&mut self) -> u64 {
         self.value += 1;
         self.value
     }
@@ -442,44 +442,6 @@ impl Default for PetParrotPopulationConfig {
 /// Tracks when the pet parrot population manager last ran.
 #[derive(Resource, Debug, Default)]
 pub struct LastPetParrotManagedTick(pub u64);
-
-// ---------------------------------------------------------------------------
-// Ship tracking — mirrors the Java ShipManager state so the Rust ECS can
-// issue MoveShip / RotateShip commands for AI-controlled fleet combat.
-// ---------------------------------------------------------------------------
-
-/// A ship tracked in the Rust ECS. One entity per active ship.
-#[derive(Component, Debug, Clone)]
-pub struct Ship {
-    /// UUID string matching Java's ShipManager.ActiveShip.shipId.
-    pub ship_id: String,
-    /// Ship schematic name (e.g., "dark_reaper").
-    pub ship_name: String,
-    /// Owner player's Minecraft entity ID.
-    pub owner_entity_id: u64,
-    /// Current heading in degrees (0 = north, 90 = east).
-    pub heading: f32,
-    /// Current speed in blocks per second.
-    pub speed: f32,
-}
-
-/// Ship anchor position in world coordinates.
-#[derive(Component, Debug, Clone)]
-pub struct ShipPosition {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
-}
-
-/// Marker for ships that are currently under AI control (not player-piloted).
-#[derive(Component, Debug)]
-pub struct AiControlledShip;
-
-/// Resource tracking all active ships by their UUID string.
-#[derive(Resource, Default)]
-pub struct ActiveShips {
-    pub ships: Vec<String>,
-}
 
 // ---------------------------------------------------------------------------
 // Flow field / pathfinding resources — computed from map data snapshots

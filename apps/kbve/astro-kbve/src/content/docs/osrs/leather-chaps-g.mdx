@@ -12,21 +12,72 @@ osrs:
   lowalch: 340
   highalch: 510
   limit: 8
+  material:
+    type: leather
+    tier: low
   equipment:
     slot: legs
+    weight: 2.721
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 4
+    defence_bonus:
+      stab: 2
+      slash: 2
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 23381
-      item_name: Leather body (g)
-      slug: leather-body-g
+    - item_name: Leather body (g)
       relationship: set-piece
-      description: Matching gold-trimmed body
-  about: |-
-    > *"Gold trimmed leather chaps."*
-
-    The leather chaps (g) are a gold-trimmed cosmetic variant of leather chaps. Identical stats with no requirements. F2P item. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching gold-trimmed leather body for the cosmetic set.
+    - item_name: Leather chaps
+      relationship: variant
+      description: Untrimmed base version with identical stats.
+  about: "Leather chaps (g) are a gold-trimmed cosmetic variant of leather chaps obtained as a rare reward from easy clue scroll caskets. They share the base item's stats and have no skill requirements to wear."
+  market_strategy:
+    notes:
+      - Daily buy limit of 8 keeps supply thin; cosmetic demand drives the premium over base chaps.
+      - Drop rate of 1/1,404 from easy caskets keeps influx slow.
+  trading_tips:
+    - Flip during cosmetic hype windows or armour fashion events.
+    - Pair with leather body (g) listings to capture full-set buyers.
+  history:
+    - date: "2019-04-11"
+      description: Released with the Treasure Trails Expansion and Easter 2019 update.
+  properties:
+    release_date: "2019-04-11"
+    update: "Treasure Trails Expansion and Easter 2019"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

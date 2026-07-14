@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE Post Shader",
+	"Description": "Stylized post-process pipeline: anisotropic Kuwahara oil-paint smear, cel banding, and depth-driven ink outlines for a Breath of the Wild / Studio Ghibli painterly look. Reads scene color + depth in a SceneViewExtension, runs as chained RDG passes, gated by CVars.",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://kbve.com/project/kbvepostshader/",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVEPostShader",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		}
+	]
+}

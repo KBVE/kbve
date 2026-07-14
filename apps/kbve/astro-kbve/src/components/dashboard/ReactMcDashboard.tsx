@@ -1,19 +1,11 @@
 import { useStore } from '@nanostores/react';
-import {
-	Pickaxe,
-	ShieldOff,
-	Github,
-	ExternalLink,
-	Container,
-	Server,
-	Boxes,
-} from 'lucide-react';
+import { ExternalLink, Github, Pickaxe, ShieldOff } from 'lucide-react';
+import ServerCard from './mc/ServerCard';
 import { homeService } from './homeService';
 
-const VELOCITY_IMAGE = 'ghcr.io/kbve/mc-velocity';
-const LOBBY_IMAGE = 'ghcr.io/kbve/mc-lobby';
-const MANIFESTS_PATH = '/docs/project/mc-velocity/';
 const REPO_PATH = 'https://github.com/KBVE/kbve/tree/main/apps/kube/agones/mc';
+const VELOCITY_DOCS = '/docs/project/mc-velocity/';
+const LOBBY_DOCS = '/docs/project/mc-lobby/';
 
 const styles = {
 	centered: {
@@ -39,59 +31,22 @@ const styles = {
 		display: 'flex',
 		alignItems: 'center',
 		gap: '0.75rem',
-		marginBottom: '1rem',
+		marginBottom: '0.5rem',
 	},
-	statusRow: {
-		display: 'inline-flex',
-		alignItems: 'center',
-		gap: '0.5rem',
-		padding: '0.35rem 0.75rem',
-		borderRadius: '999px',
-		fontSize: '0.85rem',
-		fontWeight: 500,
-		background: 'rgba(139, 148, 158, 0.15)',
+	subTitle: {
+		margin: '0 0 1.25rem 0',
 		color: 'var(--sl-color-gray-3, #8b949e)',
-		border: '1px solid rgba(139, 148, 158, 0.4)',
-	},
-	statusDot: {
-		width: '0.5rem',
-		height: '0.5rem',
-		borderRadius: '50%',
-		background: 'var(--sl-color-gray-3, #8b949e)',
+		fontSize: '0.95rem',
 	},
 	grid: {
 		display: 'grid',
-		gap: '1rem',
-		gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-		marginTop: '1.5rem',
-	},
-	card: {
-		display: 'flex',
-		flexDirection: 'column' as const,
-		gap: '0.5rem',
-		padding: '1rem 1.25rem',
-		borderRadius: '0.75rem',
-		border: '1px solid var(--sl-color-gray-5, #30363d)',
-		background: 'var(--sl-color-bg-nav, rgba(13, 17, 23, 0.6))',
-	},
-	cardLabel: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: '0.5rem',
-		fontSize: '0.85rem',
-		color: 'var(--sl-color-gray-3, #8b949e)',
-	},
-	cardValue: {
-		margin: 0,
-		fontSize: '1rem',
-		fontFamily: 'var(--sl-font-mono, ui-monospace, monospace)',
-		color: 'var(--sl-color-text, #e6edf3)',
-		wordBreak: 'break-all' as const,
+		gridTemplateColumns: 'repeat(auto-fit, minmax(22rem, 1fr))',
+		gap: '1.25rem',
 	},
 	links: {
 		display: 'flex',
-		gap: '0.75rem',
 		flexWrap: 'wrap' as const,
+		gap: '0.75rem',
 		marginTop: '1.5rem',
 	},
 	linkButton: {
@@ -127,44 +82,30 @@ export default function ReactMcDashboard() {
 		<div>
 			<div style={styles.header}>
 				<Pickaxe size={28} color="var(--sl-color-accent, #2f81f7)" />
-				<h1 style={styles.heading}>Minecraft</h1>
+				<h1 style={styles.heading}>Minecraft Gameops</h1>
 			</div>
-			<span style={styles.statusRow}>
-				<span style={styles.statusDot} />
-				Deployed in cluster · Live dashboard wiring planned
-			</span>
+			<p style={styles.subTitle}>
+				Velocity proxy + Paper backends. Per-server status, live player
+				roster, and staff-only RCON consoles routed through{' '}
+				<code>POST /api/v1/rcon/mc/&#123;server&#125;/exec</code>.
+			</p>
 
 			<div style={styles.grid}>
-				<div style={styles.card}>
-					<div style={styles.cardLabel}>
-						<Container size={16} />
-						Velocity proxy image
-					</div>
-					<p style={styles.cardValue}>{VELOCITY_IMAGE}</p>
-				</div>
-				<div style={styles.card}>
-					<div style={styles.cardLabel}>
-						<Container size={16} />
-						Lobby image
-					</div>
-					<p style={styles.cardValue}>{LOBBY_IMAGE}</p>
-				</div>
-				<div style={styles.card}>
-					<div style={styles.cardLabel}>
-						<Server size={16} />
-						Cluster manifests
-					</div>
-					<p style={styles.cardValue}>apps/kube/agones/mc/</p>
-				</div>
-				<div style={styles.card}>
-					<div style={styles.cardLabel}>
-						<Boxes size={16} />
-						Live RCON / player count
-					</div>
-					<p style={styles.cardValue}>
-						not yet wired into this dashboard
-					</p>
-				</div>
+				<ServerCard
+					server="velocity"
+					label="Velocity Proxy"
+					role="Network edge — routes /glist, /alert, /send across backends."
+				/>
+				<ServerCard
+					server="lobby"
+					label="Lobby Backend"
+					role="Spawn world. List, kick, gamemode, broadcast."
+				/>
+				<ServerCard
+					server="survival"
+					label="Survival Backend"
+					role="Main play world. Whitelist, bans, world ops."
+				/>
 			</div>
 
 			<div style={styles.links}>
@@ -176,9 +117,11 @@ export default function ReactMcDashboard() {
 					<Github size={16} /> Manifests on GitHub
 					<ExternalLink size={14} />
 				</a>
-				<a href={MANIFESTS_PATH} style={styles.linkButton}>
-					<Container size={16} /> mc-velocity project docs
-					<ExternalLink size={14} />
+				<a href={VELOCITY_DOCS} style={styles.linkButton}>
+					mc-velocity docs <ExternalLink size={14} />
+				</a>
+				<a href={LOBBY_DOCS} style={styles.linkButton}>
+					mc-lobby docs <ExternalLink size={14} />
 				</a>
 			</div>
 		</div>

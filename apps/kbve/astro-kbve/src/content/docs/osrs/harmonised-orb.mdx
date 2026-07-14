@@ -12,62 +12,72 @@ osrs:
   lowalch: 1600000
   highalch: 2400000
   limit: 8
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: upgrade material
+    tier: high
+  properties:
+    release_date: "2020-02-06"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.1
-  obtaining:
-    - source: The Nightmare
-      drop_rate: 1/960 to 1/548.7
-    - source: Phosani's Nightmare
-      drop_rate: 1/1,600
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: The Nightmare
+        quantity: "1"
+        rarity: "1/960 to 1/548.7"
+      - source: Phosani's Nightmare
+        quantity: "1"
+        rarity: "1/1,600"
   recipes:
-    - skill: crafting
+    - skill: magic
       level: 1
+      xp: 0
       materials:
-        - item_id: 24511
-          item_name: Harmonised orb
+        - item_name: Harmonised orb
           quantity: 1
-        - item_id: 24422
-          item_name: Nightmare staff
+        - item_name: Nightmare staff
           quantity: 1
-      product: Harmonised nightmare staff
-      product_id: 24508
-  effect:
-    description: Allows casting standard spells at 4-tick speed instead of 5-tick
-    notes: Most valuable orb due to DPS increase
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 24422
-      item_name: Nightmare staff
+    - item_name: Nightmare staff
       slug: nightmare-staff
       relationship: component
-      description: Base weapon for upgrade
-    - item_id: 24508
-      item_name: Harmonised nightmare staff
+      description: Base weapon for the upgrade.
+    - item_name: Harmonised nightmare staff
       slug: harmonised-nightmare-staff
       relationship: product
-      description: Created weapon with faster casting
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Upgrade Material |
-    | Tradeable | Yes |
-    | Weight | 0.1 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Harmonised nightmare staff | Nightmare staff + Harmonised orb |
-
-    Allows casting standard spells at 4-tick speed instead of 5-tick.
-
-    Most valuable orb due to DPS increase.
+      description: Created weapon, casts standard spells at 4-tick.
+    - item_name: Volatile orb
+      slug: volatile-orb
+      relationship: alternative
+      description: Alternative Nightmare orb (special attack focus).
+    - item_name: Eldritch orb
+      slug: eldritch-orb
+      relationship: alternative
+      description: Alternative Nightmare orb (prayer restore special).
+  about: "The Harmonised orb is a rare drop from The Nightmare and Phosani's Nightmare. Combine it with a Nightmare staff to produce the Harmonised nightmare staff, which casts standard spellbook spells at 4-tick instead of 5-tick: a significant DPS upgrade and the most valuable of the three Nightmare orbs."
   market_strategy:
     notes:
-      - Farm Nightmare/Phosani's
-      - Most expensive orb
-      - BiS for fire surge
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Most expensive Nightmare orb due to standard-spellbook DPS uplift."
+      - "Supply tracks Nightmare team participation; price spikes after Magic meta shifts."
+      - "BiS implication for fire surge mainhand training and PvM."
+  trading_tips:
+    - Watch for buyouts after balance changes touching standard spells.
+    - Phosani's solo drop adds independent supply pressure.
+  history:
+    - date: "2020-02-06"
+      description: Released with The Nightmare of Ashihama update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

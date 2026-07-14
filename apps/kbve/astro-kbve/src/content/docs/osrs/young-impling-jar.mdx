@@ -12,9 +12,50 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 18000
-  about: "Young impling jar is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: hunter-jar
+    tier: low
+  properties:
+    release_date: "2007-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Loot
+      - Destroy
+    worn_options: []
+    alchable: true
+    destroy: "If you drop this it will disappear. Are you sure you want to do this?"
+  drop_table:
+    sources:
+      - source: Loot from young impling jar
+        quantity: "1"
+        rarity: 1/10
+  related_items:
+    - item_name: Baby impling jar
+      slug: baby-impling-jar
+      relationship: downgrade
+      description: Lower tier impling jar
+    - item_name: Gourmet impling jar
+      slug: gourmet-impling-jar
+      relationship: upgrade
+      description: Next tier of impling jar
+    - item_name: Empty impling jar
+      slug: empty-impling-jar
+      relationship: component
+      description: Required to catch implings
+  about: "Young impling jar contains a captured young impling, caught with an empty impling jar at 22 Hunter. Common loot includes steel nails, lockpicks, pure essence, tuna, chocolate slice, steel axe, meat pizza, coal, and bow strings (each 1/10), plus rare drops at 1/100 and beginner/easy clue scrolls. Many players trade these to Elnock Inquisitor for 3 empty jars rather than loot due to low yield value."
+  market_strategy:
+    notes:
+      - "Often traded to Elnock Inquisitor over loot"
+      - "Steady supply from Puro-Puro hunters"
+      - "Clue scroll chance gives long-tail value"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

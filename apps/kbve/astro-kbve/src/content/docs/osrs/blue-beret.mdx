@@ -12,9 +12,74 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 4
-  about: "Blue beret is a members-only item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Blue beret is a members-only cosmetic headwear item in Old School RuneScape obtained as a reward from easy Treasure Trails clue caskets. High alchemy value: 48 coins. Grand Exchange buy limit: 4 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    equipable: true
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.04
+  material:
+    type: cloth
+    tier: cosmetic
+  equipment:
+    slot: head
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    rarity: "1/1,404"
+  drop_table:
+    - source: "Easy Clue Casket"
+      quantity: "1"
+      rarity: "1/1,404"
+  market_strategy:
+    notes:
+      - "flip_potential: \"medium\""
+      - "Cosmetic clue reward with steady collector demand; price tracks treasure trail popularity."
+  trading_tips:
+    - "Stock up when easy clue activity spikes and resell during cosmetic fashion trends."
+    - "Compare price across the beret color set to spot relative value."
+  history:
+    - date: "2004-05-05"
+      description: "Item released as 'Berret'."
+    - date: "2004-10-01"
+      description: "Renamed from 'Berret' to 'Beret'."
+    - date: "2005-05-01"
+      description: "Renamed to 'Blue beret' when other color variants were added."
+    - date: "2005-06-01"
+      description: "Examine text updated to current 'Parlez-vous francais?' phrasing."
+  relationships:
+    - item_name: Black beret
+      relationship: variant
+    - item_name: White beret
+      relationship: variant
+    - item_name: Red beret
+      relationship: variant
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

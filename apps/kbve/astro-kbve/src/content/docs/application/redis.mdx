@@ -1,8 +1,16 @@
 ---
 title: Redis
 description: |
-    Redis is an open-source, in-memory data structure store, used as a database, cache, and message broker.
-    Known for its speed and efficiency, Redis supports data structures such as strings, hashes, lists, sets, sorted sets with range queries, bitmaps, hyperloglogs, geospatial indexes, and streams.
+    Redis is an open-source, in-memory data structure store used as a database, cache, and message broker.
+    This guide covers running Redis with Docker Compose, deploying it on Kubernetes as a StatefulSet, and
+    connecting with the redis-cli. Redis supports strings, hashes, lists, sets, sorted sets, bitmaps,
+    hyperloglogs, geospatial indexes, and streams.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Redis
     order: 1420
@@ -10,28 +18,173 @@ unsplash: 1553413077-190dd305871c
 img: https://images.unsplash.com/photo-1553413077-190dd305871c?fit=crop&w=1400&h=700&q=75
 tags:
     - database
+    - cache
+    - in-memory
+sem: 1
+ogTitle: Redis Guide — Docker Compose, Kubernetes & redis-cli
+ogDescription: Run Redis with Docker Compose, deploy it on Kubernetes as a StatefulSet, and connect using redis-cli. Practical, copy-paste configuration for the in-memory data store.
+jsonld:
+    type: Article
+    keywords:
+        - redis
+        - in-memory database
+        - cache
+        - docker compose
+        - kubernetes statefulset
+    faq:
+        - question: Is Redis a database or a cache?
+          answer: Both. Redis is an in-memory data structure store that can act as a primary database, a cache in front of a slower store, or a message broker. Persistence options (RDB snapshots and AOF logs) let it survive restarts when used as a database.
+        - question: How do I run Redis with Docker Compose?
+          answer: Define a redis service using the official redis image, expose port 6379, pass a password with --requirepass, and mount a named volume at /data for persistence. Then run docker compose up -d.
+        - question: Why deploy Redis as a StatefulSet on Kubernetes?
+          answer: A StatefulSet gives each Redis pod a stable network identity and persistent volume that survive rescheduling. This is required for data durability and for replication, where replicas must reliably find the primary.
+        - question: How do I connect to a Redis instance from the command line?
+          answer: Use redis-cli -h <host> -p <port> -a <password>. Inside Docker, exec into the container first, for example docker exec -it kilobase-redis redis-cli -a redispassword.
+        - question: What is the difference between RDB and AOF persistence in Redis?
+          answer: RDB writes periodic point-in-time snapshots — compact and fast to restore, but you can lose data since the last snapshot. AOF logs every write command and replays it on restart, giving far better durability at the cost of larger files. They can be enabled together.
+        - question: Which Redis data structure should I use for a leaderboard?
+          answer: A sorted set (ZSET). Members are ranked by a score, so ZADD updates a player's score and ZREVRANGE returns the top N in O(log N) time — far more efficient than sorting a list on every read.
+        - question: Why should I avoid KEYS in production Redis?
+          answer: KEYS scans the entire keyspace and blocks the single-threaded server until it finishes, stalling all other clients. Use SCAN instead, which returns keys in small cursor-based batches without blocking.
+        - question: Does Redis lose data when it restarts?
+          answer: Only if persistence is disabled. With RDB snapshots or AOF enabled (and a mounted volume in Docker or Kubernetes), Redis reloads its dataset on startup. A pure in-memory cache with no persistence starts empty after a restart.
+bento:
+    badge: application · database · cache
+    title: 'Memory-speed data,'
+    accent: Redis.
+    lede: >-
+        An open-source, in-memory data structure store that works as a
+        database, cache, and message broker — microsecond reads with optional
+        disk persistence. This guide runs Redis three ways: Docker Compose for
+        local development, a Kubernetes StatefulSet for production, and the
+        redis-cli for testing and debugging.
+    ctas:
+        - label: Data structures
+          href: '#core-data-structures'
+          primary: true
+        - label: Persistence
+          href: '#persistence-rdb-vs-aof'
+        - label: Docker Compose
+          href: '#redis-docker-integration'
+        - label: Kubernetes
+          href: '#redis-on-kubernetes'
+    aside:
+        icon: database
+        title: More than a key-value cache
+        body: >-
+            Every Redis value is a native data structure with commands tuned to
+            a specific access pattern — picking the right one is the single
+            biggest Redis performance decision you will make.
+        points:
+            - <strong>Structures</strong> — strings, hashes, sets, sorted sets, streams.
+            - <strong>Durability</strong> — RDB snapshots, AOF logs, or both together.
+            - <strong>Safety</strong> — SCAN in production, never KEYS *.
+    stats:
+        - { label: Port, value: '6379', icon: network }
+        - { label: Latency, value: Microseconds, icon: bolt }
+        - { label: Persistence, value: RDB + AOF, icon: database }
+        - { label: Structures, value: 8+ native, icon: box }
+    features:
+        - title: Core data structures
+          icon: box
+          href: '#core-data-structures'
+          body: Strings, hashes, lists, sets, sorted sets, streams, and bitmaps — matched to the access pattern each one is optimized for.
+        - title: Persistence modes
+          icon: shield
+          href: '#persistence-rdb-vs-aof'
+          body: RDB snapshots versus the append-only file — when to use each, and when to run both together.
+        - title: Docker Compose setup
+          icon: package
+          href: '#redis-docker-integration'
+          body: A password-protected, AOF-enabled Redis with a persistent volume in a minimal copy-paste compose file.
+        - title: Kubernetes StatefulSet
+          icon: deploy
+          href: '#redis-on-kubernetes'
+          body: Stable pod identity, per-replica volumes, a headless Service, plus the redis-cli and essential commands.
+    related:
+        - title: Docker
+          href: /application/docker/
+          copy: The container runtime behind the Compose workflow.
+          icon: package
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Orchestration fundamentals for the StatefulSet deployment.
+          icon: deploy
+        - title: Supabase
+          href: /application/supabase/
+          copy: The Postgres-backed platform Redis often caches for.
+          icon: database
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1553413077-190dd305871c?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
+
+Redis is an in-memory data structure store used as a cache, database, and message broker. It keeps data in RAM for microsecond reads and writes, with optional disk persistence (RDB snapshots and AOF logs) so data survives restarts. This guide runs Redis three ways — with Docker Compose for local development, on Kubernetes as a StatefulSet for production, and directly through the `redis-cli` for testing and debugging.
+
+</BentoProse>
+
+<BentoProse id="information" eyebrow="The meta-engine" heading="Information">
 
 Redis, traditionally recognized as a high-performance in-memory data structure store, has evolved to serve as a versatile meta-engine for data object storage.
 Leveraging its lightning-fast data retrieval capabilities, Redis can manage metadata about larger data objects stored elsewhere, acting as a dynamic indexing layer.
 This allows applications to swiftly locate and access objects based on attributes or tags stored in Redis, bridging the gap between high-speed data access and bulk storage.
 When used in this capacity, Redis enhances storage architectures by providing rapid, real-time insights into vast data landscapes without compromising on efficiency or performance.
 
-<Adsense />
-## Redis Docker Integration
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="core-data-structures" eyebrow="Pick the right shape" heading="Core Data Structures">
+
+Redis is more than a key-value cache — each value can be one of several native data structures, each with commands optimized for a specific access pattern.
+
+| Structure | Description | Common Use |
+| --------- | ----------- | ---------- |
+| **String** | Binary-safe value up to 512 MB | Cache, counters (`INCR`), flags |
+| **Hash** | Field-value map under one key | Store an object (user profile) compactly |
+| **List** | Ordered, linked list | Queues, activity feeds (`LPUSH`/`BRPOP`) |
+| **Set** | Unordered unique members | Tags, unique visitors, membership tests |
+| **Sorted Set** | Members ranked by score | Leaderboards, rate limiting, priority queues |
+| **Stream** | Append-only log with consumer groups | Event sourcing, message queues |
+| **Bitmap / HyperLogLog** | Space-efficient counting | Daily active users, cardinality estimates |
+
+Choosing the right structure is the single biggest Redis performance decision — a sorted set leaderboard answers "top 10" in `O(log N)` where a naive list would be `O(N log N)`.
+
+</BentoProse>
+
+<BentoProse id="persistence-rdb-vs-aof" eyebrow="Surviving restarts" heading="Persistence: RDB vs AOF">
+
+By default Redis holds data in RAM, but it offers two persistence modes so data survives restarts. They can run together.
+
+- **RDB (snapshots)** — Periodically forks and writes a compact point-in-time dump (`dump.rdb`). Fast restarts and small files, but you can lose everything since the last snapshot on a crash.
+- **AOF (append-only file)** — Logs every write command and replays it on restart. Far more durable (`appendfsync everysec` loses at most one second), at the cost of larger files and slightly slower writes.
+
+<Aside type="tip">
+For a cache, RDB alone is fine — losing a few seconds of cache is harmless. For Redis as a primary datastore, enable AOF (`--appendonly yes`) for durability, optionally alongside RDB for fast restarts.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="redis-docker-integration" eyebrow="Local development" heading="Redis Docker Integration">
 
 ### Using Docker Compose
 
@@ -44,7 +197,29 @@ With Docker Compose, developers can simulate production-like conditions on their
 This approach not only improves efficiency and precision during the development phase but also significantly boosts developers' confidence.
 By testing and iterating in an environment that closely mirrors the final production setting, developers can ensure higher quality and reliability in their deployments.
 
-## Redis on Kubernetes
+A minimal `docker-compose.yml` runs a password-protected Redis with a persistent volume:
+
+```yaml
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: kilobase-redis
+    command: ["redis-server", "--requirepass", "redispassword", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+```
+
+Bring it up with `docker compose up -d`. The `--appendonly yes` flag enables AOF persistence so data survives container restarts, and the named `redis-data` volume keeps it across `docker compose down`.
+
+</BentoProse>
+
+<BentoProse id="redis-on-kubernetes" eyebrow="Production deploys" heading="Redis on Kubernetes">
 
 Deploying Redis on Kubernetes offers scalable and resilient solutions for managing in-memory data. 
 [Kubernetes](/application/kubernetes/), a powerful orchestration platform for containerized applications, enhances Redis's capabilities, making it well-suited for high-demand environments that require rapid scalability and high availability.
@@ -63,6 +238,56 @@ Deploying Redis on Kubernetes offers scalable and resilient solutions for managi
 4. **Load Balancing**: Kubernetes Services are used to load balance requests across Redis pods, improving the distribution of client traffic and enhancing overall performance.
 
 Deploying Redis with Kubernetes not only improves operational efficiency but also leverages cutting-edge technology to support dynamic, large-scale applications.
+
+A minimal StatefulSet with a headless Service and a per-pod persistent volume:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  clusterIP: None
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args: ["--appendonly", "yes"]
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+```
+
+The `clusterIP: None` headless Service gives each pod a stable DNS name (`redis-0.redis`), and `volumeClaimTemplates` provisions a dedicated PVC per replica so data survives rescheduling.
 
 * * *
 
@@ -91,3 +316,33 @@ To access the kilobase redis or any docker instance:
 `docker exec -it kilobase-redis redis-cli -a redispassword`
 
 </Aside>
+
+### Essential Commands
+
+Once connected, these cover most day-to-day operations:
+
+```shell
+SET user:1 "alice"        # store a string
+GET user:1                # read it back
+EXPIRE user:1 3600        # auto-delete after 1 hour
+TTL user:1                # seconds remaining
+
+HSET user:2 name bob age 30   # store a hash
+HGETALL user:2                # read the whole hash
+
+INCR page:views           # atomic counter
+ZADD board 100 alice      # sorted set for leaderboards
+ZREVRANGE board 0 9 WITHSCORES  # top 10
+
+KEYS *                    # list keys (avoid in production)
+SCAN 0 MATCH user:*       # cursor-based, production-safe
+INFO memory               # memory + stats
+```
+
+<Aside type="caution">
+Never run `KEYS *` on a busy production instance — it blocks the single-threaded server while it scans every key. Use `SCAN`, which iterates in small cursor-based batches.
+</Aside>
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Cracked Polished Blackstone Bricks
+template: splash
 description: |
     Minecraft Cracked Polished Blackstone Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 889
     ref: cracked_polished_blackstone_bricks
     slug: cracked-polished-blackstone-bricks
+    content_rev: 1
     display_name: Cracked Polished Blackstone Bricks
     material: stone
     hardness: 1.5
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cracked_polished_blackstone_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Cracked Polished Blackstone Bricks are a weathered variant of
+            Polished Blackstone Bricks, found lining the halls of Bastion
+            Remnants and Ruined Portals in the Nether. They add textured
+            visual variety to Nether stone-brick builds.
+        lore: |
+            Added alongside the rest of the blackstone family in the Nether
+            Update (1.16), giving builders a cracked counterpart to match
+            the Overworld's cracked stone bricks.
+    uses:
+        - title: Decorative building
+          ref: polished_blackstone_bricks
+          detail: |
+              Used purely for aesthetics and texture variation when
+              building with blackstone; has no functional advantage over
+              other blackstone brick variants.
+    found_in:
+        - location: Bastion Remnants
+          detail: Generates naturally in the brick corridors and rooms of Bastion Remnants.
+        - location: Ruined Portals
+          detail: Occasionally appears among the blackstone rubble of Nether ruined portals.
+        - location: Furnace
+          detail: Obtainable by smelting Polished Blackstone Bricks with any fuel.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe. Mining without a pickaxe drops nothing.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes, mining it with any pickaxe drops the block itself; it is
+              not affected by Fortune or Silk Touch in any special way.
+        - question: How do I get more of it?
+          answer: |
+              Smelt Polished Blackstone Bricks in a furnace with any fuel
+              source, or gather it from Bastion Remnants and ruined portals.
+        - question: Is it flammable?
+          answer: |
+              No, like all blackstone variants it does not catch fire from
+              lava or nearby flames.
     data_version: "1.21.5"
 ---
 

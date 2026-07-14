@@ -12,9 +12,54 @@ osrs:
   lowalch: 16000
   highalch: 24000
   limit: 5
-  about: "Trailblazer globe is a members-only item in Old School RuneScape. High alchemy value: 24,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-01-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 32
+      xp: 120
+      materials:
+        - item_name: Trailblazer globe
+          quantity: 1
+        - item_name: Oak plank
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Trailblazer League
+      price: 4000
+      currency: League points
+      stock: 1
+  about: "A commemorative globe from the second Leagues event, Trailblazer League. The globe is purchased from the Leagues Reward Shop for 4,000 League points and is the central component of a Trailblazer statue hotspot in the Trophy Room of a player-owned house, built at level 32 Construction for 120 experience using two oak planks."
+  market_strategy:
+    notes:
+      - "Limited supply because every globe required burning League points during the event window"
+      - "Steady decorative demand from POH collectors and high-end house builders"
+      - "Buy limit of five enforces slow accumulation for bulk traders"
+  trading_tips:
+    - Watch for listing pressure when League rewards are reopened or repriced
+    - Hold long term; supply only grows via future League events
+  history:
+    - date: "2021-01-06"
+      description: "Released alongside the Trailblazer League reward shop."
+    - date: "2021-01-06"
+      description: "Item value increased from 5,000 to 40,000 coins when made obtainable."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

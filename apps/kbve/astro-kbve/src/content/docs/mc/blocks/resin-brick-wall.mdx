@@ -1,5 +1,6 @@
 ---
 title: Resin Brick Wall
+template: splash
 description: |
     Minecraft Resin Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 348
     ref: resin_brick_wall
     slug: resin-brick-wall
+    content_rev: 1
     display_name: Resin Brick Wall
     material: stone
     hardness: 1.5
@@ -21,13 +23,56 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: resin_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Resin Brick Wall is the wall-shaped variant of Resin Bricks,
+            connecting to neighboring blocks with raised posts and used
+            for fencing off or decorating builds.
+        lore: |
+            Added with the resin brick family in Java 1.21.4 (snapshot
+            24w44a), later updated so wall segments always count as solid
+            for connection purposes.
+    uses:
+        - title: Building & decoration
+          ref: resin_bricks
+          detail: |
+              Used for borders and decorative fencing alongside Resin
+              Bricks, Resin Brick Slab, and Resin Brick Stairs.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from 6 Resin Bricks in a wall pattern.
+        - location: Stonecutter
+          detail: Cut from Resin Bricks at a 1:1 ratio.
+    faq:
+        - question: What tool do I need to mine Resin Brick Wall?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Does Resin Brick Wall generate naturally?
+          answer: |
+              No, it must be crafted or stonecutter-cut from Resin Bricks.
+        - question: Can Resin Brick Wall be waterlogged?
+          answer: |
+              Yes, like other wall blocks it supports waterlogging.
+        - question: Is Resin Brick Wall affected by Fortune?
+          answer: |
+              No, it always drops itself when mined with a pickaxe,
+              regardless of enchantments.
     data_version: "1.21.5"
 ---
 

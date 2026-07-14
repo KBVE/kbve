@@ -333,7 +333,7 @@ Future: once the per-type systems all move to capability queries, the tags can b
 
 ## 9. Execution phases
 
-Tracked in the plan at `/Users/alappatel/.claude/plans/identify-any-main-thread-mighty-elephant.md`. Summary:
+Tracked in the plan at `/Users/~/.claude/plans/identify-any-main-thread-mighty-elephant.md`. Summary:
 
 - **Phase 0** — this doc.
 - **Phase 1** — `TenderedBy` component + `BuildingPrefabRegistrySystem` with 11 bake methods. Registry not yet wired to spawn; existing flow unchanged.

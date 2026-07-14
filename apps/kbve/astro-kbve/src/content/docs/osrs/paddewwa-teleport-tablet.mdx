@@ -9,12 +9,76 @@ osrs:
   members: true
   icon: Paddewwa teleport (tablet).png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 10000
-  about: "Paddewwa teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: "Edgeville Dungeon (Paddewwa)"
+    quest_requirement: "Desert Treasure I"
+    spellbook: Ancient
+    notes: "Break the tablet to teleport instantly to the Edgeville Dungeon. Tablets bypass the 54 Magic requirement of the spell version and grant no XP on use."
+  recipes:
+    - skill: Magic
+      level: 54
+      experience: 64
+      materials:
+        - item_name: Soft clay
+          quantity: "1"
+        - item_name: Law rune
+          quantity: "2"
+        - item_name: Air rune
+          quantity: "1"
+        - item_name: Fire rune
+          quantity: "1"
+      tools:
+        - Ancient lectern (Player-owned house Study)
+      output_quantity: 1
+      notes: "Cast Paddewwa Teleport at an Ancient lectern in a player-owned house Study. Requires Desert Treasure I and Ancient Magicks spellbook."
+  related_items:
+    - name: Senntisten teleport (tablet)
+      relationship: alternative
+    - name: Kharyrll teleport (tablet)
+      relationship: alternative
+    - name: Lassar teleport (tablet)
+      relationship: alternative
+    - name: Dareeyak teleport (tablet)
+      relationship: alternative
+    - name: Carrallangar teleport (tablet)
+      relationship: alternative
+    - name: Annakarl teleport (tablet)
+      relationship: alternative
+    - name: Ghorrock teleport (tablet)
+      relationship: alternative
+  about: "Paddewwa teleport (tablet) is a soft-clay teleport tablet that breaks to send the user instantly to the Edgeville Dungeon (Paddewwa). Made at an Ancient lectern in a player-owned house Study from 1 soft clay, 2 law runes, 1 air rune and 1 fire rune; requires Desert Treasure I and 54 Magic to craft, but anyone can break the finished tablet."
+  market_strategy:
+    notes:
+      - "Convenient teleport for ironmen and runners who want sub-1-second access to Edgeville Dungeon (Vannaka, KBD lobby route, slayer caves)."
+      - "Soft-clay tablets feed off the soft clay / law rune supply chain — track both for crafting profit margins."
+      - "Stackable + tradeable + huge GE limit (10,000) makes it a high-volume flip target."
+  trading_tips:
+    - "Compare GE price vs (1 soft clay + 2 law runes + 1 air rune + 1 fire rune) for crafting-profit signals."
+    - "Demand rises with PvM patches that drive players through the Edgeville Dungeon area."
+    - "Stackable storage means buyers grab in 100/1,000 unit blocks — list large stacks for tight spreads."
+  history:
+    - date: "2014-09-18"
+      description: "Released alongside Ancient lectern teleport tablets when player-owned house lecterns were expanded."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-09-18"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest: "Desert Treasure I"
+    quest_item: false
+    weight: 0
+    alchable: false
+    options:
+      - Break
+      - Drop
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

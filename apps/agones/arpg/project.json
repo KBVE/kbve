@@ -1,0 +1,133 @@
+{
+	"name": "arpg",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/arpg",
+	"tags": ["agones", "arpg", "game"],
+	"targets": {
+		"tmux": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "apps/agones/arpg/dev-tmux.sh"
+			}
+		},
+		"tmux-down": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "apps/agones/arpg/dev-tmux.sh kill"
+			}
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "trap 'docker compose -f apps/agones/arpg/docker-compose.yml --profile web down' EXIT INT TERM; docker compose -f apps/agones/arpg/docker-compose.yml --profile web up --build"
+			}
+		},
+		"compose-up": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f apps/agones/arpg/docker-compose.yml up --build"
+			}
+		},
+		"compose-down": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f apps/agones/arpg/docker-compose.yml --profile web down"
+			}
+		},
+		"web-dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["npm run dev"],
+				"cwd": "apps/agones/arpg/web",
+				"parallel": false
+			}
+		},
+		"web-build": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/web/dist"],
+			"options": {
+				"commands": [
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs arpg pull --include='apps/agones/arpg/web/public/assets/arcade/arpg/**') || echo 'arpg LFS pull skipped (no creds / offline) — sprites may be pointer stubs'",
+					"npm run build"
+				],
+				"cwd": "apps/agones/arpg/web",
+				"parallel": false
+			}
+		},
+		"web-build-embed": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/web/dist/arpg-embed.js"],
+			"options": {
+				"commands": ["npm run build:embed"],
+				"cwd": "apps/agones/arpg/web",
+				"parallel": false
+			}
+		},
+		"web-build-discord": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/web/dist/discord/arpg/arpg.js"],
+			"options": {
+				"commands": ["npm run build:discord"],
+				"cwd": "apps/agones/arpg/web",
+				"parallel": false
+			}
+		},
+		"web-typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "npm run typecheck",
+				"cwd": "apps/agones/arpg/web"
+			}
+		},
+		"web-test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "npm run test",
+				"cwd": "apps/agones/arpg/web"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx run arpg:web-test",
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs arpg pull --include='apps/agones/arpg/web/public/assets/arcade/arpg/**')",
+					"nx run arpg:container-web",
+					"nx run arpg-e2e:e2e:cdn"
+				],
+				"parallel": false
+			}
+		},
+		"container-web": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/arpg/web/Dockerfile",
+				"load": true,
+				"tags": ["kbve/arpg-web:latest"],
+				"build-args": ["PUBLIC_ARPG_VERSION"]
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/arpg-web:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/arpg-web:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/arpg-web:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/arpg-web:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	}
+}

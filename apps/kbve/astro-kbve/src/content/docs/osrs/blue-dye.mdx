@@ -12,9 +12,82 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 150
-  about: "Blue dye is a free-to-play item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Blue dye is a free-to-play crafting reagent made by Aggie from 2 woad leaves and 5 coins, used to recolour capes, robes, wizard hats, and a variety of cosmetic items."
+  material:
+    type: dye
+    tier: low
+  recipes:
+    - skill: Crafting
+      level: 1
+      xp: 0
+      tools: []
+      facility: Aggie (Draynor Village)
+      materials:
+        - item_name: Woad leaf
+          quantity: 2
+        - item_name: Coins
+          quantity: 5
+      output_quantity: 1
+      notes: "Aggie produces the dye in 1 game tick."
+  shops:
+    - shop_name: Oronwen's Wares
+      location: Lletya
+      stock: 5
+      price: 6
+      currency: Coins
+    - shop_name: Guinevere's Magical Coloured Threads
+      location: Prifddinas
+      stock: 5
+      price: 6
+      currency: Coins
+    - shop_name: Xochitl's general store
+      location: Tal Teklan
+      stock: 5
+      price: 6
+      currency: Coins
+  related_items:
+    - item_name: Woad leaf
+      relationship: component
+    - item_name: Red dye
+      relationship: alternative
+    - item_name: Yellow dye
+      relationship: alternative
+    - item_name: Orange dye
+      relationship: alternative
+    - item_name: Purple dye
+      relationship: alternative
+    - item_name: Green dye
+      relationship: alternative
+    - item_name: Pink dye
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "F2P Aggie craft — 2 woad leaves plus 5 coins makes one dye for substantial GE markup."
+      - "Limit of 150 per 4h slows large flips but daily volume above 4,000 keeps liquidity healthy."
+      - "Cosmetic recolour demand is steady; cape, robe, and wizard hat applications drive baseline volume."
+  trading_tips:
+    - "Buy woad leaves cheap, make dye via Aggie, flip on GE — classic F2P profit loop."
+    - "Multiple shop sources at 6 GP each cap upside; large supply increases push price back to shop cost."
+    - "Pairs well with cape merchants — stock both dye and capes during cosmetic events."
+  history:
+    - date: "2001-05-08"
+      description: "Blue dye released as part of an early RuneScape Classic Crafting update."
+  properties:
+    release_date: "2001-05-08"
+    update: "Runescape updated (8 May 2001)"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

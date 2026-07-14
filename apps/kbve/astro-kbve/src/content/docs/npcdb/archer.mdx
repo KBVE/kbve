@@ -1,5 +1,9 @@
 ---
 title: 'Archer'
+template: splash
+sidebar:
+    label: 'Archer'
+    hidden: true
 description: |
     Player ranged humanoid. Hooded leather, back quiver. Lower HP than Soldier; trades durability for reach. Used by Barracks recruitment + initial spawn cluster.
 ref: 'archer'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Player ranged humanoid. Trades HP for reach.
+
+</NpcLeaf>

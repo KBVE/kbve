@@ -1,5 +1,6 @@
 ---
 title: Ink Sac
+template: splash
 description: |
     Minecraft Ink Sac — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 1001
     ref: ink_sac
     slug: ink-sac
+    content_rev: 1
     display_name: Ink Sac
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The ink sac is a common item dropped by squids and used mainly as the source
+            of black dye, letting players tint wool, leather armor, beds, glass, terracotta,
+            and other dyeable blocks. It can also be combined with a feather and a book to
+            craft a book and quill, and mixed with prismarine shards to produce dark prismarine.
+        lore: |
+            Squids have dropped ink sacs since Minecraft's earliest aquatic mobs were added,
+            making the item one of the game's original dye sources.
+    faq:
+        - question: How do I get an ink sac?
+          answer: |
+              Kill a squid — it drops 1-3 ink sacs, or up to 6 with a Looting III weapon.
+              There is also a rare 1/1000 chance of catching one while fishing with an
+              unenchanted rod, and in Bedrock Edition strongholds can generate them in
+              storeroom chests.
+        - question: What is an ink sac used for?
+          answer: |
+              Its main use is crafting black dye, which can then color wool, leather armor,
+              beds, glass, terracotta, and several other dyeable blocks and items.
+        - question: Can I craft anything directly with an ink sac?
+          answer: |
+              Yes — combining an ink sac with a book and a feather crafts a book and quill,
+              and combining it with prismarine shards produces dark prismarine.
+        - question: Is the ink sac a renewable resource?
+          answer: |
+              Yes, squids continue to spawn and can be farmed in water, making ink sacs a
+              fully renewable source of black dye.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

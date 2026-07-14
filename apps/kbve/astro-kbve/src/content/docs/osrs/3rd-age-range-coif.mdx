@@ -12,60 +12,103 @@ osrs:
   lowalch: 20160
   highalch: 30240
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragonhide
+    tier: high
+  properties:
+    release_date: "5 December 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    type: ranged armour
-    attack_style: ranged
+    weapon_type: null
+    attack_speed: null
+    weight: 1
     requirements:
       ranged: 65
       defence: 45
-    stats:
-      attack_ranged: 8
-      defence_stab: 6
-      defence_slash: 9
-      defence_crush: 12
-      defence_magic: 8
-      defence_ranged: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 9
+    defence_bonus:
+      stab: 4
+      slash: 7
+      crush: 10
+      magic: 5
+      ranged: 8
+    other_bonus:
+      strength: 0
       ranged_strength: 0
-      prayer_bonus: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Very Rare
-        description: Extremely rare reward from master clue scrolls
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/211250
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/249262
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/313168
+      - source: The Mimic
+        quantity: "1"
+        rarity: Very rare
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+      - master
   related_items:
-    - item_id: 10330
-      item_name: 3rd age range top
+    - item_name: 3rd age range top
       slug: 3rd-age-range-top
       relationship: set-piece
-      description: Body slot of 3rd age range set
-    - item_id: 10332
-      item_name: 3rd age range legs
+      description: Body slot of the 3rd age ranged set
+    - item_name: 3rd age range legs
       slug: 3rd-age-range-legs
       relationship: set-piece
-      description: Leg slot of 3rd age range set
-    - item_id: 10336
-      item_name: 3rd age vambraces
+      description: Leg slot of the 3rd age ranged set
+    - item_name: 3rd age vambraces
       slug: 3rd-age-vambraces
       relationship: set-piece
-      description: Hands slot of 3rd age range set
+      description: Hands slot of the 3rd age ranged set
   about: |-
-    The 3rd age range coif is part of the 3rd age ranged set, one of the rarest and most prestigious armour sets in Old School RuneScape. It requires 65 Ranged and 45 Defence to wear.
-
-    3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
+    The 3rd age range coif is part of the 3rd age ranged set, one of the rarest and most prestigious armour sets in Old School RuneScape. It requires 65 Ranged and 45 Defence to wear and is only obtained as an exceptionally rare reward from hard, elite, and master Treasure Trails caskets or from defeating The Mimic.
   market_strategy:
-    title: Investment Notes
     notes:
-      - Extremely valuable due to rarity
-      - Price fluctuates based on collector demand
-      - Consider set value vs individual pieces
-      - Verify authenticity when trading high-value items
-      - Use Grand Exchange for secure trades
-      - Monitor price trends before purchasing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Extremely valuable due to rarity"
+      - "Price fluctuates based on collector demand"
+      - "Consider full set value vs individual pieces"
+      - "Buy limit 8 per 4 hours - thin liquidity"
+  trading_tips:
+    - Verify authenticity through Grand Exchange to avoid scams
+    - Monitor master clue completion rates for supply trends
+    - Pair with the rest of the 3rd age ranged set for maximum resale prestige
+  history:
+    - date: "5 December 2006"
+      description: "3rd age range coif added with the Treasure Trails expansion."
+    - date: "June 2014"
+      description: "Store value raised from 10,000 to 50,400 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

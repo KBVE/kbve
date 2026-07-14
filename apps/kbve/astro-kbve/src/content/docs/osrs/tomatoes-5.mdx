@@ -12,9 +12,51 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  about: "Tomatoes(5) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about:
+    text: "Tomatoes(5) is a members-only basket holding five tomatoes. Each tomato eaten heals 2 Hitpoints, so a full basket restores 10 Hitpoints in total. The basket saves inventory space for pizza makers and is also used as payment to farmers to protect oak trees, yanillian hops, and cadavaberry bushes."
+    sections:
+      - heading: How much does Tomatoes(5) heal and what is it for?
+        anchor: usage
+        body: "A basket of five tomatoes lets you carry many tomatoes in a single inventory slot, which is useful for players making pizzas who want to bring lots of tomatoes at once. Each tomato eaten heals 2 Hitpoints, so eating through a full Tomatoes(5) basket restores 10 Hitpoints across the five tomatoes. Beyond food and cooking, Tomatoes(5) is commonly used as farming protection payment. A single basket of five tomatoes can be paid to a farmer to watch over an oak tree or a patch of yanillian hops, while three baskets of tomatoes are the payment to protect a cadavaberry bush. This makes the basket a handy item to keep on hand while training Farming."
+      - heading: How do you make and fill Tomatoes(5)?
+        anchor: making
+        body: "Tomatoes(5) is created by filling a basket with five tomatoes; the basket can hold anywhere between one and five tomatoes. The tomatoes themselves are grown through the Farming skill at level 12, planted by using three tomato seeds on an allotment patch. Filling the basket takes no time (0 ticks) and uses one basket plus five tomatoes. You can later empty the basket to retrieve the tomatoes, and since a 2018 update shift-clicking empties the contents straight into your inventory. Because it stacks five tomatoes into one slot, the basket is mainly a convenience item for transporting tomatoes for pizza-making or for paying farmers, rather than something traded for profit."
+  food: { heals: 10, type: basket }
+  recipes:
+    - skill: farming
+      ticks: 0
+      product: Tomatoes(5)
+      materials:
+        - { item_name: Basket, quantity: 1 }
+        - { item_name: Tomato, quantity: 5 }
+  related_items:
+    - item_name: Tomato
+      slug: tomato
+      relationship: component
+      description: Five tomatoes are placed in a basket to make Tomatoes(5)
+    - item_name: Basket
+      slug: basket
+      relationship: component
+      description: Empty fruit basket filled with up to five tomatoes
+  trivia:
+    - "Tomatoes were released on 11 July 2005 as part of the Farming skill update."
+    - "A single basket of five tomatoes pays a farmer to protect an oak tree or yanillian hops, while three baskets protect a cadavaberry bush."
+    - "On 22 March 2018 an 'Empty' option was added and shift-clicking now empties the basket's contents into the inventory."
+  faq:
+    - question: Is Tomatoes(5) members-only?
+      answer: "Yes. Tomatoes(5) is a members-only item, as it relies on the Farming skill and members content. It can only be filled, used as farming payment, and traded on members worlds. Tomatoes are grown through Farming, which is itself members-only."
+    - question: How much does Tomatoes(5) heal in OSRS?
+      answer: "Each tomato eaten heals 2 Hitpoints, so a full Tomatoes(5) basket heals 10 Hitpoints in total across its five tomatoes. The basket is mainly used to carry tomatoes for pizza-making and as farming payment rather than as a primary combat food."
+    - question: What is Tomatoes(5) used for in farming?
+      answer: "Tomatoes(5) is used as protection payment to farmers. One basket of five tomatoes pays a farmer to watch over an oak tree or yanillian hops, and three baskets of tomatoes pay to protect a cadavaberry bush, reducing the risk of those crops dying."
+    - question: How do you make Tomatoes(5)?
+      answer: "You make Tomatoes(5) by filling an empty basket with five tomatoes. Tomatoes are grown via Farming at level 12 by planting three tomato seeds on an allotment patch. The basket can hold one to five tomatoes and can be emptied again at any time."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Tomatoes(5)"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

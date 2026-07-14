@@ -1,40 +1,47 @@
 [package]
 name = "axum-cryptothrone"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.5"
+version = "0.1.51"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 
 [dependencies]
 anyhow = "1.0"
 thiserror = "2"
-serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { version = "0.6.8", features = [
+tower-http = { version = "0.7.0", features = [
     "compression-full",
     "limit",
     "trace",
     "fs",
     "cors",
-    "set-header"
+    "set-header",
+    "normalize-path"
 ] }
 tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum = { version = "0.8.5", features = ["ws", "macros"] }
 axum-extra = { version = "0.12.1", features = ["cookie"] }
-askama = "0.15.4"
 socket2 = "0.6.1"
 num_cpus = "1.17.0"
 dotenvy = "0.15"
+http = "1"
+serde = { version = "1.0", features = ["derive"] }
+jsonwebtoken = { version = "9.3", default-features = false }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+kube = { version = "3", default-features = false, features = ["client", "rustls-tls"] }
+k8s-openapi = { version = "0.27", features = ["v1_32"] }
+rustls = { version = "0.23", features = ["ring"] }
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi" }
+jedi = { path = "../../../packages/rust/jedi", features = ["postgres", "valkey"] }
 kbve = { path = "../../../packages/rust/kbve" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.6", optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
 
 [dev-dependencies]
 serial_test = "3"
@@ -43,6 +50,3 @@ http-body-util = "0.1"
 [features]
 default = []
 jemalloc = ["dep:tikv-jemallocator"]
-
-[package.metadata.askama]
-dirs = ["templates"]

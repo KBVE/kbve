@@ -1,0 +1,333 @@
+---
+/**
+ * AstroGithubTabs - Radio-driven tab group with ARIA + arrow-key
+ * keyboard navigation. Visual state runs on `:has()` (no JS needed
+ * for show/hide). The 20-line enhancement script only toggles
+ * `aria-selected` so AT can announce the active tab, and rotates
+ * focus on ArrowLeft / ArrowRight / Home / End.
+ *
+ * Named slots: activity, board, repos, contribute.
+ */
+
+interface Props {
+	idPrefix?: string;
+}
+
+const { idPrefix = 'github-tabs' } = Astro.props;
+
+const TABS = [
+	{
+		key: 'activity',
+		label: 'Recent Activity',
+		short: 'Activity',
+		icon: '🟢',
+	},
+	{ key: 'board', label: 'In Flight', short: 'In Flight', icon: '🎯' },
+	{ key: 'repos', label: 'Repositories', short: 'Repos', icon: '📦' },
+	{ key: 'contribute', label: 'Contribute', short: 'Contribute', icon: '🚀' },
+];
+---
+
+<section
+	class="github-tabs"
+	aria-label="GitHub ecosystem sections"
+	data-github-tabs
+	data-tab-prefix={idPrefix}>
+	{
+		TABS.map((t, i) => (
+			<input
+				type="radio"
+				name={`${idPrefix}-radio`}
+				id={`${idPrefix}-radio-${t.key}`}
+				data-tab-key={t.key}
+				class={`github-tabs__radio github-tabs__radio--${t.key} sr-only`}
+				checked={i === 0}
+				aria-label={t.label}
+				tabindex="-1"
+			/>
+		))
+	}
+
+	<div
+		class="github-tabs__nav"
+		role="tablist"
+		aria-label="GitHub sections"
+		aria-orientation="horizontal">
+		{
+			TABS.map((t, i) => (
+				<label
+					for={`${idPrefix}-radio-${t.key}`}
+					id={`${idPrefix}-tab-${t.key}`}
+					class={`github-tabs__tab github-tabs__tab--${t.key}`}
+					role="tab"
+					aria-controls={`${idPrefix}-panel-${t.key}`}
+					aria-selected={i === 0 ? 'true' : 'false'}
+					tabindex={i === 0 ? '0' : '-1'}
+					data-tab-key={t.key}>
+					<span class="github-tabs__icon" aria-hidden="true">
+						{t.icon}
+					</span>
+					<span class="github-tabs__label github-tabs__label--full">
+						{t.label}
+					</span>
+					<span class="github-tabs__label github-tabs__label--short">
+						{t.short}
+					</span>
+				</label>
+			))
+		}
+	</div>
+
+	<div class="github-tabs__panels">
+		<section
+			id={`${idPrefix}-panel-activity`}
+			class="github-tabs__panel github-tabs__panel--activity"
+			role="tabpanel"
+			aria-labelledby={`${idPrefix}-tab-activity`}
+			tabindex="0">
+			<slot name="activity" />
+		</section>
+		<section
+			id={`${idPrefix}-panel-board`}
+			class="github-tabs__panel github-tabs__panel--board"
+			role="tabpanel"
+			aria-labelledby={`${idPrefix}-tab-board`}
+			tabindex="0">
+			<slot name="board" />
+		</section>
+		<section
+			id={`${idPrefix}-panel-repos`}
+			class="github-tabs__panel github-tabs__panel--repos"
+			role="tabpanel"
+			aria-labelledby={`${idPrefix}-tab-repos`}
+			tabindex="0">
+			<slot name="repos" />
+		</section>
+		<section
+			id={`${idPrefix}-panel-contribute`}
+			class="github-tabs__panel github-tabs__panel--contribute"
+			role="tabpanel"
+			aria-labelledby={`${idPrefix}-tab-contribute`}
+			tabindex="0">
+			<slot name="contribute" />
+		</section>
+	</div>
+</section>
+
+<script is:inline>
+	(() => {
+		const groups = document.querySelectorAll('[data-github-tabs]');
+		for (const group of groups) {
+			const tabs = Array.from(group.querySelectorAll('[role="tab"]'));
+			const radios = Array.from(
+				group.querySelectorAll('input[type="radio"][data-tab-key]'),
+			);
+
+			const syncAria = () => {
+				const checked = radios.find((r) => r.checked);
+				const activeKey = checked?.dataset.tabKey;
+				for (const tab of tabs) {
+					const isActive = tab.dataset.tabKey === activeKey;
+					tab.setAttribute('aria-selected', String(isActive));
+					tab.setAttribute('tabindex', isActive ? '0' : '-1');
+				}
+			};
+
+			for (const radio of radios) {
+				radio.addEventListener('change', syncAria);
+			}
+
+			for (const tab of tabs) {
+				tab.addEventListener('keydown', (ev) => {
+					const key = ev.key;
+					if (
+						key !== 'ArrowLeft' &&
+						key !== 'ArrowRight' &&
+						key !== 'Home' &&
+						key !== 'End'
+					) {
+						return;
+					}
+					ev.preventDefault();
+					const idx = tabs.indexOf(tab);
+					let nextIdx = idx;
+					if (key === 'ArrowLeft')
+						nextIdx = (idx - 1 + tabs.length) % tabs.length;
+					if (key === 'ArrowRight') nextIdx = (idx + 1) % tabs.length;
+					if (key === 'Home') nextIdx = 0;
+					if (key === 'End') nextIdx = tabs.length - 1;
+					const nextTab = tabs[nextIdx];
+					const nextKey = nextTab.dataset.tabKey;
+					const nextRadio = radios.find(
+						(r) => r.dataset.tabKey === nextKey,
+					);
+					if (nextRadio) {
+						nextRadio.checked = true;
+						nextRadio.dispatchEvent(
+							new Event('change', { bubbles: true }),
+						);
+					}
+					nextTab.focus();
+				});
+			}
+
+			syncAria();
+		}
+	})();
+</script>
+
+<style>
+	.github-tabs {
+		margin: 2rem 0;
+		color: var(--sl-color-text, #e6edf3);
+	}
+
+	/* Visually-hidden radio (sr-only equivalent without relying on
+	   Starlight global utility class shadowing). */
+	.github-tabs__radio.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.github-tabs__nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		justify-content: center;
+		padding: 0.4rem;
+		background: var(--sl-color-bg-nav, #0f172a);
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-radius: 12px;
+		margin-bottom: 1.5rem;
+	}
+
+	.github-tabs__tab {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.55rem 1rem;
+		background: transparent;
+		border: 1px solid transparent;
+		border-radius: 8px;
+		color: var(--sl-color-gray-2, #c9d1d9);
+		font-size: 0.85rem;
+		font-weight: 500;
+		cursor: pointer;
+		user-select: none;
+		transition:
+			background 0.15s,
+			color 0.15s,
+			border-color 0.15s,
+			transform 0.15s;
+	}
+
+	.github-tabs__tab:hover {
+		color: var(--sl-color-text, #e6edf3);
+		background: var(--sl-color-bg-sidebar, #1e293b);
+	}
+
+	.github-tabs__tab:focus-visible {
+		outline: 2px solid var(--sl-color-accent, #06b6d4);
+		outline-offset: 2px;
+	}
+
+	.github-tabs__icon {
+		font-size: 1rem;
+		line-height: 1;
+	}
+
+	/* Swap full ↔ short label at the wrap-risk breakpoint. */
+	.github-tabs__label--full {
+		display: inline;
+	}
+	.github-tabs__label--short {
+		display: none;
+	}
+
+	@media (max-width: 480px) {
+		.github-tabs__label--full {
+			display: none;
+		}
+		.github-tabs__label--short {
+			display: inline;
+		}
+		.github-tabs__nav {
+			gap: 0.3rem;
+			padding: 0.3rem;
+		}
+		.github-tabs__tab {
+			padding: 0.5rem 0.7rem;
+			font-size: 0.78rem;
+		}
+	}
+
+	@media (max-width: 640px) and (min-width: 481px) {
+		.github-tabs__tab {
+			padding: 0.55rem 0.85rem;
+			font-size: 0.82rem;
+		}
+	}
+
+	.github-tabs__panels {
+		position: relative;
+	}
+
+	.github-tabs__panel {
+		display: none;
+	}
+	.github-tabs__panel:focus {
+		outline: none;
+	}
+
+	.github-tabs:has(.github-tabs__radio--activity:checked)
+		.github-tabs__panel--activity,
+	.github-tabs:has(.github-tabs__radio--board:checked)
+		.github-tabs__panel--board,
+	.github-tabs:has(.github-tabs__radio--repos:checked)
+		.github-tabs__panel--repos,
+	.github-tabs:has(.github-tabs__radio--contribute:checked)
+		.github-tabs__panel--contribute {
+		display: block;
+		animation: github-tabs-fade-in 0.2s ease-out;
+	}
+
+	.github-tabs:has(.github-tabs__radio--activity:checked)
+		.github-tabs__tab--activity,
+	.github-tabs:has(.github-tabs__radio--board:checked)
+		.github-tabs__tab--board,
+	.github-tabs:has(.github-tabs__radio--repos:checked)
+		.github-tabs__tab--repos,
+	.github-tabs:has(.github-tabs__radio--contribute:checked)
+		.github-tabs__tab--contribute {
+		background: var(--sl-color-accent, #06b6d4);
+		color: #0b1220;
+		border-color: var(--sl-color-accent, #06b6d4);
+	}
+
+	@keyframes github-tabs-fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(4px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.github-tabs__panel {
+			animation: none !important;
+		}
+		.github-tabs__tab {
+			transition: none;
+		}
+	}
+</style>

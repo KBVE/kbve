@@ -34,15 +34,13 @@ namespace RareIcon
             if (_whaleQuery.CalculateEntityCount() >= MaxWhales) return;
 
             var em = EntityManager;
-            var lookup = SystemAPI.GetSingleton<HexDBSingleton>().Lookup;
+            var hexDB = SystemAPI.GetSingleton<HexDBSingleton>();
+            hexDB.DrainHandle.Complete();
+            var lookup = hexDB.Lookup;
 
             var keys = lookup.GetKeyArray(Allocator.Temp);
             if (keys.Length == 0) { keys.Dispose(); return; }
 
-            // Rejection-sample a water hex out of the lookup — cheap when
-            // the world is water-heavy; bails without spawning if all
-            // sampled tiles come up dry, which is fine (whale pop cap is
-            // already below target next tick).
             int2 spawn = default;
             bool found = false;
             for (int i = 0; i < MaxTries; i++)

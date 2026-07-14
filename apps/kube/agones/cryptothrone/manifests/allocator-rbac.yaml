@@ -1,0 +1,33 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: cryptothrone-agones-allocator
+    namespace: cryptothrone
+    labels:
+        app.kubernetes.io/part-of: cryptothrone
+rules:
+    - apiGroups: ['allocation.agones.dev']
+      resources: ['gameserverallocations']
+      verbs: ['create']
+    - apiGroups: ['agones.dev']
+      resources: ['gameservers']
+      verbs: ['get', 'list']
+    - apiGroups: ['agones.dev']
+      resources: ['fleets']
+      verbs: ['get', 'list']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: cryptothrone-sa-agones-allocator
+    namespace: cryptothrone
+    labels:
+        app.kubernetes.io/part-of: cryptothrone
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: cryptothrone-agones-allocator
+subjects:
+    - kind: ServiceAccount
+      name: cryptothrone-sa
+      namespace: cryptothrone

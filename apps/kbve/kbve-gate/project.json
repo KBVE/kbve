@@ -1,0 +1,93 @@
+{
+	"name": "kbve-gate",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/kbve/kbve-gate/src",
+	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-gate"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-gate"
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-gate"
+			}
+		},
+		"run": {
+			"executor": "@monodon/rust:run",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kbve-gate"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx kbve-gate:containerx",
+						"VERSION=$(grep '^version' apps/kbve/kbve-gate/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve-gate:latest kbve/kbve-gate:$VERSION && echo \"Tagged kbve/kbve-gate:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx kbve-gate:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/kbve/kbve-gate/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve-gate:latest kbve/kbve-gate:$VERSION && docker tag ghcr.io/kbve/kbve-gate:latest ghcr.io/kbve/kbve-gate:$VERSION && echo \"Tagged kbve/kbve-gate:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/kbve/kbve-gate/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/kbve-gate:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": ["ghcr.io/kbve/kbve-gate", "kbve/kbve-gate"],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/kbve-gate:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/kbve-gate:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	}
+}

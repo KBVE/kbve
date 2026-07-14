@@ -12,12 +12,29 @@ osrs:
   lowalch: 520
   highalch: 780
   limit: 70
+  about: "Solid mid-tier crossbow for general ranged combat and Hunter-themed builds. Uses moonlight or sunlight antler bolts and is compatible with grapples."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    weight: 6
+    destroy: "Drop"
+  material:
+    type: misc
+    tier: hunter
+    category: crossbow
   equipment:
     slot: weapon
     weapon_type: crossbow
-    weight: 6
     attack_speed: 4
-    attack_range: 8
+    requirements:
+      ranged: 66
+      hunter: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,68 +48,38 @@ osrs:
       magic: 0
       ranged: 0
     other_bonus:
-      melee_strength: 0
+      strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      ranged: 66
-      hunter: 50
-    degradable: false
   recipes:
-    - skill: fletching
+    - item_name: Hunters' sunlight crossbow
+      skill: Fletching
       level: 74
       xp: 50
+      tools:
+        - Chisel
       materials:
         - item_name: Hunters' crossbow
           quantity: 1
         - item_name: Sunlight antelope antler
           quantity: 1
-      product: Hunters' sunlight crossbow
-      product_id: 28869
-      product_quantity: 1
-      members_only: true
-  drop_table:
-    primary_source: Crafted
-    sources:
-      - source: Fletching
-        quantity: "1"
-        rarity: craftable
-        members_only: true
-  related_items:
-    - item_id: 28878
-      item_name: Moonlight antler bolts
-      slug: moonlight-antler-bolts
-      relationship: component
-      description: Compatible bolts
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Attack speed | 4 ticks (3 ticks on rapid) |
-    | Attack range | 8 tiles |
-    | Ranged attack | +79 |
-
-    - 66 Ranged
-    - 50 Hunter
-
-    Solid mid-tier crossbow for:
-    - General ranged combat
-    - Hunter-themed builds
-    - Uses moonlight/sunlight antler bolts
-
-    | Crossbow | Ranged Attack |
-    |----------|--------------|
-    | Hunters' sunlight | +79 |
-    | Dragon crossbow | +94 |
-    | Armadyl crossbow | +100 |
-    | Karil's crossbow | +84 |
+      output_quantity: 1
+      members: true
   market_strategy:
     notes:
-      - Budget option below dragon crossbow
-      - Requires Hunter skill investment
-      - Part of Hunter Guild content
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "relationship: \"variant\""
+      - "Hunters' crossbow"
+      - "Hunters' moonlight crossbow"
+      - "Sunlight antler bolts"
+      - "Moonlight antler bolts"
+      - "Dragon crossbow"
+      - "Budget mid-tier crossbow option below dragon crossbow; popular with Hunter Guild content."
+      - "Crafting margin depends on sunlight antelope antler supply and hunters' crossbow price."
+      - "Fires sunlight or moonlight antler bolts and supports grapple use."
+  history:
+    - date: "2024-03-20"
+      description: "Hunters' sunlight crossbow released as part of the Hunter Guild expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

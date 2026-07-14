@@ -1,5 +1,6 @@
 ---
 title: Vindicator Spawn Egg
+template: splash
 description: |
     Minecraft Vindicator Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 1136
     ref: vindicator_spawn_egg
     slug: vindicator-spawn-egg
+    content_rev: 1
     display_name: Vindicator Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Vindicator is a hostile illager armed with an iron axe that spawns naturally in woodland mansions and during village raids, one of the game's strongest melee combatants. They actively pursue players, iron golems, villagers, and wandering traders.
+            Their axe strikes deal heavy damage and disable shields for 5 seconds, and they can break wooden doors on Normal and Hard difficulty during raids.
+        lore: |
+            A vindictive illager clad in dark robes, the vindicator charges into battle wielding a devastating axe, capable of overwhelming even well-armored adventurers with brutal efficiency.
+    faq:
+        - question: Where do vindicators naturally spawn?
+          answer: |
+              Vindicators appear in woodland mansions in groups of 1-3 inside particular rooms and also participate in village raids. They don't respawn in mansions once initially generated.
+        - question: How dangerous are they in combat?
+          answer: |
+              They're exceptionally lethal; on Normal difficulty their axe deals 13 HP of damage, enough to kill an unarmored player in two hits, and their attacks also disable shields temporarily.
+        - question: What's the "Johnny" Easter egg?
+          answer: |
+              Naming a vindicator "Johnny" via a name tag activates an aggressive mode where it attacks all mobs except illagers, evokers, ghasts, and other vindicators, referencing the film The Shining.
+        - question: Can vindicators be found with special equipment?
+          answer: |
+              Yes, on Normal/Hard difficulties they sometimes spawn with a randomly enchanted iron axe, with the chance increasing with regional difficulty; raid vindicators may spawn with Sharpness enchantments.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

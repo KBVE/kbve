@@ -1,0 +1,55 @@
+---
+/**
+ * @deprecated Cleaned up 2026-07 — /dashboard/account now renders the unified
+ * RN AccountScreen from @kbve/rn (web + mobile, one component). This legacy
+ * account surface is no longer mounted anywhere. Do not extend it; port any
+ * remaining pieces (wallet / market / referral) into @kbve/rn, then delete.
+ */
+interface Props {
+	title: string;
+	id?: string;
+}
+const { title, id } = Astro.props;
+---
+
+<section
+	{id}
+	class="set-card bento-card bento-card--glass bento-card--interactive"
+	data-settingscard-root>
+	<header class="set-card__header">
+		<span class="set-card__icon bento-icon-tile"><slot name="icon" /></span>
+		<h3 class="set-card__title">{title}</h3>
+		<span class="set-card__badge" data-slot="badge" hidden></span>
+	</header>
+	<div class="set-card__body"><slot /></div>
+</section>
+
+<style>
+	.set-card {
+		padding: 1.25rem;
+		scroll-margin-top: 5rem;
+	}
+	.set-card__header {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		margin-bottom: 1rem;
+		color: var(--sl-color-white);
+	}
+	.set-card__title {
+		margin: 0;
+		font-size: 0.9375rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+		flex: 1;
+	}
+	.set-card__badge {
+		font-size: 0.7rem;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+		background: color-mix(in srgb, var(--sl-color-white) 8%, transparent);
+		border: 1px solid var(--bento-hairline-strong);
+		color: var(--sl-color-gray-2);
+	}
+</style>

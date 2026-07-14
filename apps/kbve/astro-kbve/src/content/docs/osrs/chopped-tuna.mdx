@@ -12,9 +12,71 @@ osrs:
   lowalch: 41
   highalch: 62
   limit: 13000
-  about: "Chopped tuna is a members-only item in Old School RuneScape. High alchemy value: 62 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2006-01-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Tuna
+          quantity: 1
+        - item_name: Bowl
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Tuna
+      slug: tuna
+      relationship: component
+      description: "Cooked tuna chopped with a knife while holding a bowl"
+    - item_name: Bowl
+      slug: bowl
+      relationship: component
+      description: "Required container for the chopped tuna"
+    - item_name: Tuna potato
+      slug: tuna-potato
+      relationship: product
+      description: "Combined with a baked potato with butter for 68 Cooking food"
+    - item_name: Knife
+      slug: knife
+      relationship: component
+      description: "Tool used to chop the tuna"
+  about: |-
+    > *"A bowl of finely chopped tuna."*
+
+    Chopped tuna is the prepared filling for tuna potatoes — use a knife on a cooked tuna while holding a bowl to produce one in two ticks (no Cooking XP). Eats for 10 hitpoints on its own, but value is in feeding the tuna potato recipe at 68 Cooking.
+
+    Demand is driven by Cooking trainers and food prep for bossing; supply lags behind because tuna and bowls must be sourced separately.
+  market_strategy:
+    notes:
+      - "Tuna potato recipe drives almost all volume"
+      - "Spread is positive when tuna prices crash"
+  trading_tips:
+    - "Buy tuna + bowls in bulk during fishing XP dips"
+    - "Sell during Cooking-skill weekend events for top margin"
+  history:
+    - date: "2006-01-30"
+      description: "Released as a tuna potato ingredient"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

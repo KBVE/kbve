@@ -12,9 +12,55 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak drawers (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    level: 33
+    experience: 180
+    hotspot: Wardrobe space (Bedroom)
+    notes: "Flatpack form of Teak drawers; place to install in a player-owned house bedroom without on-the-fly Construction crafting."
+  recipes:
+    - skill: Construction
+      level: 51
+      experience: 180
+      output_quantity: 1
+      tools:
+        - Hammer
+        - Saw
+      materials:
+        - item_name: Teak plank
+          quantity: 2
+      notes: "Built at a Steel framed workbench (Workshop) in a player-owned house; takes 5 game ticks (3 seconds)."
+  related_items:
+    - item_id: 8782
+      item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: Plank used in construction.
+  about: "Flatpack version of Teak drawers — built at the Steel framed workbench from 2 teak planks at 51 Construction, then placed in a POH bedroom."
+  market_strategy:
+    notes:
+      - Demand comes from POH builders who buy flatpacks rather than train Construction on-site.
+      - Low 500 GE buy limit keeps volume thin; pricing is sensitive to teak plank costs.
+  trading_tips:
+    - Track teak plank GE pricing; when planks dip, crafted flatpacks become an arbitrage opportunity.
+    - Steel framed workbench bench-flipping is more profitable than alching; never alch — sell to construction trainers instead.
+  history:
+    - date: "2006-05-31"
+      description: Teak drawers and their flatpack variant introduced with the Construction skill expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

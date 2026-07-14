@@ -1,7 +1,7 @@
 ---
-title: ChuckRPG
-description: |
-    ChuckRPG - Open world multiplayer RPG backend API.
+title: ChuckRPG — Open World RPG Backend API
+description: Rust Axum backend for ChuckRPG, an Unreal open-world multiplayer RPG — serves the website, game API, and signed itch.io desktop downloads.
+sem: 1
 sidebar:
     label: ChuckRPG
     order: 30
@@ -11,7 +11,7 @@ tags:
 key: chuckrpg
 pipeline: docker
 app_name: axum-chuckrpg
-version: "0.1.8"
+version: "0.1.9"
 source_path: apps/chuckrpg/axum-chuckrpg
 version_toml: apps/chuckrpg/axum-chuckrpg/version.toml
 version_target: apps/chuckrpg/axum-chuckrpg/Cargo.toml
@@ -23,8 +23,94 @@ has_test: true
 author: h0lybyte
 license: KBVE
 status: beta
+kube:
+    stack: agones
+    environment: beta
+    tier: api
+    owner: h0lybyte
+    criticality: low
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is ChuckRPG?
+          answer: ChuckRPG is an open-world multiplayer RPG powered by Unreal Engine with OWS (Open World Server) as its game backend.
+        - question: What does the axum-chuckrpg service do?
+          answer: It is the Rust Axum API service that serves the ChuckRPG website, game API, and resolves signed itch.io desktop downloads via the shared jedi itch client.
+        - question: How do desktop downloads work?
+          answer: A request to /downloads/{platform} redirects to the signed itch.io URL, while /api/downloads exposes the live per-platform build state the web consumes.
+bento:
+    badge: game · api · unreal
+    title: Open-world RPG backend
+    accent: ChuckRPG
+    lede: >-
+        An Unreal Engine open-world multiplayer RPG on the OWS game backend. This
+        page tracks axum-chuckrpg — the Rust Axum service that serves the website,
+        game API, and signed itch.io desktop downloads.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/chuckrpg/axum-chuckrpg
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: server
+        title: One Axum service, three jobs
+        body: >-
+            axum-chuckrpg serves the ChuckRPG web frontend, the backend game API,
+            and resolves signed itch.io desktop downloads through the shared
+            <a href="/project/jedi-crate/">jedi</a> itch client.
+        points:
+            - <strong>Website + API</strong> — askama-rendered web plus the game API.
+            - <strong>Downloads</strong> — signed per-platform itch.io redirects.
+    stats:
+        - { label: App, value: axum-chuckrpg, icon: server }
+        - { label: Language, value: Rust, icon: rust }
+        - { label: Image, value: kbve/chuckrpg, icon: box }
+        - { label: Status, value: beta, icon: activity }
+    features:
+        - title: Website + game API
+          icon: server
+          body: Serves the ChuckRPG web frontend and the backend game API from one Axum service.
+        - title: Signed itch.io downloads
+          icon: key
+          body: <code>/downloads/{platform}</code> redirects to the signed itch URL for the requested platform via the shared jedi itch client.
+        - title: Downloads page
+          icon: book
+          body: <code>/downloads</code> renders an askama page of the available builds.
+        - title: Live build state API
+          icon: activity
+          body: <code>/api/downloads</code> returns the current per-platform build state the web consumes.
+        - title: Health checks
+          icon: check
+          body: <code>/health</code> and <code>/api/health</code> back the liveness probes.
+    usage:
+        label: routes
+        lang: http
+        code: |
+            GET /downloads/{platform}   -> 302 redirect to signed itch.io URL
+            GET /downloads              -> HTML downloads page (askama)
+            GET /api/downloads          -> JSON per-platform build state
+            GET /health                 -> liveness
+    related:
+        - title: RentEarth API
+          href: /project/axum-rentearth/
+          copy: Sibling Axum download backend with the same route shape.
+          icon: server
+        - title: jedi
+          href: /project/jedi-crate/
+          copy: Shared Rust crate providing the itch.io signing client.
+          icon: key
+    related_heading: Related
 ---
 
-ChuckRPG is an open world multiplayer RPG powered by Unreal Engine with OWS (Open World Server) as the game backend.
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-This project page tracks the `axum-chuckrpg` API service — the Rust-based backend that serves the ChuckRPG website and game API.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

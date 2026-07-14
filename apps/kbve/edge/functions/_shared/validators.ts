@@ -145,13 +145,18 @@ export function requireJsonContentType(req: Request): Response | null {
  * Logs the real error server-side, returns a generic message to the client.
  */
 export function safeRpcError(
-  error: { message: string },
+  error: { message: string; code?: string; hint?: string; details?: string },
   context: string,
   status = 400,
 ): Response {
-  console.error(`${context}:`, error.message);
+  console.error(`${context}:`, error.message, error.code ?? "", error.hint ?? "");
   return jsonResponse(
-    { error: "Operation failed. Please try again or contact support." },
+    {
+      error: "Operation failed. Please try again or contact support.",
+      sqlstate: error.code ?? null,
+      hint: error.hint ?? null,
+      context,
+    },
     status,
   );
 }

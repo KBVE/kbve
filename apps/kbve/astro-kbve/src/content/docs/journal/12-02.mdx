@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1660855551646-05998824038a?crop=entropy&c
 description: Decemeber 2nd.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 2,'
+    accent: every year.
+    lede: 'The December 2nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2024'
+          primary: true
+        - label: '← Dec 1'
+          href: /journal/12-01/
+        - label: 'Dec 3 →'
+          href: /journal/12-03/
+    related:
+        - title: 'Previous · Dec 1'
+          copy: 'Step back a day to the December 1st log.'
+          href: /journal/12-01/
+          icon: calendar
+        - title: 'Next · Dec 3'
+          copy: 'Jump ahead to the December 3rd log.'
+          href: /journal/12-03/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1660855551646-05998824038a?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2024
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2024" heading="2024">
 
 -   01:52AM
 
@@ -53,3 +94,13 @@ import { Adsense, Tasks } from '@/components/astropad';
     We want to make sure that the communication will work on Itch, but that will be in 2025.
     After creating the library using the nx library generation, we need to add a couple more references and deps.
     The discord embed sdk and the cross fetch both will be helpful here.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</BentoDoc>

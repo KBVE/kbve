@@ -9,13 +9,52 @@ description: |
    May 28th. Tony Reincarnation.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 28,'
+    accent: every year.
+    lede: 'The May 28th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← May 27'
+          href: /journal/05-27/
+        - label: 'May 29 →'
+          href: /journal/05-29/
+    related:
+        - title: 'Previous · May 27'
+          copy: 'Step back a day to the May 27th log.'
+          href: /journal/05-27/
+          icon: calendar
+        - title: 'Next · May 29'
+          copy: 'Jump ahead to the May 29th log.'
+          href: /journal/05-29/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1684336177286-f215831afc17?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Nvdia Earnings
 
@@ -59,8 +98,15 @@ import { Adsense } from '@/components/astropad';
     This is going to be the portable battery back and we can follow it up with a power cell afterwards.
     Portable power pack will have less wattage output but provide the ability to quickly be moved around, whereas the power cells will have less stats but more power storage and output.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Python**
 
@@ -82,7 +128,9 @@ The new Shane Gills show is perfect background entertainment!
 I think it was a bit of a slow start but overall, it finds its unique spot, I think 6 episodes were a bit too short and a full 20-30 episodes a season would have been better.
 They could easily grow the characters out, even take a break from the linear tire shop and throw the characters into a whacky adventure.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 9:00am - Organizing my personal kanban will be the main goal for the day. I am a bit sad that I wasted so much time not updating and keeping it organizing. I might have to set aside around 15mins a day moving forward to maintain the board or it will fall into a huge mess!
 - 11:00am - I set aside a couple main goals for this week, I am thinking of making sure that I expand the tool library on KBVE, with the goal of having over 100+ tools within the next 3 years. After around 20-30 tools, I will go back and organize the tool page to be a bit more straight forward, including categories for developers, webmasters, gamers and memers.
@@ -90,14 +138,22 @@ They could easily grow the characters out, even take a break from the linear tir
 - 8:00pm - Listening to Fudster is exactly like injecting cancer cells into my brain. The more you listen, the faster the stages evolve. 
 - 9:00pm - Finally got the shiv updated and I have all of the puppeteer running under an asynchronous factory. Now I am going to add JWT authentication and then we should be good to go with building out a basic SaaS-style tool! I will initially make the tool free for users and then add a credit system later down the line. The balance of free tools and paid advance usage will be an art form of human behavior. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Laughter is not at all a bad beginning for a friendship, and it is far the best ending for one.
 > — <cite>Oscar Wilde</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [x] Update the storage on production containers
 - [x] Improve the City Vote Scrapper
+
+</BentoProse>
+
+</BentoDoc>

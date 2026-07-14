@@ -9,12 +9,52 @@ description: |
    May 10th - The Daily Journal
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 10,'
+    accent: every year.
+    lede: 'The May 10th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← May 9'
+          href: /journal/05-09/
+        - label: 'May 11 →'
+          href: /journal/05-11/
+    related:
+        - title: 'Previous · May 9'
+          copy: 'Step back a day to the May 9th log.'
+          href: /journal/05-09/
+          icon: calendar
+        - title: 'Next · May 11'
+          copy: 'Jump ahead to the May 11th log.'
+          href: /journal/05-11/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1682553064442-272b63b5a541?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### IRC Gateway
 
@@ -57,8 +97,15 @@ flowchart TB
 
 ```
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Steam Community Marketplace
 
@@ -137,8 +184,9 @@ export const MultiMessageKind = {
     The goals would be to get some minor bugs out of the way, place the new map and generation for it and finally do the Steam integration.
     With all of that out of the way, we can get a demo up and running for people to wishlist and play.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 **TailWindCSS**
 
@@ -165,8 +213,9 @@ The goal will be to aim at updating or adding 3 mdx files each week, eventually 
 
 The webmaster documentation is not 100% complete but I did add a decent amount of information , tables and general examples.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 10:00am - SSS - *Shiitake, Shower and shave* and out the door! My last official day in India and its giving me the feels. I am going to miss this place for the time being, the society, the flow and the memories. I suppose I will not miss the random cow dung, monkeys throwing dung and the historic slums but the light and darkness create a vibrant eco-system that I can only define as karma. 
 
@@ -184,14 +233,22 @@ The webmaster documentation is not 100% complete but I did add a decent amount o
 
 - 6:00pm - We were able to figure it out! It was a Google advertisement issue that caused multiple issues then stack on top of each other. Actually it was worse but we wont throw them under the bus, because they will never care and honestly its just a shitty and sand thing overall. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Silence is the sleep that nourishes wisdom.
 > — <cite>Francis Bacon</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Get onto a plane.
 - [ ] Tom Hanking around the Terminal.
+
+</BentoProse>
+
+</BentoDoc>

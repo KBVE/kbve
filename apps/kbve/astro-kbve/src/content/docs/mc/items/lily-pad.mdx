@@ -1,5 +1,6 @@
 ---
 title: Lily Pad
+template: splash
 description: |
     Minecraft Lily Pad — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 394
     ref: lily_pad
     slug: lily-pad
+    content_rev: 1
     display_name: Lily Pad
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Lily Pad is a thin, walkable plant block that floats on the surface of water.
+            It naturally generates in swamps and mangrove swamps, prevents mobs from spawning on
+            the water beneath it, and can be obtained by fishing, trading with wandering traders,
+            or breaking one directly.
+        lore: |
+            A broad green leaf resting on still water, just sturdy enough to bear a careful step.
+    faq:
+        - question: Where do Lily Pads naturally generate?
+          answer: |
+              They generate in swamp and mangrove swamp biomes, and can also be found in
+              woodland mansion wheat farm rooms.
+        - question: Can mobs spawn on top of Lily Pads?
+          answer: |
+              No, mobs cannot spawn on lily pads, which makes them useful for keeping water
+              surfaces clear.
+        - question: How else can I obtain a Lily Pad besides breaking one?
+          answer: |
+              You can fish one up as junk/treasure loot or buy five from a wandering trader
+              for one emerald.
+        - question: Will a Lily Pad break if placed in flowing water?
+          answer: |
+              Yes, it breaks if water flows over it or if a boat collides with it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

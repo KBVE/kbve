@@ -1,6 +1,6 @@
 ---
 title: Thieving bag | OSRS Price Data
-description: "Thieving bag: A good place to store your stolen goods.. High alch: 600 GP, GE limit: 8."
+description: "Thieving bag: A good place to store your stolen goods. High alch: 600 GP, GE limit: 8."
 osrs:
   id: 23224
   name: Thieving bag
@@ -12,9 +12,86 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 8
-  about: "Thieving bag is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: storage
+    tier: mid
+  properties:
+    release_date: "2019-08-08"
+    update: Rogues' Den Reward Shop
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Empty
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: none
+    weight: 0.453
+    attack_speed: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Martin Thwait Loot Shop"
+      location: Rogues' Den
+      price: 650
+      currency: Rogues' equipment tokens
+      members_only: true
+  related_items:
+    - item_name: Rogue equipment
+      slug: rogue-mask
+      relationship: alternative
+      description: "Rogue set rewarded from the Rogues' Den minigame"
+    - item_name: Master scroll book
+      slug: master-scroll-book
+      relationship: alternative
+      description: "Another loot-shop reward purchased with thieving tokens"
+    - item_name: Coin pouch
+      slug: coin-pouch
+      relationship: alternative
+      description: "Auto-consumable pickpocket coin store, complementary to bag-stored loot"
+  about: |-
+    > _"A good place to store your stolen goods."_
+
+    The thieving bag is a back slot reward purchased from Martin Thwait's Loot Shop in the Rogues' Den for 650 rogues' equipment tokens. Worn in the cape slot, it stores up to 28 stackable pickpocketing items per slot, dramatically extending uninterrupted thieving streaks at vyres, elves and Pyramid Plunder. Cannot store untradeables and empties to the player's inventory on demand.
+  market_strategy:
+    notes:
+      - "Rogues' Den token cost gates GE supply"
+      - "Demand from elf, vyre and Pyramid Plunder thievers"
+      - "GE limit 8 per 4 hours throttles bulk speculation"
+      - "Most efficient long-trip thieving accessory in F2P+P2P thieving meta"
+  trading_tips:
+    - "Watch Rogues' Den minigame popularity — supply ebbs with token grind interest"
+    - "Compare price to time saved over manual banking trips"
+  history:
+    - date: "2019-08-08"
+      description: "Thieving bag released as a Martin Thwait Loot Shop reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

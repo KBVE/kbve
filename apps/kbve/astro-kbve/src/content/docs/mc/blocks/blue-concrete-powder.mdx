@@ -1,5 +1,6 @@
 ---
 title: Blue Concrete Powder
+template: splash
 description: |
     Minecraft Blue Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 705
     ref: blue_concrete_powder
     slug: blue-concrete-powder
+    content_rev: 1
     display_name: Blue Concrete Powder
     material: dirt
     hardness: 0.5
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+        - gravity_affected
+    about:
+        description: |
+            Blue concrete powder is a gravity-affected block crafted from
+            sand, gravel, and blue dye. It falls like sand when
+            unsupported and instantly solidifies into blue concrete on
+            contact with water.
+        lore: |
+            Concrete and concrete powder were added in 1.12 as a
+            fire-resistant, brightly colored alternative to stained clay.
+    uses:
+        - title: Blue Concrete
+          ref: blue_concrete
+          detail: |
+              Touching any water source, flowing water, or a waterlogged
+              block converts the powder instantly into solid blue
+              concrete.
+    found_in:
+        - location: Crafted
+          detail: |
+              Made from 4 sand, 4 gravel, and 1 blue dye in a shapeless
+              crafting recipe; not found naturally.
+    faq:
+        - question: What tool mines concrete powder fastest?
+          answer: |
+              A shovel. Any tool works, but a diamond or netherite shovel
+              breaks it in about 0.1 seconds versus 0.4 seconds with a
+              wooden one.
+        - question: Does concrete powder fall like sand?
+          answer: |
+              Yes, it is affected by gravity and falls if the block below
+              it is removed, just like sand and gravel.
+        - question: Will falling through water turn it into concrete?
+          answer: |
+              No. It only solidifies on direct contact with a water
+              source, flowing water, or a waterlogged block, not while
+              falling past water.
+        - question: Can I get concrete powder back after it becomes concrete?
+          answer: |
+              No, the conversion to concrete is permanent; you would need
+              to craft new concrete powder to have the loose form again.
     data_version: "1.21.5"
 ---
 

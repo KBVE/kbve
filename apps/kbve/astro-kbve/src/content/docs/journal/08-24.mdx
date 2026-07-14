@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692317785860-2ec5796434f2?crop=entropy&c
 description: August 24th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'August 24,'
+    accent: every year.
+    lede: 'The August 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Aug 23'
+          href: /journal/08-23/
+        - label: 'Aug 25 →'
+          href: /journal/08-25/
+    related:
+        - title: 'Previous · Aug 23'
+          copy: 'Step back a day to the August 23rd log.'
+          href: /journal/08-23/
+          icon: calendar
+        - title: 'Next · Aug 25'
+          copy: 'Jump ahead to the August 25th log.'
+          href: /journal/08-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692317785860-2ec5796434f2?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Session
 
@@ -27,7 +68,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     We were able to get the auth to be operational and we were able to make a change to the postgres database!
     The only issues are now in two areas, the broadcasting and presence.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Expo**
 
@@ -67,8 +116,9 @@ For this, we will have to make adjustments to the compose
 
 <Adsense />
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 8:40am - Nvdia's bubble is insane but also the fact that they have a margin of around almost 70% is mind blowing. 
 
@@ -79,3 +129,7 @@ For this, we will have to make adjustments to the compose
 - 7:20pm - Currently making sure all my accounts are ready for the hackathon tomorrow and that includes making sure we have the basics out of the way. 
 
 - 8:08pm - There was an issue with the Business operations aka BizOps document not rendering the graphs, so I will fix that right now.
+
+</BentoProse>
+
+</BentoDoc>

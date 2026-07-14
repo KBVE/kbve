@@ -6,12 +6,14 @@ import {
 	IconCpu,
 	IconKeyboard,
 	IconInfo,
+	IconTerminal,
 } from '../components/Icons';
 import { GeneralView } from './general';
 import { AudioView } from './audio';
 import { ModelsView } from './models';
 import { ShortcutsView } from './shortcuts';
 import { AboutView } from './about';
+import { TerminalView } from './terminal';
 
 // Register all views at import time.
 // Order here determines sidebar order.
@@ -21,6 +23,12 @@ export function initViews() {
 		label: 'General',
 		icon: createElement(IconSettings),
 		component: GeneralView,
+	});
+	registerView({
+		id: 'terminal',
+		label: 'Terminal',
+		icon: createElement(IconTerminal),
+		component: TerminalView,
 	});
 	registerView({
 		id: 'audio',

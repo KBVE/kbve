@@ -1,6 +1,6 @@
 ---
 title: Magic stone | OSRS Price Data
-description: "Magic stone: A magic stone to make high-level furniture.. High alch: 450,000 GP, GE limit: 11,000."
+description: "Magic stone: A magic stone to make high-level furniture. High alch: 450,000 GP, GE limit: 11,000."
 osrs:
   id: 8788
   name: Magic stone
@@ -12,43 +12,76 @@ osrs:
   lowalch: 300000
   highalch: 450000
   limit: 11000
-  item_id: 8788
-  type: construction_material
-  tradeable: true
-  weight: 1
-  buy_limit: 11000
-  obtaining:
-    shops:
-      - shop_name: Keldagrim Stonemason
-        price: 975000
-      - shop_name: Stonecutter Supplies
-        price: 975000
-  construction:
-    usage: Highest-level Construction furniture, gilded altar, premium items
-    also_used: Sailing skill
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: stone
+    tier: high
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Keldagrim Stonemason
+      location: Keldagrim
+      price: 975000
+      currency: coins
+      stock: 10
+    - shop_name: Stonecutter Supplies
+      location: Stonecutter Outpost
+      price: 975000
+      currency: coins
+      stock: 10
+  recipes:
+    - skill: construction
+      level: 95
+      xp: 15000
+      materials:
+        - item_name: Magic stone
+          quantity: 15
+      tools: []
+      output_quantity: 1
+    - skill: construction
+      level: 99
+      xp: 25000
+      materials:
+        - item_name: Magic stone
+          quantity: 25
+      tools: []
+      output_quantity: 1
   related_items:
-    - slug: marble-block
-      name: Marble block
-      relation: lower_tier
-    - slug: gold-leaf
-      name: Gold leaf
-      relation: construction_material
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Construction Material |
-    | Tradeable | Yes |
-    | Weight | 1 kg |
-    | Requirements | High Construction levels |
-
-    Used for highest-level Construction furniture.
-
-    Required for gilded altar and other premium items.
-
-    Also used in Sailing skill.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Marble block
+      slug: marble-block
+      relationship: downgrade
+      description: Lower-tier Construction material
+    - item_name: Gold leaf
+      slug: gold-leaf
+      relationship: component
+      description: Often paired with magic stones in high-level furniture
+  about: "Magic stone is the highest tier Construction material in Old School RuneScape, used to build top-end furniture such as Crystal and Demonic Thrones, gilded altars, and other premium items. It can be bought from the Keldagrim Stonemason and Stonecutter Supplies shops for 975,000 coins, traded on the Grand Exchange, or dropped by a small selection of monsters. With a buy limit of 11,000 it is one of the more capital-intensive flips in the game."
+  market_strategy:
+    notes:
+      - "Demand driven by high-level Construction training"
+      - "Shop price acts as a soft cap on GE spikes"
+      - "Large unit value means even small margins are profitable"
+  trading_tips:
+    - Stockpile when Construction events or DXP weekends are announced
+    - Compare GE price to the 975k shop price before flipping
+    - Use the full 11k buy limit when GE dips noticeably below shop price
+  history:
+    - date: "2006-05-31"
+      description: "Added to the game."
+    - date: "2021-11-24"
+      description: "Item was accidentally swapped with condensed gold at the Keldagrim Stonemason; restored within two hours."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

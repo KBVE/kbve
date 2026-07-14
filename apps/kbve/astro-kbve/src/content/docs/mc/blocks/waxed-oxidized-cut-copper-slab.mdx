@@ -1,5 +1,6 @@
 ---
 title: Waxed Oxidized Cut Copper Slab
+template: splash
 description: |
     Minecraft Waxed Oxidized Cut Copper Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1004
     ref: waxed_oxidized_cut_copper_slab
     slug: waxed-oxidized-cut-copper-slab
+    content_rev: 1
     display_name: Waxed Oxidized Cut Copper Slab
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_oxidized_cut_copper_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+    about:
+        description: |
+            Waxed Oxidized Cut Copper Slab is a half-height slab cut from
+            fully oxidized, honeycomb-sealed copper. Its teal,
+            green-spotted look is permanently locked in, making it a
+            stable decorative building piece.
+        lore: |
+            Cut copper slabs and stairs joined the copper family so
+            builders could shape copper's aging palette into roofs,
+            trim, and half-block details, not just full blocks.
+    uses:
+        - title: Decorative building slab
+          ref: waxed_oxidized_cut_copper_slab
+          detail: |
+              Used for half-height steps, roofing trim, and layered
+              copper builds; two slabs placed on top of each other form
+              a full double-slab block.
+    found_in:
+        - location: Crafting
+          detail: 3 Waxed Oxidized Cut Copper craft into 6 slabs, or stonecut a Waxed Oxidized Copper block for 2 slabs.
+        - location: Trial Chambers
+          detail: Generates naturally as part of trial chamber decoration.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks the block
+              without a drop.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops exactly one of itself regardless of
+              enchantments.
+        - question: How do I make a full block from slabs?
+          answer: |
+              Place two waxed oxidized cut copper slabs in the same
+              position (or craft two together) to form a double slab
+              that looks and behaves like a full block.
+        - question: Will it ever change appearance over time?
+          answer: |
+              No. Waxing permanently stops the oxidation cycle, so it
+              keeps this fully weathered look forever.
     data_version: "1.21.5"
 ---
 

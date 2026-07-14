@@ -1,6 +1,6 @@
 ---
 title: Torag's helm | OSRS Price Data
-description: "Torag's helm is a members head slot item requiring 70 Defence. High alch: 61,800 GP, GE limit: 15."
+description: "Torag's helm is the helm piece of Torag's Barrows set requiring 70 Defence. High alch: 61,800 GP, GE limit: 15."
 osrs:
   id: 4745
   name: Torag's helm
@@ -12,87 +12,129 @@ osrs:
   lowalch: 41200
   highalch: 61800
   limit: 15
+  family_ref:
+    family_slug: torag-s-helm
+    role: base
+  family:
+    slug: torag-s-helm
+    name: Torag's helm
+    type: degraded
+    canonical_id: 4745
+    members:
+    - id: 4745
+      slug: torag-s-helm
+      name: Torag's helm
+      icon: Torag's helm.png
+      role: base
+      dose: null
+      value: 103000
+      lowalch: 41200
+      highalch: 61800
+    - id: 4956
+      slug: torag-s-helm-0
+      name: Torag's helm 0
+      icon: Torag's helm 0.png
+      role: degraded
+      dose: null
+      value: 103000
+      lowalch: 41200
+      highalch: 61800
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: barrows
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    update: "Barrows"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.7
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    type: barrows
-    set: Torag
-    tradeable: true
-    degradeable: true
     weight: 2.7
     requirements:
       defence: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -6
-      attack_ranged: 0
-      defence_stab: 55
-      defence_slash: 58
-      defence_crush: 54
-      defence_magic: -1
-      defence_ranged: 62
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: 0
+    defence_bonus:
+      stab: 55
+      slash: 58
+      crush: 54
+      magic: -1
+      ranged: 62
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  set_effect:
-    name: Corruption
-    pieces_required: 4
-    description: 25% chance to lower opponent's run energy by 20%
-    amulet_of_damned: Defence is increased by 1% for every 1 HP missing
+  passive_effects:
+    - name: Corruption set effect
+      description: "While wearing the full Torag's set (helm, platebody, platelegs, hammers), each successful melee hit on the opponent has a 25% chance to drain 20% of their run energy."
+      trigger: on_hit
+    - name: Amulet of the damned synergy
+      description: "While the full set is equipped with Amulet of the damned, defence is increased by 1% for every 1 HP the player is missing."
+      trigger: while_worn
+  drop_table:
+    sources:
+      - source: Barrows reward chest
+        quantity: "1"
+        rarity: 1/2530
+        notes: "Rolled from Torag the Corrupted's coffin in the Barrows minigame."
   related_items:
-    - item_id: 4749
-      item_name: Torag's platebody
-      slug: torags-platebody
+    - item_name: Torag's platebody
+      slug: torag-s-platebody
       relationship: set-piece
-      description: Body slot set piece
-    - item_id: 4751
-      item_name: Torag's platelegs
-      slug: torags-platelegs
+      description: "Body slot piece of the Torag's Barrows set"
+    - item_name: Torag's platelegs
+      slug: torag-s-platelegs
       relationship: set-piece
-      description: Legs slot set piece
-    - item_id: 4747
-      item_name: Torag's hammers
-      slug: torags-hammers
+      description: "Legs slot piece of the Torag's Barrows set"
+    - item_name: Torag's hammers
+      slug: torag-s-hammers
       relationship: set-piece
-      description: Weapon set piece
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +55 |
-    | Slash defence | +58 |
-    | Crush defence | +54 |
-    | Magic defence | -1 |
-    | Ranged defence | +62 |
-    | Magic attack | -6 |
-
-    Corruption:
-    When wearing full Torag's (helm, platebody, platelegs, hammers):
-    - 25% chance to lower opponent's run energy by 20%
-    - Generally considered weakest Barrows effect
-
-    With Amulet of the Damned:
-    - Defence is increased by 1% for every 1 HP missing
-
-    Best For:
-    - Budget tank helm
-    - Identical stats to Guthan's helm
-    - Cheaper alternative for defence
-
-    Note: Set effect rarely used; pieces often worn standalone for stats.
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
+      description: "Two-handed crush weapon piece of the Torag's Barrows set"
+    - item_name: Guthan's helm
+      slug: guthan-s-helm
+      relationship: alternative
+      description: "Guthan's Barrows helm with identical defensive stats"
+    - item_name: Verac's helm
+      slug: verac-s-helm
+      relationship: alternative
+      description: "Verac's Barrows helm with prayer bonus instead of higher defence"
+  about: "Torag's helm is the head piece of Torag the Corrupted's Barrows set, requiring 70 Defence to wear. It degrades with combat use, lasting roughly 15 hours of combat before fully broken, and shares its defensive profile with Guthan's helm. The Corruption set effect is widely considered the weakest Barrows brother bonus, so the helm is typically worn standalone as a budget tank head slot rather than for the four-piece effect."
   market_strategy:
     notes:
-      - Cheapest Barrows helm
-      - Used for stats, not set effect
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheapest Barrows helm on the GE, anchored by weak set effect demand"
+      - "Identical stat profile to Guthan's helm at much lower price"
+      - "Repair cost at Bob in Lumbridge or POH armour stand caps the practical floor"
+      - "Limit 15 per 4 hours throttles bulk flipping"
+  trading_tips:
+    - "Compare Torag's helm vs Guthan's helm price gap; arbitrage when spread widens"
+    - "Buy fully-charged copies and avoid degraded variants on the GE"
+    - "Restock during Barrows event weekends when supply floods the market"
+  history:
+    - date: "2005-05-09"
+      description: "Released with the Barrows minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Raw mystery meat is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2020-06-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 30
+      materials:
+        - item_name: Raw mystery meat
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  shops:
+    - shop_name: Darkmeyer Meat Shop
+      location: Darkmeyer
+      price: 1
+      currency: Coins
+      stock: 25
+  related_items:
+    - item_name: Cooked mystery meat
+      slug: cooked-mystery-meat
+      relationship: product
+      description: Cooked at level 1 Cooking for 30 XP, used to feed Frank the bloodveld in Darkmeyer.
+  about: "Raw mystery meat is a Darkmeyer butcher product introduced with Sins of the Father, sold for one coin at the meat shop. It cooks at level 1 Cooking for 30 XP into cooked mystery meat, which can be fed to Frank the bloodveld inside Darkmeyer."
+  market_strategy:
+    notes:
+      - "GE price often inflates well beyond the 1gp shop price because the Darkmeyer shop is locked behind Sins of the Father."
+      - "Stock restocks every 48 seconds at the Darkmeyer Meat Shop, making it easy to buy out for resale."
+      - "Demand is niche - mostly ironmen and pet hunters needing Frank interactions."
+  trading_tips:
+    - Run Darkmeyer shop runs when GE prices spike above 200gp per meat.
+    - Cooked variant typically sells for more than raw - consider cooking before listing.
+    - Sins of the Father gates access, so flips work best during quest league seasons.
+  history:
+    - date: "2020-06-04"
+      description: "Released with the Sins of the Father quest and the Darkmeyer city expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

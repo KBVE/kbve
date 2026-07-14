@@ -12,12 +12,62 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of the augmented thrall is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2023-08-23"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    worn_options: []
+    alchable: false
+    destroy: "Unattune first, then destroy"
+  passive_effects:
+    - name: Augmented thrall
+      description: "Multiplies max hit of Arceuus summoned thralls (3x in Apocalypse, 5x in Armageddon and Annihilation) and doubles thrall duration in Annihilation"
+  related_items:
+    - item_name: Sigil of the lightbearer
+      slug: sigil-of-the-lightbearer
+      relationship: alternative
+      description: Alternate Deadman sigil
+    - item_name: Sigil of finality
+      slug: sigil-of-finality
+      relationship: alternative
+      description: Alternate Deadman sigil
+    - item_name: Trinket of undead
+      slug: trinket-of-undead
+      relationship: component
+      description: Pairs with augmented thrall builds
+  about: |-
+    Sigil of the augmented thrall is a tier 2 combat sigil exclusive to Deadman Mode seasonal events. Once unlocked it amplifies Arceuus thrall max hits and, in Deadman Annihilation, extends their duration. Duplicates can be sold back through the Deadman skull interface.
+  market_strategy:
+    notes:
+      - "Seasonal Deadman-only sigil - no live game market"
+      - "Unlock is account bound after attunement"
+      - "Builds that pair with Trinket of Undead spike during Deadman finals"
+  trading_tips:
+    - "Cannot be flipped on the live game GE - exclusive to Deadman events"
+    - "Plan thrall builds around sigil availability windows"
+  history:
+    - date: "2023-08-23"
+      description: "Released for the Deadman Apocalypse event"
+    - date: "2026-02-01"
+      description: "Arceuus thralls now benefit from the duration extension while the sigil is unlocked"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

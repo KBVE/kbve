@@ -12,9 +12,70 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: null
-  about: "Raging echoes curtains is a members-only item in Old School RuneScape. High alchemy value: 300 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: construction-decor
+    tier: mid
+  properties:
+    release_date: "2025-01-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 65
+      xp: 487
+      materials:
+        - item_name: Raging echoes curtains
+          quantity: 1
+        - item_name: Mahogany plank
+          quantity: 3
+        - item_name: Bolt of cloth
+          quantity: 3
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Trailblazer reloaded curtains
+      slug: trailblazer-reloaded-curtains
+      relationship: variant
+      description: Previous league-themed curtain variant
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Construction material used to mount the curtains
+    - item_name: Bolt of cloth
+      slug: bolt-of-cloth
+      relationship: component
+      description: Cloth secondary used for the curtain build
+  about: |-
+    > *"Opulent curtains dyed with the colours of the Raging Echoes league."*
+
+    The raging echoes curtains are a members-only Construction reward dropped from the Leagues Reward Shop at Lumbridge Castle for 500 League Points after the Raging Echoes League.
+
+    Building the matching curtain space inside a player-owned house requires 65 Construction, 3 mahogany planks, and 3 bolts of cloth, yielding 487 Construction experience. Although members-only, the curtains are tradeable and treated as a cosmetic flex piece for high-end POH layouts.
+  market_strategy:
+    notes:
+      - "League-themed cosmetics rise with player housing rework rumors."
+      - "Supply is capped by the original Raging Echoes participation pool."
+      - "Not alchable, so price is purely cosmetic demand."
+  trading_tips:
+    - Long-hold cosmetic — flip on POH content updates rather than daily.
+    - Watch league anniversaries for nostalgia-driven spikes.
+  history:
+    - date: "2025-01-15"
+      description: "Added to the Leagues Reward Shop following the Raging Echoes League event."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

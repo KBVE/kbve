@@ -12,9 +12,83 @@ osrs:
   lowalch: 9
   highalch: 14
   limit: 125
-  about: "Bronze boots is a members-only item in Old School RuneScape. High alchemy value: 14 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2005-01-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 1.36
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 1
+      slash: 2
+      crush: 3
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Cave crawler
+        quantity: "1"
+        rarity: 1/128
+      - source: Chasm crawler
+        quantity: "1"
+        rarity: 3/128
+  related_items:
+    - item_name: Fighting boots
+      slug: fighting-boots
+      relationship: alternative
+      description: Identical defence stats
+    - item_name: Fancy boots
+      slug: fancy-boots
+      relationship: alternative
+      description: Identical defence stats
+    - item_name: Iron boots
+      slug: iron-boots
+      relationship: upgrade
+      description: Stronger metal tier boots
+  about: "Bronze boots are entry-tier feet armour dropped by cave and chasm crawlers. They cannot be smithed and instead match the defence profile of fighting boots and fancy boots, making them mostly a cosmetic or starter option."
+  market_strategy:
+    notes:
+      - "Niche slayer and ironman-only demand"
+      - "Buy limit only 125 per 4 hours"
+      - "High-alch loss makes alching unprofitable"
+  trading_tips:
+    - Most useful as a low-volume flip target
+    - Watch for slayer task spikes on cave crawlers
+  history:
+    - date: "2005-01-26"
+      description: "Released as part of an early armour expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

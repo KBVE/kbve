@@ -12,9 +12,91 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 150
-  about: "Blue skirt is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "4 January 2001"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Thessalia's Fine Clothes
+      location: Varrock
+      price: 2
+      currency: coins
+      stock: 5
+    - shop_name: Fancy Clothes Store
+      location: Varrock
+      price: 2
+      currency: coins
+      stock: 5
+    - shop_name: Shayzien Styles
+      location: Shayzien
+      price: 2
+      currency: coins
+      stock: 5
+    - shop_name: Floria's Fashion
+      location: Civitas illa Fortis
+      price: 2
+      currency: coins
+      stock: 5
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Blue wizard robe
+      slug: blue-wizard-robe
+      relationship: set-piece
+      description: Matching top for the blue wizard outfit
+  about: |-
+    Blue skirt is a free-to-play cosmetic legs slot item with no combat bonuses. It can be purchased cheaply from clothing shops in Varrock, Shayzien, and Civitas illa Fortis, or received as an emote clue step reward from easy Treasure Trails. The buy limit of 150 keeps it as a low-volume novelty item on the Grand Exchange.
+  market_strategy:
+    notes:
+      - "Effectively cosmetic - no combat utility"
+      - "GE price floats well above shop price due to convenience"
+      - "Easy clue scroll demand keeps supply steady"
+  trading_tips:
+    - Buy from Thessalia's Fine Clothes for 2 gp and flip on the GE
+    - Pair with the matching blue wizard robe for a complete cosmetic outfit
+  history:
+    - date: "4 January 2001"
+      description: "Item released with the launch of RuneScape."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

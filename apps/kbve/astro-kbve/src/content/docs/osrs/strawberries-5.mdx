@@ -1,6 +1,6 @@
 ---
 title: Strawberries(5) | OSRS Price Data
-description: "Strawberries(5): A fruit basket filled with strawberries.. High alch: 1 GP, GE limit: 200."
+description: "Strawberries(5): A fruit basket filled with strawberries. High alch: 1 GP, GE limit: 200."
 osrs:
   id: 5406
   name: Strawberries(5)
@@ -12,9 +12,36 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Strawberries(5) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.17
+    options:
+      - Fill
+      - Empty
+      - Remove-one
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  about: "A basket containing five strawberries. Each strawberry heals 1 plus 6 percent of the player's maximum hitpoints when eaten, with the Remove-one option pulling a single strawberry from the basket. Baskets are filled by picking strawberries from a strawberry patch (Farming level 31) and using them on an empty basket, then commonly used as payment to farmers who watch dwellberry bushes or orange trees."
+  market_strategy:
+    notes:
+      - "Demand driven by Farming payment use for protecting allotments and trees"
+      - "Filled baskets typically resell above the cost of one empty basket plus five strawberries"
+      - "Gourmet impling drops provide a passive supply pipeline"
+  trading_tips:
+    - Buy empty baskets and strawberries separately when patches are flooding the market
+    - Hold during major Farming league events when payment demand spikes
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

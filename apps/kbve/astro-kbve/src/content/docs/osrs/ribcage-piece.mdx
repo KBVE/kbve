@@ -12,9 +12,54 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 11000
-  about: "Ribcage piece is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: material
+    tier: mid
+  properties:
+    release_date: "2005-08-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Wallasalki
+        quantity: "1"
+        rarity: 2/128
+  related_items:
+    - item_name: Skeletal top
+      slug: skeletal-top
+      relationship: product
+      description: "Crafted using a ribcage piece, dagannoth hides, and coins."
+    - item_name: Fibula piece
+      slug: fibula-piece
+      relationship: set-piece
+      description: Skeletal armour component
+    - item_name: Skull piece
+      slug: skull-piece
+      relationship: set-piece
+      description: Skeletal armour component
+  about: |-
+    > *"A slightly damaged ribcage."*
+
+    Wallasalki drop used to forge the skeletal top via Peer the Seer after completing The Fremennik Trials. Can also be traded to Askeladden for cooked tuna or lobster depending on quest state.
+  market_strategy:
+    notes:
+      - "Demand tied to skeletal armour crafting"
+      - "Ironmen drive Wallasalki kill volume"
+  history:
+    - date: "2005-08-01"
+      description: "Released with the Waterbirth Island and Wallasalki update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

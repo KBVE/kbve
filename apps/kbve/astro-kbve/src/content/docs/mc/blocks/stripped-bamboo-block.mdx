@@ -1,5 +1,6 @@
 ---
 title: Block of Stripped Bamboo
+template: splash
 description: |
     Minecraft Block of Stripped Bamboo — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 70
     ref: stripped_bamboo_block
     slug: stripped-bamboo-block
+    content_rev: 1
     display_name: Block of Stripped Bamboo
     material: wood
     hardness: 2
@@ -24,10 +26,53 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_bamboo_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Block of Stripped Bamboo is the bark-free version of a Block of
+            Bamboo, made by using an axe on it. It is a compact way to store
+            bamboo and gives a clean, pale-yellow planked look.
+        lore: |
+            Bamboo blocks were added in 1.20 to give bamboo builds the same
+            log/plank workflow as tree wood.
+    uses:
+        - title: Bamboo Planks
+          ref: bamboo_planks
+          detail: |
+              Crafts into 2 Bamboo Planks, or into 6 Bamboo Shelves. Also
+              used for bamboo hanging signs and as furnace fuel.
+    found_in:
+        - location: Any Block of Bamboo
+          detail: |
+              Not naturally generated — made by using an axe on a placed
+              Block of Bamboo, or by crafting 9 bamboo shelves back down.
+    faq:
+        - question: How do I strip a Block of Bamboo?
+          answer: |
+              Use any axe on a placed Block of Bamboo. It instantly converts
+              to Block of Stripped Bamboo and cannot be reversed.
+        - question: Can Stripped Bamboo Block make charcoal?
+          answer: |
+              No — unlike stripped logs, it cannot be smelted into
+              charcoal, though it can still be used as furnace fuel.
+        - question: Is it flammable?
+          answer: |
+              Yes, it catches fire from lava like other bamboo wood blocks.
+        - question: When was it added?
+          answer: |
+              Block of Bamboo and its stripped variant arrived experimentally
+              in Java Edition 1.19.3 and were officially released in 1.20.
     data_version: "1.21.5"
 ---
 

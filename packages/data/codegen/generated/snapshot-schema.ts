@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/snapshot.binpb
  * Config: ../snapshot-zod-config.json
- * Generated: 2026-06-01T06:12:05.367Z
+ * Generated: 2026-06-22T21:31:58.968Z
  */
 
 import { z } from 'zod';

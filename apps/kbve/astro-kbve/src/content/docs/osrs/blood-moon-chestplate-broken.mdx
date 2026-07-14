@@ -12,9 +12,46 @@ osrs:
   lowalch: 116004
   highalch: 174006
   limit: 15
-  about: "Blood moon chestplate (broken) is a members-only item in Old School RuneScape. High alchemy value: 174,006 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  charges:
+    max_charges: 3000
+    charge_cost_seconds: 54
+    repair_cost_npc: 1500000
+    repair_cost_self: "1,500,000 minus 7,500 per Smithing level (e.g. 757,500 at 99 Smithing)"
+  related_items:
+    - name: Blood moon chestplate
+      relationship: variant
+    - name: Blood moon helm (broken)
+      relationship: set-piece
+    - name: Blood moon tassets (broken)
+      relationship: set-piece
+  about: "Blood moon chestplate (broken) is the fully-degraded form of the blood moon chestplate, dropped by the Blood Moon boss in Varlamore. Repair at an armour stand or via a repair NPC to restore charges."
+  market_strategy:
+    notes:
+      - Acquired by running blood moon chestplate to 0 charges or as a direct drop from Blood Moon.
+      - Price floor is essentially repaired chestplate value minus repair cost — track both ends.
+      - Buy limit of 15 / 4h is generous; flips usually constrained by liquidity, not cap.
+  trading_tips:
+    - Compare (working chestplate price) vs (broken price + 1.5M repair) before buying broken to flip.
+    - Smithing 99 cuts repair to 757.5k — armour stand repair is much more profitable for high-level smiths.
+  history:
+    - date: "2024-03-20"
+      description: Released as part of the Varlamore - Part One update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

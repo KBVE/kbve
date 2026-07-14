@@ -8,14 +8,52 @@ img: https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?crop=entropy&c
 description: Daily Log for February 6th for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 6,'
+    accent: every year.
+    lede: 'The February 6th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 5'
+          href: /journal/02-05/
+        - label: 'Feb 7 →'
+          href: /journal/02-07/
+    related:
+        - title: 'Previous · Feb 5'
+          copy: 'Step back a day to the February 5th log.'
+          href: /journal/02-05/
+          icon: calendar
+        - title: 'Next · Feb 7'
+          copy: 'Jump ahead to the February 7th log.'
+          href: /journal/02-07/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Markets
 
@@ -57,7 +95,15 @@ import { Adsense } from '@/components/astropad';
 
 <Adsense />
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 #### sheet
 
@@ -82,3 +128,7 @@ The first issue was a leak with the bathroom, but we were able to resolve that b
 They had established a nest inside of the wall, ugh and damaged the vents and basically were the reason for the minor leaks.
 The humidity was not able to escape since the vents were no longer functional, so the condense water vapor basically formed a pool of water for the birds?
 I am not too sure exactly how it all went down, but these birds basically turned my guest bathroom into their own mini apartment.
+
+</BentoProse>
+
+</BentoDoc>

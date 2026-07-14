@@ -1,0 +1,119 @@
+---
+title: Magic mix | OSRS Price Data
+description: "Magic mix(2): Two doses of fishy Magic potion.. High alch: 120 GP, GE limit: 2,000."
+osrs:
+  id: 11513
+  name: Magic mix
+  slug: magic-mix
+  examine: Two doses of fishy Magic potion.
+  members: true
+  icon: Magic mix(2).png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 2000
+  family_ref:
+    family_slug: magic-mix
+    role: base
+  family:
+    slug: magic-mix
+    name: Magic mix
+    type: dose
+    canonical_id: 11513
+    members:
+    - id: 11513
+      slug: magic-mix
+      name: Magic mix
+      icon: Magic mix(2).png
+      role: base
+      dose: null
+      value: 200
+      lowalch: 80
+      highalch: 120
+    - id: 11515
+      slug: magic-mix-1
+      name: Magic mix(1)
+      icon: Magic mix(1).png
+      role: dose
+      dose: 1
+      value: 150
+      lowalch: 60
+      highalch: 90
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: barbarian mix potion
+    tier: mid
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: Boosts Magic level by 4.
+        duration: 360
+      - description: Restores 6 Hitpoints per dose.
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 83
+      xp: 57
+      materials:
+        - item_name: Magic potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Magic potion(2)
+      slug: magic-potion-2
+      relationship: component
+      description: Base potion used to brew the barbarian mix
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Secondary ingredient added during mixing
+    - item_name: Magic mix(1)
+      slug: magic-mix-1
+      relationship: variant
+      description: Single-dose variant
+  about: |-
+    Magic mix(2) is a barbarian potion containing two doses of "fishy" Magic potion. Each dose boosts Magic by 4 levels and restores 6 Hitpoints, making it useful during PvM and bossing.
+
+    Created at 83 Herblore by combining a Magic potion(2) with caviar, granting 57 XP per mix. Requires completion of Otto Godblessed's Barbarian Herblore training first.
+  market_strategy:
+    notes:
+      - "HP restore + magic boost - dual utility"
+      - "Tied to caviar supply (Barbarian fishing)"
+      - "High Herblore requirement gates supply"
+      - "Niche bossing demand"
+  trading_tips:
+    - Watch caviar price as primary cost driver
+    - Decant pricing - (4) vs (2) spread can be exploitable
+    - Useful for budget bossing alternative to saradomin brews
+  history:
+    - date: "2007-07-03"
+      description: "Item released with the Barbarian Herblore training update."
+    - date: "2015-10-08"
+      description: "Recoloured to distinguish from Ranging mix potions."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

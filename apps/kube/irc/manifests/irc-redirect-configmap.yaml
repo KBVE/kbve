@@ -3,32 +3,20 @@ kind: ConfigMap
 metadata:
     name: irc-redirect-html
     namespace: irc
+    labels:
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 data:
-    index.html: |
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta http-equiv="refresh" content="0;url=https://chat.kbve.com">
-          <title>Redirecting to KBVE Chat</title>
-        </head>
-        <body>
-          <p>Redirecting to <a href="https://chat.kbve.com">chat.kbve.com</a>...</p>
-          <script>window.location.replace("https://chat.kbve.com" + window.location.pathname + window.location.search);</script>
-        </body>
-        </html>
-    nginx.conf: |
-        worker_processes 1;
-        events {
-            worker_connections 128;
-        }
-        http {
-            include /etc/nginx/mime.types;
-            default_type application/octet-stream;
-            server {
-                listen 80;
-                server_name _;
-                root /usr/share/nginx/html;
-                index index.html;
-            }
-        }
+    index.html:
+        "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\"\
+        >\n  <meta http-equiv=\"refresh\" content=\"0;url=https://chat.kbve.com\">\n \
+        \ <title>Redirecting to KBVE Chat</title>\n</head>\n<body>\n  <p>Redirecting to\
+        \ <a href=\"https://chat.kbve.com\">chat.kbve.com</a>...</p>\n  <script>window.location.replace(\"\
+        https://chat.kbve.com\" + window.location.pathname + window.location.search);</script>\n\
+        </body>\n</html>\n"
+    nginx.conf:
+        "worker_processes 1;\nevents {\n    worker_connections 128;\n}\nhttp\
+        \ {\n    include /etc/nginx/mime.types;\n    default_type application/octet-stream;\n\
+        \    server {\n        listen 80;\n        server_name _;\n        root /usr/share/nginx/html;\n\
+        \        index index.html;\n    }\n}\n"

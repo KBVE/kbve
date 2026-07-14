@@ -1,5 +1,6 @@
 ---
 title: Ladder
+template: splash
 description: |
     Minecraft Ladder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 208
     ref: ladder
     slug: ladder
+    content_rev: 1
     display_name: Ladder
     material: wood
     hardness: 0.4
@@ -24,10 +26,62 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: ladder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Ladder is a climbable wooden block that attaches to the
+            side of a solid block, letting players and mobs scale
+            vertical shafts at a slow, controlled speed. Unlike most wood
+            items, ladders do not burn.
+        lore: |
+            The creator initially resisted adding ladders, believing they
+            were "never fun," before eventually being convinced by fan
+            demand.
+    uses:
+        - title: Vertical Traversal
+          ref: ladder
+          detail: |
+              Place against a solid block face to create a climbable
+              surface; players holding movement keys while touching a
+              ladder climb or descend it slowly.
+        - title: Furnace Fuel
+          ref: stick
+          detail: |
+              Ladders can be burned as furnace fuel, smelting 1.5 items
+              each — a small efficiency gain over burning the sticks
+              used to craft them directly.
+    found_in:
+        - location: Crafted from Sticks
+          detail: Crafted from 7 sticks in a ladder pattern, yielding 3 ladders.
+        - location: Generated structures
+          detail: Naturally found in stronghold libraries, villages, igloos, woodland mansions, ancient cities, trail ruins, trial chambers, end ships, and end cities.
+    faq:
+        - question: Can Ladders catch fire?
+          answer: |
+              No. Unlike most wooden blocks, ladders are not flammable
+              and cannot be destroyed by fire or lava.
+        - question: What tool should I use to mine a Ladder?
+          answer: |
+              An axe is fastest, but any tool — or bare hands — breaks it
+              quickly since its hardness is only 0.4.
+        - question: Do open trapdoors interact with Ladders?
+          answer: |
+              Yes, in Java Edition an open trapdoor placed directly above
+              a ladder becomes climbable, letting players pass through it.
+        - question: Where can I find Ladders without crafting them?
+          answer: |
+              They generate in many structures, including strongholds,
+              villages, igloos, woodland mansions, and ancient cities.
     data_version: "1.21.5"
 ---
 

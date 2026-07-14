@@ -1,6 +1,6 @@
 ---
 title: Insulated boots | OSRS Price Data
-description: "Insulated boots: They're heavily insulated wellies.. High alch: 120 GP, GE limit: 70."
+description: "Insulated boots: They're heavily insulated wellies. High alch: 120 GP, GE limit: 70."
 osrs:
   id: 7159
   name: Insulated boots
@@ -12,9 +12,82 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 70
-  about: "Insulated boots is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 1.36
+    requirements:
+      slayer: 37
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 1
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Electric damage reduction
+      description: Reduces damage taken from Killerwatts, rune dragons' electric strikes, and Verzik Vitur's electric ball attacks. Negates shock damage in Darkness of Hallowvale.
+  shops:
+    - shop_name: Slayer Equipment
+      location: Any Slayer Master
+      price: 200
+      currency: Coins
+      stock: 50
+  related_items:
+    - item_name: Spiny helmet
+      slug: spiny-helmet
+      relationship: alternative
+      description: Slayer-required gear for sea snakes
+    - item_name: Earmuffs
+      slug: earmuffs
+      relationship: alternative
+      description: Slayer-required gear against banshees
+    - item_name: Mirror shield
+      slug: mirror-shield
+      relationship: alternative
+      description: Slayer-required gear for cockatrices
+  about: "Insulated boots are Slayer-required boots that reduce electric damage from Killerwatts, rune dragons, and Verzik Vitur. Purchased from any Slayer Master for 200 coins."
+  market_strategy:
+    notes:
+      - "Shop-bought infinite supply caps GE price near 200 gp baseline"
+      - "Demand spikes for rune dragon and ToB content"
+      - "Flipping margin minimal due to shop availability"
+  trading_tips:
+    - Buy directly from a Slayer Master for the cheapest copy
+    - Keep one in your bank for rune dragon trips and ToB Verzik
+  history:
+    - date: "2006-02-20"
+      description: "Released alongside the Killerwatt Plane Slayer update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

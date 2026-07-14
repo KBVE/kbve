@@ -1,5 +1,6 @@
 ---
 title: Cherry Hanging Sign
+template: splash
 description: |
     Minecraft Cherry Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 225
     ref: cherry_hanging_sign
     slug: cherry-hanging-sign
+    content_rev: 1
     display_name: Cherry Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Cherry Hanging Sign is a variant of a sign made from
+            stripped cherry logs and iron chains, displaying editable
+            text while suspended below a block or bracketed to a wall.
+        lore: |
+            Hanging signs were added in the Wild Update (1.20) and
+            adapted for cherry wood alongside the Trails & Tales update
+            the same year.
+    uses:
+        - title: Item labeling
+          ref: cherry_hanging_sign
+          detail: |
+              Placed above chests, item frames, or storage rooms to
+              label contents with custom text.
+        - title: Cherry Fence
+          ref: cherry_fence
+          detail: |
+              Commonly paired with cherry fences and planks to build
+              matching cherry-themed storage rooms and shop signage.
+    found_in:
+        - location: Crafted by players
+          detail: Crafted from 2 iron chains and 6 stripped cherry logs, yielding 6 hanging signs.
+        - location: Cherry grove villages
+          detail: Occasionally used as decoration in cherry-wood village structures.
+    faq:
+        - question: What tool do I need to mine a Cherry Hanging Sign?
+          answer: |
+              None — any tool works, though an axe breaks it fastest.
+        - question: How is a Cherry Hanging Sign different from a normal sign?
+          answer: |
+              It can be suspended below blocks with chains or mounted on
+              a wall bracket, and it has narrower text lines than a
+              standard sign, though both hold four lines of text.
+        - question: Is the Cherry Hanging Sign flammable?
+          answer: |
+              No. Hanging signs are not flammable and will not catch
+              fire from nearby flames.
+        - question: Does it drop anything special with Silk Touch or Fortune?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

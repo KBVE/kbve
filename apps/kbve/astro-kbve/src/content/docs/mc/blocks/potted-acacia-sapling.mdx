@@ -1,5 +1,6 @@
 ---
 title: Potted Acacia Sapling
+template: splash
 description: |
     Minecraft Potted Acacia Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 386
     ref: potted_acacia_sapling
     slug: potted-acacia-sapling
+    content_rev: 1
     display_name: Potted Acacia Sapling
     material: plant
     hardness: 0
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: acacia_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Acacia Sapling is a decorative flower pot holding an
+            acacia sapling, made by placing an acacia sapling into an empty
+            flower pot. Breaking it returns both the flower pot and the
+            sapling as separate items.
+        lore: |
+            Flower pots were first revealed by Dinnerbone in 2012 and have
+            since expanded to hold nearly every sapling, flower, and fungus
+            in the game.
+    uses:
+        - title: Decoration
+          ref: flower_pot
+          detail: |
+              Purely decorative; commonly used on tables, shelves, and
+              windowsills in savanna-themed builds.
+    found_in:
+        - location: Crafting table
+          detail: Place an acacia sapling into an empty flower pot to pot it.
+        - location: Village structures
+          detail: Occasionally found as decoration in savanna village houses.
+    faq:
+        - question: What tool do I need to break a potted sapling?
+          answer: |
+              None. It breaks instantly by hand or with any tool.
+        - question: What do I get when I break it?
+          answer: |
+              Both the empty flower pot and one acacia sapling drop as
+              separate items.
+        - question: Can I grow the sapling while it's potted?
+          answer: |
+              No. A potted sapling never grows into a tree; remove it and
+              plant it on dirt or moss to grow it.
+        - question: How do I make a Potted Acacia Sapling?
+          answer: |
+              Right-click an empty flower pot while holding an acacia
+              sapling to place it inside.
     data_version: "1.21.5"
 ---
 

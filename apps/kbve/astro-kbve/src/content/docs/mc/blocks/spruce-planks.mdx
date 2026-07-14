@@ -1,5 +1,6 @@
 ---
 title: Spruce Planks
+template: splash
 description: |
     Minecraft Spruce Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 14
     ref: spruce_planks
     slug: spruce-planks
+    content_rev: 1
     display_name: Spruce Planks
     material: wood
     hardness: 2
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Spruce Planks are the processed building block crafted from
+            spruce logs. They serve as an early-game construction material
+            and are the base ingredient for dozens of spruce-themed crafting
+            recipes.
+        lore: |
+            Planks represent processed wood, transforming raw logs into
+            usable building material.
+    uses:
+        - title: Crafting Table
+          ref: crafting_table
+          detail: |
+              Four planks of any wood type craft a crafting table, one of
+              the earliest tools built in a new world.
+        - title: Doors, Stairs, and Boats
+          ref: spruce_door
+          detail: |
+              Spruce planks craft into stairs, slabs, fences, doors,
+              trapdoors, buttons, signs, and boats, matching the spruce
+              wood theme.
+    found_in:
+        - location: Crafted by the player
+          detail: One spruce log or spruce wood crafts into four spruce planks.
+        - location: Taiga village structures
+          detail: Used extensively as the building material of naturally generated taiga villages.
+    faq:
+        - question: How do I get spruce planks?
+          answer: |
+              Craft them from spruce logs, spruce wood, or stripped
+              variants — each yields four planks per log.
+        - question: Are spruce planks flammable?
+          answer: |
+              Yes, like most plank types they catch fire from lava or
+              nearby flames.
+        - question: Can spruce planks be used as furnace fuel?
+          answer: |
+              Yes, each plank smelts 1.5 items, the same as other
+              flammable wood planks.
+        - question: What tool breaks planks fastest?
+          answer: |
+              An axe, although no specific tool tier is required to get
+              the drop.
     data_version: "1.21.5"
 ---
 

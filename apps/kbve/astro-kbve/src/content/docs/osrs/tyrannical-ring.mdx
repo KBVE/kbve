@@ -12,78 +12,89 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ring
+    tier: high
+  properties:
+    release_date: "2014-06-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Are you sure you want to drop this?"
   equipment:
     slot: ring
-    type: crush_ring
-    stats:
-      attack_crush: 4
-      defence_crush: 4
-    imbued_stats:
-      attack_crush: 8
-      defence_crush: 8
-  effect:
-    imbue_cost:
-      nmz_points: 650000
-      nmz_points_with_ca: 325000
-      soul_wars_zeal: 260
-      emirs_arena_points: 200
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 4
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 4
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   drop_table:
     sources:
       - source: Callisto
-        source_id: 6609
-        combat_level: 470
         quantity: "1"
         rarity: 1/512
-        members_only: true
       - source: Artio
-        source_id: 11992
-        combat_level: 337
         quantity: "1"
         rarity: 1/716
-        members_only: true
   related_items:
-    - item_id: 12605
-      item_name: Treasonous ring
+    - item_name: Tyrannical ring (i)
+      slug: tyrannical-ring-i
+      relationship: upgrade
+      description: Imbued version doubling crush bonuses
+    - item_name: Treasonous ring
       slug: treasonous-ring
       relationship: alternative
-      description: Stab version
-    - item_id: 6737
-      item_name: Berserker ring
+      description: Stab-focused counterpart
+    - item_name: Berserker ring
       slug: berserker-ring
       relationship: alternative
-      description: Strength focus
-    - item_id: 13576
-      item_name: Dragon warhammer
+      description: Strength-focused alternative
+    - item_name: Dragon warhammer
       slug: dragon-warhammer
       relationship: alternative
-      description: Pairs well
-  about: |-
-    | Stat | Regular | Imbued |
-    |------|---------|--------|
-    | Crush attack | +4 | +8 |
-    | Crush defence | +4 | +8 |
-
-    Requirements: None
-
-    | Method | Cost |
-    |--------|------|
-    | NMZ | 650K points (325K with hard CA) |
-    | Soul Wars | 260 zeal |
-    | Scroll | 200 Emir's Arena points |
-
-    BiS crush ring for:
-    - Dragon warhammer specs
-    - Crush-focused combat
-    - Wilderness PvM
-
-    Accuracy boost for DWH specs.
+      description: Pairs well thanks to crush accuracy
+  about: "Tyrannical ring is a crush-focused ring dropped by Callisto and Artio in the Wilderness. It can be imbued via Nightmare Zone, Soul Wars, or Emir's Arena rewards to double its bonuses."
   market_strategy:
     notes:
-      - Wilderness boss drop
-      - Good for DWH accuracy
-      - Niche use case
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Wilderness boss drop with low buy limit"
+      - "Imbue cost factors into resale value"
+      - "Frequently used for dragon warhammer special accuracy"
+  trading_tips:
+    - Imbued versions trade at a premium
+    - Track Wilderness boss popularity for supply swings
+  history:
+    - date: "2014-06-26"
+      description: "Released with the Wilderness Boss rework, dropped by Callisto."
+    - date: "2023-02-22"
+      description: "Artio added as a singles-only alternative source."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

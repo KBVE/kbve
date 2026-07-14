@@ -3,7 +3,7 @@ name = "bevy_npc"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.94"
+rust-version.workspace = true
 license = "MIT"
 description = "Proto-driven NPC definitions for Bevy games — compiles npcdb.proto into typed Rust structs with a searchable registry."
 homepage = "https://kbve.com/"
@@ -20,7 +20,7 @@ default = []
 creature = []
 
 [dependencies]
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
     "bevy_state",
 ] }
 prost = { version = "0.14", features = ["derive"] }

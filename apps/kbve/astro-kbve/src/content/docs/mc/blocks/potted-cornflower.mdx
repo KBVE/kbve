@@ -1,5 +1,6 @@
 ---
 title: Potted Cornflower
+template: splash
 description: |
     Minecraft Potted Cornflower — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 402
     ref: potted_cornflower
     slug: potted-cornflower
+    content_rev: 1
     display_name: Potted Cornflower
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: cornflower
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - decoration
+        - non_flammable
+    about:
+        description: |
+            Potted Cornflower is a blue flower displayed in a flower pot
+            for decoration. Cornflower is one of two flowers (with lapis
+            lazuli) that yield blue dye.
+        lore: |
+            Cornflower was added in Java Edition 1.14 and takes its name
+            from the real-world weed that once grew wild among crop fields.
+    uses:
+        - title: Blue Dye
+          ref: blue_dye
+          detail: |
+              A cornflower crafts into one blue dye. Also used with red and
+              brown mushrooms plus a bowl to make suspicious stew that
+              grants Jump Boost.
+    found_in:
+        - location: Plains, sunflower plains, flower forest, meadow
+          detail: |
+              Naturally generates in these grassy biomes and in plains
+              villages; bone meal on grass can spawn more.
+    faq:
+        - question: What tool do I need to break it?
+          answer: |
+              None. It can be mined instantly by hand or with any tool.
+        - question: What does breaking it drop?
+          answer: |
+              Both the flower pot and the cornflower item.
+        - question: What can I craft with cornflower?
+          answer: |
+              Blue dye, or suspicious stew for a temporary Jump Boost
+              effect.
+        - question: Do bees like cornflower?
+          answer: |
+              Yes, bees can pollinate and breed using cornflowers like
+              other flowers.
     data_version: "1.21.5"
 ---
 

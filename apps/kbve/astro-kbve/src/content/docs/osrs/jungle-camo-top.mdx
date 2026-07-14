@@ -1,6 +1,6 @@
 ---
 title: Jungle camo top | OSRS Price Data
-description: "Jungle camo top: This should make me harder to spot in jungle areas.. High alch: 12 GP."
+description: "Jungle camo top is a members body slot Hunter camouflage piece crafted from jungle feathers at the Fancy Clothes Store. High alch: 12 GP."
 osrs:
   id: 10057
   name: Jungle camo top
@@ -11,13 +11,114 @@ osrs:
   value: 20
   lowalch: 8
   highalch: 12
-  limit: null
-  about: "Jungle camo top is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 150
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: misc
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    update: "Hunter Skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weight: 0.226
+    requirements:
+      hunter: 7
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Jungle Camouflage
+      description: "Worn with matching jungle camo legs lets the player approach jungle birds and chinchompas without being detected."
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Feather
+          quantity: 40
+        - item_name: Coins
+          quantity: 20
+      tools: []
+      output_quantity: 1
+      notes: "Purchased from the Fancy Clothes Store in Varrock with 40 feathers and 20 coins; also stocked by the Hunter Guild shop in Avium Savannah."
+  shops:
+    - shop_name: "Fancy Clothes Store"
+      location: Varrock
+      price: 20
+      currency: Coins
+    - shop_name: "Hunter Guild Shop"
+      location: Avium Savannah
+      price: 20
+      currency: Coins
+  related_items:
+    - item_id: 10059
+      item_name: Jungle camo legs
+      slug: jungle-camo-legs
+      relationship: set-piece
+      description: "Matching legs piece required for the jungle camouflage effect."
+    - item_id: 10061
+      item_name: Desert camo top
+      slug: desert-camo-top
+      relationship: variant
+      description: "Desert-biome camouflage variant."
+    - item_id: 10065
+      item_name: Polar camo top
+      slug: polar-camo-top
+      relationship: variant
+      description: "Polar-biome camouflage variant."
+    - item_id: 10069
+      item_name: Woodland camo top
+      slug: woodland-camo-top
+      relationship: variant
+      description: "Woodland-biome camouflage variant."
+  about: "Jungle camo top is a body slot Hunter camouflage piece that, paired with jungle camo legs, lets players approach jungle birds and chinchompas without being detected. It is bought from the Fancy Clothes Store in Varrock for 40 feathers and 20 coins or restocked at the Hunter Guild shop in Avium Savannah, and equipping it requires 7 Hunter."
+  market_strategy:
+    notes:
+      - "Demand driven by chinchompa hunters in Feldip Hunter areas"
+      - "Cheap player-stocked shop supply caps upside"
+      - "Niche piece - bulk volume comes from Hunter levellers buying the set"
+      - "Often forgotten alch fodder, but high alch is below value so it's a loss alch"
+  trading_tips:
+    - "Compare shop restock vs GE price before buying for hunting alts"
+    - "Pair with Larupia or Ardougne Cloak benefits for chinchompa trips"
+    - "Watch Hunter event weekends for short-term demand bumps"
+  history:
+    - date: "2006-11-21"
+      description: "Released alongside the Hunter skill and the Feldip Hills hunting area."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

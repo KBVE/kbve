@@ -12,9 +12,52 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 5
-  about: "Trailblazer teleport scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid
+  teleport:
+    type: home_teleport_animation
+    destination: Animation override for Home Teleport spell
+    requirements: {}
+  shops:
+    - shop_name: Leagues Reward Shop
+      currency: League points
+      price: 1000
+  related_items:
+    - item_name: Shattered teleport scroll
+      slug: shattered-teleport-scroll
+      relationship: alternative
+    - item_name: Trailblazer reloaded teleport scroll
+      slug: trailblazer-reloaded-teleport-scroll
+      relationship: alternative
+  about: "Cosmetic Leagues II reward scroll that, when read, unlocks the Trailblazer home teleport animation override on the Home Teleport spell."
+  market_strategy:
+    notes:
+      - One-time consumable on read
+      - Cosmetic unlock only
+      - Limited supply from Leagues II rewards
+  history:
+    - date: "2021-01-06"
+      description: Released as Leagues II Trailblazer reward.
+    - date: "2023-11-15"
+      description: Inventory icon rotated horizontally.
+  properties:
+    release_date: "2021-01-06"
+    update: Leagues II - Trailblazer
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

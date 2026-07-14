@@ -1,5 +1,6 @@
 ---
 title: Lime Concrete
+template: splash
 description: |
     Minecraft Lime Concrete — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 590
     ref: lime_concrete
     slug: lime-concrete
+    content_rev: 1
     display_name: Lime Concrete
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Lime Concrete is a solid, opaque building block made by letting lime concrete powder touch water. Unlike wool, it is not flammable, and unlike stained terracotta, it shows a bright, saturated color rather than a muted earthy tone. It has a hardness of 1.8 and requires a pickaxe to mine efficiently.
+        lore: |
+            A vivid slab of hardened dye and sand, prized by builders who want color without the risk of fire.
+    faq:
+        - question: How do I make Lime Concrete?
+          answer: |
+              Craft lime concrete powder from lime dye, sand, and gravel, then place it adjacent to any water source, flowing water, or waterlogged block. The powder instantly hardens into solid Lime Concrete.
+        - question: Can Lime Concrete burn?
+          answer: |
+              No. Unlike wool, concrete blocks of every color are completely fireproof, making them a safer decorative alternative near lava or fire-prone builds.
+        - question: Is Lime Concrete blast resistant?
+          answer: |
+              Not particularly. Despite its stone-like hardness, concrete has a low blast resistance value, so it offers little protection against explosions such as creepers or TNT.
+        - question: Can I mine Lime Concrete without a pickaxe?
+          answer: |
+              You can break it with your hand or any tool, but only a pickaxe guarantees the block drops as an item; without one it may still break but drop nothing in some editions.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

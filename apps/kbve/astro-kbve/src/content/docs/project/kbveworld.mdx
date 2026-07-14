@@ -1,0 +1,120 @@
+---
+title: KBVEWorld — Procedural World UE Plugin
+description: Unreal Engine procedural world toolkit — noise-driven terrain chunks, SQLite chunk cache, async grass and foliage placement, plus hex-world subsystems.
+sem: 1
+sidebar:
+    label: KBVEWorld
+    order: 81
+tags:
+    - unreal
+    - gameplay
+key: ue_kbveworld
+pipeline: unreal
+plugin_name: KBVEWorld
+plugin_path: packages/unreal/KBVEWorld
+dependency_plugins: packages/unreal/KBVESQLite packages/unreal/KBVEPerf
+version: "0.1.0"
+source_path: packages/unreal/KBVEWorld
+version_toml: packages/unreal/KBVEWorld/version.toml
+author: h0lybyte
+license: KBVE
+status: active
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is KBVEWorld?
+          answer: It is a game-agnostic procedural world toolkit for Unreal Engine — noise-driven terrain chunks, an SQLite chunk cache, async grass and foliage placement, and sky plus post-process defaults.
+        - question: What are the KBVEWorld modules?
+          answer: It ships three runtime modules — KBVEWorldCore (noise and seed), KBVEWorld (terrain, grass, foliage, chunk cache), and KBVEHexWorld (hex-grid world subsystems).
+        - question: What plugins does KBVEWorld depend on?
+          answer: It depends on MassGameplay, ProceduralMeshComponent, and the in-repo KBVESQLite and KBVEPerf plugins.
+bento:
+    badge: unreal · gameplay
+    title: Procedural world toolkit
+    accent: KBVEWorld
+    lede: >-
+        A game-agnostic procedural world toolkit for Unreal Engine. It
+        generates noise-driven terrain chunks, caches them in SQLite, places
+        grass and foliage asynchronously, supplies sky plus post-process
+        defaults, and ships a hex-world module for hex-grid worlds.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEWorld
+          primary: true
+          external: true
+        - label: Key facts
+          href: "#facts"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: map
+        title: Three runtime modules
+        body: >-
+            KBVEWorld ships <code>KBVEWorldCore</code> (noise and seed),
+            <code>KBVEWorld</code> (terrain, grass, foliage, chunk cache), and
+            <code>KBVEHexWorld</code> (hex-grid world subsystems), backed by the
+            in-repo KBVESQLite and KBVEPerf plugins.
+        points:
+            - <strong>Depends</strong> — MassGameplay, ProceduralMeshComponent.
+            - <strong>Cache</strong> — SQLite chunk blobs, rehydrated on demand.
+    stats:
+        - { label: Plugin, value: KBVEWorld, icon: map }
+        - { label: Modules, value: "3", icon: package }
+        - { label: Min engine, value: UE 5.4, icon: gears }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Noise-driven terrain
+          icon: map
+          body: KBVEWorldCore provides seeds and noise; terrain chunk actors build meshes from the sampled heightfield.
+        - title: SQLite chunk cache
+          icon: database
+          body: Generated chunks are persisted and rehydrated through the KBVESQLite-backed chunk cache and blob format.
+        - title: Async grass & foliage
+          icon: zap
+          body: HISM-based grass and foliage placement with GPU compute-shader placement, kept off the game thread.
+        - title: Hex world
+          icon: route
+          body: KBVEHexWorld adds hex-grid noise, seed, terrain, and environment subsystems for hex-tile worlds.
+    related:
+        - title: KBVEPostShader
+          href: /project/kbvepostshader/
+          copy: Stylized post-process that complements the world sky defaults.
+          icon: render
+        - title: KBVEEvents
+          href: /project/kbveevents/
+          copy: Typed event bus used across KBVE Unreal plugins.
+          icon: message
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="facts" eyebrow="At a glance" heading="Key facts">
+
+| | |
+|---|---|
+| **Plugin** | `KBVEWorld` |
+| **Version** | 0.1.0 |
+| **Language** | C++ (Unreal Engine) |
+| **Min engine** | UE 5.4 |
+| **License** | KBVE |
+| **Source** | [`packages/unreal/KBVEWorld`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEWorld) |
+| **Depends on** | KBVESQLite, KBVEPerf, MassGameplay, ProceduralMeshComponent |
+| **Platforms** | Win64, Linux, Mac |
+
+</BentoProse>
+
+</BentoDoc>

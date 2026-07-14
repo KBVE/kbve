@@ -1,7 +1,7 @@
 ---
-title: Firecracker Python Web
-description: |
-    FastAPI-ready Alpine + Python rootfs for long-lived persistent endpoints deployed through the dashboard IDE. Bakes fastapi, uvicorn, starlette, websockets, and the existing requests/httpx stack so VMs boot with the server libraries already on disk.
+title: Firecracker Python Web — FastAPI-Ready Rootfs Image
+description: FastAPI-ready Alpine + Python Firecracker rootfs for long-lived dashboard-IDE endpoints, baking fastapi, uvicorn, starlette, websockets, and the requests stack.
+sem: 1
 sidebar:
     label: FC Python Web
     order: 56
@@ -25,7 +25,91 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: active
+kube:
+    stack: application
+    environment: prod
+    tier: web
+    owner: h0lybyte
+    criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the firecracker-python-web rootfs?
+          answer: It is a FastAPI-ready Alpine 3.21 plus Python 3.12 Firecracker rootfs image built for the staff-side long-lived deployment. It bakes fastapi, uvicorn, starlette, websockets, and the requests/httpx stack so VMs boot with the server libraries already on disk.
+        - question: How does firecracker-python-web differ from the other Firecracker rootfs images?
+          answer: alpine-python is the public quick rootfs with no network and no baked libraries, firecracker-python-net adds TAP networking, DNS, and the requests stack for short-lived staff VMs, and firecracker-python-web additionally bakes the FastAPI server stack for long-lived endpoints submitted through the dashboard IDE.
+        - question: How is the firecracker-python-web image built and published?
+          answer: It is a multi-stage Docker build whose final layer ships a cp entrypoint that copies /rootfs.ext4 onto the firecracker rootfs PVC. Build with nx run firecracker-python-web:container and extract; the production target pushes ghcr.io/kbve/firecracker-python-web at latest and the version tag.
+bento:
+    badge: docker · firecracker · python · fastapi · base-image
+    title: FastAPI-ready Python rootfs for
+    accent: Firecracker
+    lede: >-
+        A FastAPI-ready Alpine 3.21 + Python 3.12 Firecracker rootfs for
+        long-lived dashboard-IDE endpoints — baking fastapi, uvicorn, starlette,
+        websockets, and the requests/httpx stack so staff VMs boot ready.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/docker/firecracker/python/web
+          primary: true
+          external: true
+        - label: Overview
+          href: "#overview"
+        - label: Build
+          href: "#build"
+    aside:
+        icon: package
+        title: Baked for instant boot
+        body: >-
+            This is the long-lived deploy rootfs for endpoints submitted through
+            the dashboard IDE — week-to-month TTL VMs where paying a build-time
+            <code>pip install</code> is the right tradeoff for instant boot. Quick
+            one-shot VMs keep the smaller <code>alpine-python</code> rootfs plus
+            the shared pip-cache.
+        points:
+            - <strong>Runtime</strong> — Alpine 3.21 + Python 3.12.
+            - <strong>Deployment</strong> — staff-side firecracker-ctl-net.
+    stats:
+        - { label: Image, value: firecracker-python-web, icon: package }
+        - { label: Runtime, value: Python 3.12, icon: code }
+        - { label: Server lib, value: FastAPI, icon: server }
+        - { label: Network, value: TAP/WireGuard, icon: network }
+    features:
+        - title: FastAPI stack baked
+          icon: server
+          body: fastapi, uvicorn, starlette, python-multipart, websockets, anyio, h11 and more ship as musllinux wheels already resolved on disk.
+        - title: HTTP client stack
+          icon: box
+          body: py3-pip, py3-requests, py3-httpx, py3-urllib3, py3-certifi via apk on top of the FastAPI server libraries.
+        - title: cp-entrypoint stage image
+          icon: package
+          body: Multi-stage Docker build whose final layer ships a cp entrypoint so an in-cluster stage Job copies /rootfs.ext4 onto the rootfs PVC.
+        - title: Network + boot init
+          icon: network
+          body: ca-certificates, iproute2, resolv.conf at 1.1.1.1/8.8.8.8; /init mounts /proc /sys /dev, brings up lo + eth0, then exec /entrypoint.
+    related:
+        - title: Firecracker Python Net
+          href: /project/firecracker-python-net/
+          copy: The short-lived staff rootfs with networking but no FastAPI stack.
+          icon: network
+        - title: Firecracker CTL
+          href: /project/firecracker-ctl/
+          copy: The Firecracker control plane that deploys these rootfs images.
+          icon: server
+    related_heading: Related
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Rootfs & ecosystem" heading="Overview">
 
 ## Overview
 
@@ -50,6 +134,10 @@ This is the **long-lived deploy** rootfs for endpoints submitted through the das
 | `firecracker-python-net` | `firecracker-ctl-net` (staff, short-lived) | TAP via Gluetun/WireGuard | yes | yes | no |
 | `firecracker-python-web` (this) | `firecracker-ctl-net` (staff, long-lived) | TAP via Gluetun/WireGuard | yes | yes | yes |
 
+</BentoProse>
+
+<BentoProse id="build" eyebrow="Build & publish" heading="Build & publish">
+
 ## Build
 
 ```bash
@@ -66,3 +154,7 @@ npx nx run firecracker-python-web:container:production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-python-web:latest` and `:<version>`.
+
+</BentoProse>
+
+</BentoDoc>

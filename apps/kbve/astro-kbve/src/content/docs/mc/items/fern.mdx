@@ -1,5 +1,6 @@
 ---
 title: Fern
+template: splash
 description: |
     Minecraft Fern — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 203
     ref: fern
     slug: fern
+    content_rev: 1
     display_name: Fern
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Ferns are non-solid plant blocks found naturally in jungle, taiga, snowy taiga, and old growth
+            taiga biomes, scattered alongside short grass. They can be mined with any tool but break fastest
+            with shears, and applying bone meal grows a fern into a large fern.
+        lore: |
+            Even though ferns do not produce seeds in real life, as they emit spores instead, they can drop wheat seeds when broken.
+    faq:
+        - question: How do I obtain ferns?
+          answer: |
+              Ferns spawn naturally in specific biomes and can be mined with shears to collect them directly,
+              or harvested from large ferns, which drop two ferns when broken with shears. Wandering traders
+              also sell them for 1 emerald.
+        - question: What are ferns used for?
+          answer: |
+              Ferns can be placed on soil blocks or in flower pots for decoration. They are also compostable,
+              with a 65% chance to raise the compost level by 1, and sheep can graze on them to regain wool.
+        - question: Can I farm ferns?
+          answer: |
+              Yes. Applying bone meal to a fern turns it into a large fern, which yields two ferns when
+              harvested with shears, making ferns a renewable resource.
+        - question: Do ferns have any special properties?
+          answer: |
+              Their color changes based on the surrounding biome, they are flammable and can catch fire from
+              lava, and breaking one normally has a 12.5% chance of dropping wheat seeds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

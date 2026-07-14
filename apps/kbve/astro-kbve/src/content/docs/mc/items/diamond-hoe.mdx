@@ -1,5 +1,6 @@
 ---
 title: Diamond Hoe
+template: splash
 description: |
     Diamond Hoe — tier 5 farming tool. 1561 durability.
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 827
     ref: diamond_hoe
     slug: diamond-hoe
+    content_rev: 1
     display_name: Diamond Hoe
     category: tool
     rarity: common
@@ -60,6 +62,32 @@ mc_item:
                 row: 2
                 col: 1
     data_version: "1.21.5"
+    about:
+        description: |
+            The diamond hoe is the second-highest tier of farming tool, crafted from two
+            diamonds and two sticks. It tills dirt and grass into farmland and rapidly
+            breaks plant-based blocks such as leaves, haybales, and sculk sensors, though
+            it deals very little damage as a weapon.
+        lore: |
+            Only the netherite hoe surpasses it, made by combining a diamond hoe with a
+            netherite ingot at a smithing table.
+    faq:
+        - question: How is a diamond hoe crafted?
+          answer: |
+              With two diamonds and two sticks arranged in an L-shape on a crafting table,
+              or bought from a toolsmith villager for emeralds.
+        - question: Can a diamond hoe be enchanted?
+          answer: |
+              Yes — it accepts Efficiency, Fortune, Silk Touch, Unbreaking, Mending, and
+              Curse of Vanishing.
+        - question: What is a diamond hoe best used for?
+          answer: |
+              Tilling farmland and quickly breaking leaves, haybales, and other plant-like
+              blocks; it is a poor weapon, dealing only about half a heart of damage.
+        - question: Is the diamond hoe renewable?
+          answer: |
+              Yes, since expert-level toolsmith villagers trade enchanted diamond hoes for
+              emeralds, making it fully renewable.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

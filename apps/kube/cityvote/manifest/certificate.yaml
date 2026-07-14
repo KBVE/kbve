@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: cityvote-tls
+    namespace: cityvote
+spec:
+    secretName: cityvote-tls
+    dnsNames:
+        - cityvote.com
+    issuerRef:
+        name: letsencrypt-http
+        kind: ClusterIssuer
+        group: cert-manager.io

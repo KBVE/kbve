@@ -5,11 +5,10 @@ metadata:
     namespace: herbmail
     labels:
         app: herbmail
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        # Reloader rolls this Deployment whenever the supabase-shared
-        # Secret (rendered by herbmail-supabase-secrets ExternalSecret)
-        # changes — Supabase JWT/key rotations now propagate without a
-        # manual kubectl rollout restart.
         reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
@@ -19,13 +18,10 @@ spec:
     template:
         metadata:
             annotations:
-                # Manual rollout-restart trigger preserved as a fallback
-                # if Reloader misses a Secret rotation — bump the value
-                # to force the Deployment controller to roll the pods.
                 rollout-restart: '2026-04-03T22:24:57Z'
             labels:
                 app: herbmail
-                version: '0.1.1'
+                version: 0.1.1
         spec:
             serviceAccountName: herbmail-sa
             automountServiceAccountToken: false
@@ -48,7 +44,7 @@ spec:
                       - name: PORT
                         value: '4321'
                       - name: SUPABASE_URL
-                        value: 'http://kong.kilobase.svc.cluster.local:8000'
+                        value: http://kong.kilobase.svc.cluster.local:8000
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
                             secretKeyRef:
@@ -61,11 +57,11 @@ spec:
                                 key: service-role-key
                   resources:
                       requests:
-                          memory: '512Mi'
-                          cpu: '250m'
+                          memory: 512Mi
+                          cpu: 250m
                       limits:
-                          memory: '1024Mi'
-                          cpu: '2000m'
+                          memory: 1024Mi
+                          cpu: 2000m
                   securityContext:
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true
@@ -76,8 +72,6 @@ spec:
                       - name: tmp
                         mountPath: /tmp
             volumes:
-                # Writable scratch for the axum binary while the rootfs
-                # itself stays read-only.
                 - name: tmp
                   emptyDir:
                       sizeLimit: 64Mi
@@ -89,6 +83,9 @@ metadata:
     namespace: herbmail
     labels:
         app: herbmail
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

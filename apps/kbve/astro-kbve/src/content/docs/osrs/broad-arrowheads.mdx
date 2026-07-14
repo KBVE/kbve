@@ -12,9 +12,74 @@ osrs:
   lowalch: 22
   highalch: 33
   limit: 7000
-  about: "Broad arrowheads is a members-only item in Old School RuneScape. High alchemy value: 33 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2014-01-06"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 52
+      xp: 10
+      materials:
+        - item_name: Headless arrow
+          quantity: 1
+        - item_name: Broad arrowheads
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Slayer Equipment
+      location: Burthorpe
+      price: 55
+      currency: coins
+      stock: 3000
+    - shop_name: Slayer Equipment
+      location: Canifis
+      price: 55
+      currency: coins
+      stock: 3000
+    - shop_name: Slayer Equipment
+      location: Mount Karuulm
+      price: 55
+      currency: coins
+      stock: 3000
+  related_items:
+    - item_name: Broad arrow
+      slug: broad-arrow
+      relationship: product
+      description: Crafted by fletching headless arrows with broad arrowheads
+    - item_name: Broad bolts
+      slug: broad-bolts
+      relationship: alternative
+      description: Crossbow ammunition variant from Slayer shops
+  about: "Broad arrowheads are members-only ammunition components sold by Slayer equipment vendors after unlocking Broader Fletching for 300 Slayer reward points. With 52 Fletching they are combined with headless arrows to produce broad arrows, the standard ranged ammo against Turoths and Kurasks. The arrowheads themselves are weightless and stack in the bank."
+  market_strategy:
+    notes:
+      - "Stock is effectively infinite from Slayer shops, so margins flow with broad arrow demand"
+      - "Slayer task pressure keeps a steady, predictable consumer base"
+      - "High GE limit (7,000) lets fletchers buy enough heads for a level in one cycle"
+  trading_tips:
+    - Flip the heads only when GE price drifts below shop cost to lock margin
+    - Buy 4 sets of 3,000 daily across multiple Slayer shops to stockpile for skilling
+  history:
+    - date: "2014-01-06"
+      description: "Released as a tradeable Slayer-shop ammunition head following community feedback on Broader Fletching."
+
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

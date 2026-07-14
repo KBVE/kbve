@@ -1,5 +1,6 @@
 ---
 title: Deepslate Copper Ore
+template: splash
 description: |
     Minecraft Deepslate Copper Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 971
     ref: deepslate_copper_ore
     slug: deepslate-copper-ore
+    content_rev: 1
     display_name: Deepslate Copper Ore
     material: stone
     hardness: 4.5
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: raw_copper
+          qty_min: 2
+          qty_max: 5
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - ore
+    about:
+        description: |
+            Deepslate Copper Ore is the deepslate-hosted variant of copper
+            ore, sharing the same raw copper yield but tougher to mine due
+            to deepslate's higher hardness.
+        lore: |
+            Introduced alongside copper ore and deepslate in the Caves &
+            Cliffs update, first announced at Minecraft Live 2020.
+    uses:
+        - title: Raw Copper
+          ref: raw_copper
+          detail: |
+              Drops 2-5 raw copper per block (up to 20 with Fortune III).
+              Smelt raw copper into copper ingots for blocks, lightning
+              rods, spyglasses, and other copper-based crafting.
+    found_in:
+        - location: Overworld caves (Y=-16 to Y=112)
+          detail: Generates most commonly around Y=47-48, in blobs of 0-16 blocks replacing stone-type blocks.
+        - location: Dripstone Caves
+          detail: Generates in much larger blobs, up to 52 blocks per group, within the dripstone caves biome.
+    faq:
+        - question: What tool do I need to mine Deepslate Copper Ore?
+          answer: |
+              A stone pickaxe or better. Mining with wood or by hand drops
+              nothing.
+        - question: Does Fortune affect the drop?
+          answer: |
+              Yes. Fortune III can push the average yield up to about 7.7
+              raw copper, with a maximum of 20.
+        - question: Does deepslate copper ore oxidize like copper blocks?
+          answer: |
+              No. Despite its weathered-looking texture, the ore itself
+              does not oxidize; only crafted copper blocks do.
+        - question: Why does it take longer to mine than regular copper ore?
+          answer: |
+              Its hardness is 4.5 versus 3 for the stone-hosted variant,
+              so it takes roughly 1.5x longer with the same tool.
     data_version: "1.21.5"
 ---
 

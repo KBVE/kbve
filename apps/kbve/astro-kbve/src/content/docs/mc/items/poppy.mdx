@@ -1,5 +1,6 @@
 ---
 title: Poppy
+template: splash
 description: |
     Minecraft Poppy — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 232
     ref: poppy
     slug: poppy
+    content_rev: 1
     display_name: Poppy
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Poppy is a red flower found throughout many Overworld biomes, growing on
+            grass and dirt and dropped occasionally by iron golems. It is prized for
+            crafting red dye, brewing suspicious stew, and attracting bees when planted
+            near trees.
+        lore: |
+            A vibrant red wildflower used for crafting dyes and mysterious stews,
+            beloved by bees.
+    faq:
+        - question: Where do poppies grow?
+          answer: |
+              Poppies generate on grass blocks and dirt in most Overworld biomes,
+              especially jungles, savannas, and plains, but not in swamps, badlands,
+              cherry groves, or the Nether and End.
+        - question: What can I make with a poppy?
+          answer: |
+              A poppy converts into 1 red dye, and combining it with mushrooms and a
+              bowl creates suspicious stew that grants Night Vision for 5 seconds.
+        - question: Why should I keep poppies near my trees?
+          answer: |
+              Oak, birch, and cherry trees grown within 2 blocks of a poppy have a
+              5% chance to generate with a bee nest containing 2-3 bees.
+        - question: Are poppies renewable?
+          answer: |
+              Yes, applying bone meal to grass blocks in the right biomes generates
+              new poppies, and they can also be obtained from wandering traders.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

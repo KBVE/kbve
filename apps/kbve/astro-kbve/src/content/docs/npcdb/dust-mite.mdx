@@ -1,5 +1,9 @@
 ---
 title: 'Dust Mite'
+template: splash
+sidebar:
+    label: 'Dust Mite'
+    hidden: true
 description: |
     A near-invisible arthropod that strikes with surprising ferocity for its minuscule size.
 ref: 'dust-mite'
@@ -74,7 +78,10 @@ abilities:
       damage: 6
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A near-invisible arthropod that strikes with surprising ferocity for its minuscule size.
+
+</NpcLeaf>

@@ -12,9 +12,15 @@ osrs:
   lowalch: 800000
   highalch: 1200000
   limit: 8
+  material:
+    type: skeletal-visage
+    tier: high
   equipment:
     slot: shield
-    weight: 2.267
+    weight: 4.082
+    requirements:
+      defence: 70
+      ranged: 70
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,26 +38,26 @@ osrs:
       ranged_strength: 5
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 70
-      ranged: 70
-  special_effect:
-    name: Dragonfire Protection
-    description: Provides protection against dragonfire when charged. Absorbs dragonfire to gain charges.
-    triggers: passive
+  special_attack:
+    name: Power of the Skeletal Visage
+    description: Discharge stored dragonfire to hit nearby targets for up to roughly 25 damage; usable once every two minutes.
+    energy: 0
+  charges:
+    max_charges: 50
+    charge_source: Absorbed dragonfire breath
+    per_charge_bonus: "+1 melee and ranged defence"
   recipes:
     - skill: smithing
       level: 90
       xp: 2000
       materials:
         - item_name: Anti-dragon shield
-          item_id: 1540
           quantity: 1
         - item_name: Skeletal visage
-          item_id: 22006
           quantity: 1
-      facility: Anvil
-      members_only: true
+      tools:
+        - Anvil
+      output_quantity: 1
   related_items:
     - item_id: 1540
       item_name: Anti-dragon shield
@@ -73,44 +79,39 @@ osrs:
       slug: ancient-wyvern-shield
       relationship: alternative
       description: Wyvern protection variant
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Ranged | +18 |
-    | Ranged Strength | +5 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +50 |
-    | Slash | +55 |
-    | Crush | +52 |
-    | Magic | +20 |
-    | Ranged | +45 |
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Smithing | 90 |
-    | Materials | Anti-dragon shield + Skeletal visage |
-    | XP | 2,000 |
-
-    Provides full dragonfire protection when charged.
-
-    Charging: Absorb dragonfire attacks to charge (max 50 charges).
-
-    Discharge: Right-click to release stored dragonfire.
+  about: Dragonfire ward is the ranged-focused dragonfire shield built from a skeletal visage, offering top ranged offence and full dragonfire protection when charged.
   market_strategy:
     notes:
-      - Ranged dragonfire protection
-      - Best ranged attack shield
-      - From Vorkath
-      - Vorkath farming
-      - Ranged dragon killing
-      - High-level PvM
-      - Uncharged is tradeable
-      - Charged version untradeable
-      - Create from skeletal visage for profit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Best-in-slot ranged shield against dragons
+      - Tied to Vorkath visage supply
+      - Uncharged version is the tradeable form
+      - Profitable to assemble from visage when GE spread allows
+  trading_tips:
+    - Buy uncharged for resale arbitrage
+    - Watch Vorkath drop rates and visage supply
+    - Discharge before listing on the GE
+  history:
+    - date: "2018-01-04"
+      description: Released as a tradeable smithing assembly using the skeletal visage.
+  properties:
+    release_date: "2018-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.082
+    options:
+      - Wield
+      - Discharge
+    worn_options:
+      - Remove
+      - Discharge
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

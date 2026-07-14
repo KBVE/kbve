@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: rentearth-tls
+    namespace: rentearth
+spec:
+    secretName: rentearth-tls
+    dnsNames:
+        - rentearth.com
+        - www.rentearth.com
+    issuerRef:
+        name: letsencrypt-http
+        kind: ClusterIssuer
+        group: cert-manager.io

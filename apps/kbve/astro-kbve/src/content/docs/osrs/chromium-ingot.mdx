@@ -1,6 +1,6 @@
 ---
 title: Chromium ingot | OSRS Price Data
-description: "Chromium ingot: A dense clump of corroded metal.. High alch: 30,000 GP, GE limit: 8."
+description: "Chromium ingot is a dense clump of corroded metal used to craft the four ancient rings. High alch: 30,000 GP, GE limit: 8."
 osrs:
   id: 28276
   name: Chromium ingot
@@ -12,73 +12,153 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 8
-  item:
-    type: material
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2023-07-26"
     tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
     weight: 3
-  obtaining:
-    methods:
+    options:
+      - Drop
+      - Examine
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Duke Sucellus
+        combat_level: 272
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/1000"
+        notes: "DT2 boss; rolled on a successful kill"
+      - source: The Whisperer
+        combat_level: 270
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/1000"
+        notes: "DT2 boss; rolled on a successful kill"
+      - source: Vardorvis
+        combat_level: 528
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/1000"
+        notes: "DT2 boss; rolled on a successful kill"
+      - source: Leviathan
+        combat_level: 736
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/1000"
+        notes: "DT2 boss; rolled on a successful kill"
+      - source: Stranglewood big net fishing
+        combat_level: 0
+        quantity: "1"
+        rarity: very-rare
+        notes: "Extremely rare fishing catch in the Stranglewood"
       - source: Blast Furnace smelting
-        requirements:
-          smithing: 85
-        cost: 40 adamantite ore + 40 runite ore + 170K gp
-      - source: DT2 boss drops
-        note: Any of the four bosses
-      - source: Stranglewood fishing
-        note: Extremely rare
+        combat_level: 0
+        quantity: "1"
+        rarity: always
+        notes: "Combine 40 adamantite ore + 40 runite ore + 170k gp at level 85 Smithing"
   recipes:
     - skill: crafting
       level: 80
-      requirements:
-        magic: 90
+      xp: 200
+      facility: Anvil
+      tools:
+        - Hammer
       materials:
         - item_id: 28276
           item_name: Chromium ingot
           quantity: 3
-      product: Ancient rings
-      notes: Ultor, Bellator, Magus, or Venator ring
+      product: Ultor vestige
+      product_id: 28289
+      output_quantity: 1
+      notes: "Combined with the ultor vestige to produce the Ultor ring (requires 90 Magic, 80 Crafting)"
+    - skill: crafting
+      level: 80
+      xp: 200
+      facility: Anvil
+      tools:
+        - Hammer
+      materials:
+        - item_id: 28276
+          item_name: Chromium ingot
+          quantity: 3
+      product: Magus ring
+      product_id: 28313
+      output_quantity: 1
+      notes: "Requires 90 Magic and 80 Crafting; combined with the magus vestige"
+    - skill: crafting
+      level: 80
+      xp: 200
+      facility: Anvil
+      tools:
+        - Hammer
+      materials:
+        - item_id: 28276
+          item_name: Chromium ingot
+          quantity: 3
+      product: Bellator ring
+      product_id: 28310
+      output_quantity: 1
+      notes: "Requires 90 Magic and 80 Crafting; combined with the bellator vestige"
+    - skill: crafting
+      level: 80
+      xp: 200
+      facility: Anvil
+      tools:
+        - Hammer
+      materials:
+        - item_id: 28276
+          item_name: Chromium ingot
+          quantity: 3
+      product: Venator ring
+      product_id: 28316
+      output_quantity: 1
+      notes: "Requires 90 Magic and 80 Crafting; combined with the venator vestige"
   related_items:
     - item_id: 28307
       item_name: Ultor ring
       slug: ultor-ring
       relationship: product
-      description: Created BiS melee strength ring
-    - item_id: 28313
-      item_name: Magus ring
-      slug: magus-ring
-      relationship: product
-      description: Created BiS magic ring
-    - item_id: 28316
-      item_name: Venator ring
-      slug: venator-ring
-      relationship: product
-      description: Created BiS ranged ring
+      description: BiS melee strength ring forged from a chromium ingot
     - item_id: 28310
       item_name: Bellator ring
       slug: bellator-ring
       relationship: product
-      description: Created BiS melee accuracy ring
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 3 kg |
-
-    Required for ancient rings (3 per ring):
-    - Ultor ring
-    - Bellator ring
-    - Magus ring
-    - Venator ring
-
-    All require 90 Magic, 80 Crafting.
+      description: BiS melee accuracy ring forged from a chromium ingot
+    - item_id: 28313
+      item_name: Magus ring
+      slug: magus-ring
+      relationship: product
+      description: BiS magic ring forged from a chromium ingot
+    - item_id: 28316
+      item_name: Venator ring
+      slug: venator-ring
+      relationship: product
+      description: BiS ranged ring forged from a chromium ingot
   market_strategy:
     notes:
-      - Farm DT2 bosses for drops
-      - Smelting is massive loss
-      - Essential for BiS rings
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "DT2 boss farming is the only profitable source"
+      - "Blast Furnace smelting is a massive GP loss vs market price"
+      - "Demand is gated by ancient vestige drops; price tracks ring meta"
+      - "Buy limit only 8 per 4 hours — flippers stack across alts"
+      - "Use as direct ring crafting component, never high-alch fodder"
+  trading_tips:
+    - Time purchases around DT2 droprate buffs and ring meta shifts
+    - Stockpile when DT2 bossing is incentivised by leagues or events
+    - Cross-reference ingot price against vestige price to confirm ring margin
+  about: Chromium ingot is a high-tier crafting material dropped by the four Desert Treasure 2 bosses and used three at a time to forge the ancient rings (Ultor, Bellator, Magus, Venator) at level 80 Crafting and 90 Magic.
+  history:
+    - date: "2023-07-26"
+      description: "Released with the Desert Treasure 2 - The Awakening quest as the crafting material for ancient rings."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

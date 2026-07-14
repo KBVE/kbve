@@ -5,7 +5,7 @@ osrs:
   id: 21948
   name: Dragonstone dragon bolts (e)
   slug: dragonstone-dragon-bolts-e
-  examine: Enchanted Dragon crossbow bolts, tipped with dragonstone. Double dragon!
+  examine: "Enchanted Dragon crossbow bolts, tipped with dragonstone. Double dragon!"
   members: true
   icon: Dragonstone dragon bolts (e) 5.png
   value: 1150
@@ -14,59 +14,91 @@ osrs:
   limit: 11000
   equipment:
     slot: ammo
+    weapon_type: crossbow
+    weight: 0
+    requirements: {}
     attack_bonus:
       stab: 0
       slash: 0
       crush: 0
       magic: 0
       ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      strength: 0
       ranged_strength: 122
+      magic_damage: 0
       prayer: 0
-    requirements: {}
+  special_attack:
+    name: "Dragon's Breath"
+    description: "6% chance on hit to deal bonus dragonfire damage equal to 20% of the attacker's visible Ranged level (22% with Zaryte crossbow passive)."
   recipes:
-    - skill: magic
+    - skill: Magic
       level: 68
       xp: 78
-      inputs:
+      materials:
         - item_name: Dragonstone dragon bolts
           quantity: 10
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Soul rune
+          quantity: 1
+        - item_name: Earth rune
+          quantity: 15
+      tools: []
+      output_item: Dragonstone dragon bolts (e)
       output_quantity: 10
   related_items:
-    - item_id: 9244
-      item_name: Dragonstone bolts (e)
-      slug: dragonstone-bolts-e
+    - item_name: Dragonstone dragon bolts
+      relationship: component
+      description: Unenchanted base bolt.
+    - item_name: Dragonstone bolts (e)
       relationship: downgrade
-      description: Regular crossbow version
-  about: |-
-    > *"Enchanted Dragon crossbow bolts, tipped with dragonstone. Double dragon!"*
-
-    Dragonstone dragon bolts (e) carry the Dragon's Breath enchantment. On a successful hit, there is a 6% chance to trigger a dragonfire attack on the target, dealing extra damage equal to 20% of the attacker's visible Ranged level (rounded down). When used with the Zaryte crossbow passive effect, this bonus increases to 22%. The dragonfire effect can be mitigated by anti-dragon shields and antifire potions, making it less effective against prepared targets.
-
-    Enchant Crossbow Bolt (Dragonstone) requires Magic level 68 and grants 78 XP per cast. Each cast enchants 10 bolts at a time.
-
-    | Component | Quantity |
-    |-----------|----------|
-    | Dragonstone dragon bolts | 10 |
-    | Cosmic rune | 1 |
-    | Soul rune | 1 |
-    | Earth rune | 15 |
-
-    | Stat | Dragon (e) | Regular (e) |
-    |------|-----------|-------------|
-    | Ranged Str | +122 | +117 |
-    | Base bolt | Dragon crossbow bolt | Runite bolt |
-
-    While both variants have similar ranged strength, the dragon bolt base still provides a modest edge.
+      description: Runite-base equivalent with +117 ranged strength.
+    - item_name: Dragon crossbow
+      relationship: alternative
+      description: Common crossbow used to fire these bolts.
+    - item_name: Zaryte crossbow
+      relationship: upgrade
+      description: Boosts the special effect chance and damage.
+  about: "Dragonstone dragon bolts (e) are enchanted dragon-tipped bolts that trigger Dragon's Breath at a 6% rate for bonus dragonfire damage, with +122 ranged strength making them a top all-round PvM bolt."
   market_strategy:
     notes:
-      - One of the best all-around bolt enchantments for PvM
-      - Enhanced by Zaryte crossbow passive (22% instead of 20%)
-      - Can be mitigated by anti-dragon shields and antifire potions
-      - High Magic requirement (68) but excellent XP per cast
-      - Most commonly used enchanted dragon bolt
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - One of the strongest all-round bolt enchantments for PvM
+      - Enhanced by the Zaryte crossbow passive (22% instead of 20%)
+      - Mitigated by anti-dragon shields and antifire potions
+      - 68 Magic gate keeps fresh supply scarce
+      - Most commonly used enchanted dragon bolt variant
+  trading_tips:
+    - Margin from buying base dragon bolts and enchanting in bulk is reliable
+    - Watch the spread on soul rune costs after farming events
+  history:
+    - date: "2018-01-04"
+      description: Released as part of the Dragon Slayer II update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

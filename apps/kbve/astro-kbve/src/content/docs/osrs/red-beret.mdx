@@ -1,6 +1,6 @@
 ---
 title: Red beret | OSRS Price Data
-description: "Red beret: Parlez-vous francais?. High alch: 48 GP, GE limit: 4."
+description: "Red beret: Parlez-vous francais? High alch: 48 GP, GE limit: 4."
 osrs:
   id: 12247
   name: Red beret
@@ -12,9 +12,71 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 4
-  about: "Red beret is a members-only item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.04
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.04
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Black beret
+      slug: black-beret
+      relationship: variant
+      description: Black-colour variant
+    - item_name: Blue beret
+      slug: blue-beret
+      relationship: variant
+      description: Blue-colour variant
+    - item_name: White beret
+      slug: white-beret
+      relationship: variant
+      description: White-colour variant
+  about: "Red beret is a cosmetic head slot item rewarded from easy clue scrolls (1/1,404). Purely fashionscape, no combat bonuses; storable in costume room treasure chest."
+  market_strategy:
+    notes:
+      - "Cosmetic clue reward, fashionscape demand"
+      - "Tight GE limit (4 per 4 hours)"
+      - "Supply tied to easy clue volume"
+  trading_tips:
+    - Stock up when easy clue events drop supply
+    - Prices reflect rarity (1/1404) not utility
+  history:
+    - date: "2014-06-12"
+      description: "Added with Treasure Trail Expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

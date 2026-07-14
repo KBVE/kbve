@@ -12,25 +12,80 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 150
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Fine Fashions
+      location: Tree Gnome Stronghold (Grand Tree upper floor)
+      price: 180
+      currency: coins
+      stock: 5
   related_items:
-    - item_id: 634
-      item_name: Turquoise boots
+    - item_name: Turquoise boots
       slug: turquoise-boots
       relationship: set-piece
-      description: Matching boots
-    - item_id: 654
-      item_name: Turquoise robe bottoms
+      description: "Matching feet slot piece of the turquoise gnome outfit"
+    - item_name: Turquoise robe bottoms
       slug: turquoise-robe-bottoms
       relationship: set-piece
-      description: Matching bottoms
-  about: |-
-    > _"A turquoise robe top."_
-
-    The turquoise robe top is part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching legs slot piece of the turquoise gnome outfit"
+  about: "Turquoise robe top is a member-only cosmetic body piece from Rometti's Fine Fashions shop in the Grand Tree. Required for an easy-tier Treasure Trails Yawn emote step at Civitas illa Fortis Grand Museum. Stats are minimal (+2 slash and +2 crush defence)."
+  market_strategy:
+    notes:
+      - "Demand peaks when easy emote clues circulate the gnome shop wardrobe requirements"
+      - "Supply comes from Fine Fashions (5 stock, 2-minute restock); supply is effectively unlimited at the shop price"
+      - "GE price often exceeds shop price (180) due to convenience for clue completers"
+  trading_tips:
+    - "Buy from Rometti at 180 coins and flip on the GE when easy-clue demand surges"
+    - "Track the wider gnome wardrobe set (boots + bottoms + top) — clue scroll players often buy all three at once"
+    - "Buy limit of 150 per 4 hours gives room for steady scaling"
+  history:
+    - date: "2002-12-12"
+      description: "Released alongside the Agility skill update, originally as part of the Tree Gnome Stronghold tailor's wardrobe"
+    - date: "2014-12-10"
+      description: "Renamed from 'Robe top' to 'Turquoise robe top' to disambiguate the gnome cosmetic robe colours"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

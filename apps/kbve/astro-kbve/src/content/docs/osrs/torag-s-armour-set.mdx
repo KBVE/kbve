@@ -1,6 +1,6 @@
 ---
 title: Torag's armour set | OSRS Price Data
-description: "Torag's armour set: A set containing a Torag's helm, platelegs, platebody and hammers.. High alch: 240,000 GP, GE limit: 8."
+description: "Torag's armour set: A set containing a Torag's helm, platelegs, platebody and hammers. High alch: 240,000 GP, GE limit: 8."
 osrs:
   id: 12879
   name: Torag's armour set
@@ -12,9 +12,63 @@ osrs:
   lowalch: 160000
   highalch: 240000
   limit: 8
-  about: "Torag's armour set is a members-only item in Old School RuneScape. High alchemy value: 240,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: barrows
+    tier: high
+  properties:
+    release_date: "2014-12-10"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Torag's helm
+      slug: torag-s-helm
+      relationship: set-piece
+      description: "Helm component of the set"
+    - item_name: Torag's platebody
+      slug: torag-s-platebody
+      relationship: set-piece
+      description: "Body component of the set"
+    - item_name: Torag's platelegs
+      slug: torag-s-platelegs
+      relationship: set-piece
+      description: "Legs component of the set"
+    - item_name: Torag's hammers
+      slug: torag-s-hammers
+      relationship: set-piece
+      description: "Weapon component of the set"
+    - item_name: Dharok's armour set
+      slug: dharok-s-armour-set
+      relationship: alternative
+      description: "Sibling Barrows brother armour set"
+    - item_name: Verac's armour set
+      slug: verac-s-armour-set
+      relationship: alternative
+      description: "Sibling Barrows brother armour set"
+  about: "Torag's armour set is a Grand Exchange placeholder that bundles Torag's helm, platebody, platelegs, and hammers into a single tradeable item. It is created through the Sets tab on a Grand Exchange clerk and is used to move full Barrows kits in one trade slot rather than as wearable gear."
+  market_strategy:
+    notes:
+      - "Set price tracks the sum of its four components plus a thin convenience premium"
+      - "Arbitrage exists when buyers prefer the set over assembling pieces individually"
+      - "Repair-cost decay on Torag's pieces keeps long-term supply churning"
+  trading_tips:
+    - "Compare set price vs sum of pieces before buying; flip the cheaper side"
+    - "Daily 8-item GE limit means bulk plays move slowly"
+  history:
+    - date: "2014-12-10"
+      description: "Released alongside the Grand Exchange Sets tab in the Trading Post update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

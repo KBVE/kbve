@@ -12,9 +12,81 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik purple cloak is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Yrsa's Accoutrements
+      location: Rellekka
+      price: 325
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Fremennik blue cloak
+      slug: fremennik-blue-cloak
+      relationship: variant
+      description: "Alternative cloak colour with identical bonuses"
+    - item_name: Fremennik red cloak
+      slug: fremennik-red-cloak
+      relationship: variant
+      description: "Alternative cloak colour with identical bonuses"
+    - item_name: Fremennik green cloak
+      slug: fremennik-green-cloak
+      relationship: variant
+      description: "Alternative cloak colour with identical bonuses"
+  about: "Fremennik purple cloak is a members-only cape obtained from Yrsa's Accoutrements in Rellekka after completing The Fremennik Trials. It is primarily a cosmetic cape and is also used during the Wanted! quest to pursue Solus."
+  market_strategy:
+    notes:
+      - "Stock cap at Yrsa is small so resellers can flip the spread between shop and Grand Exchange."
+      - "Limit of 150 per 4 hours suits short-term flipping."
+      - "Demand is largely driven by Wanted! quest disguise checks."
+  trading_tips:
+    - "Visit Yrsa across multiple worlds for stock arbitrage"
+    - "List during Wanted! double XP events when quest completions spike"
+  history:
+    - date: "2004-11-02"
+      description: "Released with The Fremennik Trials quest"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

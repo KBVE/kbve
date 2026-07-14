@@ -1,5 +1,6 @@
 ---
 title: Stray Spawn Egg
+template: splash
 description: |
     Minecraft Stray Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1128
     ref: stray_spawn_egg
     slug: stray-spawn-egg
+    content_rev: 1
     display_name: Stray Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Stray Spawn Egg instantly summons a Stray, a skeletal mob variant found only in snowy
+            biomes that wears tattered blue-gray clothing and speaks with an echoing voice. Strays shoot
+            arrows tipped with Slowness, immobilizing their target for up to 30 seconds on impact.
+        lore: |
+            Frozen by the arctic winds, these skeletal archers have become instruments of winter's will,
+            their very arrows carrying the chill of death.
+    faq:
+        - question: Can you spawn a Stray using a regular skeleton spawn egg?
+          answer: |
+              No. Strays cannot be produced from a standard skeleton spawn egg in snowy biomes; they
+              require their own dedicated spawn egg item.
+        - question: What makes Strays unique compared to regular skeletons?
+          answer: |
+              Strays have their own echoing sound set, fire exclusively Slowness-tipped arrows, and are
+              immune to freezing damage even while standing in powder snow.
+        - question: How long does it take for a skeleton to convert into a Stray naturally?
+          answer: |
+              A regular skeleton must remain in powder snow for roughly 22 seconds total, about 7 seconds
+              of shaking followed by 15 more seconds, before it fully transforms into a Stray.
+        - question: Do Strays drop anything special when killed?
+          answer: |
+              Yes, Strays uniquely drop bones and Arrows of Slowness in addition to regular arrows and
+              occasional equipment, distinguishing their loot from ordinary skeletons.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

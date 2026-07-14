@@ -1,3 +1,4 @@
+import type { BlackjackStateView } from '@kbve/laser';
 import type {
 	PlayerStats,
 	PlayerInventory,
@@ -5,15 +6,44 @@ import type {
 	NPCInteractionState,
 	DialogueState,
 	DiceRollState,
+	TradeModalState,
 	ModalState,
 	EquipmentSlot,
 } from '../types';
+
+export interface BlackjackTableState {
+	open: boolean;
+	state: BlackjackStateView | null;
+}
+
+export type ConnectionStatus =
+	| 'connecting'
+	| 'connected'
+	| 'slow'
+	| 'reconnecting'
+	| 'ready'
+	| 'rejected'
+	| 'error'
+	| 'disconnected';
+
+export interface ConnectionState {
+	status: ConnectionStatus;
+	detail?: string;
+	reason?: string;
+}
+
+export interface OnlinePlayer {
+	slot: number;
+	username: string;
+}
 
 export interface GameState {
 	player: {
 		stats: PlayerStats;
 		inventory: PlayerInventory;
 	};
+	connection: ConnectionState;
+	players: OnlinePlayer[];
 	settings: {
 		isStatsCollapsed: boolean;
 		isSettingsCollapsed: boolean;
@@ -23,12 +53,15 @@ export interface GameState {
 	npcInteraction: NPCInteractionState | null;
 	dialogue: DialogueState | null;
 	diceRoll: DiceRollState | null;
+	tradeModal: TradeModalState | null;
 	activeModal: ModalState | null;
+	blackjack: BlackjackTableState | null;
 }
 
 export type GameAction =
 	| { type: 'SET_PLAYER_STATS'; payload: Partial<PlayerStats> }
 	| { type: 'ADD_ITEM'; payload: { itemId: string } }
+	| { type: 'SET_BACKPACK'; payload: { itemIds: string[] } }
 	| { type: 'REMOVE_ITEM'; payload: { itemId: string } }
 	| {
 			type: 'EQUIP_ITEM';
@@ -47,11 +80,17 @@ export type GameAction =
 	| { type: 'SET_NPC_INTERACTION'; payload: NPCInteractionState | null }
 	| { type: 'SET_DIALOGUE'; payload: DialogueState | null }
 	| { type: 'SET_DICE_ROLL'; payload: DiceRollState | null }
+	| { type: 'SET_TRADE'; payload: TradeModalState | null }
 	| {
 			type: 'UPDATE_DICE_VALUES';
 			payload: { diceValues: number[]; totalRoll: number };
 	  }
-	| { type: 'SET_MODAL'; payload: ModalState | null };
+	| { type: 'SET_MODAL'; payload: ModalState | null }
+	| { type: 'SET_CONNECTION'; payload: ConnectionState }
+	| { type: 'SET_PLAYERS'; payload: OnlinePlayer[] }
+	| { type: 'BJ_OPEN'; payload: { table_ref: string } }
+	| { type: 'BJ_CLOSE' }
+	| { type: 'BJ_STATE'; payload: BlackjackStateView };
 
 const DEFAULT_EQUIPMENT: Record<EquipmentSlot, string | null> = {
 	head: null,
@@ -65,6 +104,8 @@ const DEFAULT_EQUIPMENT: Record<EquipmentSlot, string | null> = {
 };
 
 export const initialGameState: GameState = {
+	connection: { status: 'connecting' },
+	players: [],
 	player: {
 		stats: {
 			hp: 100,
@@ -89,10 +130,13 @@ export const initialGameState: GameState = {
 	npcInteraction: null,
 	dialogue: null,
 	diceRoll: null,
+	tradeModal: null,
 	activeModal: null,
+	blackjack: null,
 };
 
 let notificationCounter = 0;
+const MAX_NOTIFICATIONS = 3;
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
 	switch (action.type) {
@@ -130,6 +174,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 							...state.player.inventory.backpack,
 							action.payload.itemId,
 						],
+					},
+				},
+			};
+
+		case 'SET_BACKPACK':
+			return {
+				...state,
+				player: {
+					...state.player,
+					inventory: {
+						...state.player.inventory,
+						backpack: action.payload.itemIds,
 					},
 				},
 			};
@@ -180,7 +236,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 			};
 			return {
 				...state,
-				notifications: [...state.notifications, notification],
+				notifications: [...state.notifications, notification].slice(
+					-MAX_NOTIFICATIONS,
+				),
 			};
 		}
 
@@ -201,6 +259,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 		case 'SET_DICE_ROLL':
 			return { ...state, diceRoll: action.payload };
 
+		case 'SET_TRADE':
+			return { ...state, tradeModal: action.payload };
+
 		case 'UPDATE_DICE_VALUES':
 			if (!state.diceRoll) return state;
 			return {
@@ -213,8 +274,29 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 				},
 			};
 
+		case 'SET_CONNECTION':
+			return { ...state, connection: action.payload };
+
+		case 'SET_PLAYERS':
+			return { ...state, players: action.payload };
+
 		case 'SET_MODAL':
 			return { ...state, activeModal: action.payload };
+
+		case 'BJ_OPEN':
+			return { ...state, blackjack: { open: true, state: null } };
+
+		case 'BJ_CLOSE':
+			return { ...state, blackjack: null };
+
+		case 'BJ_STATE':
+			return {
+				...state,
+				blackjack: {
+					open: state.blackjack?.open ?? true,
+					state: action.payload,
+				},
+			};
 
 		default:
 			return state;

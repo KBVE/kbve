@@ -1,0 +1,155 @@
+---
+import OSRSCharts from './OSRSCharts.tsx';
+import type { OSRSFamily } from '@/data/schema';
+
+interface Props {
+	family: OSRSFamily;
+}
+
+const { family } = Astro.props;
+
+const order: Record<string, number> = {
+	base: 0,
+	dose: 1,
+	poison: 2,
+	charged: 3,
+};
+const members = [...family.members].sort((a, b) => {
+	const r = (order[a.role] ?? 9) - (order[b.role] ?? 9);
+	return r !== 0 ? r : (a.dose ?? 0) - (b.dose ?? 0);
+});
+
+function label(m: (typeof members)[number]): string {
+	if (m.role === 'dose' && m.dose != null) return `${m.dose}-dose`;
+	if (m.role === 'base') return 'Base';
+	return m.name.replace(family.name, '').trim() || m.role;
+}
+
+function icon(name: string): string {
+	return `https://oldschool.runescape.wiki/images/${name.replace(/ /g, '_')}`;
+}
+
+function gp(v: number | null | undefined): string {
+	return v === undefined || v === null ? '—' : v.toLocaleString();
+}
+---
+
+<div class="osrs-family">
+	<div class="osrs-family__header">
+		<span class="osrs-family__dot"></span>
+		<h4 class="osrs-family__title">{family.name} — Variants & Prices</h4>
+	</div>
+
+	<div class="osrs-family__grid">
+		{
+			members.map((m) => (
+				<div class="osrs-family__member">
+					<div class="osrs-family__member-head">
+						{m.icon && (
+							<img
+								class="osrs-family__icon"
+								src={icon(m.icon)}
+								alt={m.name}
+								loading="lazy"
+							/>
+						)}
+						<div class="osrs-family__meta">
+							<span class="osrs-family__label">{label(m)}</span>
+							<span class="osrs-family__id">#{m.id}</span>
+						</div>
+						<div class="osrs-family__alch">
+							<span>Value {gp(m.value)}</span>
+							<span>High alch {gp(m.highalch)}</span>
+						</div>
+					</div>
+					<OSRSCharts client:visible itemId={m.id} />
+				</div>
+			))
+		}
+	</div>
+</div>
+
+<style>
+	.osrs-family {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-family__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-family__dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		background: var(--sl-color-accent);
+	}
+
+	.osrs-family__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-family__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		gap: 0.75rem;
+		padding: 0.75rem;
+	}
+
+	.osrs-family__member {
+		border: 1px solid var(--sl-color-gray-6);
+		border-radius: 0.375rem;
+		padding: 0.5rem;
+	}
+
+	.osrs-family__member-head {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.osrs-family__icon {
+		width: 28px;
+		height: 28px;
+		object-fit: contain;
+		image-rendering: pixelated;
+	}
+
+	.osrs-family__meta {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.osrs-family__label {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-family__id {
+		font-size: 0.6875rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-family__alch {
+		margin-left: auto;
+		display: flex;
+		flex-direction: column;
+		text-align: right;
+		font-size: 0.6875rem;
+		color: var(--sl-color-gray-2);
+	}
+</style>

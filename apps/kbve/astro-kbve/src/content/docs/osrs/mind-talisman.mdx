@@ -1,20 +1,93 @@
 ---
 title: Mind talisman | OSRS Price Data
-description: "Mind talisman: A mysterious power emanates from the talisman.... High alch: 2 GP, GE limit: 11,000."
+description: "Mind talisman: A mysterious power emanates from the talisman... High alch: 2 GP, GE limit: 11,000."
 osrs:
   id: 1448
   name: Mind talisman
   slug: mind-talisman
-  examine: A mysterious power emanates from the talisman...
+  examine: "A mysterious power emanates from the talisman..."
   members: false
   icon: Mind talisman.png
   value: 4
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Mind talisman is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Imp
+        quantity: "1"
+        rarity: 7/128
+      - source: Wizard
+        quantity: "1"
+        rarity: Common
+      - source: Essence impling
+        quantity: "1"
+        rarity: Common
+      - source: Abyssal creatures
+        quantity: "1"
+        rarity: Common
+      - source: Dagannoth Kings
+        quantity: "1"
+        rarity: Uncommon
+  shops:
+    - shop_name: Temple Supplies (Temple of the Eye)
+      currency: Abyssal pearl
+      price: 10
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 27.5
+      materials:
+        - item_name: Mind talisman
+          quantity: 1
+        - item_name: Tiara
+          quantity: 1
+      tools: []
+      product: Mind tiara
+      product_quantity: 1
+      facility: Mind Altar
+      members_only: false
+  related_items:
+    - item_id: 5527
+      item_name: Mind tiara
+      slug: mind-tiara
+      relationship: product
+      description: Wearable tiara that replaces the talisman.
+    - item_id: 558
+      item_name: Mind rune
+      slug: mind-rune
+      relationship: product
+      description: Rune crafted at the Mind Altar.
+  about: "Mind talisman provides access to the Mind Altar between Ice Mountain and Goblin Village, and combines with a tiara to produce a Mind tiara needed for the Easy Falador Diary."
+  market_strategy:
+    notes:
+      - Steady free-to-play demand from runecrafting and Easy Falador Diary.
+      - Imps drop at 7/128 — a primary supply source.
+      - Temple Supplies sells for 10 Abyssal pearls.
+  trading_tips:
+    - High daily volume (~65k) — tight margins, scale with quantity.
+    - Spikes around new f2p content or diary refreshes.
+  history:
+    - date: "2003-12-01"
+      description: "Added to the RuneScape 2 Beta."
+    - date: "2004-03-29"
+      description: "Permanently available with the RS2 launch."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    update: "RuneScape 2 launch"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.015
+    options:
+      - Locate
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

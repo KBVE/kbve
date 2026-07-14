@@ -1,6 +1,6 @@
 ---
 title: Musketeer hat | OSRS Price Data
-description: "Musketeer hat: Engarde!. High alch: 2,100 GP, GE limit: 4."
+description: "Musketeer hat is the head slot piece of the Musketeer cosmetic outfit, a rare reward from elite Treasure Trails with no combat bonuses. High alch: 2,100 GP, GE limit: 4."
 osrs:
   id: 12351
   name: Musketeer hat
@@ -12,9 +12,81 @@ osrs:
   lowalch: 1400
   highalch: 2100
   limit: 4
-  about: "Musketeer hat is a members-only item in Old School RuneScape. High alchemy value: 2,100 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2014-06-12"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weight: 0.005
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: "1/1,275"
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - item_id: 12353
+      item_name: Musketeer tabard
+      slug: musketeer-tabard
+      relationship: set-piece
+      description: "Body slot piece of the Musketeer cosmetic outfit."
+    - item_id: 12355
+      item_name: Musketeer pants
+      slug: musketeer-pants
+      relationship: set-piece
+      description: "Legs slot piece of the Musketeer cosmetic outfit."
+  about: "Musketeer hat is a cosmetic head slot item released with the Treasure Trail Expansion. It is a rare 1/1,275 drop from elite reward caskets, has zero combat bonuses, and exists purely for the Musketeer outfit collection - players typically store the full set inside the costume room treasure chest of a player-owned house."
+  market_strategy:
+    notes:
+      - "Supply trickles in only from active elite clue completions - low and steady."
+      - "GE buy limit of 4 per 4 hours forces collectors to drip-feed orders."
+      - "High alch of 2,100 gp is a fraction of GE price - never alch."
+      - "Demand is driven by costume-room set completionists, not gameplay utility."
+  trading_tips:
+    - "Watch for elite clue meta shifts (Vorkath, Demonic Gorillas) that bump casket throughput."
+    - "Cross-reference Musketeer tabard and pants prices - all three move together as a set."
+    - "Buy limit of 4 makes serious accumulation slow; treat as a long-hold cosmetic flip."
+  history:
+    - date: "2014-06-12"
+      description: "Added as part of the Treasure Trail Expansion update, distributed via elite reward caskets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,18 +12,64 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.12
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 30
+      materials:
+        - item_name: Raw anchovies
+          quantity: 1
+      tools:
+        - Fire or range
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Small fishing net (Net fishing spot)
+        quantity: "1"
+        rarity: Common
   related_items:
-    - item_id: 319
-      item_name: Anchovies
+    - item_name: Anchovies
       slug: anchovies
       relationship: product
-      description: Cooked version
-  about: |-
-    > _"I should try cooking this."_
-
-    Raw anchovies can be cooked at 1 Cooking to make anchovies. Also used as an ingredient in anchovy pizza. Caught at the same spots as raw shrimps.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Cooked result of using raw anchovies on a fire or range.
+    - item_name: Raw shrimps
+      slug: raw-shrimps
+      relationship: alternative
+      description: Caught at the same small net fishing spots.
+    - item_name: Anchovy pizza
+      slug: anchovy-pizza
+      relationship: product
+      description: Uses cooked anchovies as a topping ingredient.
+  about: "Raw anchovies are caught with a small fishing net at 15 Fishing for 40 XP per catch. They cook at 1 Cooking for 30 XP into anchovies, which double as a pizza topping ingredient."
+  market_strategy:
+    notes:
+      - "Steady supply from low-level fishers keeps prices flat near alch value."
+      - "Pizza-makers cause periodic demand spikes when bonus XP weekends hit."
+  trading_tips:
+    - Buy in bulk during late-night EU hours for the best fills.
+    - Cook into anchovies for a minor margin if Cooking XP is also wanted.
+  history:
+    - date: "2024-11-01"
+      description: "Catch message updated from 'You catch some anchovies' to 'You catch some raw anchovies' for clarity."
+    - date: "2001-06-11"
+      description: "Released with the original RuneScape Fishing skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

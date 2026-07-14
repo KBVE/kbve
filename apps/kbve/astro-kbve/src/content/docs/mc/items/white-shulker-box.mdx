@@ -1,5 +1,6 @@
 ---
 title: White Shulker Box
+template: splash
 description: |
     Minecraft White Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,44 @@ mc_item:
     id: 553
     ref: white_shulker_box
     slug: white-shulker-box
+    content_rev: 1
     display_name: White Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The White Shulker Box is a dyeable storage block holding 27 item slots that keeps
+            its contents intact when broken and picked up, making it fully portable storage.
+            It is crafted by dyeing an undyed Shulker Box, itself made from a Shulker Shell
+            and a chest, white.
+        lore: |
+            Shulker Boxes repurpose shells dropped by the End's hostile shulkers into some of
+            the most useful portable storage in the game.
+    faq:
+        - question: |
+              How do I make a White Shulker Box?
+          answer: |
+              Combine an undyed Shulker Box (crafted from one Shulker Shell and one chest)
+              with White Dye in a crafting grid.
+        - question: |
+              Can I change a White Shulker Box's color later?
+          answer: |
+              Yes, combine it with a different dye to recolor it, or place it in a cauldron
+              filled with water to remove the dye entirely.
+        - question: |
+              What happens to items inside when I break a White Shulker Box?
+          answer: |
+              Unlike a normal chest, its contents are stored inside the dropped item itself
+              rather than scattering on the ground, so nothing is lost when it is mined.
+        - question: |
+              Can White Shulker Boxes stack in my inventory?
+          answer: |
+              No, Shulker Boxes never stack, though they can be stored inside other
+              containers such as chests or barrels, just not inside other shulker boxes or
+              bundles.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

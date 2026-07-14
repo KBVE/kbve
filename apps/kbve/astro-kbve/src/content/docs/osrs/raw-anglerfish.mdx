@@ -12,66 +12,89 @@ osrs:
   lowalch: 180
   highalch: 270
   limit: 15000
+  about: "Raw anglerfish is a members-only fish in Old School RuneScape. Caught at Port Piscarilius with sandworms; cooked anglerfish can overheal hitpoints. High alchemy value: 270 coins. Grand Exchange buy limit: 15,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    weight: 0.4
+    tradeable: true
+    equipable: false
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
   material:
-    type: fish
-    tier: high
-  fishing:
-    level: 82
-    xp: 120
-    method: Rod Fishing
-    location: Port Piscarilius
-    bait: Sandworms
-  cooking:
-    level: 84
-    xp: 230
-    burn_stop: 99
-    burn_stop_gauntlets: 93
-  related_items:
-    - item_id: 13441
-      item_name: Anglerfish
-      slug: anglerfish
-      relationship: product
-      description: Cooked version (overheal food)
-    - item_id: 383
-      item_name: Raw shark
-      slug: raw-shark
-      relationship: alternative
-      description: Mid-tier alternative
-    - item_id: 389
-      item_name: Raw manta ray
-      slug: raw-manta-ray
-      relationship: alternative
-      description: Similar tier
-    - item_id: 13431
-      item_name: Sandworms
-      slug: sandworms
+    type: food
+    tier: fish
+  drop_table:
+    - source: "Skotizo"
+      quantity: "60"
+      rarity: "7/100"
+      notes: "Noted drop; combat level 321."
+    - source: "Drake"
+      quantity: "4-6"
+      rarity: "1/93"
+      notes: "Noted drop; combat level 192."
+    - source: "Guardian Drake"
+      quantity: "4-6"
+      rarity: "3/93"
+      notes: "Noted drop; combat level 376."
+  recipes:
+    - item_name: "Anglerfish"
+      skill: "Cooking"
+      level_required: 84
+      xp: 230
+      tools:
+        - "Range or fire"
+      materials:
+        - item_name: "Raw anglerfish"
+          quantity: 1
+      output_quantity: 1
+      notes: "Burns until 99 Cooking without cooking gauntlets; 93 with gauntlets at Hosidius range."
+    - item_name: "Raw anglerfish"
+      skill: "Fishing"
+      level_required: 82
+      xp: 120
+      tools:
+        - "Fishing rod"
+        - "Sandworms"
+      materials:
+        - item_name: "Sandworms"
+          quantity: 1
+      output_quantity: 1
+      notes: "Caught at Port Piscarilius. Diabolic worms give 79.2 XP. Pearl fishing rod also works."
+  relationships:
+    - item_name: "Anglerfish"
       relationship: component
-      description: Required bait
-  about: |-
-    | Skill | Level | XP |
-    |-------|-------|-----|
-    | Fishing | 82 | 120 |
-    | Cooking | 84 | 230 |
-
-    Location: Port Piscarilius (Rod Fishing spot)
+      notes: "Cooked variant; overheals hitpoints up to 121."
+    - item_name: "Sandworms"
+      relationship: component
+      notes: "Bait required to fish raw anglerfish."
+    - item_name: "Diabolic worms"
+      relationship: component
+      notes: "Alternative bait with lower XP rate."
+    - item_name: "Raw shark"
+      relationship: alternative
+      notes: "Mid-tier raw fish alternative."
+    - item_name: "Raw manta ray"
+      relationship: alternative
+      notes: "Similar-tier raw fish from Fishing Guild."
+  history:
+    - date: "2016-01-07"
+      description: "Released with the Zeah: Great Kourend update."
+    - date: "2024-01-10"
+      description: "Kourend Favour requirement removed for fishing anglerfish."
   market_strategy:
-    profit_formulas:
-      - Anglerfish - Raw anglerfish = Profit
     notes:
-      - Buy raw → Cook → Sell cooked
-      - "Calculate:"
-      - 84+ Cooking required
-      - Burns until 99 without Cooking gauntlets
-      - Use Hosidius range + gauntlets for 0% burn
-      - Port Piscarilius only (Kourend)
-      - 100% Piscarilius favour required
-      - Sandworm bait needed
-      - Anglerfish overheal makes them premium
-      - Raw often cheaper due to cooking req
-      - Good AFK fishing method
-      - Check cooked vs raw margins daily
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "buy_strategy: \"Buy raw, cook with gauntlets at Hosidius range, sell cooked anglerfish for cooked-raw margin.\""
+      - "sell_strategy: \"Sell to PvMers needing overheal food or directly to cookers.\""
+      - "profit_potential: \"Healthy daily volume; consistent cooked-raw margin opportunity.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Daily volume in the millions — extremely liquid."
+    - "Buy limit 15,000 enables bulk cook-flips."
+    - "Cooking gauntlets + Hosidius range minimize burn at 84+."
+    - "Cooked anglerfish overheal makes them premium PvM food."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

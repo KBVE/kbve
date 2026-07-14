@@ -12,56 +12,83 @@ osrs:
   lowalch: 1410
   highalch: 2115
   limit: 10000
+  about: "Diamond ring is a free-to-play gold ring set with a diamond, crafted at 43 Crafting from a gold bar, cut diamond, and ring mould at a furnace for 85 XP. Members can cast Lvl-4 Enchant on it to make a Ring of Life that auto-teleports the wearer to their respawn point when HP drops below 10%. High alchemy value: 2,115 coins. Grand Exchange buy limit: 10,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-05-08"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.006
+  material:
+    type: gem
+    primary: gold
+    tier: diamond
   equipment:
     slot: ring
-    requirements:
-      crafting: 43
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
-    - skill: crafting
-      level: 43
-      xp: 85
-      inputs:
-        - item_id: 1662
-          item_name: Diamond
+    - item_name: Diamond ring
+      tools: ["Ring mould", "Furnace"]
+      materials:
+        - item_name: Gold bar
           quantity: 1
-        - item_id: 2357
-          item_name: Gold bar
+        - item_name: Diamond
           quantity: 1
       output_quantity: 1
-  related_items:
-    - item_id: 1641
-      item_name: Ruby ring
-      slug: ruby-ring
-      relationship: downgrade
-      description: Previous tier ring
-    - item_id: 1645
-      item_name: Dragonstone ring
-      slug: dragonstone-ring
-      relationship: upgrade
-      description: Next tier ring
-    - item_id: 2570
-      item_name: Ring of life
-      slug: ring-of-life
-      relationship: upgrade
-      description: Enchanted version (auto-teleport at low HP)
-  about: |-
-    Crafting (Level 43): Diamond + Gold bar at a furnace (85 XP)
-
-    > *"A diamond ring."*
-
-    Lvl-4 Enchant (57 Magic): 1 cosmic rune + 10 earth runes (67 XP)
-
-    The Ring of life automatically teleports you to your respawn point when HP drops to 10% or below. Destroyed after one use. Works up to level 30 Wilderness (higher than most jewelry). Popular safety item for:
-    - Hardcore Ironman accounts
-    - Wilderness skilling
-    - AFK training
+      skill: Crafting
+      level: 43
+      xp: 85
+      notes: "Crafted at a furnace; sells well to Magic trainers enchanting Rings of Life."
+    - item_name: Ring of life
+      tools: ["Staff"]
+      materials:
+        - item_name: Diamond ring
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Earth rune
+          quantity: 10
+      output_quantity: 1
+      skill: Magic
+      level: 57
+      xp: 67
+      notes: "Members-only Lvl-4 Enchant converts the diamond ring into a Ring of Life."
   market_strategy:
     notes:
-      - Ring of life consumed on activation — recurring demand
-      - Popular with HCIM and Wilderness players
-      - Diamond cost is the main expense
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "buy_range: \"1,800 - 2,000 gp\""
+      - "sell_range: \"2,000 - 2,300 gp\""
+      - "Steady recurring demand from Magic trainers turning diamond rings into Rings of Life; margins tighten when diamond prices spike."
+  trading_tips:
+    - "Track diamond and gold bar prices together; craft margins drive flips."
+    - "Demand spikes during Wilderness events as HCIM accounts stock Rings of Life."
+    - "Bulk-craft for Magic XP and resell the enchanted Ring of Life for combined profit."
+  history:
+    - date: "2001-05-08"
+      description: "Released with the original crafting jewelry set."
+    - date: "2007-04-30"
+      description: "Received a graphical update to its inventory icon."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

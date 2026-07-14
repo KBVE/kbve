@@ -1,6 +1,6 @@
 ---
 title: Christmas cracker | OSRS Price Data
-description: "Christmas cracker: I need to pull this.. High alch: 1 GP, GE limit: 4."
+description: "Christmas cracker: I need to pull this. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 962
   name: Christmas cracker
@@ -12,13 +12,64 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  related_items: []
-  about: |-
-    > _"I need to pull this."_
-
-    The Christmas cracker is a holiday item. When used on another player, both receive rewards — a partyhat (in various colours) and a secondary item. Players can choose which specific partyhat they receive. One of the original holiday-themed items.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: holiday item
+    tier: high
+  properties:
+    release_date: "2001-12-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.2
+    options: ["Pull", "Drop"]
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Red partyhat
+      slug: red-partyhat
+      relationship: product
+      description: "One of six partyhat colours obtainable from pulling a cracker"
+    - item_name: Yellow partyhat
+      slug: yellow-partyhat
+      relationship: product
+      description: "One of six partyhat colours obtainable from pulling a cracker"
+    - item_name: White partyhat
+      slug: white-partyhat
+      relationship: product
+      description: "One of six partyhat colours obtainable from pulling a cracker"
+    - item_name: Green partyhat
+      slug: green-partyhat
+      relationship: product
+      description: "One of six partyhat colours obtainable from pulling a cracker"
+    - item_name: Blue partyhat
+      slug: blue-partyhat
+      relationship: product
+      description: "One of six partyhat colours obtainable from pulling a cracker"
+    - item_name: Purple partyhat
+      slug: purple-partyhat
+      relationship: product
+      description: "One of six partyhat colours obtainable from pulling a cracker"
+  about: "The Christmas cracker is a rare holiday item introduced in December 2001 during the Christmas event. When pulled between two players, both players now receive rewards, choosing a partyhat (red, yellow, white, green, blue, or purple) plus a secondary item such as chocolate, runes, ore, or daggers. Its single-event distribution makes it one of the most valuable tradeable items in the game."
+  market_strategy:
+    notes:
+      - "One-time 2001 holiday distribution makes supply fixed"
+      - "Pulled crackers are consumed and removed from circulation permanently"
+      - "Considered a status symbol comparable to the rarest discontinued items"
+  trading_tips:
+    - "Trade carefully via trusted middlemen due to scam risk on high-value rares"
+    - "Track partyhat price trends since cracker value tracks the underlying hat market"
+    - "Long-term holders typically use crackers as an inflation hedge against partyhat decay"
+  history:
+    - date: "2001-12-24"
+      description: "Christmas cracker released as the original 2001 Christmas event reward."
+    - date: "2024-05-01"
+      description: "Both players now receive rewards when a cracker is pulled."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

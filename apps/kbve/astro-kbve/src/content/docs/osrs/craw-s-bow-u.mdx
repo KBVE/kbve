@@ -12,9 +12,58 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 8
-  about: "Craw's bow (u) is a members-only item in Old School RuneScape. High alchemy value: 72,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-07-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Revenant imp
+        quantity: "1"
+        rarity: 1/146668
+      - source: Revenant dragon
+        quantity: "1"
+        rarity: 1/5333
+  related_items:
+    - item_name: Craw's bow
+      slug: craws-bow
+      relationship: product
+      description: Charged variant created with revenant ether
+    - item_name: Webweaver bow
+      slug: webweaver-bow
+      relationship: upgrade
+      description: Tier upgrade made by attaching fangs of Venenatis
+    - item_name: Revenant ether
+      slug: revenant-ether
+      relationship: component
+      description: Charges required to wield the bow
+  about: "Craw's bow (u) is the uncharged form of Craw's bow, dropped exclusively from revenants in the Revenant Caves with a rate that scales with the revenant's combat level. Charging it with 7,500 revenant ether yields the wieldable Craw's bow, which can be further upgraded into the webweaver bow using fangs of Venenatis. Uncharging returns all stored ether to the inventory."
+  market_strategy:
+    notes:
+      - "Supply entirely throttled by revenant cave throughput"
+      - "Wilderness PvP risk depresses player participation"
+      - "Demand split between Craw's bow chargers and webweaver upgraders"
+      - "Buy limit of 8 caps speculation"
+  trading_tips:
+    - Compare against charged Craw's bow price minus 7,500 ether cost for arbitrage
+    - Watch revenant cave updates and Wilderness changes for supply swings
+    - Webweaver bow demand sets the long-term floor
+  history:
+    - date: "2018-07-26"
+      description: "Released alongside the Revenant Caves update."
+    - date: "2025-03-05"
+      description: "Updated to support bank-side charge management."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

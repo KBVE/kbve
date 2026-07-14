@@ -12,15 +12,18 @@ osrs:
   lowalch: 19
   highalch: 28
   limit: 10000
+  material:
+    type: unfinished_potion
+    tier: mid
   potion:
     doses: 0
     type: unfinished
     base_herb: toadflax
     base_herb_id: 2998
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    weight: 0.056
+    effects:
+      - description: Combine with toad's legs at Herblore 34 for Agility potion.
+      - description: Combine with crushed nest at Herblore 81 for Saradomin brew.
+      - description: Combine with toad's eggs at Herblore 47 for Goblin potion.
   recipes:
     - skill: herblore
       level: 34
@@ -32,10 +35,8 @@ osrs:
         - item_name: Vial of water
           item_id: 227
           quantity: 1
-      product: Toadflax potion (unf)
-      product_id: 3002
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
     - item_id: 2998
       item_name: Toadflax
@@ -51,26 +52,50 @@ osrs:
       item_name: Saradomin brew(4)
       slug: saradomin-brew-4
       relationship: product
-      description: Final product
+      description: Saradomin brew final product
     - item_id: 2152
-      item_name: Toad's legs
+      item_name: "Toad's legs"
       slug: toads-legs
       relationship: component
       description: Secondary for Agility potion
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 34 Herblore |
-
-    Add secondary ingredient to create:
-    - Agility potion (+ toad's legs)
-    - Saradomin brew (+ crushed nest)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Toadflax potion (unf) is an unfinished potion made at level 34 Herblore from a toadflax and vial of water. Used to brew Agility, Saradomin brew and Goblin potions by adding the relevant secondary ingredient."
+  market_strategy:
+    notes:
+      - High-volume Herblore intermediate
+      - Saradomin brew demand drives price
+      - Used in profit-making Herblore methods
+      - High buy limit (10,000) supports flipping
+      - Toadflax herb price gates production
+  trading_tips:
+    - Buy below toadflax + vial of water sum
+    - Sell during Saradomin brew price spikes
+    - Stock for Herblore skill events
+  history:
+    - date: "2016-04-15"
+      description: Became bankable as a placeholder via Bank Placeholders update.
+    - date: "2014-05-01"
+      description: Renamed from generic "Unfinished potion" to "Toadflax potion (unf)".
+    - date: "2004-10-26"
+      description: "\"Empty\" option added to unfinished potions."
+    - date: "2004-07-27"
+      description: Released with the Agility, Potions and Parties! update.
+  properties:
+    release_date: "2004-07-27"
+    update: Agility, Potions and Parties!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,64 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Premade choc s'dy is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.45
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: Restores 5 Hitpoints.
+        duration: 0
+      - description: Lowers Attack by 2 plus an additional level.
+        duration: 0
+      - description: Boosts Strength by 5% plus 2 levels.
+        duration: 0
+  shops:
+    - shop_name: Blurberry Bar
+      location: Grand Tree
+      price: 30
+      currency: Coins
+      stock: 2
+    - shop_name: Gnome Stronghold cocktail shop
+      location: Gnome Stronghold
+      price: 30
+      currency: Coins
+      stock: 2
+  related_items:
+    - item_name: Chocolate saturday
+      slug: chocolate-saturday
+      relationship: alternative
+      description: Player-crafted equivalent of the premade cocktail.
+    - item_name: Premade fr't crunchies
+      slug: premade-fr-t-crunchies
+      relationship: alternative
+      description: Another premade gnome cuisine from Blurberry Bar.
+  about: "Premade choc s'dy is the shop version of the Chocolate Saturday gnome cocktail, sold at Blurberry Bar in the Grand Tree. It restores 5 Hitpoints while granting a 5% plus 2 level Strength boost in exchange for a small Attack drain. Cannot be used in the Gnome Restaurant minigame."
+  market_strategy:
+    notes:
+      - "Restock-limited supply at 30 coins makes shop-to-GE flips reliable when GE price drifts above 60."
+      - "Demand is steady from low-level pures and skillers wanting Strength boosts."
+  trading_tips:
+    - Hop worlds for Blurberry Bar restocks to maximise per-trip volume.
+    - Note the cocktail before banking to halve trip count.
+  history:
+    - date: "2006-08-07"
+      description: "Renamed from 'Choc saturday' to 'Premade choc s'dy' and graphically updated alongside the Gnome Restaurant overhaul."
+    - date: "2002-12-12"
+      description: "Released with the Gnome Restaurant minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

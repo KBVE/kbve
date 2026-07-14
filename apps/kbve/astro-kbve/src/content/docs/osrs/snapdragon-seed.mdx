@@ -1,6 +1,6 @@
 ---
 title: Snapdragon seed | OSRS Price Data
-description: "Snapdragon seed: A snapdragon seed - plant in a herb patch.. High alch: 36 GP, GE limit: 200."
+description: "Snapdragon seed: A snapdragon seed - plant in a herb patch. High alch: 36 GP, GE limit: 200."
 osrs:
   id: 5300
   name: Snapdragon seed
@@ -12,70 +12,77 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 200
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: seed
+    tier: high
   properties:
+    release_date: "2005-06-06"
     tradeable: true
-    tradeable_ge: true
     stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
-  skilling_sources:
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
     - skill: farming
       level: 62
       xp: 98.5
-      growth_time: 80
+      materials:
+        - item_name: Snapdragon seed
+          quantity: 1
+      tools:
+        - Seed dibber
+        - Spade
+      output_quantity: 1
   drop_table:
     sources:
-      - source: Master Farmers
-        source_id: 5730
-        combat_level: 0
+      - source: Master Farmer
         quantity: "1"
-        rarity: rare
-        members_only: true
+        rarity: Rare
       - source: Aberrant spectre
-        source_id: 2927
-        combat_level: 96
         quantity: "1"
-        rarity: common
-        members_only: true
+        rarity: Uncommon
       - source: Dark beast
-        source_id: 4005
-        combat_level: 182
         quantity: "1"
-        rarity: common
-        members_only: true
+        rarity: Uncommon
+      - source: Vyrewatch
+        quantity: "1"
+        rarity: "1/209,999"
   related_items:
-    - item_id: 3000
-      item_name: Snapdragon
+    - item_name: Grimy snapdragon
+      slug: grimy-snapdragon
+      relationship: product
+      description: "Herb harvested from a mature snapdragon plant."
+    - item_name: Snapdragon
       slug: snapdragon
       relationship: product
-      description: Harvested herb
-    - item_id: 3024
-      item_name: Super restore(4)
-      slug: super-restore-4
-      relationship: product
-      description: Primary potion use
-    - item_id: 5295
-      item_name: Ranarr seed
+      description: "Cleaned herb used in Super restore potions."
+    - item_name: Ranarr seed
       slug: ranarr-seed
       relationship: alternative
-      description: Alternative herb seed
+      description: "Alternative high-value herb seed."
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 62 Farming |
-
-    Plant in herb patches to grow grimy snapdragons.
-
-    Growth Time: 80 minutes (4 cycles)
-
-    Yield: 5-18 herbs (depends on Magic Secateurs, Farming level)
-
-    XP: 98.5 (planting) + 199 (harvesting)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Snapdragon seed is planted in a herb patch at 62 Farming, granting 98.5 experience on planting and 142.5 experience per herb harvested. Growth takes about 80 minutes across four cycles, and the harvest feeds the Super restore potion supply chain. Disease prevention (Ultracompost or Fertile Soil) is critical because gardeners do not protect snapdragon patches.
+  market_strategy:
+    notes:
+      - "Seed supply scales with high-level Thieving and Slayer training."
+      - "Demand follows Super restore consumption from PvM and Ironman trade routes."
+  trading_tips:
+    - "Buy when snapdragon herb prices dip; potion margins drag seed prices with them."
+    - "Hold through bond price spikes; seeds often outpace bonds during PvM seasons."
+  history:
+    - date: "2005-06-06"
+      description: "Released with the Farming skill update."
+    - date: "2005-08-08"
+      description: "Renamed from the generic herb seed label to snapdragon seed."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Cobbled Deepslate Wall
+template: splash
 description: |
     Minecraft Cobbled Deepslate Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 1063
     ref: cobbled_deepslate_wall
     slug: cobbled-deepslate-wall
+    content_rev: 1
     display_name: Cobbled Deepslate Wall
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobbled_deepslate_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Cobbled Deepslate Wall is a decorative wall variant of cobbled
+            deepslate that connects to adjacent blocks and can raise its
+            posts to block projectiles. It generates naturally within
+            ancient city structures in the Deep Dark.
+        lore: |
+            First added as "Grimstone Wall" in Java Edition 21w07a, it was
+            renamed and later worked into ancient city generation in 1.19.
+    uses:
+        - title: Building & Fencing
+          ref: cobbled_deepslate
+          detail: |
+              Used to border and decorate deepslate-themed builds; like all
+              walls it blocks mobs and connects visually to neighboring
+              walls and solid blocks.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as part of ancient city structures in the deep dark.
+        - location: Crafting table or stonecutter
+          detail: |
+              Crafted from 6 cobbled deepslate (yields 6 walls), or cut
+              from cobbled deepslate or deepslate at a stonecutter.
+    faq:
+        - question: What tool do I need to mine Cobbled Deepslate Wall?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one wall regardless of
+              enchantments.
+        - question: Does it block arrows and other projectiles?
+          answer: |
+              Yes, when its post is raised by an adjacent wall or block, a
+              cobbled deepslate wall blocks line-of-sight and projectiles
+              like a fence.
+        - question: Where does it generate naturally?
+          answer: |
+              It generates as part of ancient city structures in the deep
+              dark biome.
     data_version: "1.21.5"
 ---
 

@@ -12,8 +12,35 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragonhide
+    tier: mid-high
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.9
+    requirements:
+      defence: 40
+      ranged: 70
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,27 +58,30 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 1
-    requirements:
-      ranged: 70
-      defence: 40
+  drop_table:
+    sources:
+      - source: Hard Treasure Trails reward casket
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 10382
-      item_name: Guthix coif
+    - item_name: Guthix coif
       slug: guthix-coif
       relationship: variant
       description: God blessed coif variant
-    - item_id: 10374
-      item_name: Zamorak coif
+    - item_name: Zamorak coif
       slug: zamorak-coif
       relationship: variant
       description: God blessed coif variant
-    - item_id: 12504
-      item_name: Bandos coif
+    - item_name: Bandos coif
       slug: bandos-coif
       relationship: variant
       description: God blessed coif variant
-    - item_id: 12512
-      item_name: Armadyl coif
+    - item_name: Armadyl coif
       slug: armadyl-coif
       relationship: variant
       description: God blessed coif variant
@@ -61,11 +91,12 @@ osrs:
     All blessed coifs share identical stats. They offer a +1 prayer bonus over a standard coif while maintaining the same defensive profile. The choice between god variants is purely cosmetic.
   market_strategy:
     notes:
-      - Hard clue exclusive — supply tied to clue completion rates
-      - Price differences between gods are cosmetic preference only
-      - Armadyl and Ancient tend to command slight premiums
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Hard clue exclusive — supply tied to clue completion rates"
+      - "Price differences between gods are cosmetic preference only"
+      - "Armadyl and Ancient tend to command slight premiums"
+  history:
+    - date: "2014-06-12"
+      description: "Released as part of the blessed dragonhide coif set in the God Wars update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

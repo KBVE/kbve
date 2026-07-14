@@ -1,5 +1,6 @@
 ---
 title: Red Sand
+template: splash
 description: |
     Minecraft Red Sand — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 62
     ref: red_sand
     slug: red-sand
+    content_rev: 1
     display_name: Red Sand
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Red sand is a badlands-exclusive variant of sand that generates in a single
+            layer below roughly Y=74 and behaves like regular sand in most respects,
+            including falling when unsupported. It can be crafted into red sandstone or
+            used for TNT and glass, though unlike regular sand it cannot be turned into
+            concrete powder.
+        lore: |
+            Red sand's rusty hue is what gives the badlands biome its striking,
+            iconic terrain color.
+    faq:
+        - question: Where can I find red sand?
+          answer: |
+              It generates naturally in badlands biomes and their variants, always as a
+              single layer below around Y=74, and also inside abandoned camps.
+        - question: Can red sand be crafted into concrete powder?
+          answer: |
+              No, unlike regular sand it cannot be used to craft concrete powder.
+        - question: Does red sand fall like regular sand?
+          answer: |
+              Yes, it is affected by gravity and falls as a block entity when unsupported,
+              dealing suffocation damage if it lands on a player or mob.
+        - question: How can I get red sand without visiting a badlands biome?
+          answer: |
+              Wandering traders occasionally sell 4 red sand blocks for 1 emerald.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

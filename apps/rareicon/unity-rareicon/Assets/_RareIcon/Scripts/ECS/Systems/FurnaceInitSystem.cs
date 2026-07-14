@@ -31,7 +31,9 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
-            var hexLookup    = SystemAPI.GetSingleton<HexDBSingleton>().Lookup;
+            var hexDB        = SystemAPI.GetSingleton<HexDBSingleton>();
+            hexDB.DrainHandle.Complete();
+            var hexLookup    = hexDB.Lookup;
             var biomeLookup  = SystemAPI.GetComponentLookup<BiomeType>(true);
             var buildingLookup = SystemAPI.GetComponentLookup<Building>(true);
 

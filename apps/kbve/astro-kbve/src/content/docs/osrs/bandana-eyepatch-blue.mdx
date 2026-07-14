@@ -12,9 +12,75 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Bandana eyepatch (blue) is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-07-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+  equipment:
+    slot: head
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: false
+    reward_tiers:
+      - elite
+  related_items:
+    - item_name: Bandana eyepatch (red)
+      slug: bandana-eyepatch-red
+      relationship: variant
+      description: Red colour variant of the same pirate headwear
+    - item_name: Bandana eyepatch (white)
+      slug: bandana-eyepatch-white
+      relationship: variant
+      description: White colour variant of the same pirate headwear
+    - item_name: Blue bandana
+      slug: blue-bandana
+      relationship: component
+      description: Bandana combined with a right eyepatch by Patchy on Mos Le'Harmless
+    - item_name: Right eyepatch
+      slug: right-eyepatch
+      relationship: component
+      description: Eyepatch combined with a blue bandana by Patchy on Mos Le'Harmless
+  about: "The blue bandana eyepatch is a cosmetic pirate headwear assembled by Patchy on Mos Le'Harmless for 500 coins, requiring a blue bandana, a right eyepatch, and completion of Cabin Fever. It has no combat bonuses but is needed for an elite Treasure Trail emote clue, sustaining low but steady GE demand at a price well above its alch value."
+  market_strategy:
+    notes:
+      - "Elite clue emote requirement keeps a baseline demand"
+      - "No combat use — purely cosmetic and clue-driven flow"
+      - "Cheap to assemble vs GE price; supply often comes from clue rewards"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

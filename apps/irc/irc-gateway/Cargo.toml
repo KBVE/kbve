@@ -1,8 +1,9 @@
 [package]
 name = "irc-gateway"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.19"
+version = "0.1.28"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 
 [dependencies]
@@ -11,7 +12,7 @@ thiserror = "2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { version = "0.6.8", features = ["compression-full", "limit", "trace", "cors", "set-header", "fs"] }
+tower-http = { version = "0.7.0", features = ["compression-full", "limit", "trace", "cors", "set-header", "fs"] }
 tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -25,7 +26,7 @@ jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink"] }
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi" }
+jedi = { path = "../../../packages/rust/jedi", features = ["valkey"] }
 kbve = { path = "../../../packages/rust/kbve" }
 
 # Shared chat message schema — ChatMessage + MessageKind +
@@ -34,7 +35,7 @@ kbve = { path = "../../../packages/rust/kbve" }
 bevy_chat = { path = "../../../packages/rust/bevy/bevy_chat" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.6", optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
 
 [dev-dependencies]
 serial_test = "3"

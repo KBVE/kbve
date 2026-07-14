@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: forgejo-oauth-register
+    namespace: forgejo
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/sync-wave: '-1'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: forgejo-oauth-register-kilobase-access
+    namespace: kilobase
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/sync-wave: '-1'
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['create']
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'patch', 'update']
+      resourceNames: ['forgejo-oauth-credentials']
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get']
+      resourceNames: ['supabase-jwt']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: forgejo-oauth-register-kilobase-access
+    namespace: kilobase
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/sync-wave: '-1'
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: forgejo-oauth-register-kilobase-access
+subjects:
+    - kind: ServiceAccount
+      name: forgejo-oauth-register
+      namespace: forgejo
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: forgejo-oauth-register
+    namespace: forgejo
+    labels:
+        app: forgejo-oauth-register
+        kbve.com/category: development
+        kbve.com/stack: core
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+    backoffLimit: 3
+    template:
+        metadata:
+            labels:
+                app: forgejo-oauth-register
+        spec:
+            serviceAccountName: forgejo-oauth-register
+            restartPolicy: Never
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 65534
+                fsGroup: 65534
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: register-client
+                  image: ghcr.io/kbve/kubectl:0.1.5
+                  imagePullPolicy: IfNotPresent
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                      readOnlyRootFilesystem: true
+                  command:
+                      - /bin/sh
+                      - -c
+                      - |
+                          set -e
+
+                          echo "==> Checking if OAuth client already exists..."
+                          if kubectl get secret forgejo-oauth-credentials -n kilobase >/dev/null 2>&1; then
+                              echo "OAuth client credentials already exist. Skipping registration."
+                              CLIENT_ID=$(kubectl get secret forgejo-oauth-credentials -n kilobase -o jsonpath='{.data.client-id}' | base64 -d)
+                              echo "Existing client_id: ${CLIENT_ID:0:20}..."
+                              exit 0
+                          fi
+
+                          echo "==> Retrieving Supabase service-key..."
+                          SERVICE_KEY=$(kubectl get secret -n kilobase supabase-jwt -o jsonpath='{.data.service-key}' | base64 -d)
+
+                          echo "==> Registering Forgejo OAuth client with Supabase..."
+                          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://auth.kilobase.svc.cluster.local:9999/admin/oauth/clients" \
+                            -H "Authorization: Bearer ${SERVICE_KEY}" \
+                            -H "Content-Type: application/json" \
+                            -d '{
+                              "client_name": "Forgejo KBVE",
+                              "client_type": "confidential",
+                              "redirect_uris": ["https://git.kbve.com/user/oauth2/kbve/callback", "https://forgejo.kbve.com/user/oauth2/kbve/callback"],
+                              "token_endpoint_auth_method": "client_secret_post"
+                            }')
+
+                          HTTP_CODE=$(echo "${RESPONSE}" | tail -n1)
+                          RESPONSE_BODY=$(echo "${RESPONSE}" | sed '$d')
+
+                          if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "201" ]; then
+                              echo "ERROR: OAuth registration failed with HTTP ${HTTP_CODE}"
+                              exit 1
+                          fi
+
+                          CLIENT_ID=$(echo "${RESPONSE_BODY}" | grep -o '"client_id":"[^"]*"' | cut -d'"' -f4)
+                          CLIENT_SECRET=$(echo "${RESPONSE_BODY}" | grep -o '"client_secret":"[^"]*"' | cut -d'"' -f4)
+
+                          if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ]; then
+                              echo "ERROR: Failed to extract client credentials from response"
+                              exit 1
+                          fi
+
+                          echo "==> Successfully registered OAuth client"
+                          echo "==> Credentials stored securely (not logged)"
+
+                          echo "==> Creating Kubernetes secret..."
+                          kubectl create secret generic forgejo-oauth-credentials \
+                            --namespace=kilobase \
+                            --from-literal=client-id="${CLIENT_ID}" \
+                            --from-literal=client-secret="${CLIENT_SECRET}" \
+                            --dry-run=client -o yaml | kubectl apply -f -
+
+                          echo "==> OAuth client credentials stored in kilobase/forgejo-oauth-credentials"
+                          echo "==> Setup complete!"

@@ -1,5 +1,6 @@
 ---
 title: Magenta Shulker Box
+template: splash
 description: |
     Minecraft Magenta Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 555
     ref: magenta_shulker_box
     slug: magenta-shulker-box
+    content_rev: 1
     display_name: Magenta Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Magenta Shulker Box is a portable storage container dyed magenta, crafted from a shulker shell and a chest. It holds 27 slots of inventory just like a chest, but uniquely keeps its contents intact when mined and picked up, letting players carry entire stashes in a single inventory slot.
+        lore: |
+            A shulker shell bound to a chest and stained magenta, forever loyal to whatever it is asked to hold.
+    faq:
+        - question: How do you craft a Magenta Shulker Box?
+          answer: |
+              Combine a shulker shell with a chest to make a plain shulker box, then dye it magenta with magenta dye; a cauldron can remove the color later if needed.
+        - question: Does a Magenta Shulker Box keep its items when broken?
+          answer: |
+              Yes, unlike normal containers, the contents remain stored inside the box itself when it is mined, so nothing spills out.
+        - question: Can you stack multiple Magenta Shulker Boxes in one inventory slot?
+          answer: |
+              No, shulker boxes cannot stack, so each one occupies its own inventory slot regardless of color.
+        - question: Where do you get shulker shells for crafting shulker boxes?
+          answer: |
+              Shulker shells are dropped by shulkers, which are found in End cities, making shulker boxes a mid-to-late-game convenience item.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

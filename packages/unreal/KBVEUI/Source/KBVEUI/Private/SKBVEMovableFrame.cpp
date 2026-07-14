@@ -1,0 +1,253 @@
+#include "SKBVEMovableFrame.h"
+
+#include "KBVEUITheme.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/SCanvas.h"
+#include "Widgets/SOverlay.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Styling/CoreStyle.h"
+#include "Widgets/SNullWidget.h"
+
+namespace
+{
+	class SKBVEDragHandle : public SCompoundWidget
+	{
+	public:
+		DECLARE_DELEGATE_OneParam(FOnDragMoved, const FVector2D& /*ScreenDelta*/);
+
+		SLATE_BEGIN_ARGS(SKBVEDragHandle) {}
+			SLATE_EVENT(FOnDragMoved, OnDragMoved)
+			SLATE_DEFAULT_SLOT(FArguments, Content)
+		SLATE_END_ARGS()
+
+		void Construct(const FArguments& InArgs)
+		{
+			OnDragMoved = InArgs._OnDragMoved;
+			ChildSlot
+			[
+				InArgs._Content.Widget
+			];
+		}
+
+		virtual FReply OnMouseButtonDown(const FGeometry&, const FPointerEvent& Event) override
+		{
+			if (Event.GetEffectingButton() == EKeys::LeftMouseButton)
+			{
+				bDragging = true;
+				LastScreen = Event.GetScreenSpacePosition();
+				return FReply::Handled().CaptureMouse(SharedThis(this));
+			}
+			return FReply::Unhandled();
+		}
+
+		virtual FReply OnMouseMove(const FGeometry&, const FPointerEvent& Event) override
+		{
+			if (bDragging)
+			{
+				const FVector2D Cur = Event.GetScreenSpacePosition();
+				const FVector2D Delta = Cur - LastScreen;
+				LastScreen = Cur;
+				OnDragMoved.ExecuteIfBound(Delta);
+				return FReply::Handled();
+			}
+			return FReply::Unhandled();
+		}
+
+		virtual FReply OnMouseButtonUp(const FGeometry&, const FPointerEvent& Event) override
+		{
+			if (bDragging && Event.GetEffectingButton() == EKeys::LeftMouseButton)
+			{
+				bDragging = false;
+				return FReply::Handled().ReleaseMouseCapture();
+			}
+			return FReply::Unhandled();
+		}
+
+	private:
+		FOnDragMoved OnDragMoved;
+		FVector2D LastScreen = FVector2D::ZeroVector;
+		bool bDragging = false;
+	};
+}
+
+void SKBVEMovableFrame::Construct(const FArguments& InArgs)
+{
+	SetCanTick(false);
+	Position                   = InArgs._InitialPosition;
+	FrameSize                  = InArgs._FrameSize;
+	MinFrameSize               = InArgs._MinFrameSize;
+	Title                      = InArgs._Title;
+	OnCloseDelegate            = InArgs._OnCloseClicked;
+	OnGeometryChangedDelegate  = InArgs._OnGeometryChanged;
+	const bool bResizable      = InArgs._bResizable;
+	bDocked                    = InArgs._bStartDocked;
+	DockPadding                = InArgs._DockPadding;
+	DockedPosition             = Position;
+	SetCanTick(bDocked);
+
+	const FSlateFontInfo TitleFont = FCoreStyle::GetDefaultFontStyle("Bold", 18);
+	const FLinearColor TitleBarColor = KBVEUI::Theme::Color::PanelBg;
+	const FLinearColor BodyColor = KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.94f);
+	const FLinearColor BorderColor = KBVEUI::Theme::Color::PanelBorder;
+
+	ChildSlot
+	[
+		SNew(SCanvas)
+
+		+ SCanvas::Slot()
+		.Position(TAttribute<FVector2D>::CreateLambda([this]() { return bDocked ? DockedPosition : Position; }))
+		.Size(TAttribute<FVector2D>::CreateLambda([this]() { return FrameSize; }))
+		[
+			SNew(SOverlay)
+
+			+ SOverlay::Slot()
+			[
+				SNew(SImage)
+				.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
+				.ColorAndOpacity(TAttribute<FSlateColor>::CreateLambda([this, BorderColor]() { return bDocked ? FSlateColor(FLinearColor::Transparent) : FSlateColor(BorderColor); }))
+			]
+
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Right)
+			.VAlign(VAlign_Bottom)
+			[
+				bResizable
+					? StaticCastSharedRef<SWidget>(
+						SNew(SKBVEDragHandle)
+						.OnDragMoved_Lambda([this](const FVector2D& Delta)
+						{
+							if (bDocked) { return; }
+							FrameSize.X = FMath::Max(MinFrameSize.X, FrameSize.X + Delta.X);
+							FrameSize.Y = FMath::Max(MinFrameSize.Y, FrameSize.Y + Delta.Y);
+							OnGeometryChangedDelegate.ExecuteIfBound();
+						})
+						[
+							SNew(SBox)
+							.WidthOverride(14.f)
+							.HeightOverride(14.f)
+							[
+								SNew(SImage)
+								.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
+								.ColorAndOpacity(KBVEUI::Theme::Color::TextMuted.CopyWithNewOpacity(0.85f))
+							]
+						])
+					: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget)
+			]
+
+			+ SOverlay::Slot()
+			.Padding(2.f)
+			[
+				SNew(SVerticalBox)
+
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				[
+					SNew(SKBVEDragHandle)
+					.Visibility_Lambda([this]() { return bDocked ? EVisibility::Collapsed : EVisibility::Visible; })
+					.OnDragMoved_Lambda([this](const FVector2D& Delta)
+					{
+						if (bDocked) { return; }
+						Position += Delta;
+						OnGeometryChangedDelegate.ExecuteIfBound();
+					})
+					[
+						SNew(SOverlay)
+
+						+ SOverlay::Slot()
+						[
+							SNew(SImage)
+							.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
+							.ColorAndOpacity(TitleBarColor)
+						]
+
+						+ SOverlay::Slot()
+						.Padding(FMargin(14.f, 8.f))
+						[
+							SNew(SHorizontalBox)
+
+							+ SHorizontalBox::Slot()
+							.FillWidth(1.f)
+							.VAlign(VAlign_Center)
+							[
+								SNew(STextBlock)
+								.Text(Title)
+								.Font(TitleFont)
+								.ColorAndOpacity(FLinearColor::White)
+							]
+
+							+ SHorizontalBox::Slot()
+							.AutoWidth()
+							.VAlign(VAlign_Center)
+							[
+								SNew(SButton)
+								.HAlign(HAlign_Center)
+								.VAlign(VAlign_Center)
+								.ContentPadding(FMargin(10.f, 4.f))
+								.OnClicked(this, &SKBVEMovableFrame::HandleCloseClicked)
+								[
+									SNew(STextBlock)
+									.Text(FText::FromString(TEXT("X")))
+									.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
+								]
+							]
+						]
+					]
+				]
+
+				+ SVerticalBox::Slot()
+				.FillHeight(1.f)
+				[
+					SNew(SOverlay)
+
+					+ SOverlay::Slot()
+					[
+						SNew(SImage)
+						.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
+						.ColorAndOpacity(TAttribute<FSlateColor>::CreateLambda([this, BodyColor]() { return bDocked ? FSlateColor(FLinearColor::Transparent) : FSlateColor(BodyColor); }))
+					]
+
+					+ SOverlay::Slot()
+					.Padding(FMargin(12.f))
+					[
+						InArgs._Body.Widget
+					]
+				]
+			]
+		]
+	];
+}
+
+void SKBVEMovableFrame::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+	if (!bDocked) { return; }
+	const FVector2D Size = AllottedGeometry.GetLocalSize();
+	DockedPosition.X = DockPadding.Left;
+	const double DockedY = Size.Y - FrameSize.Y - static_cast<double>(DockPadding.Bottom);
+	DockedPosition.Y = DockedY > 0.0 ? DockedY : 0.0;
+}
+
+void SKBVEMovableFrame::SetDocked(bool bInDocked)
+{
+	if (bDocked == bInDocked) { return; }
+	bDocked = bInDocked;
+	SetCanTick(bDocked);
+	Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
+}
+
+FReply SKBVEMovableFrame::HandleCloseClicked()
+{
+	OnCloseDelegate.ExecuteIfBound();
+	return FReply::Handled();
+}
+
+void SKBVEMovableFrame::SetGeometry(const FVector2D& NewPos, const FVector2D& NewSize)
+{
+	Position  = NewPos;
+	FrameSize = FVector2D(
+		FMath::Max(MinFrameSize.X, NewSize.X),
+		FMath::Max(MinFrameSize.Y, NewSize.Y));
+}

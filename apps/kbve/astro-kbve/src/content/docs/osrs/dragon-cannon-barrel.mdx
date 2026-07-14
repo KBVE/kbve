@@ -12,9 +12,77 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 100
-  about: "Dragon cannon barrel is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cannon component
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 12
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 84
+      xp: 1857
+      materials:
+        - item_name: Dragon cannon barrel
+          quantity: 1
+        - item_name: Rosewood plank
+          quantity: 4
+        - item_name: Dragon nails
+          quantity: 16
+        - item_name: Dragon metal sheet
+          quantity: 8
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Opulent salvage (Sailing 87)
+        quantity: "1"
+        rarity: 1/20000
+      - source: Veiled kraken
+        quantity: "1"
+        rarity: 1/1000
+  related_items:
+    - item_name: Dragon cannon
+      slug: dragon-cannon
+      relationship: product
+      description: Assembled Dragon cannon built from this barrel and Sailing parts
+    - item_name: Rosewood plank
+      slug: rosewood-plank
+      relationship: component
+      description: Sailing-tier plank used to frame the cannon
+    - item_name: Dragon nails
+      slug: dragon-nails
+      relationship: component
+      description: Fasteners required during cannon assembly
+    - item_name: Dragon metal sheet
+      slug: dragon-metal-sheet
+      relationship: component
+      description: Armoured plating mounted around the barrel
+  about: "Dragon cannon barrel is a rare drop from veiled krakens and opulent salvage sorting, introduced with the Sailing skill. Combined with rosewood planks, dragon nails, and dragon metal sheets at 92 Sailing and 84 Construction, the barrel forms the heart of the Dragon cannon for endgame ship combat."
+  market_strategy:
+    notes:
+      - "1/1000 veiled kraken rarity throttles weekly supply"
+      - "100-per-4h buy limit keeps spreads tight on patch days"
+      - "Demand tracks players completing the Sailing endgame cannon goal"
+  trading_tips:
+    - Buy during veiled kraken weekend rushes when sellers liquidate
+    - Hold inventory tight given heavy 12 kg weight and slow turnover
+  history:
+    - date: "2025-11-19"
+      description: "Released as a Sailing skill drop tied to the Dragon cannon project."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

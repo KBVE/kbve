@@ -12,9 +12,67 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 13000
-  about: "Brandy is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: drink
+    tier: low
+  properties:
+    release_date: "12 December 2002"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 5 Hitpoints and boosts Strength by 1 + floor(Strength × 0.05); drains Attack by floor(Attack × 0.02) - 3"
+        duration: 0
+  shops:
+    - shop_name: The Asp & Snake Bar
+      location: Pollnivneach
+      price: 5
+      currency: gp
+      stock: 4
+    - shop_name: Funch's Fine Groceries
+      location: Grand Tree
+      price: 5
+      currency: gp
+      stock: 10
+    - shop_name: The Lighthouse Store
+      location: Lighthouse
+      price: 5
+      currency: gp
+      stock: 5
+  related_items:
+    - item_name: Beer
+      slug: beer
+      relationship: alternative
+      description: Cheaper Strength-boost drink
+    - item_name: Wizard's mind bomb
+      slug: wizards-mind-bomb
+      relationship: alternative
+      description: Magic-boost alternative
+  about: "Brandy is a strong spirit drink sold at several members' shops, granting a small Strength boost (and Hitpoints restore) at the cost of Attack. Mostly a flavor/RP drink — outclassed by potions for combat boosting."
+  market_strategy:
+    notes:
+      - "Shop-bought arbitrage from members hubs"
+      - "Low alch margin"
+      - "Steady but tiny demand"
+  trading_tips:
+    - Asp & Snake Bar in Pollnivneach is the easiest restock route
+    - Margins are thin — only worthwhile in bulk
+  history:
+    - date: "12 December 2002"
+      description: "Released alongside the Agility skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,4 +1,4 @@
-ARG RUST_VERSION=1.94
+ARG RUST_VERSION=1.96
 
 FROM --platform=linux/amd64 rust:${RUST_VERSION}-bookworm AS builder
 ENV CARGO_INCREMENTAL=0

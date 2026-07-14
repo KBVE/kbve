@@ -12,9 +12,44 @@ osrs:
   lowalch: 3800
   highalch: 5700
   limit: 8
-  about: "Armadyl dragonhide set is a members-only item in Old School RuneScape. High alchemy value: 5,700 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - name: Armadyl coif
+      relationship: set-piece
+    - name: Armadyl d'hide body
+      relationship: set-piece
+    - name: Armadyl chaps
+      relationship: set-piece
+    - name: Armadyl bracers
+      relationship: set-piece
+  about: "Armadyl dragonhide set is a members-only item in Old School RuneScape. It packages the Armadyl coif, body, chaps and bracers into a single tradeable bundle via the Grand Exchange Sets interface, saving bank space for ranged armour collectors and PvM players."
+  market_strategy:
+    notes:
+      - "Exchanged through the Grand Exchange Sets interface; only profitable if the bundle trades at or near the sum of its four components."
+      - "Compare against the live combined cost of Armadyl coif, body, chaps and bracers before buying or selling the set."
+      - "High alch value (5,700 gp) is far below the component cost, so alching is never the exit strategy."
+  trading_tips:
+    - "Watch the spread between the set price and the four-piece component total to spot arbitrage."
+    - "Buy limit of 8 per 4 hours caps flipping volume; scale across multiple worlds/accounts if needed."
+    - "Sets see demand spikes after ranged content updates or popular streamer PvM runs."
+  history:
+    - date: "2015-03-19"
+      description: "Released alongside the Grand Exchange Sets system for dragonhide armours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-03-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    alchable: true
+    options:
+      - Use
+      - Drop
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

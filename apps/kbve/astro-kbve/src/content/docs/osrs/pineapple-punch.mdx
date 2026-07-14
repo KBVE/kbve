@@ -1,6 +1,6 @@
 ---
 title: Pineapple punch | OSRS Price Data
-description: "Pineapple punch: A fresh healthy fruit mix.. High alch: 18 GP, GE limit: 2,000."
+description: "Pineapple punch: A fresh healthy fruit mix. High alch: 18 GP, GE limit: 2,000."
 osrs:
   id: 2048
   name: Pineapple punch
@@ -12,9 +12,81 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Pineapple punch is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-07-29"
+    update: Gnome Stronghold
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  food:
+    heals: 8
+    type: gnome_cocktail
+    combo_food: false
+  recipes:
+    - skill: cooking
+      level: 8
+      xp: 4.5
+      materials:
+        - item_name: Pineapple
+          quantity: 1
+        - item_name: Lime chunks
+          quantity: 1
+        - item_name: Lemon chunks
+          quantity: 1
+        - item_name: Orange chunks
+          quantity: 1
+        - item_name: Cocktail glass
+          quantity: 1
+      tools: []
+      facility: Cocktail shaker
+      output_quantity: 1
+  passive_effects:
+    - name: Healing
+      description: "Restores 8 Hitpoints when consumed"
+  related_items:
+    - item_name: Pineapple
+      slug: pineapple
+      relationship: component
+      description: "Primary fruit base for the punch"
+    - item_name: Cocktail glass
+      slug: cocktail-glass
+      relationship: component
+      description: "Empty glass that holds the finished cocktail"
+    - item_name: Fruit blast
+      slug: fruit-blast
+      relationship: alternative
+      description: "Other gnome cocktail that heals a similar amount"
+  about: |-
+    > _"A fresh healthy fruit mix."_
+
+    Pineapple punch is a Gnome Stronghold cocktail made with a pineapple, lime, lemon and orange chunks shaken in a cocktail glass at 8 Cooking for 4.5 XP. It heals 8 Hitpoints per consumption and is one of the cheapest gnome bar foods to prepare. Often served at the Grand Tree as part of the Gnome Restaurant minigame menu.
+  market_strategy:
+    notes:
+      - "Bulk-cook to flip for low-level Cooking XP"
+      - "Fruit chunk costs dictate punch margin"
+      - "Gnome Restaurant minigame delivery boosts demand"
+      - "Cheap low-tier food for skillers"
+  trading_tips:
+    - "Watch pineapple seasonal price swings vs cocktail glass restock"
+    - "GE buy limit of 2,000 caps short-term flips"
+  history:
+    - date: "2002-07-29"
+      description: "Pineapple punch released with the Gnome Stronghold expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

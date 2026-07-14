@@ -1,6 +1,6 @@
 ---
 title: Mithril sq shield | OSRS Price Data
-description: "Mithril sq shield: A medium square shield.. High alch: 936 GP, GE limit: 125."
+description: "Mithril sq shield: A medium square shield. High alch: 936 GP, GE limit: 125."
 osrs:
   id: 1181
   name: Mithril sq shield
@@ -12,25 +12,105 @@ osrs:
   lowalch: 624
   highalch: 936
   limit: 125
-  item_id: 1181
-  item_type: armor
-  slot: shield
-  type: square_shield
-  tradeable: true
-  weight: 3.175
-  requirements:
-    defence: 20
-  stats:
-    stab_defence: 17
-    slash_defence: 19
-    crush_defence: 15
-    magic_defence: 0
-    ranged_defence: 17
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 3.175
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: 0
+    defence_bonus:
+      stab: 17
+      slash: 19
+      crush: 15
+      magic: 0
+      ranged: 17
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 58
+      xp: 100
+      materials:
+        - item_name: Mithril bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: "Cassie's Shield Shop"
+      location: Falador
+      price: 1560
+      currency: coins
+      stock: 3
+    - shop_name: Jatizso Armour Shop
+      location: Jatizso
+      price: 1716
+      currency: coins
+      stock: 0
   related_items:
-    - slug: adamant-sq-shield
-    - slug: mithril-kiteshield
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Adamant sq shield
+      slug: adamant-sq-shield
+      relationship: upgrade
+      description: "Higher tier square shield"
+    - item_name: Steel sq shield
+      slug: steel-sq-shield
+      relationship: downgrade
+      description: "Lower tier square shield"
+    - item_name: Mithril kiteshield
+      slug: mithril-kiteshield
+      relationship: alternative
+      description: "Larger mithril shield with better defence bonuses"
+    - item_name: Mithril bar
+      slug: mithril-bar
+      relationship: component
+      description: "Two bars smith the shield at 58 Smithing"
+  about: |-
+    > _"A medium square shield."_
+
+    The mithril square shield is a free-to-play mid-tier shield requiring 20 Defence to equip. Smithed from two mithril bars at level 58 Smithing for 100 XP. Stat-wise it sits between the steel and adamant sq shields; most defence-focused players skip it for the mithril kiteshield instead.
+  market_strategy:
+    notes:
+      - "Net loss vs bar cost makes smithing for profit unviable"
+      - "Better suited for Smithing XP/hr training than flipping"
+      - "Low GE buy limit of 125 caps flip volume"
+  trading_tips:
+    - "Check Cassie's shop restocks during low-demand windows"
+    - "Bar cost vs finished shield governs Smithing margin"
+  history:
+    - date: "2001-01-04"
+      description: "Released with original RuneScape Classic shield set"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Limestone | OSRS Price Data
-description: "Limestone: Some limestone.. High alch: 6 GP, GE limit: 13,000."
+description: "Limestone: Some limestone. High alch: 6 GP, GE limit: 13,000."
 osrs:
   id: 3211
   name: Limestone
@@ -12,9 +12,65 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
-  about: "Limestone is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: stone
+    tier: low
+  shops:
+    - shop_name: Razmire Builders Merchants
+      location: "Mort'ton"
+      stock: 1000
+      price: 10
+  recipes:
+    - skill: Crafting
+      level: 12
+      experience: 6
+      materials:
+        - item_name: Limestone
+          quantity: 1
+        - item_name: Chisel
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+      output_item: Limestone brick
+  related_items:
+    - item_id: 3420
+      item_name: Limestone brick
+      slug: limestone-brick
+      relationship: product
+      description: Crafted from limestone with a chisel
+    - item_id: 1779
+      item_name: Quicklime
+      slug: quicklime
+      relationship: product
+      description: Produced during Regicide quest
+  about: Limestone is a members-only raw material mined at level 10 Mining from the Silvarea or Arandar quarries. Used for crafting limestone bricks, Construction, and producing quicklime during Regicide. Attempting to smelt limestone causes it to explode for 8 damage.
+  market_strategy:
+    notes:
+      - Bulk Construction material with steady demand
+      - "GE limit 13,000 supports large bulk orders"
+      - Razmire shop provides reliable 1k stock buffer
+  trading_tips:
+    - "Warning: do not smelt — instant 8 damage and item destruction"
+    - Watch Construction XP grind cycles for price spikes
+  history:
+    - date: "2004-09-20"
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-09-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

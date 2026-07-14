@@ -1,0 +1,85 @@
+name: Test Mac Runner
+
+on:
+    workflow_dispatch:
+        inputs:
+            test_name:
+                description: 'Test description'
+                required: false
+                default: 'Mac runner connectivity test'
+
+permissions:
+    contents: read
+
+jobs:
+    test_mac_runner:
+        name: Test Mac Runner Connection
+        runs-on: [self-hosted, macOS, ARM64]
+        timeout-minutes: 10
+        steps:
+            - name: Test Info
+              run: |
+                  echo "::notice::Mac runner test - ${{ inputs.test_name }}"
+                  echo "Runner name: $RUNNER_NAME"
+                  echo "Runner OS: $RUNNER_OS"
+                  echo "Runner arch: $RUNNER_ARCH"
+
+            - name: System Information
+              run: |
+                  echo "=== macOS Version ==="
+                  sw_vers
+                  echo ""
+                  echo "=== Hardware Info ==="
+                  uname -a
+                  echo ""
+                  echo "=== CPU Info ==="
+                  sysctl -n machdep.cpu.brand_string
+                  echo ""
+                  echo "=== Memory ==="
+                  sysctl hw.memsize | awk '{print $2/1024/1024/1024 " GB"}'
+
+            - name: Check Xcode
+              run: |
+                  echo "=== Xcode Version ==="
+                  xcodebuild -version || echo "Xcode not found"
+                  echo ""
+                  echo "=== Command Line Tools ==="
+                  xcode-select -p || echo "CLT not found"
+
+            - name: Check Build Tools
+              run: |
+                  echo "=== Git ==="
+                  git --version || echo "git not found"
+                  echo ""
+                  echo "=== Homebrew ==="
+                  brew --version | head -1 || echo "Homebrew not found"
+                  echo ""
+                  echo "=== CMake ==="
+                  cmake --version | head -1 || echo "cmake not found"
+                  echo ""
+                  echo "=== Python ==="
+                  python3 --version || echo "python3 not found"
+
+            - name: Checkout Test
+              uses: actions/checkout@v7
+
+            - name: Verify Checkout
+              run: |
+                  echo "=== Current Directory ==="
+                  pwd
+                  echo ""
+                  echo "=== Files in Root ==="
+                  ls -la | head -20
+                  echo ""
+                  echo "=== Git Status ==="
+                  git status
+
+            - name: Runner Disk Space
+              run: |
+                  echo "=== Disk Space ==="
+                  df -h | grep -E '^/dev/|Filesystem'
+
+            - name: Success Message
+              run: |
+                  echo "::notice::✅ Mac runner test completed successfully!"
+                  echo "::notice::Runner is ready for Unreal Engine builds"

@@ -1,6 +1,6 @@
 ---
 title: Sigil of prosperity | OSRS Price Data
-description: "Sigil of prosperity: A power enhancing sigil not yet attuned to you.. High alch: 12,000 GP, GE limit: 8."
+description: "Sigil of prosperity: A power enhancing sigil not yet attuned to you. High alch: 12,000 GP, GE limit: 8."
 osrs:
   id: 26081
   name: Sigil of prosperity
@@ -12,9 +12,35 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of prosperity is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: '2021-08-25'
+    quest_item: false
+    destroy: Drop
+  charges:
+    type: passive
+    description: When attuned, grants a 20% increased chance to receive loot from the Global Deadman Mode loot table.
+  drop_table:
+    - source: Deadman Mode global drop table
+      quantity: "1"
+      rarity: Uncommon
+  about: |-
+    "A power enhancing sigil not yet attuned to you."
+
+    Sigil of prosperity is a Deadman Mode exclusive sigil dropped from the global Deadman Mode loot table. Once attuned to a player it grants a 20% increased chance to receive loot from the global Deadman Mode loot table across Armageddon, Apocalypse, and Reborn variants.
+
+    Only available during temporary Deadman Mode events.
+  market_strategy:
+    notes:
+      - "Deadman Mode seasonal exclusive"
+      - "Tradeable only while un-attuned"
+      - "High demand during active DMM events"
+      - "Boosts loot rolls from global DMM table"
+      - "No utility outside DMM"
+  history:
+    - date: '2021-08-25'
+      description: Item released with Deadman Mode Reborn.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

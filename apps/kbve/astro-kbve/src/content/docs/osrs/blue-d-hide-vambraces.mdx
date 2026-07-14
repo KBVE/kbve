@@ -12,19 +12,21 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 125
+  material:
+    type: hide
+    tier: blue_dragonhide
   equipment:
     slot: hands
     type: ranged_armour
-    ranged_requirement: 50
-    defence_requirement: 40
-  attack_bonuses:
-    ranged: 9
-  defence_bonuses:
-    ranged: 8
-    magic: 5
-  crafting:
-    level: 66
-    xp: 70
+    attack_speed: 4
+    requirements:
+      ranged: 50
+      defence: 40
+    attack_bonus:
+      ranged: 9
+    defence_bonus:
+      ranged: 8
+      magic: 5
   recipes:
     - skill: crafting
       level: 66
@@ -38,7 +40,7 @@ osrs:
           quantity: 1
       product: Blue d'hide vambraces
       product_id: 2487
-      product_quantity: 1
+      output_quantity: 1
       facility: Needle and thread
       members_only: true
   related_items:
@@ -55,22 +57,22 @@ osrs:
     - item_id: 2499
       item_name: Blue d'hide body
       slug: blue-dhide-body
-      relationship: alternative
+      relationship: variant
       description: Matching body
     - item_id: 2493
       item_name: Blue d'hide chaps
       slug: blue-dhide-chaps
-      relationship: alternative
+      relationship: variant
       description: Matching legs
     - item_id: 1065
       item_name: Green d'hide vambraces
       slug: green-dhide-vambraces
-      relationship: alternative
+      relationship: downgrade
       description: Lower tier vambraces
     - item_id: 2489
       item_name: Red d'hide vambraces
       slug: red-dhide-vambraces
-      relationship: alternative
+      relationship: upgrade
       description: Higher tier vambraces
   about: |-
     | Method | Level | Materials |
@@ -87,17 +89,17 @@ osrs:
     | Magic defence | +5 |
   market_strategy:
     notes:
-      - Second dragonhide glove tier
-      - Members only
-      - Popular crafting item
-      - Crafting training (70 XP)
-      - Mid-level ranged armor
-      - Budget gear
-      - 1 leather per vambraces
-      - Fast crafting method
-      - Lowest level in blue set
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Second dragonhide glove tier"
+      - "Members only"
+      - "Popular crafting item"
+      - "Crafting training: 70 XP"
+      - "Mid-level ranged armor"
+      - "Budget gear"
+      - "1 leather per vambraces"
+      - "Fast crafting method"
+      - "Lowest level in blue set"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,39 +12,46 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 600
-  item:
-    type: flower
-    tradeable: true
-    weight: 0.02
-    requirements:
-      farming: 58
-  effect:
-    allotment_protection: true
-    description: Fully grown white lily protects adjacent allotment patches from disease
-    composting: Creates supercompost when added to compost bin
+  farming:
+    seed: White lily seed
+    level: 58
+    patch: Flower
+    grow_time_minutes: 160
+    protects: Allotment patches from disease when fully grown
+    notes: "Add to a compost bin to produce supercompost."
   related_items:
-    - item_id: 22887
-      item_name: White lily seed
-      slug: white-lily-seed
+    - name: White lily seed
       relationship: component
-      description: Seed planted to grow white lily
-    - item_id: 6420
-      item_name: Supercompost
-      slug: supercompost
+    - name: Supercompost
       relationship: product
-      description: Created by composting white lily
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Flower |
-    | Tradeable | Yes |
-    | Weight | 0.02 kg |
-
-    Allotment protection: Fully grown white lily protects adjacent allotment patches from disease.
-
-    Composting: Creates supercompost when added to compost bin.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "White lily is a Farming flower grown from a white lily seed at level 58 in a flower patch. Once fully grown it protects all adjacent allotment patches from disease and can be turned into supercompost."
+  market_strategy:
+    notes:
+      - "Demand driven by Farming runs that need a guaranteed flower protector; price tracks allotment seed activity."
+      - "Buy limit of 600 supports modest bulk flipping."
+      - "Supercompost conversion provides a price floor when compost demand spikes."
+  trading_tips:
+    - "Spread out purchases over multiple GE windows to avoid hitting the 600 buy limit."
+    - "Watch for Farming-skilling streamer events; prices often move with patch run popularity."
+  history:
+    - date: "2019-01-10"
+      description: "Released as part of The Kebos Lowlands expansion alongside new Farming content."
+  properties:
+    release_date: "2019-01-10"
+    update: The Kebos Lowlands
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

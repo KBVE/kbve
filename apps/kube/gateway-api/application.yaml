@@ -5,6 +5,13 @@ metadata:
     namespace: argocd
     annotations:
         argocd.argoproj.io/sync-wave: '-1'
+        kbve.com/source-path: kube/gateway-api
+        kbve.com/manifest-path: config/crd/standard
+        kbve.com/application-file: kube/gateway-api/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: infrastructure
+        kbve.com/stack: core
 spec:
     project: default
     source:

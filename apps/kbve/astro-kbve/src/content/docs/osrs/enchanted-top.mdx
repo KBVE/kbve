@@ -12,8 +12,32 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: magic_robe
+    tier: mid-high
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options: ["Wear"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
+    requirements:
+      magic: 40
+      defence: 20
     attack_bonus:
       stab: 0
       slash: 0
@@ -27,64 +51,46 @@ osrs:
       magic: 20
       ranged: 0
     other_bonus:
-      melee_strength: 0
+      strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      magic: 40
-      defence: 20
+  drop_table:
+    sources:
+      - source: "Reward casket (hard)"
+        quantity: "1"
+        rarity: "1/1,625"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers: ["hard"]
   related_items:
-    - item_id: 7400
-      item_name: Enchanted hat
-      slug: enchanted-hat
-      relationship: set-piece
-      description: Enchanted set hat
-    - item_id: 7398
-      item_name: Enchanted robe
-      slug: enchanted-robe
-      relationship: set-piece
-      description: Enchanted set legs
-    - item_id: 4091
-      item_name: Mystic robe top
-      slug: mystic-robe-top
-      relationship: alternative
-      description: Same stats, easier to obtain
-  about: |-
-    > *"Enchanted Wizards robes."*
-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +20 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Magic | +20 |
-
-    Requirements: 40 Magic, 20 Defence
-
-    Weight: 2.721 kg
-
-    | Stat | Enchanted Top | Mystic Robe Top | Ahrim's Robetop | Infinity Top |
-    |------|--------------|-----------------|-----------------|-------------|
-    | Magic Atk | +20 | +20 | +30 | +22 |
-    | Magic Def | +20 | +20 | +30 | +22 |
-    | Req | 40 Mage/20 Def | 40 Mage/20 Def | 70 Mage/70 Def | 50 Mage/25 Def |
-
-    The enchanted top is statistically identical to the mystic robe top. The only difference is visual appearance and source. It trades at a different price due to its rarity from Treasure Trails.
-
-    - Cosmetic alternative to the mystic robe top
-    - Treasure Trails fashionscape outfit
-    - Can be stored in POH costume room
-    - Same combat utility as mystic robe top in every scenario
+    - item_name: "Enchanted hat"
+      slug: "enchanted-hat"
+      relationship: "set-piece"
+      description: "Head slot piece of the Enchanted robes set."
+    - item_name: "Enchanted robe"
+      slug: "enchanted-robe"
+      relationship: "set-piece"
+      description: "Legs slot piece of the Enchanted robes set."
+    - item_name: "Mystic robe top"
+      slug: "mystic-robe-top"
+      relationship: "alternative"
+      description: "Mechanically identical body slot robe (+20/+20) with easier sourcing."
+  about: "Enchanted top is a hard Treasure Trail reward (1/1,625) released February 20, 2006. Functionally identical to a Mystic robe top - +20 magic attack, +20 magic defence, no magic damage - at 40 Magic and 20 Defence. The piece's value is cosmetic: a clue-scroll fashionscape body for collectors. Stored in the POH costume room as part of the Enchanted robes set."
   market_strategy:
     notes:
-      - Hard clue rarity gives it collector value
-      - Typically trades above mystic robe top due to cosmetic demand
-      - Storable in costume room for outfit collectors
-      - Part of the complete enchanted robes set (hat, top, robe)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Same combat stats as Mystic robe top - all value is cosmetic clue scarcity."
+      - "Hard clue droprate 1/1,625 - moderate scarcity, steady supply."
+      - "Buy limit only 8/4h - bulk hoarding takes time."
+      - "Trades above Mystic robe top almost always due to fashionscape demand."
+  trading_tips:
+    - "Track Mystic robe top GE price for the cost-floor benchmark."
+    - "Hard clue rush events temporarily oversupply - good buy windows."
+    - "Bundle as a full Enchanted set when selling to costume-room collectors."
+  history:
+    - date: "2006-02-20"
+      description: "Released as a hard Treasure Trail reward as part of the Enchanted robes set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

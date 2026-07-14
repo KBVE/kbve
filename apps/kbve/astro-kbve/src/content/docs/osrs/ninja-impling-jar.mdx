@@ -1,6 +1,6 @@
 ---
 title: Ninja impling jar | OSRS Price Data
-description: "Ninja impling jar: Ninja impling in a jar.. High alch: 30 GP, GE limit: 18,000."
+description: "Ninja impling jar: Ninja impling in a jar. High alch: 30 GP, GE limit: 18,000."
 osrs:
   id: 11254
   name: Ninja impling jar
@@ -12,9 +12,54 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 18000
-  about: "Ninja impling jar is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: impling-jar
+    tier: mid
+  properties:
+    release_date: "2007-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Loot
+    alchable: true
+    destroy: "If you drop this it will disappear. Are you sure you want to do this?"
+  related_items:
+    - item_name: "Empty impling jar"
+      slug: "empty-impling-jar"
+      relationship: component
+      description: "Required to catch implings — consumed when filled and returned ~90% of the time when looting."
+    - item_name: "Magpie impling jar"
+      slug: "magpie-impling-jar"
+      relationship: downgrade
+      description: "Lower-tier impling jar caught at level 65 Hunter."
+    - item_name: "Dragon impling jar"
+      slug: "dragon-impling-jar"
+      relationship: upgrade
+      description: "Higher-tier impling jar caught at level 83 Hunter."
+  about: "Ninja impling jar is a members-only loot jar from catching ninja implings at level 74 Hunter. Opening the jar yields an assortment of mid-tier loot (armour pieces, ammunition, runes, consumables) averaging around 13,000 coins per loot, plus a 1/25 chance at a hard clue scroll. The empty impling jar is returned ~90% of the time."
+  market_strategy:
+    notes:
+      - "Supply scales with Hunter activity in Puro-Puro and free-roaming implings across Gielinor."
+      - "Demand is driven by loot-roll farmers chasing the hard clue scroll chance and bulk mid-tier alch fodder."
+      - "Price tracks the rolling average of the jar contents; deep markups vs. loot value are uncommon."
+  trading_tips:
+    - "Compare GE price against current rolling loot value before committing to bulk flips."
+    - "Spikes correlate with clue scroll meta shifts — hard clue value moves the jar price."
+    - "Members-only — supply pauses around major events that pull hunters to other content."
+  history:
+    - date: "2007-06-11"
+      description: "Released alongside Impetuous Impulses and the Puro-Puro minigame."
+    - date: "2015-03-05"
+      description: "Impling jars made tradeable on the Grand Exchange."
+    - date: "2016-04-21"
+      description: "Hard clue scrolls added to the ninja impling jar loot table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

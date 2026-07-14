@@ -1,6 +1,6 @@
 ---
 title: Atlatl dart shaft | OSRS Price Data
-description: "Atlatl dart shaft: An atlatl dart shaft.. High alch: 132 GP, GE limit: 11,000."
+description: "Atlatl dart shaft: An atlatl dart shaft. High alch: 132 GP, GE limit: 11,000."
 osrs:
   id: 31004
   name: Atlatl dart shaft
@@ -12,9 +12,49 @@ osrs:
   lowalch: 88
   highalch: 132
   limit: 11000
-  about: "Atlatl dart shaft is a members-only item in Old School RuneScape. High alchemy value: 132 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: low
+  about: "Atlatl dart shaft is a members-only stackable Fletching material introduced with the Varlamore: The Final Dawn update. Players cut ent branches with a knife at 74 Fletching to produce 100 shafts per branch, then combine them with feathers to create headless atlatl darts."
+  recipes:
+    - skill: Fletching
+      level: 74
+      experience: 30
+      materials:
+        - item_name: Ent's roots
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 100
+      output_item: Atlatl dart shaft
+  properties:
+    release_date: "2025-07-23"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  market_strategy:
+    notes:
+      - "Bulk Fletching consumable for crafting headless atlatl darts."
+      - "Price tracks the cost of ent branches and feather demand."
+      - "Large 11,000 buy limit supports volume flips."
+  trading_tips:
+    - "Buy in bulk when ent branch supply spikes after weekly resets."
+    - "Cross-check against feather price to model headless dart margins."
+    - "Watch for Varlamore content patches that shift Fletching meta."
+  history:
+    - date: "2025-07-23"
+      description: "Released with the Varlamore: The Final Dawn update as a Fletching intermediate."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

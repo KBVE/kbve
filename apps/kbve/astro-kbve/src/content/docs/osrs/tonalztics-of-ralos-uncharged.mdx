@@ -11,13 +11,17 @@ osrs:
   value: 600000
   lowalch: 240000
   highalch: 360000
-  limit: null
+  limit: 8
+  material:
+    type: ancient_ranged
+    tier: high
   equipment:
     slot: weapon
-    type: thrown
-    tradeable: true
-    weight: 2
-    attack_speed: 7
+    weapon_type: thrown
+    attack_speed: 6
+    weight: 3
+    requirements:
+      ranged: 75
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,79 +35,70 @@ osrs:
       magic: 0
       ranged: 0
     other_bonus:
-      melee_strength: 0
+      strength: 0
       ranged_strength: 55
       magic_damage: 0
       prayer: 2
-    requirements:
-      ranged: 75
   special_attack:
     name: Division
-    energy: 50
-    description: Reduces target's Defence by 10% of their Magic level per hit
-  charging:
-    material_id: 28924
-    material_name: Sunfire splinters
+    energy_cost: 50
+    description: "Reduces the target's Defence level by 10% of their Magic level on a successful hit; stacks per hit."
+  charges:
+    material: Sunfire splinters
     max_charges: 20000
-    charged_version_id: 28922
+    charged_form: Tonalztics of ralos (charged)
+    notes: When charged the weapon strikes twice per attack with independent damage rolls.
   drop_table:
-    primary_source: Fortis Colosseum
-    best_drop_rate: 1/83.61
     sources:
-      - source: Fortis Colosseum
+      - source: Fortis Colosseum reward chest (waves 7-12)
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/83.61 (waves 7-12)
-        members_only: true
-  market:
-    buy_limit: 8
-    price_estimate: 44248618
+        rarity: 1/83.61
   related_items:
     - item_id: 28922
       item_name: Tonalztics of ralos (charged)
       slug: tonalztics-of-ralos-charged
       relationship: variant
-      description: Charged version
+      description: Charged form that hits twice per attack
     - item_id: 28924
       item_name: Sunfire splinters
       slug: sunfire-splinters
       relationship: component
-      description: Charging material
-  about: |-
-    | Stat | Bonus |
-    |------|-------|
-    | Ranged Attack | +115 |
-    | Ranged Strength | +55 |
-    | Prayer | +2 |
-
-    Division (50% special attack energy)
-
-    The special attack reduces the target's Defence by 10% of their Magic level with each hit. This makes it particularly effective against high-Magic opponents in PvP and certain PvM encounters.
-
-    The Tonalztics of ralos can be charged using Sunfire splinters:
-
-    - Maximum Charges: 20,000
-    - Material Required: Sunfire splinters (Item ID: 28924)
-    - Charged Version: Tonalztics of ralos (charged) (Item ID: 28922)
-
-    When charged, the weapon gains additional power and hits twice per attack, making it significantly more effective.
-
-    Best uses for the Tonalztics of ralos:
-
-    - High-level bossing where Defence reduction is valuable
-    - PvP encounters against mages
-    - Fortis Colosseum speed runs
-    - General ranged combat with prayer bonus
-
-    Note: The uncharged version only hits once. Charge with Sunfire splinters for double hits.
+      description: Charging material consumed per attack
+    - item_name: Sol Heredit
+      relationship: alternative
+      description: Final Fortis Colosseum boss tied to the weapon's drop chain
+  about: "Tonalztics of ralos (uncharged) is a Varlamore-era thrown weapon from the Fortis Colosseum that becomes a two-hit shredder when charged with Sunfire splinters."
   market_strategy:
     notes:
-      - Price fluctuates based on Colosseum popularity
-      - Sunfire splinters needed for charging add to total cost
-      - Consider buying during off-peak hours
-      - Check charged version price for comparison
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Price tracks Fortis Colosseum popularity and recent buffs/nerfs to Sol Heredit drops.
+      - Sunfire splinter cost factors into the effective DPS premium versus charged form.
+  trading_tips:
+    - Buy during PvM content droughts when Colosseum runners over-supply chests.
+    - Compare uncharged + splinters total cost vs charged listing before settling either side.
+  history:
+    - date: "2024-03-20"
+      description: Released with the Varlamore expansion as a Fortis Colosseum reward.
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wield
+      - Charge
+      - Drop
+    worn_options:
+      - Remove
+      - Special Attack
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

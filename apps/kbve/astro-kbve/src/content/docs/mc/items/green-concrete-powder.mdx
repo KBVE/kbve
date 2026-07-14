@@ -1,5 +1,6 @@
 ---
 title: Green Concrete Powder
+template: splash
 description: |
     Minecraft Green Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,44 @@ mc_item:
     id: 614
     ref: green_concrete_powder
     slug: green-concrete-powder
+    content_rev: 1
     display_name: Green Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Green concrete powder is a gravity-affected block crafted by
+            combining green dye with four sand and four gravel blocks. It
+            instantly hardens into solid green concrete the moment it comes
+            into contact with water, making it a fast way to produce durable
+            colored building material.
+        lore: |
+            First teased by developer Jeb in 2017 as a mysterious
+            gravity-obeying block, concrete powder became fully renewable
+            once piglins began bartering gravel in Java Edition 1.16.
+    faq:
+        - question: How do I turn green concrete powder into green concrete?
+          answer: |
+              Let it fall into or place it against any water source, flowing
+              water, or a waterlogged block — it converts instantly on
+              contact.
+        - question: Does rain convert green concrete powder into concrete?
+          answer: |
+              No, rain and splash water bottles do not trigger the
+              conversion; the powder must physically touch a water block.
+        - question: Is green concrete powder affected by gravity like sand?
+          answer: |
+              Yes, it falls when unsupported, even passing through the air
+              above water and only converting once it lands adjacent to a
+              water source.
+        - question: What ingredients are needed to craft green concrete powder?
+          answer: |
+              One green dye, four sand blocks, and four gravel blocks combine
+              in a shapeless crafting recipe to produce eight concrete
+              powder blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

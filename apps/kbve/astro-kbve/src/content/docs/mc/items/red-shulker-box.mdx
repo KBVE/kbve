@@ -1,5 +1,6 @@
 ---
 title: Red Shulker Box
+template: splash
 description: |
     Minecraft Red Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 567
     ref: red_shulker_box
     slug: red-shulker-box
+    content_rev: 1
     display_name: Red Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The red shulker box is a dyeable storage block crafted from a shulker box and
+            red dye, holding 27 slots of items that remain inside when the box is broken.
+            It can be nested inside chests and other non-shulker containers, making it a
+            compact way to multiply available inventory space.
+        lore: |
+            Piglins turn hostile whenever a player opens or mines any shulker box,
+            adding a survival wrinkle to hauling one through the Nether.
+    faq:
+        - question: How do I craft a red shulker box?
+          answer: |
+              Craft a plain shulker box (chest plus two shulker shells) with red dye to
+              recolor it, keeping any items already stored inside.
+        - question: Does breaking a red shulker box drop its contents?
+          answer: |
+              No, unlike other storage blocks it keeps its contents in item form when
+              mined and can be placed again fully stocked.
+        - question: Can red shulker boxes be nested inside each other?
+          answer: |
+              Shulker boxes cannot be placed inside other shulker boxes, but they can be
+              stored inside chests, barrels, and ender chests for extra capacity.
+        - question: Can redstone interact with a red shulker box?
+          answer: |
+              Yes, a comparator can read its fullness and an observer can detect when it
+              is opened or closed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

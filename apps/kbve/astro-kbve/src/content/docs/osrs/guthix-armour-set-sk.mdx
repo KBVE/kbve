@@ -12,9 +12,58 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Guthix armour set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Guthix full helm
+      slug: guthix-full-helm
+      relationship: set-piece
+      description: Head component of the Guthix armour set (sk).
+    - item_name: Guthix platebody
+      slug: guthix-platebody
+      relationship: set-piece
+      description: Body component of the Guthix armour set (sk).
+    - item_name: Guthix plateskirt
+      slug: guthix-plateskirt
+      relationship: set-piece
+      description: Legs component of the Guthix armour set (sk).
+    - item_name: Guthix kiteshield
+      slug: guthix-kiteshield
+      relationship: set-piece
+      description: Shield component of the Guthix armour set (sk).
+    - item_name: Guthix armour set (lg)
+      slug: guthix-armour-set-lg
+      relationship: alternative
+      description: Plate-legs variant of the same God armour set.
+  about: "Guthix armour set (sk) bundles the Guthix full helm, platebody, plateskirt and kiteshield into a single tradeable container via the Grand Exchange Sets interface. It is used primarily to compress bank space for Guthix-themed cosmetic kits."
+  market_strategy:
+    notes:
+      - "Set typically trades at a premium over the sum of components; flip components into sets when premium is positive."
+      - "Free-to-play accessibility broadens demand pool versus member-only sets."
+  trading_tips:
+    - Exchange the set for individual pieces if the component value exceeds the set price.
+    - Use the Grand Exchange clerk 'Sets' option to convert in either direction.
+  history:
+    - date: "2015-02-26"
+      description: "Released alongside the introduction of Grand Exchange armour sets for free-to-play players."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

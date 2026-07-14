@@ -1,0 +1,26 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE Gameplay",
+	"Description": "Game-agnostic consumable + effect framework for KBVE Unreal games. Data-driven effect specs (instant stat restores, over-time regen/DoT, temporary stat buffs, named status conditions) applied through an IKBVEStatTarget interface, with per-source cooldown tracking and an animation hook. The game implements the stat target; the plugin owns the effect lifecycle.",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Plugins": [
+		{ "Name": "MassGameplay", "Enabled": true }
+	],
+	"Modules": [
+		{
+			"Name": "KBVEGameplay",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

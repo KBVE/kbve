@@ -11,6 +11,14 @@ grafana:
             org_role: Viewer
         auth:
             disable_login_form: true
+        auth.proxy:
+            enabled: true
+            header_name: X-WEBAUTH-USER
+            header_property: username
+            auto_sign_up: true
+            sync_ttl: 60
+        users:
+            auto_assign_org_role: Editor
 
     admin:
         existingSecret: grafana-admin

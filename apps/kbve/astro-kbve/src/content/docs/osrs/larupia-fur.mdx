@@ -12,9 +12,59 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 10000
-  about: "Larupia fur is a members-only item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Larupia fur is a hunter material obtained from spined larupias in Feldip Hills, used by the Fancy Clothes Store owner to craft larupia hunter gear. High alchemy value: 48 coins. Grand Exchange buy limit: 10,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    equipable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 2.0
+  material:
+    type: cloth
+    tier: standard
+  drop_table:
+    - source: "Spined larupia"
+      quantity: "1"
+      rarity: "Always"
+  shops:
+    - shop_name: "Ardougne Fur Stall"
+      location: "Ardougne"
+      price: 96
+      stock: 0
+    - shop_name: "Fremennik Fur Trader"
+      location: "Rellekka"
+      price: 104
+      stock: 0
+    - shop_name: "Seamstress"
+      location: "Prifddinas"
+      price: 100
+      stock: 0
+  market_strategy:
+    notes:
+      - "flip_potential: \"low\""
+      - "Hunter material with steady demand from players making larupia gear; supply tracks Feldip Hunter activity."
+  trading_tips:
+    - "Bulk-buy when Hunter XP events flood supply; resell during gear-making phases."
+    - "Cheaper than the tatty variant for the hat recipe, which requires the perfect fur."
+  history:
+    - date: "2006-11-21"
+      description: "Released alongside the Hunter skill expansion in Feldip Hills."
+  relationships:
+    - item_name: Tatty larupia fur
+      relationship: variant
+    - item_name: Larupia hat
+      relationship: upgrade
+    - item_name: Larupia top
+      relationship: upgrade
+    - item_name: Larupia legs
+      relationship: upgrade
+    - item_name: Spined larupia
+      relationship: component
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

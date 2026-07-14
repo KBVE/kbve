@@ -1,5 +1,6 @@
 ---
 title: Cactus Flower
+template: splash
 description: |
     Minecraft Cactus Flower — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 329
     ref: cactus_flower
     slug: cactus-flower
+    content_rev: 1
     display_name: Cactus Flower
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The cactus flower is a decorative plant block that grows naturally on cacti in desert and badlands biomes, generating with a chance on newly spawned cacti and occasionally on existing cactus columns. It can be crafted into pink dye and serves as a pollination source for bees. It breaks instantly when mined and always drops itself.
+        lore: |
+            Desert expeditions are brightened by these delicate pink blooms sprouting from the harsh spines of cacti.
+    faq:
+        - question: How do I obtain a cactus flower?
+          answer: |
+              Cactus flowers can be found naturally in deserts and badlands or mined directly from cacti and farms; they break instantly and always drop themselves.
+        - question: What can I craft with cactus flowers?
+          answer: |
+              A cactus flower can be crafted into pink dye, letting you use it to color other items, wool, or blocks.
+        - question: How do bees interact with cactus flowers?
+          answer: |
+              Bees are attracted to cactus flowers and can pollinate them to help produce honey or honeycombs, though bees may take damage from the cactus spines while pollinating unless the flower is placed on a non-cactus surface.
+        - question: Can cactus flowers be placed on any block?
+          answer: |
+              Cactus flowers can be placed on cactus blocks, farmland, or any solid surface that provides center support at the top, but they cannot be placed in flower pots.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

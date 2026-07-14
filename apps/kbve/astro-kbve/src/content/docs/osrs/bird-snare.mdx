@@ -1,6 +1,6 @@
 ---
 title: Bird snare | OSRS Price Data
-description: "Bird snare: A simple bird catcher.. High alch: 3 GP, GE limit: 250."
+description: "Bird snare is a Hunter trap used to catch crimson swifts and other small birds from level 1 Hunter. High alch: 3 GP, GE limit: 250."
 osrs:
   id: 10006
   name: Bird snare
@@ -12,9 +12,84 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 250
-  about: "Bird snare is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: hunter-tool
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    update: "Hunter"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Lay
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  skilling_sources:
+    - skill: hunter
+      level: 1
+      xp: 34
+      location: Feldip Hunter area, Piscatoris Hunter area, and other bird-catching spots
+      method: "Lay snare on tile to catch crimson swifts, golden warblers, copper longtails, cerulean twitches, and tropical wagtails"
+      tool: Bird snare
+      members_only: true
+  shops:
+    - shop_name: "Aleck's Hunter Emporium"
+      location: Yanille
+      price: 6
+      stock: 30
+      currency: Coins
+    - shop_name: "Hunting Supplies"
+      location: Nardah
+      price: 6
+      stock: 5
+      currency: Coins
+    - shop_name: "Hunter Skill Shop"
+      location: Hunter Guild
+      price: 6
+      stock: 30
+      currency: Coins
+  related_items:
+    - item_id: 10008
+      item_name: Box trap
+      slug: box-trap
+      relationship: upgrade
+      description: Higher-tier Hunter trap used from level 27 for chinchompas
+    - item_id: 9974
+      item_name: Noose wand
+      slug: noose-wand
+      relationship: alternative
+      description: Hunter tool used to catch kebbits via tracking
+    - item_id: 10031
+      item_name: Teasing stick
+      slug: teasing-stick
+      relationship: alternative
+      description: Hunter tool used for deadfall traps
+  about: "Bird snare is the entry-level Hunter trap available from level 1 Hunter. Players lay the snare on a tile to catch crimson swifts, copper longtails, cerulean twitches, golden warblers, and tropical wagtails for Hunter XP, feathers, and bones. Sold by Aleck's Hunter Emporium in Yanille and other Hunter shops for roughly 6 coins, the bird snare is cheap, lightweight bird-catching gear used throughout early Hunter training."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Restocked by multiple Hunter shops, so GE prices stay anchored near 6 gp"
+      - "High alch value of 3 gp makes it unprofitable for nature rune alching"
+      - "Demand spikes from new Hunter accounts and ironmen sourcing snares pre-Yanille"
+      - "Bulk-buying via GE only useful when shop runs are inconvenient"
+  trading_tips:
+    - "Buy from Aleck's Hunter Emporium in Yanille for guaranteed sub-GE pricing"
+    - "Snares break on failed catches, so volume demand scales with low-level Hunter training"
+    - "Avoid alching: nature rune cost exceeds the high alch return"
+  history:
+    - date: "2006-11-21"
+      description: "Released with the Hunter skill launch."
+    - date: "2010-09-22"
+      description: "Hunter shops adjusted to keep snare stock consistent for low-level trainers."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

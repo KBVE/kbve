@@ -1,0 +1,45 @@
+# Apiserver egress carve-out for self-hosted GitHub Actions runners.
+#
+# arc-runner-egress (runner-networkpolicy.yaml) is default-deny and excepts
+# every RFC1918 / cluster CIDR on its public-internet rule. That intentionally
+# blocks pivots to internal services, but it also drops traffic to the
+# kube-apiserver: kubernetes.default.svc (10.96.0.1:443) is inside the
+# excepted 10.0.0.0/8, and Cilium service translation rewrites it to the
+# control-plane endpoint on :6443.
+#
+# The Win64 unreal build's "Boot Windows VM" preamble (ci-unreal-build.yml,
+# win_vm_boot job) runs on arc-runner-set-kbve and uses the arc-vm-starter SA
+# token to GET + start the windows-builder KubeVirt VM via the apiserver.
+# Without this allow that curl is dropped, the VM never starts, and the Win64
+# build is skipped. Regression introduced by 7ff79289b (#12973) on 2026-06-21.
+#
+# A k8s NetworkPolicy ipBlock to 10.96.0.1/32 does NOT work here (Cilium
+# translates the ClusterIP to the real endpoint), so this uses a Cilium
+# toEntities: kube-apiserver rule — identity-based, survives CP IP changes.
+# Same pattern as kasm/manifest/network-policy.yaml. Additive to the vanilla
+# arc-runner-egress policy; widens egress only to the apiserver on 443/6443.
+#
+# Scoped to ARC ephemeral runner pods only, matching arc-runner-egress. An
+# empty endpointSelector made this CNP select every pod in the shared
+# arc-runners namespace (MC stack included), and any Cilium egress rule on an
+# endpoint flips it to default-deny — silently dropping all non-apiserver MC
+# traffic.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+    name: arc-runner-apiserver-egress
+    namespace: arc-runners
+spec:
+    endpointSelector:
+        matchExpressions:
+            - key: actions.github.com/scale-set-name
+              operator: Exists
+    egress:
+        - toEntities:
+              - kube-apiserver
+          toPorts:
+              - ports:
+                    - port: '443'
+                      protocol: TCP
+                    - port: '6443'
+                      protocol: TCP

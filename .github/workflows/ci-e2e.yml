@@ -37,7 +37,7 @@ jobs:
             has_projects: ${{ steps.matrix.outputs.has_projects }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: ${{ inputs.branch || 'dev' }}
 
@@ -91,11 +91,11 @@ jobs:
                     PLAYWRIGHT="true"
 
                     case "$project" in
-                      axum-kbve-e2e|edge-e2e)
+                      axum-kbve-e2e|metrics-e2e)
                         RUNNER="arc-runner-set"
                         PLAYWRIGHT="false"
                         ;;
-                      devops-e2e)
+                      devops-e2e|edge-e2e)
                         PLAYWRIGHT="false"
                         ;;
                     esac

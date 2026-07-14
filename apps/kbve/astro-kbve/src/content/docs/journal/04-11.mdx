@@ -10,18 +10,64 @@ description: |
     I have this urge to find some red tea and a chicken sandwich, this itch must be resolved.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'April 11,'
+    accent: every year.
+    lede: 'The April 11th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Apr 10'
+          href: /journal/04-10/
+        - label: 'Apr 12 →'
+          href: /journal/04-12/
+    related:
+        - title: 'Previous · Apr 10'
+          copy: 'Step back a day to the April 10th log.'
+          href: /journal/04-10/
+          icon: calendar
+        - title: 'Next · Apr 12'
+          copy: 'Jump ahead to the April 12th log.'
+          href: /journal/04-12/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1538439907460-1596cafd4eff?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
+<BentoProse id="notes" heading="Notes">
 
 Cooking stream? When and Where?
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Tailwindcss v4
 
@@ -64,8 +110,9 @@ Cooking stream? When and Where?
     Actually, it be really interesting if we could IPFS the files too, moving the load out of a central server and since these files will be small, it should be a great start towards building our first CDN.
     The SEO and marketing benefits of having RareIcon be an icon CDN will be great for the game too.
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 ### Logging
 
@@ -135,3 +182,6 @@ Here is what I am thinking as the base so far:
 
 We start with a `w-full` and `h-screen` to at least make sure the landing page takes the whole screen.
 
+</BentoProse>
+
+</BentoDoc>

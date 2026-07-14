@@ -64,9 +64,13 @@ async fn run_watcher(state: &AppState) -> WatcherExit {
         },
     );
 
-    info!(namespace, "GameServer watcher started");
+    let fleet = &state.config.agones_fleet;
+    info!(namespace, fleet, "GameServer watcher started");
 
-    let stream = watcher::watcher(api, watcher::Config::default());
+    let stream = watcher::watcher(
+        api,
+        watcher::Config::default().labels(&format!("agones.dev/fleet={fleet}")),
+    );
     tokio::pin!(stream);
 
     while let Some(event) = stream.next().await {

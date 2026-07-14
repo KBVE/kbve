@@ -1,5 +1,6 @@
 ---
 title: Brown Concrete
+template: splash
 description: |
     Minecraft Brown Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 690
     ref: brown_concrete
     slug: brown-concrete
+    content_rev: 1
     display_name: Brown Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Brown Concrete is a vividly colored, non-flammable decorative
+            building block formed when Brown Concrete Powder solidifies on
+            contact with water. It is harder and more fire-resistant than
+            wool or terracotta of the same color.
+        lore: |
+            Concrete was first teased by Jeb in January 2017 and officially
+            added to Java Edition in the 1.12 snapshot 17w06a.
+    uses:
+        - title: Decorative Building
+          ref: brown_concrete_powder
+          detail: |
+              Used purely as a solid-color building material; it cannot be
+              crafted directly and must come from hardened concrete powder.
+    found_in:
+        - location: Water Contact
+          detail: Formed instantly when Brown Concrete Powder touches any water source or waterlogged block.
+        - location: Trial Chamber Atriums
+          detail: Certain concrete colors (not brown) generate naturally, though most colors are player-made.
+    faq:
+        - question: What tool do I need to mine Brown Concrete?
+          answer: |
+              At least a wooden pickaxe. Mining without a pickaxe drops
+              nothing.
+        - question: Is Brown Concrete flammable?
+          answer: |
+              No. Unlike wool, concrete does not catch fire or burn,
+              making it a safer decorative choice near lava or fire.
+        - question: How do I make Brown Concrete?
+          answer: |
+              Craft Brown Concrete Powder from sand, gravel, and brown dye,
+              then place it so it touches water — it hardens instantly.
+        - question: Is Brown Concrete renewable?
+          answer: |
+              Yes. Since sand and gravel are renewable, brown concrete can
+              be produced indefinitely.
     data_version: "1.21.5"
 ---
 

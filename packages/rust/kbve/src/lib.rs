@@ -18,6 +18,10 @@ pub mod spellbook;
 pub mod utility;
 
 pub mod entity;
+
+#[cfg(any(feature = "gate", feature = "gate-auth"))]
+pub mod gate;
+
 #[cfg(feature = "legacy-sync-db")]
 pub mod sys;
 pub mod utils;
@@ -32,6 +36,11 @@ pub mod wallet;
 // Referral piggybacks on the wallet pool, so it shares the feature gate.
 #[cfg(feature = "wallet")]
 pub mod referral;
+
+// MC lot/schematic system. Shares the wallet connection pool because lot
+// purchases settle through wallet.service_debit.
+#[cfg(feature = "wallet")]
+pub mod lot;
 
 pub use holy;
 

@@ -1,3 +1,5 @@
+#![allow(clippy::doc_overindented_list_items)]
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -9,6 +11,10 @@ mod tests {
 
 pub mod builder;
 pub mod entity;
+#[cfg(feature = "observ")]
+pub mod observ;
+pub mod jwks;
+pub mod jwt_cache;
 pub mod proto;
 pub mod rcon;
 pub mod state;

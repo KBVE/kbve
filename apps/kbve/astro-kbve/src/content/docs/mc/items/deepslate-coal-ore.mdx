@@ -1,5 +1,6 @@
 ---
 title: Deepslate Coal Ore
+template: splash
 description: |
     Minecraft Deepslate Coal Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 65
     ref: deepslate_coal_ore
     slug: deepslate-coal-ore
+    content_rev: 1
     display_name: Deepslate Coal Ore
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Deepslate Coal Ore is the deep-underground variant of Coal Ore,
+            replacing it when coal blobs generate near the bottom of the world.
+            It drops one Coal per block when mined, and is tougher and rarer to
+            find than its surface counterpart.
+        lore: |
+            Coal seams pressed into deepslate at the edge of the world, formed
+            under weight and darkness far below the familiar stone layers.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A wooden pickaxe or better will mine Deepslate Coal Ore, same as
+              regular Coal Ore.
+        - question: What does it drop?
+          answer: |
+              It drops one Coal per block, increased by the Fortune enchantment, or
+              the block itself with Silk Touch.
+        - question: Where does it generate?
+          answer: |
+              It generates near the top of the deepslate layer, below Y=8, and is
+              rarer than surface Coal Ore since coal blobs are uncommon that deep.
+        - question: Is it harder to mine than regular Coal Ore?
+          answer: |
+              Yes, it has a hardness of 4.5 compared to 3 for regular Coal Ore, so it
+              takes longer to break.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

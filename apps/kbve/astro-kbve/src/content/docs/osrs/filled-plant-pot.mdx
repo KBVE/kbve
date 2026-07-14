@@ -1,6 +1,6 @@
 ---
 title: Filled plant pot | OSRS Price Data
-description: "Filled plant pot: A plant pot filled with soil.. High alch: 1 GP, GE limit: 2,000."
+description: "Filled plant pot is a P2P Farming consumable used for tree seedlings. High alch: 0 GP, GE limit: 2,000."
 osrs:
   id: 5354
   name: Filled plant pot
@@ -9,12 +9,85 @@ osrs:
   members: true
   icon: Filled plant pot.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: 0
+  highalch: 0
   limit: 2000
-  about: "Filled plant pot is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0.907
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: misc
+    tier: bronze
+    category: material
+  shops:
+    - shop_name: "Farming Shop"
+      price: 1
+      currency: "Coins"
+      location: "Various farming patches"
+      notes: "Sold at farming stores"
+  recipes:
+    - skill: "Farming"
+      level: 1
+      xp: 0
+      output_quantity: 1
+      tools:
+        - "Gardening trowel"
+        - "Empty pot"
+      inputs:
+        - item_name: "Plant pot"
+          quantity: 1
+        - item_name: "Soil (farming patch)"
+          quantity: 1
+      notes: "Use empty plant pot on any weed-free farming patch with a gardening trowel."
+  related_items:
+    - item_id: 5350
+      item_name: Plant pot
+      slug: plant-pot
+      relationship: component
+      description: "Empty pot used to make filled pot"
+    - item_id: 5343
+      item_name: Gardening trowel
+      slug: gardening-trowel
+      relationship: alternative
+      description: "Required tool to fill pot"
+    - item_id: 5340
+      item_name: Watering can
+      slug: watering-can
+      relationship: alternative
+      description: "Used to water seedlings into saplings"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Pick up cheap from Farming shops if you're tree-running.\""
+      - "sell_strategy: \"Low margin; sell via GE in bulk to tree farmers.\""
+      - "price_trend: \"Stable around 1-2 coins.\""
+      - "profit_margin: \"Negligible.\""
+  trading_tips:
+    - "Tree runners need one per tree patch; bring a stack."
+    - "Make on-site with an empty pot + trowel at any farming patch."
+    - "Note them for bank space when bulk-buying."
+  history:
+    - date: "2005-07-11"
+      update: "Farming skill release"
+      description: "Filled plant pot introduced with the Farming skill."
+  about: |-
+    Filled plant pot is a Farming consumable used to grow tree, fruit tree, and special seedlings.
+
+    | Step | Action |
+    |------|--------|
+    | 1 | Use empty plant pot on a farming patch with gardening trowel |
+    | 2 | Add a tree/fruit tree/special seed to make a seedling |
+    | 3 | Water with watering can or Humidify spell |
+    | 4 | Wait for sapling, then plant in tree patch |
+
+    Supports tree, fruit tree, calquat, spirit, celastrus, redwood, hespori-adjacent, and special seedlings.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -542,7 +542,7 @@ mod tests {
 
     #[test]
     fn test_rpc_url_construction() {
-        let client = test_client();
+        let _client = test_client();
         // We can only test the URL format since rpc is async
         let expected = format!(
             "{}/rest/v1/rpc/{}",

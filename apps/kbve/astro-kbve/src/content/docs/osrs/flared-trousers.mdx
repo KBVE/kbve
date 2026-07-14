@@ -12,9 +12,34 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
-  about: "Flared trousers is a members-only item in Old School RuneScape. High alchemy value: 1,200 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2006-10-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    options:
+      - wear
+      - drop
+    worn_options:
+      - remove
+  equipment:
+    slot: legs
+    attack_speed: 4
+    requirements: {}
+  related_items:
+    - item_id: 10396
+      item_name: Pantaloons
+      slug: pantaloons
+      relationship: variant
+      description: Another rare cosmetic legs cosmetic
+  about: |-
+    Flared trousers is a cosmetic legs slot item dropped exclusively by Mysterious Old Man during Random Events. Provides no combat bonuses but is sought after for its rarity.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

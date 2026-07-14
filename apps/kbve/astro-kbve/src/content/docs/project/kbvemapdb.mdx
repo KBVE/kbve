@@ -1,0 +1,98 @@
+---
+title: KBVEMapDB — Unreal World/Map Database + Mass Plugin
+description: KBVEMapDB is a game-agnostic Unreal plugin that loads the shared mapdb artifact into runtime world-object defs with ref lookup and a Mass fragment bridge.
+sem: 1
+sidebar:
+    label: KBVEMapDB
+    order: 76
+tags:
+    - unreal
+    - map
+key: ue_kbvemapdb
+pipeline: unreal
+plugin_name: KBVEMapDB
+plugin_path: packages/unreal/KBVEMapDB
+version: "0.1.0"
+source_path: packages/unreal/KBVEMapDB
+version_toml: packages/unreal/KBVEMapDB/version.toml
+author: h0lybyte
+license: KBVE
+status: beta
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVEMapDB plugin?
+          answer: KBVEMapDB is a game-agnostic Unreal Engine plugin providing world/map data plus a Mass bridge. The UKBVEMapDatabase GameInstance subsystem loads the shared mapdb-data.json artifact into FKBVEWorldObjectDef records and exposes ref lookup.
+        - question: What world-object data does KBVEMapDB load?
+          answer: It loads FKBVEWorldObjectDef records for resource nodes, containers, and stations, including harvest yield, amount, and time plus spawn weights, from Content/Data/mapdb-data.json.
+        - question: How does KBVEMapDB integrate with Mass?
+          answer: FKBVEWorldObjectFragment and FKBVEWorldObjectTag carry a placed object's identity and harvest state into Mass, so harvestable world entities are driven by the same shared definitions.
+bento:
+    badge: unreal · map
+    title: World & map database
+    accent: KBVEMapDB
+    lede: >-
+        A game-agnostic Unreal Engine plugin providing world/map data plus a Mass
+        bridge — resource nodes, containers, and stations loaded into runtime
+        world-object defs with ref lookup.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEMapDB
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: network
+        title: Driven by shared defs
+        body: >-
+            <code>UKBVEMapDatabase</code> reads the shared
+            <code>mapdb-data.json</code> artifact at runtime; placed world objects
+            resolve back to their canonical definition by reference.
+        points:
+            - <strong>Fragment</strong> — FKBVEWorldObjectFragment carries identity + harvest state into Mass.
+            - <strong>Tag</strong> — FKBVEWorldObjectTag marks harvestable world entities.
+    stats:
+        - { label: Plugin, value: KBVEMapDB, icon: map }
+        - { label: Engine, value: "UE 5.4+", icon: settings }
+        - { label: Platforms, value: "Win64 · Linux · Mac", icon: box }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Game-agnostic loader
+          icon: database
+          body: UKBVEMapDatabase, a GameInstance subsystem, reads the shared mapdb-data.json artifact at runtime.
+        - title: World-object defs
+          icon: box
+          body: FKBVEWorldObjectDef records model resource nodes, containers, and stations with harvest yield, amount, time, and spawn weights.
+        - title: Ref lookup
+          icon: route
+          body: Resolve placed objects back to their canonical definition by reference.
+        - title: Mass bridge
+          icon: network
+          body: FKBVEWorldObjectFragment and FKBVEWorldObjectTag carry object identity and harvest state into Mass for harvestable entities.
+    features_heading: Features
+    related:
+        - title: KBVETinyBVH
+          href: /project/kbvetinybvh/
+          copy: Sibling Unreal plugin from the KBVE package group.
+          icon: package
+        - title: Unreal Chuck Dev
+          href: /project/unreal-chuck-dev/
+          copy: UE5 game client that consumes KBVE Unreal plugins.
+          icon: box
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

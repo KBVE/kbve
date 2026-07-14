@@ -3,7 +3,7 @@ name = "bevy_battle"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.94"
+rust-version.workspace = true
 license = "MIT"
 description = "Generic turn-based battle types — pure Rust core + optional Bevy ECS plugin (components, events, systems)"
 homepage = "https://kbve.com/"
@@ -31,7 +31,7 @@ serde = { version = "1", features = ["derive"] }
 rand = "0.10"
 
 # Bevy — only pulled in under the `bevy` feature.
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
     "bevy_state",
 ], optional = true }
 

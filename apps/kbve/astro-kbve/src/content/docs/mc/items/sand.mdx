@@ -1,5 +1,6 @@
 ---
 title: Sand
+template: splash
 description: |
     Minecraft Sand — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 59
     ref: sand
     slug: sand
+    content_rev: 1
     display_name: Sand
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Sand is a gravity-affected block found in deserts, beaches, and ocean floors that
+            falls when unsupported, much like gravel. It is a key crafting ingredient, smelting
+            into glass and combining with dye and gravel to make concrete powder.
+        lore: |
+            Loose grains of desert and shoreline that never stay still once you knock out what's beneath them.
+    faq:
+        - question: Why does sand fall when I mine the block below it?
+          answer: |
+              Sand is affected by gravity, so any unsupported sand block turns into a falling
+              block entity and drops straight down until it lands on something solid.
+        - question: Can I get sand without going to a desert or beach?
+          answer: |
+              Yes, wandering traders sell 1 emerald for 8 sand, which is the only renewable
+              source outside of natural generation.
+        - question: What can I craft with sand?
+          answer: |
+              Sand smelts into glass and combines with gravel and dye to make concrete powder,
+              which hardens into concrete when it touches water.
+        - question: Do turtles need sand for anything?
+          answer: |
+              Yes, turtle eggs can only be laid and hatched on sand, red sand, or suspicious
+              sand blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

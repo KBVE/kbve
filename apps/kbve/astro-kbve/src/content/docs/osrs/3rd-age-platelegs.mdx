@@ -12,58 +12,97 @@ osrs:
   lowalch: 80000
   highalch: 120000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: 3rd age
+    tier: high
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: melee armour
-    attack_style: melee
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
     requirements:
       defence: 65
-    stats:
-      defence_stab: 66
-      defence_slash: 63
-      defence_crush: 61
-      defence_magic: -4
-      defence_ranged: 66
-      melee_strength: 0
-      prayer_bonus: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Very Rare
-        description: Extremely rare reward from master clue scrolls
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 78
+      slash: 76
+      crush: 83
+      magic: -5
+      ranged: 75
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/211250
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/249262
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/313168
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+      - master
   related_items:
-    - item_id: 10350
-      item_name: 3rd age full helmet
+    - item_name: 3rd age full helmet
       slug: 3rd-age-full-helmet
       relationship: set-piece
-      description: Head slot of 3rd age melee set
-    - item_id: 10348
-      item_name: 3rd age platebody
+      description: Head slot of the 3rd age melee set
+    - item_name: 3rd age platebody
       slug: 3rd-age-platebody
       relationship: set-piece
-      description: Body slot of 3rd age melee set
-    - item_id: 10352
-      item_name: 3rd age kiteshield
+      description: Body slot of the 3rd age melee set
+    - item_name: 3rd age kiteshield
       slug: 3rd-age-kiteshield
       relationship: set-piece
-      description: Shield slot of 3rd age melee set
-  about: |-
-    The 3rd age platelegs are part of the 3rd age melee set, one of the rarest and most prestigious armour sets in Old School RuneScape. They require 65 Defence to wear and provide stats comparable to rune platelegs but with superior aesthetics.
-
-    3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
+      description: Shield slot of the 3rd age melee set
+  about: "3rd age platelegs is one of the rarest and most prestigious melee armour pieces in Old School RuneScape. They require 65 Defence to wear and provide superior defence to Bandos tassets but lack a strength bonus, making them primarily a fashion or collector item."
   market_strategy:
-    title: Investment Notes
     notes:
-      - Extremely valuable due to rarity
-      - Price fluctuates based on collector demand
-      - Consider set value vs individual pieces
-      - Verify authenticity when trading high-value items
-      - Use Grand Exchange for secure trades
-      - Monitor price trends before purchasing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Extremely valuable due to rarity"
+      - "Price fluctuates heavily with collector demand"
+      - "Consider set value versus individual pieces before purchasing"
+      - "Verify authenticity on high-value trades"
+      - "Use the Grand Exchange for secure trades"
+      - "Monitor long-term price trends before buying"
+  trading_tips:
+    - "Track elite and master clue completion rates for supply trends"
+    - "Compare to Bandos tassets for opportunity cost when buying as a flex piece"
+  history:
+    - date: "2006-12-05"
+      description: "Released as part of the Treasure Trails update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -8,15 +8,52 @@ img: https://images.unsplash.com/photo-1740141340584-a749ceac44a1?crop=entropy&c
 description: Daily Log for February 23rd for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 23,'
+    accent: every year.
+    lede: 'The February 23rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 22'
+          href: /journal/02-22/
+        - label: 'Feb 24 →'
+          href: /journal/02-24/
+    related:
+        - title: 'Previous · Feb 22'
+          copy: 'Step back a day to the February 22nd log.'
+          href: /journal/02-22/
+          icon: calendar
+        - title: 'Next · Feb 24'
+          copy: 'Jump ahead to the February 24th log.'
+          href: /journal/02-24/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1740141340584-a749ceac44a1?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### B13
 
@@ -65,7 +102,15 @@ import { Adsense } from '@/components/astropad';
 
     The Q Crate will be where we hold all our godot and bevy modules, with the goal of being able to quickly reuse them in future gamejams.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Expo
 
@@ -125,3 +170,6 @@ Going through each of the file and getting a solid understanding of what it all 
 
 The best part of this exercise is that I will get better at building discord bots and rust!
 
+</BentoProse>
+
+</BentoDoc>

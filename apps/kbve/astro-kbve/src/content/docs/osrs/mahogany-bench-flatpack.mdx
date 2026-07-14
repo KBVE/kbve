@@ -1,6 +1,6 @@
 ---
 title: Mahogany bench (flatpack) | OSRS Price Data
-description: "Mahogany bench (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Mahogany bench flatpack is a tradeable Construction flatpack built from 4 mahogany planks at level 52 Construction. High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8572
   name: Mahogany bench (flatpack)
@@ -12,9 +12,67 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Mahogany bench (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: construction-flatpack
+    tier: mid
+  properties:
+    release_date: "2006-05-31"
+    update: Construction skill launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  recipes:
+    - skill: construction
+      level: 52
+      xp: 560
+      materials:
+        - item_id: 8782
+          item_name: Mahogany plank
+          quantity: 4
+      output_id: 8572
+      output_name: Mahogany bench (flatpack)
+      output_quantity: 1
+      notes: "Built at a steel framed workbench inside the POH workshop; hammer and saw required"
+  related_items:
+    - item_id: 8782
+      item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: "Plank material consumed per flatpack"
+    - item_id: 8570
+      item_name: Teak bench (flatpack)
+      slug: teak-bench-flatpack
+      relationship: alternative
+      description: "Lower-tier teak flatpack alternative"
+    - item_id: 8568
+      item_name: Oak bench (flatpack)
+      slug: oak-bench-flatpack
+      relationship: alternative
+      description: "Entry-tier oak flatpack alternative"
+  market_strategy:
+    notes:
+      - "Construction Notes"
+      - "Flatpack price floats near alch value despite 4 mahogany planks of input cost"
+      - "Primarily produced for filler XP and POH stocking, rarely flipped"
+      - "Construction contracts and STASH unit setups drive marginal demand"
+      - "Buy limit of 500 per four hours bounds bulk listings"
+      - "Compare 4x mahogany plank cost vs flatpack GE price to spot rare margin"
+      - "Watch Construction XP buff weekends for short-term demand bumps"
+  history:
+    - date: "2006-05-31"
+      update: Construction skill launch
+      description: "Mahogany bench flatpack added with the Construction skill release."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

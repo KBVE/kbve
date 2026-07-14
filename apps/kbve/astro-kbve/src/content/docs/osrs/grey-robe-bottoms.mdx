@@ -12,9 +12,88 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Grey robe bottoms is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "29 June 2004"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      price: 650
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Grey robe top
+      slug: grey-robe-top
+      relationship: set-piece
+      description: Matching top in the grey Canifis robe set.
+    - item_name: Purple robe bottoms
+      slug: purple-robe-bottoms
+      relationship: variant
+      description: Purple-dyed variant from the same Canifis range.
+    - item_name: Red robe bottoms
+      slug: red-robe-bottoms
+      relationship: variant
+      description: Red-dyed variant from the same Canifis range.
+    - item_name: Teal robe bottoms
+      slug: teal-robe-bottoms
+      relationship: variant
+      description: Teal-dyed variant from the same Canifis range.
+    - item_name: Yellow robe bottoms
+      slug: yellow-robe-bottoms
+      relationship: variant
+      description: Yellow-dyed variant from the same Canifis range.
+  about: "Grey robe bottoms are part of the Canifis cosmetic robe set sold by Barker after Priest In Peril. They have minor defensive bonuses and exist mainly for roleplay and outfit completion."
+  market_strategy:
+    notes:
+      - "Barker's shop sells at 650 coins which floors the Grand Exchange price; arbitrage rarely beats the buy limit."
+      - "Demand is mostly cosmetic, so volume is thin outside of seasonal fashion events."
+  trading_tips:
+    - "Watch for Iron Man players flipping the set after Priest In Peril completion bumps for short-lived demand."
+    - "Pair listings with matching top, gloves, and boots to clear inventory faster."
+  history:
+    - date: "29 June 2004"
+      description: "Released as part of the Priest In Peril quest content update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

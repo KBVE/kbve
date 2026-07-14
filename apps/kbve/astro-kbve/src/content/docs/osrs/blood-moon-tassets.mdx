@@ -1,6 +1,6 @@
 ---
 title: Blood moon tassets | OSRS Price Data
-description: "Blood moon tassets is a members legs slot item with +2 melee strength requiring 50 Defence. High alch: 173,946 GP, GE limit: 15."
+description: "Blood moon tassets is a members legs slot item with +2 melee strength requiring 75 Strength and 50 Defence. High alch: 173,946 GP, GE limit: 15."
 osrs:
   id: 29025
   name: Blood moon tassets
@@ -12,9 +12,35 @@ osrs:
   lowalch: 115964
   highalch: 173946
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: melee armour
+    tier: high
+  properties:
+    release_date: "20 March 2024"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.082
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: null
+    attack_speed: null
     weight: 4.082
+    requirements:
+      strength: 75
+      defence: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,44 +58,34 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      strength: 75
-      defence: 50
-    degradable: true
-    charges: 3000
   drop_table:
-    primary_source: Lunar Chest (Neypotzli)
-    best_drop_rate: 1/224
     sources:
       - source: Lunar Chest
         quantity: "1"
         rarity: rare
-        drop_rate: 1/224
-        members_only: true
+  passive_effects:
+    - name: Bloodrager
+      description: "When the full Blood moon set is worn with the Dual macuahuitl, successful hits have a 33% chance to attack one tick sooner. Special attacks guarantee the effect."
   related_items:
-    - item_id: 28997
-      item_name: Dual macuahuitl
+    - item_name: Dual macuahuitl
       slug: dual-macuahuitl
       relationship: set-piece
-      description: Weapon for Bloodrager set effect
-    - item_id: 29028
-      item_name: Blood moon helm
+      description: Weapon required for the Bloodrager set effect
+    - item_name: Blood moon helm
       slug: blood-moon-helm
       relationship: set-piece
-      description: Helm in set
-    - item_id: 29022
-      item_name: Blood moon chestplate
+      description: Helm in the Blood moon set
+    - item_name: Blood moon chestplate
       slug: blood-moon-chestplate
       relationship: set-piece
-      description: Body armour in set
+      description: Body armour in the Blood moon set
   about: |-
-    When wearing the full Blood moon armour set with the Dual macuahuitl:
-    - Bloodrager: 33% chance upon successful hit to attack one tick earlier
+    Blood moon tassets are the legs piece of the Blood moon armour set, obtained from the Lunar Chest in Neypotzli (Perilous Moons).
 
     | Property | Value |
     |----------|-------|
     | Total charges | 3,000 |
-    | Charge rate | 1 per 54 seconds |
+    | Charge rate | 1 per 54 seconds of combat |
     | Combat duration | ~45 hours |
     | NPC repair cost | 1,500,000 coins |
     | Repair at 99 Smithing | 757,500 coins |
@@ -78,13 +94,23 @@ osrs:
     - Solid defensive stats
     - +2 strength bonus
     - Good magic defence (+32)
+    - Bloodrager set effect with Dual macuahuitl
   market_strategy:
     notes:
-      - Essential for Blood moon builds
-      - Decent standalone legs option
-      - Factor in repair costs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Essential for Blood moon Bloodrager builds"
+      - "Decent standalone legs option for melee"
+      - "Factor in repair costs and charge decay"
+      - "Supply tied to Lunar Chest grind"
+  trading_tips:
+    - Watch repair-cost rumors before bulk listing
+    - Set-piece flips spike around Varlamore updates
+  history:
+    - date: "June 2024"
+      description: "Removed accidental 1% Magic damage bonus."
+    - date: "April 2024"
+      description: "Weight reduced from 8 to 4.082 kg."
+    - date: "20 March 2024"
+      description: "Released with the Varlamore: The Hunt for Surok update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -90,6 +90,48 @@ describe('SiteGraph', () => {
 		expect(screen.getByText('OSRS')).toBeTruthy();
 	});
 
+	it('paints hover-dim imperatively without re-rendering', async () => {
+		stubFetch(sample);
+		const { container } = render(<SiteGraph currentSlug="a" />);
+		await waitFor(() => {
+			expect(container.querySelectorAll('.sg-node').length).toBe(3);
+		});
+
+		const nodeOf = (id: string) =>
+			container.querySelector<SVGGElement>(`.sg-node[data-id="${id}"]`)!;
+		const linkOf = (s: string, t: string) =>
+			container.querySelector<SVGPathElement>(
+				`.sg-link[data-source="${s}"][data-target="${t}"]`,
+			)!;
+
+		// Base state: every filtered-in node at full opacity.
+		expect(nodeOf('b').style.opacity).toBe('1');
+		expect(nodeOf('c').style.opacity).toBe('1');
+
+		// Hover b → set = {b, a}. c is non-adjacent → dims; b highlights.
+		fireEvent.mouseEnter(nodeOf('b'));
+		expect(nodeOf('a').style.opacity).toBe('1');
+		expect(nodeOf('c').style.opacity).toBe('0.18');
+		expect(
+			nodeOf('b')
+				.querySelector('.sg-node-circle')!
+				.getAttribute('fill'),
+		).toBe('var(--sl-color-accent)');
+		// Edge a→b stays lit (both incident); a→c dims.
+		expect(linkOf('a', 'b').getAttribute('stroke-opacity')).toBe('0.4');
+		expect(linkOf('a', 'c').getAttribute('stroke-opacity')).toBe('0.08');
+
+		// Leave → base restored.
+		fireEvent.mouseLeave(nodeOf('b'));
+		expect(nodeOf('c').style.opacity).toBe('1');
+		expect(
+			nodeOf('b')
+				.querySelector('.sg-node-circle')!
+				.getAttribute('fill'),
+		).toBe('var(--sl-color-white)');
+		expect(linkOf('a', 'c').getAttribute('stroke-opacity')).toBe('0.4');
+	});
+
 	it('persists depth changes to localStorage', async () => {
 		stubFetch(sample);
 		const setItem = vi.spyOn(Storage.prototype, 'setItem');

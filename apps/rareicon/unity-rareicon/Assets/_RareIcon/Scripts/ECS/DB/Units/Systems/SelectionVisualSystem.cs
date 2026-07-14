@@ -4,7 +4,7 @@ using Unity.Entities;
 
 namespace RareIcon
 {
-    /// <summary>Mirrors <see cref="SelectedTag"/> into the per-instance <see cref="UnitSelectedVisual"/> so HexUnit.shader can draw the selection ring. Also back-fills the visual component onto any Unit entity that spawned without it, keeping this system the single source of truth for selection rendering.</summary>
+    /// <summary>Mirrors <see cref="SelectedTag"/> into the per-instance <see cref="UnitSelectedVisual"/> so HexUnit.shader can draw the selection ring. Also back-fills the visual component onto any Unit entity that spawned without it, keeping this system the single source of truth for selection rendering. Two parallel IJobEntity passes (selected → 1f, unselected → 0f) replace the prior main-thread foreach scans so the per-frame UnitSelectedVisual sweep stays off the main thread at scale.</summary>
     [BurstCompile]
     public partial struct SelectionVisualSystem : ISystem
     {
@@ -18,6 +18,8 @@ namespace RareIcon
                 .Build(ref state);
         }
 
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
         public void OnUpdate(ref SystemState state)
         {
             if (!_missingVisual.IsEmpty)
@@ -30,17 +32,34 @@ namespace RareIcon
                     ecb.AddComponent(arr[i], new UnitSelectedVisual { Value = 0f });
             }
 
-            foreach (var vis in SystemAPI.Query<RefRW<UnitSelectedVisual>>()
-                                          .WithAll<SelectedTag>())
-            {
-                if (vis.ValueRO.Value != 1f) vis.ValueRW.Value = 1f;
-            }
+            var selectedHandle   = new MarkSelectedVisualJob   { Target = 1f }.ScheduleParallel(state.Dependency);
+            var unselectedHandle = new MarkUnselectedVisualJob { Target = 0f }.ScheduleParallel(selectedHandle);
 
-            foreach (var vis in SystemAPI.Query<RefRW<UnitSelectedVisual>>()
-                                          .WithNone<SelectedTag>())
-            {
-                if (vis.ValueRO.Value != 0f) vis.ValueRW.Value = 0f;
-            }
+            state.Dependency = unselectedHandle;
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(SelectedTag))]
+    public partial struct MarkSelectedVisualJob : IJobEntity
+    {
+        public float Target;
+
+        void Execute(ref UnitSelectedVisual vis)
+        {
+            if (vis.Value != Target) vis.Value = Target;
+        }
+    }
+
+    [BurstCompile]
+    [WithNone(typeof(SelectedTag))]
+    public partial struct MarkUnselectedVisualJob : IJobEntity
+    {
+        public float Target;
+
+        void Execute(ref UnitSelectedVisual vis)
+        {
+            if (vis.Value != Target) vis.Value = Target;
         }
     }
 }

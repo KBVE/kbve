@@ -12,3 +12,6 @@ max-line-length = 120
 extend-ignore = E203, E221
 per-file-ignores =
 	kbve/proto/*_pb2*.py: E501, E303, F401, E261, W504, E302, W291, E271, E211, E111, E225, E231, F541, E114, E128
+	# pycodestyle mis-tokenizes f-string format specs / string content (PEP 701, py3.12)
+	kbve/sprite/model_sprites.py: E231, E702
+	kbve/sprite/ship_footprint.py: E231

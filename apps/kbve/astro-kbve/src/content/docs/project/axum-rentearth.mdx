@@ -1,0 +1,112 @@
+---
+title: RentEarth API — itch.io Download Backend
+description: Rust Axum backend for the RentEarth game — resolves signed itch.io desktop downloads and serves the Vite + TanStack web frontend at the root.
+sem: 1
+sidebar:
+    label: RentEarth API
+    order: 31
+tags:
+    - game
+    - api
+key: axum_rentearth
+pipeline: docker
+app_name: axum-rentearth
+version: "0.1.1"
+source_path: apps/rentearth/axum-rentearth
+version_toml: apps/rentearth/axum-rentearth/version.toml
+version_target: apps/rentearth/axum-rentearth/Cargo.toml
+runner: ubuntu-latest
+image: kbve/axum-rentearth
+deployment_yaml: apps/kube/rentearth/manifest/axum-rentearth-deployment.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: beta
+kube:
+    stack: agones
+    environment: beta
+    tier: api
+    owner: h0lybyte
+    criticality: low
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does axum-rentearth do?
+          answer: It resolves RentEarth desktop downloads from itch.io through the shared jedi itch client and serves the RentEarth Vite + TanStack web frontend at the root path.
+        - question: How does a platform download work?
+          answer: A request to /downloads/{platform} redirects to the signed itch.io URL for that platform, while /api/downloads exposes the live per-platform build state the web consumes.
+        - question: How does it relate to axum-chuckrpg?
+          answer: It mirrors axum-chuckrpg's route shape and shares the jedi itch client, but serves the RentEarth game instead of ChuckRPG.
+bento:
+    badge: game · api
+    title: itch.io download backend for
+    accent: RentEarth
+    lede: >-
+        The Rust Axum backend for the RentEarth game — resolves signed itch.io
+        desktop downloads through the shared jedi itch client and serves the
+        Vite + TanStack single-page web frontend at the root path.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/rentearth/axum-rentearth
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: server
+        title: Downloads plus bundled web
+        body: >-
+            axum-rentearth resolves signed itch.io desktop downloads through the
+            shared <a href="/project/jedi-crate/">jedi</a> itch client and serves
+            the RentEarth Vite + TanStack SPA at the root path. It mirrors
+            axum-chuckrpg, sharing the same route shape and itch client.
+        points:
+            - <strong>Downloads</strong> — signed per-platform itch.io redirects.
+            - <strong>Web</strong> — Vite + TanStack SPA with SPA fallback.
+    stats:
+        - { label: App, value: axum-rentearth, icon: server }
+        - { label: Language, value: Rust, icon: rust }
+        - { label: Image, value: kbve/axum-rentearth, icon: box }
+        - { label: Status, value: beta, icon: activity }
+    features:
+        - title: Signed itch.io downloads
+          icon: key
+          body: <code>/downloads/{platform}</code> redirects to the signed itch URL for the requested platform via the shared jedi itch client.
+        - title: Downloads page
+          icon: book
+          body: <code>/downloads</code> renders an askama page listing the available builds.
+        - title: Live build state API
+          icon: activity
+          body: <code>/api/downloads</code> exposes the current per-platform build state that the web frontend consumes.
+        - title: Bundled web
+          icon: server
+          body: Serves the RentEarth Vite + TanStack SPA at the root, with an SPA fallback so client-routed paths resolve after explicit API and download routes.
+        - title: Health checks
+          icon: check
+          body: <code>/health</code> and <code>/api/health</code> back the liveness probes.
+    usage:
+        label: routes
+        lang: http
+        code: |
+            GET /downloads/{platform}   -> 302 redirect to signed itch.io URL
+            GET /downloads              -> HTML downloads page (askama)
+            GET /api/downloads          -> JSON per-platform build state
+            GET /health                 -> liveness
+    related:
+        - title: ChuckRPG
+          href: /project/chuckrpg/
+          copy: Sibling Axum download backend this service mirrors.
+          icon: server
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

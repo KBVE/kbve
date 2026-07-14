@@ -1,6 +1,6 @@
 ---
 title: Morrigan's throwing axe | OSRS Price Data
-description: "Morrigan's throwing axe: A vicious throwing axe.. High alch: 2,400 GP, GE limit: 100."
+description: "Morrigan's throwing axe: A vicious throwing axe. High alch: 2,400 GP, GE limit: 100."
 osrs:
   id: 22634
   name: Morrigan's throwing axe
@@ -12,9 +12,123 @@ osrs:
   lowalch: 1600
   highalch: 2400
   limit: 100
-  about: "Morrigan's throwing axe is a members-only item in Old School RuneScape. High alchemy value: 2,400 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ancient
+    tier: high
+  properties:
+    release_date: "2019-09-12"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 5
+    attack_range: 4
+    weight: 0.5
+    requirements:
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 65
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 75
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Morrigan's curse
+      description: When fully equipped with Morrigan's set in PvP, target's Prayer is drained on hit and damage is increased.
+      trigger: while_worn
+  drop_table:
+    sources:
+      - source: Revenant imp
+        quantity: "10-30"
+        rarity: "1/512"
+      - source: Revenant goblin
+        quantity: "10-30"
+        rarity: "1/512"
+      - source: Revenant icefiend
+        quantity: "10-30"
+        rarity: "1/512"
+      - source: Revenant pyrefiend
+        quantity: "10-30"
+        rarity: "1/512"
+      - source: Revenant hellhound
+        quantity: "10-30"
+        rarity: "1/640"
+      - source: Revenant demon
+        quantity: "10-30"
+        rarity: "1/700"
+      - source: Revenant ork
+        quantity: "10-30"
+        rarity: "1/700"
+      - source: Revenant dark beast
+        quantity: "10-30"
+        rarity: "1/780"
+      - source: Revenant knight
+        quantity: "10-30"
+        rarity: "1/780"
+      - source: Revenant dragon
+        quantity: "10-30"
+        rarity: "1/860"
+      - source: Revenant cyclops
+        quantity: "10-30"
+        rarity: "1/512"
+  related_items:
+    - item_name: Morrigan's javelin
+      slug: morrigan-s-javelin
+      relationship: variant
+      description: Higher-tier thrown projectile in the same Ancient Warriors PvP set.
+    - item_name: Morrigan's leather body
+      slug: morrigan-s-leather-body
+      relationship: set-piece
+      description: Body slot of Morrigan's ranged set.
+    - item_name: Morrigan's leather chaps
+      slug: morrigan-s-leather-chaps
+      relationship: set-piece
+      description: Legs slot of Morrigan's ranged set.
+    - item_name: Morrigan's coif
+      slug: morrigan-s-coif
+      relationship: set-piece
+      description: Head slot of Morrigan's ranged set.
+  about: |-
+    Morrigan's throwing axe is a high-tier PvP-focused thrown weapon from the Ancient Warriors' equipment set, requiring 60 Ranged to wield. It hits hard against unprotected targets in the Wilderness and degrades on use, with each hit consuming a charge until it crumbles to dust.
+
+    The throwing axe drops from revenants in the Revenant Caves and is one of the most reliable Wilderness money makers from the cave. It is typically used with Morrigan's leather armour set to apply the Morrigan's set effect in PvP, draining the opponent's Prayer on hit.
+  market_strategy:
+    notes:
+      - "Tied directly to PvP demand; price rises around DMM tournaments and PvP arena seasons."
+      - "Supply driven by revenant cave farming and Wilderness PvM activity."
+      - "Compare per-axe cost to per-javelin cost as both share the Morrigan's set effect."
+  trading_tips:
+    - Buy on dips after Wilderness updates that flood revenant drops to the GE.
+    - Stack toward the 100-per-4-hours GE limit before big PvP events.
+  history:
+    - date: "2019-09-12"
+      description: "Morrigan's throwing axe re-released as a tradeable Revenant Caves drop in the Wilderness rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

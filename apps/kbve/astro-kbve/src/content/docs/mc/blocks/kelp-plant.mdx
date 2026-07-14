@@ -1,5 +1,6 @@
 ---
 title: Kelp Plant
+template: splash
 description: |
     Minecraft Kelp Plant — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 711
     ref: kelp_plant
     slug: kelp-plant
+    content_rev: 1
     display_name: Kelp Plant
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: kelp
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - instant_break
+    about:
+        description: |
+            Kelp Plant is the internal block used for every non-topmost
+            segment of a growing kelp stalk, distinct from the single
+            top segment which is simply called Kelp. Breaking any
+            segment destroys every block above it in the same stalk.
+        lore: |
+            Despite being called a plant in-game, real-world kelp is
+            classified as brown algae rather than a true plant.
+    uses:
+        - title: Dried Kelp
+          ref: dried_kelp
+          detail: |
+              Smelt any harvested kelp item to produce dried kelp, an
+              edible food item that can also be crafted back into dried
+              kelp blocks for storage or high-value furnace fuel.
+    found_in:
+        - location: Ocean biomes
+          detail: Naturally generates underwater in most ocean biomes except frozen, deep frozen, and warm oceans.
+        - location: Wandering Trader
+          detail: Purchasable from wandering traders for 3 emeralds.
+    faq:
+        - question: What is the difference between Kelp and Kelp Plant?
+          answer: |
+              Kelp Plant makes up the lower, still-growing segments of a
+              kelp stalk; Kelp is the identical-looking topmost segment
+              that can still grow taller. Both drop a kelp item when broken.
+        - question: Do I need a special tool to harvest kelp?
+          answer: |
+              No. Kelp has 0 hardness and breaks instantly with any tool
+              or bare hands.
+        - question: Can kelp be used as furnace fuel?
+          answer: |
+              Not directly, but smelting kelp into dried kelp and then
+              crafting a dried kelp block yields an efficient furnace fuel.
+        - question: How tall can a kelp stalk grow?
+          answer: |
+              Naturally between 2 and 26 blocks tall, though players can
+              bonemeal or replant it to reach the water's surface.
     data_version: "1.21.5"
 ---
 

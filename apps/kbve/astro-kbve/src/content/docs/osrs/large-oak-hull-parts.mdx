@@ -5,16 +5,64 @@ osrs:
   id: 32065
   name: Large oak hull parts
   slug: large-oak-hull-parts
-  examine: Parts for creating an oak hull for larger boats.
+  examine: Large parts for creating an oak hull for a large boat.
   members: true
   icon: Large oak hull parts.png
   value: 3125
   lowalch: 1250
   highalch: 1875
   limit: null
-  about: "Large oak hull parts is a members-only item in Old School RuneScape. High alchemy value: 1,875 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: shipwright_component
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Are you sure you want to drop this?"
+  recipes:
+    - skill: construction
+      level: 8
+      xp: 2.5
+      materials:
+        - item_name: Oak hull parts
+          quantity: 5
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Oak hull parts
+      slug: oak-hull-parts
+      relationship: component
+      description: Combined into large oak hull parts at the Shipwrights' workbench
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Upstream material for oak hull parts
+  about: "Large oak hull parts are crafted at the Shipwrights' workbench by combining five oak hull parts. Sixteen large oak hull parts are required to complete a full oak sloop hull."
+  market_strategy:
+    notes:
+      - "Created from oak hull parts (and ultimately oak planks)"
+      - "Used in bulk for sloop hull construction"
+      - "No buy limit listed on the Grand Exchange"
+  trading_tips:
+    - Track oak plank pricing to estimate margin
+    - Demand scales with shipwright training popularity
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Shipwrighting expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

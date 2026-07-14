@@ -1,6 +1,6 @@
 ---
 title: Lime chunks | OSRS Price Data
-description: "Lime chunks: Fresh chunks of lime.. High alch: 1 GP, GE limit: 13,000."
+description: "Lime chunks: Fresh chunks of lime used as a gnome cocktail ingredient. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2122
   name: Lime chunks
@@ -12,9 +12,80 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Lime chunks is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: fruit
+    tier: low
+  recipes:
+    - skill: cooking
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Lime
+          quantity: 1
+        - item_name: Knife
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+      product: Lime chunks
+      notes: "Use a knife on a lime to chop it into chunks; required step for several Gnome bartending recipes."
+  related_items:
+    - item_id: 2120
+      item_name: Lime
+      slug: lime
+      relationship: component
+      description: "Whole fruit input chopped with a knife into chunks"
+    - item_id: 2106
+      item_name: Lime slices
+      slug: lime-slices
+      relationship: variant
+      description: "Alternative cut of lime used in different cocktail recipes"
+    - item_id: 2034
+      item_name: Chocolate saturday
+      slug: chocolate-saturday
+      relationship: product
+      description: "Gnome cocktail brewed using lime chunks as an ingredient"
+    - item_id: 2080
+      item_name: Pineapple chunks
+      slug: pineapple-chunks
+      relationship: variant
+      description: "Sister fruit chunks used at the Gnome bar"
+  about: |-
+    > _"Fresh chunks of lime."_
+
+    Lime chunks are produced by using a knife on a whole lime. They are a fundamental Gnome bartending ingredient used in cocktails such as Chocolate saturday and Drunk dragon, both of which are needed to complete the Gnome Stronghold cocktail tutorial and various Gnome Restaurant deliveries.
+
+    Players generally chop chunks on-demand at a Gnome bar rather than carrying stacks, but the GE limit of 13,000 makes them practical for bulk cocktail mixing during achievement diary runs or Gnome Restaurant XP grinding for Cooking.
+  market_strategy:
+    notes:
+      - "Crafted on-demand from limes; prices stay near GE vendor floor."
+      - "Demand follows Gnome Restaurant grinding pushes and achievement diary cocktail steps."
+      - "Bulk Gnome Stronghold mass events occasionally clear the GE supply."
+  trading_tips:
+    - "Set buy walls one gp under price during weekly Gnome Stronghold mini-events for cheap fills."
+    - "Resale margin is single-digit gp; only worth flipping in 5k+ stacks."
+  history:
+    - date: "2002-12-09"
+      description: "Lime chunks introduced with the Tree Gnome Stronghold and the Gnome bartending system."
+    - date: "2005-04-04"
+      description: "Gnome Restaurant minigame released, adding lime chunks to several customer recipes."
+  properties:
+    release_date: "2002-12-09"
+    update: Tree Gnome Stronghold
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

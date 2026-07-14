@@ -1,8 +1,15 @@
 ---
 title: Terraform
 description: |
-    Terraform is an open-source infrastructure as code tool that automates the provisioning of hardware and software resources across multiple providers.
-    It ensures consistent environments through declarative configuration files
+    Terraform is HashiCorp's open-source infrastructure as code (IaC) tool that provisions and manages cloud
+    resources across AWS, Azure, GCP, and hundreds of providers from declarative HCL configuration files.
+    This guide covers the core workflow, HCL basics, state management, and reusable modules.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Terraform
     order: 120
@@ -10,42 +17,276 @@ unsplash: 1524439188326-e47322d1cef2
 img: https://images.unsplash.com/photo-1524439188326-e47322d1cef2?fit=crop&w=1400&h=700&q=75
 tags:
     - iac
+    - devops
+    - terraform
+sem: 1
+ogTitle: Terraform Guide — Infrastructure as Code Workflow, State & Modules
+ogDescription: Learn Terraform, HashiCorp's infrastructure as code tool — the init/plan/apply workflow, HCL configuration basics, remote state management, and building reusable modules across cloud providers.
+jsonld:
+    type: Article
+    keywords:
+        - terraform
+        - infrastructure as code
+        - hashicorp
+        - hcl
+        - terraform state
+        - terraform modules
+    faq:
+        - question: What is Terraform used for?
+          answer: Terraform is an infrastructure as code tool that provisions and manages cloud and on-prem resources through declarative configuration files. You describe the desired end state in HCL, and Terraform figures out the create, update, and destroy actions needed to reach it across providers like AWS, Azure, and GCP.
+        - question: What is the difference between terraform plan and terraform apply?
+          answer: terraform plan is a dry run that shows what changes Terraform would make without touching any infrastructure, so you can review adds, changes, and destroys. terraform apply executes those changes against real providers after an optional confirmation prompt.
+        - question: What is Terraform state and why does it matter?
+          answer: State is a JSON file that maps your configuration to the real resources Terraform manages, tracking metadata and dependencies. It lets Terraform detect drift and plan minimal changes. In teams, store it remotely (e.g. an S3 bucket with locking) so no two people apply at once against a shared, stale state.
+        - question: What is a Terraform module?
+          answer: A module is a reusable, parameterized package of Terraform configuration. The root module is your working directory; child modules are called with a module block and inputs. Modules let you package a VPC, cluster, or service once and reuse it across environments with different variables.
+        - question: Is Terraform free?
+          answer: Terraform CLI is open source and free. HashiCorp also offers HCP Terraform (formerly Terraform Cloud) with paid tiers for remote state, run pipelines, and policy. OpenTofu is a community-driven, MPL-licensed fork of Terraform maintained under the Linux Foundation.
+bento:
+    badge: application · iac · devops
+    title: 'Declare it once,'
+    accent: Terraform.
+    lede: >-
+        HashiCorp's infrastructure as code tool — describe servers, networks,
+        and databases in HCL and let one workflow provision them across AWS,
+        Azure, GCP, and hundreds of providers. This guide covers the
+        init/plan/apply loop, HCL configuration basics, remote state with
+        locking, and reusable modules.
+    ctas:
+        - label: Core workflow
+          href: '#workflow'
+          primary: true
+        - label: HCL basics
+          href: '#configuration'
+        - label: State management
+          href: '#state'
+    aside:
+        icon: gears
+        title: Infrastructure from version control
+        body: >-
+            Instead of clicking through cloud consoles, you declare the end
+            state you want in .tf files — the same config reproduces an
+            environment identically every time, with a full change history
+            in git.
+        points:
+            - <strong>Workflow</strong> — init, plan, apply, destroy.
+            - <strong>State</strong> — remote backends with locking for teams.
+            - <strong>Modules</strong> — package infrastructure once, reuse everywhere.
+    stats:
+        - { label: Language, value: HCL, icon: code }
+        - { label: Dry run, value: terraform plan, icon: eye }
+        - { label: Providers, value: Hundreds, icon: network }
+        - { label: OSS fork, value: OpenTofu, icon: branch }
+    features:
+        - title: Core workflow
+          icon: deploy
+          href: '#workflow'
+          body: The four-command loop — init downloads providers, plan previews the diff, apply executes it, destroy tears it down.
+        - title: HCL configuration
+          icon: code
+          href: '#configuration'
+          body: Providers, resources, variables, outputs, and data sources — the building blocks of every .tf file.
+        - title: State management
+          icon: database
+          href: '#state'
+          body: Remote backends with locking and encryption keep team applies safe and the state file out of git.
+        - title: Reusable modules
+          icon: package
+          href: '#modules'
+          body: Parameterized bundles of config from the Terraform Registry or your own modules/ directory keep environments DRY.
+    related:
+        - title: Ansible
+          href: /application/ansible/
+          copy: Configuration management to pair with Terraform provisioning.
+          icon: settings
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Cluster orchestration that Terraform can provision and manage.
+          icon: deploy
+        - title: Docker
+          href: /application/docker/
+          copy: Containers and images for the workloads your infrastructure runs.
+          icon: package
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1524439188326-e47322d1cef2?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
-<Adsense />
+**Terraform** is HashiCorp's open-source **infrastructure as code (IaC)** tool. Instead of clicking through cloud consoles, you declare the resources you want — servers, networks, DNS records, databases — in `.tf` configuration files, and Terraform provisions them to match. The same config reproduces an environment identically every time, and version control gives you a full history of infrastructure changes.
 
----
+Terraform is **provider-agnostic**: one workflow drives AWS, Azure, GCP, Kubernetes, Cloudflare, and hundreds more via a plugin ecosystem.
 
-## Setup
+This guide covers the [core workflow](#workflow), [HCL basics](#configuration), [state management](#state), and [reusable modules](#modules).
 
----
+</BentoProse>
 
-## Wrapper
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="workflow" eyebrow="Four commands" heading="Workflow">
+
+Terraform's day-to-day loop is four commands:
+
+<Steps>
+
+1. **`terraform init`**
+   Downloads the providers and modules your config references and prepares the working directory. Run it once per project and again whenever providers or backends change.
+
+   ```bash
+   terraform init
+   ```
+
+2. **`terraform plan`**
+   A dry run. Terraform reads current state, compares it to your config, and prints exactly what it would add, change, or destroy — without touching anything.
+
+   ```bash
+   terraform plan -out=tfplan
+   ```
+
+3. **`terraform apply`**
+   Executes the plan against real providers. With a saved plan file it applies without re-prompting; otherwise it shows the diff and waits for `yes`.
+
+   ```bash
+   terraform apply tfplan
+   ```
+
+4. **`terraform destroy`**
+   Tears down everything the configuration manages. Useful for ephemeral environments and test stacks.
+
+   ```bash
+   terraform destroy
+   ```
+
+</Steps>
+
+<Aside type="tip">
+Always review `terraform plan` output before applying — the "destroy" and "replace (`-/+`)" lines are where accidental data loss hides.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="configuration" eyebrow="HCL basics" heading="Configuration">
+
+Terraform files are written in **HCL (HashiCorp Configuration Language)**. A minimal AWS example:
+
+```hcl
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.region
+}
+
+variable "region" {
+  type    = string
+  default = "us-east-1"
+}
+
+resource "aws_instance" "web" {
+  ami           = "ami-0abcdef1234567890"
+  instance_type = "t3.micro"
+
+  tags = {
+    Name = "kbve-web"
+  }
+}
+
+output "public_ip" {
+  value = aws_instance.web.public_ip
+}
+```
+
+| Block | Purpose |
+| ----- | ------- |
+| `terraform` | Provider requirements and backend config |
+| `provider` | Configure a target platform (region, credentials) |
+| `resource` | A managed piece of infrastructure |
+| `variable` | Parameterize a configuration |
+| `output` | Export values after apply |
+| `data` | Read existing resources you don't manage |
+
+</BentoProse>
+
+<BentoProse id="state" eyebrow="Source of truth" heading="State">
+
+Terraform records what it manages in a **state file** (`terraform.tfstate`). State maps your config to real resource IDs so Terraform can detect drift and compute minimal changes.
+
+For teams, **never** commit local state to git — store it **remotely** with locking so two applies can't race:
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "kbve-tfstate"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "tf-locks"
+    encrypt        = true
+  }
+}
+```
+
+<Aside type="caution">
+State can contain secrets (passwords, keys) in plaintext. Use a remote backend with encryption at rest and restrict access — treat the state file as sensitive.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="modules" eyebrow="Stay DRY" heading="Modules">
+
+A **module** is a reusable bundle of Terraform config. Package infrastructure once, call it many times with different inputs:
+
+```hcl
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+
+  name = "kbve-prod"
+  cidr = "10.0.0.0/16"
+}
+```
+
+The [Terraform Registry](https://registry.terraform.io/) hosts thousands of community and verified modules. Wrap your own patterns into local modules under a `modules/` directory to keep environments DRY.
+
+</BentoProse>
+
+<BentoProse id="wrappers" eyebrow="Ecosystem tools" heading="Wrappers">
 
 -   [PreTF](https://github.com/raymondbutcher/pretf)
 -   [TerraformJS](https://github.com/mdawar/terraformjs)
 
----
+</BentoProse>
 
-## References
+<BentoProse id="references" eyebrow="Further reading" heading="References">
 
 -   [Terraform The Hard Way](https://github.com/AdminTurnedDevOps/Terraform-The-Hard-Way)
-
--   [TerraForm Sentry](https://github.com/jianyuan/terraform-provider-sentry)
-
+-   [Terraform Sentry Provider](https://github.com/jianyuan/terraform-provider-sentry)
 -   [Awesome Terraform](https://github.com/shuaibiyy/awesome-terraform)
+-   [Terraform Scalable Self-Hosted GitHub Runners](https://github.com/philips-labs/terraform-aws-github-runner)
 
--   [Terraform Scalable Self Hosted Github Action](https://github.com/philips-labs/terraform-aws-github-runner)
+</BentoProse>
+
+</BentoDoc>

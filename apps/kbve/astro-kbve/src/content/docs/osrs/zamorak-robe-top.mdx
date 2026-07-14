@@ -1,6 +1,6 @@
 ---
 title: Zamorak robe top | OSRS Price Data
-description: "Zamorak robe top is a members body slot item. High alch: 4,200 GP, GE limit: 8."
+description: "Zamorak robe top is a Prayer body slot vestment with +6 Prayer bonus. Easy clue reward. High alch: 4,200 GP, GE limit: 8."
 osrs:
   id: 10460
   name: Zamorak robe top
@@ -12,30 +12,98 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 8
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    weight: 1.8
+    quest_item: false
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    destroy: "Drop"
   equipment:
     slot: body
+    attack_speed: null
+    attack_range: null
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 6
     requirements:
       prayer: 20
-    other_bonus:
-      prayer: 6
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Easy
-        drop_rate: 1/1,404
-        description: Rare reward from easy clue scrolls
+  treasure_trail:
+    tier: easy
+    drop_rate: "1/1404"
+    casket: Reward casket (easy)
   related_items:
     - item_id: 10468
       item_name: Zamorak robe legs
       slug: zamorak-robe-legs
       relationship: set-piece
       description: Matching Zamorak vestment legs
+    - item_id: 10458
+      item_name: Zamorak cloak
+      slug: zamorak-cloak
+      relationship: set-piece
+      description: Matching Zamorak cloak
+    - item_id: 10456
+      item_name: Zamorak mitre
+      slug: zamorak-mitre
+      relationship: set-piece
+      description: Matching Zamorak head piece
+    - item_id: 10454
+      item_name: Zamorak crozier
+      slug: zamorak-crozier
+      relationship: set-piece
+      description: Matching Zamorak weapon
+    - item_id: 10452
+      item_name: Zamorak stole
+      slug: zamorak-stole
+      relationship: set-piece
+      description: Matching Zamorak cape
+  history:
+    - date: "2006-12-05"
+      description: "Released as part of the god vestment sets via Treasure Trails update."
+    - date: "2014-07-24"
+      description: "Vestment robe tops and legs adjusted to offer same prayer bonuses as monk robes."
   about: |-
     > *"Zamorak Vestments."*
 
     The Zamorak robe top is the body piece of the Zamorak vestment set, obtained from easy treasure trails. It provides a +6 Prayer bonus and requires 20 Prayer to equip. Part of the god vestment sets used by prayer-focused builds, particularly useful in the God Wars Dungeon for Zamorak protection.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+
+    Note: While it provides Zamorak faction protection in God Wars Dungeon, it is unadvised to use due to its very low defensive bonuses.
+  market_strategy:
+    notes:
+      - "Easy clue scroll reward"
+      - "Vestment set completion demand"
+      - "Costume room storage compatible"
+      - "Zamorak faction item for GWD"
+      - "Buy during easy clue meta nerfs"
+      - "Set completion drives premium pricing"
+      - "Watch for collection log completionist demand"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

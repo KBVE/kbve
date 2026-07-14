@@ -1,5 +1,6 @@
 ---
 title: Tube Coral
+template: splash
 description: |
     Minecraft Tube Coral — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 730
     ref: tube_coral
     slug: tube-coral
+    content_rev: 1
     display_name: Tube Coral
     material: stone
     hardness: 0
@@ -26,8 +28,46 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tube_coral
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Tube Coral is one of five decorative coral variants that generate
+            in coral reef structures within warm ocean biomes. It must stay
+            submerged in water or waterlogged to survive — once exposed to
+            air it dies and turns into Dead Tube Coral within a few seconds.
+        lore: |
+            Added in the Update Aquatic, coral blocks brought vibrant reef
+            life and warm-ocean biodiversity to Minecraft's oceans.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally alongside coral fans, coral blocks, and sea creatures in warm ocean biomes.
+        - location: Bone-mealed ocean floors
+          detail: Applying bone meal to dirt, sand, gravel, or clay underwater in a warm ocean can grow new coral, including tube coral.
+    faq:
+        - question: Can I pick up Tube Coral without it dying?
+          answer: |
+              Yes, but only with a Silk Touch tool. Mining it any other way
+              destroys it instantly with no drop, since live coral cannot
+              survive out of water anyway.
+        - question: What happens if Tube Coral is removed from water?
+          answer: |
+              It dies and converts into Dead Tube Coral within a few
+              seconds. This transformation cannot be reversed.
+        - question: Does Tube Coral need a specific tool to mine?
+          answer: |
+              No. It breaks instantly with any tool or by hand — the only
+              requirement to keep the drop is Silk Touch.
+        - question: Is Tube Coral renewable?
+          answer: |
+              Yes, indirectly — bone meal applied to appropriate blocks
+              underwater in warm oceans can generate more coral over time.
     data_version: "1.21.5"
 ---
 

@@ -12,95 +12,95 @@ osrs:
   lowalch: 122000
   highalch: 183000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2017-10-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 7
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: feet
-    type: melee_boots
-    tradeable: true
+    weapon_type: null
+    attack_speed: null
     weight: 7
     requirements:
       defence: 75
-    stats:
-      magic_attack: -3
-      ranged_attack: -1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 32
+      slash: 32
+      crush: 32
+      magic: -3
+      ranged: 24
+    other_bonus:
       strength: 3
-      stab_def: 32
-      slash_def: 32
-      crush_def: 32
-      magic_def: -3
-      ranged_def: 24
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 2
-  creation:
-    method: Combine Bandos boots with Black tourmaline core
-    materials:
-      - item_id: 11834
-        item_name: Bandos boots
-        quantity: "1"
-      - item_id: 21730
-        item_name: Black tourmaline core
-        quantity: "1"
-    notes: Process is irreversible
-  market:
-    buy_limit: 8
-    price_estimate: 3000000
+  recipes:
+    - skill: smithing
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Bandos boots
+          quantity: 1
+        - item_name: Black tourmaline core
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 13239
-      item_name: Primordial boots
-      slug: primordial-boots
-      relationship: alternative
-      description: Strength focused
-    - item_id: 11840
-      item_name: Dragon boots
-      slug: dragon-boots
-      relationship: downgrade
-      description: Budget option
-    - item_id: 11834
-      item_name: Bandos boots
+    - item_name: Bandos boots
       slug: bandos-boots
       relationship: component
-      description: Base component
-  about: |-
-    Combine Bandos boots + Black tourmaline core.
-
-    Process is irreversible.
-
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Bandos boots | General Graardor | ~130K |
-    | Black tourmaline core | Grotesque Guardians | ~2.9M |
-
-    | Offense | Value |
-    |---------|-------|
-    | Magic | -3 |
-    | Ranged | -1 |
-    | Strength | +3 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +32 |
-    | Slash | +32 |
-    | Crush | +32 |
-    | Magic | -3 |
-    | Ranged | +24 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +2 |
-
-    Requirements: 75 Defence
-
-    BiS tank boots for:
-    - Tanking roles
-    - High defence situations
-    - PvM where defence matters
-
-    Trade-off: +1 less strength than Primordial, much more defence.
+      description: Base component before tourmaline core
+    - item_name: Black tourmaline core
+      slug: black-tourmaline-core
+      relationship: component
+      description: Grotesque Guardians drop used in combine
+    - item_name: Primordial boots
+      slug: primordial-boots
+      relationship: alternative
+      description: Strength-focused melee boot alternative
+    - item_name: Dragon boots
+      slug: dragon-boots
+      relationship: downgrade
+      description: Budget melee boots
+    - item_name: Echo boots
+      slug: echo-boots
+      relationship: upgrade
+      description: Adds +2 Prayer via echo crystal
+  about: "Guardian boots are tied with Echo boots for the best melee and ranged defence in the boots slot. Created irreversibly by combining Bandos boots with a Black tourmaline core. Renders followers of Bandos unaggressive in the God Wars Dungeon."
   market_strategy:
     notes:
-      - Tourmaline core from Grotesque Guardians
-      - Best defence boots in game
-      - Niche but useful
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Black tourmaline core drop from Grotesque Guardians"
+      - "Tied BiS tank boots in game"
+      - "Niche but useful in defence-focused PvM"
+      - "Irreversible combine"
+  trading_tips:
+    - "Component cost: Bandos boots + Black tourmaline core ~2.34M"
+    - "Buy limit of 8 per 4 hours throttles flips"
+  history:
+    - date: "2017-10-26"
+      description: "Released alongside the Grotesque Guardians boss in Kourend."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

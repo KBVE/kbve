@@ -1,6 +1,6 @@
 ---
 title: Cooked moonlight antelope | OSRS Price Data
-description: "Cooked moonlight antelope: Mmm, this looks tasty.. High alch: 2 GP, GE limit: 6,000."
+description: "Cooked moonlight antelope heals 26 hitpoints across a delayed bite and is the top single-bite food. High alch: 2 GP, GE limit: 6,000."
 osrs:
   id: 29143
   name: Cooked moonlight antelope
@@ -12,9 +12,75 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 6000
-  about: "Cooked moonlight antelope is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.283
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  food:
+    heals: 26
+    bites: 2
+    notes: "Heals 14 immediately, then 12 more after a 4.2 second delay; delayed bite cures poison and reduces venom"
+  recipes:
+    - skill: cooking
+      level: 92
+      xp: 220
+      materials:
+        - item_id: 29141
+          item_name: Raw moonlight antelope
+          quantity: 1
+      output_id: 29143
+      output_name: Cooked moonlight antelope
+      output_quantity: 1
+      notes: "Requires 50 completed Hunters' Rumours; 99 Cooking recommended for consistent success"
+  related_items:
+    - item_id: 29141
+      item_name: Raw moonlight antelope
+      slug: raw-moonlight-antelope
+      relationship: component
+      description: "Raw form cooked into the meal"
+    - item_id: 385
+      item_name: Shark
+      slug: shark
+      relationship: alternative
+      description: "Standard 20HP cooked food alternative"
+    - item_id: 7946
+      item_name: Monkfish
+      slug: monkfish
+      relationship: alternative
+      description: "Cheaper 16HP cooked food alternative"
+  market_strategy:
+    notes:
+      - "Trader Notes"
+      - "Highest single-bite heal in the game"
+      - "Delayed second bite cures poison and reduces venom"
+      - "Supply tied to Hunter rumour activity and 92 Cooking gatekeep"
+      - "GE limit of 6,000 supports bulk PvM stocking"
+      - "Bossing spikes: pre-stock ahead of raid events and league launches"
+      - "Margin shifts with raw antelope drop frequency"
+  history:
+    - date: "2024-03-20"
+      update: "Varlamore: Part One"
+      description: "Cooked moonlight antelope added as the highest-healing single-bite food."
+    - date: "2026-05-14"
+      update: Visual refresh
+      description: "Sprite updated to feel more vibrant in inventory."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

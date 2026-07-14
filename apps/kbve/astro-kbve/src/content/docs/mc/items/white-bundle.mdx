@@ -1,5 +1,6 @@
 ---
 title: White Bundle
+template: splash
 description: |
     Minecraft White Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 975
     ref: white_bundle
     slug: white-bundle
+    content_rev: 1
     display_name: White Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The white bundle is a dyed variant of the bundle, a compact storage item that lets players consolidate multiple item types into a single inventory slot. It holds up to one full stack's worth of mixed items, with proportional space used based on each item's normal stack size.
+            It is made by combining a regular bundle with white dye, and items are inserted and retrieved with simple clicks in the inventory screen.
+        lore: |
+            A traveler's pouch dyed the color of fresh linen, holding a stack's worth of odds and ends in one tidy roll.
+    faq:
+        - question: How do I get a white bundle?
+          answer: |
+              Craft any bundle with one string and one leather, then combine it with white dye, or find plain bundles in village chests and abandoned camps and dye them white afterward.
+        - question: How much can a white bundle hold?
+          answer: |
+              It holds items up to the equivalent of one full stack's worth of space, so items that normally stack to 64 take up 1/64th of the capacity each, while non-stackable items fill the entire bundle.
+        - question: Can I put a shulker box inside a white bundle?
+          answer: |
+              No, shulker boxes cannot be placed inside bundles, though bundles can be nested inside other bundles.
+        - question: How do I use a white bundle?
+          answer: |
+              Left-click to insert items from your inventory and right-click to retrieve them, scrolling through the bundle's contents as needed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

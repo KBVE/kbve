@@ -13,8 +13,65 @@ osrs:
   highalch: 3000
   limit: 10000
   about: "Bagged oak tree is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    weight: 10
+    tradeable: true
+    equipable: false
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+  material:
+    type: misc
+    tier: standard
+  shops:
+    - shop_name: "Garden supplier"
+      location: "Falador Park"
+      price: 5000
+      currency: "coins"
+      stock: 5
+    - shop_name: "Farming Guild garden supplier"
+      location: "Farming Guild"
+      price: 5000
+      currency: "coins"
+      stock: 5
+  recipes:
+    - item_name: "Oak tree (POH)"
+      skill: "Construction"
+      level_required: 15
+      xp: 70
+      tools:
+        - "Watering can"
+      materials:
+        - item_name: "Bagged oak tree"
+          quantity: 1
+      output_quantity: 1
+      notes: "Plant in a POH garden tree space; also grants 70 Farming XP."
+  relationships:
+    - item_name: "Oak tree"
+      relationship: component
+      notes: "Planted as a POH garden decoration."
+    - item_name: "Bagged plant 1"
+      relationship: alternative
+      notes: "Lower-level POH garden plant."
+    - item_name: "Bagged willow tree"
+      relationship: upgrade
+      notes: "Higher Construction tier garden tree."
+  history:
+    - date: "2006-05-31"
+      description: "Released alongside POH gardening expansion."
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy from Falador or Farming Guild garden supplier at 5,000gp when shop stock available.\""
+      - "sell_strategy: \"Flip to Construction levelers building POH gardens via Grand Exchange margin.\""
+      - "profit_potential: \"Modest flip margin (~1,800gp) between shop and GE.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Shop restock keeps consistent supply at 5,000gp."
+    - "Daily volume is healthy (~3,200) — easy to move stock."
+    - "Demand spikes when Construction skilling tasks pop up."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

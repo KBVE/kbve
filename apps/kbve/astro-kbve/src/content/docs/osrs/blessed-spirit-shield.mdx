@@ -12,80 +12,100 @@ osrs:
   lowalch: 480000
   highalch: 720000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: spirit_shield
+    tier: high
+  properties:
+    release_date: "16 October 2014"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    type: spirit_shield
+    weight: 2
     requirements:
       defence: 70
       prayer: 60
-    stats:
-      defence_stab: 53
-      defence_slash: 55
-      defence_crush: 73
-      defence_magic: 2
-      defence_ranged: 52
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 53
+      slash: 55
+      crush: 73
+      magic: 2
+      ranged: 52
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
-  creation:
-    materials:
-      - item_id: 12829
-        item_name: Spirit shield
-        slug: spirit-shield
-      - item_id: 12833
-        item_name: Holy elixir
-        slug: holy-elixir
-    requirements:
-      prayer: 85
-      boostable: false
+  recipes:
+    - skill: prayer
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Spirit shield
+          quantity: 1
+        - item_name: Holy elixir
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 12817
-      item_name: Elysian spirit shield
+    - item_name: Spirit shield
+      slug: spirit-shield
+      relationship: component
+      description: "Base shield required for blessing"
+    - item_name: Holy elixir
+      slug: holy-elixir
+      relationship: component
+      description: "Blessing reagent from Corporeal Beast"
+    - item_name: Elysian spirit shield
       slug: elysian-spirit-shield
       relationship: upgrade
-      description: Elysian sigil upgrade
-    - item_id: 12825
-      item_name: Arcane spirit shield
+      description: "Elysian sigil upgrade"
+    - item_name: Arcane spirit shield
       slug: arcane-spirit-shield
       relationship: upgrade
-      description: Arcane sigil upgrade
-    - item_id: 0
-      item_name: Corporeal Beast
-      slug: corporeal-beast
-      relationship: component
-      description: Material source
+      description: "Arcane sigil upgrade"
+    - item_name: Spectral spirit shield
+      slug: spectral-spirit-shield
+      relationship: upgrade
+      description: "Spectral sigil upgrade"
   about: |-
-    Combine Spirit shield + Holy elixir.
+    > *"An ethereal shield that has been blessed with holy powers."*
 
-    | Requirement | Value |
-    |-------------|-------|
-    | Prayer | 85 (non-boostable) |
+    The blessed spirit shield is created by combining a Spirit shield with a Holy elixir at 85 Prayer (non-boostable). It provides a +3 prayer bonus alongside strong melee defensive stats, making it a budget prayer shield and tank option.
 
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +53 |
-    | Slash | +55 |
-    | Crush | +73 |
-    | Magic | +2 |
-    | Ranged | +52 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +3 |
-
-    Requirements: 70 Defence, 60 Prayer
-
-    Essential for:
-    - Creating sigil spirit shields
-    - Budget prayer shield
-    - Tank shield
-
-    Base for all sigil shields.
+    The blessed shield is the base for all sigil spirit shields — Arcane, Spectral, and Elysian — created by attaching the corresponding sigil at 90 Prayer and 85 Smithing.
   market_strategy:
     notes:
-      - Holy elixir from Corp
-      - Spirit shield from Corp
-      - Attach sigils for upgrades
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Holy elixir sourced from Corporeal Beast"
+      - "Spirit shield also dropped by Corporeal Beast"
+      - "Used as base for all sigil shield upgrades"
+      - "Demand tracks sigil shield economy"
+  trading_tips:
+    - "Margins follow Holy elixir and Spirit shield supply"
+    - "Spikes during Corp mass events flood the market"
+    - "Hold inventory for sigil-shield crafters during dry spells"
+  history:
+    - date: "16 October 2014"
+      description: "Released as a base for sigil spirit shields."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

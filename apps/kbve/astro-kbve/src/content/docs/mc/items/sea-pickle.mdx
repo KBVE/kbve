@@ -1,5 +1,6 @@
 ---
 title: Sea Pickle
+template: splash
 description: |
     Minecraft Sea Pickle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 212
     ref: sea_pickle
     slug: sea-pickle
+    content_rev: 1
     display_name: Sea Pickle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Sea pickles are bioluminescent aquatic blocks found in warm ocean biomes, generating
+            in colonies of up to four on top of coral blocks. Each pickle emits light when
+            submerged, with brightness increasing as more stack in a single space, making them
+            useful as both decoration and underwater lighting.
+        lore: |
+            Glowing sentinels of the deep, sea pickles illuminate coral kingdoms with their
+            ethereal bioluminescence.
+    faq:
+        - question: Where do sea pickles spawn naturally?
+          answer: |
+              Sea pickle colonies generate on the bottom of warm oceans and are found on top of
+              coral blocks in coral reefs, appearing in groups of 1-4.
+        - question: How much light do sea pickles produce?
+          answer: |
+              Light output scales with quantity: one produces level 6, two produce level 9,
+              three produce level 12, and four produce the maximum level of 15 when waterlogged.
+        - question: Can I farm sea pickles?
+          answer: |
+              Yes, using bone meal on an underwater sea pickle placed on a living coral block
+              causes it to spread to adjacent coral blocks within a short distance.
+        - question: How do I obtain sea pickles without finding them naturally?
+          answer: |
+              Wandering traders may sell 1 sea pickle for 2 emeralds, and they can also generate
+              as decoration in desert village houses.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

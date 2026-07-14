@@ -12,29 +12,40 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 30000
-  item:
-    type: crafting material
-    tradeable: true
-    stackable: true
-    weight: 0
-  obtaining:
-    - source: Nex
-      drop_rate: 5/82 - 8/209
-      quantity: 80-95
-    - source: Spiritual mage (Zaros)
-      drop_rate: 1/128
-      quantity: 5-9
-    - source: Spiritual ranger (Zaros)
-      drop_rate: 1/128
-      quantity: 2-7
-    - source: Spiritual warrior (Zaros)
-      drop_rate: 1/128
-      quantity: 2-5
-    - source: Blood Reaver
-      drop_rate: 1/128
-      quantity: 2-7
+  material:
+    type: crafting-material
+    tier: high
+  drop_table:
+    sources:
+      - source: Nex
+        quantity: "80-95"
+        rarity: common
+        drop_rate: 5/82
+        members_only: true
+      - source: Spiritual mage (Zaros)
+        quantity: "5-9"
+        rarity: uncommon
+        drop_rate: 1/128
+        members_only: true
+      - source: Spiritual ranger (Zaros)
+        quantity: "2-7"
+        rarity: uncommon
+        drop_rate: 1/128
+        members_only: true
+      - source: Spiritual warrior (Zaros)
+        quantity: "2-5"
+        rarity: uncommon
+        drop_rate: 1/128
+        members_only: true
+      - source: Blood Reaver
+        quantity: "2-7"
+        rarity: uncommon
+        drop_rate: 1/128
+        members_only: true
   recipes:
-    - product: Zaryte crossbow
+    - skill: smithing
+      level: 1
+      xp: 0
       materials:
         - item_name: Nihil shard
           quantity: 250
@@ -42,18 +53,24 @@ osrs:
           quantity: 1
         - item_name: Nihil horn
           quantity: 1
-    - product: Nihil dust
+      product: Zaryte crossbow
+      output_quantity: 1
+    - skill: herblore
+      level: 1
+      xp: 0
       materials:
         - item_name: Nihil shard
           quantity: 1
         - item_name: Pestle and mortar
           quantity: 1
-      notes: Use for Ancient brew (85 Herblore)
+      product: Nihil dust
+      output_quantity: 1
+      notes: Nihil dust is a secondary for the Ancient brew (85 Herblore).
   related_items:
     - item_id: 26372
       item_name: Nihil horn
       slug: nihil-horn
-      relationship: alternative
+      relationship: component
       description: Crafting partner for Zaryte crossbow
     - item_id: 26374
       item_name: Zaryte crossbow
@@ -63,12 +80,14 @@ osrs:
     - item_id: 26346
       item_name: Ancient brew
       slug: ancient-brew
-      relationship: alternative
-      description: Herblore use
+      relationship: product
+      description: Herblore use via Nihil dust
   about: |-
+    Nihil shards are dropped by Nex and the Ancient Prison Zarosian spiritual creatures. They are the bulk component of the Zaryte crossbow recipe (250 shards + Armadyl crossbow + Nihil horn) and can be ground into Nihil dust for Ancient brew potions (85 Herblore).
+
     | Property | Value |
     |----------|-------|
-    | Type | Crafting Material |
+    | Type | Crafting material |
     | Tradeable | Yes |
     | Stackable | Yes |
     | Weight | 0 kg |
@@ -78,8 +97,22 @@ osrs:
     | Zaryte crossbow | 250 shards + ACB + Nihil horn |
     | Nihil dust | 1 shard (pestle and mortar) |
     | Ancient brew | Nihil dust + Dwarf weed potion (85 Herblore) |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Demand driven by Zaryte crossbow assembly (250 per craft)
+      - Steady consumption from Ancient brew herblorists
+      - Nex farming caps daily supply
+      - Buy limit of 30,000 supports bulk flips
+      - Watch Nex DPS-meta shifts for supply shocks
+  trading_tips:
+    - Track Zaryte crossbow GE volume for demand pressure
+    - Watch Nex team formation events for short-term supply spikes
+    - Ancient brew price moves independently — compare GP/XP daily
+  history:
+    - date: "2022-02-23"
+      description: Released with the Nex update as a drop from the Ancient Prison boss.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

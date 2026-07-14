@@ -1,6 +1,6 @@
 ---
 title: Red firelighter | OSRS Price Data
-description: "Red firelighter: Makes firelighting a lot easier.. High alch: 9 GP, GE limit: 250."
+description: "Red firelighter: Makes firelighting a lot easier. High alch: 9 GP, GE limit: 250."
 osrs:
   id: 7329
   name: Red firelighter
@@ -12,9 +12,70 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 250
-  about: "Red firelighter is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/161.5
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/130
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/100
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/85
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+  related_items:
+    - item_id: 7330
+      item_name: Green firelighter
+      slug: green-firelighter
+      relationship: variant
+      description: Green coloured firelighter variant.
+    - item_id: 7331
+      item_name: Blue firelighter
+      slug: blue-firelighter
+      relationship: variant
+      description: Blue coloured firelighter variant.
+  about: "Red firelighter is a members-only stackable item used with logs to create red-coloured campfires; obtained from Treasure Trails reward caskets."
+  market_strategy:
+    notes:
+      - Demand peaks during holiday events and recolour-related quests.
+      - GE limit increased from 150 to 250 on 29 January 2020.
+  trading_tips:
+    - Stack pricing closely with Green and Blue variants.
+    - Bulk buyers usually flip in lots of 250 due to GE limit.
+  history:
+    - date: "2006-02-20"
+      description: Released alongside the Updates, updates and more updates patch.
+    - date: "2020-01-29"
+      description: GE buy limit increased from 150 to 250; 250 firelighters could revert a recoloured Phoenix pet.
+    - date: "2024-10-23"
+      description: Red firelighters no longer required to revert a Phoenix pet to default red colouring.
+  properties:
+    release_date: "2006-02-20"
+    update: "Updates, updates and more updates..."
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "N/A"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

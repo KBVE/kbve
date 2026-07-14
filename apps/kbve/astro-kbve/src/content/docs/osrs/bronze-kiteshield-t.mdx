@@ -1,6 +1,6 @@
 ---
 title: Bronze kiteshield (t) | OSRS Price Data
-description: "Bronze kiteshield (t): Bronze kiteshield with trim.. High alch: 38 GP, GE limit: 4."
+description: "Bronze kiteshield (t): Bronze kiteshield with trim. High alch: 38 GP, GE limit: 4."
 osrs:
   id: 12223
   name: Bronze kiteshield (t)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 25
   highalch: 38
   limit: 4
-  about: "Bronze kiteshield (t) is a free-to-play item in Old School RuneScape. High alchemy value: 38 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 5.443
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 5
+      slash: 7
+      crush: 6
+      magic: -1
+      ranged: 6
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: "1/1,404"
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Bronze kiteshield
+      slug: bronze-kiteshield
+      relationship: variant
+      description: "Untrimmed bronze kiteshield."
+    - item_name: Bronze kiteshield (g)
+      slug: bronze-kiteshield-g
+      relationship: variant
+      description: "Gold-trimmed cosmetic counterpart."
+  about: |-
+    Bronze kiteshield (t) is a free-to-play cosmetic reward from easy Treasure Trails. Stats match the standard bronze kiteshield, making it primarily a fashionscape or trophy item rather than a combat upgrade.
+  market_strategy:
+    notes:
+      - "Supply gated by easy clue completion volume."
+      - "Demand is cosmetic, so prices spike around fashionscape events."
+  trading_tips:
+    - "GE limit of 4 per 4 hours makes large flips slow; use multiple accounts only if rules allow."
+    - "Buy in dips after major content updates that distract from clue running."
+  history:
+    - date: "2014-06-12"
+      description: "Added as part of the Treasure Trails Rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

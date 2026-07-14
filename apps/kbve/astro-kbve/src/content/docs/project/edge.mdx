@@ -1,7 +1,7 @@
 ---
-title: Edge Functions
-description: |
-    Supabase edge functions for KBVE services.
+title: Edge Functions — Supabase Deno Workers and Firecracker
+description: KBVE Supabase edge functions running as isolated Deno V8 workers, with a two-tier isolation model that dispatches heavier workloads to Firecracker microVMs.
+sem: 1
 sidebar:
     label: Edge
     order: 53
@@ -11,7 +11,7 @@ tags:
 key: edge
 pipeline: docker
 app_name: edge
-version: "0.1.34"
+version: "0.1.47"
 source_path: apps/kbve/edge
 version_toml: apps/kbve/edge/version.toml
 version_target: apps/kbve/edge/deno.json
@@ -23,9 +23,91 @@ has_test: true
 author: h0lybyte
 license: KBVE
 status: active
+kube:
+    stack: application
+    environment: prod
+    tier: api
+    owner: h0lybyte
+    criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What are KBVE edge functions?
+          answer: They are Supabase edge functions built on supabase/edge-runtime, where each function runs as an isolated Deno V8 worker with 150 MB memory and a 60-second timeout. The main router handles JWT verification, per-function env allowlisting, and worker dispatch.
+        - question: What is the two-tier isolation model?
+          answer: Tier 1 is Deno V8 isolates (~10ms boot) for standard TypeScript edge functions. Tier 2 is Firecracker microVMs (~125ms boot) for arbitrary binaries, untrusted code, or long-running processes needing OS-level isolation. A VM crash never affects edge function availability.
+        - question: How do edge functions dispatch a Firecracker microVM?
+          answer: Functions call the shared firecracker.ts client's runVM helper, which dispatches to the Firecracker service over an internal REST API with a rootfs image, vCPU/memory limits, timeout, entrypoint, and env, then returns stdout, stderr, exit code, and duration.
+bento:
+    badge: docker · serverless
+    title: Two-tier isolation for
+    accent: Edge Functions
+    lede: >-
+        Supabase edge functions running as isolated Deno V8 workers, each with
+        150 MB of memory and a 60-second timeout. A two-tier isolation model
+        keeps standard TypeScript on fast V8 isolates and dispatches heavier or
+        untrusted workloads down to Firecracker microVMs.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/kbve/edge
+          primary: true
+          external: true
+        - label: Functions
+          href: "#functions"
+        - label: Firecracker
+          href: "#firecracker"
+    aside:
+        icon: shield
+        title: Two tiers, fully independent
+        body: >-
+            <strong>Tier 1</strong> — Deno V8 isolates (<code>~10ms</code> boot)
+            for TypeScript functions. <strong>Tier 2</strong> — Firecracker
+            microVMs (<code>~125ms</code> boot) for arbitrary binaries and
+            untrusted code. A VM crash never affects edge function availability.
+        points:
+            - <strong>Router</strong> — JWT verify + per-function env allowlist.
+            - <strong>Jailer</strong> — cgroup + seccomp + chroot per VM.
+    stats:
+        - { label: App, value: edge, icon: server }
+        - { label: Tier 1, value: Deno V8, icon: zap }
+        - { label: Tier 2, value: Firecracker, icon: shield }
+        - { label: Boot, value: ~10ms / ~125ms, icon: clock }
+    features:
+        - title: Deno V8 isolates
+          icon: zap
+          body: Each function runs as an isolated Deno V8 worker with 150 MB memory and a 60-second timeout, booting in ~10ms.
+        - title: Firecracker Tier 2
+          icon: shield
+          body: Heavier or untrusted workloads dispatch to Firecracker microVMs with jailer-enforced cgroup, seccomp, and chroot isolation.
+        - title: Function registry
+          icon: box
+          body: health, meme, discordsh, user-vault, guild-vault, vault-reader, argo, logs, and ows — routed with JWT verification and per-function env allowlisting.
+        - title: Shared modules
+          icon: gears
+          body: Common utilities under functions/_shared/ — CORS, Supabase clients, validators, formats, and the Firecracker dispatch client.
+    related:
+        - title: ROWS
+          href: /project/rows/
+          copy: A KBVE game backend that also runs on the cluster.
+          icon: server
+        - title: Kilobase
+          href: /project/kilobase/
+          copy: The Supabase/Postgres data layer behind these functions.
+          icon: database
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="functions" eyebrow="Tier 1" heading="Functions & shared modules">
 
 Supabase edge functions service built on `supabase/edge-runtime:v1.73.2`. Each function runs as an isolated Deno V8 worker with 150 MB memory and a 60-second timeout. The main router (`functions/main/index.ts`) handles JWT verification, per-function env allowlisting, and worker dispatch.
 
@@ -53,9 +135,9 @@ All functions share utilities under `functions/_shared/`:
 - **`formats.ts`** — Regex patterns for UUIDs, ULIDs, Discord snowflakes, etc.
 - **`firecracker.ts`** — Firecracker microVM client (Tier 2 dispatch)
 
----
+</BentoProse>
 
-## Firecracker MicroVM Integration
+<BentoProse id="firecracker" eyebrow="Tier 2" heading="Firecracker microVM integration">
 
 ### Two-Tier Isolation
 
@@ -144,3 +226,7 @@ All manifests live in `apps/kube/firecracker/manifests/`:
 - **Phase 2** (current) — Environment wiring, documentation, deployment integration
 - **Phase 3** — E2E tests, ClickHouse monitoring, KEDA autoscaling
 - **Phase 4** — TAP networking, warm VM pool, multi-node scheduling
+
+</BentoProse>
+
+</BentoDoc>

@@ -15,13 +15,14 @@ import {
 	AreaChart,
 	CartesianGrid,
 	ResponsiveContainer,
-	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts';
+import { AXIS_STROKE, ChartTooltip, GRID_STROKE } from './chartTheme';
 import {
 	fetchAlerts,
 	fetchPodMetrics,
+	fetchWorkloadMetrics,
 	formatBytes,
 	grafanaService,
 	TIME_RANGE_KEYS,
@@ -36,6 +37,17 @@ import {
 } from './grafanaAlertHelpers';
 import type { ResourceSelector } from './argoService';
 
+// Kinds whose pods can be aggregated by name regex in Prometheus. Pods use an
+// exact match; everything here sums the workload's owned pods.
+const WORKLOAD_KINDS = [
+	'Deployment',
+	'StatefulSet',
+	'DaemonSet',
+	'ReplicaSet',
+	'Rollout',
+	'Job',
+];
+
 const tickFormatter = (t: number) =>
 	new Date(t * 1000).toLocaleTimeString([], {
 		hour: '2-digit',
@@ -45,15 +57,8 @@ const tickFormatter = (t: number) =>
 const tooltipLabelFormatter = (t: number) =>
 	new Date(t * 1000).toLocaleString();
 
-const tooltipStyle = {
-	background: 'var(--sl-color-bg-nav, #111)',
-	border: '1px solid var(--sl-color-gray-5, #262626)',
-	borderRadius: '8px',
-	color: 'var(--sl-color-text, #e6edf3)',
-};
-
-const axisStroke = 'var(--sl-color-gray-3, #8b949e)';
-const gridStroke = 'var(--sl-color-gray-5, #262626)';
+const axisStroke = AXIS_STROKE;
+const gridStroke = GRID_STROKE;
 
 function formatBytesAbs(bytes: number | null): string {
 	if (bytes == null) return '--';
@@ -175,6 +180,10 @@ export default function ReactArgoGrafanaPanel({
 	const userId = useStore(grafanaService.$userId);
 	const tr = useStore(grafanaService.$timeRange);
 
+	useEffect(() => {
+		if (!userId) grafanaService.ensureIdentity();
+	}, [userId]);
+
 	const [metrics, setMetrics] = useState<PodMetrics | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -183,18 +192,42 @@ export default function ReactArgoGrafanaPanel({
 	const [alertsError, setAlertsError] = useState<string | null>(null);
 
 	const isPod = sel.kind === 'Pod';
+	const isWorkload = WORKLOAD_KINDS.includes(sel.kind);
+	const metricsScoped = isPod || isWorkload;
 	const ns = sel.namespace;
 	const name = sel.name;
 
+	const noData =
+		!!metrics &&
+		metrics.snapshot.cpuCores == null &&
+		metrics.snapshot.memoryBytes == null &&
+		metrics.snapshot.memoryLimitBytes == null &&
+		metrics.snapshot.netRxBytesPerSec == null &&
+		metrics.snapshot.netTxBytesPerSec == null &&
+		metrics.snapshot.fsBytes == null &&
+		metrics.snapshot.running == null &&
+		metrics.cpuMemSeries.length === 0 &&
+		metrics.netSeries.length === 0;
+
 	useEffect(() => {
-		if (!isPod || !userId || !ns || !name) return;
+		if (!metricsScoped || !userId || !ns || !name) return;
+		const uid = userId;
 
 		let cancelled = false;
 		(async () => {
 			setLoading(true);
 			setError(null);
 			try {
-				const data = await fetchPodMetrics(token, userId, ns, name, tr);
+				const data = isPod
+					? await fetchPodMetrics(token, uid, ns, name, tr)
+					: await fetchWorkloadMetrics(
+							token,
+							uid,
+							ns,
+							sel.kind,
+							name,
+							tr,
+						);
 				if (cancelled) return;
 				if (!data) {
 					setError('Could not find Prometheus datasource in Grafana');
@@ -216,7 +249,7 @@ export default function ReactArgoGrafanaPanel({
 		return () => {
 			cancelled = true;
 		};
-	}, [token, userId, ns, name, tr, isPod]);
+	}, [token, userId, ns, name, tr, isPod, metricsScoped, sel.kind]);
 
 	// Scoped alerts — reuses the global alerts cache populated on the main
 	// /dashboard/grafana page. Filters to alerts whose labels mention this
@@ -251,18 +284,22 @@ export default function ReactArgoGrafanaPanel({
 	}, [token, userId, ns, name, isPod]);
 
 	const handleRefresh = async () => {
-		if (!userId || !isPod || loading) return;
+		if (!userId || !metricsScoped || loading) return;
+		const uid = userId;
 		setLoading(true);
 		setError(null);
 		try {
-			const data = await fetchPodMetrics(
-				token,
-				userId,
-				ns,
-				name,
-				tr,
-				true,
-			);
+			const data = isPod
+				? await fetchPodMetrics(token, uid, ns, name, tr, true)
+				: await fetchWorkloadMetrics(
+						token,
+						uid,
+						ns,
+						sel.kind,
+						name,
+						tr,
+						true,
+					);
 			if (!data) {
 				setError('Could not find Prometheus datasource in Grafana');
 				return;
@@ -341,7 +378,7 @@ export default function ReactArgoGrafanaPanel({
 		</>
 	);
 
-	if (!isPod) {
+	if (!metricsScoped) {
 		return (
 			<div
 				style={{
@@ -360,8 +397,9 @@ export default function ReactArgoGrafanaPanel({
 						gap: '0.5rem',
 					}}>
 					<span>
-						Per-resource Prometheus metrics are scoped to Pods. Open
-						one of the pods owned by this {sel.kind} to view CPU,
+						Prometheus metrics are scoped to Pods and workloads.
+						This {sel.kind} has no pod-level series — open a Pod,
+						Deployment, StatefulSet, or DaemonSet to view CPU,
 						memory, network, and restart history.
 					</span>
 					<a
@@ -407,6 +445,19 @@ export default function ReactArgoGrafanaPanel({
 					<span>
 						{ns}/{name}
 					</span>
+					{isWorkload && (
+						<span
+							style={{
+								padding: '1px 6px',
+								borderRadius: 3,
+								background: 'var(--sl-color-gray-6, #1c1c1c)',
+								fontSize: '0.65rem',
+								textTransform: 'uppercase',
+								letterSpacing: '0.05em',
+							}}>
+							{sel.kind} · all pods
+						</span>
+					)}
 					{metrics?.fromCache && (
 						<span
 							style={{
@@ -492,7 +543,40 @@ export default function ReactArgoGrafanaPanel({
 				</div>
 			)}
 
-			{metrics && (
+			{metrics && noData && (
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'flex-start',
+						gap: 8,
+						padding: '0.75rem 0.9rem',
+						borderRadius: 8,
+						border: '1px solid var(--sl-color-gray-5, #262626)',
+						background: 'var(--sl-color-bg-nav, #111)',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						fontSize: '0.82rem',
+						lineHeight: 1.5,
+					}}>
+					<Activity
+						size={15}
+						style={{ marginTop: 2, flexShrink: 0 }}
+					/>
+					<span>
+						No Prometheus series for{' '}
+						<strong
+							style={{ color: 'var(--sl-color-text, #e6edf3)' }}>
+							{ns}/{name}
+						</strong>
+						. The pod is likely not running — replaced by a newer
+						rollout, completed (Job/init), or stopped. cAdvisor only
+						keeps metrics for live pods. Confirm the pod is{' '}
+						<strong>Running</strong>, or hard-refresh the ArgoCD
+						tree if it still lists a stale pod.
+					</span>
+				</div>
+			)}
+
+			{metrics && !noData && (
 				<>
 					<div
 						style={{
@@ -608,8 +692,7 @@ export default function ReactArgoGrafanaPanel({
 											formatBytesAbs(v)
 										}
 									/>
-									<Tooltip
-										contentStyle={tooltipStyle}
+									<ChartTooltip
 										labelFormatter={tooltipLabelFormatter}
 										formatter={(v: number, n: string) =>
 											n === 'CPU'
@@ -676,8 +759,7 @@ export default function ReactArgoGrafanaPanel({
 											formatBytes(v).replace('/s', '')
 										}
 									/>
-									<Tooltip
-										contentStyle={tooltipStyle}
+									<ChartTooltip
 										labelFormatter={tooltipLabelFormatter}
 										formatter={(v: number) =>
 											formatBytes(v)

@@ -12,9 +12,42 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: null
-  about: "Trailblazer reloaded rejuvenation pool scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic-scroll
+    tier: high
+  properties:
+    release_date: "2023-11-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: false
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Leagues IV Trailblazer Reloaded
+      price: 9000
+      currency: League Points
+      stock: 1
+  related_items:
+    - item_name: Ornate rejuvenation pool
+      slug: ornate-rejuvenation-pool
+      relationship: component
+      description: Pool that the scroll re-themes
+  about: "Trailblazer reloaded rejuvenation pool scroll is a cosmetic Construction reward from Leagues IV: Trailblazer Reloaded, purchased from the Leagues Reward Shop for 9,000 League Points. Reading the scroll on an Ornate rejuvenation pool in a player-owned house re-themes it with a fiery Trailblazer Reloaded appearance. Reverting the pool returns the scroll, so the cosmetic can be moved or resold."
+  market_strategy:
+    notes:
+      - "Supply locked behind a finished league, no ongoing inflow"
+      - "Demand driven by PoH fashionscape collectors"
+      - "Reversible application keeps the asset liquid"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

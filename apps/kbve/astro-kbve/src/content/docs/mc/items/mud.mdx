@@ -1,5 +1,6 @@
 ---
 title: Mud
+template: splash
 description: |
     Minecraft Mud — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 32
     ref: mud
     slug: mud
+    content_rev: 1
     display_name: Mud
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Mud is a soft, non-full block that generates naturally in mangrove swamps,
+            trail ruins, and trial chamber entrances. Entities sink slightly into it
+            similar to soul sand, though it does not slow movement.
+        lore: |
+            Announced at Minecraft Live 2021 and added in Java Edition 1.19, mud went
+            through several full-block-versus-partial-block revisions on Bedrock before
+            settling into its current form.
+    faq:
+        - question: How do you make Mud?
+          answer: |
+              Use a water bottle on any type of dirt block to turn it into mud.
+        - question: What is Mud used for?
+          answer: |
+              It crafts into muddy mangrove roots and packed mud, and it turns into
+              clay when placed directly above pointed dripstone.
+        - question: Where does Mud generate naturally?
+          answer: |
+              In mangrove swamp biomes, as well as trail ruins and trial chamber
+              entrances.
+        - question: What happens if you grow an azalea tree on Mud?
+          answer: |
+              The mud transforms into rooted dirt, which can then be hoed into regular
+              dirt.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

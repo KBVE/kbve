@@ -12,9 +12,77 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 4
-  about: "Black cane is a members-only item in Old School RuneScape. High alchemy value: 360 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+  equipment:
+    slot: weapon
+    weapon_type: cane
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 8
+      slash: -2
+      crush: 16
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 13
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 2
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Black elegant shirt
+      slug: black-elegant-shirt
+      relationship: set-piece
+      description: Pairs with the cane for the iconic black elegant outfit
+    - item_name: Black elegant legs
+      slug: black-elegant-legs
+      relationship: set-piece
+      description: Pairs with the cane for the iconic black elegant outfit
+    - item_name: Black mace
+      slug: black-mace
+      relationship: alternative
+      description: Same combat stats but faster attack speed; functional alternative
+    - item_name: White cane
+      slug: white-cane
+      relationship: variant
+      description: White colour variant of the cane
+  about: "The black cane is a ruby-topped one-handed crush weapon obtained as a master clue reward. It needs 10 Attack to wield and has the same stats as a black mace plus a +2 prayer bonus, but swings at attack speed 5 instead of 4. It is overwhelmingly used as a cosmetic accessory with black elegant clothing rather than as a combat weapon."
+  market_strategy:
+    notes:
+      - "Master clue reward — supply driven by clue completion rate"
+      - "Buy limit of 4 forces patient flipping rather than mass dumps"
+      - "Cosmetic pairing with black elegant outfit holds price above alch"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

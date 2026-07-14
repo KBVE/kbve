@@ -12,9 +12,73 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-4 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cape
+    tier: low
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: alternative
+      description: Numbered team cape variant
+    - item_name: Team-50 cape
+      slug: team-50-cape
+      relationship: alternative
+      description: Numbered team cape variant
+  about: |-
+    The Team-4 cape is one of 50 numbered team capes. Players wearing identical team capes appear as blue dots to each other on the minimap, and the attack option becomes right-click. Granted free-to-play access on 23 May 2013. Storable on a cape rack inside a player-owned house.
+  market_strategy:
+    notes:
+      - "Niche PvP coordination use case keeps small steady demand"
+      - "GE buy limit of 150 with low daily volume keeps spreads tight"
+      - "F2P access since 2013 broadened the buyer pool"
+  trading_tips:
+    - "Watch numbered-cape collectors for full-set buyers"
+    - "Bundle multiple identical capes for clan team listings"
+  history:
+    - date: "2005-02-22"
+      description: "Released alongside the rest of the numbered team capes."
+    - date: "2013-05-23"
+      description: "Made available to free-to-play players."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

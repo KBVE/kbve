@@ -38,6 +38,20 @@ spec:
                     - supabase-cluster-ro.kilobase
                     - supabase-cluster-ro.kilobase.svc
                     - supabase-cluster-ro.kilobase.svc.cluster.local
+                    # Stable cluster-level service names (stable-db-services.yaml).
+                    # Apps connect verify-full to these, so they MUST be in the SAN.
+                    - kilobase-rw
+                    - kilobase-rw.kilobase
+                    - kilobase-rw.kilobase.svc
+                    - kilobase-rw.kilobase.svc.cluster.local
+                    - kilobase-r
+                    - kilobase-r.kilobase
+                    - kilobase-r.kilobase.svc
+                    - kilobase-r.kilobase.svc.cluster.local
+                    - kilobase-ro
+                    - kilobase-ro.kilobase
+                    - kilobase-ro.kilobase.svc
+                    - kilobase-ro.kilobase.svc.cluster.local
                 usages:
                     - server auth
                     - client auth

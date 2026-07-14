@@ -1,0 +1,1083 @@
+/* ── Bento design system ──
+   Shared vocabulary for bento sections across the site (home, dashboard, …).
+   Components add these classes and keep only layout-specific CSS scoped.
+   Tokens are theme-safe: everything derives from Starlight vars. */
+
+:root {
+	--bento-hairline: color-mix(in srgb, var(--sl-color-white) 5%, transparent);
+	--bento-hairline-strong: color-mix(
+		in srgb,
+		var(--sl-color-white) 10%,
+		transparent
+	);
+	--bento-cell-bg: var(--sl-color-black);
+	--bento-glass-bg: color-mix(
+		in srgb,
+		var(--sl-color-black) 72%,
+		transparent
+	);
+	--bento-radius: 0.625rem;
+	--bento-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+	--bento-glow: 0 0 16px
+		color-mix(in srgb, var(--sl-color-accent-high) 30%, transparent);
+}
+
+@layer components {
+	/* Project / package filter tabs (rendered inside React islands, so styled
+	   globally rather than in Astro-scoped component styles). */
+	.project-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.project-tab {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.4rem 0.85rem;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: var(--sl-color-gray-2);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline);
+		border-radius: 999px;
+		cursor: pointer;
+		transition:
+			color 180ms ease,
+			background-color 180ms ease,
+			border-color 180ms ease;
+	}
+
+	.project-tab:hover {
+		color: var(--sl-color-white);
+		border-color: var(--bento-hairline-strong);
+	}
+
+	.project-tab--active {
+		color: var(--sl-color-black);
+		background-color: var(--sl-color-accent-high);
+		border-color: var(--sl-color-accent-high);
+	}
+
+	.project-tab__count {
+		font-size: 0.6875rem;
+		font-variant-numeric: tabular-nums;
+		opacity: 0.7;
+	}
+
+	/* Faceted sidebar (cookbook-style project browser). Rendered inside a React
+	   island, so styled globally. */
+	.facet-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.facet-toggle {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		padding: 0.625rem 0.85rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: 8px;
+		cursor: pointer;
+	}
+
+	.facet-toggle__chevron {
+		transition: transform 200ms ease;
+	}
+
+	.facet-toggle__chevron--open {
+		transform: rotate(180deg);
+	}
+
+	.facet-groups {
+		display: none;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.facet-groups--open {
+		display: flex;
+	}
+
+	@media (min-width: 1024px) {
+		.facet-toggle {
+			display: none;
+		}
+
+		.facet-groups {
+			display: flex;
+		}
+	}
+
+	.facet-search__input {
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		font-size: 0.8125rem;
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: 8px;
+		outline: none;
+	}
+
+	.facet-search__input::placeholder {
+		color: var(--sl-color-gray-4);
+	}
+
+	.facet-search__input:focus {
+		border-color: var(--sl-color-accent);
+	}
+
+	.facet-group__label {
+		font-size: 0.6875rem;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--sl-color-gray-4);
+		margin-bottom: 0.5rem;
+	}
+
+	.facet-group__list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.facet-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		width: 100%;
+		min-height: 2.5rem;
+		padding: 0.5rem;
+		font-size: 0.875rem;
+		text-align: left;
+		color: var(--sl-color-gray-2);
+		background: transparent;
+		border: none;
+		border-radius: 6px;
+		cursor: pointer;
+		transition:
+			color 160ms ease,
+			background-color 160ms ease;
+	}
+
+	.facet-row:hover {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+	}
+
+	.facet-row--active {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 18%,
+			transparent
+		);
+	}
+
+	.facet-row__count {
+		font-size: 0.6875rem;
+		font-variant-numeric: tabular-nums;
+		color: var(--sl-color-gray-4);
+	}
+
+	@media (min-width: 1024px) {
+		.facet-row {
+			min-height: 0;
+			padding: 0.35rem 0.5rem;
+			font-size: 0.8125rem;
+		}
+	}
+
+	/* Full-width section band: black surface + bottom hairline seam */
+	.bento-section {
+		width: 100%;
+		margin-block-start: 0 !important;
+		background-color: var(--sl-color-black);
+		border-bottom: 1px solid var(--bento-hairline);
+	}
+
+	/* Centered 80rem frame with vertical hairline rails */
+	.bento-frame {
+		margin-inline: auto;
+		width: 100%;
+		max-width: 80rem;
+		border-inline: 1px solid var(--bento-hairline);
+	}
+
+	/* Fluid frame variant: floors at --bento-frame-base, then grows with
+	   the viewport while keeping a --bento-frame-gutter symmetric gutter
+	   so the hairline rails stay visible, capped at --bento-frame-max.
+	   Compose with .bento-frame; override the vars per surface. */
+	.bento-frame--fluid {
+		max-width: min(
+			var(--bento-frame-max, 120rem),
+			max(
+				var(--bento-frame-base, 80rem),
+				calc(100vw - var(--bento-frame-gutter, 6rem))
+			)
+		);
+	}
+
+	.bento-eyebrow {
+		margin-bottom: 0.5rem;
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-heading {
+		font-size: clamp(1.375rem, 3vw, 2rem);
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		line-height: 1.15;
+		color: var(--sl-color-white);
+		max-width: 36rem;
+	}
+
+	/* Floating card chrome: nodes, panels, windows */
+	.bento-card {
+		background-color: var(--bento-cell-bg);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: var(--bento-radius);
+		box-shadow: var(--bento-shadow);
+		transition:
+			border-color 220ms ease,
+			box-shadow 220ms ease;
+	}
+
+	.bento-card--interactive:hover,
+	.bento-card[data-active] {
+		border-color: var(--sl-color-accent-high);
+		box-shadow: var(--bento-shadow), var(--bento-glow);
+	}
+
+	.bento-card--interactive:hover .bento-icon-tile,
+	.bento-card[data-active] .bento-icon-tile {
+		color: var(--sl-color-accent-high);
+	}
+
+	/* Rounded icon well: grey at idle, accent when parent activates */
+	.bento-icon-tile {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: 0.5rem;
+		color: var(--sl-color-gray-3);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 6%,
+			transparent
+		);
+		transition: color 220ms ease;
+	}
+
+	/* Small status pill */
+	.bento-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3125rem;
+		padding: 0.25rem 0.5rem;
+		border-radius: 9999px;
+		font-size: 0.5625rem;
+		font-weight: 500;
+		letter-spacing: 0.03em;
+		line-height: 1.2;
+		white-space: nowrap;
+		color: var(--sl-color-gray-3);
+		background-color: var(--bento-cell-bg);
+		border: 1px solid var(--bento-hairline-strong);
+		transition:
+			color 220ms ease,
+			border-color 220ms ease;
+	}
+
+	/* Frosted overlay: translucent card that lets background wiring
+	   show through while keeping text readable. Layer on top of
+	   .bento-card, .bento-chip, or any positioned element. */
+	.bento-card--glass {
+		background-color: var(--bento-glass-bg);
+		-webkit-backdrop-filter: blur(8px);
+		backdrop-filter: blur(8px);
+	}
+
+	/* ── Splash page primitives ──────────────────────────────────
+	   Reusable scaffolding for bento splash pages (discord, twitch,
+	   api, project docs, …). A page sets --bento-accent (+ optional
+	   --bento-accent-2, --bento-btn-fg, --bento-live) and a hero
+	   backdrop, then composes these classes. No per-page layout CSS
+	   needed for the commons. */
+
+	.bento-hero {
+		position: relative;
+		overflow: hidden;
+	}
+	.bento-hero__bg {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		background-image: var(--bento-hero-bg);
+		background-size: cover;
+		background-position: center;
+		opacity: 0.2;
+		filter: saturate(0.8) brightness(0.68);
+		pointer-events: none;
+		-webkit-mask-image: radial-gradient(
+			120% 90% at 50% 0%,
+			#000 40%,
+			transparent 100%
+		);
+		mask-image: radial-gradient(
+			120% 90% at 50% 0%,
+			#000 40%,
+			transparent 100%
+		);
+	}
+	.bento-hero__frame {
+		position: relative;
+		z-index: 1;
+		padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem);
+	}
+
+	/* Seamed grid board: the 1px gaps read as hairline seams (the grid
+	   effect), same recipe as the root index BentoBoard. Fills the frame
+	   edge-to-edge — the .bento-frame rails are the sides, so vertical
+	   grid lines stay continuous straight through stacked sections.
+	   Children shed their own radius/border/shadow so the seams come only
+	   from the grid gap, never a double line. */
+	.bento-board {
+		display: grid;
+		gap: 1px;
+		background-color: var(--bento-hairline);
+		border-block: 1px solid var(--bento-hairline);
+	}
+	.bento-board > .bento-card {
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+	}
+	.bento-board > .bento-card--interactive:hover {
+		border: 0;
+		box-shadow: none;
+		background: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			var(--bento-glass-bg)
+		);
+	}
+	.bento-board--cols-2 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.bento-board--cols-3 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.bento-board--cols-4 {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+	.bento-board--auto {
+		grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+	}
+	.bento-board--auto-wide {
+		grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+	}
+
+	.bento-media {
+		padding: 0;
+		overflow: hidden;
+	}
+	.bento-media > img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	@media (max-width: 60rem) {
+		.bento-hide-narrow {
+			display: none !important;
+		}
+	}
+
+	.bento-cell--wide {
+		grid-column: span 2;
+	}
+	.bento-cell--tall {
+		grid-row: span 2;
+	}
+	@media (max-width: 34rem) {
+		.bento-cell--wide,
+		.bento-cell--tall {
+			grid-column: auto;
+			grid-row: auto;
+		}
+	}
+
+	/* Hero archetype: wide copy + aside on row 1, stat strip on row 2 */
+	.bento-board--hero {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+	.bento-board--hero > .bento-hero-copy {
+		grid-column: 1 / 3;
+		grid-row: 1;
+		gap: 1rem;
+		justify-content: center;
+	}
+	.bento-board--hero > .bento-hero-aside {
+		grid-column: 3 / 5;
+		grid-row: 1;
+		gap: 0.75rem;
+		justify-content: center;
+	}
+	.bento-board--hero > .bento-stat {
+		grid-row: 2;
+	}
+
+	@media (max-width: 60rem) {
+		.bento-board--cols-3,
+		.bento-board--cols-4 {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.bento-board--hero {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.bento-board--hero > .bento-hero-copy,
+		.bento-board--hero > .bento-hero-aside {
+			grid-column: 1 / 3;
+			grid-row: auto;
+		}
+		.bento-board--hero > .bento-stat {
+			grid-row: auto;
+			min-height: 7rem;
+		}
+	}
+	@media (max-width: 34rem) {
+		.bento-board--cols-2,
+		.bento-board--cols-3,
+		.bento-board--cols-4 {
+			grid-template-columns: 1fr;
+		}
+		.bento-board--hero {
+			grid-template-columns: 1fr;
+		}
+		.bento-board--hero > .bento-hero-copy,
+		.bento-board--hero > .bento-hero-aside {
+			grid-column: 1;
+		}
+	}
+
+	/* Cell base: padded vertical stack for board children */
+	.bento-cell {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: clamp(1.25rem, 2.5vw, 1.75rem);
+	}
+	.bento-cell-eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+
+	/* Hero copy: badge, gradient title, lede, CTA row */
+	.bento-title {
+		font-size: clamp(1.9rem, 4vw, 3rem);
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		margin: 0;
+		color: var(--sl-color-white);
+	}
+	.bento-title__accent {
+		display: block;
+		background: linear-gradient(
+			135deg,
+			var(--bento-accent, var(--sl-color-accent-high)),
+			var(--bento-accent-2, #f0d47a)
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
+	.bento-lede {
+		font-size: 1.0625rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+		max-width: 46ch;
+	}
+	.bento-cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 0.25rem;
+	}
+	.bento-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.7rem 1.2rem;
+		border-radius: var(--bento-radius);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform 0.12s ease,
+			background 0.12s ease,
+			border-color 0.12s ease,
+			box-shadow 0.12s ease;
+	}
+	.bento-btn svg {
+		width: 18px;
+		height: 18px;
+	}
+	.bento-btn--primary,
+	.sl-markdown-content .bento-btn--primary {
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		border: 1px solid var(--sl-color-accent-high);
+		font-weight: 500;
+		box-shadow: 0 6px 20px
+			color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+	}
+	.bento-btn--primary:hover,
+	.sl-markdown-content .bento-btn--primary:hover {
+		background: var(--sl-color-accent-high);
+		transform: translateY(-1px);
+		box-shadow: 0 10px 28px
+			color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+	}
+	.bento-btn--ghost,
+	.sl-markdown-content .bento-btn--ghost {
+		color: var(--sl-color-white);
+		background: var(--bento-glass-bg);
+		border: 1px solid var(--bento-hairline-strong);
+	}
+	.bento-btn--ghost:hover,
+	.sl-markdown-content .bento-btn--ghost:hover {
+		border-color: var(--sl-color-accent-high);
+	}
+
+	/* Hero brand badge: layer on .bento-chip for the pill shape, this adds
+	   the larger eyebrow sizing and tints an inline brand glyph with the
+	   page accent. Defined after .bento-chip so its sizing wins. */
+	.bento-badge {
+		width: fit-content;
+		padding: 0.4rem 0.8rem;
+		font-size: 0.6875rem;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--sl-color-white);
+	}
+	.bento-badge svg {
+		width: 14px;
+		height: 14px;
+		color: var(--bento-accent, var(--sl-color-accent-high));
+	}
+
+	/* On phones the hero CTA stacks full-width — shared, not per page */
+	@media (max-width: 34rem) {
+		.bento-cta {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.bento-cta .bento-btn {
+			justify-content: center;
+		}
+	}
+
+	/* In-page jump nav row: proper pill tabs (overrides the tiny status
+	   .bento-chip when links carry it, via higher specificity) */
+	.bento-jump {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-top: 1.25rem;
+	}
+	.bento-jump a {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.5rem 1rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		letter-spacing: 0.01em;
+		line-height: 1.2;
+		text-decoration: none;
+		color: var(--sl-color-gray-2);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: 999px;
+		cursor: pointer;
+		transition:
+			color 180ms ease,
+			background-color 180ms ease,
+			border-color 180ms ease,
+			transform 120ms ease;
+	}
+	.bento-jump a::before {
+		content: '';
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: 999px;
+		background-color: currentColor;
+		opacity: 0.45;
+		transition: opacity 180ms ease;
+	}
+	.bento-jump a:hover {
+		color: var(--sl-color-white);
+		border-color: var(--sl-color-accent-high);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 14%,
+			transparent
+		);
+		transform: translateY(-1px);
+	}
+	.bento-jump a:hover::before {
+		opacity: 1;
+	}
+
+	/* Stat tile: icon well pinned top, big value + caption at the bottom */
+	.bento-stat {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-content: center;
+		gap: 0.2rem 0.6rem;
+		min-height: 8rem;
+	}
+	.bento-stat .bento-icon-tile {
+		width: 2rem;
+		height: 2rem;
+		grid-column: 2;
+		grid-row: 1;
+		align-self: center;
+	}
+	.bento-stat__value {
+		grid-column: 1;
+		grid-row: 1;
+		align-self: center;
+		font-size: 1.4rem;
+		font-weight: 700;
+		line-height: 1.1;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+	.bento-stat__label {
+		grid-column: 1 / -1;
+		grid-row: 2;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+
+	/* Link card: icon, title, blurb, arrow that slides on hover */
+	.bento-linkcard {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		grid-template-rows: auto auto 1fr auto;
+		min-height: 11rem;
+		gap: 0.6rem;
+		text-decoration: none;
+		color: var(--sl-color-text);
+	}
+	.bento-linkcard .bento-icon-tile {
+		width: 2.25rem;
+		height: 2.25rem;
+		grid-column: 2;
+		grid-row: 1;
+	}
+	.bento-linkcard__title {
+		grid-column: 1;
+		grid-row: 1;
+		align-self: center;
+		font-size: 1.0625rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+	.bento-linkcard__copy {
+		grid-column: 1 / -1;
+		grid-row: 2;
+		font-size: 0.875rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-2);
+	}
+	.bento-linkcard__go {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		color: var(--sl-color-gray-4);
+		transition:
+			color 220ms ease,
+			transform 220ms ease;
+	}
+	.bento-linkcard:hover .bento-linkcard__go {
+		color: var(--sl-color-accent-high);
+		transform: translateX(3px);
+	}
+
+	/* Event card: date block + type chip, title, blurb, time/channel meta */
+	.bento-eventcard {
+		min-height: 11rem;
+		gap: 0.6rem;
+	}
+	.bento-eventcard__head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+	.bento-eventcard__date {
+		display: flex;
+		flex-direction: column;
+		line-height: 1;
+	}
+	.bento-eventcard__day {
+		font-size: 1.75rem;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		color: var(--sl-color-white);
+	}
+	.bento-eventcard__mon {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-accent-high);
+	}
+	.bento-eventcard__title {
+		font-size: 1.0625rem;
+		font-weight: 600;
+		margin: 0;
+		color: var(--sl-color-white);
+	}
+	.bento-eventcard__desc {
+		font-size: 0.875rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+	}
+	.bento-eventcard__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 0.85rem;
+		margin-top: auto;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+	}
+	.bento-eventcard__time {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+	.bento-eventcard__chan {
+		color: var(--sl-color-accent-high);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Rule card: icon + number header, title, blurb */
+	.bento-rulecard {
+		min-height: 10rem;
+		gap: 0.6rem;
+	}
+	.bento-rulecard__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+	.bento-rulecard .bento-icon-tile {
+		width: 2.25rem;
+		height: 2.25rem;
+	}
+	.bento-rulecard__num {
+		font-size: 0.75rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.04em;
+		color: var(--sl-color-gray-4);
+	}
+	.bento-rulecard__title {
+		font-size: 1rem;
+		font-weight: 600;
+		margin: 0;
+		color: var(--sl-color-white);
+	}
+	.bento-rulecard__desc {
+		font-size: 0.8125rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+	}
+
+	/* Feature card: icon tile, title, blurb, optional bullet list. For
+	   reference/pillar grids (api, project docs, …). */
+	.bento-featurecard {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-content: start;
+		gap: 0.6rem;
+		min-height: 13rem;
+	}
+	.bento-featurecard .bento-icon-tile {
+		width: 2.5rem;
+		height: 2.5rem;
+		grid-column: 2;
+		grid-row: 1;
+	}
+	.bento-featurecard__title {
+		grid-column: 1;
+		grid-row: 1;
+		align-self: center;
+		font-size: 1.125rem;
+		font-weight: 700;
+		margin: 0;
+		color: var(--sl-color-white);
+	}
+	.bento-featurecard__body {
+		grid-column: 1 / -1;
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+	}
+	.bento-featurecard--link {
+		grid-template-rows: auto auto 1fr auto;
+		text-decoration: none;
+		color: var(--sl-color-text);
+	}
+	.bento-featurecard--link .bento-featurecard__body {
+		grid-row: 2;
+	}
+	.bento-featurecard__go {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		justify-self: end;
+		color: var(--sl-color-gray-4);
+		transition:
+			color 220ms ease,
+			transform 220ms ease;
+	}
+	.bento-featurecard--link:hover .bento-featurecard__go {
+		color: var(--sl-color-accent-high);
+		transform: translateX(3px);
+	}
+
+	/* Accent-dotted bullet list inside cards */
+	.bento-list {
+		margin: 0.25rem 0 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+	.bento-list li {
+		position: relative;
+		padding-left: 1.1rem;
+		font-size: 0.875rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-3);
+	}
+	.bento-list li::before {
+		content: '';
+		position: absolute;
+		left: 0.15rem;
+		top: 0.55rem;
+		width: 0.35rem;
+		height: 0.35rem;
+		border-radius: 9999px;
+		background: var(--bento-accent, var(--sl-color-accent-high));
+	}
+	.bento-list a {
+		color: var(--sl-color-text-accent);
+		font-weight: 600;
+	}
+
+	/* FAQ card: question heading + answer body */
+	.bento-faqcard {
+		gap: 0.4rem;
+	}
+	.bento-faqcard__q {
+		font-size: 1.0625rem;
+		font-weight: 600;
+		margin: 0;
+		color: var(--sl-color-white);
+	}
+	.bento-faqcard__a {
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+	}
+	.bento-faqcard__a code {
+		font-size: 0.85em;
+	}
+
+	/* Pulsing live indicator; --bento-live sets the color (default red) */
+	.bento-live-dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 9999px;
+		background: var(--bento-live, #ef4444);
+		animation: bento-pulse 2s ease-out infinite;
+	}
+	@keyframes bento-pulse {
+		0% {
+			box-shadow: 0 0 0 0
+				color-mix(in srgb, var(--bento-live, #ef4444) 55%, transparent);
+		}
+		100% {
+			box-shadow: 0 0 0 0.6rem transparent;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.bento-live-dot {
+			animation: none;
+		}
+	}
+
+	/* Content band padding — pair with .bento-frame inside a .bento-section
+	   so its rails stay continuous into whatever stacks below (e.g. footer). */
+	.bento-band {
+		padding: 1.5rem clamp(1rem, 3vw, 2rem) 2.5rem;
+	}
+
+	/* Rich prose band: retains Starlight .sl-markdown-content styling (headings,
+	   tables, code, Steps, Aside) but sits inside the frame rails with the seam
+	   preserved, so long-form game/server docs keep their content next to the
+	   bento grid. Pair via <BentoProse> — the section must NOT carry not-content. */
+	.bento-prose {
+		padding-block: 2.5rem 3rem;
+	}
+	.bento-prose > .bento-prose__header {
+		margin-bottom: 1.5rem;
+	}
+	.bento-prose .bento-prose__body > :first-child {
+		margin-top: 0;
+	}
+	.bento-prose :where(h2, h3, h4) {
+		scroll-margin-top: 5rem;
+	}
+
+	/* Animated connector strokes for SVG paths (rails, relationship lines) */
+	.bento-wire {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 50%,
+			transparent
+		);
+		stroke-width: 2;
+		stroke-dasharray: 8 8;
+		animation: bento-wire-dash 1.2s linear infinite;
+	}
+
+	.bento-wire--dots {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 65%,
+			transparent
+		);
+		stroke-dasharray: 1 7;
+		stroke-linecap: round;
+		animation: bento-wire-dots 900ms linear infinite;
+	}
+
+	/* Highway connector: blue, for timelines/roads — distinct from gold
+	   workflow wires and red live events */
+	.bento-wire--highway {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-blue, #4c88ef) 70%,
+			transparent
+		);
+	}
+
+	/* Live-event connector: brand red, stands apart from the gold rails.
+	   Raw brand token on purpose — dark theme remaps --sl-color-text-accent
+	   to gold, which would collapse the wire color grammar. */
+	.bento-wire--live {
+		stroke: color-mix(
+			in srgb,
+			color-mix(in srgb, var(--color-red, #ad0013) 65%, white) 85%,
+			transparent
+		);
+	}
+
+	@keyframes bento-wire-dash {
+		to {
+			stroke-dashoffset: -16;
+		}
+	}
+
+	@keyframes bento-wire-dots {
+		to {
+			stroke-dashoffset: -8;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-wire,
+		.bento-wire--dots {
+			animation: none;
+		}
+	}
+
+	/* Scroll reveal states, driven by BentoShell's observer */
+	[data-bento-reveal='pending'] {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+
+	[data-bento-reveal='in'] {
+		opacity: 1;
+		transform: translateY(0);
+		transition:
+			opacity 550ms ease,
+			transform 550ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		[data-bento-reveal='pending'] {
+			opacity: 1;
+			transform: none;
+		}
+	}
+}

@@ -1,12 +1,45 @@
 import { useEffect } from 'react';
 import { laserEvents } from '@kbve/laser';
-import type { CharacterEventData, NotificationEventData } from '@kbve/laser';
+import type {
+	BlackjackStateView,
+	CharacterEventData,
+	NotificationEventData,
+} from '@kbve/laser';
 import type { GameAction } from './game-store';
+import type { NPCAction } from '../types';
 import type { Dispatch } from 'react';
 
 export function useEventBridge(dispatch: Dispatch<GameAction>) {
 	useEffect(() => {
 		const unsubs: (() => void)[] = [];
+
+		unsubs.push(
+			laserEvents.on('net:status', (data) => {
+				const conn = data as {
+					status:
+						| 'connecting'
+						| 'connected'
+						| 'slow'
+						| 'reconnecting'
+						| 'ready'
+						| 'rejected'
+						| 'error'
+						| 'disconnected';
+					detail?: string;
+					reason?: string;
+				};
+				dispatch({ type: 'SET_CONNECTION', payload: conn });
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('players:sync', (data) => {
+				const payload = data as {
+					players: { slot: number; username: string }[];
+				};
+				dispatch({ type: 'SET_PLAYERS', payload: payload.players });
+			}),
+		);
 
 		unsubs.push(
 			laserEvents.on('char:event', (data: CharacterEventData) => {
@@ -17,6 +50,22 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 						characterName: data.character_name,
 						characterImage: data.character_image,
 						backgroundImage: data.background_image,
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('monster:nearby', (data) => {
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: 'Danger',
+						message:
+							data.count > 1
+								? `${data.count} monsters lurk nearby!`
+								: 'A monster lurks nearby!',
+						type: 'warning',
 					},
 				});
 			}),
@@ -42,86 +91,190 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'npc:interact' as keyof typeof laserEvents,
-				((data: {
-					npcId: string;
-					npcName: string;
-					actions: string[];
-					coords: { x: number; y: number };
-				}) => {
-					dispatch({
-						type: 'SET_NPC_INTERACTION',
-						payload: data as any,
-					});
-				}) as any,
-			),
+			laserEvents.on('npc:interact', (data) => {
+				dispatch({
+					type: 'SET_NPC_INTERACTION',
+					payload: {
+						npcId: data.npcId,
+						npcName: data.npcName,
+						actions: data.actions as NPCAction[],
+						coords: data.coords,
+						eid: data.eid,
+					},
+				});
+			}),
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'player:damage' as keyof typeof laserEvents,
-				((data: { damage: number }) => {
-					dispatch({
-						type: 'PLAYER_DAMAGE',
-						payload: { damage: Number(data.damage) },
-					});
-				}) as any,
-			),
+			laserEvents.on('player:damage', (data) => {
+				dispatch({
+					type: 'PLAYER_DAMAGE',
+					payload: { damage: Number(data.damage) },
+				});
+			}),
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'player:stats' as keyof typeof laserEvents,
-				((data: { stats: any }) => {
-					dispatch({
-						type: 'SET_PLAYER_STATS',
-						payload: data.stats,
-					});
-				}) as any,
-			),
+			laserEvents.on('player:stats', (data) => {
+				dispatch({
+					type: 'SET_PLAYER_STATS',
+					payload: data.stats,
+				});
+			}),
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'dice:roll' as keyof typeof laserEvents,
-				((data: {
-					npcId: string;
-					npcName: string;
-					diceCount: number;
-				}) => {
+			laserEvents.on('inventory:sync', (data) => {
+				const sync = data as {
+					items: { ref: string; count: number }[];
+				};
+				const itemIds = sync.items.flatMap((i) =>
+					Array.from({ length: i.count }, () => i.ref),
+				);
+				dispatch({ type: 'SET_BACKPACK', payload: { itemIds } });
+			}),
+		);
+
+		const SHOP_REASONS: Record<string, string> = {
+			insufficient: 'Not enough coin.',
+			too_far: 'Step closer to the merchant.',
+			out_of_stock: "The merchant doesn't sell that.",
+			no_item: "You don't have that to sell.",
+			not_sellable: "The merchant won't buy that.",
+			not_for_sale: 'That item is not for sale.',
+		};
+
+		unsubs.push(
+			laserEvents.on('shop:result', (data) => {
+				const r = data as {
+					action: 'buy' | 'sell';
+					item_ref: string;
+					qty: number;
+					ok: boolean;
+					reason: string;
+				};
+				if (r.ok) {
 					dispatch({
-						type: 'SET_DICE_ROLL',
+						type: 'ADD_NOTIFICATION',
 						payload: {
-							npcId: data.npcId,
-							npcName: data.npcName,
-							diceCount: data.diceCount,
-							diceValues: [],
-							totalRoll: null,
-							phase: 'rolling',
+							title: r.action === 'buy' ? 'Bought' : 'Sold',
+							message:
+								r.qty > 1
+									? `${r.item_ref} ×${r.qty}`
+									: r.item_ref,
+							type: 'success',
 						},
 					});
-				}) as any,
-			),
+				} else {
+					dispatch({
+						type: 'ADD_NOTIFICATION',
+						payload: {
+							title: 'Trade failed',
+							message: SHOP_REASONS[r.reason] ?? r.reason,
+							type: 'danger',
+						},
+					});
+				}
+			}),
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'dice:result' as keyof typeof laserEvents,
-				((data: { diceValues: number[] }) => {
-					const total = data.diceValues.reduce(
-						(a: number, b: number) => a + b,
-						0,
-					);
-					dispatch({
-						type: 'UPDATE_DICE_VALUES',
-						payload: {
-							diceValues: data.diceValues,
-							totalRoll: total,
-						},
-					});
-				}) as any,
-			),
+			laserEvents.on('item:pickup', (data) => {
+				const pickup = data as { item_ref: string; count: number };
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: 'Picked up',
+						message:
+							pickup.count > 1
+								? `${pickup.item_ref} ×${pickup.count}`
+								: pickup.item_ref,
+						type: 'success',
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('combat:event', (data) => {
+				const combat = data as {
+					target_ref: string | null;
+					dmg: number;
+					died: boolean;
+				};
+				const name = combat.target_ref ?? 'enemy';
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: combat.died ? 'Defeated' : 'Combat',
+						message: combat.died
+							? `${name} slain!`
+							: `Hit ${name} for ${combat.dmg}`,
+						type: combat.died ? 'success' : 'info',
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('item:used', (data) => {
+				const used = data as { item_ref: string; heal: number };
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: 'Used',
+						message:
+							used.heal > 0
+								? `${used.item_ref} (+${used.heal} HP)`
+								: used.item_ref,
+						type: 'success',
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('item:equipped', (data) => {
+				const eq = data as {
+					item_ref: string | null;
+					slot?: 'weapon' | 'armor';
+					attack: number;
+					defense?: number;
+				};
+				dispatch({
+					type: 'EQUIP_ITEM',
+					payload: {
+						slot: eq.slot === 'armor' ? 'offHand' : 'mainHand',
+						itemId: eq.item_ref,
+					},
+				});
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: eq.item_ref ? 'Equipped' : 'Unequipped',
+						message: eq.item_ref
+							? `${eq.item_ref} (atk ${eq.attack}, def ${eq.defense ?? 0})`
+							: `atk ${eq.attack}, def ${eq.defense ?? 0}`,
+						type: 'info',
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('blackjack:open', (data) => {
+				const d = data as { table_ref: string };
+				dispatch({ type: 'BJ_OPEN', payload: d });
+			}),
+			laserEvents.on('blackjack:close', () => {
+				dispatch({ type: 'BJ_CLOSE' });
+			}),
+			laserEvents.on('blackjack:state', (data) => {
+				dispatch({
+					type: 'BJ_STATE',
+					payload: data as BlackjackStateView,
+				});
+			}),
 		);
 
 		return () => unsubs.forEach((fn) => fn());

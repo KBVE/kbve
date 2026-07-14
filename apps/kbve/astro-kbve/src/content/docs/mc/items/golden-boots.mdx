@@ -1,5 +1,6 @@
 ---
 title: Golden Boots
+template: splash
 description: |
     Minecraft Golden Boots — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 915
     ref: golden_boots
     slug: golden-boots
+    content_rev: 1
     display_name: Golden Boots
     category: armor
     rarity: common
@@ -41,6 +43,34 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Golden boots are a foot armor piece crafted from 4 gold ingots, offering the
+            same modest 1 armor point as leather boots but with far greater durability
+            (91 in Java Edition) and a high enchantability of 25. They can also be found
+            in Bastion Remnant and Ruined Portal loot chests, or looted from mobs wearing
+            them.
+        lore: |
+            Piglins will not attack a player wearing golden boots unless provoked, making
+            them a small but crucial piece of gear for peaceful Nether exploration.
+    faq:
+        - question: Why wear golden boots despite their low armor value?
+          answer: |
+              Piglins do not attack players wearing golden boots unless provoked or
+              attacked, making them invaluable for safely navigating piglin-inhabited
+              areas of the Nether.
+        - question: Can golden boots be repaired?
+          answer: |
+              Yes, through an anvil using gold ingots, or by combining two damaged pairs
+              of golden boots together — both methods preserve existing enchantments.
+        - question: How do golden boots compare to leather boots?
+          answer: |
+              They offer the same armor points as leather boots but have noticeably
+              higher durability and benefit from the piglin-neutrality effect.
+        - question: How many gold ingots does it take to craft golden boots?
+          answer: |
+              Four gold ingots are required, arranged in the standard boots crafting
+              pattern.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,54 +1,69 @@
 ---
 title: Ancient page 2 | OSRS Price Data
-description: "Ancient page 2: This seems to have been torn from a book.... High alch: 240 GP, GE limit: 5."
+description: "Ancient page 2: This seems to have been torn from a book... High alch: 240 GP, GE limit: 5."
 osrs:
   id: 12622
   name: Ancient page 2
   slug: ancient-page-2
-  examine: This seems to have been torn from a book...
+  examine: "This seems to have been torn from a book..."
   members: true
   icon: Ancient page 2.png
   value: 400
   lowalch: 160
   highalch: 240
   limit: 5
-  item:
-    type: god_page
-    god: Ancient
-    page_number: 2
-    tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite
-        drop_rate: Varies by tier
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+      - master
   related_items:
     - item_id: 12621
       item_name: Ancient page 1
       slug: ancient-page-1
       relationship: set-piece
-      description: Page 1 of 4
+      description: Page 1 of 4 of the Book of darkness.
     - item_id: 12623
       item_name: Ancient page 3
       slug: ancient-page-3
       relationship: set-piece
-      description: Page 3 of 4
+      description: Page 3 of 4 of the Book of darkness.
     - item_id: 12624
       item_name: Ancient page 4
       slug: ancient-page-4
       relationship: set-piece
-      description: Page 4 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Ancient (Zaros) |
-    | Page | 2 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Book of darkness (Ancient god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Page 4 of 4 of the Book of darkness.
+    - item_id: 3839
+      item_name: Book of darkness
+      slug: book-of-darkness
+      relationship: product
+      description: Completed Ancient (Zaros) god book assembled from all four pages.
+  about: "Ancient page 2 is a Zaros-themed clue scroll reward used with the other three pages to complete the Book of darkness."
+  market_strategy:
+    notes:
+      - Tiny 5/4h buy limit makes the page price spiky
+      - Demand follows Hard/Elite/Master clue popularity and god book restorations
+  history:
+    - date: "2014-07-03"
+      description: Released alongside the Halos, God Books and Stamina update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-07-03"
+    update: "Halos, God Books & Stamina"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,107 @@ osrs:
   lowalch: 14
   highalch: 22
   limit: 11000
-  about: "Sapphire bolts is a members-only item in Old School RuneScape. High alchemy value: 22 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammunition
+    tier: low
+  equipment:
+    slot: ammo
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 83
+      magic_damage: 0
+      prayer: 0
+    weight: 0
+  recipes:
+    - skill: fletching
+      level: 56
+      xp: 4.7
+      materials:
+        - item_name: Mithril bolts
+          quantity: 10
+        - item_name: Sapphire bolt tips
+          quantity: 10
+      product: Sapphire bolts
+      output_quantity: 10
+    - skill: magic
+      level: 7
+      xp: 17.5
+      materials:
+        - item_name: Sapphire bolts
+          quantity: 10
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Mind rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
+      product: Sapphire bolts (e)
+      output_quantity: 10
+      notes: Enchant Crossbow Bolt (Sapphire) spell.
+  related_items:
+    - item_id: 9189
+      item_name: Sapphire bolt tips
+      slug: sapphire-bolt-tips
+      relationship: component
+      description: Gem tip required for fletching
+    - item_id: 9145
+      item_name: Mithril bolts
+      slug: mithril-bolts
+      relationship: component
+      description: Base bolt receiving the tip
+    - item_id: 9240
+      item_name: Sapphire bolts (e)
+      slug: sapphire-bolts-e
+      relationship: upgrade
+      description: Enchanted Sapphire bolts
+    - item_id: 21932
+      item_name: Sapphire dragon bolts
+      slug: sapphire-dragon-bolts
+      relationship: alternative
+      description: Dragon variant
+  about: |-
+    Sapphire bolts are a low-tier enchantable crossbow ammunition. Fletch at level 56 from 10 mithril bolts + 10 sapphire bolt tips (4.7 XP per 10), then enchant via Enchant Crossbow Bolt (Sapphire) at level 7 Magic to unlock the Clear Mind effect, which has a 5% chance to drain the target's prayer.
+
+    | Property | Value |
+    |----------|-------|
+    | Slot | Ammo |
+    | Ranged strength | +83 |
+    | Weight | 0 kg |
+
+    | Recipe | Level | XP |
+    |--------|-------|-----|
+    | Fletch (10) | 56 Fletching | 4.7 |
+    | Enchant (10) | 7 Magic | 17.5 |
+
+    Enchanted variants are popular for PK builds that benefit from prayer drain pressure.
+  market_strategy:
+    notes:
+      - Demand driven by Enchant Crossbow Bolt (Sapphire) supply
+      - Low GE buy limit pressure (11,000 per 4h)
+      - Fletching margin runs ~160 gp per 10 bolts
+      - Mid-tier Magic enchanters drive bulk flips
+      - PK supply demand fluctuates with PvP events
+  trading_tips:
+    - Sapphire bolt tip price drives margin
+    - Watch (e) variant demand for PK season swings
+    - Sapphire bolt fletching is profitable at 56 Fletching
+  history:
+    - date: "2006-07-31"
+      description: Released with the Crossbow expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

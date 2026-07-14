@@ -27,7 +27,7 @@ ARG MODS_CACHE_IMAGE=ghcr.io/kbve/mc:mods
 FROM ${MODS_CACHE_IMAGE} AS mods-cache
 
 # ── Stage 1: Build Rust native libraries (.so) ────────────────────────
-FROM rust:1.94-bookworm AS rust-builder
+FROM rust:1.96-bookworm AS rust-builder
 WORKDIR /build
 
 # protoc + well-known types — required by the agones crate's build.rs.
@@ -57,7 +57,7 @@ RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_pathfinder"|path = "../be
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_behavior"|path = "../bevy_behavior"|' behavior_statetree/Cargo.toml
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_chat"|path = "../bevy_chat"|' behavior_statetree/Cargo.toml
 RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_supa"|path = "../bevy_supa"|' mc_auth/Cargo.toml
-RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc", "bevy_supa", "bevy_pathfinder", "bevy_behavior", "bevy_chat"]\n' > Cargo.toml
+RUN printf '[workspace]\nresolver = "2"\nmembers = ["behavior_statetree", "mc_auth", "bevy_npc", "bevy_supa", "bevy_pathfinder", "bevy_behavior", "bevy_chat"]\n\n[workspace.package]\nrust-version = "1.96"\n' > Cargo.toml
 
 RUN cargo build -p behavior_statetree -p mc_auth --release
 # Outputs:
@@ -118,6 +118,13 @@ ENV TYPE=FABRIC
 ENV VERSION=1.21.11
 ENV FABRIC_LOADER_VERSION=0.18.6
 ENV EULA=TRUE
+
+# Wipe /data/mods on the PVC before re-copying the image's /mods on every
+# boot. Without this, itzg leaves orphaned jars behind when a mod is bumped
+# or renamed (e.g. a stale grimac-fabric build sitting next to the current
+# one). Every mod on this server is image-sourced, so a clean re-copy is
+# always correct.
+ENV REMOVE_OLD_MODS=true
 
 ENV MEMORY=3G
 
@@ -183,3 +190,10 @@ COPY apps/mc/mods/ /mods/
 
 # Server config overrides
 COPY apps/mc/config/ /config/
+
+# OPAC claim-access seed — wraps itzg's /start so Immersive Aircraft can be
+# mounted/dismounted inside land claims (see script header). exec /start keeps
+# itzg as PID1 for graceful RCON shutdown; the base image's CMD is inherited.
+COPY apps/mc/scripts/opac-airship-claim-access.sh /usr/local/bin/opac-airship-claim-access.sh
+RUN chmod +x /usr/local/bin/opac-airship-claim-access.sh
+ENTRYPOINT ["/usr/local/bin/opac-airship-claim-access.sh"]

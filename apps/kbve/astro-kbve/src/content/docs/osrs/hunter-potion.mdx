@@ -1,0 +1,132 @@
+---
+title: Hunter potion | OSRS Price Data
+description: "Hunter potion(4): 4 doses of Hunter potion.. High alch: 9 GP, GE limit: 2,000."
+osrs:
+  id: 9998
+  name: Hunter potion
+  slug: hunter-potion
+  examine: 4 doses of Hunter potion.
+  members: true
+  icon: Hunter potion(4).png
+  value: 15
+  lowalch: 6
+  highalch: 9
+  limit: 2000
+  potion:
+    doses: 4
+    type: boost
+    skill: hunter
+    boost_min: 3
+    boost_max: 3
+    boost_formula: "+3"
+    duration: 60
+    effects:
+      - skill: hunter
+        description: Temporarily raises Hunter level by 3.
+  recipes:
+    - name: Mix Hunter potion(4)
+      skill: herblore
+      level: 53
+      xp: 120
+      materials:
+        - item_id: 105
+          item_name: Avantoe potion (unf)
+          quantity: 1
+        - item_id: 10111
+          item_name: Kebbit teeth dust
+          quantity: 1
+      product: Hunter potion(4)
+      product_id: 9998
+      product_quantity: 1
+      tools: []
+      members_only: true
+  related_items:
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
+      relationship: component
+      description: Primary herb
+    - item_id: 10111
+      item_name: Kebbit teeth dust
+      slug: kebbit-teeth-dust
+      relationship: component
+      description: Secondary ingredient
+  about: Hunter potion(4) is a four-dose members potion that raises the Hunter level by 3 for catching higher-tier creatures.
+  market_strategy:
+    notes:
+      - Niche demand spikes during Hunter contracts and rumours
+      - Cheap to mix; flips on margin not volume
+      - Avantoe-tied supply chain
+  history:
+    - date: "2016-04-15"
+      description: Half-full potions could now be turned into bank placeholders.
+  family_ref:
+    family_slug: hunter-potion
+    role: base
+  family:
+    slug: hunter-potion
+    name: Hunter potion
+    type: dose
+    canonical_id: 9998
+    members:
+    - id: 9998
+      slug: hunter-potion
+      name: Hunter potion
+      icon: Hunter potion(4).png
+      role: base
+      dose: null
+      value: 15
+      lowalch: 6
+      highalch: 9
+    - id: 10004
+      slug: hunter-potion-1
+      name: Hunter potion(1)
+      icon: Hunter potion(1).png
+      role: dose
+      dose: 1
+      value: 6
+      lowalch: 2
+      highalch: 3
+    - id: 10002
+      slug: hunter-potion-2
+      name: Hunter potion(2)
+      icon: Hunter potion(2).png
+      role: dose
+      dose: 2
+      value: 9
+      lowalch: 3
+      highalch: 5
+    - id: 10000
+      slug: hunter-potion-3
+      name: Hunter potion(3)
+      icon: Hunter potion(3).png
+      role: dose
+      dose: 3
+      value: 12
+      lowalch: 4
+      highalch: 7
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  properties:
+    release_date: "2006-11-21"
+    update: HUNTER SKILL!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

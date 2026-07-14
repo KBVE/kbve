@@ -1,5 +1,6 @@
 ---
 title: Glass
+template: splash
 description: |
     Minecraft Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 101
     ref: glass
     slug: glass
+    content_rev: 1
     display_name: Glass
     material: glass
     hardness: 0.3
@@ -24,10 +26,62 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Glass is a fully transparent, non-flammable block produced by
+            smelting sand, letting light pass through while blocking mob
+            spawns on its surface. It is one of the earliest crafting
+            materials available since it only requires a furnace and fuel.
+        lore: |
+            Present since Minecraft's earliest versions, glass has remained
+            the go-to material for windows, greenhouses, and observation
+            decks throughout the game's history.
+    uses:
+        - title: Glass Panes
+          ref: glass_pane
+          detail: Six glass blocks craft into sixteen glass panes for thinner window builds.
+        - title: Stained Glass and Beacons
+          ref: beacon
+          detail: |
+              Used to craft stained glass variants, glass bottles, end
+              crystals, daylight detectors, and beacons.
+        - title: Villager Trading
+          ref: emerald
+          detail: Librarian villagers buy glass, trading 4 glass for 1 emerald.
+    found_in:
+        - location: Furnace Smelting
+          detail: Obtained by smelting sand or red sand with any fuel in a furnace, blast furnace, or campfire.
+        - location: Woodland Mansions and Ancient Cities
+          detail: Generates naturally as window blocks within these structures.
+    faq:
+        - question: What tool do I need to mine Glass?
+          answer: |
+              None required — any tool or bare hands breaks it instantly,
+              but only Silk Touch recovers the glass block itself.
+        - question: How do I obtain Glass?
+          answer: |
+              Smelt sand or red sand in a furnace, blast furnace, or
+              campfire with any fuel source.
+        - question: Why does breaking Glass drop nothing?
+          answer: |
+              Glass shatters like real glass would, so without Silk Touch
+              it yields no item — mine it with a Silk Touch tool to keep
+              the block.
+        - question: What can I craft with Glass?
+          answer: |
+              Glass panes, glass bottles, stained glass, tinted glass,
+              beacons, end crystals, daylight detectors, and harnesses all
+              require glass as an ingredient.
     data_version: "1.21.5"
 ---
 

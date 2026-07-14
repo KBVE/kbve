@@ -1,0 +1,232 @@
+---
+title: "ARPG Server — Authoritative Grid Game Host on Axum"
+description: ARPG Server is an authoritative grid game host — axum + tokio + simgrid headless Bevy sim on Agones, serving the ARPG isometric action RPG over WebSocket.
+sem: 1
+sidebar:
+    label: ARPG Server
+    order: 59
+tags:
+    - docker
+    - rust
+    - game-server
+    - arpg
+key: arpg_server
+pipeline: docker
+app_name: arpg-server
+version: "0.1.27"
+source_path: apps/agones/arpg/server
+version_toml: apps/agones/arpg/server/version.toml
+# Pre-build sync: CI writes this MDX `version` into version_target (Cargo.toml →
+# CARGO_PKG_VERSION) BEFORE the docker build so the server's reported version
+# matches the image tag instead of lagging a publish cycle.
+version_source: apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx
+version_target: apps/agones/arpg/server/Cargo.toml
+runner: arc-runner-set
+image: kbve/arpg-server
+deployment_yaml: apps/kube/agones/arpg/manifests/fleet.yaml
+has_test: false
+author: h0lybyte
+license: MIT
+status: beta
+kube:
+    stack: agones
+    environment: beta
+    tier: server
+    owner: h0lybyte
+    criticality: low
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the ARPG Server?
+          answer: ARPG Server is the authoritative shared-world host for KBVE's ARPG, a Diablo-style isometric action RPG. It pairs an axum WebSocket router with the simgrid headless Bevy grid simulation, keeping movement validation, occupancy, and snapshot framing server-owned.
+        - question: How does the ARPG Server stay authoritative?
+          answer: The server keeps everything in orthogonal tile (x, y) space with integer grid math; collision is tile occupancy. It validates each move against occupancy, drives the sim tick on a tokio multi-thread runtime, and fans out authoritative snapshots. Isometric projection is a client-side render transform only.
+        - question: Which wire protocol does the ARPG Server speak?
+          answer: It speaks the shared simgrid JSON protocol (PROTOCOL_VERSION 14), handling Join, Step, MoveTo, Action, Face, Heartbeat, and Leave frames and emitting Welcome, Snapshot, and Ephemeral events for combat, projectiles, floor changes, and stats.
+bento:
+    badge: game-server · rust · arpg
+    title: Authoritative grid host
+    accent: ARPG Server
+    lede: >-
+        The authoritative shared-world host for the ARPG — a Diablo-style
+        isometric action RPG. An axum WebSocket router paired with the simgrid
+        headless Bevy grid sim, keeping movement, occupancy, and snapshots
+        server-owned on its own Agones Fleet.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/agones/arpg/server
+          primary: true
+          external: true
+        - label: Wire protocol
+          href: "#protocol"
+        - label: Discord Activity
+          href: "#discord"
+    aside:
+        icon: server
+        title: Orthogonal tile authority
+        body: >-
+            The server keeps everything in orthogonal tile <code>(x, y)</code>
+            space with integer grid math — collision is tile occupancy.
+            Isometric projection is a client-side render transform only; the
+            server predicts nothing, the client does.
+        points:
+            - <strong>Protocol</strong> — simgrid JSON, PROTOCOL_VERSION 14.
+            - <strong>Z-floors</strong> — endless seeded multi-floor dungeon.
+    stats:
+        - { label: App, value: arpg-server, icon: server }
+        - { label: Stack, value: axum + Bevy, icon: rust }
+        - { label: Protocol, value: simgrid v14, icon: network }
+        - { label: Listen, value: "0.0.0.0:7979", icon: activity }
+    features:
+        - title: Terminate /ws + auth
+          icon: key
+          body: Terminates the WebSocket upgrade and verifies the inbound Supabase JWT (dev-accept fallback when the secret is unset).
+        - title: Drive the sim tick
+          icon: activity
+          body: Drives the simgrid sim tick on a tokio multi-thread runtime, fanning out authoritative snapshots to all clients.
+        - title: Admit & spawn
+          icon: box
+          body: Admits players into roster slots and spawns the procedural world — an open grid seeded with wandering hostiles — shared across the map.
+        - title: Agones lifecycle
+          icon: server
+          body: Runs the Agones SDK lifecycle (Ready / Health / Shutdown) so the Fleet can manage the pod; degrades gracefully for local dev.
+    related:
+        - title: ARPG Web
+          href: /project/arpg-web/
+          copy: The browser client that connects to this server over /ws.
+          icon: box
+        - title: CryptoThrone Server
+          href: /project/cryptothrone-server/
+          copy: The sibling grid-authoritative host sharing the simgrid crate.
+          icon: server
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Responsibilities" heading="Overview & layout">
+
+`arpg-server` is the authoritative shared-world host for the **ARPG** (Diablo-style isometric action RPG client under `astro-kbve` arcade). It pairs an `axum` WebSocket router with the `simgrid` headless bevy grid simulation, so movement validation, occupancy, and snapshot framing stay server-owned. Like `cryptothrone-server` it is grid-authoritative — collision is tile occupancy and "physics" is integer grid math — but runs an isolated world (its own seed, registry, and spawn tables) on its own Agones Fleet.
+
+### Responsibilities
+
+- Terminate the `/ws` WebSocket upgrade and verify the inbound Supabase JWT (dev-accept fallback when the secret is unset).
+- Drive the `simgrid` sim tick on a tokio multi-thread runtime, fanning out authoritative snapshots.
+- Admit players into roster slots and spawn the procedural world — an open grid seeded with wandering hostiles — shared across the map.
+- Run the Agones SDK lifecycle (`Ready` / `Health` / `Shutdown`) so the Fleet can manage the pod; degrades gracefully outside Agones for local dev.
+
+### Relationship to the client
+
+The browser client lives at `apps/agones/arpg/web/src/game/` (the standalone vite app — see [ARPG Web](/project/arpg-web/)) and connects over `PUBLIC_ARPG_GAME_WS` (default `wss://arpg.kbve.com/ws`). Isometric projection is a client-side render transform only; the server keeps everything in orthogonal tile `(x, y)` space and speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 14).
+
+### Layout
+
+```
+apps/agones/arpg/server/
+├── Cargo.toml         # package manifest (path-dep to ../../../../packages/rust/simgrid)
+├── Dockerfile         # multi-stage chisel build (cargo-chef + sccache); no webkit stage
+├── project.json       # nx build / run / container targets
+├── version.toml       # ci-publish version sentinel
+└── src/
+    ├── main.rs        # tokio entry + Agones lifecycle + graceful shutdown
+    ├── agones.rs      # Agones SDK heartbeat
+    ├── dungeon.rs     # seeded room-corridor generator (mirrors client systems/dungeon.ts)
+    └── game.rs        # ARPG spawn config (player tile, wandering hostiles)
+```
+
+</BentoProse>
+
+<BentoProse id="protocol" eyebrow="Sim core & wire" heading="Protocol, z-floors & authority">
+
+**Build** — `nx run arpg-server:build-release` (or `cargo build --release -p arpg-server`); the release binary lands at `dist/target/release/arpg-server`. **Container** — `nx run arpg-server:container` drops `kbve/arpg-server:latest` + version tag. CI uses the `ci` configuration with sccache + registry buildcache (`ghcr.io/kbve/arpg-server:buildcache`) on the shared `ghcr.io/kbve/chisel-ubuntu-axum` base. Default listen `0.0.0.0:7979` (override via `ARPG_SERVER_ADDR`).
+
+### Sim core
+
+Shares the `simgrid` crate (`packages/rust/simgrid`): postcard/JSON wire types, Supabase HS256 auth, axum WS transport, and the bevy headless `build_app` / `run_sim_loop`. The host registers ARPG spawn systems into `simgrid`'s ordered `SimSet` stages; transport and movement stay generic. The dungeon generator is **shared logic** — the server must produce the identical floor set the client's `systems/dungeon.ts` does for a given `DUNGEON_SEED`, so collision agrees on both sides (Mulberry32 PRNG, domain-separated per-chunk seeds, `CHUNK_SIZE=20`). Server is authoritative for occupancy; client predicts.
+
+### Wire protocol
+
+Speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 14). The client wire surface (`@kbve/laser` `GameClient`) is complete and the server answers it.
+
+**Client → server**
+
+| Frame | Sent when | Server duty |
+|-------|-----------|-------------|
+| `Join { jwt, kbve_username }` | on socket open | verify JWT (dev-accept fallback), admit to a roster slot, reply `Welcome` |
+| `Step { dir }` | float body crosses a tile line | validate one cardinal tile move vs occupancy, advance the player |
+| `MoveTo { tile }` | left-click destination | server-side pathfind/route the player toward `tile` (or accept as intent) |
+| `Action { id, target }` | attack | resolve combat for action `id` (`ACTION_ATTACK`) against entity `target` |
+| `Face { facing }` | aim turn | record 16-dir facing so remote clients render the right pose |
+| `Heartbeat`, `Leave` | keepalive / disconnect | liveness + slot release |
+
+**Server → client**
+
+| Event | Carries | Client handler |
+|-------|---------|----------------|
+| `Welcome` | `your_slot`, kind `registry` | seed registry + slot |
+| `Snapshot` | players (slot→username), entities (eid, kind, tile, owner, hp, max_hp, **z**) | `applyEntitySync` + `reconcileFloat`, filtered to the local floor |
+| `Ephemeral(Combat)` | target eid, dmg, crit | floating damage + flash |
+| `Ephemeral(Projectile)` | shooter, origin, dir, kind | spawns the arrow visual from the server, not a local tween |
+| `Ephemeral(Floor)` | `{ z, tile }` | local player took a stair — snap to `tile`, switch floor, re-stream dungeon |
+| `Ephemeral(Stats / Pickup / ...)` | per-event | follow-up (loot, inventory) |
+
+### Z-floors & stairs
+
+The dungeon has a **z-axis**: each floor is its own endless seeded dungeon (`floor_seed = mix(world_seed, z)`, floor 0 = the ground layout / identity). This is a shared simgrid feature, not ARPG-only — single-floor games (cryptothrone) attach no `Floor` component and behave exactly as before (every entity on z = 0, `z` omitted on the wire).
+
+- **Collision** is z-aware: `WalkableMap::is_walkable_z(z, tile)` / `find_path_z`. A `Floor(i32)` component (default 0) on each entity selects its layer; sim systems read it via `Option<&Floor>`.
+- **Stairs** are a generic `Stairs` resource — `Explicit(Vec<StairLink>)` for hand-placed maps or `Dungeon { seed, descend_key }` for the endless ARPG, which derives two seed-driven stairs (down/up) per floor. Stepping a stair tile moves the player to the linked tile on the adjacent floor and emits the `Floor` ephemeral.
+- **Locks** gate a stair on a key item: descending is gated on `descend_key` (the player must hold it in inventory); ascending is free. The ground floor seeds a `dungeon-key` near spawn.
+
+Cross-language parity: the Rust `arpg_dungeon` and the client `systems/dungeon.ts` produce byte-identical floors (frozen FNV-1a fingerprint — `3726471204` for seed `0x5eed1`, floor 0, window `(0,0)..(80,80)`), asserted on both sides.
+
+### Client authority
+
+The offline client (`DEBUG_LOCAL_PLAYER`) resolves combat and movement locally; online, authority is the server's. The handoff is in place:
+
+1. **Single position truth** — `applySnapshot` reconciles the server tile into `floatState` via `reconcileFloat`.
+2. **Combat over the wire** — `fireBowAt(aim, target?)` sends `action(ACTION_ATTACK, target)` with the real target eid (null = server resolves the aim line); the click-attack no longer double-fires.
+3. **Server-driven projectiles** — the arrow visual spawns from the `Projectile` ephemeral; `applyLocalHit` is gated behind `localMode`.
+4. **Facing sync** — `client.face(facing)` fires on aim/movement change (cardinal, only on change).
+5. **Floor + event subscriptions** — `projectile` and `floor` join `combat`; snapshot entities are filtered to the local floor.
+
+Offline mode keeps the local resolution (gated on `localMode`) so single-player testing works with no server.
+
+</BentoProse>
+
+<BentoProse id="discord" eyebrow="Embed" heading="Discord Activity">
+
+The game runs as a Discord Activity by reusing the existing web tier — no new app. The game already lives at `kbve.com/arcade/arpg`; the Activity adds a dedicated embed page + a session-exchange backend on `axum-kbve`, and the game WebSocket rides the existing `arpg.kbve.com`.
+
+**Pieces:**
+
+- **Embed page** — `arpg.kbve.com/discord/arpg/` (`index.html` + `arpg.js`, built by `nx run arpg:web-build-discord` from `apps/agones/arpg/web/src/embed/discord.tsx` into the vite app's `dist/discord/arpg/`, served by the arpg nginx). Boots the Discord SDK, runs OAuth, fetches a session, then mounts `ReactIsoArpgApp` with `embedSession` (skips the Supabase gate + name prompt). The whole Activity now lives on the arpg origin alongside the app + art.
+- **Session backend** — `axum-kbve` `POST /api/v1/discord/session` (on kbve.com — it holds `DISCORD_CLIENT_SECRET`). Exchanges the OAuth `code` → Discord token → user → linked KBVE profile (fast-registers via GoTrue admin + `tracker.*` RPCs on the shared Supabase DB) → mints the Supabase-valid HS256 JWT the game server accepts. Reached cross-origin from the Activity via the `/arpg-session` mapping. Ported from `axum-cryptothrone`.
+- **Game WS** — the existing `wss://arpg.kbve.com/ws`, reached through a portal URL Mapping `/arpg-game → arpg.kbve.com` (`patchUrlMappings`), so the socket is allowed inside the Activity iframe.
+
+**Portal config (Discord Developer Portal → Activities → URL Mappings):**
+
+| Mapping | Target | Purpose |
+|---------|--------|---------|
+| `/` (root) | `arpg.kbve.com/discord/arpg/` | Activity page + `arpg.js` (same-origin, loaded relatively) |
+| `/arpg-game` | `arpg.kbve.com` | game WebSocket (`/ws`, a sibling of the `/discord/arpg/` dir) |
+| `/arpg-assets` | `arpg.kbve.com` | game art at `/assets/...` (CORS-enabled); the embed sets the client asset base to `/arpg-assets` |
+| `/arpg-session` | `kbve.com` | the axum session backend (cross-origin); the embed fetches `/.proxy/arpg-session/api/v1/discord/session` |
+
+Everything the Activity loads is proxied through `*.discordsays.com`, so each external host (game WS, art, session backend) needs a URL Mapping. The page + `arpg.js` are same-origin under the portal root, so they load relatively.
+
+**Env (axum-kbve):** `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `SUPABASE_JWT_SECRET` (required); `GOTRUE_INTERNAL_URL` / `SUPABASE_URL` for fast-register; leave `DISCORD_REDIRECT_URI` **unset** (the RPC authorize flow rejects an explicit redirect_uri). **Build (discord):** `PUBLIC_DISCORD_CLIENT_ID` baked in by the `--mode discord` build in `apps/agones/arpg/web/vite.config.ts` (web Dockerfile ARG) — must be set or terser dead-code-eliminates the boot body. Register a Discord Activity application pointing its root at `arpg.kbve.com/discord/arpg/`.
+
+**Status** — Alpha: endless seeded multi-floor dungeon (stairs + key-locked descent) with one hostile kind, proving end-to-end multiplayer; Discord Activity embed + session backend in place (point a Discord app at it once the image is baked). World content (npcdb/itemdb, zones, loot tables) is a follow-up.
+
+</BentoProse>
+
+</BentoDoc>

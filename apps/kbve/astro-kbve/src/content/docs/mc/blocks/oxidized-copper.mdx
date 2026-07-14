@@ -1,5 +1,6 @@
 ---
 title: Oxidized Copper
+template: splash
 description: |
     Minecraft Oxidized Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 969
     ref: oxidized_copper
     slug: oxidized-copper
+    content_rev: 1
     display_name: Oxidized Copper
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oxidized_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Oxidized Copper is the final weathering stage of a Block of
+            Copper, showing the full teal-green patina reached after
+            enough exposure unless the block was waxed with honeycomb
+            beforehand.
+        lore: |
+            Copper blocks arrived in the Caves & Cliffs update as the first
+            vanilla building block to weather naturally after placement,
+            with Oxidized Copper representing the oldest, most weathered
+            look.
+    uses:
+        - title: Cut Copper & Variants
+          ref: oxidized_cut_copper
+          detail: |
+              Can be cut at a stonecutter or crafted into Oxidized Cut
+              Copper, slabs, stairs, doors, trapdoors, grates, and bulbs,
+              all sharing the same weathered finish.
+        - title: Copper Golem builds
+          ref: copper_golem
+          detail: |
+              Used as a structural component when building a copper golem,
+              which itself oxidizes and eventually turns to a statue.
+    found_in:
+        - location: Weathering
+          detail: An unwaxed Block of Copper left exposed long enough progresses through Exposed and Weathered before reaching Oxidized.
+        - location: Trial Chambers
+          detail: Naturally generates at the oxidized stage as part of some trial chamber structures.
+    faq:
+        - question: What tool do I need to mine Oxidized Copper?
+          answer: |
+              A stone pickaxe or better. Mining with wood, gold, or bare
+              hands destroys the block with no drop.
+        - question: Does Oxidized Copper keep oxidizing further?
+          answer: |
+              No. Oxidized is the last of the four stages — it stops
+              changing unless the process is reversed.
+        - question: How do I stop or reverse the oxidation?
+          answer: |
+              Apply honeycomb to wax it and lock in the current look. An
+              axe scrapes off one oxidation stage per use, and lightning
+              strikes fully de-oxidize it back to plain copper.
+        - question: Can I get Oxidized Copper without waiting?
+          answer: |
+              Yes — some trial chamber structures generate with copper
+              already at the oxidized stage, skipping the wait.
     data_version: "1.21.5"
 ---
 

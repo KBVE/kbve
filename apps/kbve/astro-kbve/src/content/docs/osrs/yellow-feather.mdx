@@ -12,9 +12,54 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 8000
-  about: "Yellow feather is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 8,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: feather
+    tier: low
+  drop_table:
+    sources:
+      - source: Golden warbler
+        quantity: "5-10"
+        rarity: Always
+  shops:
+    - shop_name: "Aaron's Archery Appendages"
+      location: Varrock
+      stock: 0
+      price: 13
+      sell_price: 5
+  related_items:
+    - name: Feather
+      relationship: alternative
+    - name: Golden warbler feather
+      relationship: alternative
+  about: "Yellow feather is a members-only Hunter drop obtained from golden warblers in the Uzer Hunter area. Functions as a substitute for ordinary feathers in fletching. High alchemy value: 7 coins. Grand Exchange buy limit: 8,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Supply scales with Hunter trainers running golden warblers."
+      - "Demand is niche compared to standard feathers."
+  trading_tips:
+    - "Buy from Hunter trainers in bulk; resell on the GE when feather demand spikes."
+    - "Useful as fletching feed at slight markup over plain feathers."
+  history:
+    - date: "2006-11-21"
+      description: "Yellow feather released with the Hunter skill update."
+    - date: "2007-07-09"
+      description: "Initially released as 'Orange feather'; later renamed and recoloured to 'Yellow feather'."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: "Hunter"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

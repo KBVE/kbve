@@ -1,5 +1,6 @@
 ---
 title: Crimson Trapdoor
+template: splash
 description: |
     Minecraft Crimson Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 850
     ref: crimson_trapdoor
     slug: crimson-trapdoor
+    content_rev: 1
     display_name: Crimson Trapdoor
     material: nether
     hardness: 3
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Crimson Trapdoor is a hinged door-like block that opens and
+            closes horizontally, crafted from Crimson Planks. It can be
+            opened manually or wired to redstone.
+        lore: |
+            Wooden trapdoors date back to Java Beta 1.6; the crimson
+            variant arrived with the Nether Update (1.16).
+    uses:
+        - title: Secret Passages & Redstone Doors
+          ref: crimson_trapdoor
+          detail: |
+              Commonly combined with a fence or wall below a trapdoor to
+              create an invisible-looking climbable hatch, or wired to a
+              lever/redstone circuit as an automated hatch.
+    found_in:
+        - location: Crafted from Crimson Planks
+          detail: Six crimson planks arranged in a 3x2 grid yield two crimson trapdoors at a crafting table.
+        - location: Bastion Remnants
+          detail: Used decoratively and functionally throughout bastion remnant structures.
+    faq:
+        - question: What tool do I need to mine a Crimson Trapdoor?
+          answer: |
+              Any tool works, and an axe is fastest. There is no minimum
+              tool tier required to get the drop.
+        - question: Does Crimson Trapdoor burn in fire or lava?
+          answer: |
+              No. All Nether wood variants, including crimson, are
+              non-flammable in Java Edition.
+        - question: Can a Crimson Trapdoor be used as furnace fuel?
+          answer: |
+              No. Only Overworld wood trapdoors burn as furnace fuel;
+              crimson and warped trapdoors do not.
+        - question: Can it be opened without redstone?
+          answer: |
+              Yes. Players can right-click a trapdoor to open or close it
+              directly, or wire it to a lever, button, or redstone circuit
+              for automation.
     data_version: "1.21.5"
 ---
 

@@ -12,65 +12,64 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 30000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: essence
-    tier: standard
-  mining:
-    level: 30
-    xp: 5
-    locations:
-      - Rune Essence Mine
-    rate: ~2,100/hour
-    quest_required: Rune Mysteries
+    tier: low
+  properties:
+    release_date: "20 April 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.002
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   related_items:
-    - item_id: 1436
-      item_name: Rune essence
+    - item_name: Rune essence
       slug: rune-essence
       relationship: alternative
-      description: Basic runes only
-    - item_id: 561
-      item_name: Nature rune
+      description: F2P essence that only crafts basic runes
+    - item_name: Nature rune
       slug: nature-rune
       relationship: product
-      description: Popular crafted rune
-    - item_id: 560
-      item_name: Death rune
+      description: Popular crafted rune from pure essence
+    - item_name: Death rune
       slug: death-rune
       relationship: product
-      description: High-level rune
-    - item_id: 565
-      item_name: Blood rune
+      description: High-level rune crafted from pure essence
+    - item_name: Blood rune
       slug: blood-rune
       relationship: product
-      description: End-game rune
-    - item_id: 564
-      item_name: Cosmic rune
+      description: End-game rune crafted from pure essence
+    - item_name: Cosmic rune
       slug: cosmic-rune
       relationship: product
-      description: Mid-level rune
+      description: Mid-level rune crafted from pure essence
   about: |-
-    Pure essence can craft ALL runes. Required for:
-    - Cosmic rune (27 RC)
-    - Chaos rune (35 RC)
-    - Astral rune (40 RC)
-    - Nature rune (44 RC)
-    - Law rune (54 RC)
-    - Death rune (65 RC)
-    - Blood rune (77 RC)
-    - Wrath rune (95 RC)
-
-    Rune essence can only craft basic runes (air, mind, water, earth, fire, body).
+    Pure essence is the unimbued form of essence used to craft all runes above the basic tier. Members with 30+ Mining can mine it from the Rune Essence Mine after Rune Mysteries; rates reach roughly 2,100 per hour with optimal setup, and far higher in the Scar essence mine. It is the universal feedstock for Runecrafting training and a constant low-margin Grand Exchange staple.
   market_strategy:
     notes:
-      - Trade essence to runecrafters at altars
-      - They craft runes and give you a cut
-      - Popular at Nature and Law altars
-      - Very cheap (~2 GP each)
-      - Massive volume
-      - Essential for Runecrafting training
-      - Price tied to rune prices
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Trade essence to runecrafters at altars for a cut of crafted runes"
+      - "Very high daily volume - tight bid/ask spread"
+      - "Price is tied to nature and law rune profitability"
+      - "Buy limit 30,000 supports large-scale Runecrafting accounts"
+  trading_tips:
+    - Stockpile when nature rune prices dip to ride the next spike
+    - Sell at busy altars in F2P worlds for premium over GE price
+  history:
+    - date: "20 April 2006"
+      description: "Pure essence introduced; existing rune essence was retroactively converted for members."
+    - date: "September 2020"
+      description: "Grand Exchange buy limit raised from 20,000 to 30,000 per 4 hours."
+    - date: "March 2023"
+      description: 'Examine text updated to "An unimbued rune of extra capability".'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

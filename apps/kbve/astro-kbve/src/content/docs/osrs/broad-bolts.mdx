@@ -12,41 +12,100 @@ osrs:
   lowalch: 22
   highalch: 33
   limit: 7000
-  equipment:
-    slot: ammo
+  material:
     type: ammunition
+    tier: mid
+  properties:
+    release_date: "2014-01-06"
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: null
+    attack_speed: null
     weight: 0
     requirements:
       slayer: 55
       ranged: 61
-    stats:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 100
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 55
+      xp: 30
+      materials:
+        - item_name: Unfinished broad bolts
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      tools: []
+      output_quantity: 10
+  shops:
+    - shop_name: Slayer Reward Shop
+      location: Various Slayer masters
+      price: 35
+      currency: Slayer reward points
+      stock: 250
   related_items:
-    - item_id: 21316
-      item_name: Amethyst broad bolts
+    - item_name: Amethyst broad bolts
       slug: amethyst-broad-bolts
       relationship: upgrade
-      description: Higher tier broad bolts
+      description: "Higher tier amethyst-tipped broad bolts unlocked at 76 Fletching"
+    - item_name: Unfinished broad bolts
+      slug: unfinished-broad-bolts
+      relationship: component
+      description: "Unfeathered shaft used in the fletching recipe"
+    - item_name: Broad arrows
+      slug: broad-arrows
+      relationship: alternative
+      description: "Bow-fired equivalent for Slayer-locked Turoth/Kurask kills"
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Ammunition |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 55 Slayer, 61 Ranged |
+    "Crossbow bolts with broad tips."
 
-    | Stat | Bonus |
-    |------|-------|
-    | Ranged strength | +100 |
+    Broad bolts are the standard Slayer-locked crossbow ammunition needed to kill Turoth and Kurask with ranged. They require 55 Slayer and 61 Ranged to wield and fire from the rune, dragon hunter, dragon, Armadyl, and Zaryte crossbows. With plus 100 ranged strength they hit roughly as hard as adamant bolts at a fraction of the price, making them popular budget training ammo even outside their Slayer use case.
 
-    Slayer: Required for killing Turoth and Kurask with ranged.
-
-    Compatible Crossbows: Rune, Dragon hunter, Dragon, Armadyl, Zaryte.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Players obtain broad bolts from Slayer masters at 35 reward points per 250 bolts, or fletch them at 55 Fletching from unfinished broad bolts and feathers for 30 XP per 10. The fletching path requires the "Broader fletching" unlock from any Slayer master at 300 reward points. At 76 Fletching they can be upgraded into amethyst broad bolts for higher damage.
+  market_strategy:
+    notes:
+      - "7,000 buy limit per 4 hours allows large positions for Slayer prep"
+      - "High alch of 33 gp sets a hard floor that often underprices fletching margins"
+      - "Demand spikes with Turoth/Kurask task popularity and Slayer point sinks"
+      - "Supply from Slayer masters caps abuse but rewards point hoarders who flip"
+  trading_tips:
+    - Compare current GE price against feather plus unfinished broad bolt cost before fletching
+    - Bulk-buy on Slayer point payout weeks when supply floods the market
+  history:
+    - date: "2014-01-06"
+      description: "Released as the OSRS broad bolts ammunition for Slayer Turoth/Kurask kills."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

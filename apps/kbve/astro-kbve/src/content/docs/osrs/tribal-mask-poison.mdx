@@ -12,9 +12,43 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Tribal mask (poison) is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Tribal mask (poison) is one of three ceremonial masks tied to the Tai Bwo Wannai Trio quest, granting safe passage through Tribesmen attacks in the jungle."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2004-09-21"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: true
+    destroy: "Drop"
+    weight: 0.45
+  material:
+    type: mask
+    tier: low
+  equipment:
+    slot: head
+    weight: 0.45
+  related_items:
+    - item_name: Tribal mask (disease)
+      slug: tribal-mask-disease
+      relationship: variant
+      description: Disease-themed variant of the tribal mask trio.
+    - item_name: Tribal mask (death)
+      slug: tribal-mask-death
+      relationship: variant
+      description: Death-themed variant of the tribal mask trio.
+  market_strategy:
+    notes:
+      - "Niche quest-tied item with capped supply."
+      - "Demand driven by Tai Bwo Wannai Cleanup activity."
+  trading_tips:
+    - "Sell to players doing Tai Bwo Wannai Cleanup for safety from Tribesmen."
+    - "Buy back from inactive accounts liquidating cosmetic gear."
+  history:
+    - date: "2004-09-21"
+      description: "Tribal mask (poison) released with the Tai Bwo Wannai Trio quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

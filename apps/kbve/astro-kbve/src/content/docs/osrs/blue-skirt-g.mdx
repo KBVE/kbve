@@ -1,6 +1,6 @@
 ---
 title: Blue skirt (g) | OSRS Price Data
-description: "Blue skirt (g) is a F2P legs slot item. High alch: 1 GP, GE limit: 4."
+description: "Blue skirt (g): Leg covering favoured by women and wizards. With a colourful trim! High alch: 1 GP, GE limit: 4."
 osrs:
   id: 7386
   name: Blue skirt (g)
@@ -12,26 +12,92 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    > *"Leg covering favoured by women and wizards. With a colourful trim!"*
+
+    The blue skirt (g) is the gold-trimmed cosmetic variant of the standard blue skirt, granted exclusively from easy Treasure Trails reward caskets. It is a free-to-play wearable with no stats, no requirements, and no in-game function beyond fashion. Players hunt it as part of the matching blue (g) wizard set, which pairs the skirt with the blue wizard robe (g) and blue wizard hat (g). Because it carries the gold trim, it is locked out of the black dye recipe used on the untrimmed blue skirt during Shadow of the Storm, preserving its appearance as a permanent collector piece.
   equipment:
     slot: legs
+    attack_speed: null
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    casket: Reward casket (easy)
+    rarity: 1/1,404
+    members: false
+    notes: "Drops from the standard reward pool of easy reward caskets; one of the free-to-play accessible easy clue cosmetics."
+  history:
+    - date: "2006-02-20"
+      update: Treasure Trails rework
+      description: "Released as part of the trimmed and gold-trimmed cosmetic clue scroll reward expansion."
   related_items:
     - item_id: 7388
       item_name: Blue skirt (t)
       slug: blue-skirt-t
       relationship: variant
-      description: Trimmed variant
-    - item_id: 7390
+      description: "Black-trimmed cosmetic variant of the same easy clue base."
+    - item_id: 7384
       item_name: Blue wizard robe (g)
       slug: blue-wizard-robe-g
       relationship: set-piece
-      description: Matching gold-trimmed wizard robe
-  about: |-
-    > *"Leg covering favoured by women and wizards. With a colourful trim!"*
-
-    The blue skirt (g) is a gold-trimmed cosmetic variant of the blue wizard skirt. No requirements. F2P item. Pairs with gold-trimmed blue wizard robe and hat.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching gold-trimmed wizard robe body piece."
+    - item_id: 7392
+      item_name: Blue wizard hat (g)
+      slug: blue-wizard-hat-g
+      relationship: set-piece
+      description: "Matching gold-trimmed wizard hat to complete the cosmetic set."
+    - item_id: 1011
+      item_name: Blue skirt
+      slug: blue-skirt
+      relationship: alternative
+      description: "Untrimmed base variant; can be dyed black via Shadow of the Storm, the trimmed version cannot."
+  market_strategy:
+    notes:
+      - "Buy limit of only 4 per 4-hour window keeps daily flippable volume tiny; treat as a long-hold collector piece."
+      - "Demand spikes briefly after F2P trim-set fashionscape videos or major league launches."
+      - "Margins typically swing on rebuy-resell streaks of the matching robe and hat being in stock."
+  trading_tips:
+    - "Buying with the matching robe and hat together usually nets better margins than reselling the skirt alone."
+    - "Stake-game and PK communities rarely use this: prioritise listing it on community fashionscape boards."
+    - "Hold through clue-update news cycles, prices typically pop after rework announcements."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

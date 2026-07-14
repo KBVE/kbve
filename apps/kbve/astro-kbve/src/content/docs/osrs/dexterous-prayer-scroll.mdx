@@ -12,87 +12,61 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 5
-  item:
-    type: prayer_scroll
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: prayer-scroll
+    tier: high
+  properties:
+    release_date: "2017-01-05"
     tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.015
-  unlocks:
-    prayer_name: Rigour
-    prayer_level: 74
-    requirements:
-      prayer: 74
-      defence: 70
-    effect:
-      ranged_attack: +20%
-      ranged_strength: +23%
-      defence: +25%
-    drain_rate: 40 points per minute
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
-      - source: Chambers of Xeric
-        source_id: 7554
-        combat_level: 0
+      - source: Chambers of Xeric (Ancient chest)
         quantity: "1"
-        rarity: ~29%
-        drop_rate: 29/100 from Ancient chest
-        members_only: true
-  market:
-    buy_limit: 5
-    price_estimate: 153000000
+        rarity: "1/100"
+  passive_effects:
+    - name: Unlocks Rigour
+      description: "Reading the scroll permanently unlocks the Rigour prayer at 74 Prayer and 70 Defence, granting +20% Ranged attack, +23% Ranged strength, and +25% Defence while active."
   related_items:
-    - item_id: 21079
-      item_name: Arcane prayer scroll
+    - item_name: Arcane prayer scroll
       slug: arcane-prayer-scroll
       relationship: alternative
-      description: Augury unlock
-    - item_id: 21047
-      item_name: Torn prayer scroll
+      description: Unlocks the Augury prayer for magic users.
+    - item_name: Torn prayer scroll
       slug: torn-prayer-scroll
       relationship: alternative
-      description: Preserve unlock
-    - item_id: 20997
-      item_name: Twisted bow
+      description: Unlocks the Preserve prayer.
+    - item_name: Twisted bow
       slug: twisted-bow
       relationship: alternative
-      description: Benefits from Rigour
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Prayer Scroll |
-    | Tradeable | Yes |
-    | Weight | 0.015 kg |
-
-    Rigour Prayer:
-    - +20% Ranged Attack
-    - +23% Ranged Strength
-    - +25% Defence
-
-    Requirements: 74 Prayer, 70 Defence
-
-    Drain Rate: 40 prayer points per minute
-
-    Essential for all ranged combat:
-    - Raids (CoX, ToB, ToA)
-    - Inferno
-    - Slayer
-    - All ranged bossing
-
-    Most important ranged upgrade in the game.
-
-    Rigour provides the largest DPS increase for ranged combat available from any single unlock, making it a priority purchase for any player focusing on ranged content.
-
-    | Prayer | Attack Boost | Damage Boost |
-    |--------|--------------|--------------|
-    | Eagle Eye | +15% | +15% |
-    | Rigour | +20% | +23% |
+      description: Premier ranged weapon that benefits heavily from Rigour.
+  about: "The dexterous prayer scroll is a one-time-use unlock dropped from the Chambers of Xeric Ancient chest at roughly 1/100. Reading it permanently unlocks Rigour, a 74 Prayer / 70 Defence prayer giving +20% Ranged attack, +23% Ranged strength, and +25% Defence, drains at 40 points per minute, and is the strongest single ranged upgrade in the game for raids, Inferno, slayer, and general ranged bossing."
   market_strategy:
     notes:
-      - One-time unlock (consumed on use)
-      - Priority upgrade for ranged users
-      - More expensive than Augury
-      - Best obtained through CoX grinding
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Single-use unlock consumed on read, generating constant supply sink"
+      - "Permanent BiS ranged prayer unlock; demand floors the price"
+      - "Best obtained directly from Chambers of Xeric grinding"
+  trading_tips:
+    - "Buy from active CoX teams selling drops to skip the 5-item limit cooldowns"
+    - "Watch ranged meta updates - rigour demand spikes around new raid releases"
+  history:
+    - date: "2017-01-05"
+      description: "Released with the Chambers of Xeric raid."
+    - date: "2017-01-19"
+      description: "Drop rate adjusted following raid loot balance pass."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

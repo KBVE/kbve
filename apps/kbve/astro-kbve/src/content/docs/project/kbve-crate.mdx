@@ -1,7 +1,7 @@
 ---
-title: KBVE Crate
-description: |
-    KBVE core crate.
+title: kbve — Axum + Diesel Backend Boilerplate Crate
+description: KBVE core Rust crate — an Axum and Diesel boilerplate for building backend APIs and micro-services, with auth, Supabase, and gate features.
+sem: 1
 sidebar:
     label: KBVE Crate
     order: 73
@@ -17,8 +17,81 @@ version_toml: packages/rust/kbve/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the kbve crate?
+          answer: It is the KBVE core Rust crate — an Axum and Diesel boilerplate that provides shared building blocks for producing backend APIs and micro-services across the KBVE ecosystem.
+        - question: What features does the kbve crate expose?
+          answer: Cargo feature flags gate optional capabilities including supabase, kv (Valkey-backed), image-gen, wallet, gate-auth, and gate (an auth-proxy WebSocket surface), plus a legacy-sync-db path for the older Diesel synchronous modules.
+        - question: What is the kbve gate feature for?
+          answer: The gate and gate-auth features provide an authentication-proxy surface built on Axum WebSockets and reqwest streaming, used as the kbve-gate sidecar that fronts services such as n8n, Grafana, and Studio.
+bento:
+    badge: crates · rust
+    title: Axum + Diesel boilerplate
+    accent: kbve
+    lede: >-
+        The KBVE core Rust crate — an Axum and Diesel boilerplate for building
+        backend APIs and micro-services, with auth, Supabase, and gate features.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/kbve
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: settings
+        title: Link only what you need
+        body: >-
+            Bundles authentication, markdown, wallet, referral, and gate modules
+            behind Cargo feature flags so each service links only what it needs.
+        points:
+            - <strong>gate / gate-auth</strong> — the kbve-gate auth-proxy sidecar.
+            - <strong>supabase / kv</strong> — Supabase plus a Valkey-backed KV layer.
+    stats:
+        - { label: Package, value: kbve, icon: package }
+        - { label: Edition, value: "2021", icon: rust }
+        - { label: Version, value: "0.1.26", icon: branch }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Axum + Diesel base
+          icon: server
+          body: HTTP routing plus async Diesel (diesel-async, bb8 pool) for backend micro-services.
+        - title: Authentication
+          icon: lock
+          body: Argon2 password hashing and JWT (jsonwebtoken) handling.
+        - title: supabase / kv
+          icon: database
+          body: Supabase integration and a Valkey-backed key-value layer via jedi.
+        - title: gate / gate-auth
+          icon: shield
+          body: An auth-proxy WebSocket surface (the kbve-gate sidecar) fronting services like n8n, Grafana, and Studio.
+        - title: image-gen, wallet, referral, markdown, lot
+          icon: box
+          body: Additional optional modules for the KBVE platform.
+        - title: legacy-sync-db
+          icon: clock
+          body: The older synchronous Diesel modules (guild, models, runes, schema, spellbook).
+    related:
+        - title: KBVE Gate
+          href: /project/kbve-gate/
+          copy: The auth-proxy sidecar built on this crate's gate feature.
+          icon: shield
+        - title: Q Crate
+          href: /project/q-crate/
+          copy: Another core Rust crate powering KBVE games.
+          icon: rust
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-KBVE core Rust crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

@@ -12,9 +12,72 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Enchant sapphire or opal is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: tablet
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 7
+      xp: 13.2
+      materials:
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Oak lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Enchant emerald or jade
+      slug: enchant-emerald-or-jade
+      relationship: variant
+      description: Tablet for Lvl-2 enchant
+    - item_name: Enchant ruby or topaz
+      slug: enchant-ruby-or-topaz
+      relationship: variant
+      description: Tablet for Lvl-3 enchant
+    - item_name: Enchant diamond
+      slug: enchant-diamond
+      relationship: variant
+      description: Tablet for Lvl-4 enchant
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Required to make the tablet
+  about: "Enchant sapphire or opal is a Magic tablet that casts Lvl-1 Enchant on the user's behalf. Made at Magic 7 on an Oak lectern using 1 cosmic rune, 1 water rune, and soft clay for 13.2 XP."
+  market_strategy:
+    notes:
+      - "Player-made supply from Construction houses"
+      - "Low value; mostly POH convenience trade"
+      - "Buy limit of 10,000 supports bulk transactions"
+  trading_tips:
+    - Bulk craft if soft clay and water runes are cheap
+    - Sell to ironmen alternatives via shop turnover
+  history:
+    - date: "2006-05-31"
+      description: "Item released with Construction lecterns."
+    - date: "2017-02-16"
+      description: "Tablet renamed from \"Enchant sapphire\" to \"Enchant sapphire or opal\" after opal was added."
+    - date: "2018-03-01"
+      description: "\"Break\" option removed and \"Info\" option added."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

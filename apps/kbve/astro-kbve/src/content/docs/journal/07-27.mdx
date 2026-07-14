@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1689071594546-7cbe97a3442e?crop=entropy&c
 description: July 27th. Virtual Joystick.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 27,'
+    accent: every year.
+    lede: 'The July 27th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 26'
+          href: /journal/07-26/
+        - label: 'Jul 28 →'
+          href: /journal/07-28/
+    related:
+        - title: 'Previous · Jul 26'
+          copy: 'Step back a day to the July 26th log.'
+          href: /journal/07-26/
+          icon: calendar
+        - title: 'Next · Jul 28'
+          copy: 'Jump ahead to the July 28th log.'
+          href: /journal/07-28/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1689071594546-7cbe97a3442e?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### AirShip Music
 
@@ -44,8 +86,15 @@ import { Adsense } from '@/components/astropad';
     At least now I know in the future projects, to keep folders for specific scenes and just build around the scenes.
     It was mainly my fault because I was not being to exact with my commands and the backups started to cause some issues, this time around I will try to loop around to avoid ghost files.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Virtual Joystick**
 
@@ -99,21 +148,32 @@ I am still thinking through how I would handle the quests.
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 2:30pm - Going through the base scene on the RogueJester aka RentEarth, trying to resolve the bug issue with Vuplex. The bug is being triggered by two points of interest, it seems to be related to a CORS policy, which is the No `Access-Control-Allow-Origin` header, yet instead of it being a yellow caution, it seems be a red warning. The other issue is that the mouse is not being registered by the frame, so the mouse clicks are not passing through. I believe both of these can be resolved within a week or so, hopefully we can get it resolved sooner so we can move forward. 
 - 2:57pm - As I am writing these notes down, I think it would be wise to publish this patch out and then sync the codebase? Hopefully it will not cause any major error, ah shit as I was writing this, I see that there is a merge conflict that is already appearing. Sometimes I do wish working with git would be easier. We need that AI agent to come in and do some general git cherry picking for us.
 - 3:49pm - Okay there are a couple issues that we have to address with how we want to handle the scenes within RJ. I am thinking we would do a couple, maybe around 3-5 scenes within the base scene. As for the mission selection, we will try to display that through the UI/UX.
 - 4:00pm - I suppose the market draw back from the increased rates, maybe we might see more 25bps rate increases throughout the year. 
 - 11:06pm - Going to push the generic blog post patch and rotate over to the patch for tomorrow. On my test list, I need to research a bit more about a couple different topics, including `microwave pyrolysis` and how it can be used to recycle plastics.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > TV and the Internet are good because they keep stupid people from spending too much time out in public.
 > — <cite>Douglas Coupland</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [X] Finish loading the base scene inside of the RJ.
 - [ ] Finish DevOps Library sanitization functions.
+
+</BentoProse>
+
+</BentoDoc>

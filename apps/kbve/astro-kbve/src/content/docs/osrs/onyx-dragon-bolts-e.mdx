@@ -14,60 +14,80 @@ osrs:
   limit: 11000
   equipment:
     slot: ammo
+    weapon_type: crossbow
     attack_bonus:
       stab: 0
       slash: 0
       crush: 0
       magic: 0
       ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      strength: 0
       ranged_strength: 122
+      magic_damage: 0
       prayer: 0
-    requirements: {}
+    requirements:
+      ranged: 1
+  special_attack:
+    description: "Life Leech: deals 20% extra damage and heals the attacker for 25% of the damage dealt. Activation chance 11% PvM / 10% PvP (12.1%/11% with hard Kandarin Diary). Does not work on undead monsters."
   recipes:
     - skill: magic
       level: 87
       xp: 97
-      inputs:
+      materials:
         - item_name: Onyx dragon bolts
           quantity: 10
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Death rune
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 20
+      tools: []
       output_quantity: 10
   related_items:
     - item_id: 9245
       item_name: Onyx bolts (e)
       slug: onyx-bolts-e
-      relationship: downgrade
-      description: Regular crossbow version
-  about: |-
-    > *"Enchanted Dragon crossbow bolts, tipped with onyx."*
-
-    Onyx dragon bolts (e) carry the Life Leech enchantment. On activation, the attack deals 20% extra damage and the attacker is healed for 25% of the total damage dealt. The activation chance is 11% in PvM and 10% in PvP (12.1% and 11% respectively with the hard Kandarin Diary completed). This effect does not work on undead monsters. Life Leech provides both offensive and sustain benefits, making it one of the most powerful bolt enchantments in the game.
-
-    Enchant Crossbow Bolt (Onyx) requires Magic level 87 and grants 97 XP per cast. Each cast enchants 10 bolts at a time.
-
-    | Component | Quantity |
-    |-----------|----------|
-    | Onyx dragon bolts | 10 |
-    | Cosmic rune | 1 |
-    | Death rune | 1 |
-    | Fire rune | 20 |
-
-    | Stat | Dragon (e) | Regular (e) |
-    |------|-----------|-------------|
-    | Ranged Str | +122 | +120 |
-    | Base bolt | Dragon crossbow bolt | Runite bolt |
-
-    Both variants have very similar ranged strength, but the dragon bolt base provides a slight edge.
+      relationship: alternative
+      description: Regular runite crossbow bolt version with the same Life Leech enchantment.
+  about: Onyx dragon bolts (e) carry the Life Leech enchantment and offer +122 ranged strength, making them one of the strongest enchanted bolt options for sustain-heavy PvM.
   market_strategy:
     notes:
-      - Highest tier bolt enchantment (Magic 87)
+      - Highest tier bolt enchantment (Magic 87 required)
       - Most expensive enchanted dragon bolt variant
-      - 20% extra damage + 25% healing on proc
+      - 20% extra damage plus 25% healing on proc
       - Does not work on undead monsters
       - Best for sustain-heavy PvM encounters
-      - Often used alongside dragonstone dragon bolts (e) as a switch
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Often paired with dragonstone dragon bolts (e) as a switch
+  history:
+    - date: "2018-01-04"
+      description: Released as part of the Dragon Slayer II update.
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

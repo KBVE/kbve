@@ -208,6 +208,34 @@ pub struct ZoneInstance {
     pub last_update_from_server: Option<NaiveDateTime>,
     #[sqlx(rename = "lastserveremptydate")]
     pub last_server_empty_date: Option<NaiveDateTime>,
+    // `default` so a `SELECT mi.*` against a DB that hasn't run the gameservername migration
+    // yet deserializes the absent column to `None` instead of erroring `ColumnNotFound` — which
+    // would otherwise break every ZoneInstance query (incl. the allocate/join routing hot path)
+    // if the rows image ships before the dbmate deploy runs.
+    #[sqlx(rename = "gameservername", default)]
+    pub game_server_name: Option<String>,
+    // Drain lifecycle (orthogonal to `status`). `default` so a `SELECT mi.*` against a DB that
+    // hasn't run the drain migration yet deserializes the absent columns to `None` rather than
+    // erroring `ColumnNotFound` (same posture as `gameservername`). `skip_serializing_if` keeps the
+    // UE REST/OpenAPI contract unchanged for un-drained instances (all-None → fields omitted).
+    #[sqlx(rename = "drainstate", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_state: Option<i16>,
+    #[sqlx(rename = "drainurgency", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_urgency: Option<i16>,
+    #[sqlx(rename = "draindropplayers", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_drop_players: Option<bool>,
+    #[sqlx(rename = "drainreason", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_reason: Option<String>,
+    #[sqlx(rename = "drainrequestid", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_request_id: Option<Uuid>,
+    #[sqlx(rename = "draindeadline", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_deadline: Option<NaiveDateTime>,
     #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,
     pub soft_player_cap: i32,
@@ -215,6 +243,34 @@ pub struct ZoneInstance {
     pub map_name: String,
     pub map_mode: i32,
     pub minutes_to_shutdown_after_empty: i32,
+}
+
+/// Slim projection for the reaper's per-cycle candidate scan. `reap_decision` reads only these
+/// `Copy` fields, so a narrowed `SELECT` into this struct (vs `SELECT mi.*` into `ZoneInstance`)
+/// avoids the per-row `String` allocations (`map_name`, `game_server_name`) for up to 500 rows
+/// every 60s. GameServer-name resolution for an actual reap target is a separate query
+/// (`get_gameserver_names`), so the scan itself needs no text columns.
+#[derive(Debug, sqlx::FromRow)]
+pub struct ReapRow {
+    #[sqlx(rename = "mapinstanceid")]
+    pub map_instance_id: i32,
+    #[sqlx(rename = "numberofreportedplayers")]
+    pub number_of_reported_players: i32,
+    #[sqlx(rename = "lastupdatefromserver")]
+    pub last_update_from_server: Option<NaiveDateTime>,
+    #[sqlx(rename = "lastserveremptydate")]
+    pub last_server_empty_date: Option<NaiveDateTime>,
+    #[sqlx(rename = "createdate")]
+    pub create_date: Option<NaiveDateTime>,
+    #[sqlx(rename = "minutestoshutdownafterempty")]
+    pub minutes_to_shutdown_after_empty: i32,
+    // Drain backstop inputs for `reap_decision`. `default` keeps deserialization safe if a row is
+    // ever mapped before the migration; note the reaper's candidate `SELECT` lists these columns
+    // explicitly, so the scan itself is migration-gated (see get_active_reap_candidates).
+    #[sqlx(rename = "drainstate", default)]
+    pub drain_state: Option<i16>,
+    #[sqlx(rename = "draindeadline", default)]
+    pub drain_deadline: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
@@ -240,6 +296,50 @@ pub struct JoinMapResult {
     pub no_port_forwarding: bool,
     pub success: bool,
     pub error_message: String,
+}
+
+/// `join_map_by_char_name`'s candidate row: a full `JoinMapResult` plus the drain columns and player
+/// count that `join_candidate_key` ranks on. The reaper-style "fetch candidates, decide in Rust"
+/// shape keeps the routing policy in a unit-tested pure function instead of in SQL `ORDER BY`.
+#[derive(Debug, sqlx::FromRow)]
+pub struct JoinCandidateRow {
+    pub server_ip: String,
+    pub world_server_ip: String,
+    pub world_server_port: i32,
+    pub port: i32,
+    pub map_instance_id: i32,
+    pub map_name_to_start: String,
+    pub world_server_id: i32,
+    pub map_instance_status: i32,
+    pub need_to_startup_map: bool,
+    pub enable_auto_loopback: bool,
+    pub no_port_forwarding: bool,
+    pub success: bool,
+    pub error_message: String,
+    pub drain_state: Option<i16>,
+    pub drain_urgency: Option<i16>,
+    pub drain_drop_players: Option<bool>,
+    pub player_count: i32,
+}
+
+impl JoinCandidateRow {
+    pub fn into_result(self) -> JoinMapResult {
+        JoinMapResult {
+            server_ip: self.server_ip,
+            world_server_ip: self.world_server_ip,
+            world_server_port: self.world_server_port,
+            port: self.port,
+            map_instance_id: self.map_instance_id,
+            map_name_to_start: self.map_name_to_start,
+            world_server_id: self.world_server_id,
+            map_instance_status: self.map_instance_status,
+            need_to_startup_map: self.need_to_startup_map,
+            enable_auto_loopback: self.enable_auto_loopback,
+            no_port_forwarding: self.no_port_forwarding,
+            success: self.success,
+            error_message: self.error_message,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
@@ -351,6 +451,25 @@ pub struct UserInfo {
 pub struct HealthResponse {
     pub status: &'static str,
     pub service: &'static str,
+    pub version: &'static str,
+    pub uptime_seconds: u64,
+    pub active_sessions: usize,
+    pub active_instances: usize,
+    /// The authoritative served UE build version (`deploy_state.target_version` where
+    /// `rolled=true`, falling back to the in-memory ReportBuild value when the table is dark).
+    /// **This is the launcher's download target.** Explicitly `null` (not omitted) when there is
+    /// no authoritative target — the launcher must surface a maintenance/hold state and NOT
+    /// auto-download an arbitrary build.
+    pub unreal_version: Option<String>,
+    /// A merged-but-not-yet-rolled version (`deploy_state.rolled=false`). Informational.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pending_version: Option<String>,
+    /// `false` = the last rollout soak failed (`deploy_state.health='unhealthy'`). Advisory only —
+    /// never gates `/ready` (a bad game build must not deregister the ROWS API pod).
+    pub deploy_healthy: bool,
+    /// The version whose soak failed, when `deploy_healthy=false`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub failing_version: Option<String>,
 }
 
 #[derive(sqlx::FromRow)]

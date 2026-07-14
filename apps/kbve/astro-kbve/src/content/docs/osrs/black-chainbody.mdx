@@ -1,6 +1,6 @@
 ---
 title: Black chainbody | OSRS Price Data
-description: "Black chainbody: A series of connected metal rings.. High alch: 864 GP, GE limit: 125."
+description: "Black chainbody: A series of connected metal rings. High alch: 864 GP, GE limit: 125."
 osrs:
   id: 1107
   name: Black chainbody
@@ -12,25 +12,70 @@ osrs:
   lowalch: 576
   highalch: 864
   limit: 125
-  item_id: 1107
-  item_type: armor
-  slot: body
-  type: chainbody
-  tradeable: true
-  weight: 6.803
-  requirements:
-    defence: 10
-  stats:
-    stab_defence: 22
-    slash_defence: 32
-    crush_defence: 39
-    magic_defence: -3
-    ranged_defence: 24
+  material:
+    type: metal
+    tier: low
+  equipment:
+    slot: body
+    weight: 6.803
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 22
+      slash: 32
+      crush: 39
+      magic: -3
+      ranged: 24
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   related_items:
-    - slug: mithril-chainbody
-    - slug: black-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Mithril chainbody
+      slug: mithril-chainbody
+      relationship: upgrade
+      description: Higher tier chainbody
+    - item_name: Black platebody
+      slug: black-platebody
+      relationship: alternative
+      description: Better defence platebody alternative
+  about: Black chainbody is an F2P torso armour worn at 10 Defence, dropped by various Black Knight and bandit NPCs.
+  market_strategy:
+    notes:
+      - F2P low-tier armour with limited PvP use
+      - Alch value sits above GE price
+  trading_tips:
+    - Alch surplus when GE undercut
+  history:
+    - date: "2001-02-13"
+      description: Released as a F2P equipment tier.
+    - date: "2021-04-21"
+      description: Adjusted as part of Equipment Rebalance review.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-02-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 6.803
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

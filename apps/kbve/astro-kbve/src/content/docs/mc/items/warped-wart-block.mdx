@@ -1,5 +1,6 @@
 ---
 title: Warped Wart Block
+template: splash
 description: |
     Minecraft Warped Wart Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 548
     ref: warped_wart_block
     slug: warped-wart-block
+    content_rev: 1
     display_name: Warped Wart Block
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Warped Wart Block is a teal, wart-textured decorative block that forms the caps
+            of huge warped fungi in warped forests. Huge fungi grow when bone meal is applied to
+            a warped fungus planted on warped nylium, with roughly a 40% chance of success. It is
+            purely cosmetic, has low hardness, and composts easily with an 85% chance per use.
+        lore: |
+            The bioluminescent-looking fungi of the warped forest tower overhead, their
+            wart-covered caps a strange contrast to the crimson horrors elsewhere in the Nether.
+    faq:
+        - question: How do I get Warped Wart Blocks?
+          answer: |
+              Plant a warped fungus on warped nylium and apply bone meal; there is about a 40%
+              chance it grows into a huge warped fungus whose cap is made of these blocks.
+        - question: What tool breaks it fastest?
+          answer: |
+              A hoe is the quickest tool, breaking it in well under a second, though any tool or
+              even bare hands will eventually break it since its hardness is only 1.
+        - question: Does it emit light or catch fire?
+          answer: |
+              No to both. It is a non-luminous block and, like other nether wood-adjacent blocks,
+              cannot be set on fire by lava or nearby flames.
+        - question: Is it useful for anything besides decoration?
+          answer: |
+              Mainly aesthetics, though it can be placed in a composter for an 85% chance to
+              advance the compost level, making it a minor renewable bone meal source.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

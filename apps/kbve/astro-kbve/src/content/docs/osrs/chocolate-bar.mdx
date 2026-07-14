@@ -1,6 +1,6 @@
 ---
 title: Chocolate bar | OSRS Price Data
-description: "Chocolate bar: Mmmmmmm chocolate.. High alch: 6 GP, GE limit: 13,000."
+description: "Chocolate bar is a free-to-play cooking and herblore secondary used for chocolate dust, cakes and bombs. High alch: 6 GP, GE limit: 13,000."
 osrs:
   id: 1973
   name: Chocolate bar
@@ -12,38 +12,80 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
-  item:
-    type: material
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "11 June 2001"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.15
+    options:
+      - "Eat"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Ardougne Baker's Stall (east)
+      location: East Ardougne
+      price: 10
+      currency: coins
+      stock: 9
+    - shop_name: Ardougne Baker's Stall (west)
+      location: East Ardougne
+      price: 10
+      currency: coins
+      stock: 7
+    - shop_name: Food Store
+      location: Port Sarim
+      price: 10
+      currency: coins
+      stock: 1
+    - shop_name: Grand Tree Groceries
+      location: Grand Tree
+      price: 10
+      currency: coins
+      stock: 20
   related_items:
-    - item_id: 1975
-      item_name: Chocolate dust
+    - item_name: Chocolate dust
       slug: chocolate-dust
       relationship: product
-      description: Processed form
-    - item_id: 3010
-      item_name: Energy potion
+      description: Ground form used as herblore secondary
+    - item_name: Chocolate cake
+      slug: chocolate-cake
+      relationship: product
+      description: Cooking product combining cake and chocolate bar
+    - item_name: Energy potion
       slug: energy-potion
       relationship: alternative
-      description: Primary use
-    - item_id: 1897
-      item_name: Chocolate cake
-      slug: chocolate-cake
-      relationship: alternative
-      description: Cooking use
+      description: Herblore product using chocolate dust
+    - item_name: Chocolate bomb
+      slug: chocolate-bomb
+      relationship: product
+      description: Gnome cooking product using 4 chocolate bars
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Herblore Secondary / Food |
-    | Tradeable | Yes |
-    | Weight | 0.15 kg |
+    > _"Mmmmmmm chocolate."_
 
-    Herblore: Grind into chocolate dust for energy potions.
-
-    Cooking: Used in various chocolate-based recipes.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Chocolate bar is a free-to-play raw ingredient used by Herblore (grind into chocolate dust for energy potions) and Cooking (chocolate cake, chocolate bomb, chocchip crunchies). Grinding bars with a knife now auto-chains to dust as of July 2018.
+  market_strategy:
+    notes:
+      - "Shops restock at 10 gp making low-tier flipping profitable in bulk."
+      - "Spikes during DMM/league events when energy potion supply tightens."
+  trading_tips:
+    - "Buy out Grand Tree Groceries (stock 20) for the cheapest bulk pickup."
+    - "Convert to chocolate dust when herblore demand outpaces the cooking spread."
+  history:
+    - date: "11 June 2001"
+      description: "Released with the New fishing skill and more cooking update."
+    - date: "19 July 2018"
+      description: "Cutting chocolate bars with a knife now auto-grinds them into chocolate dust."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

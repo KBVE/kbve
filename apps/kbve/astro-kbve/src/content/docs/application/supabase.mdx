@@ -1,6 +1,12 @@
 ---
 title: Supabase
 description: A deep dive into Supabase, an open-source Firebase alternative powered by PostgreSQL.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
   label: Supabase
   order: 410
@@ -12,21 +18,88 @@ tags:
   - backend
 unsplash: 1605902711622-cfb43c44367c
 img: https://images.unsplash.com/photo-1605902711622-cfb43c44367c?fit=crop&w=1400&h=700&q=75
+bento:
+  badge: 'application · postgres · backend'
+  title: 'The open-source backend,'
+  accent: Supabase.
+  lede: >-
+    An open-source Firebase alternative powered by PostgreSQL — auth, storage,
+    edge functions, and an encrypted vault on top of a real database. This
+    deep dive builds locked-down private schemas, service-role RPC proxies,
+    and vault-backed secrets the KBVE way.
+  ctas:
+    - label: User schema
+      href: '#user'
+      primary: true
+    - label: Admin schema
+      href: '#admin'
+    - label: Utility functions
+      href: '#utility'
+  aside:
+    icon: database
+    title: Private by default
+    body: >-
+      Every table here denies all access by default — only the service_role
+      touches data directly, and authenticated users go through public proxy
+      functions that validate every input.
+    points:
+      - <strong>Vault</strong> — secrets encrypted at rest, fetched by key path.
+      - <strong>RPC proxies</strong> — public functions wrap internal security-definer logic.
+      - <strong>RLS</strong> — row level security locked to deny-all policies.
+  stats:
+    - { label: Engine, value: PostgreSQL, icon: database }
+    - { label: Edge runtime, value: Deno, icon: bolt }
+    - { label: Secrets, value: Vault, icon: lock }
+    - { label: Direct access, value: service_role, icon: key }
+  features:
+    - title: User schema
+      icon: lock
+      href: '#user'
+      body: Vault-backed user secrets, OSRS account tables, a register edge function, and the hybrid stackable/instance inventory.
+    - title: Admin schema
+      icon: gears
+      href: '#admin'
+      body: A service-role-only admin schema with refresh flags for caching heavy reads behind materialized views.
+    - title: Utility functions
+      icon: code
+      href: '#utility'
+      body: ULID generation in plpgsql and a Discord webhook notification edge function.
+    - title: Proxy pattern
+      icon: shield
+      body: Internal security-definer functions stay private — public wrappers check auth.uid() and sanitize keys before delegating.
+  related:
+    - title: SQL
+      href: /application/sql/
+      copy: The query language underneath every Supabase RPC.
+      icon: database
+    - title: PocketBase
+      href: /application/pocketbase/
+      copy: A lighter single-binary backend alternative.
+      icon: package
+    - title: Redis
+      href: /application/redis/
+      copy: In-memory caching to pair with heavy Postgres reads.
+      icon: bolt
+  theme:
+    hero_bg: https://images.unsplash.com/photo-1605902711622-cfb43c44367c?q=80&w=2400&auto=format&fit=crop
+    accent: '#34d399'
+    accent2: '#22d3ee'
+    btn_fg: '#06251b'
+  features_eyebrow: On this page
+  features_heading: What this guide covers
+  related_eyebrow: Keep exploring
+  related_heading: Related applications
 ---
 
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## User
+<BentoProse id="user" eyebrow="Vault & accounts" heading="User">
 
 ### User Vault - Secrets
 
@@ -1435,7 +1508,9 @@ grant select, insert, update, delete on private.inventory_instances to service_r
 grant usage, select on all sequences in schema private to service_role;
 ```
 
-## Admin
+</BentoProse>
+
+<BentoProse id="admin" eyebrow="Service-role only" heading="Admin">
 
 ### Admin Schema
 
@@ -1573,8 +1648,15 @@ grant execute on function public.refresh_view(text) to service_role;
 
 ```
 
-## Utility
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="utility" eyebrow="Helper functions" heading="Utility">
 
 ### Generate ULID Functions
 
@@ -1594,8 +1676,6 @@ end;
 $$;
 
 ```
-
-<Adsense />
 
 ### Function Discord Hook Notification
 
@@ -1691,3 +1771,7 @@ Deno.serve(async (req) => {
 });
 
 ```
+
+</BentoProse>
+
+</BentoDoc>

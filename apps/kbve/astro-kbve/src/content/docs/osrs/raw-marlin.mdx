@@ -12,9 +12,80 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 15000
-  about: "Raw marlin is a members-only item in Old School RuneScape. High alchemy value: 102 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: raw_fish
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.7
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Marlin shoal (deep sea trawling)
+        quantity: "1"
+        rarity: Common
+      - source: Glistening shoal
+        quantity: "1"
+        rarity: 5/100
+      - source: Vibrant shoal
+        quantity: "1"
+        rarity: 50/100
+  recipes:
+    - skill: cooking
+      level: 91
+      xp: 225
+      materials:
+        - item_name: Raw marlin
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  related_items:
+    - item_name: Marlin
+      slug: marlin
+      relationship: product
+      description: "Cooked output at 91 Cooking"
+    - item_name: Burnt marlin
+      slug: burnt-marlin
+      relationship: alternative
+      description: "Failed cooking result"
+    - item_name: Fine fish offcuts
+      slug: fine-fish-offcuts
+      relationship: product
+      description: "Obtained by cutting raw marlin with a knife"
+    - item_name: Marlin scales
+      slug: marlin-scales
+      relationship: product
+      description: "Herblore secondary, up to 3 from cutting"
+  about: |-
+    Raw marlin is caught at 91 Fishing from marlin shoals via deep sea trawling (265.5 xp) or a fishing rod (53.1 xp). Cooks into marlin at 91 Cooking for 225 xp on a range. Knife-cut into fine fish offcuts and marlin scales for Herblore.
+  market_strategy:
+    notes:
+      - "High-level food gated behind 91 Fishing + 91 Cooking"
+      - "Marlin scale demand from Herblore underpins raw price"
+      - "Shoal RNG keeps supply tight versus other 90+ fish"
+      - "Deep sea trawling alts dominate consistent supply"
+  trading_tips:
+    - "Buy raw to flip into cooked marlin when scale demand spikes"
+    - "Check fish crate (marlin) prices - bulk buyers move them"
+    - "GE limit 15,000 supports decent volume flips"
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the marlin shoal Fishing content"
+    - date: "2026-05-13"
+      description: "Inventory icon graphically updated for vibrancy"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,0 +1,209 @@
+---
+import BentoShell from './BentoShell.astro';
+import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+
+interface Props {
+	label?: string;
+}
+
+const { label = 'Sponsored' } = Astro.props;
+
+const actions = [
+	{
+		label: 'Support',
+		href: '/support/',
+		icon: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01',
+	},
+	{
+		label: 'Feedback',
+		href: 'https://github.com/KBVE/kbve/issues',
+		icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+	},
+	{
+		label: 'Donate',
+		href: '/donate/',
+		icon: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z',
+	},
+	{
+		label: 'Features',
+		href: '/feature/',
+		icon: 'M13 2 3 14h9l-1 8 10-12h-9l1-8z',
+	},
+];
+---
+
+<BentoShell>
+	<div class="bento-sponsor">
+		<div class="bento-sponsor__cell bento-sponsor__cell--ad">
+			<div class="bento-sponsor__bar">
+				<span class="bento-sponsor__eyebrow">{label}</span>
+				<nav
+					class="bento-sponsor__actions"
+					aria-label="Sponsor actions">
+					{
+						actions.map((action) => (
+							<a
+								class="bento-sponsor__action"
+								href={action.href}
+								title={action.label}
+								aria-label={action.label}>
+								<svg
+									viewBox="0 0 24 24"
+									width="15"
+									height="15"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true">
+									<path d={action.icon} />
+								</svg>
+							</a>
+						))
+					}
+				</nav>
+			</div>
+			<DeferredAdsense {label} />
+		</div>
+		<a class="bento-sponsor__cell bento-sponsor__cell--cta" href="/donate/">
+			<div class="bento-sponsor__glow" aria-hidden="true"></div>
+			<h3 class="bento-sponsor__title">Support KBVE</h3>
+			<p class="bento-sponsor__body">
+				Donations fund the game servers, CI runners, and cluster that
+				keep every project online.
+			</p>
+			<span class="bento-sponsor__link">Become a sponsor →</span>
+		</a>
+	</div>
+</BentoShell>
+
+<style>
+	.bento-sponsor {
+		display: grid;
+		grid-template-columns: repeat(1, minmax(0, 1fr));
+		gap: 1px;
+		background-color: var(--bento-hairline);
+	}
+
+	.bento-sponsor__cell {
+		position: relative;
+		overflow: hidden;
+		padding: 1.5rem;
+		background-color: var(--bento-cell-bg);
+		text-decoration: none;
+	}
+
+	.bento-sponsor__cell--ad {
+		padding: 1rem 1rem 1.25rem;
+	}
+
+	.bento-sponsor__bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 0.625rem;
+	}
+
+	.bento-sponsor__actions {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+	}
+
+	.bento-sponsor__action {
+		display: inline-flex;
+		color: var(--sl-color-gray-3);
+		transition:
+			color 160ms ease,
+			transform 160ms ease;
+	}
+
+	.bento-sponsor__action:hover,
+	.bento-sponsor__action:focus-visible {
+		color: var(--sl-color-accent-high);
+		transform: translateY(-1px);
+		outline: none;
+	}
+
+	.bento-sponsor__eyebrow {
+		display: block;
+		font-size: 0.625rem;
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-2);
+		opacity: 0.9;
+	}
+
+	.bento-sponsor__cell--ad :global(aside) {
+		margin: 0 !important;
+		padding: 0 !important;
+		border: none !important;
+		border-radius: 0 !important;
+		background: transparent !important;
+		max-width: none !important;
+	}
+
+	.bento-sponsor__cell--ad :global(aside > span) {
+		display: none !important;
+	}
+
+	.bento-sponsor__cell--cta {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		justify-content: center;
+		text-align: center;
+		padding-block: 2rem;
+	}
+
+	.bento-sponsor__glow {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		background: radial-gradient(
+			circle at top left,
+			var(--sl-color-accent-low) 0%,
+			transparent 55%
+		);
+		transition: opacity 300ms ease;
+		pointer-events: none;
+	}
+
+	a.bento-sponsor__cell:hover .bento-sponsor__glow,
+	a.bento-sponsor__cell:focus-visible .bento-sponsor__glow {
+		opacity: 0.5;
+	}
+
+	a.bento-sponsor__cell:focus-visible {
+		outline: none;
+		box-shadow: inset 0 0 0 2px var(--sl-color-accent-low);
+	}
+
+	.bento-sponsor__title {
+		position: relative;
+		font-size: 0.9375rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+
+	.bento-sponsor__body {
+		position: relative;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-3);
+		max-width: 24rem;
+	}
+
+	.bento-sponsor__link {
+		position: relative;
+		margin-top: 0.25rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-accent-high);
+	}
+</style>

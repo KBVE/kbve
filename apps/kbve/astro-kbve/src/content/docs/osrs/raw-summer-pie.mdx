@@ -1,6 +1,6 @@
 ---
 title: Raw summer pie | OSRS Price Data
-description: "Raw summer pie: Fresh fruit may be good for you, but I should really cook this.. High alch: 42 GP, GE limit: 13,000."
+description: "Raw summer pie is a members raw food requiring 95 Cooking to bake into a summer pie. High alch: 42 GP, GE limit: 13,000."
 osrs:
   id: 7216
   name: Raw summer pie
@@ -12,9 +12,61 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 13000
-  about: "Raw summer pie is a members-only item in Old School RuneScape. High alchemy value: 42 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: raw food
+    tier: high
+  food:
+    description: Raw pie; cook at 95 Cooking for 260 XP into a summer pie or burnt pie on fail.
+  recipes:
+    - materials:
+        - item_name: Part summer pie
+          quantity: 1
+        - item_name: Cooking apple
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Summer pie
+      slug: summer-pie
+      relationship: product
+      description: Cooked version restoring stats
+    - item_name: Pie dish
+      slug: pie-dish
+      relationship: component
+      description: Base container for the pie
+    - item_name: Pastry dough
+      slug: pastry-dough
+      relationship: component
+      description: Required filling for the pie
+  about: Raw summer pie is the uncooked form of the summer pie, assembled from pie dish, pastry dough, strawberry, watermelon, and a cooking apple before baking at 95 Cooking.
+  market_strategy:
+    notes:
+      - Frequently used for high-level Cooking training
+      - Bake Pie lunar spell trains both Magic and Cooking
+      - Cooking cape removes burn chance
+  trading_tips:
+    - Compare buying raw pies vs. assembling ingredients
+  history:
+    - date: "2006-02-20"
+      description: Released in the Updates, updates and more updates update.
+    - date: "2015-03-12"
+      description: Uncooked pies became tradeable on the Grand Exchange.
+  properties:
+    release_date: "2006-02-20"
+    update: Updates, updates and more updates...
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

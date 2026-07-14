@@ -12,9 +12,59 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak clock (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: construction-supply
+    tier: mid
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 55
+      xp: 202
+      materials:
+        - item_name: Teak plank
+          quantity: 2
+        - item_name: Clockwork
+          quantity: 1
+      tools: ["Hammer", "Saw", "Steel-framed bench"]
+      output_quantity: 1
+  related_items:
+    - item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: "Plank input for the flatpack"
+    - item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: "Crafted mechanism required to assemble the clock"
+  about: |-
+    > *"How does it all fit in there?"*
+
+    Construction flatpack assembled at a steel-framed workbench from 2 teak planks plus 1 clockwork at 55 Construction, yielding 202 XP per build. Once built, the flatpack can be placed in a player-owned house bedroom corner space as a decorative clock. Production typically operates at a small loss after GE tax, so the item is primarily a Construction XP vehicle.
+  market_strategy:
+    notes:
+      - "Buy limit 500 caps daily flip volume"
+      - "Clockwork cost is the primary margin lever"
+      - "Demand driven by Construction trainers and POH decorators"
+  trading_tips:
+    - "Cross-check clockwork + 2 teak plank cost against flatpack price before bulk smithing"
+    - "Volume picks up during double XP events as XP-per-tick options get scouted"
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Player-owned houses update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

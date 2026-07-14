@@ -1,5 +1,6 @@
 ---
 title: Deepslate Redstone Ore
+template: splash
 description: |
     Minecraft Deepslate Redstone Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 73
     ref: deepslate_redstone_ore
     slug: deepslate-redstone-ore
+    content_rev: 1
     display_name: Deepslate Redstone Ore
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Deepslate Redstone Ore is the deepslate variant of redstone ore, generating in the
+            deeper layers of the Overworld. It requires an iron pickaxe or better to mine and
+            drops 4-5 redstone dust, the core component of redstone circuitry. Like its stone
+            counterpart, it briefly lights up and emits particles when disturbed.
+        lore: |
+            Ancient miners discovered that this peculiar ore, when disturbed, would glow with
+            an inner crimson light, a sign of the energy waiting to be harnessed within.
+    faq:
+        - question: What tool do I need to mine deepslate redstone ore?
+          answer: |
+              An iron pickaxe or better is required; lower-tier pickaxes will not break the
+              block.
+        - question: Why does deepslate redstone ore glow when I touch it?
+          answer: |
+              Interacting with the block puts it into a lit state, emitting light level 9 and
+              red particles until a random tick resets it.
+        - question: Where does deepslate redstone ore generate?
+          answer: |
+              It generates in place of regular redstone ore below Y=0, most commonly in the
+              deeper batch between Y=-63 and Y=-32.
+        - question: Does Fortune increase redstone dust drops?
+          answer: |
+              Yes, Fortune III increases the yield to 4-8 redstone dust compared to the base
+              4-5 drop.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

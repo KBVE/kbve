@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/meme.binpb
  * Config: ../meme-zod-config.json
- * Generated: 2026-06-01T06:12:05.363Z
+ * Generated: 2026-06-22T21:31:58.950Z
  */
 
 import { z } from 'zod';

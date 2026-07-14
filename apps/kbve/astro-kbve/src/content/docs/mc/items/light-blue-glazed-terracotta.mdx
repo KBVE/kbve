@@ -1,5 +1,6 @@
 ---
 title: Light Blue Glazed Terracotta
+template: splash
 description: |
     Minecraft Light Blue Glazed Terracotta — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 572
     ref: light_blue_glazed_terracotta
     slug: light-blue-glazed-terracotta
+    content_rev: 1
     display_name: Light Blue Glazed Terracotta
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Light Blue Glazed Terracotta is a decorative block made by smelting light blue stained
+            terracotta in a furnace. Each block carries a distinctive directional pattern that lines up
+            with neighboring blocks when arranged in a 2x2 grid, making it popular for pixel-art and
+            tiled floor designs. Unlike most blocks it cannot be pulled by sticky pistons, though a
+            regular piston can still push it.
+        lore: |
+            Designer Jens Bergensten based the glazed terracotta patterns on Moroccan-style tiles he
+            saw on a bathroom floor in a California hotel.
+    faq:
+        - question: How do you make Light Blue Glazed Terracotta?
+          answer: |
+              Smelt light blue stained terracotta with any fuel source in a furnace.
+        - question: Why does the pattern change when I place it?
+          answer: |
+              The texture rotates based on the direction the player is facing at the time of placement,
+              which lets builders align patterns across multiple blocks.
+        - question: Can pistons move Light Blue Glazed Terracotta?
+          answer: |
+              A normal piston can push it, but sticky pistons cannot pull it back since it does not
+              stick to slime or honey blocks.
+        - question: Where can it be found naturally?
+          answer: |
+              It generates in ocean ruins, villages, trail ruins, and trial chambers, and can also be
+              bought from expert-level mason villagers.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

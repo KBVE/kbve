@@ -12,9 +12,64 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 8
-  about: "Iron trimmed set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Iron
+    tier: low
+  recipes:
+    - materials:
+        - item_name: Iron full helm (t)
+          quantity: 1
+        - item_name: Iron platebody (t)
+          quantity: 1
+        - item_name: Iron platelegs (t)
+          quantity: 1
+        - item_name: Iron kiteshield (t)
+          quantity: 1
+      tools:
+        - Grand Exchange clerk
+      output_quantity: 1
+  related_items:
+    - name: Iron full helm (t)
+      relationship: component
+    - name: Iron platebody (t)
+      relationship: component
+    - name: Iron platelegs (t)
+      relationship: component
+    - name: Iron kiteshield (t)
+      relationship: component
+    - name: Iron gold-trimmed set (lg)
+      relationship: alternative
+    - name: Iron armour set (lg)
+      relationship: alternative
+  about: "Iron trimmed set (lg) is a Grand Exchange-exchangeable bundle of the four trimmed iron legs-variant pieces, used to save bank space."
+  market_strategy:
+    notes:
+      - "Set arbitrage: compare set GE price vs sum of individual trimmed pieces."
+      - "Limit 8 per 4 hours caps flip throughput."
+      - "High alch 540 gp negligible vs typical set price — never alch."
+  trading_tips:
+    - "Use the GE Sets tab to assemble/disassemble and capture spreads."
+    - "Trimmed iron is rare cosmetic — supply is driven by hard clue casket drops of the parts."
+  history:
+    - date: "2015-02-26"
+      description: "Released with The Grand Exchange update as part of the Item Sets interface."
+  properties:
+    release_date: "2015-02-26"
+    update: "The Grand Exchange"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

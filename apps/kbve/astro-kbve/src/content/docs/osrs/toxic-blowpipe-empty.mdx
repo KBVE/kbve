@@ -12,102 +12,95 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: tanzanite fang
+    tier: high
+  properties:
+    release_date: "2015-01-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wield
+      - Drop
+    alchable: true
   equipment:
     slot: 2h
-    type: blowpipe
-    attack_style: ranged
+    weapon_type: thrown
     attack_speed: 3
-    attack_range: 5
+    weight: 0.3
     requirements:
       ranged: 75
-    stats:
-      attack_ranged: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 30
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 20
-    degradeable: true
-  effect:
-    venom_chance: 25
-    venom_with_serp: 100
-  charging:
-    material_id: 12934
-    material_name: Zulrah's scales
-    max_scales: 16383
-    requires_darts: true
-  special_attack:
-    name: Toxic Siphon
-    energy: 50
-    effect: Heals 50% of damage dealt
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: fletching
       level: 78
       xp: 120
       materials:
         - item_name: Tanzanite fang
-          item_id: 12922
           quantity: 1
-      product: Toxic blowpipe (empty)
-      product_id: 12924
-      product_quantity: 1
-      facility: Chisel
-      members_only: true
+      tools:
+        - Chisel
+      output_quantity: 1
+  charges:
+    type: Zulrah's scales and darts
+    description: "Holds up to 16,383 Zulrah's scales and 16,383 unpoisoned darts; consumes roughly two scales every three shots."
+  special_attack:
+    name: Toxic Siphon
+    description: "Boosts accuracy by 100 percent and damage by 50 percent, healing the user for half of damage dealt."
+    energy: 50
   related_items:
-    - item_id: 12934
-      item_name: Zulrah's scales
-      slug: zulrahs-scales
-      relationship: component
-      description: Charging material
-    - item_id: 12922
-      item_name: Tanzanite fang
+    - item_name: Tanzanite fang
       slug: tanzanite-fang
       relationship: component
-      description: Creation material
-    - item_id: 11230
-      item_name: Dragon dart
+      description: Used with a chisel to fletch the empty blowpipe
+    - item_name: Zulrah's scales
+      slug: zulrahs-scales
+      relationship: component
+      description: Charging material consumed per shot
+    - item_name: Dragon dart
       slug: dragon-dart
       relationship: component
-      description: Best ammo
-    - item_id: 12931
-      item_name: Serpentine helm
+      description: Highest tier ammo used with the blowpipe
+    - item_name: Serpentine helm
       slug: serpentine-helm
       relationship: alternative
-      description: 100% venom
-  about: |-
-    Use chisel on Tanzanite fang (78 Fletching, 120 XP).
-
-    | Stat | Value |
-    |------|-------|
-    | Ranged attack | +30 |
-    | Ranged strength | +20 |
-    | Attack speed | 3 tick (1.8s) PvM / 4 tick PvP |
-    | Range | 5 tiles (7 with Longrange) |
-    | Requirements | 75 Ranged |
-
-    Requires:
-    - Zulrah's scales (max 16,383)
-    - Any unpoisoned darts (max 16,383)
-
-    Scale Usage:
-    - 2/3 chance to consume scale per shot
-    - Average: 2 scales per 3 shots
-
-    - 25% chance to inflict venom per hit
-    - 100% chance with Serpentine helm vs NPCs
-
-    Toxic Siphon (50% energy):
-    - Heals 50% of damage dealt
-    - No accuracy/damage boost
-
-    Best For:
-    - Fast attack speed content
-    - Slayer tasks
-    - Fight Caves/Inferno
-    - General PvM
+      description: Pairs with blowpipe for 100 percent venom on NPCs
+  about: "Toxic blowpipe (empty) is the uncharged form of the iconic 75 Ranged two-handed thrown weapon fletched from a tanzanite fang dropped by Zulrah. Once loaded with scales and darts it becomes one of the highest DPS ranged weapons in the game, with a built-in venom proc and the Toxic Siphon self-healing special attack."
   market_strategy:
     notes:
-      - Factor in scale + dart costs
-      - High DPS but expensive to use
-      - Tanzanite fang from Zulrah
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Tradeable only when empty; supply tracks fresh Zulrah kills minus dismantles"
+      - "GE limit of 8 per 4 hours keeps daily volume thin and price spreads wide"
+      - "Demand is anchored to PvM and Inferno DPS meta, sensitive to ranged buffs and nerfs"
+  trading_tips:
+    - Buy after Zulrah drop rate buffs or community supply spikes from event payouts
+    - List at high-of-day before weekend Inferno or CoX content where blowpipe is core
+    - Avoid undercutting; the limit makes liquidity poor and patient orders fill better
+  history:
+    - date: "2015-01-08"
+      description: "Added to the game with the Zulrah update as a Fletching reward weapon."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,15 +12,22 @@ osrs:
   lowalch: 80400
   highalch: 120600
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: gem
+    tier: onyx
   equipment:
     slot: neck
+    type: jewellery
+    attack_speed: null
     requirements:
       crafting: 90
   recipes:
     - skill: crafting
       level: 90
       xp: 165
-      inputs:
+      materials:
         - item_name: Onyx
           quantity: 1
         - item_name: Gold bar
@@ -56,11 +63,9 @@ osrs:
     - Used in virtually every combat style
   market_strategy:
     notes:
-      - Onyx cost (from TzHaar shops or Zulrah) drives the price
-      - Fury has massive demand — BiS hybrid neck
-      - High-value enchant — check margins
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Onyx cost (from TzHaar shops or Zulrah) drives the price"
+      - "Fury has massive demand: BiS hybrid neck"
+      - "High-value enchant: check margins"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Mind altar teleport (tablet) | OSRS Price Data
-description: "Mind altar teleport (tablet): A teleport to the Mind Altar.. High alch: 1 GP, GE limit: 10,000."
+description: "Mind altar teleport (tablet): A teleport to the Mind Altar. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 19617
   name: Mind altar teleport (tablet)
@@ -12,9 +12,56 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Mind altar teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Mind Altar entrance
+    type: tablet
+  recipes:
+    - skill: magic
+      level: 28
+      xp: 22
+      materials:
+        - item_name: Law rune
+          quantity: 1
+        - item_name: Mind rune
+          quantity: 2
+        - item_name: Dark essence block
+          quantity: 1
+      tools:
+        - Lectern
+      product: Mind altar teleport (tablet)
+      product_quantity: 1
+      facility: Arceuus spellbook
+      members_only: true
+  about: "Mind altar teleport tablet is a one-use teleport made on the Arceuus spellbook that drops the player at the entrance to the Mind Altar between Ice Mountain and Goblin Village."
+  market_strategy:
+    notes:
+      - Made at 28 Magic on the Arceuus spellbook for 22 XP per cast.
+      - Useful for free-to-play and runecrafting routes to the Mind Altar.
+      - GE limit 10,000 per 4 hours.
+  trading_tips:
+    - Compare law/mind/dark essence costs vs tablet GE price for profit.
+    - Stack tablets for bulk laws or runecrafting trips.
+  history:
+    - date: "2016-05-12"
+      description: "Released as part of the teleport tablet expansion."
+    - date: "2017-10-12"
+      description: "Examine text updated from 'A tablet containing a magic spell.' to the current text."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-05-12"
+    update: Teleport tablet expansion
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    alchable: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

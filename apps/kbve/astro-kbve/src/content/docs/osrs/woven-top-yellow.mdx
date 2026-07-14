@@ -1,6 +1,6 @@
 ---
 title: Woven top (yellow) | OSRS Price Data
-description: "Woven top (yellow): Yellow top, too small for me.. High alch: 375 GP, GE limit: 150."
+description: "Woven top (yellow): Yellow top, too small for me. High alch: 375 GP, GE limit: 150."
 osrs:
   id: 5026
   name: Woven top (yellow)
@@ -12,9 +12,67 @@ osrs:
   lowalch: 250
   highalch: 375
   limit: 150
-  about: "Woven top (yellow) is a members-only item in Old School RuneScape. High alchemy value: 375 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Woven top (yellow) is a members-only cosmetic dwarven shirt in Old School RuneScape, sold from Agmundi Quality Clothes in Keldagrim and the Miscellanian Clothes Shop. High alchemy value: 375 coins. Grand Exchange buy limit: 150 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-31"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+    weight: 0.07
+  material:
+    type: cloth
+    tier: standard
+  equipment:
+    slot: body
+    weapon_type: none
+    attack_speed: null
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Agmundi Quality Clothes"
+      location: "Keldagrim"
+      price: 625
+      stock: 5
+      notes: "Primary stockist for dwarven woven clothing."
+    - shop_name: "Miscellanian Clothes Shop"
+      location: "Miscellania"
+      price: 625
+      stock: 5
+      notes: "Secondary supplier on Miscellania island."
+  market_strategy:
+    notes:
+      - "summary: \"Cosmetic dwarven top with no combat use; demand is driven by fashionscape and limited supply through NPC shops.\""
+      - "buy_strategy: \"Stock from NPC shops at base price and flip to GE buyers chasing colour completions.\""
+      - "sell_strategy: \"Move during dwarven-themed events or fashion competitions.\""
+  trading_tips:
+    - "NPC shop arbitrage offers consistent low-risk margin."
+    - "Collectors often pair the woven top with matching skirts for full outfits."
+    - "Buy limit of 150 supports steady but capped flipping volume."
+  history:
+    - date: "2005-05-31"
+      description: "Released alongside the dwarven Keldagrim content expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

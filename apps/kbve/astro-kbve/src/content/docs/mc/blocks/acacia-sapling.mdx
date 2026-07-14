@@ -1,5 +1,6 @@
 ---
 title: Acacia Sapling
+template: splash
 description: |
     Minecraft Acacia Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 29
     ref: acacia_sapling
     slug: acacia-sapling
+    content_rev: 1
     display_name: Acacia Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Acacia Sapling is the seed form of the acacia tree, obtained by
+            breaking acacia leaves. Planted on dirt or moss, it grows into
+            a full acacia tree over time.
+        lore: |
+            Unlike most tree saplings, acacia saplings can sprout into
+            their full tree shape without requiring a 2x2 planting area.
+    uses:
+        - title: Acacia Tree
+          ref: acacia_log
+          detail: |
+              Planted on dirt, grass, or moss and given light, it grows
+              into an acacia tree yielding logs and leaves.
+        - title: Composter
+          ref: bone_meal
+          detail: |
+              Placed in a composter, it has a 30% chance of raising the
+              compost level by one, eventually producing bone meal.
+    found_in:
+        - location: Acacia leaves
+          detail: Breaking acacia leaves has roughly a 5% chance to drop a sapling.
+        - location: Villages and wandering traders
+          detail: Found in some savanna village chests and purchasable from wandering traders.
+    faq:
+        - question: What is the best tool to mine Acacia Sapling?
+          answer: |
+              Any tool, or bare hands, breaks it instantly — it has zero
+              hardness.
+        - question: Does it need a specific tool tier?
+          answer: |
+              No. It always drops itself regardless of tool.
+        - question: How do I get an Acacia Sapling?
+          answer: |
+              Break acacia leaves for a chance to drop one, buy from a
+              wandering trader, or find one in a savanna village chest.
+        - question: What does planting it do?
+          answer: |
+              On dirt, grass, or moss with enough light, it grows into a
+              full acacia tree over time.
     data_version: "1.21.5"
 ---
 

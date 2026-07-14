@@ -52,10 +52,12 @@ function applyState(dock: HTMLElement, state: DockState): void {
 			state === 'expanded' ? 'true' : 'false',
 		);
 	if (panel) {
-		if (state === 'expanded') panel.removeAttribute('hidden');
-		// Keep the panel mounted in the DOM even when collapsed so
-		// `transition:persist` carries any lazy-mounted React tree
-		// across nav. CSS handles the visual hide.
+		if (state === 'expanded') {
+			panel.removeAttribute('hidden');
+			panel.removeAttribute('inert');
+		} else {
+			panel.setAttribute('inert', '');
+		}
 	}
 }
 

@@ -16,42 +16,78 @@ osrs:
     slot: neck
     requirements:
       crafting: 31
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 0.007
   recipes:
-    - skill: crafting
+    - skill: Crafting
       level: 31
-      xp: 70
-      inputs:
-        - item_name: Emerald
-          quantity: 1
+      experience: 70
+      materials:
         - item_name: Gold bar
           quantity: 1
+        - item_name: Emerald
+          quantity: 1
+        - item_name: Amulet mould
+          quantity: 1
+      tools:
+        - Furnace
       output_quantity: 1
   related_items:
-    - item_id: 1694
-      item_name: Sapphire amulet
-      slug: sapphire-amulet
+    - name: Sapphire amulet
       relationship: downgrade
-      description: Previous tier amulet
-    - item_id: 1698
-      item_name: Ruby amulet
-      slug: ruby-amulet
+    - name: Ruby amulet
       relationship: upgrade
-      description: Next tier amulet
-  about: |-
-    Crafting (Level 31): Emerald + Gold bar at a furnace with amulet mould (70 XP). String with ball of wool.
-
-    > *"An emerald amulet."*
-
-    Lvl-2 Enchant (27 Magic): 1 cosmic rune + 3 air runes (37 XP)
-
-    The Amulet of defence provides +7 to all defence styles — the best pure-defence amulet without offensive bonuses. Niche use for tanks and skillers.
+    - name: Amulet of defence
+      relationship: upgrade
+    - name: Emerald amulet (u)
+      relationship: component
+  about: "Emerald amulet is a strung neck-slot jewel crafted at Crafting level 31 by combining a gold bar, emerald, and amulet mould at a furnace, then stringing the unstrung version with a ball of wool. Enchanting it with Lvl-2 Enchant produces the Amulet of defence."
   market_strategy:
     notes:
-      - Amulet of defence has low demand (most prefer offensive amulets)
-      - Crafting training material
-      - Enchanting for Magic XP
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand is split between Crafting trainers and enchanters chasing Magic xp."
+      - "Buy limit of 10,000 keeps spreads tight; flips work best in bulk."
+      - "Enchanted Amulet of defence rarely outperforms offensive amulets, capping ceiling."
+  trading_tips:
+    - "Compare profit per emerald vs ruby and diamond amulets when training Crafting."
+    - "Enchanters can buy in bulk and resell as Amulet of defence for thin Magic-xp margins."
+  history:
+    - date: "2001-05-08"
+      description: "Released alongside the original gem crafting system."
+  properties:
+    release_date: "2001-05-08"
+    update: Crafting Skill
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

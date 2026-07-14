@@ -43,11 +43,7 @@ namespace RareIcon
         public void Tick()
         {
             var cam = _cameras.Camera;
-            // Pointer.current returns the most-recently-used pointer device:
-            // Mouse on desktop, Touchscreen.primaryTouch on mobile.
-            // Pointer.press is the left mouse button or the primary-finger
-            // press, so wasPressedThisFrame / wasReleasedThisFrame work for
-            // both inputs without branching on platform.
+
             var pointer = Pointer.current;
             if (cam == null || pointer == null) return;
 
@@ -104,24 +100,7 @@ namespace RareIcon
                 _pressScreenPos, _pressWorldPos);
         }
 
-        static int2 WorldToHex(float2 wp)
-        {
-            float q = (math.sqrt(3f) / 3f * wp.x - 1f / 3f * wp.y) / HexSize;
-            float r = (2f / 3f * wp.y) / HexSize;
-
-            float3 cube = new float3(q, -q - r, r);
-            float3 rounded = math.round(cube);
-            float3 diff = math.abs(rounded - cube);
-
-            if (diff.x > diff.y && diff.x > diff.z)
-                rounded.x = -rounded.y - rounded.z;
-            else if (diff.y > diff.z)
-                rounded.y = -rounded.x - rounded.z;
-            else
-                rounded.z = -rounded.x - rounded.y;
-
-            return new int2((int)rounded.x, (int)rounded.z);
-        }
+        static int2 WorldToHex(float2 wp) => HexMeshUtil.WorldToHex(wp.x, wp.y, HexSize);
 
         public void Dispose()
         {

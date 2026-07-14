@@ -5,6 +5,13 @@ metadata:
     namespace: argocd
     annotations:
         argocd.argoproj.io/sync-wave: '3'
+        kbve.com/source-path: kube/clickhouse
+        kbve.com/manifest-path: kube/clickhouse
+        kbve.com/application-file: kube/clickhouse/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: database
+        kbve.com/stack: clickhouse
 spec:
     project: default
     sources:

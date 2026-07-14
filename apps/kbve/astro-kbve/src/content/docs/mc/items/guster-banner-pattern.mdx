@@ -1,5 +1,6 @@
 ---
 title: Guster Banner Pattern
+template: splash
 description: |
     Minecraft Guster Banner Pattern — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1264
     ref: guster_banner_pattern
     slug: guster-banner-pattern
+    content_rev: 1
     display_name: Guster Banner Pattern
     category: banner
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Guster Banner Pattern is a rare, non-craftable item that emblazons the likeness
+            of a breeze onto a banner when combined with a banner and matching dye in a loom. It
+            drops exclusively from vault and reward chests in trial chambers at a 4.2% chance.
+        lore: |
+            The pattern immortalizes the breeze, an elusive wind-summoning mob first encountered
+            deep within trial chambers.
+    faq:
+        - question: How do you get a Guster Banner Pattern?
+          answer: |
+              It can only be obtained as loot from vault or reward chests inside trial chambers,
+              with roughly a 4.2% drop chance.
+        - question: Can the Guster Banner Pattern be crafted?
+          answer: |
+              No, it cannot be crafted; it must be found as trial chamber loot.
+        - question: How do you apply it to a banner?
+          answer: |
+              Place the banner, the guster pattern, and a dye of your chosen color together in a
+              loom to emblaze the design onto the banner.
+        - question: Is the pattern consumed when used?
+          answer: |
+              No, applying it in a loom does not consume the pattern item itself, only the dye.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

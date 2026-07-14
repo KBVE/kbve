@@ -12,9 +12,61 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 15
-  about: "Bucket of sap is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ingredient
+    tier: low
+  recipes:
+    - skill: woodcutting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Bucket
+          quantity: 1
+        - item_name: Knife
+          quantity: 1
+      tools:
+        - Evergreen tree
+      output_quantity: 1
+  related_items:
+    - item_name: Bucket
+      slug: bucket
+      relationship: component
+      description: Empty bucket used with a knife on an evergreen
+    - item_name: Snake hide
+      slug: snake-hide
+      relationship: alternative
+      description: Companion ingredient in Nature Spirit quest steps
+  about: "Bucket of sap is obtained by using a knife on an evergreen tree while holding a bucket. It is primarily required for the Nature Spirit quest and as a Slayer component for blessing silver sickles."
+  market_strategy:
+    notes:
+      - "Niche demand driven by quest and Slayer prep"
+      - "Very low buy limit at 15 per 4 hours"
+      - "Players can self-gather quickly, capping resale interest"
+  trading_tips:
+    - "Stock during Nature Spirit guide surges"
+    - "Compare GE price against the self-gather opportunity cost"
+  history:
+    - date: "2003-12-15"
+      description: "Released alongside the Nature Spirit quest."
+  properties:
+    release_date: "2003-12-15"
+    update: Nature Spirit
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    quest: Nature Spirit
+    weight: 1.36
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

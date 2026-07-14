@@ -12,9 +12,59 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 15000
-  about: "Raw giant krill is a members-only item in Old School RuneScape. High alchemy value: 102 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: raw_food
+    tier: low
+  recipes:
+    - skill: cooking
+      level: 69
+      xp: 177.5
+      materials:
+        - item_name: Raw giant krill
+          quantity: 1
+      tools:
+        - Fire or range
+      product: Giant krill
+      output_quantity: 1
+  related_items:
+    - item_name: Giant krill
+      slug: giant-krill
+      relationship: product
+      description: Cooked product
+    - item_name: Burnt giant krill
+      slug: burnt-giant-krill
+      relationship: alternative
+      description: Burnt outcome on failed cook
+  about: "Raw giant krill is a members-only raw fish added with the Sailing skill. Cook at level 69 Cooking to make Giant krill for 177.5 XP."
+  market_strategy:
+    notes:
+      - Sailing-era raw fish with steady cooking demand
+      - High XP per cook makes it attractive for cook training
+      - Buy limit of 15,000 supports bulk flips
+  trading_tips:
+    - Track Sailing content updates that shift Cooking demand
+    - Watch margins between raw and cooked giant krill
+  history:
+    - date: "2025-11-19"
+      description: Released alongside the Sailing skill.
+    - date: "2026-05-13"
+      description: Item graphic updated to be more vibrant.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.7
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

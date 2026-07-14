@@ -140,15 +140,15 @@ namespace RareIcon
 
         static string EmojiGlyph(BubbleEmoji e) => e switch
         {
-            BubbleEmoji.Wave     => "\ud83d\udc4b", // 👋
-            BubbleEmoji.Alert    => "\u2757",      // ❗
-            BubbleEmoji.Sword    => "\u2694",      // ⚔
-            BubbleEmoji.Food     => "\ud83c\udf56", // 🍖
-            BubbleEmoji.Sleep    => "\ud83d\udca4", // 💤
-            BubbleEmoji.Question => "\u2753",      // ❓
-            BubbleEmoji.Heart    => "\u2764",      // ❤
-            BubbleEmoji.Skull    => "\ud83d\udc80", // 💀
-            BubbleEmoji.Coin     => "\ud83d\udcb0", // 💰
+            BubbleEmoji.Wave     => "\ud83d\udc4b",
+            BubbleEmoji.Alert    => "\u2757",
+            BubbleEmoji.Sword    => "\u2694",
+            BubbleEmoji.Food     => "\ud83c\udf56",
+            BubbleEmoji.Sleep    => "\ud83d\udca4",
+            BubbleEmoji.Question => "\u2753",
+            BubbleEmoji.Heart    => "\u2764",
+            BubbleEmoji.Skull    => "\ud83d\udc80",
+            BubbleEmoji.Coin     => "\ud83d\udcb0",
             _ => "•",
         };
 

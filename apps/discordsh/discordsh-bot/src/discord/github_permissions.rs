@@ -136,7 +136,7 @@ impl GitHubCommandGuard {
             .unwrap_or(60);
 
         let tiers = [CommandTier::Read, CommandTier::Board, CommandTier::Admin];
-        let tier_permissions = tiers.map(|tier| resolve_tier_permission(tier));
+        let tier_permissions = tiers.map(resolve_tier_permission);
 
         for (tier, perm) in tiers.iter().zip(tier_permissions.iter()) {
             match perm {

@@ -1,5 +1,6 @@
 ---
 title: Light Blue Stained Glass
+template: splash
 description: |
     Minecraft Light Blue Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 504
     ref: light_blue_stained_glass
     slug: light-blue-stained-glass
+    content_rev: 1
     display_name: Light Blue Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Light Blue Stained Glass is a transparent, colored variant of regular glass that lets light
+            pass through while tinting the view. It behaves like ordinary glass in most respects but
+            adds a decorative hue, making it a common choice for windows, greenhouses, and colorful
+            architectural accents.
+        lore: |
+            Stained glass in shades like this one can be found generating naturally within the towers
+            and ships of the End cities.
+    faq:
+        - question: How do you craft Light Blue Stained Glass?
+          answer: |
+              Combine 4 glass blocks with 1 light blue dye in a crafting grid to produce 8 stained
+              glass blocks.
+        - question: Do mobs spawn on Light Blue Stained Glass?
+          answer: |
+              No, mobs cannot spawn on it, and it is treated as fully opaque for line-of-sight checks
+              even though light passes through it.
+        - question: What tool do you need to keep the block when mining it?
+          answer: |
+              A pickaxe with Silk Touch is required to drop the block itself; otherwise it breaks
+              without yielding any item.
+        - question: Can redstone dust be placed on it?
+          answer: |
+              Yes, redstone dust can sit on top of stained glass, but the glass itself cannot be powered
+              or transmit a horizontal redstone signal.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: rows-customer-guid
+    namespace: rows-chuckrpg-dev
+spec:
+    encryptedData:
+        customer-guid: AgArGC0BMw4VPGZ2r5GR9heLDBe3vL5+s6LsMuOxtQ0g4iMiwUWI0lR3n+skGP0ngYCD9X+4MsPFxoJspxLjAMIVnkkxfB9WuT56jx69k5fEVfzJbHU5ENYUsW+qar4fmrw2ovg59YW/twBbWRi/tsAKERbpKmf8ByRUvyJYpxJHOtmts9oY/e0YkGFdJrih50okCW/LupfIuE5pic07FlyOndZkPSiTsMqcJitbjEZwPPG0T7FKwadwDG6bOVHsT1xMKiF01ZA9he2ksb1dk6zM5JbC66oLTwjtrhJ2wYBDY97QTfDaHPLE+HtHlx0MisfFSQj+KBsx7PX0h7DbPi/9zqp99FN8ZcuzZkuxh6KuAVm6oX9Nvfx3kGTjqSa6E6DCQTT8tK9rAHqajMpH0A2sAtDDA//dWGQQfH1DzYobL3mbkFmF/l4iqc5301r6wvYyq+95hu5LgSV5P8KYtwNLZlij4h+XcD1Q4NkEtIMxQiAjDQt8eqrymdzvCI8ydEA/uuejH+ERJ2URsvrfASCA9JMWGr5RXC2p37FMDGQs9VRqX6YkPqjoq6ROE/rV3B+uLwUSDnz2oTb1D6i0USqA+vyP9CP2+pqfv8jlqL84RDeVPbfqRNzIVEeyfvfJyUKm+ak4GkBPBb6ddxeH+LZ3eGNd6nF8N+rYltfq/ZEMgG4ZjXaYktPzK+RYm7niIbij5XKTjEovMOh9rHZCqZOoqEwy9bX1D0S0F2JRQZJX9pqYwjg=
+    template:
+        metadata:
+            name: rows-customer-guid
+            namespace: rows-chuckrpg-dev

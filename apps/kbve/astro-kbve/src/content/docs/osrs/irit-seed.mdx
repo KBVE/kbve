@@ -12,65 +12,64 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 600
-  seed:
-    type: herb
-    tier: mid
   farming:
+    seed: Irit seed
     level: 44
+    patch: Herb
+    growth_time: 80
     xp_plant: 43
     xp_harvest: 48.5
-    growth_time: 80
-    patches: 9
-    product_id: 209
-    product_name: Grimy irit leaf
+    product: Grimy irit leaf
+  drop_table:
+    sources:
+      - source: Master Farmer
+        quantity: "1"
+        rarity: 1/302
+      - source: Seed pack
+        quantity: "1"
+        rarity: Common
+      - source: Hespori
+        quantity: "1"
+        rarity: Common
   related_items:
-    - item_id: 209
-      item_name: Grimy irit leaf
-      slug: grimy-irit-leaf
+    - name: Grimy irit leaf
       relationship: product
-      description: Harvested product
-    - item_id: 259
-      item_name: Irit leaf
-      slug: irit-leaf
+    - name: Irit leaf
       relationship: product
-      description: Cleaned herb
-    - item_id: 3026
-      item_name: Super antipoison(4)
-      slug: super-antipoison-4
+    - name: Super antipoison(4)
       relationship: product
-      description: Made from irit
-    - item_id: 5296
-      item_name: Toadflax seed
-      slug: toadflax-seed
+    - name: Toadflax seed
       relationship: alternative
-      description: Lower tier herb seed
-    - item_id: 5298
-      item_name: Avantoe seed
-      slug: avantoe-seed
+    - name: Avantoe seed
       relationship: upgrade
-      description: Next tier herb seed
-  about: |-
-    Plant in a herb patch to grow Grimy irit leaf.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 44 |
-    | Growth time | 80 minutes |
-    | XP (plant) | 43 |
-    | XP (harvest) | 48.5 per herb |
+  about: "Irit seeds are mid-tier members herb seeds planted in herb patches at Farming level 44, producing grimy irit leaves used in super antipoison and other Herblore potions over an 80 minute growth cycle."
   market_strategy:
     notes:
-      - Mid-tier herb seed
-      - Used for super antipoison potions
-      - Moderate profit potential
-      - Ultracompost (essential)
-      - Magic secateurs (10% more yield)
-      - Farming cape (5% more yield)
-      - 9 herb patches available
-      - ~10 minute runs, 80 minute regrowth
-      - Super antipoisons useful for many PvM activities
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Mid-tier herb seed mainly used for super antipoison potions."
+      - "Magic secateurs, farming cape, and ultracompost stack to boost yield."
+      - "Nine herb patches make full irit runs roughly 10 minutes with 80 minute regrowth."
+  trading_tips:
+    - "Bulk buy when Master Farmer pickpocket meta shifts depress the price."
+    - "Watch super antipoison demand spikes around poison-heavy bossing content."
+  history:
+    - date: "2005-06-06"
+      description: "Released alongside the herb patch farming expansion."
+  properties:
+    release_date: "2005-06-06"
+    update: "Farming Skill Expansion"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Inspect
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

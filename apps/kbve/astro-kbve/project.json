@@ -20,7 +20,7 @@
 			"options": {
 				"cwd": "apps/kbve/astro-kbve",
 				"commands": [
-					"rm -rf .astro",
+					"rm -rf .astro node_modules/.vite node_modules/.astro ../../../node_modules/.vite",
 					"nx exec -- astro sync",
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro dev"
 				],
@@ -140,6 +140,122 @@
 				"cwd": "{workspaceRoot}"
 			}
 		},
+		"gen:ci-manifest": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/project/*.mdx",
+				"{projectRoot}/src/data/ci/manifest-builder.ts",
+				"{projectRoot}/src/data/ci/project-schema.ts",
+				"{projectRoot}/src/data/schema/ICiProjectSchema.ts",
+				"{projectRoot}/scripts/gen-ci-manifest.mts",
+				"{workspaceRoot}/packages/data/codegen/generated/ci_registry-schema.ts"
+			],
+			"outputs": ["{workspaceRoot}/.github/ci-dispatch-manifest.json"],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "npx tsx scripts/gen-ci-manifest.mts"
+			},
+			"cache": true
+		},
+		"gen:ci-manifest:check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "npx tsx scripts/gen-ci-manifest.mts --check"
+			}
+		},
+		"sync:unreal": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node apps/kbve/astro-kbve/scripts/sync-unreal-uplugin.mjs",
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"sync:unreal:check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node apps/kbve/astro-kbve/scripts/sync-unreal-uplugin.mjs --check",
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"gen:dungeon": {
+			"executor": "nx:run-commands",
+			"inputs": ["{workspaceRoot}/packages/data/codegen/gen_dungeon.py"],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/tilemaps/crypt_depths.tilemap.json"
+			],
+			"options": {
+				"command": "python3 packages/data/codegen/gen_dungeon.py",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:tilemaps": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-tilemaps.mjs",
+				"{workspaceRoot}/packages/data/codegen/maps/*.json"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_city.tilemap.json",
+				"{workspaceRoot}/apps/agones/cryptothrone/server/assets/cloud_city.tilemap.json"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-tilemaps.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:tiles": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-tile-slices.mjs",
+				"{workspaceRoot}/packages/data/codegen/tiles/tiles.manifest.json",
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png"
+			],
+			"outputs": [
+				"{projectRoot}/public/assets/tiledb",
+				"{projectRoot}/src/content/docs/tiledb"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-tile-slices.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:tiledb": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-tiledb-data.mjs",
+				"{projectRoot}/src/content/docs/tiledb/*.mdx"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/tiledb-data.json"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-tiledb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:palettes": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-palette-atlas.mjs",
+				"{workspaceRoot}/packages/data/codegen/palettes/*.json",
+				"{workspaceRoot}/packages/data/codegen/generated/tiledb-data.json",
+				"{projectRoot}/public/assets/tiledb"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/palettes",
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/src/components/game/data/palettes"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-palette-atlas.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:mapdb": {
 			"executor": "nx:run-commands",
 			"inputs": [
@@ -160,8 +276,50 @@
 			},
 			"cache": true
 		},
+		"sync:mapdb-zod": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["devops:build"],
+			"inputs": [
+				"{workspaceRoot}/packages/data/proto/map/mapdb.proto",
+				"{workspaceRoot}/packages/data/proto/kbve/common.proto",
+				"{workspaceRoot}/packages/data/codegen/mapdb-zod-config.json",
+				"{workspaceRoot}/packages/data/codegen/gen-mapdb-zod.mjs"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/descriptors/mapdb.binpb",
+				"{workspaceRoot}/packages/data/codegen/generated/mapdb-schema.ts"
+			],
+			"options": {
+				"commands": [
+					"protoc --include_imports --descriptor_set_out=packages/data/codegen/descriptors/mapdb.binpb --proto_path=packages/data/proto map/mapdb.proto",
+					"npx tsx packages/data/codegen/gen-mapdb-zod.mjs"
+				],
+				"parallel": false,
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:jobboard-taxonomy": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/project/jobboard.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-jobboard-taxonomy.mjs"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/jobboard-taxonomy.json",
+				"{workspaceRoot}/packages/data/codegen/generated/jobboard-taxonomy-seed.sql",
+				"{workspaceRoot}/apps/jobboard/web/src/api/taxonomy.generated.json",
+				"{workspaceRoot}/apps/jobboard/docker/seed.sql"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-jobboard-taxonomy.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:itemdb": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["sync:itemdb-uecpp"],
 			"inputs": [
 				"{projectRoot}/src/content/docs/itemdb/*.mdx",
 				"{workspaceRoot}/packages/data/codegen/gen-itemdb-data.mjs",
@@ -170,11 +328,79 @@
 			"outputs": [
 				"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json",
 				"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.binpb",
+				"{workspaceRoot}/packages/data/codegen/generated/itemdb.json",
 				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json",
 				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb"
 			],
 			"options": {
 				"command": "node packages/data/codegen/gen-itemdb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:itemdb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-itemdb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/itemdb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVEItemDB/Source/KBVEItemDB/Public/Generated/KBVEItemDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVEItemDB/Source/KBVEItemDB/Public/Generated/KBVEItemDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-itemdb-uecpp.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:npcdb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-npcdb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/npcdb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVENPCDB/Source/KBVENPCDB/Public/Generated/KBVENPCDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVENPCDB/Source/KBVENPCDB/Public/Generated/KBVENPCDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-npcdb-uecpp.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:questdb": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/questdb/*.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-questdb-data.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/questdb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/questdb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/questdb-data.binpb",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.json",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.binpb"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-questdb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:questdb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-questdb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/questdb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVEQuestDB/Source/KBVEQuestDB/Public/Generated/KBVEQuestDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVEQuestDB/Source/KBVEQuestDB/Public/Generated/KBVEQuestDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-questdb-uecpp.mjs",
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true
@@ -198,6 +424,40 @@
 			},
 			"cache": true
 		},
+		"sync:spelldb": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["sync:spelldb-uecpp"],
+			"inputs": [
+				"{projectRoot}/src/content/docs/spelldb/*.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-spelldb-data.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/spelldb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/spelldb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/spelldb-data.binpb"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-spelldb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:spelldb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-spelldb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/spelldb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-spelldb-uecpp.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:itemdb-atlas": {
 			"executor": "nx:run-commands",
 			"inputs": [
@@ -207,10 +467,28 @@
 			],
 			"outputs": [
 				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png",
-				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs"
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs",
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/items/itemdb-atlas.png",
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/src/components/game/data/itemAtlas.generated.ts"
 			],
 			"options": {
 				"command": "node packages/data/codegen/gen-itemdb-atlas.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:hextile-atlas": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Textures/Environment/**/*.png",
+				"{workspaceRoot}/packages/data/codegen/gen-hextile-atlas.mjs"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/hextile-atlas.png",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/Hex/HexTileAtlas.Generated.cs"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-hextile-atlas.mjs",
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true

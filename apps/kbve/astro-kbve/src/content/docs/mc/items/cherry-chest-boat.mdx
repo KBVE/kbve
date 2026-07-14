@@ -1,5 +1,6 @@
 ---
 title: Cherry Boat with Chest
+template: splash
 description: |
     Minecraft Cherry Boat with Chest — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 821
     ref: cherry_chest_boat
     slug: cherry-chest-boat
+    content_rev: 1
     display_name: Cherry Boat with Chest
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Cherry Boat with Chest combines a cherry wood boat with a single chest bolted into its hull, letting a player ferry cargo across water while sailing. It is crafted by combining a chest with a matching cherry boat, and drops itself along with its contents when destroyed. Because the chest occupies the passenger seat, it can carry only one rider instead of the usual two.
+        lore: |
+            A traveling merchant's answer to crossing cherry grove rivers without leaving the goods behind.
+    faq:
+        - question: Can multiple players ride a Cherry Boat with Chest?
+          answer: |
+              No. The chest takes up the passenger seat, so a boat with chest can carry only one entity at a time, unlike a regular boat which can carry two.
+        - question: How do I access the chest while riding?
+          answer: |
+              Sneak and interact with the boat to open its inventory, or interact with the chest portion while another entity occupies the seat.
+        - question: Does the Cherry Boat with Chest work with hoppers?
+          answer: |
+              Yes. When it moves above, underneath, or beside a hopper, its inventory is automatically filled or drained, which is useful for automated water-based item transport.
+        - question: What happens if I open or break it near piglins?
+          answer: |
+              Nearby piglins become aggressive, since opening or breaking a boat with chest counts as interacting with a container.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

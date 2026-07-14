@@ -1,7 +1,7 @@
 ---
-title: Firecracker Python Net
-description: |
-    Network-capable Alpine + Python rootfs for the staff-side firecracker-ctl-net deployment. Bakes requests, httpx, urllib3, certifi, ca-certificates, and a resolv.conf with public DNS.
+title: Firecracker Python Net — Network Alpine Python Rootfs
+description: Network-capable Alpine + Python rootfs image for the staff-side firecracker-ctl-net deployment, baking requests, httpx, certifi, CA bundle, and public DNS.
+sem: 1
 sidebar:
     label: FC Python Net
     order: 55
@@ -24,7 +24,91 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: active
+kube:
+    stack: application
+    environment: prod
+    tier: api
+    owner: h0lybyte
+    criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the Firecracker Python Net image?
+          answer: It is a network-capable Alpine 3.21 plus Python 3.12 rootfs image for the staff-side firecracker-ctl-net deployment. It bakes in requests, httpx, urllib3, certifi, the CA-certificates bundle, and a resolv.conf pointing at public DNS.
+        - question: How is Firecracker Python Net different from alpine-python?
+          answer: The alpine-python rootfs used by the public quick-mode firecracker-ctl VMs ships with no network, no DNS, and no requests, keeping sandboxes egress-free. Firecracker Python Net is the opposite, with TAP networking via Gluetun/WireGuard, DNS, and HTTP libraries baked in for the staff persistent deployment.
+        - question: How is the Firecracker Python Net rootfs built and delivered?
+          answer: It is a multi-stage Docker image whose final Alpine layer ships a cp entrypoint, so an in-cluster stage Job runs the image directly and copies /rootfs.ext4 onto the firecracker rootfs PVC.
+bento:
+    badge: docker · firecracker · python · base-image
+    title: Network Alpine Python rootfs for
+    accent: Firecracker
+    lede: >-
+        A network-capable Alpine 3.21 + Python 3.12 Firecracker rootfs for the
+        staff-side firecracker-ctl-net deployment — baking requests, httpx,
+        certifi, the CA bundle, and public DNS for short-lived networked VMs.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/docker/firecracker/python/net
+          primary: true
+          external: true
+        - label: Overview
+          href: "#overview"
+        - label: Build
+          href: "#build"
+    aside:
+        icon: network
+        title: The networked opposite of alpine-python
+        body: >-
+            The <code>alpine-python</code> rootfs used by public quick-mode
+            <code>firecracker-ctl</code> VMs ships with no network, no DNS, and no
+            requests — sandboxing without egress is the safety property. This
+            image is the opposite: TAP networking via Gluetun/WireGuard, DNS, and
+            HTTP libraries baked in for the staff persistent deployment.
+        points:
+            - <strong>Runtime</strong> — Alpine 3.21 + Python 3.12.
+            - <strong>Deployment</strong> — staff-side firecracker-ctl-net.
+    stats:
+        - { label: Image, value: firecracker-python-net, icon: package }
+        - { label: Runtime, value: Python 3.12, icon: code }
+        - { label: HTTP libs, value: requests/httpx, icon: box }
+        - { label: Network, value: TAP/WireGuard, icon: network }
+    features:
+        - title: HTTP stack baked
+          icon: box
+          body: py3-pip, py3-requests, py3-httpx, py3-urllib3, py3-certifi ship already resolved so VMs boot with the client libraries on disk.
+        - title: Network-ready
+          icon: network
+          body: ca-certificates, iproute2, and /etc/resolv.conf pointing at 1.1.1.1 and 8.8.8.8 for TAP networking via Gluetun/WireGuard.
+        - title: cp-entrypoint stage image
+          icon: package
+          body: Multi-stage Docker build whose final Alpine layer ships a cp entrypoint so an in-cluster stage Job copies /rootfs.ext4 onto the rootfs PVC.
+        - title: Boot init
+          icon: gears
+          body: /init mounts /proc /sys /dev, brings up lo + eth0, then exec /entrypoint.
+    related:
+        - title: Firecracker CTL
+          href: /project/firecracker-ctl/
+          copy: The Firecracker control plane that deploys this rootfs image.
+          icon: server
+        - title: Firecracker Python Web
+          href: /project/firecracker-python-web/
+          copy: The long-lived sibling that additionally bakes the FastAPI stack.
+          icon: package
+    related_heading: Related
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Rootfs & ecosystem" heading="Overview">
 
 ## Overview
 
@@ -47,6 +131,10 @@ This image is **not** for the public sandbox quick-mode VMs. Those keep the no-n
 | `alpine-python` (existing) | `firecracker-ctl` (public quick) | none | no | no |
 | `firecracker-python-net` (this) | `firecracker-ctl-net` (staff persistent) | TAP via Gluetun/WireGuard | yes | yes |
 
+</BentoProse>
+
+<BentoProse id="build" eyebrow="Build & publish" heading="Build & publish">
+
 ## Build
 
 ```bash
@@ -63,3 +151,7 @@ npx nx run firecracker-python-net:container:production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-python-net:latest` and `:<version>`.
+
+</BentoProse>
+
+</BentoDoc>

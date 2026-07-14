@@ -8,16 +8,52 @@ img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=s
 description: Daily Log for February 17th for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 17,'
+    accent: every year.
+    lede: 'The February 17th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 16'
+          href: /journal/02-16/
+        - label: 'Feb 18 →'
+          href: /journal/02-18/
+    related:
+        - title: 'Previous · Feb 16'
+          copy: 'Step back a day to the February 16th log.'
+          href: /journal/02-16/
+          icon: calendar
+        - title: 'Next · Feb 18'
+          copy: 'Jump ahead to the February 18th log.'
+          href: /journal/02-18/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Godot Wry Build
 
@@ -68,8 +104,15 @@ import { Adsense } from '@/components/astropad';
     Preparing the HTML export for the gamejam, we should not be too far from getting the rest of the pipeline going.
     Next we need to figure out how to handle the UIUX for the game, this time keeping it all within gdscript.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### Snow
 
@@ -166,3 +209,7 @@ I am going to create a style interface that I will be call
 ### Windows
 
 For future reference, incase you need access to the Windows screen during setup, post install, press `Shift + F10` to open the command prompt, then Type `OOBE\BypassNRO` and press Enter.
+
+</BentoProse>
+
+</BentoDoc>

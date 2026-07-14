@@ -81,10 +81,6 @@ namespace RareIcon
             byte bestPrio = 0;
             byte bestRole = (byte)HarvestRole.None;
 
-            // Order matters — strict `>` makes the first-tested role win
-            // equal-priority ties. Lumber / Miner go first so a goblin
-            // standing on a mixed tree+berry hex (dispatched as a
-            // Lumberjack) actually chops wood instead of foraging air.
             if (priorities.Lumberjack > bestPrio && HasLumberWork(in res))  { bestPrio = priorities.Lumberjack; bestRole = (byte)HarvestRole.Lumberjack; }
             if (priorities.Miner      > bestPrio && res.Stone != 0)         { bestPrio = priorities.Miner;      bestRole = (byte)HarvestRole.Miner; }
             if (priorities.Looter     > bestPrio && HasForagerWork(in res)) { bestPrio = priorities.Looter;     bestRole = (byte)HarvestRole.Forager; }

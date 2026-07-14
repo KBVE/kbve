@@ -1,5 +1,6 @@
 ---
 title: Mossy Stone Brick Stairs
+template: splash
 description: |
     Minecraft Mossy Stone Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 766
     ref: mossy_stone_brick_stairs
     slug: mossy-stone-brick-stairs
+    content_rev: 1
     display_name: Mossy Stone Brick Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mossy_stone_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Mossy Stone Brick Stairs are the stair form of Mossy Stone
+            Bricks, used to build ramps and steps matching the overgrown,
+            ruined-portal look of the base block.
+        lore: |
+            It rounds out the mossy stone brick building set introduced in
+            1.14, alongside the matching slab.
+    uses:
+        - title: Ramps and step detailing
+          ref: mossy_stone_brick_stairs
+          detail: |
+              Placed with directional facing and half-block orientation like
+              any stair block, commonly used to recreate ruined-portal or
+              overgrown-ruin aesthetics.
+    found_in:
+        - location: Ruined portals
+          detail: Generates naturally as part of ruined portal structures in the Overworld.
+        - location: Crafted from Mossy Stone Bricks
+          detail: Six Mossy Stone Bricks arranged in a staircase pattern yield four stairs, or one block on a stonecutter yields one stair.
+    faq:
+        - question: What tool do I need to mine Mossy Stone Brick Stairs?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without one drops
+              nothing.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes, always one Mossy Stone Brick Stairs block, unaffected by
+              Silk Touch or Fortune.
+        - question: Where can I find this without crafting it?
+          answer: |
+              It generates naturally as part of ruined portals scattered
+              across the Overworld.
+        - question: Is Mossy Stone Brick Stairs renewable?
+          answer: |
+              No. Mossy Stone Bricks are not renewable, so stairs crafted
+              from them are not renewable either.
     data_version: "1.21.5"
 ---
 

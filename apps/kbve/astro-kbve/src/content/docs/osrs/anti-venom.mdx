@@ -1,0 +1,127 @@
+---
+title: Anti-venom | OSRS Price Data
+description: "Anti-venom(4) is a 4-dose members potion that cures venom and provides 12 minutes of venom immunity. High alch: 264 GP, GE limit: 2,000."
+osrs:
+  id: 12905
+  name: Anti-venom
+  slug: anti-venom
+  examine: 4 doses of antivenom potion.
+  members: true
+  icon: Anti-venom(4).png
+  value: 440
+  lowalch: 176
+  highalch: 264
+  limit: 2000
+  material:
+    type: potion
+    tier: high
+  potion:
+    doses: 4
+    effects:
+      - description: "Instantly cures venom and poison."
+      - description: "Grants 12 minutes of poison immunity per dose."
+      - description: "Grants 36 to 54 seconds of venom immunity per dose."
+  recipes:
+    - materials:
+        - item_name: Antidote++(4)
+          quantity: 1
+        - item_name: Zulrah's scales
+          quantity: 20
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Antidote++(4)
+      slug: antidote-4
+      relationship: component
+    - item_name: Zulrah's scales
+      slug: zulrahs-scales
+      relationship: component
+    - item_name: Anti-venom+(4)
+      slug: anti-venom-plus-4
+      relationship: upgrade
+    - item_name: Serpentine helm
+      slug: serpentine-helm
+      relationship: alternative
+  about: "Four-dose anti-venom that instantly cures venom and grants venom immunity for 36-54 seconds plus 12 minutes of poison immunity, made at 87 Herblore from antidote++(4) and 20 Zulrah's scales."
+  market_strategy:
+    notes:
+      - 20 scales per potion is significant
+      - Compare anti-venom cost vs serpentine helm charges
+      - Scale price drives potion economics
+  trading_tips:
+    - Brew when scales are cheap and decant for storage
+    - Upgrade to anti-venom+ with torstol for longer immunity
+  history:
+    - date: "2015-01-08"
+      description: Released with the Zulrah update.
+  properties:
+    release_date: "2015-01-08"
+    update: Zulrah
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  family_ref:
+    family_slug: anti-venom
+    role: base
+  family:
+    slug: anti-venom
+    name: Anti-venom
+    type: dose
+    canonical_id: 12905
+    members:
+    - id: 12905
+      slug: anti-venom
+      name: Anti-venom
+      icon: Anti-venom(4).png
+      role: base
+      dose: null
+      value: 440
+      lowalch: 176
+      highalch: 264
+    - id: 12911
+      slug: anti-venom-1
+      name: Anti-venom(1)
+      icon: Anti-venom(1).png
+      role: dose
+      dose: 1
+      value: 110
+      lowalch: 44
+      highalch: 66
+    - id: 12909
+      slug: anti-venom-2
+      name: Anti-venom(2)
+      icon: Anti-venom(2).png
+      role: dose
+      dose: 2
+      value: 220
+      lowalch: 88
+      highalch: 132
+    - id: 12907
+      slug: anti-venom-3
+      name: Anti-venom(3)
+      icon: Anti-venom(3).png
+      role: dose
+      dose: 3
+      value: 330
+      lowalch: 132
+      highalch: 198
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

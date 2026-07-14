@@ -1,6 +1,6 @@
 ---
 title: Bronze platebody (g) | OSRS Price Data
-description: "Bronze platebody (g): Bronze platebody with gold trim.. High alch: 96 GP, GE limit: 4."
+description: "Bronze platebody (g): Bronze platebody with gold trim. High alch: 96 GP, GE limit: 4."
 osrs:
   id: 12205
   name: Bronze platebody (g)
@@ -12,9 +12,82 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 4
-  about: "Bronze platebody (g) is a free-to-play item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: low
+  equipment:
+    slot: body
+    weapon_type: none
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 15
+      slash: 14
+      crush: 9
+      magic: -6
+      ranged: 14
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 1117
+      item_name: Bronze platebody
+      slug: bronze-platebody
+      relationship: alternative
+      description: Untrimmed counterpart with identical stats
+    - item_id: 12207
+      item_name: Bronze platebody (t)
+      slug: bronze-platebody-t
+      relationship: variant
+      description: Trimmed variant with the same combat profile
+  about: "Bronze platebody (g) is a free-to-play cosmetic gold-trimmed reward from easy Treasure Trail reward caskets at roughly 1/1,404, sharing combat stats with the standard bronze platebody."
+  market_strategy:
+    notes:
+      - Buy limit of 4 keeps margins thin and supply tight
+      - Easy clue completers feed steady but small supply
+      - Cosmetic demand drives the premium over normal bronze platebody
+      - High alch of 96 makes alching unviable
+      - Best held for collectors or trim sets rather than flipped fast
+  trading_tips:
+    - Compare GE price against full easy clue trim set to spot discounts
+    - Free-to-play trim seekers are the main buyer pool
+    - Watch trim set bundle prices for arbitrage windows
+  history:
+    - date: "2014-06-12"
+      update: "Treasure Trail Expansion"
+      description: Bronze platebody (g) added as an easy clue reward.
+  properties:
+    release_date: "2014-06-12"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

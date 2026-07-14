@@ -1,6 +1,6 @@
 ---
 title: Binding necklace | OSRS Price Data
-description: "Binding necklace is a members neck slot item. High alch: 855 GP, GE limit: 10,000."
+description: "Binding necklace is a members enchanted neck slot item that guarantees combination rune crafting success for 16 charges. High alch: 855 GP, GE limit: 10,000."
 osrs:
   id: 5521
   name: Binding necklace
@@ -12,9 +12,13 @@ osrs:
   lowalch: 570
   highalch: 855
   limit: 10000
+  material:
+    type: enchanted jewellery
+    tier: low
   equipment:
     slot: neck
-    type: runecraft_necklace
+    weapon_type: jewellery
+    weight: 0.01
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,75 +36,78 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    weight: 0.01
-  special_effect:
-    name: Combination Rune Success
-    description: 100% success rate on combination runes
-    charges: 16
+  charges:
+    max_charges: 16
+    description: One charge consumed per combination rune craft; necklace destroys when depleted.
   recipes:
-    - skill: magic
-      level: 27
-      xp: 37
-      materials:
+    - materials:
         - item_name: Emerald necklace
-          item_id: 1658
           quantity: 1
         - item_name: Cosmic rune
-          item_id: 564
           quantity: 1
         - item_name: Air rune
-          item_id: 556
           quantity: 3
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Abyssal leech
+        quantity: "1"
+        rarity: Common
+      - source: Abyssal guardian
+        quantity: "1"
+        rarity: Common
+      - source: Abyssal walker
+        quantity: "1"
+        rarity: Common
+      - source: Abyssal Sire
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - item_id: 4695
-      item_name: Lava rune
-      slug: lava-rune
-      relationship: product
-      description: Common combo rune
     - item_id: 1658
       item_name: Emerald necklace
       slug: emerald-necklace
       relationship: component
-      description: Base item for enchantment
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Neck |
-    | Type | Runecraft Necklace |
-    | Tradeable | Yes |
-    | Weight | 0.01 kg |
-
-    Enchant Emerald necklace with Lvl-2 Enchant.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 27 |
-    | Cosmic rune | 1 |
-    | Air rune | 3 |
-
-    Alternative: Abyss monster drops
-
-    Combination Rune Success:
-    - 100% success rate on combo runes
-    - 16 charges total
-    - 1 charge per craft
-
-    Essential for:
-    - Lava runes (best RC XP)
-    - All combination runes
-    - Runecraft training
-
-    Required for combo rune crafting.
+      description: Base necklace enchanted with Lvl-2 Enchant
+    - item_id: 4695
+      item_name: Lava rune
+      slug: lava-rune
+      relationship: product
+      description: Common combination rune crafted using this necklace
+  about: Binding necklace is enchanted from an emerald necklace and guarantees 100% success on combination rune crafting for 16 charges, vital for high-XP Lava rune training.
   market_strategy:
     notes:
-      - Essential for lava runes
-      - Very cheap
-      - 16 uses per necklace
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Cheap consumable for combination rune Runecrafting
+      - Alternative source is Abyss monster drops
+      - One charge consumed per altar click
+  trading_tips:
+    - Margins are thin; buy in bulk during training sessions
+  history:
+    - date: "2005-06-13"
+      description: Released as part of the RuneCraft Update.
+    - date: "2014-01-01"
+      description: Added a check option to view remaining charges.
+    - date: "2016-01-01"
+      description: Charge count increased to 16 and Drop option replaced with Destroy.
+  properties:
+    release_date: "2005-06-13"
+    update: RuneCraft Update and Tweaks
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Check
+    worn_options:
+      - Check
+    alchable: true
+    destroy: Destroy
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

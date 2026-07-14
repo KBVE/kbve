@@ -1,5 +1,6 @@
 ---
 title: Magenta Stained Glass
+template: splash
 description: |
     Minecraft Magenta Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 287
     ref: magenta_stained_glass
     slug: magenta-stained-glass
+    content_rev: 1
     display_name: Magenta Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Magenta Stained Glass is a transparent building block dyed
+            magenta, part of a 16-color set. It lets light through tinted
+            to its color and can be stacked with other colors to blend a
+            beacon beam.
+        lore: |
+            Stained glass gave builders a way to add colorful, see-through
+            walls and windows without giving up the light transmission of
+            plain glass.
+    uses:
+        - title: Magenta Stained Glass Pane
+          ref: magenta_stained_glass_pane
+          detail: |
+              Craft 6 Magenta Stained Glass blocks into 16 Magenta Stained
+              Glass Panes for thinner, more material-efficient windows.
+        - title: Beacon Beam Coloring
+          ref: beacon
+          detail: |
+              Stacking stained glass of one or more colors above a beacon
+              tints and blends the beam's color.
+    found_in:
+        - location: Crafted
+          detail: Made from 4 Glass blocks plus Magenta Dye in a crafting grid (yields 8).
+        - location: End Cities and End Ships
+          detail: Magenta stained glass generates naturally as part of End City and End Ship structures.
+    faq:
+        - question: Does it drop anything when mined normally?
+          answer: |
+              No. It only drops with a Silk Touch tool; otherwise it breaks
+              with nothing.
+        - question: Is Magenta Stained Glass flammable?
+          answer: |
+              No, it will not catch fire and burn like wood-based blocks.
+        - question: Can I see through blocks of the same color?
+          answer: |
+              Stained glass blocks adjacent to another block of the exact
+              same color become invisible when viewed through matching
+              stained glass, creating a seamless colored window.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool works — there's no minimum tier — but you need Silk
+              Touch to actually collect the block.
     data_version: "1.21.5"
 ---
 

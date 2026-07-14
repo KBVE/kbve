@@ -1,6 +1,6 @@
 ---
 title: Big fishing net | OSRS Price Data
-description: "Big fishing net: Useful for catching lots of fish.. High alch: 12 GP, GE limit: 40."
+description: "Big fishing net catches mackerel, cod, and bass at net/harpoon spots. High alch: 12 GP, GE limit: 40."
 osrs:
   id: 305
   name: Big fishing net
@@ -12,18 +12,85 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 40
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    weight: 8.164
+    tradeable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    options:
+      - Drop
+    destroy: "Are you sure you want to drop this item?"
+  shops:
+    - shop_name: Harry's Fishing Shop
+      location: Catherby
+      price: 20
+      stock: 5
+      currency: coins
+      notes: "Cheapest reliable restock for Big fishing net."
+    - shop_name: Fishing Guild Shop
+      location: Fishing Guild
+      price: 20
+      stock: 5
+      currency: coins
+      notes: "Requires 68 Fishing for guild access."
+    - shop_name: Fremennik Fish Monger
+      location: Rellekka
+      price: 26
+      stock: 5
+      currency: coins
+      notes: "Slightly higher price but useful for Fremennik routes."
   related_items:
     - item_id: 303
       item_name: Small fishing net
       slug: small-fishing-net
       relationship: variant
-      description: Basic fishing net
+      description: Basic net used at small net fishing spots
+    - item_id: 31374
+      item_name: Drift net
+      slug: drift-net
+      relationship: alternative
+      description: Drift net fishing alternative at Fossil Island
+    - item_id: 311
+      item_name: Raw mackerel
+      slug: raw-mackerel
+      relationship: product
+      description: Sea fish caught with the big net at level 16
+    - item_id: 341
+      item_name: Raw cod
+      slug: raw-cod
+      relationship: product
+      description: Sea fish caught with the big net at level 23
+    - item_id: 363
+      item_name: Raw bass
+      slug: raw-bass
+      relationship: product
+      description: Sea fish caught with the big net at level 46
+  market_strategy:
+    notes:
+      - "Used at net/harpoon fishing spots in Catherby, Rellekka, and beyond"
+      - "Catches 2-9 items per successful action including caskets and oysters"
+      - "Spawns at Port Piscarilius, Isle of Souls, Fishing Guild, and Shipwreck Cove"
+      - "GE limit 40: low daily cap suits casual restock only"
+      - "Buy point: spawn farming Catherby beats any GE entry"
+      - "Sell point: GE price moves only when bass training peaks"
+      - "Note: Harry's at 20 GP is faster than waiting on GE fills"
+  history:
+    - date: "2002-02-27"
+      update: Release
+      description: "Big fishing net added with the early Fishing skill rollout."
   about: |-
     > _"Useful for catching lots of fish."_
 
-    The big fishing net is used at net/harpoon fishing spots to catch mackerel, cod, bass, and other sea fish. Can also catch random items like seaweed and caskets.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The big fishing net is used at net/harpoon fishing spots throughout Gielinor to catch raw mackerel (level 16), raw cod (level 23), and raw bass (level 46). Each successful action returns 2-9 items including caskets, oysters, seaweed, and leather goods.
+
+    Spawns at Port Piscarilius, Isle of Souls, Fishing Guild, and Shipwreck Cove. Sold by Harry's Fishing Shop (Catherby) and the Fishing Guild shop at 20 GP each; the Fremennik Fish Monger in Rellekka stocks them at 26 GP.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

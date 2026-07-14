@@ -1,6 +1,6 @@
 ---
 title: Enchant dragonstone | OSRS Price Data
-description: "Enchant dragonstone: A tablet containing a magic spell.. High alch: 1 GP, GE limit: 10,000."
+description: "Enchant dragonstone: A tablet containing a magic spell. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 8020
   name: Enchant dragonstone
@@ -12,9 +12,71 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Enchant dragonstone is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magic-tablet
+    tier: mid
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Info
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 68
+      xp: 58.5
+      materials:
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Earth rune
+          quantity: 15
+        - item_name: Water rune
+          quantity: 15
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Mahogany demon lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Required base material for the tablet
+    - item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: component
+      description: Enchant spell catalyst rune
+    - item_name: Dragonstone
+      slug: dragonstone
+      relationship: alternative
+      description: Cast the enchant directly on a dragonstone instead of breaking a tablet
+  about: "Enchant dragonstone is a Magic tablet that casts the Enchant Level 5 Jewellery spell when broken. Made at a Mahogany demon lectern in a Player-Owned House study with 68 Magic, it consumes 1 soft clay, 1 cosmic rune, 15 earth runes and 15 water runes per tablet, granting 58.5 Magic experience. Tablets let players run the enchant without carrying the full rune set, useful for goldsmiths producing dragonstone jewellery in bulk."
+  market_strategy:
+    notes:
+      - "Demand tied to dragonstone jewellery crafters"
+      - "Production usually runs at a small loss, so supply is thin"
+      - "Prices track cosmic rune fluctuations closely"
+  trading_tips:
+    - Buy during Magic / Construction events when supply rises
+    - Compare per-cast cost to raw rune cost before flipping
+    - High buy limit lets you accumulate quickly for jewellery flips
+  history:
+    - date: "2006-05-31"
+      description: "Added to the game alongside Mage Training Arena."
+    - date: "2017-10-12"
+      description: "Renamed from 'Enchant dragonstn.' to its full in-game name."
+    - date: "2018-03-01"
+      description: "Break option removed in favour of an Info right-click option."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -14,19 +14,39 @@ osrs:
   limit: 11000
   material:
     type: ammunition
-    tier: atlatl
+    tier: mid-high
+  equipment:
+    slot: ammo
+    weapon_type: thrown
+    attack_speed: 5
+    weight: 0
+    requirements:
+      ranged: 75
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   drop_table:
-    primary_source: Crafted / Lunar Chest
     sources:
       - source: Lunar Chest (Neypotzli)
-        quantity: 72-120
-        rarity: common
-        drop_rate: 6/30
-        members_only: true
-      - source: Crafting
+        quantity: "72-120"
+        rarity: 6/30
+      - source: Fletching
         quantity: "20"
         rarity: craftable
-        members_only: true
   recipes:
     - skill: fletching
       level: 74
@@ -36,10 +56,9 @@ osrs:
           quantity: 20
         - item_name: Atlatl dart tips
           quantity: 20
+      tools: []
+      output_quantity: 20
       product: Atlatl dart
-      product_id: 28991
-      product_quantity: 20
-      members_only: true
   related_items:
     - item_id: 29000
       item_name: Eclipse atlatl
@@ -49,28 +68,40 @@ osrs:
     - item_id: 29010
       item_name: Eclipse moon helm
       slug: eclipse-moon-helm
-      relationship: alternative
+      relationship: set-piece
       description: Part of Eclipse moon set
-  about: |-
-    Ammunition for the Eclipse atlatl weapon.
-
-    Unique Mechanic:
-    - Despite being ranged ammunition, damage is calculated using the player's melee strength bonus
-    - Cannot be used with toxic blowpipe
-    - Incompatible with Dizana's quiver
-
-    | Property | Value |
-    |----------|-------|
-    | Stackable | Yes |
-    | Tradeable | Yes |
-    | Members only | Yes |
+  about: "Members-only ammunition for the Eclipse atlatl; despite being ranged, damage scales off the player's melee strength bonus and cannot be used with the toxic blowpipe."
   market_strategy:
     notes:
-      - Required for Eclipse atlatl builds
+      - Required ammo for Eclipse atlatl builds
       - Consumed when attacking
-      - Craft or buy from GE
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Crafted at Fletching 74 from headless darts and dart tips
+      - Incompatible with toxic blowpipe and Dizana's quiver
+  trading_tips:
+    - Compare crafting cost vs GE buy
+    - Watch Lunar Chest popularity for supply
+  history:
+    - date: "2024-03-20"
+      description: Item released with Varlamore Part One.
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore Part One
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

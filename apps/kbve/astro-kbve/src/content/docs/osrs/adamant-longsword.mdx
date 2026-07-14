@@ -12,28 +12,70 @@ osrs:
   lowalch: 1280
   highalch: 1920
   limit: 125
+  properties:
+    release_date: "2001-01-04"
+    quest_item: false
+    destroy: Drop
+  material:
+    type: metal
+    tier: adamant
   equipment:
     slot: weapon
-    type: longsword
-    tradeable: true
+    weapon_type: longsword
+    attack_speed: 5
     weight: 2.041
-    requirements:
-      attack: 30
-    stats:
-      attack_stab: 20
-      attack_slash: 29
-      attack_crush: -2
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 31
+    attack_bonus:
+      stab: 20
+      slash: 29
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 31
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+    requirements:
+      attack: 30
+    degradable: false
+  recipes:
+    - skill: smithing
+      level: 76
+      xp: 125
+      item_name: Adamant longsword
+      tools:
+        - Hammer
+        - Anvil
+      materials:
+        - item_name: Adamantite bar
+          quantity: 2
+      product: Adamant longsword
+      product_id: 1301
+      product_quantity: 1
+      output_quantity: 1
+      members_only: false
+  drop_table:
+    primary_source: Smithing
+    sources:
+      - source: Smithing
+        quantity: "1"
+        rarity: craftable
+        members_only: false
+      - source: Varrock Swordshop
+        quantity: "1"
+        rarity: shop
+        members_only: false
+  shops:
+    - shop_name: Varrock Swordshop
+      location: Varrock
+      price: 3200
+      quantity: 2
   related_items:
     - item_id: 1303
       item_name: Rune longsword
@@ -45,8 +87,35 @@ osrs:
       slug: adamant-scimitar
       relationship: alternative
       description: Faster slash alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Attack slash | +29 |
+    | Strength | +31 |
+    | Requirement | 30 Attack |
+
+    - Free-to-play eligible
+    - 5-tick attack speed
+    - Adamant tier melee weapon
+
+    Solid mid-tier longsword:
+    - Used for training Attack at 30+
+    - Cheap and widely available
+    - Outclassed by rune at level 40
+  market_strategy:
+    notes:
+      - "Smithing at 76 yields 125 xp per longsword"
+      - "Common F2P training weapon"
+      - "Margins driven by adamantite bar prices"
+  trading_tips:
+    - Watch adamantite bar price spreads when smithing for profit
+    - GE limit 125 keeps flips small but consistent
+    - Demand spikes during F2P combat events
+  history:
+    - date: "2001-01-04"
+      description: "Released into the game."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -26,10 +26,11 @@ jobs:
 
         steps:
             - name: Checkout Code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
+                  lfs: false
 
             - name: Configure Git
               run: |
@@ -86,7 +87,9 @@ jobs:
             actions: write
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
+              with:
+                  lfs: false
 
             - name: Write alterations JSON
               uses: actions/github-script@v9
@@ -157,6 +160,34 @@ jobs:
 
                     # Suspenders: 0.0.0 or empty = not ready
                     is_newer "$local_v" "$pub_v"
+                  }
+
+                  # --- Version gate from a literal local version (unreal: MDX is the lever) ---
+                  check_version_value() {
+                    local local_v="$1" version_toml="$2"
+                    local pub_v="0.0.0" pub_flag="true"
+                    if [ -f "$version_toml" ]; then
+                      pub_flag=$(grep -m1 '^publish' "$version_toml" | sed 's/publish = //' | tr -d ' "' 2>/dev/null || echo "true")
+                    fi
+                    if [ "$pub_flag" = "false" ]; then echo "false"; return; fi
+                    if [ -f "$version_toml" ]; then
+                      pub_v=$(grep -m1 '^version' "$version_toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
+                    fi
+                    is_newer "$local_v" "$pub_v"
+                  }
+
+                  read_source_version() {
+                    local source_file="$1" v="0.0.0"
+                    if [ -f "$source_file" ]; then
+                      case "$source_file" in
+                        *.json)    v=$(jq -r '.version // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
+                        *.uplugin) v=$(jq -r '.VersionName // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
+                        *.mdx)     v=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$source_file" | head -1); [ -z "$v" ] && v="0.0.0" ;;
+                        *.csproj)  v=$(sed -n 's/.*<Version>\([^<]*\)<\/Version>.*/\1/p' "$source_file" | head -1); [ -z "$v" ] && v="0.0.0" ;;
+                        *)         v=$(grep -m1 '^version' "$source_file" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0") ;;
+                      esac
+                    fi
+                    echo "$v"
                   }
 
                   # --- Check if alteration key is true ---
@@ -411,32 +442,47 @@ jobs:
                     path=$(echo "$entry" | jq -r '.plugin_path')
                     deps=$(echo "$entry" | jq -r '.dependency_plugins // ""')
                     itch=$(echo "$entry" | jq -r '.itch_game_id // ""')
+                    tp=$(echo "$entry" | jq -r 'if (.supported_platforms // [] | length) > 0 then (.supported_platforms | join("+")) else "Linux" end')
+                    # Read the version LIVE from MDX (version_source) so a bare MDX
+                    # bump triggers without a manifest regen — same as game entries.
+                    src=$(echo "$entry" | jq -r '.version_source // empty')
+                    if [ -n "$src" ]; then
+                      mdx_version=$(read_source_version "$src")
+                    else
+                      mdx_version=$(echo "$entry" | jq -r '.version')
+                    fi
                     altered=$(is_altered "$key")
                     deploy_itch="false"
                     [ -n "$itch" ] && deploy_itch="true"
                     reason=""
                     if [ "$altered" = "true" ]; then
                       reason="files changed"
-                    elif [ "$(check_version "${path}/${name}.uplugin" "${path}/version.toml")" = "true" ]; then
+                    elif [ "$(check_version_value "$mdx_version" "${path}/version.toml")" = "true" ]; then
                       reason="unpublished version"
                     else
                       echo "  · $name — no changes, version published, skipping"
                       SKIPPED=$((SKIPPED + 1))
                       continue
                     fi
+
+                    # One dispatch per plugin version: the run fans out to all
+                    # declared platforms (Linux/Mac/Win64) and only cuts the
+                    # release when every one passes (gate lives in ci-unreal-build).
                     if [ "$(is_publish_running unreal "$name")" = "true" ]; then
                       echo "  · $name — already running ($reason), skipping duplicate"
                       SKIPPED=$((SKIPPED + 1))
-                      continue
+                    else
+                      echo "  ✓ $name ($tp) — $reason, dispatching"
+                      uconfig=$(jq -nc \
+                        --arg pp "$path" --arg itch "$itch" --arg deps "$deps" --arg tp "$tp" \
+                        --argjson di "$deploy_itch" \
+                        '{plugin_path:$pp, image_tags:["dev-5.8.0"], deploy_to_itch:$di, itch_game_id:$itch, dependency_plugins:$deps, target_platforms:$tp, skip_version_update:false}')
+                      dispatch_publish unreal \
+                        --field package_name="$name" \
+                        --field manifest_version="$mdx_version" \
+                        --field unreal_config="$uconfig"
+                      DISPATCHED=$((DISPATCHED + 1))
                     fi
-                    echo "  ✓ $name — $reason, dispatching"
-                    dispatch_publish unreal \
-                      --field package_name="$name" \
-                      --field unreal_plugin_path="$path" \
-                      --field deploy_to_itch="$deploy_itch" \
-                      --field itch_game_id="$itch" \
-                      --field unreal_dependency_plugins="$deps"
-                    DISPATCHED=$((DISPATCHED + 1))
                   done < <(jq -c '.unreal[]' "$MANIFEST")
 
                   # =================================================================
@@ -446,14 +492,19 @@ jobs:
                   # =================================================================
                   dispatch_game_engine() {
                     local pipeline="$1"; local workflow="$2"; local entry="$3"
-                    local key app src vtoml ver vtgt run has_test
+                    local key app src vtoml ver sv vtgt run has_test shell_path
                     local engine_version proj_path build_targets features dotnet ext_repo lic
                     local itch_user itch_game itch_chan deploy_itch
                     key=$(echo "$entry" | jq -r '.key')
+                    shell_path=$(echo "$entry" | jq -r '.shell_path // empty')
                     app=$(echo "$entry" | jq -r '.app_name')
                     src=$(echo "$entry" | jq -r '.version_source // empty')
                     vtoml=$(echo "$entry" | jq -r '.version_toml // empty')
                     ver=$(echo "$entry" | jq -r '.version // empty')
+                    if [ -n "$src" ]; then
+                      sv=$(read_source_version "$src")
+                      [ -n "$sv" ] && [ "$sv" != "0.0.0" ] && ver="$sv"
+                    fi
                     vtgt=$(echo "$entry" | jq -r '.version_target // empty')
                     run=$(echo "$entry" | jq -r '.runner // empty')
                     has_test=$(echo "$entry" | jq -r '.has_test // empty')
@@ -464,8 +515,15 @@ jobs:
                     dotnet=$(echo "$entry" | jq -r '.engine.dotnet_enabled // false')
                     lic=$(echo "$entry" | jq -r '.engine.license_method // empty')
                     ext_repo=$(echo "$entry" | jq -r '.engine.external_repo_url // empty')
+                    ext_ref=$(echo "$entry" | jq -r '.engine.external_repo_ref // empty')
+                    srv_target=$(echo "$entry" | jq -r '.engine.server_target // empty')
+                    srv_config=$(echo "$entry" | jq -r '.engine.server_config // empty')
+                    cli_config=$(echo "$entry" | jq -r '.engine.client_config // empty')
+                    game_mode=$(echo "$entry" | jq -r '.engine.game_mode // empty')
+                    maps=$(echo "$entry" | jq -c '.engine.maps // []')
                     itch_user=$(echo "$entry" | jq -r '.external_publish.itch_user // empty')
                     itch_game=$(echo "$entry" | jq -r '.external_publish.itch_game // empty')
+                    itch_chan=$(echo "$entry" | jq -r '.external_publish.itch_channel // empty')
                     deploy_itch="false"
                     [ -n "$itch_user" ] && [ -n "$itch_game" ] && deploy_itch="true"
 
@@ -488,30 +546,41 @@ jobs:
                     fi
                     echo "  ✓ $app — $reason, dispatching ($pipeline)"
 
-                    local extra=""
-                    [ -n "$src" ] && extra="$extra --field version_source=${src}"
-                    [ -n "$vtoml" ] && extra="$extra --field version_toml=${vtoml}"
-                    [ -n "$ver" ] && extra="$extra --field manifest_version=${ver}"
-                    [ -n "$vtgt" ] && extra="$extra --field version_target=${vtgt}"
-                    [ -n "$proj_path" ] && extra="$extra --field project_path=${proj_path}"
-                    [ -n "$engine_version" ] && extra="$extra --field engine_version=${engine_version}"
-                    extra="$extra --field build_targets=${build_targets}"
-                    [ "$features" != "[]" ] && extra="$extra --field features=${features}"
-                    [ -n "$lic" ] && extra="$extra --field license_method=${lic}"
-                    [ -n "$ext_repo" ] && extra="$extra --field external_repo_url=${ext_repo}"
-                    [ "$dotnet" = "true" ] && extra="$extra --field dotnet_enabled=true"
-                    extra="$extra --field deploy_to_itch=${deploy_itch}"
-                    [ -n "$itch_user" ] && extra="$extra --field itch_user=${itch_user}"
-                    [ -n "$itch_game" ] && extra="$extra --field itch_game=${itch_game}"
-                    extra="$extra --field deploy_to_steam=${deploy_steam}"
-                    [ "$steam_apps" != "[]" ] && extra="$extra --field steam_apps=${steam_apps}"
+                    # Collapse per-game fields into JSON blobs so ci-unreal's
+                    # workflow_dispatch stays under GitHub's 10-input cap; the
+                    # engine workflow fromJSON-forwards into ci-unreal-build
+                    # (workflow_call, no cap). ci-unity/ci-godot still expect the
+                    # legacy per-field inputs — convert them before they get entries.
+                    local engine_json version_json publish_json
+                    engine_json=$(echo "$entry" | jq -c --arg app "$app" --arg sp "$shell_path" \
+                      '(.engine // {}) + {app_name:$app, shell_path:$sp, build_targets:(.engine.build_targets // []), maps:(.engine.maps // [])}')
+                    version_json=$(jq -nc --arg s "$src" --arg t "$vtoml" --arg m "$ver" \
+                      '{source:$s, toml:$t, manifest:$m}')
+                    publish_json=$(jq -nc --argjson d "$deploy_itch" --arg u "$itch_user" --arg g "$itch_game" --arg c "$itch_chan" \
+                      '{deploy_to_itch:$d, itch_user:$u, itch_game:$g, itch_channel:$c}')
 
                     gh workflow run "$workflow" --repo "$REPO" --ref main \
                       --field key="$key" \
-                      --field app_name="$app" \
                       --field dispatched_at="$DISPATCHED_AT" \
-                      $extra
+                      --field engine="$engine_json" \
+                      --field version="$version_json" \
+                      --field publish="$publish_json"
                     DISPATCHED=$((DISPATCHED + 1))
+
+                    # Bundled dedicated server: an unreal_game entry carrying a
+                    # shell_path also ships a UE5 dedicated server off the SAME
+                    # version gate (1:1 with the client). shell_path rides inside
+                    # the engine blob; build.toml supplies repo / target / UE image.
+                    if [ "$pipeline" = "unreal_game" ] && [ -n "$shell_path" ]; then
+                      echo "  ✓ $app — bundled dedicated server, dispatching (ue5_server)"
+                      gh workflow run ci-unreal.yml --repo "$REPO" --ref main \
+                        --field task=server \
+                        --field key="$key" \
+                        --field dispatched_at="$DISPATCHED_AT" \
+                        --field engine="$engine_json" \
+                        --field version="$version_json"
+                      DISPATCHED=$((DISPATCHED + 1))
+                    fi
                   }
 
                   echo "=== Unity ==="
@@ -526,8 +595,13 @@ jobs:
 
                   echo "=== Unreal Game ==="
                   while IFS= read -r entry; do
-                    dispatch_game_engine unreal_game ci-unreal-game.yml "$entry"
+                    dispatch_game_engine unreal_game ci-unreal.yml "$entry"
                   done < <(jq -c '.unreal_game[]? // empty' "$MANIFEST")
+
+                  echo "=== Vite Game ==="
+                  while IFS= read -r entry; do
+                    dispatch_game_engine vite_game ci-vite-game.yml "$entry"
+                  done < <(jq -c '.vite_game[]? // empty' "$MANIFEST")
 
                   echo ""
                   echo "=== Summary: ${DISPATCHED} dispatched, ${SKIPPED} skipped ==="

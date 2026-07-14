@@ -12,59 +12,63 @@ osrs:
   lowalch: 1560
   highalch: 2340
   limit: 125
+  material:
+    type: dragonhide
+    tier: mid
   equipment:
     slot: legs
-    type: ranged_armour
-    ranged_requirement: 40
-    defence_requirement: 0
-  attack_bonuses:
-    ranged: 8
-  defence_bonuses:
-    ranged: 22
-    magic: 14
-  crafting:
-    level: 60
-    xp: 124
+    weapon_type: na
+    weight: 5.443
+    requirements:
+      ranged: 40
+    attack_bonus:
+      ranged: 8
+    defence_bonus:
+      stab: 12
+      slash: 15
+      crush: 18
+      magic: -10
+      ranged: 17
+    other_bonus:
+      ranged_strength: 0
   recipes:
     - skill: crafting
       level: 60
       xp: 124
       materials:
         - item_name: Green dragon leather
-          item_id: 1745
           quantity: 2
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Green d'hide chaps
-      product_id: 1099
-      product_quantity: 1
+      tools:
+        - Needle
+      output_quantity: 1
       facility: Needle and thread
+  shops:
+    - shop_name: "Scavvo's Rune Store"
+      location: "Champions' Guild"
+    - shop_name: "Seddu's Adventurer's Store"
+      location: Nardah
   related_items:
-    - item_id: 1753
-      item_name: Green dragonhide
+    - item_name: Green dragonhide
       slug: green-dragonhide
       relationship: component
       description: Raw material
-    - item_id: 1745
-      item_name: Green dragon leather
+    - item_name: Green dragon leather
       slug: green-dragon-leather
       relationship: component
       description: Tanned hide
-    - item_id: 1135
-      item_name: Green d'hide body
+    - item_name: Green d'hide body
       slug: green-dhide-body
-      relationship: alternative
+      relationship: set-piece
       description: Matching body
-    - item_id: 1065
-      item_name: Green d'hide vambraces
+    - item_name: Green d'hide vambraces
       slug: green-dhide-vambraces
-      relationship: alternative
+      relationship: set-piece
       description: Matching gloves
-    - item_id: 2493
-      item_name: Blue d'hide chaps
+    - item_name: Blue d'hide chaps
       slug: blue-dhide-chaps
-      relationship: alternative
+      relationship: upgrade
       description: Higher tier chaps
   about: |-
     | Method | Level | Materials |
@@ -77,8 +81,8 @@ osrs:
     | Ranged requirement | 40 |
     | Defence requirement | None |
     | Ranged attack | +8 |
-    | Ranged defence | +22 |
-    | Magic defence | +14 |
+    | Ranged defence | +17 |
+    | Magic defence | -10 |
   market_strategy:
     notes:
       - First dragonhide leg tier
@@ -91,8 +95,28 @@ osrs:
       - 2 leather per chaps
       - Lower crafting level than body
       - Good XP per leather
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2004-03-29"
+      description: "Released with the RuneScape 2 launch."
+  properties:
+    release_date: "2004-03-29"
+    update: RuneScape 2 Launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

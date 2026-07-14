@@ -177,3 +177,60 @@ FGitRepoService::FGitResult FGitRepoService::GetRepoStatus(const FString& LocalP
 	Result.LocalPath = LocalPath;
 	return Result;
 }
+
+FGitRepoService::FGitResult FGitRepoService::GetRemoteHeadSha(const FString& RepoUrl, const FString& Branch, FString& OutSha)
+{
+	FGitResult Result;
+
+	auto RepoUrlUtf8 = StringCast<UTF8CHAR>(*RepoUrl);
+
+	git_remote* Remote = nullptr;
+	int32 Err = git_remote_create_detached(&Remote, (const char*)RepoUrlUtf8.Get());
+	if (Err != 0)
+	{
+		return MakeError(Err);
+	}
+
+	Err = git_remote_connect(Remote, GIT_DIRECTION_FETCH, nullptr, nullptr, nullptr);
+	if (Err != 0)
+	{
+		git_remote_free(Remote);
+		return MakeError(Err);
+	}
+
+	const git_remote_head** Heads = nullptr;
+	size_t Count = 0;
+	Err = git_remote_ls(&Heads, &Count, Remote);
+	if (Err != 0)
+	{
+		git_remote_disconnect(Remote);
+		git_remote_free(Remote);
+		return MakeError(Err);
+	}
+
+	const FString WantRef = FString::Printf(TEXT("refs/heads/%s"), *Branch);
+	for (size_t i = 0; i < Count; ++i)
+	{
+		if (WantRef == UTF8_TO_TCHAR(Heads[i]->name))
+		{
+			char ShaBuf[GIT_OID_SHA1_HEXSIZE + 1];
+			git_oid_tostr(ShaBuf, sizeof(ShaBuf), &Heads[i]->oid);
+			OutSha = UTF8_TO_TCHAR(ShaBuf);
+			Result.bSuccess = true;
+			break;
+		}
+	}
+
+	git_remote_disconnect(Remote);
+	git_remote_free(Remote);
+
+	if (!Result.bSuccess)
+	{
+		Result.ErrorMessage = FString::Printf(TEXT("Branch '%s' not found on remote %s"), *Branch, *RepoUrl);
+		UE_LOG(LogTemp, Error, TEXT("[KBVELibGit] %s"), *Result.ErrorMessage);
+		return Result;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[KBVELibGit] Remote HEAD %s @ %s = %s"), *RepoUrl, *Branch, *OutSha);
+	return Result;
+}

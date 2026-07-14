@@ -1,5 +1,6 @@
 ---
 title: Phantom Membrane
+template: splash
 description: |
     Minecraft Phantom Membrane — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 808
     ref: phantom_membrane
     slug: phantom-membrane
+    content_rev: 1
     display_name: Phantom Membrane
     category: brewing
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Phantom Membrane is a brewing and repair item dropped by phantoms. It can be combined
+            with an awkward potion to brew a Potion of Slow Falling, or used in an anvil to repair
+            an elytra, restoring 108 durability points (25% of its total durability) while
+            preserving existing enchantments.
+        lore: |
+            A leathery scrap torn from a sky-borne nightmare, prized by anyone patching up a
+            damaged pair of wings.
+    faq:
+        - question: |
+              How do I obtain Phantom Membrane?
+          answer: |
+              Killing a phantom has a base 50% chance to drop 0-1 membranes, boosted by the
+              Looting enchantment. Tamed cats can also occasionally bring one as a sleeping gift.
+        - question: |
+              How much elytra durability does one membrane restore?
+          answer: |
+              Using a membrane in an anvil to repair an elytra restores 108 durability points,
+              about 25% of the elytra's total durability, while keeping its enchantments intact.
+        - question: |
+              What potion is Phantom Membrane used to brew?
+          answer: |
+              It is brewed with an awkward potion to create a Potion of Slow Falling.
+        - question: |
+              When was Phantom Membrane added to the game?
+          answer: |
+              It was introduced in Java Edition 18w14a as part of the 1.13 update, and in Bedrock
+              Edition beta 1.6.0.5.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

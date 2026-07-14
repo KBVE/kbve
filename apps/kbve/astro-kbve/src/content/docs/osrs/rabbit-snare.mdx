@@ -12,12 +12,74 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 250
-  about: "Rabbit snare is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: hunter-tool
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Lay
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Aleck's Hunter Emporium
+      location: Yanille
+      price: 18
+      currency: Coins
+      stock: 10
+    - shop_name: Nardah Hunter Shop
+      location: Nardah
+      price: 18
+      currency: Coins
+      stock: 10
+    - shop_name: Imia's Supplies
+      location: Hunter Guild
+      price: 18
+      currency: Coins
+      stock: 10
+    - shop_name: Elder Strom's Hunting Stall
+      location: Feldip Hills
+      price: 18
+      currency: Coins
+      stock: 10
+  related_items:
+    - item_name: Ferret
+      slug: ferret
+      relationship: component
+      description: Used to flush rabbits into the snare
+    - item_name: Rabbit foot
+      slug: rabbit-foot
+      relationship: product
+      description: Rare drop while snaring rabbits
+  about: "Rabbit snare is a Hunter tool used to catch white rabbits at level 27 Hunter. Players must complete Eagles' Peak to use the snare. Set on a rabbit path and use a ferret to flush rabbits for 144 Hunter XP per catch."
+  market_strategy:
+    notes:
+      - "Cheaper to buy from Hunter shops than the Grand Exchange in some cases"
+      - "Bulk-purchase target for ironmen training Hunter"
+      - "Now stackable so easy to carry in volume"
+  trading_tips:
+    - Compare shop price vs GE price before buying
+    - Stackable status from 2025 makes long Hunter trips more efficient
+  history:
+    - date: "2006-11-21"
+      description: "Added to the game with the release of the Hunter skill."
+    - date: "2025-08-20"
+      description: "Rabbit snare became stackable."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

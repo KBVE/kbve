@@ -1,4 +1,6 @@
 import { Scene } from 'phaser';
+import { getZone } from '../data/zones';
+import { ATLAS_URL, TILE_SIZE } from '../data/itemAtlas.generated';
 
 export class PreloaderScene extends Scene {
 	constructor() {
@@ -30,17 +32,14 @@ export class PreloaderScene extends Scene {
 			loadingText.destroy();
 		});
 
-		this.load.image('cloud-city-tiles', '/assets/map/cloud_tileset.png');
-		this.load.tilemapTiledJSON(
-			'cloud-city-map-large',
-			'/assets/map/cloud_city_large.json',
-		);
+		const zone = getZone();
+		this.load.image(zone.tilesetKey, zone.tilesetUrl);
+		this.load.json(zone.tilemapKey, zone.tilemapUrl);
 
-		this.load.spritesheet(
-			'player',
-			'https://kbve.com/assets/img/fishchip/chip_charactersheet_warmer.png',
-			{ frameWidth: 52, frameHeight: 72 },
-		);
+		this.load.spritesheet('player', '/assets/entity/charactersheet.png', {
+			frameWidth: 52,
+			frameHeight: 72,
+		});
 
 		this.load.spritesheet('monks', '/assets/entity/monks.png', {
 			frameWidth: 52,
@@ -52,9 +51,35 @@ export class PreloaderScene extends Scene {
 			'/assets/monster/bird_original.png',
 			{ frameWidth: 61, frameHeight: 57 },
 		);
+
+		this.load.spritesheet(
+			'monster_bird_grey',
+			'/assets/monster/bird_grey.png',
+			{ frameWidth: 61, frameHeight: 57 },
+		);
+
+		this.load.image('casino_table', '/assets/map/casino_table@2x.png');
+
+		// itemdb sprite atlas (slot index == item key); frame N == atlas cell N.
+		this.load.spritesheet('items-atlas', ATLAS_URL, {
+			frameWidth: TILE_SIZE,
+			frameHeight: TILE_SIZE,
+		});
 	}
 
 	create() {
+		const params = new URLSearchParams(
+			typeof window !== 'undefined' ? window.location.search : '',
+		);
+		const zone = params.get('zone');
+		if (zone === 'town' || zone === 'dungeon') {
+			const seed = Number(params.get('seed'));
+			this.scene.start('ProceduralZone', {
+				zone,
+				seed: Number.isFinite(seed) && seed > 0 ? seed : undefined,
+			});
+			return;
+		}
 		this.scene.start('CloudCity');
 	}
 }

@@ -9,12 +9,67 @@ osrs:
   members: true
   icon: Salve graveyard teleport (tablet).png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 10000
-  about: "Salve graveyard teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: River Salve graveyard (near Mort Myre Swamp entrance)
+    requirements:
+      quest: Priest in Peril
+  recipes:
+    - materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 1
+        - item_name: Soul rune
+          quantity: 2
+        - item_name: Dark essence block
+          quantity: 1
+      tools:
+        - Arceuus lectern
+      output_quantity: 1
+      output_item: Salve graveyard teleport (tablet)
+      requirements:
+        magic: 40
+        xp: 30
+  related_items:
+    - item_name: Salve graveyard teleport
+      relationship: alternative
+      description: Spell version cast directly from the Arceuus spellbook
+    - item_name: Dark essence block
+      relationship: component
+      description: Essence material consumed when imbuing the tablet
+  about: "Salve graveyard teleport (tablet) is a one-click teleport tablet to the River Salve graveyard, made at an Arceuus lectern."
+  market_strategy:
+    notes:
+      - Steady consumption from Barrows runners and Morytania task players.
+      - Profit margin floats with soul rune and dark essence block prices.
+  trading_tips:
+    - Crafters should watch soul rune dips to stack tablets cheaply.
+    - Flippers can lean on the 10,000 buy limit for high-volume churn.
+  history:
+    - date: "2016-05-12"
+      description: Released alongside the Arceuus teleport tablets (Necromancy Teleport Tablets update).
+  properties:
+    release_date: "2016-05-12"
+    update: Necromancy Teleport Tablets
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Priest in Peril
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

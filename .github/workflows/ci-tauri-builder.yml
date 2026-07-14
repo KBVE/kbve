@@ -1,0 +1,547 @@
+name: CI Tauri Builder
+
+on:
+    workflow_call:
+        inputs:
+            project:
+                description: 'Nx project name'
+                required: true
+                type: string
+            project_path:
+                description: 'Path to the Tauri app (e.g., apps/kbve/isometric)'
+                required: true
+                type: string
+            app_name:
+                description: 'Application name for artifact naming'
+                required: true
+                type: string
+            linux_runner:
+                description: 'Runner for Linux builds (default: arc-runner-set for persistent cache)'
+                required: false
+                type: string
+                default: 'arc-runner-set'
+            notarize:
+                description: 'Sign + notarize the macOS build (requires APPLE_* secrets via secrets: inherit)'
+                required: false
+                type: boolean
+                default: false
+            platforms:
+                description: 'Comma list of targets to build: linux,macos,windows,wasm'
+                required: false
+                type: string
+                default: 'linux,macos,windows,wasm'
+
+jobs:
+    # --- Fork guard for self-hosted runners ---
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v9
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo} cannot use self-hosted runners`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    # --- Linux build on self-hosted runner (persistent Cargo cache) ---
+    build-linux:
+        name: Build Linux
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true' && contains(inputs.platforms, 'linux')
+        runs-on: ${{ inputs.linux_runner }}
+        timeout-minutes: 120
+        permissions:
+            contents: read
+
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Tauri Linux build: actor=${{ github.actor }}, ref=${{ github.ref }}, runner=${{ inputs.linux_runner }}"
+
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Install Linux system dependencies
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends \
+                    build-essential \
+                    pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev \
+                    libayatana-appindicator3-dev libxdo-dev \
+                    libasound2-dev libudev-dev libvulkan-dev
+
+            - name: Setup Rust (stable)
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: wasm32-unknown-unknown
+
+            - name: Setup Rust (nightly for -Z build-std WASM)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: wasm32-unknown-unknown
+                  components: rust-src
+
+            - name: Setup Cargo Cache
+              uses: actions/cache@v6
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                  key: ${{ runner.os }}-cargo-tauri-${{ hashFiles('**/Cargo.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-cargo-tauri-
+                      ${{ runner.os }}-cargo-
+
+            - name: Install wasm-pack
+              run: cargo install wasm-pack --locked
+
+            - name: Install tauri-cli
+              run: cargo install tauri-cli --locked
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install project-local npm dependencies
+              working-directory: ${{ inputs.project_path }}
+              run: npm install
+
+            - name: Build Tauri App
+              shell: bash
+              working-directory: ${{ inputs.project_path }}
+              run: cargo tauri build
+              env:
+                  CI: true
+                  APPIMAGE_EXTRACT_AND_RUN: '1'
+
+            - name: Upload Linux artifacts
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-linux
+                  path: |
+                      dist/target/release/bundle/deb/*.deb
+                      dist/target/release/bundle/appimage/*.AppImage
+                  if-no-files-found: warn
+                  retention-days: 14
+
+            - name: Create test marker
+              if: success()
+              run: echo "${{ inputs.app_name }}" > test-result.txt
+
+            - name: Upload test marker
+              if: success()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: test-passed-tauri-${{ inputs.app_name }}-linux
+                  path: test-result.txt
+                  retention-days: 1
+
+            - name: Cleanup workspace
+              if: always()
+              run: rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
+
+    # --- macOS build on GitHub-hosted runner ---
+    build-macos:
+        name: Build macOS
+        if: contains(inputs.platforms, 'macos')
+        runs-on: macos-latest
+        timeout-minutes: 120
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Rust (stable)
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: wasm32-unknown-unknown
+
+            - name: Setup Rust (nightly for -Z build-std WASM)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: wasm32-unknown-unknown
+                  components: rust-src
+
+            - name: Rust Cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  cache-on-failure: true
+
+            - name: Install wasm-pack
+              run: cargo install wasm-pack --locked
+
+            - name: Install tauri-cli
+              run: cargo install tauri-cli --locked
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              shell: bash
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install project-local npm dependencies
+              working-directory: ${{ inputs.project_path }}
+              run: npm install
+
+            - name: Build Tauri App
+              shell: bash
+              working-directory: ${{ inputs.project_path }}
+              run: cargo tauri build
+              env:
+                  CI: true
+                  APPLE_CERTIFICATE: ${{ inputs.notarize && secrets.APPLE_CERTIFICATE || '' }}
+                  APPLE_CERTIFICATE_PASSWORD: ${{ inputs.notarize && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
+                  APPLE_SIGNING_IDENTITY: ${{ inputs.notarize && secrets.APPLE_SIGNING_IDENTITY || '' }}
+                  APPLE_ID: ${{ inputs.notarize && secrets.APPLE_ID || '' }}
+                  APPLE_PASSWORD: ${{ inputs.notarize && secrets.APPLE_PASSWORD || '' }}
+                  APPLE_TEAM_ID: ${{ inputs.notarize && secrets.APPLE_TEAM_ID || '' }}
+
+            - name: Upload macOS artifacts
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-macos
+                  path: |
+                      dist/target/release/bundle/dmg/*.dmg
+                      dist/target/release/bundle/macos/*.app
+                  if-no-files-found: warn
+                  retention-days: 14
+
+            - name: Create test marker
+              if: success()
+              shell: bash
+              run: echo "${{ inputs.app_name }}" > test-result.txt
+
+            - name: Upload test marker
+              if: success()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: test-passed-tauri-${{ inputs.app_name }}-macos
+                  path: test-result.txt
+                  retention-days: 1
+
+    # --- Windows build on GitHub-hosted runner ---
+    build-windows:
+        name: Build Windows
+        if: contains(inputs.platforms, 'windows')
+        runs-on: windows-latest
+        timeout-minutes: 120
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Rust (stable)
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: wasm32-unknown-unknown
+
+            - name: Setup Rust (nightly for -Z build-std WASM)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: wasm32-unknown-unknown
+                  components: rust-src
+
+            - name: Rust Cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  cache-on-failure: true
+
+            - name: Install wasm-pack
+              run: cargo install wasm-pack --locked
+
+            - name: Install tauri-cli
+              run: cargo install tauri-cli --locked
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              shell: bash
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install project-local npm dependencies
+              working-directory: ${{ inputs.project_path }}
+              run: npm install
+
+            - name: Build Tauri App
+              shell: bash
+              working-directory: ${{ inputs.project_path }}
+              run: cargo tauri build
+              env:
+                  CI: true
+
+            - name: Upload Windows artifacts
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-windows
+                  path: |
+                      dist/target/release/bundle/msi/*.msi
+                      dist/target/release/bundle/nsis/*.exe
+                  if-no-files-found: warn
+                  retention-days: 14
+
+            - name: Create test marker
+              if: success()
+              shell: bash
+              run: echo "${{ inputs.app_name }}" > test-result.txt
+
+            - name: Upload test marker
+              if: success()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: test-passed-tauri-${{ inputs.app_name }}-windows
+                  path: test-result.txt
+                  retention-days: 1
+
+    # --- WASM build ---
+    build-wasm:
+        name: Build WASM
+        if: contains(inputs.platforms, 'wasm')
+        runs-on: ubuntu-latest
+        timeout-minutes: 120
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Rust (nightly for -Z build-std + atomics)
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: wasm32-unknown-unknown
+                  components: rust-src
+
+            - name: Rust Cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  cache-on-failure: true
+
+            - name: Install wasm-pack
+              run: cargo install wasm-pack --locked
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install project-local npm dependencies
+              working-directory: ${{ inputs.project_path }}
+              run: npm install
+
+            - name: Build WASM + Frontend
+              working-directory: ${{ inputs.project_path }}
+              run: pnpm build
+              env:
+                  CI: true
+
+            - name: Upload WASM artifacts
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-wasm
+                  path: ${{ inputs.project_path }}/dist/
+                  if-no-files-found: warn
+                  retention-days: 14
+
+            - name: Create test marker
+              if: success()
+              run: echo "${{ inputs.app_name }}" > test-result.txt
+
+            - name: Upload test marker
+              if: success()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: test-passed-tauri-${{ inputs.app_name }}-wasm
+                  path: test-result.txt
+                  retention-days: 1
+
+    # --- Auto-deploy WASM build to astro-kbve and PR to dev ---
+    deploy-wasm:
+        name: Deploy WASM to Astro
+        needs: build-wasm
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout dev
+              uses: actions/checkout@v7
+              with:
+                  ref: dev
+                  fetch-depth: 1
+
+            - name: Download WASM artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.app_name }}-wasm
+                  path: wasm-dist
+
+            - name: Copy WASM assets into astro-kbve
+              run: |
+                  DEPLOY_DIR="apps/kbve/astro-kbve/public/${{ inputs.project }}"
+                  rm -rf "$DEPLOY_DIR"
+                  mkdir -p "$DEPLOY_DIR"
+                  cp -r wasm-dist/* "$DEPLOY_DIR/"
+                  rm -rf wasm-dist
+
+            - name: Check for changes
+              id: diff
+              run: |
+                  if git diff --quiet; then
+                    echo "changed=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "changed=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Create deploy branch and PR
+              if: steps.diff.outputs.changed == 'true'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  BRANCH="deploy/${{ inputs.app_name }}-wasm-$(date +%s)"
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "$BRANCH"
+                  git add -A
+                  git commit -m "deploy(${{ inputs.project }}): update WASM build assets"
+                  git push -u origin "$BRANCH"
+                  gh pr create \
+                    --base dev \
+                    --head "$BRANCH" \
+                    --title "deploy(${{ inputs.project }}): update WASM build" \
+                    --body "Automated deployment of ${{ inputs.app_name }} WASM build assets into astro-kbve.
+
+                  Built from commit ${{ github.sha }} on branch ${{ github.ref_name }}."

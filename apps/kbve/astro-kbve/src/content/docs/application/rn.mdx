@@ -1,0 +1,236 @@
+---
+title: React Native
+description: |
+    React Native is Meta's open-source framework for building native mobile apps for iOS and Android from a
+    single React + JavaScript/TypeScript codebase. This guide covers core concepts, the @kbve/rn shared
+    component package, running the app, and rendering the same components on the web via react-native-web.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+sidebar:
+    label: React Native
+    order: 476
+unsplash: 1633356122544-f134324a6cee
+img: https://images.unsplash.com/photo-1633356122544-f134324a6cee?fit=crop&w=1400&h=700&q=75
+tags:
+    - react-native
+    - mobile
+    - cross-platform
+sem: 1
+ogTitle: React Native Guide — Build iOS & Android Apps + Web with @kbve/rn
+ogDescription: Learn React Native, Meta's framework for native iOS and Android apps from one React codebase — core primitives, the @kbve/rn shared package, running with Expo, and rendering the same components on the web via react-native-web.
+jsonld:
+    type: Article
+    keywords:
+        - react native
+        - react-native-web
+        - expo
+        - cross-platform mobile
+        - ios android app
+        - kbve rn
+    faq:
+        - question: What is React Native?
+          answer: React Native is Meta's open-source framework for building native mobile apps for iOS and Android from a single React and JavaScript/TypeScript codebase. Instead of rendering to the DOM, it maps components like View and Text to real native platform widgets, so the UI is genuinely native rather than a web view.
+        - question: What is the difference between React and React Native?
+          answer: React renders to the DOM for the web using HTML elements like div and span. React Native uses the same component model and hooks but renders to native platform views (View, Text, Image) on iOS and Android. Logic and patterns transfer; the primitives and styling (StyleSheet, flexbox-only layout) differ.
+        - question: What is react-native-web?
+          answer: react-native-web maps React Native primitives — View, Text, Pressable, StyleSheet — to their DOM equivalents so the same React Native component code also renders in a browser. It lets a single component codebase target iOS, Android, and the web, and is the foundation of Expo's web support.
+        - question: What is Expo?
+          answer: Expo is a framework and toolchain on top of React Native that streamlines building, running, and shipping apps. It provides a managed workflow, a large set of device APIs, over-the-air updates, and a web target via react-native-web, so you can run on a device in seconds without native build setup.
+        - question: What is the @kbve/rn package?
+          answer: The @kbve/rn package is KBVE's shared React Native component package. Its View, Text, Pressable, and StyleSheet-based primitives render in the native app and, via react-native-web, inside these docs as an Astro island — so a UI component is written and styled once and reused across mobile and web.
+bento:
+    badge: application · mobile · cross-platform
+    title: 'Native apps from one codebase,'
+    accent: React Native.
+    lede: >-
+        Meta's open-source framework for building genuinely native iOS and
+        Android apps from a single React + TypeScript codebase — and, through
+        react-native-web, the same components on the web. This guide covers
+        the core primitives, KBVE's shared @kbve/rn package, running the app
+        with Expo, and a live web island demo.
+    ctas:
+        - label: Core concepts
+          href: '#concepts'
+          primary: true
+        - label: '@kbve/rn package'
+          href: '#kbve-rn'
+        - label: Run the app
+          href: '#running'
+        - label: Web demo
+          href: '#web'
+    aside:
+        icon: package
+        title: Write once, render everywhere
+        body: >-
+            React Native maps View and Text to real platform widgets instead
+            of the DOM — and react-native-web maps them back, so one component
+            codebase serves mobile apps and these very docs.
+        points:
+            - <strong>Primitives</strong> — View, Text, Pressable, StyleSheet.
+            - <strong>Expo</strong> — managed toolchain, device APIs, Fast Refresh.
+            - <strong>@kbve/rn</strong> — shared components across app and docs.
+    stats:
+        - { label: Maintainer, value: Meta, icon: crown }
+        - { label: Toolchain, value: Expo, icon: zap }
+        - { label: Web target, value: react-native-web, icon: network }
+        - { label: Language, value: TypeScript, icon: code }
+    features:
+        - title: Concepts
+          icon: book
+          href: '#concepts'
+          body: The native primitives and how they map to the web — View, Text, Image, Pressable, and flexbox-only StyleSheet layout.
+        - title: '@kbve/rn'
+          icon: package
+          href: '#kbve-rn'
+          body: KBVE's shared component package — write and style a UI component once, reuse it across mobile and web.
+        - title: Running
+          icon: zap
+          href: '#running'
+          body: Create and run an app with Expo — dev server, Expo Go, simulators, and Fast Refresh in seconds.
+        - title: Web
+          icon: network
+          href: '#web'
+          body: The same @kbve/rn component the native app renders, hydrated here as a client-only Astro island.
+    related:
+        - title: Android
+          href: /application/android/
+          copy: The platform half of your React Native builds and emulators.
+          icon: gears
+        - title: iOS
+          href: /application/ios/
+          copy: Simulators, signing, and shipping the Apple side of the app.
+          icon: box
+        - title: JavaScript
+          href: /application/javascript/
+          copy: The language and ecosystem underneath React and React Native.
+          icon: code
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+import RnWebDemo from '@/components/rnweb/AstroRnWebDemo.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
+
+**React Native** is Meta's open-source framework for building **native** iOS and Android apps from a single **React** codebase in JavaScript or TypeScript. Instead of rendering to the DOM, React Native maps components like `View` and `Text` to real platform widgets — so the result is a genuinely native app, not a web view.
+
+The same component model then stretches to the **web** through [react-native-web](#web), letting one codebase target mobile and browser.
+
+This guide covers [core concepts](#concepts), the [@kbve/rn package](#kbve-rn), [running the app](#running), and the [web island demo](#web).
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="concepts" eyebrow="Native primitives" heading="Concepts">
+
+React Native keeps React's component model, hooks, and JSX, but swaps DOM elements for native primitives:
+
+| Primitive | Web equivalent | Purpose |
+| --------- | -------------- | ------- |
+| `View` | `<div>` | Layout container |
+| `Text` | `<span>` / `<p>` | All text must live in a `Text` |
+| `Image` | `<img>` | Images |
+| `Pressable` / `TouchableOpacity` | `<button>` | Touch handling |
+| `ScrollView` / `FlatList` | scroll container | Scrolling / virtualized lists |
+| `StyleSheet` | CSS | Styling via JS objects |
+
+<Aside type="note">
+Layout is **flexbox only** and `flexDirection` defaults to `column` (not `row` like the web). There is no cascade — styles are explicit per component via `StyleSheet.create`.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="kbve-rn" eyebrow="Shared components" heading="@kbve/rn">
+
+`@kbve/rn` is KBVE's **shared component package**. Its primitives are built on `View` / `Text` / `Pressable` / `StyleSheet` and are consumed by both the native app and — via react-native-web — these docs. Write and style a UI component once, reuse it across mobile and web, and keep the app and its documentation from drifting apart.
+
+```tsx
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+
+export function Greeting({ name }: { name: string }) {
+  return (
+    <View style={styles.card}>
+      <Text style={styles.title}>Hello, {name}!</Text>
+      <Pressable style={styles.button}>
+        <Text style={styles.buttonText}>Tap me</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: { padding: 16, gap: 8 },
+  title: { fontSize: 18, fontWeight: '600' },
+  button: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
+  buttonText: { fontWeight: '500' },
+});
+```
+
+</BentoProse>
+
+<BentoProse id="running" eyebrow="Expo workflow" heading="Running">
+
+The fastest path is **Expo**, which wraps React Native with a managed toolchain, device APIs, and a web target:
+
+<Steps>
+
+1. **Create an app**
+
+   ```bash
+   npx create-expo-app@latest my-app
+   cd my-app
+   ```
+
+2. **Start the dev server**
+
+   ```bash
+   npx expo start
+   ```
+
+3. **Open it**
+   Scan the QR code with the **Expo Go** app on a physical device, or press `i` / `a` to launch the iOS Simulator / Android emulator. Edit a file and save to see **Fast Refresh** update the running app instantly.
+
+</Steps>
+
+<Aside type="tip">
+Expo gives you over-the-air updates, a large library of native device APIs, and a `react-native-web` build target — so the same project runs on iOS, Android, and the browser.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="web" eyebrow="Live island demo" heading="Web">
+
+React Native components run in the browser through **react-native-web**, which maps the native primitives to DOM elements. The block below is a **proof of concept**: the exact same `@kbve/rn` component the native app renders, displayed here on the web.
+
+It uses `View` / `Text` / `Pressable` / `StyleSheet` primitives aliased to
+`react-native-web` and hydrated as a `client:only` Astro island. Its colors are wired
+to Starlight's theme tokens, so it tracks light/dark with the rest of the docs.
+
+<RnWebDemo />
+
+</BentoProse>
+
+</BentoDoc>

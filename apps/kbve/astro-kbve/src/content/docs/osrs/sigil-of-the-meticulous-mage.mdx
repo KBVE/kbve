@@ -1,6 +1,6 @@
 ---
 title: Sigil of the meticulous mage | OSRS Price Data
-description: "Sigil of the meticulous mage: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of the meticulous mage: A power enhancing sigil not yet attuned to you. High alch: 6,000 GP, GE limit: 10."
 osrs:
   id: 26003
   name: Sigil of the meticulous mage
@@ -12,9 +12,42 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of the meticulous mage is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Sigil of the meticulous mage is a Deadman Mode reward sigil that boosts magic accuracy and grants a 50 percent chance to save runes or staff charges when casting spells."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: sigil
+    tier: rare
+    category: sigil
+  properties:
+    release_date: "2021-08-25"
+    weight: 0.1
+    tradeable: false
+    equipable: false
+    stackable: false
+    noteable: false
+    quest_item: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  relationships:
+    - item_name: Deadman's skull
+      relationship: alternative
+      note: "Used to attune the sigil and exchange duplicates during Deadman Mode events."
+  market_strategy:
+    notes:
+      - "summary: \"Untradeable Deadman Mode reward; value scales with event participation and sigil slot meta.\""
+      - "buy_strategy: \"Only obtainable during Deadman Mode events via Deadman's skull shop or drop table.\""
+      - "sell_strategy: \"Untradeable on the live Grand Exchange; duplicates can be exchanged through the Deadman's skull interface.\""
+      - "volatility: \"none\""
+  trading_tips:
+    - "Sigil grants +40 magic accuracy and 50 percent rune/staff charge save chance in the current event tuning."
+    - "Effect strength has historically scaled between +10 and +40 magic accuracy across Deadman events."
+    - "Must be unattuned before destruction."
+  history:
+    - date: "2021-08-25"
+      description: "Sigil of the meticulous mage introduced in the Deadman Reborn event."
+  examine_variants:
+    - context: Inventory
+      text: "A power enhancing sigil not yet attuned to you."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

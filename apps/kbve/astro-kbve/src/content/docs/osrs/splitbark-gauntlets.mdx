@@ -1,6 +1,6 @@
 ---
 title: Splitbark gauntlets | OSRS Price Data
-description: "Splitbark gauntlets: These should keep my hands safe.. High alch: 3,000 GP, GE limit: 70."
+description: "Splitbark gauntlets: These should keep my hands safe. High alch: 3,000 GP, GE limit: 70."
 osrs:
   id: 3391
   name: Splitbark gauntlets
@@ -12,12 +12,97 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 70
-  about: "Splitbark gauntlets is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: splitbark
+    tier: mid
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements:
+      defence: 40
+      magic: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 2
+      ranged: -1
+    defence_bonus:
+      stab: 3
+      slash: 2
+      crush: 4
+      magic: 2
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Magpie impling
+        quantity: "1"
+        rarity: 1/21
+      - source: Magpie impling jar
+        quantity: "1"
+        rarity: 1/21
+  recipes:
+    - skill: crafting
+      level: 60
+      xp: 32
+      materials:
+        - item_name: Bark
+          quantity: 1
+        - item_name: Fine cloth
+          quantity: 1
+        - item_name: Thread
+          quantity: 1
+      tools:
+        - Needle
+      output_quantity: 1
+  related_items:
+    - item_name: Splitbark body
+      slug: splitbark-body
+      relationship: set-piece
+      description: Body of the splitbark mage hybrid set
+    - item_name: Splitbark helm
+      slug: splitbark-helm
+      relationship: set-piece
+      description: Headpiece of the splitbark mage hybrid set
+  about: "Splitbark gauntlets are members-only hybrid hands giving low magic attack with melee defence. Crafted at 60 Crafting from 1 bark, 1 fine cloth, and 1 thread, or commissioned from Wizard Jalarast at Wizards' Tower for 1,000 coins. Magpie implings drop them at a 1/21 rarity."
+  market_strategy:
+    notes:
+      - "Crafting from raw materials usually a small net loss; supply mostly from implings"
+      - "High alch close to GE price gives marginal alch margin"
+  trading_tips:
+    - Stock often thin; place buy offers slightly above GE mid
+  history:
+    - date: "2004-10-18"
+      description: "Released as part of the splitbark armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

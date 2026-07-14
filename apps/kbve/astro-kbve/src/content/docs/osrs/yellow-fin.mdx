@@ -12,9 +12,45 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 11000
-  about: "Yellow fin is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: fish-product
+    tier: mid
+  related_items:
+    - item_name: Raw yellowfin
+      slug: raw-yellowfin
+      relationship: component
+      description: Cut with a knife to produce yellow fin
+  about: "Yellow fin is a members-only Sailing-era item in Old School RuneScape obtained by using a knife on raw yellowfin and used as a Herblore secondary for higher-tier energy potions."
+  market_strategy:
+    notes:
+      - Supply driven by Sailing activity and deep sea trawling output
+      - Herblore demand grows when extreme energy potions are popular
+      - Stackable so easy to bulk-flip
+      - Buy limit 11,000 supports large rotations
+  trading_tips:
+    - Buy in bulk during Sailing content lulls when supply outpaces demand
+    - Sell into Herblore meta spikes when energy potions are in vogue
+    - Track raw yellowfin price for arbitrage on cutting margin
+  history:
+    - date: "2025-11-19"
+      description: Yellow fin added alongside the Sailing skill release.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Stone scarab | OSRS Price Data
-description: "Stone scarab: Little ornament in the shape of a scarab.. High alch: 12 GP, GE limit: 13,000."
+description: "Stone scarab: Little ornament in the shape of a scarab. High alch: 12 GP, GE limit: 13,000."
 osrs:
   id: 9030
   name: Stone scarab
@@ -12,9 +12,109 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 13000
-  about: "Stone scarab is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: stone
+    tier: low
+  properties:
+    tradeable: true
+    stackable: false
+    equipable: false
+    noteable: true
+    weight: 0.01
+    release_date: "2006-07-17"
+    quest_item: false
+    options:
+      - Drop
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Pyramid Plunder sarcophagus (room 1)
+        combat_level: 0
+        quantity: "1"
+        rarity: "1/4"
+        notes: "Requires 21 Thieving for room 1"
+      - source: Pyramid Plunder sarcophagus (room 2)
+        combat_level: 0
+        quantity: "1"
+        rarity: "1/4"
+        notes: "Requires 31 Thieving for room 2"
+      - source: Pyramid Plunder sarcophagus (room 3)
+        combat_level: 0
+        quantity: "1"
+        rarity: "1/3"
+        notes: "Requires 41 Thieving for room 3"
+      - source: Pyramid Plunder grand gold chest
+        combat_level: 0
+        quantity: "1"
+        rarity: "Common"
+        notes: "Higher-room grand gold chest loot for 51+ Thieving"
+      - source: Pyramid Plunder urn
+        combat_level: 0
+        quantity: "1"
+        rarity: "Uncommon"
+        notes: "Urn-tier loot across all Pyramid Plunder rooms"
+  recipes:
+    - skill: thieving
+      level: 21
+      xp: 0
+      materials:
+        - item_name: Stone scarab
+          quantity: 12
+      output_quantity: 1
+      notes: "Twelve scarabs recharge the pharaoh's sceptre via Simon Templeton"
+  shops:
+    - shop_name: Simon Templeton (Agility Pyramid)
+      location: Agility Pyramid
+      price: 175
+      stock: 0
+      restock_time: "Player sold"
+      currency: Coins
+  related_items:
+    - item_id: 9032
+      item_name: Pottery scarab
+      slug: pottery-scarab
+      relationship: variant
+      description: "Pottery-tier scarab from Pyramid Plunder"
+    - item_id: 9026
+      item_name: Golden scarab
+      slug: golden-scarab
+      relationship: upgrade
+      description: "Higher-tier scarab worth more per scarab when redeeming"
+    - item_id: 9028
+      item_name: Jewelled scarab
+      slug: jewelled-scarab
+      relationship: upgrade
+      description: "Premium scarab with the highest payout from Simon Templeton"
+    - item_id: 9044
+      item_name: Pharaoh's sceptre
+      slug: pharaohs-sceptre
+      relationship: product
+      description: "Teleport sceptre recharged using stone scarabs"
+  about: |-
+    > _"Little ornament in the shape of a scarab."_
+
+    Stone scarabs are common Pyramid Plunder artefacts found in the sarcophagi, urns and grand gold chests of Sophanem's pyramid. They were released alongside Pyramid Plunder in 2006 and are now tradeable through the Grand Exchange after the February 2015 update widened tradeable artefact lists.
+
+    The fastest sink for scarabs is Simon Templeton at the Agility Pyramid: he buys them at a fixed price (about 175 coins each for stone) and uses twelve of them to recharge the pharaoh's sceptre with extra teleports to the Jaltevas pyramid and the necropolis.
+
+    For Pyramid Plunder runners they are filler loot stacked alongside higher-tier scarabs, statuettes and the rare seal. Buying scarabs off the GE to recharge a sceptre is usually cheaper than running scarab farming yourself thanks to the buy limit of 13,000 per 4 hours.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Simon Templeton's 175 GP fixed price functions as a hard floor"
+      - "GE spread tends to sit just under Simon's buyback price"
+      - "Buy limit of 13,000 per 4 hours covers nearly any sceptre recharge backlog"
+      - "Demand spikes around pharaoh's sceptre QoL and Pyramid Plunder buff weeks"
+      - "Snap up bulk listings under Simon's price for guaranteed flip margin"
+      - "Time recharges to off-peak hours when Pyramid Plunder spawns surge listings"
+      - "Stack with pottery and golden scarab flips for one consolidated GE pass"
+  history:
+    - date: "2006-07-17"
+      description: "Released with Pyramid Plunder as part of the Sophanem temple update"
+    - date: "2015-02-26"
+      description: "Made tradeable via the Grand Exchange after artefact rework"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

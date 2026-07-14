@@ -242,7 +242,7 @@ export const TOOLS_BY_CATEGORY: Record<ToolCategory, WebmasterTool[]> = (() => {
 })();
 
 export const DOMAIN_RE =
-	/^(?!-)[a-z0-9-]{1,63}(?<!-)(\.[a-z0-9-]{1,63})*\.[a-z]{2,}$/;
+	/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9-]{1,63})*\.[a-z]{2,}$/;
 
 export function normalizeDomain(input: string): string {
 	return input

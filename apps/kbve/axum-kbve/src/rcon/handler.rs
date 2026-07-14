@@ -21,6 +21,7 @@ use crate::auth::{extract_request_token, get_jwt_cache};
 use crate::rcon::registry::{Game, get_rcon_registry};
 
 const RCON_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+const RCON_EXEC_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Wire shape mirrors `kbve.rcon.RconRequest`. The path captures cover
 /// `game` and `server`, so the body only carries the command + args.
@@ -88,7 +89,7 @@ pub async fn exec_handler(
     };
 
     let endpoint = match registry.endpoint(game, &server_raw) {
-        Some(ep) => ep.clone(),
+        Some(ep) => ep,
         None => {
             return error(
                 StatusCode::NOT_FOUND,
@@ -98,7 +99,7 @@ pub async fn exec_handler(
     };
 
     let spec = match registry.command(game, &body.command) {
-        Some(s) => s.clone(),
+        Some(s) => s,
         None => {
             return error(
                 StatusCode::BAD_REQUEST,
@@ -207,7 +208,15 @@ async fn exec_rcon(
     command: &str,
 ) -> Result<String, jedi::rcon::RconError> {
     let mut client = RconClient::connect(endpoint, RCON_CONNECT_TIMEOUT).await?;
-    client.exec(command).await
+    // A server that accepts the TCP connection but hangs mid-command would
+    // otherwise stall the axum task indefinitely; bound the exec too.
+    match tokio::time::timeout(RCON_EXEC_TIMEOUT, client.exec(command)).await {
+        Ok(res) => res,
+        Err(_) => Err(jedi::rcon::RconError::Io(std::io::Error::new(
+            std::io::ErrorKind::TimedOut,
+            format!("rcon exec timed out after {RCON_EXEC_TIMEOUT:?}"),
+        ))),
+    }
 }
 
 /// Substitute positional `{N}` placeholders in the template. Stays

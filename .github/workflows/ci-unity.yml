@@ -112,7 +112,7 @@ jobs:
             should_publish: ${{ steps.check.outputs.should_publish }}
             local_version: ${{ steps.check.outputs.local }}
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - id: check
               run: |
                   LOCAL="${{ inputs.manifest_version }}"
@@ -193,7 +193,7 @@ jobs:
 
             - name: Checkout monorepo (no LFS smudge)
               if: ${{ inputs.external_repo_url == '' }}
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -214,7 +214,7 @@ jobs:
 
             - name: Setup Node
               if: ${{ contains(inputs.project_path, 'rareicon') }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: 24
                   cache: pnpm
@@ -318,7 +318,7 @@ jobs:
 
             - name: Checkout monorepo (no LFS smudge)
               if: ${{ inputs.external_repo_url == '' }}
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -340,7 +340,7 @@ jobs:
 
             - name: Setup Node
               if: ${{ contains(inputs.project_path, 'rareicon') }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: 24
                   cache: pnpm
@@ -521,7 +521,7 @@ jobs:
                 app: ${{ fromJson(inputs.steam_apps) }}
         steps:
             - name: Checkout monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 

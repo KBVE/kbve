@@ -3,6 +3,12 @@ title: Git
 description: |
     Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.
     Git allows multiple developers to collaborate, track changes, and manage project history effectively. Ideal for version tracking and collaboration.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Git
     order: 1000
@@ -10,20 +16,92 @@ unsplash: 1618401479427-c8ef9465fbe1
 img: https://images.unsplash.com/photo-1618401479427-c8ef9465fbe1?fit=crop&w=1400&h=700&q=75
 tags:
     - cloud
+bento:
+    badge: application · cloud · vcs
+    title: 'Every line of history,'
+    accent: Git.
+    lede: >-
+        The distributed version control system behind nearly all modern
+        software — fast, flexible, and built for collaboration. This guide
+        collects the command cheatsheet, conventional commits, hosting
+        platforms from GitHub to Forgejo, and the CI/CD automation patterns
+        the KBVE monorepo runs on.
+    ctas:
+        - label: Command cheatsheet
+          href: '#cheatsheet'
+          primary: true
+        - label: GitHub & CI/CD
+          href: '#github'
+        - label: Submodules
+          href: '#submodules'
+        - label: Monorepo
+          href: '#monorepo'
+    aside:
+        icon: branch
+        title: Distributed by design
+        body: >-
+            Every clone is a full repository with complete history — commit
+            offline, branch freely, and reconcile with remotes when you are
+            ready. Git tracks changes, resolves conflicts, and keeps every
+            contribution accounted for.
+        points:
+            - <strong>Cheatsheet</strong> — the commands you reach for daily.
+            - <strong>Hosting</strong> — GitHub, GitLab, Gitea, and Forgejo.
+            - <strong>Automation</strong> — fanout CI, auto-merge, cleanup.
+    stats:
+        - { label: Model, value: Distributed, icon: network }
+        - { label: First release, value: '2005', icon: clock }
+        - { label: License, value: GPLv2, icon: license }
+        - { label: Created by, value: Linus Torvalds, icon: code }
+    features:
+        - title: Command cheatsheet
+          icon: code
+          href: '#cheatsheet'
+          body: The full quick-reference table — init, branch, rebase, stash, bisect, reflog, and everything between.
+        - title: GitHub Actions & fanout CI
+          icon: deploy
+          href: '#github'
+          body: Pages, Actions, the fanout Docker pipeline, package publishing, queue guards, and failure tracking.
+        - title: Forgejo OAuth with Supabase
+          icon: lock
+          href: '#forgejo'
+          body: Wire the self-hosted forge into Supabase OIDC for automatic login and account creation.
+        - title: Auto-merge & registry cleanup
+          icon: gears
+          href: '#auto-merge-bot-prs'
+          body: Gated bot PR merging for version bumps plus weekly GHCR pruning that never touches releases.
+    related:
+        - title: Docker
+          href: /application/docker/
+          copy: The container images that Git-driven CI builds and publishes.
+          icon: package
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Where the manifest-update PRs from CI land and deploy.
+          icon: deploy
+        - title: Linux
+          href: /application/linux/
+          copy: The command-line foundation every Git workflow lives on.
+          icon: server
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1618401479427-c8ef9465fbe1?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Git, a powerful distributed version control system, excels in managing project history and facilitating collaboration among multiple developers.
 By efficiently tracking changes in source code, Git enables seamless coordination and conflict resolution, ensuring that every contribution is accounted for.
@@ -40,9 +118,15 @@ Renowned for its flexibility and reliability, Git has become an indispensable to
 	separate branch when experimenting with these commands.
 </Aside>
 
-<Adsense />
+</BentoProse>
 
-## Cheatsheet
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="cheatsheet" eyebrow="Command reference" heading="Cheatsheet">
 
 | Command                                                 | Description                                                                     |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------- |
@@ -106,9 +190,9 @@ Renowned for its flexibility and reliability, Git has become an indispensable to
 | `git filter-branch --tree-filter 'command' HEAD`        | Rewrites branches by applying a command on each tree.                           |
 | `git symbolic-ref HEAD <ref>`                           | Changes the current branch by updating the symbolic reference.                  |
 
----
+</BentoProse>
 
-## Conventional Commits Cheatsheet
+<BentoProse id="conventional-commits" eyebrow="Commit style" heading="Conventional Commits Cheatsheet">
 
 | Commit Message                     | Description                                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -128,9 +212,9 @@ Renowned for its flexibility and reliability, Git has become an indispensable to
 | `style`                            | Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)        |
 | `test`                             | Adding missing tests or correcting existing tests                                                             |
 
----
+</BentoProse>
 
-## Github
+<BentoProse id="github" eyebrow="Hosting & CI/CD" heading="Github">
 
 GitHub, a leading platform for version control and collaboration, leverages Git to provide a seamless environment for developers to host, review, and manage code.
 Offering features like pull requests, code reviews, and integrated issue tracking, GitHub streamlines the development workflow and fosters collaboration among team members.
@@ -786,6 +870,72 @@ dispatch_docker:
               [ "${{ needs.alter.outputs.kilobase }}" = "true" ]      && dispatch "kilobase"
 ```
 
+#### Docker Image Pull-Through Cache
+
+Large base images (e.g. the ~20 GB `ghcr.io/epicgames/unreal-engine` used by the
+Unreal pipeline) are otherwise re-pulled from the internet by every ephemeral
+`arc-runner-*` job, ~25 min each. An in-cluster `registry:2` running in **proxy
+mode** caches those layers on a Longhorn PVC so the first pull fills it once and
+every later pull is LAN speed.
+
+- Manifest: `apps/kube/github/runners/manifests/registry-mirror-ghcr.yaml`
+- Service: `registry-mirror-ghcr.arc-runners.svc.cluster.local:5000`
+- Upstream: `https://ghcr.io` (auth via the in-cluster `github-arc-token`)
+- Proxy revalidation: 24h TTL — UE `dev-*` tags are mutable, so the cache
+  re-checks the tag→manifest mapping daily rather than serving a stale image for
+  a week after an upstream re-push (blob bytes are immutable, so this is cheap).
+- Retention: soft (80%) / hard (95%) size limits. A whitelist ConfigMap
+  (`registry-mirror-ghcr-whitelist`) protects pinned tags under the soft limit;
+  the hard limit overrides it to avoid a full disk.
+- Access: an Ingress NetworkPolicy (`registry-mirror-ghcr-ingress`) restricts
+  `:5000` to the `arc-runners` namespace, since the cache serves the private UE
+  image unauthenticated over HTTP and has the delete API enabled.
+
+##### Use the cache from another runner job
+
+Routing another CI job's image pulls through the cache is two steps:
+
+1. **Opt the runner in.** Add the cache host to that runner's dind args so Docker
+   trusts it (the cache serves over HTTP), then bump that file's
+   `restart-trigger` to roll the pods. `arc-runner-ue` already has this:
+
+   ```yaml
+   # apps/kube/github/runners/manifests/values-<runner>.yaml (dind command)
+   exec dockerd ... --insecure-registry=registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
+   ```
+
+2. **Pull cache-first in the job.** Swap the registry host to the cache, pull,
+   and retag to the canonical name (so the rest of the job is unchanged), with a
+   ghcr fallback so a cache outage degrades gracefully. Log in to ghcr
+   **unconditionally** first — a cache hit must still leave a valid ghcr session
+   for any later step that touches ghcr:
+
+   ```yaml
+   - name: Pull image (cache-first, ghcr fallback)
+     env:
+       CACHE_HOST: registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
+     run: |
+       TARGET="ghcr.io/<org>/<image>:<tag>"
+       CACHE_REF="${TARGET/ghcr.io/$CACHE_HOST}"
+       echo "$GHCR_PAT" | docker login ghcr.io -u "$ACTOR" --password-stdin
+       if docker pull "$CACHE_REF"; then
+         docker tag "$CACHE_REF" "$TARGET"
+       else
+         docker pull "$TARGET"
+       fi
+   ```
+
+Only `ghcr.io` images are served by this instance (its single upstream). To keep
+a tag from being pruned under the soft limit, add its cache path
+(`<org>/<image>:<tag>`) to the `registry-mirror-ghcr-whitelist` ConfigMap.
+
+##### Cache a different registry (Docker Hub, quay.io, …)
+
+Stand up a second proxy instance: copy `registry-mirror-ghcr.yaml`, change
+`REGISTRY_PROXY_REMOTEURL` to that registry, give it its own PVC + Service name,
+and point image refs at the new service. One `registry:2` proxy serves exactly
+one upstream.
+
 #### Package Publishing
 
 The same fanout pattern applies to package publishing.
@@ -866,27 +1016,192 @@ Broadening the alter patterns or OR-ing the `*_base` signals into dispatch condi
 
 </Aside>
 
----
+</BentoProse>
 
-## GitLab
+<BentoProse id="gitlab" eyebrow="DevOps platform" heading="GitLab">
 
 GitLab is a comprehensive DevOps platform that provides a wide range of tools for software development, continuous integration, and continuous delivery.
 With features like issue tracking, code review, and built-in CI/CD pipelines, GitLab enables teams to collaborate efficiently and accelerate their development cycles.
 GitLab's robust version control capabilities, combined with its scalable and flexible infrastructure, make it an ideal choice for both small teams and large enterprises.
 By integrating all stages of the DevOps lifecycle into a single application, GitLab simplifies workflow management, enhances productivity, and promotes seamless collaboration across the entire development process.
 
----
+</BentoProse>
 
-## Gitea
+<BentoProse id="gitea" eyebrow="Self-hosted Git" heading="Gitea">
 
 Gitea is a lightweight, self-hosted Git service designed to provide a seamless and efficient way to manage version control for software projects.
 Offering features like issue tracking, code review, and a built-in wiki, Gitea supports collaborative development and project management.
 Its user-friendly interface and minimal resource requirements make it an excellent choice for small to medium-sized teams looking for a straightforward and customizable Git hosting solution.
 With easy installation and maintenance, Gitea empowers developers to host their own repositories and control their workflow, ensuring flexibility and security in their development processes.
 
----
+</BentoProse>
 
-## Submodules
+<BentoProse id="forgejo" eyebrow="Community fork" heading="Forgejo">
+
+Forgejo is a community-driven fork of Gitea focused on self-hosted Git service with enhanced features and governance.
+Built on the foundation of Gitea, Forgejo maintains the same lightweight and efficient architecture while ensuring long-term community ownership and development.
+
+### Forgejo OAuth/OIDC Setup with Supabase
+
+This section describes how to configure Forgejo to use Supabase (GoTrue) as an OAuth2/OIDC provider for automatic login with KBVE infrastructure.
+
+#### Overview
+
+Users can log into Forgejo using their KBVE/Supabase credentials automatically through the following flow:
+
+<Steps>
+1. User visits `forgejo.kbve.com` (routes through kbve-gate)
+2. Gate validates Supabase JWT and checks staff role
+3. If authenticated, user accesses Forgejo and is automatically logged in via OAuth
+4. User account is auto-created in Forgejo on first login
+</Steps>
+
+#### Prerequisites
+
+##### 1. Create OAuth Application in Supabase
+
+Register Forgejo as an OAuth client in Supabase:
+
+**Option A: Via Supabase Dashboard**
+- Navigate to Authentication > URL Configuration or Providers
+- Add a new OAuth client for Forgejo
+
+**Option B: Via Database (SQL)**
+```sql
+-- Insert into auth.saml_providers or equivalent table
+-- This depends on your Supabase version and configuration
+```
+
+**Required Configuration:**
+- **Client Name**: `forgejo` or `forgejo-kbve`
+- **Redirect URI**: `https://forgejo.kbve.com/user/oauth2/kbve/callback`
+- **Scopes**: `openid email profile`
+- **PKCE**: Optional but recommended
+
+After creation, you'll receive:
+- **Client ID**: Save this value
+- **Client Secret**: Save this value securely
+
+##### 2. Create Kubernetes Secret
+
+Create a sealed secret with the OAuth credentials:
+
+```bash
+# Create the secret YAML
+kubectl create secret generic forgejo-oauth-config \
+  --from-literal=client-id='YOUR_CLIENT_ID' \
+  --from-literal=client-secret='YOUR_CLIENT_SECRET' \
+  --namespace=forgejo \
+  --dry-run=client -o yaml > /tmp/forgejo-oauth-config.yaml
+
+# Seal it
+kubeseal --format=yaml \
+  --cert=<path-to-pub-cert>.pem \
+  < /tmp/forgejo-oauth-config.yaml \
+  > apps/kube/forgejo/manifest/sealed-oauth-config.yaml
+
+# Clean up
+rm /tmp/forgejo-oauth-config.yaml
+```
+
+#### Configuration Methods
+
+##### Method 1: CLI Configuration (Recommended for Automation)
+
+Create a Kubernetes Job that runs after Forgejo is deployed:
+
+```bash
+forgejo admin auth add-oauth \
+  --provider=openidConnect \
+  --name=kbve \
+  --key=$OAUTH_CLIENT_ID \
+  --secret=$OAUTH_CLIENT_SECRET \
+  --auto-discover-url=https://supabase.kbve.com/auth/v1/.well-known/openid-configuration \
+  --scopes='openid email profile' \
+  --group-claim-name='groups' \
+  --admin-group='staff'
+```
+
+##### Method 2: Web GUI Configuration
+
+<Steps>
+1. Log in to Forgejo as admin
+2. Navigate to: Site Administration (gear icon) > Authentication Sources
+3. Click "Add Authentication Source"
+4. Configure the following settings:
+   - **Authentication Type**: OAuth2
+   - **Authentication Name**: `kbve` (must match redirect URI)
+   - **OAuth2 Provider**: OpenID Connect
+   - **Client ID**: `<from secret>`
+   - **Client Secret**: `<from secret>`
+   - **OpenID Connect Auto Discovery URL**: `https://supabase.kbve.com/auth/v1/.well-known/openid-configuration`
+   - **Icon URL**: (optional) `https://kbve.com/favicon.ico`
+   - **Scopes**: `openid email profile`
+   - **Required Claim Name**: (optional) leave empty
+   - **Required Claim Value**: (optional) leave empty
+   - **Group Claim Name**: (optional) `groups`
+   - **Admin Group**: (optional) `staff`
+   - **Restricted Group**: (optional) leave empty
+   - **Skip Local 2FA**: false
+5. Click "Add Authentication Source"
+</Steps>
+
+#### Application Configuration
+
+The Forgejo `application.yaml` includes the following OAuth settings:
+
+```yaml
+service:
+    DISABLE_REGISTRATION: false  # Allow OAuth registration
+    REQUIRE_SIGNIN_VIEW: true    # Still require login to view
+    ALLOW_ONLY_EXTERNAL_REGISTRATION: true  # Only via OAuth
+    SHOW_REGISTRATION_BUTTON: false  # Hide manual registration
+openid:
+    ENABLE_OPENID_SIGNIN: true
+    ENABLE_OPENID_SIGNUP: true
+oauth2_client:
+    ENABLE_AUTO_REGISTRATION: true  # Auto-create accounts
+    ACCOUNT_LINKING: auto          # Auto-link existing accounts
+    UPDATE_AVATAR: true            # Sync avatars from OAuth
+    USERNAME: preferred_username   # Use preferred_username claim
+```
+
+#### Verification
+
+Test the OAuth flow after setup:
+
+<Steps>
+1. Log out of Forgejo (if logged in)
+2. Visit `https://forgejo.kbve.com`
+3. You should see "Sign in with kbve" button
+4. Click it - should redirect to Supabase login
+5. After Supabase authentication, redirects back to Forgejo
+6. User account is auto-created and logged in
+</Steps>
+
+#### Troubleshooting
+
+<Aside type="caution">
+
+**Issue: No "Sign in with kbve" button**
+- Check authentication source was added correctly
+- Verify the authentication source name matches redirect URI
+
+**Issue: OAuth flow fails**
+- Check Supabase logs for OAuth errors
+- Verify redirect URI matches exactly
+- Check client ID and secret are correct
+
+**Issue: User not auto-registered**
+- Verify `ENABLE_AUTO_REGISTRATION` is `true`
+- Check Supabase returns required claims (email, preferred_username)
+- Review Forgejo logs for registration errors
+
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="submodules" eyebrow="Nested repos" heading="Submodules">
 
 Git submodules are a powerful feature that allows you to include and manage external repositories within your own project.
 By embedding one Git repository as a subdirectory of another, submodules enable the use of libraries or dependencies while maintaining their own version control.
@@ -933,9 +1248,9 @@ ln -s ../../submodules/UnitySubModules/Vuplex
 
 ```
 
----
+</BentoProse>
 
-## Scripts
+<BentoProse id="scripts" eyebrow="Shell helpers" heading="Scripts">
 
 Script commands for Git act as powerful helper scripts that automate and streamline various Git operations.
 These commands can simplify complex workflows by combining multiple Git actions into a single executable script.
@@ -991,9 +1306,9 @@ This command does the following:
 
 This way, you don't need to manually replace the branch name each time.
 
----
+</BentoProse>
 
-## DevOps
+<BentoProse id="devops" eyebrow="Culture & practice" heading="DevOps">
 
 DevOps is a collaborative and integrated approach to software development and IT operations, aimed at shortening the development lifecycle and delivering high-quality software continuously. By combining practices, tools, and cultural philosophies, DevOps enables organizations to automate and streamline processes, enhancing efficiency and reliability. Key practices include continuous integration and continuous deployment (CI/CD), infrastructure as code (IaC), monitoring, and feedback loops. This approach fosters a culture of collaboration between development and operations teams, ensuring rapid delivery of features, quick resolution of issues, and improved scalability and security.
 Ultimately, DevOps empowers organizations to innovate faster and respond more effectively to market demands.
@@ -1070,9 +1385,9 @@ By integrating development and operations, DevOps aims to deliver software more 
 -   **Online Courses and Certifications**.
 -   **Community Forums and Groups**.
 
----
+</BentoProse>
 
-## FlyIO
+<BentoProse id="flyio" eyebrow="Quick deploys" heading="FlyIO">
 
 <Aside>
 	When preparing to remotely deploy to flyio via github action, we should make
@@ -1082,9 +1397,9 @@ By integrating development and operations, DevOps aims to deliver software more 
 FlyIO is a simple way to deploy your application quickly onto the cloud.
 We believe that flyio is great for launching a quick demo application when utilizing a low level language like zig or rust.
 
----
+</BentoProse>
 
-## Monorepo
+<BentoProse id="monorepo" eyebrow="Unified codebases" heading="Monorepo">
 
 <Aside type="caution" title="Monorepo Considerations">
 	Adopting a monorepo can require a significant upfront time investment to
@@ -1151,9 +1466,9 @@ Use the `--args` flag when running `nx run <project>:<target> --args="--verbose"
 	leak credentials or allow malicious code execution in your CI/CD pipeline.
 </Aside>
 
----
+</BentoProse>
 
-## Auto-Merge Bot PRs
+<BentoProse id="auto-merge-bot-prs" eyebrow="Gated automation" heading="Auto-Merge Bot PRs">
 
 The `ci-auto-merge-bot-prs.yml` workflow provides automated, gated merging for bot-generated PRs that update version files and Kubernetes deployment manifests.
 It is never triggered directly by code pushes — only by explicit `workflow_dispatch` or `workflow_call` from other CI workflows.
@@ -1194,3 +1509,118 @@ The following prefixes are permitted for auto-merge:
 <Aside type="caution" title="Adding New Apps">
 When onboarding a new app to the CI publish pipeline, add its title prefix to the allowlist in `ci-auto-merge-bot-prs.yml` or the version/kube PRs will not auto-merge.
 </Aside>
+
+</BentoProse>
+
+<BentoProse id="registry-cleanup-ghcr" eyebrow="Image hygiene" heading="Registry Cleanup (GHCR)">
+
+Every published image accumulates `ci-<sha>` tags on the GitHub Container Registry. The `ci-registry-cleanup.yml` workflow prunes that churn on a weekly schedule while keeping recent builds and never touching releases.
+
+### How It Works
+
+The image list is **not hardcoded** — the `collect` job reads `.github/ci-dispatch-manifest.json`, strips the `kbve/` prefix from every `docker[].image`, and feeds the full set to the pruner. Any new app tracked in the manifest is cleaned automatically.
+
+The `prune` job runs `snok/container-retention-policy` with a conservative policy:
+
+| Setting | Value | Effect |
+|---------|-------|--------|
+| `keep-n-most-recent` | `20` | Keeps the 20 newest tagged versions per image |
+| `image-tags` | `!latest !*.*.*` | `latest` and any semver (`X.Y.Z`) tag is never deletable |
+| `cut-off` | `1w` | Nothing younger than a week is eligible |
+| `tag-selection` | `both` | Also clears dangling untagged layers |
+
+Only `ci-<sha>` tags older than a week and beyond the newest 20 are ever removed.
+
+### Triggers and Safety
+
+- **Schedule** — runs every Sunday at `04:00 UTC` and executes for real.
+- **`workflow_dispatch`** — manual runs default to `dry_run: true`, logging what *would* be deleted without removing anything. Flip the input to `false` to execute.
+- Gated on `github.repository == 'KBVE/kbve'` so forks no-op.
+- On a scheduled failure, a `notify` job opens (or comments on) a `registry-cleanup`-labelled issue with a link to the failed run.
+
+<Aside type="note" title="Token Scope">
+The workflow authenticates with the org-level `UNITY_PAT`, which must carry the `delete:packages` scope. If a run fails on delete with a `403`, mint a dedicated PAT with that scope and swap the `token:` input.
+</Aside>
+
+### Example Workflow
+
+```yaml
+name: CI - Registry Cleanup (GHCR)
+
+on:
+    schedule:
+        - cron: '0 4 * * 0'
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: Preview deletions without executing them
+                type: boolean
+                default: true
+
+permissions:
+    packages: write
+    issues: write
+
+concurrency:
+    group: registry-cleanup-ghcr
+    cancel-in-progress: false
+
+jobs:
+    collect:
+        if: github.repository == 'KBVE/kbve'
+        runs-on: ubuntu-latest
+        outputs:
+            image_names: ${{ steps.list.outputs.image_names }}
+        steps:
+            - uses: actions/checkout@v6
+            - id: list
+              run: |
+                  NAMES=$(jq -r '[.docker[].image | sub("^kbve/"; "")] | unique | join(" ")' .github/ci-dispatch-manifest.json)
+                  echo "image_names=${NAMES}" >> "$GITHUB_OUTPUT"
+
+    prune:
+        needs: collect
+        runs-on: ubuntu-latest
+        steps:
+            - uses: snok/container-retention-policy@v3.1.0
+              with:
+                  account: kbve
+                  token: ${{ secrets.UNITY_PAT }}
+                  image-names: ${{ needs.collect.outputs.image_names }}
+                  image-tags: '!latest !*.*.*'
+                  tag-selection: both
+                  cut-off: 1w
+                  keep-n-most-recent: 20
+                  dry-run: ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && 'true' || 'false' }}
+
+    notify:
+        needs: [collect, prune]
+        if: failure() && github.event_name == 'schedule' && github.repository == 'KBVE/kbve'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/github-script@v9
+              with:
+                  script: |
+                      const label = 'registry-cleanup';
+                      const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+                      const existing = await github.rest.issues.listForRepo({
+                        owner: context.repo.owner, repo: context.repo.repo,
+                        state: 'open', labels: label,
+                      });
+                      const body = `Weekly GHCR cleanup failed. Run: ${runUrl}`;
+                      if (existing.data.length > 0) {
+                        await github.rest.issues.createComment({
+                          owner: context.repo.owner, repo: context.repo.repo,
+                          issue_number: existing.data[0].number, body,
+                        });
+                      } else {
+                        await github.rest.issues.create({
+                          owner: context.repo.owner, repo: context.repo.repo,
+                          title: 'Weekly GHCR registry cleanup failed', body, labels: [label],
+                        });
+                      }
+```
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Oak Sign
+template: splash
 description: |
     Minecraft Oak Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 211
     ref: oak_wall_sign
     slug: oak-wall-sign
+    content_rev: 1
     display_name: Oak Sign
     material: wood
     hardness: 1
@@ -24,10 +26,62 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_wall_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Oak Signs are wall- or post-mounted blocks that display up to
+            four lines of editable text, used for labeling builds, farms,
+            and shops throughout a world.
+        lore: |
+            Signs were one of the earliest text-bearing blocks in
+            Minecraft, originally tested as entities before gaining full
+            text editing in Infdev.
+    uses:
+        - title: Labeling & Wayfinding
+          ref: oak_wall_sign
+          detail: |
+              Placed to mark builds, item-sorting systems, or shop
+              prices; text can be dyed with any dye and made glowing
+              with a glow ink sac.
+        - title: Furnace Fuel
+          ref: oak_planks
+          detail: |
+              Overworld signs smelt as furnace fuel, though less
+              efficient than a full plank.
+    found_in:
+        - location: Crafted from Oak Planks
+          detail: Six oak planks plus a stick craft three oak signs.
+        - location: Village Chests & Igloos
+          detail: Occasionally found as loot in village chests and igloo basements.
+    faq:
+        - question: What tool do I need to mine an Oak Sign?
+          answer: |
+              None required — any tool works and an axe is fastest, but
+              bare hands break it too.
+        - question: Can I edit the text on an Oak Sign after placing it?
+          answer: |
+              The front text locks once written unless glazed with a
+              honeycomb, but the back side of the sign can still be
+              edited separately.
+        - question: Do mobs collide with signs?
+          answer: |
+              No. Signs are non-solid, so items, projectiles, and mobs
+              can pass through them, though they still block fluid flow.
+        - question: Does an Oak Sign burn?
+          answer: |
+              Yes. Overworld wood signs are flammable, unlike crimson
+              and warped signs which are fireproof.
     data_version: "1.21.5"
 ---
 

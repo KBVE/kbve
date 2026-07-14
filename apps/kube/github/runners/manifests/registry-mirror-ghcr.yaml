@@ -1,0 +1,285 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: registry-mirror-ghcr-data
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 100Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: registry-mirror-ghcr-config
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+data:
+    config.yml:
+        "version: 0.1\nlog:\n  level: info\n  fields:\n    service: registry\n\
+        storage:\n  filesystem:\n    rootdirectory: /var/lib/registry\n  cache:\n    blobdescriptor:\
+        \ inmemory\n  delete:\n    enabled: true\nhttp:\n  addr: :5000\n  headers:\n \
+        \   X-Content-Type-Options: [nosniff]\nproxy:\n  remoteurl: https://ghcr.io\n\
+        \  # Revalidate tag->manifest against upstream daily. UE 'dev-*' tags are\n  #\
+        \ MUTABLE; a long TTL would silently serve a stale image for that whole\n  # window\
+        \ after an upstream re-push. Blob bytes are immutable (addressed\n  # by digest)\
+        \ so revalidation stays cheap — only the manifest is re-checked.\n  ttl: 24h\n\
+        \  # username/password supplied via REGISTRY_PROXY_* env so the PAT\n  # never\
+        \ lands in this ConfigMap.\nhealth:\n  storagedriver:\n    enabled: true\n   \
+        \ interval: 10s\n    threshold: 3\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: registry-mirror-ghcr
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
+        secret.reloader.stakater.com/reload: github-arc-token
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: registry-mirror-ghcr
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/name: registry-mirror-ghcr
+                app.kubernetes.io/part-of: arc-runner-set
+        spec:
+            containers:
+                - name: registry
+                  image: registry:2.8.3
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: http
+                        containerPort: 5000
+                  env:
+                      - name: REGISTRY_HTTP_ADDR
+                        value: :5000
+                      - name: REGISTRY_PROXY_REMOTEURL
+                        value: https://ghcr.io
+                      - name: REGISTRY_PROXY_USERNAME
+                        value: h0lybyte
+                      - name: REGISTRY_PROXY_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: github-arc-token
+                                key: github_token
+                  volumeMounts:
+                      - name: config
+                        mountPath: /etc/docker/registry
+                        readOnly: true
+                      - name: data
+                        mountPath: /var/lib/registry
+                  resources:
+                      limits:
+                          cpu: '2'
+                          memory: 2Gi
+                      requests:
+                          cpu: 100m
+                          memory: 256Mi
+                  readinessProbe:
+                      httpGet:
+                          path: /
+                          port: http
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                  livenessProbe:
+                      httpGet:
+                          path: /
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 30
+                - name: janitor
+                  image: registry:2.8.3
+                  imagePullPolicy: IfNotPresent
+                  command:
+                      - /bin/sh
+                      - /opt/janitor/janitor.sh
+                  env:
+                      - name: SOFT_PCT
+                        value: '80'
+                      - name: HARD_PCT
+                        value: '95'
+                      - name: INTERVAL_SECONDS
+                        value: '3600'
+                  volumeMounts:
+                      - name: config
+                        mountPath: /etc/docker/registry
+                        readOnly: true
+                      - name: data
+                        mountPath: /var/lib/registry
+                      - name: janitor
+                        mountPath: /opt/janitor
+                        readOnly: true
+                      - name: whitelist
+                        mountPath: /etc/janitor
+                        readOnly: true
+                  resources:
+                      limits:
+                          cpu: '1'
+                          memory: 256Mi
+                      requests:
+                          cpu: 50m
+                          memory: 64Mi
+            volumes:
+                - name: config
+                  configMap:
+                      name: registry-mirror-ghcr-config
+                      items:
+                          - key: config.yml
+                            path: config.yml
+                - name: data
+                  persistentVolumeClaim:
+                      claimName: registry-mirror-ghcr-data
+                - name: janitor
+                  configMap:
+                      name: registry-mirror-ghcr-janitor
+                      items:
+                          - key: janitor.sh
+                            path: janitor.sh
+                - name: whitelist
+                  configMap:
+                      name: registry-mirror-ghcr-whitelist
+                      items:
+                          - key: whitelist
+                            path: whitelist
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: registry-mirror-ghcr
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        app.kubernetes.io/name: registry-mirror-ghcr
+    ports:
+        - name: http
+          port: 5000
+          targetPort: http
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: registry-mirror-ghcr-ingress
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/name: registry-mirror-ghcr
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: arc-runners
+          ports:
+              - port: http
+                protocol: TCP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: registry-mirror-ghcr-whitelist
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+data:
+    whitelist: 'epicgames/unreal-engine:dev-5.8.0
+
+        '
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: registry-mirror-ghcr-janitor
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+data:
+    janitor.sh:
+        "#!/bin/sh\n# Size-bounded retention for the ghcr pull-through cache.\
+        \ Shares the\n# registry's data PVC; talks to the registry on localhost. Online\
+        \ GC is\n# safe: this is a proxy, so any over-collected blob is just re-pulled.\n\
+        set -eu\nREG=\"http://127.0.0.1:5000\"\nDATA=\"/var/lib/registry\"\nCONFIG=\"\
+        /etc/docker/registry/config.yml\"\nWL=\"/etc/janitor/whitelist\"\nSOFT=\"${SOFT_PCT:-80}\"\
+        \nHARD=\"${HARD_PCT:-95}\"\nINTERVAL=\"${INTERVAL_SECONDS:-3600}\"\n\ncommand\
+        \ -v jq >/dev/null 2>&1 || apk add --no-cache jq curl >/dev/null 2>&1 || true\n\
+        \nusage() { df -P \"$DATA\" | awk 'NR==2{gsub(\"%\",\"\",$5);print $5}'; }\nwl()\
+        \ { grep -qxF \"$1:$2\" \"$WL\" 2>/dev/null; }\n# GC runs online. Blob loss is\
+        \ safe (proxy cache is reconstructable from\n# ghcr). A blob being written by\
+        \ a concurrent pull could be collected\n# mid-flight, failing THAT one pull; it\
+        \ self-heals on retry. Fires only\n# at >= SOFT usage.\ngc() { registry garbage-collect\
+        \ --delete-untagged \"$CONFIG\" >/dev/null 2>&1 || true; }\n\n# NOTE: _catalog\
+        \ and tags/list are single-page (registry default ~100).\n# Fine for the few large\
+        \ images cached today; a multi-repo cache would\n# need Link-header pagination\
+        \ here.\n# emit \"mtime<TAB>repo<TAB>tag<TAB>digest\", oldest first\ntags() {\n\
+        \  curl -fsS \"$REG/v2/_catalog\" | jq -r '.repositories[]?' | while read -r r;\
+        \ do\n    curl -fsS \"$REG/v2/$r/tags/list\" | jq -r '.tags[]?' | while read -r\
+        \ t; do\n      d=$(curl -fsS -o /dev/null -D - \\\n           -H 'Accept: application/vnd.docker.distribution.manifest.v2+json'\
+        \ \\\n           \"$REG/v2/$r/manifests/$t\" \\\n           | awk -F': ' 'tolower($1)==\"\
+        docker-content-digest\"{gsub(\"\\r\",\"\",$2);print $2}')\n      [ -n \"$d\" ]\
+        \ || continue\n      m=$(stat -c %Y \"$DATA/docker/registry/v2/repositories/$r/_manifests/tags/$t\"\
+        \ 2>/dev/null || echo 0)\n      printf '%s\\t%s\\t%s\\t%s\\n' \"$m\" \"$r\" \"\
+        $t\" \"$d\"\n    done\n  done | sort -n\n}\ndel() { curl -fsS -X DELETE \\\n \
+        \        -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \\\n\
+        \         \"$REG/v2/$1/manifests/$2\" >/dev/null 2>&1 || true; }\n\nwhile :; do\n\
+        \  if ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then\n\
+        \    echo \"janitor: ERROR jq/curl unavailable - size pruning DISABLED; retention\
+        \ falls back to proxy.ttl(24h). Bake jq+curl into the image to restore.\"\n  \
+        \  apk add --no-cache jq curl >/dev/null 2>&1 || true\n    sleep \"$INTERVAL\"\
+        ; continue\n  fi\n  U=$(usage)\n  if [ \"$U\" -ge \"$HARD\" ]; then\n    echo\
+        \ \"janitor: HARD ${U}% >= ${HARD}% — drop non-whitelisted, then oldest until\
+        \ under\"\n    tags | while IFS=\"$(printf '\\t')\" read -r m r t d; do wl \"\
+        $r\" \"$t\" && continue; echo \"  del $r:$t\"; del \"$r\" \"$d\"; done\n    gc\n\
+        \    while [ \"$(usage)\" -ge \"$HARD\" ]; do\n      line=$(tags | head -1); [\
+        \ -z \"$line\" ] && break\n      r=$(echo \"$line\" | cut -f2); t=$(echo \"$line\"\
+        \ | cut -f3); d=$(echo \"$line\" | cut -f4)\n      echo \"  HARD del (whitelisted\
+        \ ok) $r:$t\"; del \"$r\" \"$d\"; gc\n    done\n  elif [ \"$U\" -ge \"$SOFT\"\
+        \ ]; then\n    echo \"janitor: SOFT ${U}% >= ${SOFT}% — drop all non-whitelisted\"\
+        \n    tags | while IFS=\"$(printf '\\t')\" read -r m r t d; do wl \"$r\" \"$t\"\
+        \ && continue; echo \"  del $r:$t\"; del \"$r\" \"$d\"; done\n    gc\n  else\n\
+        \    echo \"janitor: usage ${U}% OK\"\n  fi\n  sleep \"$INTERVAL\"\ndone\n"

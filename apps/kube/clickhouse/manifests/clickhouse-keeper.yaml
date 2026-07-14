@@ -8,7 +8,7 @@ spec:
         clusters:
             - name: keeper
               layout:
-                  replicasCount: 3
+                  replicasCount: 1
     defaults:
         templates:
             dataVolumeClaimTemplate: keeper-storage
@@ -16,6 +16,9 @@ spec:
     templates:
         podTemplates:
             - name: clickhouse-keeper-pod
+              metadata:
+                  annotations:
+                      kbve.com/reconcile-nonce: "2026-07-01"
               spec:
                   containers:
                       - name: clickhouse-keeper

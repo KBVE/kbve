@@ -12,26 +12,77 @@ osrs:
   lowalch: 520
   highalch: 780
   limit: 40
-  item_id: 1273
-  item_type: equipment
-  slot: weapon
-  type: pickaxe
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 20
-    mining: 21
-  stats:
-    stab: 12
-    slash: -2
-    crush: 10
-    strength: 13
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: pickaxe
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 20
+      mining: 21
+    attack_bonus:
+      stab: 12
+      slash: -2
+      crush: 10
+    other_bonus:
+      strength: 13
+  shops:
+    - shop_name: "Nurmof's Pickaxe Shop"
+      location: Dwarven Mines
+      stock: 5
+      price: 1300
+    - shop_name: Pickaxe-Is-Mine
+      location: Keldagrim
+      stock: 3
+      price: 1690
+    - shop_name: "Yarsul's Prodigious Pickaxes"
+      location: Mining Guild
+      stock: 3
+      price: 1300
+    - shop_name: "Gwyn's Mining Emporium"
+      location: Prifddinas
+      stock: 3
+      price: 1300
   related_items:
-    - slug: adamant-pickaxe
-    - slug: black-pickaxe
-  about: Mining tool. 5-tick cycle, faster than steel.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Adamant pickaxe
+      relationship: upgrade
+    - name: Steel pickaxe
+      relationship: downgrade
+    - name: Black pickaxe
+      relationship: alternative
+  about: "The mithril pickaxe is a free-to-play mining tool that mines at a 5-tick cycle, matching the black pickaxe and offering a balance of weight and speed before adamant."
+  market_strategy:
+    notes:
+      - Shop supply at Nurmof's keeps the GE price anchored near base value.
+      - Demand is steady from low-level miners and ironmen routing through F2P.
+  trading_tips:
+    - Buy from Nurmof or Yarsul shops and resell on GE for a small but reliable margin.
+    - Avoid stockpiling - low buy limit caps flip volume.
+  history:
+    - date: "2003-05-27"
+      description: Added with the Sleeping bags and pickaxes update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-05-27"
+    update: Sleeping bags and pickaxes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,31 +12,161 @@ osrs:
   lowalch: 25
   highalch: 38
   limit: 7000
+  family_ref:
+    family_slug: mithril-javelin
+    role: base
+  family:
+    slug: mithril-javelin
+    name: Mithril javelin
+    type: poison
+    canonical_id: 828
+    members:
+    - id: 828
+      slug: mithril-javelin
+      name: Mithril javelin
+      icon: Mithril javelin.png
+      role: base
+      dose: null
+      value: 64
+      lowalch: 25
+      highalch: 38
+    - id: 834
+      slug: mithril-javelin-p
+      name: Mithril javelin(p)
+      icon: Mithril javelin(p).png
+      role: poison
+      dose: null
+      value: 64
+      lowalch: 25
+      highalch: 38
+    - id: 5645
+      slug: mithril-javelin-p-5645
+      name: Mithril javelin(p+)
+      icon: Mithril javelin(p+).png
+      role: poison
+      dose: null
+      value: 64
+      lowalch: 25
+      highalch: 38
+    - id: 5651
+      slug: mithril-javelin-p-5651
+      name: Mithril javelin(p++)
+      icon: Mithril javelin(p++).png
+      role: poison
+      dose: null
+      value: 64
+      lowalch: 25
+      highalch: 38
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: mithril
+    tier: mid
   equipment:
-    slot: weapon
-    attack_speed: 6
+    slot: ammo
+    weapon_type: thrown
+    weight: 0
+    tradeable: true
     requirements:
       ranged: 20
     attack_bonus:
-      ranged: 17
-    ranged_strength: 49
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 64
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 54
+      xp: 8
+      materials:
+        - item_name: Mithril javelin heads
+          item_id: 19582
+          quantity: 1
+        - item_name: Javelin shaft
+          item_id: 19580
+          quantity: 1
+      facility: Inventory
+      product: Mithril javelin
+      product_id: 828
+      output_quantity: 1
+  shops:
+    - shop_name: "Ranging Guild"
+      location: Ranging Guild
+      price: 80
+      currency: coins
+      stock: 500
+    - shop_name: "Void Knight Archery Store"
+      location: Void Knights' Outpost
+      price: 64
+      currency: coins
+      stock: 5
+    - shop_name: "Oobapohk's Javelin Store"
+      location: Marim
+      price: 64
+      currency: coins
+      stock: 500
   related_items:
     - item_id: 827
       item_name: Steel javelin
       slug: steel-javelin
-      relationship: variant
-      description: Lower tier javelin
+      relationship: downgrade
+      description: "Lower tier javelin (Ranged 10)"
     - item_id: 829
       item_name: Adamant javelin
       slug: adamant-javelin
-      relationship: variant
-      description: Higher tier javelin
+      relationship: upgrade
+      description: "Higher tier javelin (Ranged 30)"
+    - item_id: 19582
+      item_name: Mithril javelin heads
+      slug: mithril-javelin-heads
+      relationship: component
+      description: "Fletched onto a javelin shaft to make this javelin"
   about: |-
     > _"A mithril tipped javelin."_
 
-    The mithril javelin requires 20 Ranged. Mid-tier javelin ammunition.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The mithril javelin is a mid-tier thrown weapon requiring 20 Ranged. Commonly loaded into heavy ballistae as cheap ranged ammunition with a solid +64 Ranged strength bonus.
+  market_strategy:
+    notes:
+      - "Fletching: heads + shafts at level 54 yields 8 XP each"
+      - "Stack with heavy ballista for budget Wilderness PKing"
+      - "Buy limit 7,000 per 4 hours"
+      - "Shop restocks at 80 GP from Ranging Guild support arbitrage"
+  trading_tips:
+    - "Compare fletching margins vs raw javelin price"
+    - "Watch Ranging Guild stock for low-effort shop flips"
+  history:
+    - date: "2004-03-29"
+      description: "Released alongside thrown weapons rework."
+    - date: "2016-05-05"
+      description: "Converted from weapon slot to ammunition slot; ranged strength bonus rebalanced."
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

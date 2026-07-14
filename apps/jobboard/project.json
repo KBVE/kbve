@@ -1,0 +1,143 @@
+{
+	"name": "jobboard",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/jobboard/src",
+	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"dependsOn": ["web-build"],
+			"options": {
+				"target-dir": "dist/target/jobboard"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"dependsOn": ["web-build"],
+			"options": {
+				"target-dir": "dist/target/jobboard"
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"dependsOn": ["web-build"],
+			"options": {
+				"target-dir": "dist/target/jobboard"
+			}
+		},
+		"run": {
+			"executor": "@monodon/rust:run",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/jobboard"
+			}
+		},
+		"web-dev": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["npm run dev"],
+				"cwd": "apps/jobboard/web",
+				"parallel": false
+			}
+		},
+		"web-build": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/web/dist"],
+			"options": {
+				"commands": ["npm run build"],
+				"cwd": "apps/jobboard/web",
+				"parallel": false
+			}
+		},
+		"serve-static": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"JOBBOARD_WEB_DIR=apps/jobboard/web/dist cargo run -p jobboard"
+				],
+				"parallel": false
+			}
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"bash -c 'set -o pipefail; : > jobboards.txt; docker compose up --build 2>&1 | tee /dev/stderr | { grep -iE \"error|fail|fatal|panic|unhealthy|exited with code [1-9]|didn.t complete\" >> jobboards.txt || true; }; exit ${PIPESTATUS[0]}'"
+				],
+				"cwd": "apps/jobboard"
+			}
+		},
+		"down": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["docker compose down -v"],
+				"cwd": "apps/jobboard"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx jobboard:containerx",
+						"VERSION=$(grep '^version' apps/jobboard/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/jobboard:latest kbve/jobboard:$VERSION && echo \"Tagged kbve/jobboard:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx jobboard:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/jobboard/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/jobboard:latest ghcr.io/kbve/jobboard:latest && docker tag kbve/jobboard:latest ghcr.io/kbve/jobboard:$VERSION && echo \"Tagged ghcr.io/kbve/jobboard:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/jobboard/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/jobboard:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": ["ghcr.io/kbve/jobboard", "kbve/jobboard"],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/jobboard:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/jobboard:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["docker", "rust", "jobboard"]
+}

@@ -12,12 +12,96 @@ osrs:
   lowalch: 422
   highalch: 633
   limit: 70
-  about: "Black helm (h4) is a free-to-play item in Old School RuneScape. High alchemy value: 633 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: low
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 12
+      slash: 13
+      crush: 10
+      magic: -1
+      ranged: 12
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Black full helm
+      slug: black-full-helm
+      relationship: alternative
+      description: Plain heraldic-less variant
+    - item_name: Black helm (h1)
+      slug: black-helm-h1
+      relationship: variant
+      description: Different heraldic design
+    - item_name: Black helm (h2)
+      slug: black-helm-h2
+      relationship: variant
+      description: Different heraldic design
+    - item_name: Black helm (h3)
+      slug: black-helm-h3
+      relationship: variant
+      description: Different heraldic design
+    - item_name: Black helm (h5)
+      slug: black-helm-h5
+      relationship: variant
+      description: Different heraldic design
+  about: |-
+    Black helm (h4) is a heraldic variant of the black full helm rewarded from easy Treasure Trails reward caskets at a rate of about 1 in 1,404. It cannot be crafted via Smithing.
+
+    Stats are identical to the regular black full helm — purely cosmetic differentiation through heraldry.
+  market_strategy:
+    notes:
+      - "Free-to-play access broadens the buyer base"
+      - "Supply tied directly to easy clue completion rates"
+      - "Buy limit 70 keeps flipping volume modest"
+  trading_tips:
+    - Track easy clue caskets opened in streams — supply ticks up after content releases
+    - Holiday events boost cosmetic demand; hold inventory before fashionscape pushes
+  history:
+    - date: "2006-12-05"
+      description: "Released as part of the Treasure Trails reward expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

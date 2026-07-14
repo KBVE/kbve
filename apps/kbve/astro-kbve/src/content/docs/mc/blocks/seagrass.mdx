@@ -1,5 +1,6 @@
 ---
 title: Seagrass
+template: splash
 description: |
     Minecraft Seagrass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,73 @@ mc_block:
     id: 136
     ref: seagrass
     slug: seagrass
+    content_rev: 1
     display_name: Seagrass
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: seagrass
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shears_mineable
+        - overworld
+        - non_flammable
+        - waterloggable
+        - non_solid
+    about:
+        description: |
+            Seagrass is a non-solid underwater plant that carpets the floor
+            of oceans, rivers, and swamps in its short or tall two-block
+            form, requiring sky-lit water to generate.
+        lore: |
+            Added in Java Edition 1.13, seagrass traces back to a 2009
+            "seaweed" concept sketched out early in the game's development.
+    uses:
+        - title: Turtle Breeding
+          ref: seagrass
+          detail: |
+              Holding seagrass lets players lead and breed turtles; feeding
+              it to a baby turtle speeds its growth into an adult.
+        - title: Composting
+          ref: seagrass
+          detail: |
+              Placing seagrass in a composter has a 30% chance to raise the
+              compost level by one.
+    found_in:
+        - location: Oceans, Rivers & Swamps
+          detail: Generates naturally on the floor of non-frozen oceans, rivers, underwater caves, and swamps with sky access.
+        - location: Bone Meal
+          detail: Applying bone meal to a suitable underwater block spreads additional seagrass nearby.
+    faq:
+        - question: What tool do I need to harvest Seagrass?
+          answer: |
+              Shears (or Silk Touch) are required to collect it as an item;
+              breaking it any other way destroys it with no drop.
+        - question: Does Seagrass drop anything without shears?
+          answer: |
+              No. Mining it with a regular tool or hand destroys the block
+              and yields nothing.
+        - question: How do turtles interact with Seagrass?
+          answer: |
+              Turtles drop 0-2 seagrass on death, and players can use held
+              seagrass to lead turtles or breed two adults together.
+        - question: Is Seagrass flammable?
+          answer: |
+              No, and being underwater it is never exposed to fire in
+              normal gameplay.
     data_version: "1.21.5"
 ---
 

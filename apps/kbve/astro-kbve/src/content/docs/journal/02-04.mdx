@@ -8,16 +8,64 @@ img: https://images.unsplash.com/photo-1560697024-fd4affa63094?crop=entropy&cs=s
 description: Daily Log for February 4th for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 4,'
+    accent: every year.
+    lede: 'The February 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Feb 3'
+          href: /journal/02-03/
+        - label: 'Feb 5 →'
+          href: /journal/02-05/
+    related:
+        - title: 'Previous · Feb 3'
+          copy: 'Step back a day to the February 3rd log.'
+          href: /journal/02-03/
+          icon: calendar
+        - title: 'Next · Feb 5'
+          copy: 'Jump ahead to the February 5th log.'
+          href: /journal/02-05/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1560697024-fd4affa63094?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="notes" heading="Notes">
 
 <Adsense />
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Markets
 
@@ -94,7 +142,9 @@ import { Adsense } from '@/components/astropad';
     Was venturing around the internet and came across this website, https://floor796.com/#t3r3,268,593, and I think it be perfect for this journal entry.
     Maybe I will make it a habit to visit the site once a year, just to see what updates have been added to it.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### Unity
 
@@ -361,3 +411,6 @@ Leaving the note off on Faith! It seems that I missed that one.
 
 Spaceballs and getting some sleep is the plan for the rest of the night!
 
+</BentoProse>
+
+</BentoDoc>

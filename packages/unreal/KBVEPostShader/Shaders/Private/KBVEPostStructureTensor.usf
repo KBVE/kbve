@@ -1,0 +1,45 @@
+#include "/Plugin/KBVEPostShader/Private/KBVEPostCommon.ush"
+
+Texture2D ColorTexture;
+SamplerState ColorSampler;
+float2 TexelSize;
+
+// Builds the local image structure tensor from RGB Sobel gradients and resolves
+// it into a flow tangent (xy = direction features run along) plus anisotropy (z).
+void MainPS(float4 SvPosition : SV_POSITION, out float4 OutColor : SV_Target0)
+{
+	float2 UV = SvPosition.xy * TexelSize;
+	float3 Sx = float3(0, 0, 0);
+	float3 Sy = float3(0, 0, 0);
+
+	// Sobel
+	float3 c00 = ColorTexture.SampleLevel(ColorSampler, UV + float2(-1, -1) * TexelSize, 0).rgb;
+	float3 c10 = ColorTexture.SampleLevel(ColorSampler, UV + float2( 0, -1) * TexelSize, 0).rgb;
+	float3 c20 = ColorTexture.SampleLevel(ColorSampler, UV + float2( 1, -1) * TexelSize, 0).rgb;
+	float3 c01 = ColorTexture.SampleLevel(ColorSampler, UV + float2(-1,  0) * TexelSize, 0).rgb;
+	float3 c21 = ColorTexture.SampleLevel(ColorSampler, UV + float2( 1,  0) * TexelSize, 0).rgb;
+	float3 c02 = ColorTexture.SampleLevel(ColorSampler, UV + float2(-1,  1) * TexelSize, 0).rgb;
+	float3 c12 = ColorTexture.SampleLevel(ColorSampler, UV + float2( 0,  1) * TexelSize, 0).rgb;
+	float3 c22 = ColorTexture.SampleLevel(ColorSampler, UV + float2( 1,  1) * TexelSize, 0).rgb;
+
+	Sx = (c20 + 2.0f * c21 + c22) - (c00 + 2.0f * c01 + c02);
+	Sy = (c02 + 2.0f * c12 + c22) - (c00 + 2.0f * c10 + c20);
+
+	float E = dot(Sx, Sx);
+	float F = dot(Sx, Sy);
+	float G = dot(Sy, Sy);
+
+	float D = sqrt(max((E - G) * (E - G) + 4.0f * F * F, 0.0f));
+	float Lambda1 = 0.5f * (E + G + D);
+	float Lambda2 = 0.5f * (E + G - D);
+
+	// Major eigenvector = gradient direction; flow tangent is perpendicular.
+	float2 Major = float2(F, Lambda1 - E);
+	float MajorLen = length(Major);
+	Major = MajorLen > 1e-4f ? Major / MajorLen : float2(0, 1);
+	float2 Flow = float2(-Major.y, Major.x);
+
+	float Anisotropy = (Lambda1 + Lambda2) > 1e-4f ? (Lambda1 - Lambda2) / (Lambda1 + Lambda2) : 0.0f;
+
+	OutColor = float4(Flow, Anisotropy, 1.0f);
+}

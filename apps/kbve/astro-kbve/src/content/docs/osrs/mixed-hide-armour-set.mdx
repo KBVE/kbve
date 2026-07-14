@@ -11,10 +11,56 @@ osrs:
   value: 145000
   lowalch: 58000
   highalch: 87000
-  limit: null
-  about: "Mixed hide armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: armour-set
+    tier: mid-high
+  properties:
+    release_date: "2024-04-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Mixed hide top
+      slug: mixed-hide-top
+      relationship: set-piece
+      description: Body slot piece in the mixed hide armour set
+    - item_name: Mixed hide legs
+      slug: mixed-hide-legs
+      relationship: set-piece
+      description: Legs slot piece in the mixed hide armour set
+    - item_name: Mixed hide boots
+      slug: mixed-hide-boots
+      relationship: set-piece
+      description: Feet slot piece in the mixed hide armour set
+    - item_name: Mixed hide cape
+      slug: mixed-hide-cape
+      relationship: set-piece
+      description: Cape slot piece in the mixed hide armour set
+  about: "Mixed hide armour set is a Grand Exchange convenience bundle of the four mixed hide armour pieces (top, legs, boots, cape). Players combine the pieces into the set at a Grand Exchange clerk via the Sets interface, primarily to list all four parts in a single trade; only the unpacked components are equippable."
+  market_strategy:
+    notes:
+      - "Bundle premium hinges on full-component supply at the GE"
+      - "Convenience item for sellers; not equippable directly"
+      - "Tracks the combined price of all four mixed hide pieces"
+  trading_tips:
+    - Compare set price vs. sum of components to flip the cheaper side
+    - Component shortages widen the bundle premium
+  history:
+    - date: "2024-04-24"
+      description: "Added to the game alongside the Mixed hide armour pieces."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

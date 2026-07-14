@@ -12,25 +12,85 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
+  material:
+    type: cloth
+    tier: mid
   equipment:
     slot: head
+    weight: 0.3
     requirements:
       prayer: 40
       magic: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
     other_bonus:
+      strength: 0
       prayer: 5
+  drop_table:
+    sources:
+      - source: "Reward casket (medium)"
+        quantity: "1"
+        rarity: "1/1,133"
+      - source: "Elite Treasure Trail (Shadow Dungeon emote clue)"
+        quantity: "1"
+        rarity: "Clue-tier"
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - medium
+      - elite
   related_items:
-    - item_id: 12253
-      item_name: Armadyl robe top
-      slug: armadyl-robe-top
+    - item_name: "Armadyl robe top"
       relationship: set-piece
-      description: Armadyl vestment body
-  about: |-
-    > *"An Armadyl mitre."*
-
-    The Armadyl mitre is a head slot item from the Armadyl vestment set. It provides a +5 Prayer bonus and requires 40 Prayer and 40 Magic to equip. Counts as an Armadylean item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: "Armadyl robe legs"
+      relationship: set-piece
+    - item_name: "Armadyl stole"
+      relationship: set-piece
+    - item_name: "Armadyl cloak"
+      relationship: set-piece
+    - item_name: "Armadyl crozier"
+      relationship: set-piece
+  about: "Armadyl mitre is a members head slot piece from the Armadyl vestment set; +5 Prayer bonus, counts as Armadylean in God Wars Dungeon."
+  market_strategy:
+    notes:
+      - "Demand from Kree'arra learners and god-aligned cosmetic builds."
+      - "Stable price floor due to small clue drop pool and 8/4h buy limit."
+  trading_tips:
+    - "Pair stock with vestment-set demand; full sets sell faster than singles."
+    - "Spikes during clue-scroll bonus weekends."
+  history:
+    - date: "2014-06-12"
+      description: "Released with the Treasure Trail Expansion update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

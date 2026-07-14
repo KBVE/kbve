@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693550345119-ec1c806d74c2?crop=entropy&c
 description: September 27th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 27,'
+    accent: every year.
+    lede: 'The September 27th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 26'
+          href: /journal/09-26/
+        - label: 'Sep 28 →'
+          href: /journal/09-28/
+    related:
+        - title: 'Previous · Sep 26'
+          copy: 'Step back a day to the September 26th log.'
+          href: /journal/09-26/
+          icon: calendar
+        - title: 'Next · Sep 28'
+          copy: 'Jump ahead to the September 28th log.'
+          href: /journal/09-28/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693550345119-ec1c806d74c2?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Session - NodeJS
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     We finally getting him caught up with the unity nodejs.
     Turns out the popos is using an older glibc version and we really can not do much until he updates the operating system.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **PGSodium**
 
@@ -200,19 +249,29 @@ Adding some of the pgsodium key access roles for the cluster and this should hel
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 3:45pm - I am surprised that Tesla and Apple have back traced this fast, I was really expecting them to coast through this mild recession. Granted I do believe they are a bit over valued, but at my age and the direction that computation is moving, both of those companies seem like a safe harbor for the next couple decades.
 - 6:30pm - Looks like my tesla has a flat tire, womp! The leak is pretty bad and honestly I feel like crap trying to get it fixed because it will be a pain to just find the right tire shop to do the job. I also have to get my rims fixed a bit, hmm this is just one of those things.
 - 8:17pm - YoRHa UI's object placement and general modal updates need to be addressed. There are a couple ways that I could go about handling this, I am thinking to do my classic build, break and repeat until I get a bit of what I want. I have already written the state management for the modals about five times and counting! Ugh.
 
+</BentoProse>
 
-## Quote
+<BentoProse id="quote" heading="Quote">
 
 > By oneself is evil done; by oneself is one defiled. By oneself is evil left undone; by oneself is one made pure.
 > — <cite>The Buddha</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

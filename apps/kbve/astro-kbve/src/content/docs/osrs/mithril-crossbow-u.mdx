@@ -12,12 +12,75 @@ osrs:
   lowalch: 300
   highalch: 450
   limit: 10000
-  about: "Mithril crossbow (u) is a members-only item in Old School RuneScape. High alchemy value: 450 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 8
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 54
+      xp: 64
+      materials:
+        - item_name: Maple stock
+          quantity: 1
+        - item_name: Mithril limbs
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Mithril crossbow
+      slug: mithril-crossbow
+      relationship: product
+      description: Strung crossbow created by adding a crossbow string at level 54 Fletching.
+    - item_name: Maple stock
+      slug: maple-stock
+      relationship: component
+      description: Wooden stock used to assemble the unstrung mithril crossbow.
+    - item_name: Mithril limbs
+      slug: mithril-limbs
+      relationship: component
+      description: Smithed limbs attached to the maple stock.
+    - item_name: Adamant crossbow (u)
+      slug: adamant-crossbow-u
+      relationship: upgrade
+      description: Higher tier unstrung crossbow.
+    - item_name: Steel crossbow (u)
+      slug: steel-crossbow-u
+      relationship: downgrade
+      description: Lower tier unstrung crossbow.
+  about: "Mithril crossbow (u) is the unstrung intermediate product when fletching a mithril crossbow. At Fletching level 54 a player combines a maple stock with mithril limbs (using a hammer) for 64 Fletching experience. Adding a crossbow string finishes the weapon for a further 32 experience. The unstrung crossbow itself cannot be wielded."
+  market_strategy:
+    notes:
+      - "Margin tied to the spread between mithril limbs, maple stock and finished crossbow."
+      - "Profit shifts during Fletching XP events when bulk crossbow training spikes."
+  trading_tips:
+    - Watch maple stock supply; cheap stocks make this recipe profitable.
+    - Bulk buying near the 10,000 limit allows steady fletching XP flips.
+  history:
+    - date: "2006-07-31"
+      description: Released alongside the rest of the crossbow Fletching expansion.
+    - date: "2014-12-10"
+      description: Renamed from "Mith c'bow (u)" to "Mithril crossbow (u)".
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

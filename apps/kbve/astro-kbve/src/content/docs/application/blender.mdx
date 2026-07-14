@@ -1,0 +1,1200 @@
+---
+title: Blender
+description: |
+    Blender is a powerful open-source 3D creation suite supporting the entire 3D pipeline—modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
+    The software provides professional-grade tools for artists, studios, and hobbyists across industries including game development, film production, architecture, and product visualization.
+    With Python scripting, extensive addon support, and active community development, Blender has become an industry-standard tool for 3D content creation.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+sidebar:
+    label: Blender
+    order: 1303
+unsplash: 1618519764301-4dccc2c70c76
+img: https://images.unsplash.com/photo-1618519764301-4dccc2c70c76?fit=crop&w=1400&h=700&q=75
+tags:
+    - 3d
+    - software
+    - modeling
+bento:
+    badge: 'application · 3d · modeling'
+    title: 'The entire 3D pipeline,'
+    accent: Blender.
+    lede: >-
+        A free and open-source 3D creation suite covering modeling, rigging,
+        animation, simulation, rendering, compositing, and video editing.
+        This guide walks the full toolset — plus the KBVE sprite baker and
+        headless CI workflows that turn 3D models into game-ready assets.
+    ctas:
+        - label: Getting started
+          href: '#getting-started'
+          primary: true
+        - label: Sprite sheet baker
+          href: '#sprite-sheet-baker'
+        - label: Rendering
+          href: '#rendering'
+        - label: KBVE integration
+          href: '#kbve-integration'
+    aside:
+        icon: render
+        title: One suite, every stage
+        body: >-
+            From the first polygon to the final composited frame, Blender
+            handles every stage of 3D production — with a Python API deep
+            enough to automate all of it.
+        points:
+            - <strong>Modeling</strong> — polygons, sculpting, and Geometry Nodes.
+            - <strong>Rendering</strong> — Cycles path tracing and real-time Eevee.
+            - <strong>Automation</strong> — headless bakes and renders via bpy.
+    stats:
+        - { label: License, value: GPL-3.0, icon: license }
+        - { label: Path tracer, value: Cycles, icon: render }
+        - { label: Scripting, value: Python bpy, icon: code }
+        - { label: Open-sourced, value: '2002', icon: calendar }
+    features:
+        - title: Getting started
+          icon: box
+          href: '#getting-started'
+          body: Install via package managers on any OS, then tour the workspaces and default scene.
+        - title: Sprite sheet baker
+          icon: camera
+          href: '#sprite-sheet-baker'
+          body: Bake 360° spins of 3D models into iso sprite sheets for the ARPG — in the browser or headless via Blender.
+        - title: Rendering
+          icon: render
+          href: '#rendering'
+          body: Eevee, Cycles, and Workbench — sampling, denoising, light paths, and render passes for compositing.
+        - title: KBVE integration
+          icon: gears
+          href: '#kbve-integration'
+          body: Headless render, export, and script tasks on the self-hosted mac-blender runner via router and flow workflows.
+    related:
+        - title: Unreal Engine
+          href: /application/unreal/
+          copy: Import baked FBX assets into UE for game production.
+          icon: sword
+        - title: Unity
+          href: /application/unity/
+          copy: FBX export settings and pipelines for Unity projects.
+          icon: package
+        - title: Godot
+          href: /application/godot/
+          copy: glTF 2.0 export for the open-source game engine.
+          icon: code
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1618519764301-4dccc2c70c76?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
+---
+
+import { Aside, Steps, FileTree } from '@astrojs/starlight/components';
+import { Giscus, Adsense } from '@/components/astropad';
+import SpriteSheetBaker from '@/components/blender/SpriteSheetBaker.tsx';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="information" eyebrow="Start here" heading="Information">
+
+Blender is a free and open-source 3D creation suite developed by the Blender Foundation and maintained by a global community of contributors.
+First released in 1995 and open-sourced in 2002, Blender has evolved into a comprehensive platform capable of handling every stage of the 3D production pipeline.
+The software runs on Windows, macOS, and Linux, supporting GPU rendering via CUDA, OptiX, HIP, Metal, and oneAPI.
+
+Blender's architecture is built around a unified interface with multiple workspaces optimized for different tasks: modeling, sculpting, shading, animation, rendering, compositing, and video editing.
+The Python API provides deep access to Blender's internals, enabling automation, custom tools, and pipeline integration.
+The addon ecosystem extends Blender's capabilities with community and commercial tools for specialized workflows.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="getting-started" eyebrow="Install & setup" heading="Getting Started">
+
+Download Blender from [blender.org](https://www.blender.org/download/) or install via package managers:
+
+```bash
+# macOS (Homebrew)
+brew install --cask blender
+
+# Linux (Snap)
+snap install blender --classic
+
+# Linux (Flatpak)
+flatpak install flathub org.blender.Blender
+
+# Windows (winget)
+winget install -e --id BlenderFoundation.Blender
+```
+
+On first launch, Blender presents the Quick Setup dialog for configuring keyboard shortcuts (Blender or Industry Compatible), theme, and interface language.
+The default startup file opens with a cube, camera, and light in the 3D viewport.
+
+<Aside>
+Blender is 100% free with no license fees, subscriptions, or royalties. It's licensed under GPL-3.0, allowing commercial use and redistribution.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="sprite-sheet-baker" eyebrow="ARPG toolchain" heading="Isometric Sprite Sheet Baker (ARPG)">
+
+The ARPG iso renderer draws environment props and vehicles as upright screen
+billboards. To turn a 3D model into a prop, we bake a 360° spin into a sprite
+sheet whose frame index maps directly to a facing. The toolchain lives in the
+**kbve python package** (`kbve.sprite`) and runs via `uv` console entrypoints, so it
+can be invoked from anywhere in the repo; the interactive angle finder stays beside
+the arpg assets.
+
+<FileTree>
+- packages/python/kbve/kbve/sprite/
+  - model_sprites.py       `uv run kbve-model-sprites` — Blender baker (OBJ/FBX → sheet)
+  - sprite_postprocess.py  `uv run kbve-sprite-postprocess` — ground shadow + stitch
+  - skin_variant.py        `uv run kbve-skin-variant` — kill a glow color → "off" skin
+  - ship_footprint.py      `uv run kbve-ship-footprint` — bake ship collision (.ts + .rs)
+- apps/agones/arpg/web/scripts/
+  - preview-model-sprites.html  Three.js angle finder (mirrors the baker's math)
+  - gen-bush-sheet.py           Proc bush baker (shelved — bush env parked)
+</FileTree>
+
+Enable the toolchain (pulls Pillow + numpy, kept off the core install):
+
+```bash
+uv sync --project packages/python/kbve --extra sprite
+```
+
+**What it does** — loads a model + skin texture, lays the hull flat on the ground
+plane (`--pitch`, baked into the mesh), spins it through N yaw facings under an
+orthographic isometric camera, and writes one transparent PNG per facing plus a
+square row-major `sheet.png` and a `strip.png`.
+
+### Try it in the browser
+
+The island below is the baker's zero-install twin — same yaw / elevation / lay-flat
+math, rasterized straight from WebGL. Pick a model (`.obj`, `.glb`, or `.fbx`) and a
+skin, dial the angle, then **Bake** to download the sheet. It also prints the matching
+Blender command (for a higher-fidelity offline bake) and a ready `EnvDef` snippet.
+
+<SpriteSheetBaker client:only="react" />
+
+<Aside type="tip">
+**Cost:** Each sprite sheet generation costs **10 credits** per render (browser or CLI).
+</Aside>
+
+<Aside>
+The browser baker is for fast iteration and previewing. For final assets prefer the
+Blender command it generates — EEVEE shading and antialiasing are crisper than the
+live WebGL capture.
+</Aside>
+
+<Aside type="caution">
+Many ship/vehicle models import **standing upright** (nose along the model's up
+axis). Because an env sprite is a flat upright billboard, an upright render reads
+as a ship standing on its tail. `--pitch 90` rotates the hull onto the ground
+(deck toward the camera-up) and bakes it before the spin, so every frame reads as
+a vehicle resting on the iso floor.
+</Aside>
+
+<Steps>
+
+1. **Find the angle** — serve the previewer (file URLs block local model/texture
+   loads) and dial yaw / camera elevation / lay-flat pitch. It prints the exact
+   baker command for the heading you pick.
+
+   ```bash
+   cd apps/agones/arpg/web/scripts
+   python3 -m http.server 8765
+   # open: http://localhost:8765/preview-model-sprites.html?model=PATH.obj&skin=PATH.jpg
+   ```
+
+2. **Bake the sheet** — paste the copied flags. The entrypoint finds Blender and
+   runs it headless (set `BLENDER_BIN` to override discovery):
+
+   ```bash
+   uv run --project packages/python/kbve kbve-model-sprites -- \
+     --model fighter1.obj --skin idolknight.jpg --out render_flat \
+     --frames 16 --res 256 --elev 35 --pitch 90 --yaw-offset 0
+   ```
+
+   Equivalent direct form: `blender -b -P packages/python/kbve/kbve/sprite/model_sprites.py -- <flags>`.
+
+   For a single static "parked" frame: `--frames 1 --yaw-offset <heading>`.
+
+   For a **lift / spool-up animation** (engines rising off the ground), add
+   `--anim-frames 8 --lift 0.6`. The hull rises over the frames while a Cycles
+   shadow-catcher keeps the shadow on the floor, so the gap grows = a real hover.
+   The sheet lays out one row per facing × one column per anim frame (row-major
+   `dir * frames + f`), so the `EnvDef` reads it as `frames: 8, directions: 16`:
+
+   ```bash
+   uv run --project packages/python/kbve kbve-model-sprites -- \
+     --model fighter1.obj --skin idolknight.jpg \
+     --out ship_lift --frames 16 --anim-frames 8 --lift 0.6 --res 256 \
+     --elev 30 --pitch 90 --yaw-offset 45 --real-shadow
+   ```
+
+3. **Wire the prop** — drop `sheet.png` (or a chosen `frame_NN.png`) under
+   `web/public/assets/...` and register an `EnvDef` in
+   `web/src/game/entities/env.ts`. A static prop uses `frames: 1`; a rotatable
+   one uses `directions: 16` and the full sheet (row-major: row = facing).
+
+</Steps>
+
+| Flag | Meaning | Default |
+| --- | --- | --- |
+| `--model` | source `.obj` / `.fbx` | required |
+| `--skin` | texture applied to all meshes | required |
+| `--out` | output dir (frames + `sheet.png` + `strip.png`) | required |
+| `--frames` | yaw facings (`1` = static) | `16` |
+| `--anim-frames` | animation frames PER facing (`>1` bakes an animation) | `1` |
+| `--anim-mode` | `lift` (rise, once), `idle` (bob loop), `move` (fly bob+sway loop), `bank` (monotonic roll L→R for turn lean), `launch` (ascent to space, once) | `lift` |
+| `--lift` | hover height as a fraction of model size (lift / idle / move / bank base) | `0.6` |
+| `--bob` | vertical bob amplitude as a fraction of model size (idle/move) | `0.06` |
+| `--sway` | roll amplitude in degrees (move sway / bank extent) | `8` |
+| `--launch-height` | launch ascent height × model size | `5` |
+| `--launch-pitch` | launch nose-up pitch deg at apex | `70` |
+| `--launch-shrink` | launch final scale (fakes distance) | `0.12` |
+| `--res` | px per frame (square) | `256` |
+| `--elev` | camera elevation deg (`35` = 2:1 iso) | `35` |
+| `--pitch` | lay-flat hull pitch, baked before spin | `90` |
+| `--yaw-offset` | heading added to every frame; sets `frame_00` | `0` |
+| `--real-shadow` | render a TRUE cast shadow (Cycles + ground catcher) instead of the fake 2D one | off |
+| `--sun-elev` / `--sun-az` | sun elevation / azimuth deg (real-shadow; shadow falls opposite) | `55` / `135` |
+| `--sun-soft` | sun angular size deg = penumbra softness | `4` |
+| `--samples` | Cycles samples (real-shadow) | `64` |
+| `--no-shadow` | skip the baked ground shadow | off |
+| `--shadow-alpha` | shadow darkness `0..1` | `0.45` |
+| `--shadow-squash` | vertical flatten of the silhouette `0..1` | `0.7` |
+| `--shadow-shear` | iso ground skew (x per y about the contact line) | `0.15` |
+| `--shadow-grow` | dilate the pool past the hull (rim halo, fraction of frame) | `0.05` |
+| `--shadow-dx` / `--shadow-dy` | shadow offset along the light (fraction of frame) | `0.0` / `0.045` |
+
+Two shadow modes:
+
+- **Real (`--real-shadow`)** — the proper one. A ground plane under the hull is flagged
+  as a Cycles shadow catcher; with the transparent film it contributes only the cast
+  shadow's alpha, so each frame carries the **true** shadow for that facing under the
+  sun (`--sun-elev`/`--sun-az`/`--sun-soft`). Shape follows the real 3D form and the
+  light, per facing — no guessing. Costs a Cycles pass (slower than EEVEE, but 16
+  frames is seconds).
+- **Fake (default)** — `kbve-sprite-postprocess` derives a shadow from each frame's own
+  alpha silhouette and projects it onto the iso floor: squashed toward the contact
+  line, **sheared** along the iso axis, **dilated** so a soft rim haloes past the hull,
+  then offset/blurred/darkened. The grow + near-zero offset read as a grounded *contact
+  pool* (parked); raise `--shadow-dx/dy` for a hovering cast look. No 3D pass, engine-
+  agnostic, fully tunable. Drop either with `--no-shadow`.
+
+### State variants (engines off / on)
+
+A prop can ship multiple skins for different states. `kbve-skin-variant` masks a
+glow color in the skin and desaturates + darkens it, so e.g. the parked ship's green
+engines read as **off**:
+
+```bash
+uv run --project packages/python/kbve kbve-skin-variant \
+  --in idolknight.jpg --out idolknight_off.jpg --hue green
+```
+
+Bake one sheet per skin (`ship.png` from the off skin, `ship_on.png` from the
+original glowing one). They share frame layout, so the game swaps the `EnvDef.sheet`
+to switch state — powered-down while parked, glowing when engines are on.
+
+<Aside>
+Blender's bundled Python has no Pillow, so the stitch step shells out to the
+system `python3` (which carries it) to assemble the sheet — frames are written
+regardless. EEVEE is used for fast, flat, sprite-friendly renders.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="interface" eyebrow="Workspaces & editors" heading="Interface">
+
+Blender's interface consists of workspaces, each containing a custom arrangement of editors (viewports, timelines, node editors, etc.).
+The top header provides workspace tabs, while each editor has its own header with type selector and context-specific menus.
+
+### Core Editors
+
+- **3D Viewport** - Main scene editor for viewing and manipulating objects in 3D space. Supports multiple shading modes (solid, material preview, rendered).
+- **Shader Editor** - Node-based material and shader creation using Cycles and Eevee material systems.
+- **UV Editor** - Unwrap and edit UV texture coordinates for meshes.
+- **Compositor** - Node-based post-processing and compositing for renders.
+- **Geometry Nodes** - Procedural modeling and effects using node graphs.
+- **Video Sequencer** - Timeline-based video editing with strips, effects, and audio.
+- **Dope Sheet** - Keyframe animation management across multiple objects and properties.
+- **Graph Editor** - Bezier curve editing for animation F-curves and driver functions.
+- **NLA Editor** - Non-linear animation mixing and blending with action strips.
+- **Text Editor** - Built-in Python script editor with syntax highlighting and execution.
+- **Outliner** - Hierarchical tree view of scene collections, objects, and data blocks.
+- **Properties Panel** - Context-sensitive properties for active object, material, modifier, etc.
+
+### Workspaces
+
+Default workspaces provide task-specific layouts:
+
+- **Layout** - General-purpose workspace with viewport, outliner, and properties.
+- **Modeling** - Optimized for polygon modeling with edit mode tools and modifier panel.
+- **Sculpting** - High-resolution organic modeling with sculpt mode brushes and dyntopo.
+- **UV Editing** - Simultaneous UV and 3D view for texture coordinate unwrapping.
+- **Shading** - Shader Editor and viewport in material preview mode for material creation.
+- **Animation** - Timeline, dope sheet, and graph editor for keyframe animation.
+- **Rendering** - Viewport and render settings for final image production.
+- **Compositing** - Compositor and viewer for post-processing render passes.
+- **Geometry Nodes** - Geometry Nodes editor with spreadsheet for procedural workflows.
+- **Scripting** - Python console, text editor, and info log for development.
+
+</BentoProse>
+
+<BentoProse id="modeling" eyebrow="Meshes & nodes" heading="Modeling">
+
+Blender supports multiple modeling paradigms: polygon modeling, sculpting, procedural modeling, and curve-based modeling.
+
+### Polygon Modeling
+
+Traditional box-modeling workflow using vertices, edges, and faces.
+Edit mode provides selection tools, extrude, loop cuts, bevel, inset, and subdivision operations.
+Proportional editing allows smooth falloff transformations for organic shapes.
+
+<Steps>
+
+1. **Enter Edit Mode** - Tab key toggles between Object and Edit mode
+2. **Select components** - Vertex (1), Edge (2), Face (3) selection modes
+3. **Transform** - Move (G), Rotate (R), Scale (S) with axis constraints (X/Y/Z)
+4. **Add geometry** - Extrude (E), Inset (I), Loop Cut (Ctrl+R)
+5. **Refine** - Bevel (Ctrl+B), Subdivide, Merge, Knife tool (K)
+
+</Steps>
+
+### Modifiers
+
+Non-destructive modifier stack for procedural operations:
+
+- **Generate** - Array, Bevel, Boolean, Build, Decimate, Geometry Nodes, Mirror, Multiresolution, Remesh, Screw, Skin, Solidify, Subdivision Surface, Triangulate, Volume to Mesh, Weld, Wireframe
+- **Deform** - Armature, Cast, Curve, Displace, Hook, Laplacian Deform, Lattice, Mesh Deform, Shrinkwrap, Simple Deform, Smooth, Smooth Corrective, Smooth Laplacian, Surface Deform, Warp, Wave
+- **Physics** - Cloth, Collision, Dynamic Paint, Explode, Fluid, Ocean, Particle Instance, Particle System, Soft Body
+- **Color** - UV Project, Vertex Weight Edit, Vertex Weight Mix, Vertex Weight Proximity
+
+Modifiers are applied in stack order. The Subdivision Surface modifier is commonly used for smooth subdivision modeling.
+
+### Sculpting
+
+High-resolution organic modeling using dynamic topology or multiresolution modifiers.
+Sculpt mode provides brushes for draw, grab, pinch, smooth, inflate, and crease operations.
+
+**Dyntopo** (Dynamic Topology) - Automatically subdivides geometry under the brush stroke, enabling infinite detail without pre-subdivision.
+
+**Multiresolution** - Non-destructive subdivision modifier preserving base mesh topology, allowing detail sculpting at higher levels while maintaining the ability to edit the base form.
+
+### Geometry Nodes
+
+Procedural modeling system using node graphs to generate or modify geometry.
+Geometry Nodes can create instances, scatter points, generate meshes from curves, apply fields, and build complex procedural systems.
+
+Common nodes:
+- **Mesh Primitives** - Cube, UV Sphere, Ico Sphere, Cylinder, Cone, Grid
+- **Curve Primitives** - Bezier Segment, Curve Circle, Curve Line, Curve Spiral
+- **Instances** - Instance on Points, Realize Instances, Instances to Points
+- **Geometry** - Join Geometry, Merge by Distance, Transform, Set Position
+- **Mesh Operations** - Subdivide Mesh, Extrude Mesh, Dual Mesh, Triangulate
+- **Utilities** - Math, Vector Math, Random Value, Map Range, Switch
+
+</BentoProse>
+
+<BentoProse id="materials-shading" eyebrow="Node materials" heading="Materials and Shading">
+
+Blender uses node-based materials compatible with both rendering engines.
+
+### Shader Nodes
+
+The Shader Editor constructs materials using nodes connected by sockets:
+
+- **Shader** - Principled BSDF (physically-based), Diffuse, Glossy, Glass, Emission, Mix Shader, Add Shader
+- **Texture** - Image Texture, Procedural (Noise, Voronoi, Wave, Magic, Gradient, Musgrave), Brick, Checker, Environment
+- **Color** - Mix, RGB Curves, Hue/Saturation, Bright/Contrast, Invert, Gamma
+- **Vector** - Mapping, Normal Map, Bump, Vector Transform, Displacement
+- **Input** - UV Map, Texture Coordinate, Geometry, Object Info, Vertex Color, Fresnel
+- **Converter** - Math, Vector Math, Color Ramp, Separate/Combine RGB/XYZ, Map Range
+
+### Principled BSDF
+
+The Principled BSDF is a physically-based shader combining multiple layers into a single node.
+It uses Disney's principled shading model with inputs for base color, metallic, roughness, IOR, transmission, emission, and normal maps.
+
+Common PBR workflow:
+1. **Base Color** - Albedo/diffuse texture (sRGB color space)
+2. **Metallic** - Black for dielectric, white for metal (linear/non-color)
+3. **Roughness** - Surface microsurface detail (linear/non-color)
+4. **Normal** - Normal map connected via Normal Map node
+5. **Emission** - Self-illumination (color + strength)
+
+### UV Unwrapping
+
+UV unwrapping projects 3D mesh surfaces onto 2D texture space.
+
+<Steps>
+
+1. **Mark Seams** - In Edit Mode, select edges and Mark Seam (Ctrl+E)
+2. **Unwrap** - UV > Unwrap (U) - projects faces based on seams
+3. **Layout UVs** - Scale, rotate, and pack islands in UV Editor
+4. **Test with Texture** - Apply checker texture to verify distortion
+
+</Steps>
+
+Common unwrap methods:
+- **Unwrap** - Angle-based unwrapping using marked seams
+- **Smart UV Project** - Automatic island creation by angle threshold
+- **Cube Projection** - Projects from six orthogonal directions
+- **Sphere/Cylinder Projection** - Wraps around primitive shapes
+- **Lightmap Pack** - Optimizes UVs for baked lighting with minimal overlap
+
+</BentoProse>
+
+<BentoProse id="animation" eyebrow="Keyframes & rigs" heading="Animation">
+
+Blender provides keyframe animation, rigging, constraints, and non-linear animation systems.
+
+### Keyframes
+
+Keyframes define property values at specific frames. Blender interpolates between keyframes to create motion.
+
+<Steps>
+
+1. **Set initial pose** - Move object to starting position/rotation
+2. **Insert keyframe** - Press I (or right-click property > Insert Keyframe)
+3. **Advance timeline** - Scrub to new frame
+4. **Change property** - Transform, rotate, or modify value
+5. **Insert second keyframe** - Press I again
+6. **Play animation** - Spacebar to preview
+
+</Steps>
+
+The Graph Editor displays F-curves (animation curves) as Bezier splines, allowing precise timing control through handle manipulation.
+
+### Rigging
+
+Rigging creates a skeleton (armature) of bones that deform a mesh via weight painting.
+
+**Armature** - A collection of bones, each with head, tail, and roll defining local space.
+
+**Bone Constraints** - Limit rotation, track targets, inverse kinematics (IK), copy transforms, damped track, stretch to.
+
+**Weight Painting** - Defines bone influence per vertex. Accessed via Weight Paint mode with brush tools for painting influence values (0.0 to 1.0).
+
+**Inverse Kinematics (IK)** - Automatically calculates joint rotations to reach a target position, useful for limbs and procedural animation.
+
+### Actions and NLA
+
+**Action** - A reusable animation clip containing F-curves for keyframed properties.
+
+**NLA (Non-Linear Animation)** - Layers and blends actions on a track-based timeline, enabling animation mixing, looping, and transitions without destroying original keyframes.
+
+### Drivers
+
+Drivers create property relationships using expressions or variables.
+Example: Drive a wheel's rotation based on a vehicle's forward movement, or link facial expression sliders to bone rotations.
+
+</BentoProse>
+
+<BentoProse id="rendering" eyebrow="Engines & passes" heading="Rendering">
+
+Blender includes three render engines with different performance and quality tradeoffs.
+
+### Eevee
+
+Real-time physically-based renderer using rasterization.
+Provides fast interactive feedback with screen-space reflections, volumetrics, subsurface scattering, and bloom.
+Ideal for real-time previews, stylized rendering, and game engine-compatible material authoring.
+
+**Key features:**
+- Screen-space reflections and refractions
+- Irradiance volumes and reflection probes for baked indirect lighting
+- Volumetric lighting and fog with light scattering
+- Subsurface scattering with screen-space approximation
+- Shadows: VSM (Variance Shadow Maps) or ESM (Exponential Shadow Maps)
+- Bloom, motion blur, depth of field, ambient occlusion
+
+**Limitations:**
+- No true path-traced global illumination (relies on probes)
+- Screen-space effects limited to visible screen pixels
+- Transparency rendering order dependent
+
+### Cycles
+
+Physically-based path tracer for photorealistic rendering.
+Supports CPU and GPU rendering (CUDA, OptiX, HIP, Metal, oneAPI) with unbiased light transport.
+
+**Render modes:**
+- **Path Tracing** - Unbiased physically accurate light simulation
+- **Branched Path Tracing** (deprecated) - Legacy mode with controllable sample distribution
+- **Adaptive Sampling** - Stops sampling pixels when noise threshold reached, reducing render time
+
+**Denoising:**
+- **OptiX Denoiser** - NVIDIA GPU accelerated, highest quality
+- **OpenImageDenoise** - Intel CPU/GPU denoiser, cross-platform
+- **NLM (Non-Local Means)** - Legacy CPU denoiser
+
+**Performance optimizations:**
+- Tile rendering with configurable tile size
+- BVH acceleration structure (static/dynamic)
+- Light tree sampling for many-light scenes
+- Caustics and motion blur control
+
+### Workbench
+
+Fast preview renderer for viewport shading during modeling and animation.
+Not intended for final output, but useful for quick material and lighting previews.
+
+### Render Settings
+
+Common render settings (Cycles):
+
+- **Sampling** - Max Samples (higher = less noise), Time Limit, Adaptive Threshold
+- **Light Paths** - Max Bounces (Total, Diffuse, Glossy, Transmission, Volume, Transparency)
+- **Film** - Transparent Background, Exposure, Pixel Filter
+- **Performance** - Tile Size, Acceleration Structure, Use GPU
+
+### Render Passes
+
+Render passes output individual components (diffuse, specular, normal, AO, etc.) for compositing.
+Configure in View Layer properties under Passes.
+
+Common passes:
+- **Combined** - Final composited image
+- **Diffuse** - Direct and indirect diffuse lighting
+- **Glossy** - Specular reflections
+- **Transmission** - Refraction through transparent surfaces
+- **Emission** - Self-illuminating materials
+- **Environment** - Background/sky contribution
+- **AO (Ambient Occlusion)** - Cavity shading
+- **Shadow** - Shadow mask
+- **Normal** - Surface normal vectors
+- **UV** - UV coordinate map
+- **Object/Material Index** - Masking IDs for compositing
+- **Mist** - Depth-based fog pass
+- **Cryptomatte** - Automatic per-object/material masks
+
+</BentoProse>
+
+<BentoProse id="compositing" eyebrow="Post-processing" heading="Compositing">
+
+The Compositor combines render passes, applies effects, and performs color grading using a node-based workflow.
+
+### Compositor Nodes
+
+- **Input** - Render Layers, Image, Movie Clip, Mask, RGB, Value
+- **Output** - Composite, Viewer, File Output, Split Viewer
+- **Color** - Mix, Color Balance, Hue/Saturation, Bright/Contrast, Gamma, Curves, Alpha Over
+- **Filter** - Blur, Bilateral Blur, Bokeh Blur, Vector Blur, Dilate/Erode, Denoise, Despeckle, Filter, Glare, Inpaint, Pixelate, Sun Beams
+- **Converter** - ID Mask, Math, Separate/Combine (RGBA, HSVA, YCbCrA), Set Alpha, RGB to BW
+- **Matte** - Keying, Channel Key, Chroma Key, Color Key, Difference Key, Distance Key, Luminance Key, Double Edge Mask, Cryptomatte
+- **Distort** - Transform, Scale, Rotate, Translate, Flip, Crop, Displace, Map UV, Lens Distortion, Movie Distortion, Corner Pin, Plane Track Deform
+- **Vector** - Normal, Map Value, Map Range, Normalize
+- **Layout** - Frame, Reroute, Switch
+
+### Common Compositing Workflows
+
+**Color Grading:**
+1. Render Layers input → RGB Curves → Hue/Saturation → Composite
+
+**Depth of Field:**
+1. Render Layers (Image + Depth) → Defocus/Bokeh Blur (using depth as factor) → Composite
+
+**Glow/Bloom:**
+1. Render Layers → Glare (Fog Glow or Ghosts) → Mix with original → Composite
+
+**Sky Replacement:**
+1. Render Layers → ID Mask (Background) → Mix (Image + New Sky) → Composite
+
+</BentoProse>
+
+<BentoProse id="simulation" eyebrow="Physics systems" heading="Simulation">
+
+Blender includes physics simulation systems for cloth, fluid, soft body, rigid body, and particle dynamics.
+
+### Rigid Body
+
+Simulates solid objects with collision and stacking.
+Objects are either Active (dynamic) or Passive (static collision).
+Managed via Rigid Body World settings with gravity, solver iterations, and substeps.
+
+**Collision Shapes:** Box, Sphere, Capsule, Cylinder, Cone, Convex Hull, Mesh (slowest, most accurate)
+
+### Cloth
+
+Simulates fabric using spring-based physics.
+Requires vertex groups for pinning static areas and controlling stiffness.
+
+**Settings:**
+- **Quality Steps** - Simulation accuracy (higher = slower but more stable)
+- **Stiffness** - Tension, Compression, Shear, Bending
+- **Damping** - Energy loss per frame
+- **Collisions** - Distance, Self-collisions, friction
+
+### Fluid
+
+Mantaflow-based fluid solver supporting liquid and gas (smoke) simulations.
+
+**Liquid:**
+- Domain defines simulation bounds and resolution
+- Flow objects emit or absorb liquid
+- Effector objects deflect or control flow
+- Mesh generated from particle system
+
+**Smoke/Fire:**
+- Domain contains smoke with voxel resolution
+- Flow emits smoke or fire with velocity, density, heat
+- Volumetric shader renders density field
+
+### Soft Body
+
+Deformable mesh simulation with springs, goal weights, and collision.
+Useful for jiggling objects, cushions, or soft organic motion.
+
+### Particle Systems
+
+Point-based particles for hair, fur, grass, crowds, and effects.
+
+**Emitter:**
+- Emits particles from mesh faces or vertices
+- Controls lifetime, velocity, rotation, size
+- Supports force fields (wind, turbulence, gravity)
+
+**Hair:**
+- Generates strand-based hair from surface
+- Combing, cutting, growing in particle edit mode
+- Strand rendering or child particle interpolation
+
+**Keyed:**
+- Particles follow target positions for controlled motion
+
+**Boids:**
+- Flocking simulation with rules for separation, alignment, cohesion, goal seeking
+
+</BentoProse>
+
+<BentoProse id="scripting" eyebrow="Python API" heading="Scripting and Automation">
+
+Blender's Python API (`bpy`) provides programmatic access to all editor functions, data structures, and operators.
+
+### Python Console
+
+The Scripting workspace includes a Python console with autocomplete for quick API testing:
+
+```python
+import bpy
+
+# Create a UV sphere
+bpy.ops.mesh.primitive_uv_sphere_add(location=(0, 0, 0), radius=2)
+
+# Access active object
+obj = bpy.context.active_object
+
+# Rename object
+obj.name = "MySphere"
+
+# Apply material
+mat = bpy.data.materials.new(name="Red Material")
+mat.diffuse_color = (1, 0, 0, 1)  # RGBA
+obj.data.materials.append(mat)
+
+# Keyframe animation
+obj.location.z = 0
+obj.keyframe_insert(data_path="location", frame=1)
+obj.location.z = 5
+obj.keyframe_insert(data_path="location", frame=50)
+```
+
+### Addon Development
+
+Addons extend Blender with custom operators, panels, menus, and importers/exporters.
+
+**Addon structure:**
+```python
+bl_info = {
+    "name": "My Addon",
+    "author": "Your Name",
+    "version": (1, 0),
+    "blender": (4, 0, 0),
+    "category": "Object",
+}
+
+import bpy
+
+class OBJECT_OT_my_operator(bpy.types.Operator):
+    bl_idname = "object.my_operator"
+    bl_label = "My Operator"
+
+    def execute(self, context):
+        # Operator logic
+        return {'FINISHED'}
+
+def register():
+    bpy.utils.register_class(OBJECT_OT_my_operator)
+
+def unregister():
+    bpy.utils.unregister_class(OBJECT_OT_my_operator)
+
+if __name__ == "__main__":
+    register()
+```
+
+**Installation:**
+1. Save script as `.py` file
+2. Edit > Preferences > Add-ons > Install
+3. Enable checkbox to activate
+
+### Batch Rendering
+
+Automate rendering via command line:
+
+```bash
+# Render single frame
+blender -b scene.blend -f 1
+
+# Render animation range
+blender -b scene.blend -s 1 -e 250 -a
+
+# Render with Python script
+blender -b scene.blend -P render_script.py
+
+# Set output path
+blender -b scene.blend -o /tmp/render_####.png -f 1
+
+# Use specific engine
+blender -b scene.blend -E CYCLES -f 1
+```
+
+### Common API Patterns
+
+**Iterate over selected objects:**
+```python
+for obj in bpy.context.selected_objects:
+    print(obj.name)
+```
+
+**Create mesh from Python:**
+```python
+import bpy
+import bmesh
+
+mesh = bpy.data.meshes.new("MyMesh")
+obj = bpy.data.objects.new("MyObject", mesh)
+bpy.context.collection.objects.link(obj)
+
+bm = bmesh.new()
+bm.from_mesh(mesh)
+# Add vertices, edges, faces via bmesh API
+bm.to_mesh(mesh)
+bm.free()
+```
+
+**Access node trees:**
+```python
+mat = bpy.data.materials.new("NodeMaterial")
+mat.use_nodes = True
+nodes = mat.node_tree.nodes
+links = mat.node_tree.links
+
+# Clear default nodes
+nodes.clear()
+
+# Add nodes
+output = nodes.new('ShaderNodeOutputMaterial')
+bsdf = nodes.new('ShaderNodeBsdfPrincipled')
+links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
+```
+
+</BentoProse>
+
+<BentoProse id="addons" eyebrow="Extend Blender" heading="Addons">
+
+Blender ships with official addons and supports third-party extensions.
+
+### Official Addons (included)
+
+Enable via Edit > Preferences > Add-ons:
+
+- **Import-Export** - FBX, OBJ, Alembic, USD, glTF 2.0, STL, PLY, X3D, SVG
+- **Rigging** - Rigify (advanced auto-rigging), Bone Selection Sets
+- **Mesh** - Bool Tool, LoopTools, Auto Mirror, Extra Objects
+- **Animation** - AnimAll (animate mesh data), Copy Global Transform
+- **Render** - Freestyle SVG Exporter
+- **Node** - Node Wrangler (shader shortcuts)
+- **3D View** - Measureit (dimension annotation), 3D Navigation
+
+### Popular Third-Party Addons
+
+- **Hard Ops / Boxcutter** - Hard-surface modeling tools
+- **Machine Tools** - CAD-style precision modeling
+- **FLIP Fluids** - High-performance liquid simulation
+- **Animation Nodes** - Procedural animation via node graphs (free)
+- **Retopoflow** - Retopology suite with advanced brush tools
+- **UVPackmaster** - AI-powered UV packing optimization
+- **X-Muscle System** - Muscle and skin deformation rig
+- **Dendrite** - Terrain generation
+- **Scatter** - Advanced scattering and ecosystem tools
+- **Real Camera** - Photographer-friendly camera controls
+
+</BentoProse>
+
+<BentoProse id="pipeline-integration" eyebrow="Export & CI" heading="Pipeline Integration">
+
+### Game Engine Export
+
+**Unreal Engine:**
+- Use FBX exporter with "Apply Modifiers" and "Bake Animation"
+- Enable "Selected Objects" for specific exports
+- Collision primitives named `UCX_[MeshName]_##`
+
+**Unity:**
+- Export as FBX with "Apply Transform" disabled (Unity handles scale)
+- Use "Triangulate Faces" for predictable geometry
+- Separate materials and embed textures or use external references
+
+**Godot:**
+- glTF 2.0 export for best compatibility (embedded or separate)
+- Support for animations, materials, cameras, lights
+- Use Godot-Blender Exporter addon for direct integration
+
+### CICD and Automation
+
+Blender supports headless operation for render farms, asset baking, and CI pipelines.
+
+**Headless rendering:**
+```bash
+# Render without GUI
+blender -b scene.blend -o /output/frame_#### -F PNG -s 1 -e 100 -a
+
+# Enable GPU rendering via script
+blender -b scene.blend -P enable_gpu.py -- -f 1
+```
+
+**enable_gpu.py:**
+```python
+import bpy
+
+# Enable CUDA or OptiX
+prefs = bpy.context.preferences.addons['cycles'].preferences
+prefs.compute_device_type = 'CUDA'  # or 'OPTIX', 'HIP', 'METAL'
+prefs.get_devices()
+
+# Enable all GPUs
+for device in prefs.devices:
+    device.use = True
+
+# Set render engine
+bpy.context.scene.render.engine = 'CYCLES'
+bpy.context.scene.cycles.device = 'GPU'
+
+# Save preferences
+bpy.ops.wm.save_userpref()
+```
+
+### Docker Rendering
+
+Run Blender in a container for isolated render jobs:
+
+```dockerfile
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y \
+    blender \
+    xvfb \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /blender
+
+CMD ["blender", "-b", "scene.blend", "-a"]
+```
+
+**Run container:**
+```bash
+docker run -v $(pwd):/blender blender-render
+```
+
+</BentoProse>
+
+<BentoProse id="asset-libraries" eyebrow="Reusable assets" heading="Asset Libraries">
+
+Blender 3.0+ introduced Asset Browser for managing reusable materials, objects, node groups, and poses.
+
+### Creating Assets
+
+1. Select object, material, or node group
+2. Right-click > Mark as Asset
+3. Configure metadata (tags, description, preview)
+4. Save to asset library path
+
+### Asset Libraries
+
+Configure libraries in Preferences > File Paths > Asset Libraries:
+- **Current File** - Assets in active .blend file
+- **User Library** - Personal asset collection
+- **Custom Libraries** - Studio or project-specific paths
+
+### Asset Packs
+
+Community and commercial asset libraries:
+- **Blender Cloud** - Official textures, HDRIs, and models (subscription)
+- **Poly Haven** - Free CC0 HDRIs, textures, models
+- **Quixel Megascans** - Photogrammetry assets (free with Epic account)
+- **BlenderKit** - Free and paid addon with integrated asset browser
+
+</BentoProse>
+
+<BentoProse id="kbve-integration" eyebrow="Monorepo workflows" heading="KBVE Integration">
+
+Blender can be integrated into KBVE workflows for procedural asset generation, batch rendering, and pipeline automation.
+
+### CI/CD Workflow
+
+The KBVE monorepo runs headless Blender through a **router → flow** pair on the self-hosted `mac-blender` runner:
+
+- [`.github/workflows/ci-blender-router.yml`](.github/workflows/ci-blender-router.yml) — `workflow_dispatch` entry point. Validates inputs, picks the LFS backend (`forgejo` or `azure`), then hands off to the flow.
+- [`.github/workflows/ci-blender-flow.yml`](.github/workflows/ci-blender-flow.yml) — reusable `workflow_call` builder. Pulls the target object from LFS, runs the task on `[self-hosted, macOS, ARM64, mac-blender]`, and uploads artifacts.
+
+The object lives in external LFS — Forgejo (`git.kbve.com`, via `FORGEJO_USER`/`FORGEJO_TOKEN`) or Azure DevOps (via `AZURE_PAT`). Tag your runner with the `mac-blender` label so only Blender jobs land on it.
+
+**Available tasks:**
+
+- **`validate`** - Check blend file integrity and test headless launch
+- **`render`** - Render single frames or animation ranges with configurable engine/device
+- **`export`** - Export scene or selected objects to FBX, glTF, OBJ, USD, Alembic, STL
+- **`batch-export`** - Export each mesh object as a separate file
+- **`script`** - Run custom Python scripts in headless mode
+
+**Example workflow dispatch:**
+
+```bash
+# Render with Cycles GPU — object pulled from Forgejo LFS
+gh workflow run ci-blender-router.yml \
+  -f task=render \
+  -f app_name=my-project \
+  -f lfs_backend=forgejo \
+  -f object_glob=assets/blender \
+  -f blend_file=assets/blender/scene.blend \
+  -f render_engine=CYCLES \
+  -f render_device=GPU \
+  -f frame_range=1-100 \
+  -f samples=128
+
+# Export all objects as FBX for Unreal — object pulled from Azure DevOps
+gh workflow run ci-blender-router.yml \
+  -f task=batch-export \
+  -f app_name=game-assets \
+  -f lfs_backend=azure \
+  -f external_repo_url=dev.azure.com/kbve/art/_git/props \
+  -f blend_file=external-blender/props.blend \
+  -f export_format=FBX \
+  -f output_path=/tmp/exports
+```
+
+**Automatic Blender installation:**
+
+The workflow automatically installs Blender via Homebrew if not found:
+
+```bash
+brew install --cask blender
+```
+
+**Supported render engines:**
+
+| Engine | GPU Support | Best For |
+|--------|-------------|----------|
+| `CYCLES` | CUDA, OptiX, HIP, Metal | Photorealistic path tracing |
+| `BLENDER_EEVEE` | Yes (rasterization) | Real-time previews, stylized |
+| `BLENDER_WORKBENCH` | Yes (OpenGL) | Viewport solid shading |
+
+**Export formats:**
+
+| Format | Extension | Use Case |
+|--------|-----------|----------|
+| `FBX` | `.fbx` | Unreal Engine, Unity, Maya |
+| `GLTF` | `.gltf` / `.glb` | Web, Godot, Three.js |
+| `OBJ` | `.obj` | Universal interchange |
+| `USD` | `.usd` | Pixar USD pipeline |
+| `ALEMBIC` | `.abc` | VFX, baked animation |
+| `STL` | `.stl` | 3D printing |
+
+**Pipeline integration:**
+
+The workflow outputs artifacts via `actions/upload-artifact@v7`, which can be consumed by downstream jobs or downloaded manually.
+
+```yaml
+# Example: Render in Blender, then deploy to Unreal
+jobs:
+  render:
+    uses: KBVE/kbve/.github/workflows/ci-blender-flow.yml@dev
+    with:
+      task: render
+      lfs_backend: forgejo
+      object_glob: assets/blender
+      blend_file: assets/blender/environment.blend
+      output_path: /tmp/renders
+    secrets: inherit
+
+  unreal_import:
+    needs: [render]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: blender-project-render
+          path: ./renders
+      # ... import into Unreal via Python/C++ automation
+```
+
+### Batch Export Script
+
+Automate FBX export for all selected objects:
+
+```python
+import bpy
+import os
+
+output_dir = "/tmp/blender_export"
+os.makedirs(output_dir, exist_ok=True)
+
+for obj in bpy.context.selected_objects:
+    # Select only this object
+    bpy.ops.object.select_all(action='DESELECT')
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+
+    # Export as FBX
+    filepath = os.path.join(output_dir, f"{obj.name}.fbx")
+    bpy.ops.export_scene.fbx(
+        filepath=filepath,
+        use_selection=True,
+        apply_scale_options='FBX_SCALE_ALL',
+        bake_anim=True
+    )
+    print(f"Exported: {filepath}")
+```
+
+Run via:
+```bash
+blender -b scene.blend -P batch_export.py
+```
+
+### Legacy CI Pipeline Example
+
+```yaml
+# .github/workflows/blender-render.yml
+name: Blender Render
+
+on:
+  push:
+    paths:
+      - '**.blend'
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    container:
+      image: nytimes/blender:4.0-gpu-ubuntu22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Render Scene
+        run: |
+          blender -b scene.blend \
+            -o /tmp/render_#### \
+            -F PNG \
+            -s 1 -e 100 -a
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: renders
+          path: /tmp/render_*.png
+```
+
+### Geometry Node Export for Unreal
+
+Use Geometry Nodes to procedurally generate assets, then export to Unreal:
+
+1. Create Geometry Node graph in Blender
+2. Use Python script to realize instances and export
+3. Import FBX into Unreal as static mesh or skeletal mesh
+4. Optionally: Export vertex animation as Alembic cache
+
+</BentoProse>
+
+<BentoProse id="performance-tips" eyebrow="Faster scenes" heading="Performance Tips">
+
+### Viewport Optimization
+
+- **Simplify Overlays** - Disable overlays (Alt+Shift+Z) for large scenes
+- **Reduce Draw Distance** - Limit clip end in viewport shading settings
+- **Use Collections** - Organize scene into collections, hide unused
+- **Limit Subdivision** - Keep viewport subdivision level lower than render
+- **Disable Eevee Effects** - Turn off bloom, volumetrics, SSR for faster preview
+
+### Render Optimization
+
+- **Adaptive Sampling** - Stop rendering clean pixels early (Cycles)
+- **Denoising** - Use OptiX denoiser on NVIDIA GPUs for lower sample counts
+- **Light Path Settings** - Reduce max bounces (4-8 total is often sufficient)
+- **Tile Size** - GPU: larger tiles (256-512), CPU: smaller tiles (32-64)
+- **Resolution** - Render at 50% resolution for preview, 100% for final
+- **Bake Indirect Lighting** - Use Eevee irradiance volumes for real-time GI approximation
+
+### Large Scene Management
+
+- **Instancing** - Use collection instances for repeated geometry (trees, buildings)
+- **Geometry Nodes** - Procedural generation avoids storing duplicate data
+- **Level of Detail (LOD)** - Decimate modifier or simplified versions for distant objects
+- **Library Linking** - Link assets from external .blend files to reduce file size
+- **Purge Orphan Data** - File > Clean Up > Purge Orphan Data removes unused data blocks
+
+</BentoProse>
+
+<BentoProse id="troubleshooting" eyebrow="Common issues" heading="Troubleshooting">
+
+### Common Issues
+
+**Slow Viewport Performance:**
+- Disable overlays, reduce subdivision levels, hide unused collections
+- Check GPU is selected in Preferences > System > Cycles Render Devices
+
+**Render Crashes:**
+- Reduce tile size, lower max samples, disable adaptive sampling
+- Update GPU drivers, check VRAM usage (render smaller regions)
+- For CPU renders, reduce thread count in render settings
+
+**Materials Not Showing:**
+- Ensure viewport shading is set to Material Preview or Rendered
+- Check material has Use Nodes enabled
+- Verify Shader Editor has Principled BSDF connected to Material Output
+
+**Animation Not Playing:**
+- Check playback range (start/end frames in timeline)
+- Verify keyframes exist in Dope Sheet or Graph Editor
+- Disable simulation caching if physics is causing lag
+
+**Export Issues:**
+- Apply modifiers before export (or enable "Apply Modifiers" in exporter)
+- Triangulate faces for game engines (or enable in FBX export)
+- Check scale settings (FBX scale, Apply Transform)
+
+</BentoProse>
+
+</BentoDoc>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

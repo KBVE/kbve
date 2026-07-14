@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads - ChuckRPG</title>
+    <style>
+        :root {
+            --sl-color-bg: #0a0a0a;
+            --sl-color-bg-nav: #141414;
+            --sl-color-text: #e5e5e5;
+            --sl-color-text-accent: #c4b5fd;
+            --sl-color-accent: #a78bfa;
+            --sl-color-green: #22c55e;
+            --sl-color-amber: #f59e0b;
+            --sl-color-gray-2: #9ca3af;
+            --sl-color-gray-5: #374151;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--sl-color-bg);
+            color: var(--sl-color-text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .card {
+            background: var(--sl-color-bg-nav);
+            border: 1px solid var(--sl-color-gray-5);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 520px;
+        }
+        h1 {
+            font-size: 1.4rem;
+            color: var(--sl-color-text-accent);
+            margin-bottom: 1.5rem;
+        }
+        .client {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--sl-color-gray-5);
+        }
+        .client:last-child { border-bottom: none; }
+        .meta { display: flex; flex-direction: column; gap: 0.35rem; }
+        .platform { font-weight: 600; color: var(--sl-color-text); }
+        .sub { font-size: 0.85rem; color: var(--sl-color-gray-2); }
+        .badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+            border: 1px solid;
+        }
+        .badge.live { color: var(--sl-color-green); border-color: var(--sl-color-green); }
+        .badge.pending { color: var(--sl-color-amber); border-color: var(--sl-color-amber); }
+        a.dl {
+            background: var(--sl-color-accent);
+            color: #0a0a0a;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.55rem 1rem;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        a.dl.disabled { background: var(--sl-color-gray-5); color: var(--sl-color-gray-2); pointer-events: none; }
+        .empty { color: var(--sl-color-gray-2); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Download {{ game }}</h1>
+        {% if clients.is_empty() %}
+        <p class="empty">No client builds available right now.</p>
+        {% else %}
+        {% for c in clients %}
+        <div class="client">
+            <div class="meta">
+                <span class="platform">{{ c.platform }}</span>
+                <span class="sub">
+                    v{{ c.version }}
+                    {% if c.live %}<span class="badge live">live</span>{% else %}<span class="badge pending">{{ c.state }}</span>{% endif %}
+                </span>
+                <span class="sub">updated {{ c.updated }}</span>
+            </div>
+            {% if c.live %}
+            <a class="dl" href="/downloads/{{ c.slug }}">Download</a>
+            {% else %}
+            <a class="dl disabled">Processing…</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>

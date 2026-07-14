@@ -12,9 +12,70 @@ osrs:
   lowalch: 6400000
   highalch: 9600000
   limit: 250
-  about: "Ancient relic is a members-only item in Old School RuneScape. High alchemy value: 9,600,000 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: artifact
+    tier: high
+  properties:
+    release_date: "2018-02-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "You will have to obtain another one from the Revenant Caves."
+  drop_table:
+    sources:
+      - source: Revenant imp
+        quantity: "1"
+        rarity: "1/44,000"
+      - source: Revenant goblin
+        quantity: "1"
+        rarity: "1/36,000"
+      - source: Revenant cyclops
+        quantity: "1"
+        rarity: "1/14,000"
+      - source: Revenant dark beast
+        quantity: "1"
+        rarity: "1/4,400"
+      - source: Bounty Hunter crate
+        quantity: "1"
+        rarity: "2/1,000"
+  related_items:
+    - item_name: Revenant ether
+      slug: revenant-ether
+      relationship: product
+      description: Chiselling the relic yields 32,000 revenant ether
+    - item_name: Ancient emblem
+      slug: ancient-emblem
+      relationship: alternative
+      description: Higher-tier Wilderness artefact upgraded via Emblem Trader
+    - item_name: Ancient effigy
+      slug: ancient-effigy
+      relationship: alternative
+      description: Mid-tier Wilderness artefact sold to the Emblem Trader
+  about: "Ancient relic is a high-tier Wilderness artefact dropped by revenants in the Revenant Caves and from Bounty crates. Sell to the Emblem Trader on a Bounty Hunter world for 16,000,000 coins, or chisel into 32,000 revenant ether. Always lost on death — even when it is the only item carried — mirroring the bracelet of ethereum and other Wilderness artefacts."
+  market_strategy:
+    notes:
+      - "Always lost on death — never carry casually"
+      - "Emblem Trader buyout is the price floor in BH worlds"
+      - "Chisel route yields 32,000 revenant ether — track ether GE price"
+      - "High alch above 9.5M makes alching viable on margin"
+      - "Supply driven by revenant cave activity and BH crate openings"
+  trading_tips:
+    - Compare 16M Emblem Trader payout vs GE flips before selling
+    - Chisel to ether when ether trades above 500 gp/unit
+    - Treat as Wilderness PvP risk — never carry without intent
+  history:
+    - date: "2018-02-08"
+      description: "Item added with the Revenant Caves rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

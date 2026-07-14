@@ -1,5 +1,6 @@
 ---
 title: Soul Torch
+template: splash
 description: |
     Minecraft Soul Torch — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 353
     ref: soul_torch
     slug: soul-torch
+    content_rev: 1
     display_name: Soul Torch
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Soul Torch is a non-solid light source crafted from coal or charcoal, a stick, and
+            soul soil or soul sand, yielding a distinctive blue flame. It emits a light level of
+            10, cannot melt snow or ice, and repels piglins, making it a favorite for lighting and
+            defending Nether outposts.
+        lore: |
+            Its cold blue flame is said to burn with the trapped souls bound to soul sand and soul
+            soil rather than ordinary fuel.
+    faq:
+        - question: |
+              How do I craft a Soul Torch?
+          answer: |
+              Combine one coal or charcoal, one stick, and one soul soil or soul sand in a crafting
+              grid to produce four Soul Torches.
+        - question: |
+              Do Soul Torches keep piglins away?
+          answer: |
+              Yes, piglins avoid areas lit by Soul Torches, though piglin brutes are unaffected.
+        - question: |
+              Can Soul Torches be placed underwater?
+          answer: |
+              No, water or lava flowing into a placed Soul Torch will remove it just like a regular
+              torch.
+        - question: |
+              Can I find Soul Torches without crafting them?
+          answer: |
+              Yes, ancient city chests have roughly a 36.5% chance of containing 1 to 15 Soul
+              Torches.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

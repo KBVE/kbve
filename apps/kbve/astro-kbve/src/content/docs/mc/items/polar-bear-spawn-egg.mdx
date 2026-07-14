@@ -1,5 +1,6 @@
 ---
 title: Polar Bear Spawn Egg
+template: splash
 description: |
     Minecraft Polar Bear Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1113
     ref: polar_bear_spawn_egg
     slug: polar-bear-spawn-egg
+    content_rev: 1
     display_name: Polar Bear Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Polar Bear Spawn Egg is a creative-mode item used to summon a polar
+            bear on use. Polar bears are large neutral mobs with 30 health that live
+            in icy biomes such as snowy plains, ice spikes, and frozen oceans, spawning
+            in groups of one or two with the second always being a cub.
+        lore: |
+            Polar bears were added at the request of a developer's wife after the
+            birth of their son, named Björn — Swedish for "bear."
+    faq:
+        - question: How do I get a polar bear spawn egg?
+          answer: |
+              It is only available in Creative mode inventory or via the /give
+              command; polar bears cannot be bred and spawn naturally instead.
+        - question: Are polar bears hostile?
+          answer: |
+              Adults are neutral and ignore players unless attacked, but if a cub is
+              threatened all nearby adult polar bears within range become hostile.
+        - question: Where do polar bears spawn naturally?
+          answer: |
+              They spawn in Snowy Plains, Ice Spikes, Frozen Ocean, Deep Frozen Ocean,
+              and (on Bedrock Edition) Frozen River biomes, usually above ice.
+        - question: What do polar bears drop when killed?
+          answer: |
+              Adults drop 0-2 raw or cooked cod or salmon depending on whether they
+              were on fire; cubs drop nothing and give no experience.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,0 +1,206 @@
+---
+title: RN-Astro Showcase
+description: Every @kbve/rn-astro marketing section rendered as an MDX island — mobile and web from one RN core.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+---
+
+import Hero from '@/components/marketing/Hero.astro';
+import FeatureGrid from '@/components/marketing/FeatureGrid.astro';
+import StatStrip from '@/components/marketing/StatStrip.astro';
+import ProcessSteps from '@/components/marketing/ProcessSteps.astro';
+import TabbedFeatures from '@/components/marketing/TabbedFeatures.astro';
+import LiveFeed from '@/components/marketing/LiveFeed.astro';
+import BentoGrid from '@/components/marketing/BentoGrid.astro';
+import Timeline from '@/components/marketing/Timeline.astro';
+import ProjectGrid from '@/components/marketing/ProjectGrid.astro';
+import LogoCloud from '@/components/marketing/LogoCloud.astro';
+import TeamGrid from '@/components/marketing/TeamGrid.astro';
+import Testimonials from '@/components/marketing/Testimonials.astro';
+import PricingTiers from '@/components/marketing/PricingTiers.astro';
+import FaqAccordion from '@/components/marketing/FaqAccordion.astro';
+import NewsletterCapture from '@/components/marketing/NewsletterCapture.astro';
+import Cta from '@/components/marketing/Cta.astro';
+
+<Hero
+	eyebrow="component showcase"
+	lead="One RN core, "
+	accent="every surface. "
+	tail="Mobile and web."
+	subtitle="These sections are React Native components from @kbve/rn, re-exported through @kbve/rn-astro and mounted here as client:only islands — the same code that ships in the native app."
+	actions={[
+		{ label: 'Browse the Docs', href: '/docs/' },
+		{ label: 'Star on GitHub', href: 'https://github.com/kbve/kbve', variant: 'outline', external: true },
+	]}
+/>
+
+<StatStrip
+	stats={[
+		{ value: '19', label: 'Marketing sections' },
+		{ value: '1', label: 'Shared RN core' },
+		{ value: '2', label: 'Targets: web + native' },
+		{ value: '0', label: 'Duplicated styles' },
+	]}
+/>
+
+<LogoCloud
+	title="Powering every layer of the stack"
+	logos={[
+		{ name: 'Rust' },
+		{ name: 'Astro' },
+		{ name: 'Kubernetes' },
+		{ name: 'ClickHouse' },
+		{ name: 'Supabase' },
+		{ name: 'Unreal' },
+		{ name: 'Unity' },
+	]}
+/>
+
+<FeatureGrid
+	title="Section library"
+	subtitle="Composable, token-driven, and identical across platforms."
+	features={[
+		{ title: 'Hero', body: 'Responsive headline with accent span, eyebrow, subtitle, and action buttons.' },
+		{ title: 'FeatureGrid', body: 'Self-contained card grid for capabilities, wrapping fluidly on mobile.' },
+		{ title: 'StatStrip', body: 'A bordered band of social-proof numbers that reflows on narrow screens.' },
+		{ title: 'ProcessSteps', body: 'Numbered how-it-works flow — Connect, Build, Ship.' },
+		{ title: 'LiveFeed', body: 'A terminal-style dashboard mockup — the signature showpiece.' },
+		{ title: 'Testimonials', body: 'Quote cards with avatar initials, name, and role.' },
+		{ title: 'BentoGrid', body: 'Mixed-size feature tiles — wide and standard from one flex grid.' },
+		{ title: 'LogoCloud', body: 'A bordered trust strip of tech and brand names.' },
+		{ title: 'PricingTiers', body: 'Plan cards with a highlighted tier and feature checklists.' },
+		{ title: 'FaqAccordion', body: 'Interactive expand/collapse Q&A.' },
+		{ title: 'TabbedFeatures', body: 'Tabbed panel switcher — stateful, one panel at a time.' },
+		{ title: 'Timeline', body: 'Vertical roadmap with a connecting rail and done markers.' },
+		{ title: 'TeamGrid', body: 'Member cards with avatar initials, role, and bio.' },
+		{ title: 'NewsletterCapture', body: 'Email input band with inline thank-you state.' },
+	]}
+/>
+
+<BentoGrid
+	title="Mixed-size tiles"
+	subtitle="A modern bento layout — wide and standard tiles from one flex grid."
+	items={[
+		{ title: 'Open monorepo', body: 'Games, engines, Rust services, and Kubernetes infra — every line public on GitHub.', wide: true },
+		{ title: 'Native + web', body: 'One RN core renders on both.' },
+		{ title: 'Token-driven', body: 'Shared dark-gold design tokens.' },
+		{ title: 'Declarative infra', body: 'ArgoCD, ESO, sealed secrets.' },
+		{ title: 'Battle-tested', body: 'Postgres-on-CNPG with vault + auth.' },
+	]}
+/>
+
+<ProcessSteps
+	title="How it works"
+	subtitle="Author once in RN, render anywhere."
+	steps={[
+		{ title: 'Author in @kbve/rn', body: 'Build the section with React Native primitives and shared design tokens.' },
+		{ title: 'Re-export via rn-astro', body: 'The web-safe barrel exposes each component for Astro to consume.' },
+		{ title: 'Mount as an island', body: 'Drop it into any MDX file with client:only — no browser-breaking prerender.' },
+	]}
+/>
+
+<TabbedFeatures
+	title="Explore the stack"
+	subtitle="Tap a tab to switch panels — the active panel is client-side state."
+	tabs={[
+		{ label: 'Games', title: 'Multiplayer worlds', body: 'ARPGs, isometric sims, and engine-native titles shipped across web, desktop, and native.', points: ['Server-authoritative sims', 'Agones multiplayer', 'Shared ECS patterns'] },
+		{ label: 'Engines', title: 'Plugins & crates', body: 'Unreal and Unity plugins plus Bevy/Rust crates and a shared component kit.', points: ['KBVE* Unreal plugins', 'Unity DOTS + Burst', 'Reusable RN kit'] },
+		{ label: 'Cloud', title: 'Declarative infra', body: 'Kubernetes, ArgoCD, ClickHouse, and Supabase — production infra, all in the open.', points: ['GitOps via ArgoCD', 'ClickHouse telemetry', 'Postgres-on-CNPG'] },
+	]}
+/>
+
+<LiveFeed
+	title="Signature showpiece"
+	label="kbve — live feed"
+	rows={[
+		{ label: 'deploy · axum-kbve', value: '2.1s', status: 'ok' },
+		{ label: 'build · chuck', value: 'passing', status: 'ok' },
+		{ label: 'sync · ci-manifest', value: 'queued', status: 'warn' },
+		{ label: 'agones · cryptothrone', value: 'ready', status: 'ok' },
+	]}
+	footer="12M events/day · 99.9% uptime"
+/>
+
+<Timeline
+	title="Roadmap"
+	subtitle="A placeholder changelog — the rail connects each milestone."
+	items={[
+		{ when: '2024 · Q1', title: 'Monorepo goes public', body: 'Games, engine plugins, and infra land in one open repo.', done: true },
+		{ when: '2024 · Q3', title: 'Shared RN kit', body: 'One React Native core drives both native and web surfaces.', done: true },
+		{ when: '2025 · Q2', title: 'Marketing section library', body: 'Theme-parity sections shipped through @kbve/rn-astro.', done: true },
+		{ when: 'Next', title: 'Landing assembly', body: 'Compose the sections into the primary marketing page.' },
+	]}
+/>
+
+<ProjectGrid
+	title="Built in the open"
+	subtitle="A few of the worlds and systems we're shipping."
+	projects={[
+		{ name: 'CryptoThrone', tag: 'Isometric MMO', body: 'A seeded, server-authoritative isometric world with a real in-game economy.', href: '/gaming/' },
+		{ name: 'RareIcon', tag: 'Unity DOTS', body: 'A 2D sci-fi action-RPG bullet-hell roguelite built on Burst-compiled ECS.', href: '/gaming/' },
+		{ name: 'Kilobase', tag: 'Postgres Platform', body: 'Supabase-on-CNPG with migrations, auth, and vault — self-hosted and battle-tested.', href: '/docs/' },
+	]}
+/>
+
+<Testimonials
+	title="What people say"
+	subtitle="Placeholder voices — swap in real quotes anytime."
+	items={[
+		{ quote: 'The whole stack is public and it actually runs. Rare to see infra this honest.', name: 'Dev in Residence', role: 'Contributor' },
+		{ quote: 'One component kit across native and web saved us a rewrite. This is the way.', name: 'Platform Lead', role: 'Community' },
+		{ quote: 'Docs, games, and Kubernetes in one monorepo — chaotic in the best way.', name: 'Open Source Fan', role: 'Discord' },
+	]}
+/>
+
+<TeamGrid
+	title="The collective"
+	subtitle="Placeholder members — swap in real contributors anytime."
+	members={[
+		{ name: 'Maintainer One', role: 'Infra', bio: 'Kubernetes, ArgoCD, and the pipelines that ship it all.', initials: 'M1', href: '/docs/' },
+		{ name: 'Maintainer Two', role: 'Engines', bio: 'Unreal, Unity, and the shared component kit.', initials: 'M2', href: '/gaming/' },
+		{ name: 'Maintainer Three', role: 'Games', bio: 'Server-authoritative worlds and in-game economies.', initials: 'M3', href: '/gaming/' },
+		{ name: 'You', role: 'Contributor', bio: 'Every issue and PR is open — jump in.', initials: '++', href: 'https://github.com/kbve/kbve' },
+	]}
+/>
+
+<PricingTiers
+	title="Sponsor the work"
+	subtitle="Placeholder tiers — the code stays free and open regardless."
+	tiers={[
+		{ name: 'Community', price: '$0', period: 'forever', body: 'Everything, in the open.', features: ['Full monorepo access', 'All docs pages', 'Discord community', 'Open issues & PRs'], action: { label: 'Get started', href: '/docs/', variant: 'outline' } },
+		{ name: 'Supporter', price: '$9', period: 'mo', body: 'Back the roadmap.', features: ['Everything in Community', 'Name in credits', 'Priority issue triage', 'Early feature previews'], action: { label: 'Become a supporter', href: '/support/' }, featured: true },
+		{ name: 'Patron', price: '$49', period: 'mo', body: 'Fund a whole lane.', features: ['Everything in Supporter', 'Logo on the site', 'Roadmap input', 'Direct maintainer chat'], action: { label: 'Sponsor a lane', href: '/support/', variant: 'outline' } },
+	]}
+/>
+
+<FaqAccordion
+	title="Frequently asked"
+	subtitle="Tap a question to expand."
+	items={[
+		{ q: 'Is everything really open source?', a: 'Yes — the entire monorepo is public on GitHub, including games, engine plugins, Rust services, and the Kubernetes infrastructure.' },
+		{ q: 'Do the web and native apps share code?', a: 'These sections are React Native components from @kbve/rn, re-exported through @kbve/rn-astro and mounted here as client:only islands — the same code ships in the native app.' },
+		{ q: 'Why client:only for every section?', a: 'RN-Web uses CommonJS require at module load. client:load or client:visible trigger build-time prerender that runs require before the browser is ready, so client:only is required.' },
+		{ q: 'Can I use these components in my own project?', a: 'The kit lives in the public monorepo. Read the docs to see how the barrels split web-safe and native exports.' },
+	]}
+/>
+
+<NewsletterCapture
+	title="Stay in the loop"
+	subtitle="Placeholder capture — wires to a real list later."
+	placeholder="you@example.com"
+	cta="Subscribe"
+	note="No spam. Unsubscribe anytime."
+/>
+
+<Cta
+	title="Come build with us."
+	subtitle="Jump into the docs or hang out in the community."
+	actions={[
+		{ label: 'Read the Docs', href: '/docs/' },
+		{ label: 'Join the Discord', href: '/discord/', variant: 'outline' },
+	]}
+/>

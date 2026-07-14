@@ -12,9 +12,64 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Evil chicken feet is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: feet
+    weight: 0.25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - name: Evil chicken head
+      relationship: set-piece
+    - name: Evil chicken wings
+      relationship: set-piece
+    - name: Evil chicken legs
+      relationship: set-piece
+  about: "Evil chicken feet is a members-only item in Old School RuneScape obtained by offering bird's eggs at the shrine in the Woodcutting Guild with a 1/300 chance per offering. It forms part of the evil chicken outfit set."
+  market_strategy:
+    notes:
+      - Cosmetic outfit piece with no combat bonuses; value driven by completionists and outfit collectors.
+      - Rare drop from bird's egg offerings at the Woodcutting Guild shrine; supply is naturally constrained.
+      - GE buy limit of 4 per 4 hours restricts flipping volume.
+  trading_tips:
+    - Watch for outfit set demand spikes during seasonal events.
+    - Compare price against the other three outfit pieces to gauge set premium.
+  history:
+    - date: "2016-07-21"
+      description: Released as part of the Broken Armour & Open Beta update; obtainable from the shrine in the Woodcutting Guild.
+  properties:
+    release_date: "2016-07-21"
+    update: Broken Armour & Open Beta
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

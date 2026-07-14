@@ -1,6 +1,6 @@
 ---
 title: Sigil of consistency | OSRS Price Data
-description: "Sigil of consistency: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of consistency adds +1 damage per attack in Deadman: Reborn. High alch: 6,000 GP, GE limit: 10."
 osrs:
   id: 25994
   name: Sigil of consistency
@@ -12,9 +12,58 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of consistency is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2021-08-25"
+    weight: 0.1
+    tradeable: false
+    stackable: false
+    noteable: false
+    quest_item: false
+    options:
+      - Attune
+      - Drop
+    destroy: "You must unattune the Sigil before you can destroy it."
+  passive_effects:
+    - name: Consistency
+      description: "Every attack deals +1 damage to the target."
+      trigger: On hit (Deadman mode only)
+  related_items:
+    - item_id: 25992
+      item_name: Sigil of devotion
+      slug: sigil-of-devotion
+      relationship: alternative
+      description: Alternative combat sigil from the same Deadman shop
+    - item_id: 25996
+      item_name: Sigil of the formidable
+      slug: sigil-of-the-formidable
+      relationship: alternative
+      description: "Alternative defensive sigil from Deadman: Reborn"
+  market_strategy:
+    notes:
+      - "Untradeable on the live GE; price data is reference-only from Deadman seasons"
+      - "Purchased from the skull shop in Deadman events for skull currency"
+      - "Cap: up to three attuned sigils active simultaneously"
+      - "Deadman only: live GE volumes do not move"
+      - "Attune wisely: duplicates can be sold back at the deadman's skull"
+      - "Destroy gate: unattune before drop or destroy will reject"
+  history:
+    - date: "2021-08-25"
+      update: Deadman Reborn release
+      description: "Sigils introduced as the relic/buff system for Deadman: Reborn."
+    - date: "2023-10-04"
+      update: Deadman Apocalypse return
+      description: "Sigil of consistency carried forward into Deadman: Apocalypse with refreshed shop pricing."
+  about: |-
+    > _"A power enhancing sigil not yet attuned to you."_
+
+    The Sigil of consistency is a Deadman-mode combat sigil that adds +1 damage to every successful attack. It must be purchased un-attuned from the skull shop in Deadman events and activated by clicking "Attune"; up to three sigils can be attuned at once.
+
+    Currently unobtainable on the live game between Deadman seasons. Untradeable, weighs 0.1 kg, and must be un-attuned before it can be destroyed.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

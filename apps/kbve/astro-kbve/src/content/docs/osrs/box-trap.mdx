@@ -12,9 +12,67 @@ osrs:
   lowalch: 12
   highalch: 19
   limit: 250
-  about: "Box trap is a members-only item in Old School RuneScape. High alchemy value: 19 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hunter equipment
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Lay
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Aleck's Hunter Emporium
+      location: Yanille
+      price: 38
+      currency: coins
+      stock: 10
+    - shop_name: Nardah Hunter Shop
+      location: Nardah
+      price: 38
+      currency: coins
+      stock: 10
+    - shop_name: Imia's Supplies
+      location: Hunter Guild
+      price: 41
+      currency: coins
+      stock: 10
+  related_items:
+    - item_name: Bird snare
+      slug: bird-snare
+      relationship: alternative
+      description: Lower-tier Hunter trap used for birds.
+    - item_name: Chinchompa
+      slug: chinchompa
+      slug_disambiguation: hunter
+      relationship: product
+      description: Common box-trap quarry from level 53 Hunter.
+  about: |-
+    Box trap is the staple Hunter tool for catching mammals like ferrets, jerboas, and chinchompas. Players must have partially completed Eagles' Peak to use box traps. Hunter level requirements vary by quarry: ferrets (27), embertailed jerboas (39), chinchompas (53), carnivorous chinchompas (63), and black chinchompas (73).
+
+    Bought primarily from Aleck's Hunter Emporium in Yanille and Imia's Supplies at the Hunter Guild, box traps are cheap, stackable, and weightless — making them ideal for travelling Hunter loadouts.
+  market_strategy:
+    notes:
+      - "Buy from Aleck's Hunter Emporium or Nardah at 38 gp for the cheapest source"
+      - "GE price often exceeds shop price — convenient for bulk training trips"
+      - "Stackable since 2025, so single-slot bulk carry is now possible"
+      - "Demand driven by black chinchompa hunters at the Wilderness MTA spot"
+  history:
+    - date: "2006-11-21"
+      description: "Added with the Hunter skill release."
+    - date: "2025-08-20"
+      description: "Made stackable and weight reduced from 0.226 kg to 0 kg in the Doom Tweaks/Summer Sweep Up update."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

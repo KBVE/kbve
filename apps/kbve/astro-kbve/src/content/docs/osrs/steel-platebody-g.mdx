@@ -12,27 +12,86 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: steel
+    tier: mid
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 9.979
     requirements:
       defence: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 32
+      slash: 31
+      crush: 24
+      magic: -6
+      ranged: 38
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 20172
-      item_name: Steel platelegs (g)
+    - item_name: Steel platelegs (g)
       slug: steel-platelegs-g
       relationship: set-piece
-      description: Matching gold-trimmed platelegs
-    - item_id: 20184
-      item_name: Steel platebody (t)
+      description: "Matching gold-trimmed platelegs for the set"
+    - item_name: Steel platebody (t)
       slug: steel-platebody-t
       relationship: variant
-      description: Trimmed variant
-  about: |-
-    > *"Steel platebody with a gold trim."*
-
-    The steel platebody (g) is a gold-trimmed cosmetic variant of the standard steel platebody. Identical stats, requiring 5 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Trimmed cosmetic variant of the same platebody"
+    - item_name: Steel platebody
+      slug: steel-platebody
+      relationship: variant
+      description: "Standard untrimmed steel platebody with identical stats"
+  about: "The steel platebody (g) is a gold-trimmed cosmetic variant of the standard steel platebody, identical in stats and requiring only 5 Defence to equip. It cannot be made via Smithing and only drops from easy Treasure Trail reward caskets at a 1/1,404 rarity."
+  market_strategy:
+    notes:
+      - "Supply tracks easy clue completion volume, with a hard cap from the 1/1,404 drop rate"
+      - "Demand is largely cosmetic from low-level F2P fashionscape and set collectors"
+      - "F2P tradeable, so listings move across both game modes"
+  trading_tips:
+    - "Pair pricing with steel platelegs (g) since collectors usually buy the set together"
+    - "Watch for clue scroll bonus events that can briefly flood supply"
+  history:
+    - date: "2016-07-06"
+      description: "Released as part of an easy Treasure Trails reward expansion"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

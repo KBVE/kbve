@@ -12,9 +12,58 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: 2
-  about: "Swampbark armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins. Grand Exchange buy limit: 2 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Swampbark helm
+      slug: swampbark-helm
+      relationship: set-piece
+      description: Head-slot component delivered when the set is broken open.
+    - item_name: Swampbark body
+      slug: swampbark-body
+      relationship: set-piece
+      description: Body-slot magic armour piece included in the bundle.
+    - item_name: Swampbark legs
+      slug: swampbark-legs
+      relationship: set-piece
+      description: Legs-slot piece, finishing the standard mage trio.
+    - item_name: Swampbark boots
+      slug: swampbark-boots
+      relationship: set-piece
+      description: Feet-slot component bundled alongside the gauntlets.
+    - item_name: Swampbark gauntlets
+      slug: swampbark-gauntlets
+      relationship: set-piece
+      description: Hands-slot component completing the five-piece swampbark set.
+    - item_name: Bloodbark armour set
+      slug: bloodbark-armour-set
+      relationship: upgrade
+      description: Higher-tier nature-rune fortified mage set assembled from the bloodbark pieces.
+  about: "The swampbark armour set is a GE Sets-tab convenience bundle introduced with the swampbark armour expansion. It bundles all five swampbark pieces (helm, body, legs, boots, gauntlets) into one tradeable item, primarily used to sell or buy the full set in a single GE slot. The set itself cannot be worn - it must be exchanged at a Grand Exchange clerk to receive the individual pieces."
+  market_strategy:
+    notes:
+      - "Buy limit of 2 every 4 hours keeps speculation small."
+      - "Set price typically commands a premium over component sum when buyers want a quick complete kit."
+      - "Component prices can dip during high content-supply weeks (Slayer task spikes for swampshrew kills)."
+  trading_tips:
+    - Compare set price vs five-component sum before assembling; bundlers earn the spread.
+    - Use the Sets tab to convert between set and pieces without a clerk run.
+    - Spread orders across multiple worlds if buying multiple sets - 2 per 4 hours is tight.
+  history:
+    - date: "2025-08-20"
+      description: "Released as a Sets-tab bundle alongside the swampbark armour pieces."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

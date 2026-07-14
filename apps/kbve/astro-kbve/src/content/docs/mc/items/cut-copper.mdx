@@ -1,5 +1,6 @@
 ---
 title: Cut Copper
+template: splash
 description: |
     Minecraft Cut Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 102
     ref: cut_copper
     slug: cut-copper
+    content_rev: 1
     display_name: Cut Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cut Copper is a decorative building block crafted from four copper blocks arranged in a 2x2
+            pattern, or produced from a single copper block via a stonecutter. Like other copper blocks it
+            oxidizes over time through four stages — regular, exposed, weathered, and oxidized — each
+            shifting its color, unless it has been waxed with honeycomb to halt the process.
+        lore: |
+            A precisely quarried copper facade that slowly grows a weathered green patina with age.
+    faq:
+        - question: How do I craft Cut Copper?
+          answer: |
+              Arrange four copper blocks in a 2x2 pattern in a crafting grid to get four cut copper blocks,
+              or feed a single copper block into a stonecutter for a 1:1 conversion.
+        - question: Does Cut Copper oxidize?
+          answer: |
+              Yes, unwaxed cut copper gradually oxidizes over time from its default look through exposed
+              and weathered stages until it reaches the fully oxidized, greenish state.
+        - question: How do I stop Cut Copper from oxidizing?
+          answer: |
+              Apply a honeycomb to the block to wax it, which permanently halts oxidation. An axe can be
+              used on a waxed block to remove the wax if oxidation is wanted again.
+        - question: What can Cut Copper be turned into?
+          answer: |
+              It can be crafted or stonecut into cut copper slabs and stairs, or stonecut further into
+              chiseled copper for additional decorative variety.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -12,9 +12,69 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 70
-  about: "Robe top of darkness is a members-only item in Old School RuneScape. High alchemy value: 72,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Cloth
+    tier: mid
+  equipment:
+    slot: body
+    weight: 2.721
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      magic: 20
+    defence_bonus:
+      magic: 20
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/851
+  related_items:
+    - name: Robe bottom of darkness
+      relationship: set-piece
+    - name: Hood of darkness
+      relationship: set-piece
+    - name: Gloves of darkness
+      relationship: set-piece
+    - name: Boots of darkness
+      relationship: set-piece
+  about: "Robe top of darkness is a members-only magic body equipment obtained from master Treasure Trail reward caskets. Part of the robes of darkness set, it aligns with the Zaros faction and provides protection while in the Ancient Prison of the God Wars Dungeon."
+  market_strategy:
+    notes:
+      - Master clue exclusive supply at 1/851
+      - God Wars Dungeon Ancient Prison utility drives demand
+      - Set piece for full robes of darkness collection
+  trading_tips:
+    - Track master clue completion volumes
+    - Compare set value vs individual piece pricing
+  history:
+    - date: "2016-07-06"
+      description: Released as part of the Treasure Trail Expansion update.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "You can always get another from a reward casket from a Master Treasure Trail."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

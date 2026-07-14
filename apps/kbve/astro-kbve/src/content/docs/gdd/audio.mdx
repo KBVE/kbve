@@ -1,0 +1,115 @@
+---
+title: Audio and Sound Design
+description: |
+    Game audio fundamentals — the audio pipeline, adaptive/interactive music, spatialization, and the mix budget that keeps a soundscape readable.
+    Own-words reference cross-linked to KBVE projects.
+sidebar:
+    label: Audio & Sound Design
+    order: 6
+tags:
+    - gdd
+    - audio
+    - sound-design
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Introduction
+
+Game audio is interactive: sound responds to player action and game state in real time, unlike linear film audio. It splits into three jobs — sound effects (feedback), music (emotion/pacing), and dialogue/VO (narrative) — all balanced by a runtime mix. This page covers the pipeline, adaptive music, spatialization, and the budget.
+
+<Aside type="tip" title="Source material">
+For depth see the [FMOD docs](https://www.fmod.com/docs/), [Wwise docs](https://www.audiokinetic.com/library/), and the [Game Audio Learning](https://gameaudiolearning.com/) resources. This page summarizes the concepts.
+</Aside>
+
+<Adsense />
+
+---
+
+## The audio pipeline
+
+From source asset to the player's speakers:
+
+1. **Assets** — recorded or synthesized samples, usually compressed (Vorbis/Opus) for size, kept uncompressed (PCM) for short latency-critical SFX.
+2. **Events / cues** — gameplay triggers an abstract event ("footstep", "explosion") rather than a specific file; the audio system picks the actual sample(s).
+3. **Voices / channels** — each playing sound occupies a voice; a finite voice budget is enforced by priority and culling.
+4. **Buses / submixes** — voices route through a mix graph (SFX bus, music bus, VO bus) for grouped volume, effects, and ducking.
+5. **Master out** — final limiter, output to the device at the platform's sample rate.
+
+<Aside>
+Trigger **events**, not files. Indirection lets sound designers swap samples, add randomization, and tune behavior without touching gameplay code — the audio analogue of the [Type Object pattern](/gdd/patterns/).
+</Aside>
+
+---
+
+## SFX design principles
+
+- **Variation** — randomize pitch/volume and round-robin samples so repeated sounds (footsteps, gunfire) don't fatigue the ear.
+- **Layering** — build one impactful sound from layers (a punch = whoosh + impact + low thud).
+- **Feedback** — every meaningful player action needs an audible confirmation; silence reads as a bug.
+- **Readability** — gameplay-critical sounds (enemy behind you, low health) must cut through the mix; cosmetic sounds yield.
+
+---
+
+## Adaptive and interactive music
+
+Music that responds to the game instead of looping flatly:
+
+<CardGrid>
+  <Card title="Horizontal re-sequencing" icon="seti:clock">
+    Arrange the track as segments and reorder/transition between them based on state (explore → tension → combat), respecting musical bar boundaries.
+  </Card>
+  <Card title="Vertical layering" icon="seti:db">
+    Author stacked stems (drums, strings, lead) and fade layers in/out with intensity — same loop, rising energy.
+  </Card>
+  <Card title="Transitions & stingers" icon="seti:plan">
+    Quantize transitions to the beat; fire short stingers on events (victory, discovery) over the running bed.
+  </Card>
+  <Card title="State-driven" icon="random">
+    Game state (combat, menu, cutscene) drives the music system as inputs, not hardcoded track swaps.
+  </Card>
+</CardGrid>
+
+---
+
+## Spatialization
+
+Placing sound in 3D so the player can locate it:
+
+- **Panning & attenuation** — position in the stereo/surround field and roll off volume with distance.
+- **3D audio / HRTF** — head-related transfer functions simulate how ears localize sound, for headphone immersion.
+- **Occlusion & obstruction** — muffle and low-pass sounds behind walls so geometry shapes what you hear.
+- **Reverb zones** — environment-driven reverb (cave vs hall vs open field) grounds sound in space.
+- **Doppler** — pitch shift on fast-moving sources (vehicles, projectiles).
+
+---
+
+## The mix and budget
+
+- **Voice budget** — a hard cap on simultaneous sounds; priority and distance culling decide who plays when the cap is hit.
+- **Ducking / sidechain** — automatically dip music/SFX when dialogue plays so speech stays intelligible.
+- **Dynamic range** — leave headroom; a wall of max-volume sound is exhausting and hides important cues.
+- **Memory & streaming** — stream long music from disk, keep short latency-critical SFX resident in memory.
+
+<Aside type="caution">
+The mix is a zero-sum space. Adding loudness to one thing buries another. Design the hierarchy — what must always be heard — before tuning levels.
+</Aside>
+
+---
+
+## How KBVE applies these
+
+- **Event Queue for audio** — KBVE drains cross-system messages on a fixed cadence rather than firing direct calls; audio events fit that same [Event Queue](/gdd/patterns/) model — decouple *when triggered* from *when played*.
+- **State-driven music** — the GDD's [core-loop and game-state](/gdd/) sections drive which audio state is active (exploration, combat, menus, cutscenes), matching the music-direction guidance in the core template.
+
+---
+
+## Further reading
+
+- [FMOD documentation](https://www.fmod.com/docs/) — events, parameters, mixing.
+- [Wwise documentation](https://www.audiokinetic.com/library/) — interactive music and spatial audio.
+- [Game Audio Learning](https://gameaudiolearning.com/) — curated audio implementation resources.
+- [Architecture Patterns](/gdd/patterns/) — Event Queue and Object Pool recur in audio engines.
+
+<Giscus />

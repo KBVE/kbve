@@ -1,5 +1,6 @@
 ---
 title: Cherry Wood
+template: splash
 description: |
     Minecraft Cherry Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 76
     ref: cherry_wood
     slug: cherry-wood
+    content_rev: 1
     display_name: Cherry Wood
     material: wood
     hardness: 2
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Cherry Wood is the bark-textured counterpart to the Cherry
+            Log, formed by joining four cherry logs so bark covers all
+            six faces. It functions as an ordinary building block and
+            furnace fuel, and can be stripped with an axe.
+        lore: |
+            Cherry wood entered the game with the Trails & Tales update
+            (1.20), rounding out cherry as a fully-featured wood type.
+    uses:
+        - title: Cherry Planks
+          ref: cherry_planks
+          detail: |
+              Cherry Wood can be smelted or crafted like a log; a single
+              wood block can be broken down into planks in the same
+              recipes as cherry logs.
+    found_in:
+        - location: Cherry Grove biome
+          detail: Cherry Wood itself is crafted from 4 cherry logs; the source logs generate on cherry trees in the Cherry Grove biome.
+    faq:
+        - question: What tool do I need to mine Cherry Wood?
+          answer: |
+              Any tool works, including bare hands. An axe is the fastest
+              option and always yields the block on break.
+        - question: Is Cherry Wood flammable?
+          answer: |
+              Yes. Like other overworld wood blocks, it can catch fire and
+              burn when exposed to flames or lava.
+        - question: Can Cherry Wood be stripped?
+          answer: |
+              Yes. Right-clicking it with an axe converts it to Stripped
+              Cherry Wood, removing the bark rings texture.
+        - question: How is Cherry Wood different from Cherry Log?
+          answer: |
+              Cherry Wood shows the bark texture on all six sides, while
+              Cherry Log shows the ring texture on its two end faces. Both
+              are functionally identical for building and fuel.
     data_version: "1.21.5"
 ---
 

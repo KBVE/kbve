@@ -1,6 +1,6 @@
 ---
 title: Corrupted dragon claws | OSRS Price Data
-description: "Corrupted dragon claws: A set of fighting claws.. High alch: 150,000 GP."
+description: "Corrupted dragon claws: A set of fighting claws. High alch: 150,000 GP."
 osrs:
   id: 28534
   name: Corrupted dragon claws
@@ -12,9 +12,70 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: null
-  about: "Corrupted dragon claws is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: '2023-08-23'
+    quest_item: false
+    destroy: Drop
+  equipment:
+    slot: weapon
+    weapon_type: claw
+    attack_speed: 4
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 33
+      slash: 46
+      crush: -4
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 11
+      slash: 21
+      crush: 6
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 48
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 0.907
+  special_attack:
+    name: Slice and Dice
+    energy: 50
+    description: Performs four consecutive hits with diminishing damage. Identical mechanics to standard dragon claws but with 20% lower bonuses.
+  drop_table:
+    - source: Trinket of advanced weaponry (Deadman Mode)
+      quantity: "1"
+      rarity: 1/8
+  about: |-
+    "A set of fighting claws."
+
+    Corrupted dragon claws is a Deadman Mode exclusive weapon obtained from trinkets of advanced weaponry dropped by breaches. They have 20% lower bonuses than the standard dragon claws but share the same special attack.
+
+    | Stat | Value |
+    |------|-------|
+    | Stab Attack | +33 |
+    | Slash Attack | +46 |
+    | Crush Attack | -4 |
+    | Strength | +48 |
+    | Stab Defence | +11 |
+    | Slash Defence | +21 |
+    | Crush Defence | +6 |
+
+    Requirements: 40 Attack
+  market_strategy:
+    notes:
+      - "Deadman Mode seasonal exclusive"
+      - "Not always obtainable outside of DMM events"
+      - "Same special attack as standard dragon claws"
+      - "20% lower stats than standard variant"
+      - "Collection log piece for DMM completionists"
+  history:
+    - date: '2023-08-23'
+      description: Item released as part of Deadman Mode Apocalypse.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

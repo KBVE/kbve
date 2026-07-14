@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 100
-  about: "Ground guam is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: herb
+    tier: low
+  properties:
+    release_date: "2005-10-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Guam leaf
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - skill: herblore
+      level: 19
+      xp: 30
+      materials:
+        - item_name: Ground guam
+          quantity: 15
+        - item_name: Swamp tar
+          quantity: 15
+      tools:
+        - Pestle and mortar
+      output_quantity: 15
+  related_items:
+    - item_name: Guam leaf
+      slug: guam-leaf
+      relationship: component
+      description: Base herb ground into this powder
+    - item_name: Guam tar
+      slug: guam-tar
+      relationship: product
+      description: Made by combining ground guam with swamp tar
+    - item_name: Fish food
+      slug: fish-food
+      relationship: product
+      description: Used in the Tai Bwo Wannai Trio quest recipe
+  about: "Ground guam is produced by grinding a guam leaf with a pestle and mortar. Unlike whole guam leaves, ground guam cannot be used to mix potions. Its main uses are crafting fish food for the Tai Bwo Wannai Trio quest and producing guam tar (Herblore 19) for use with the Sleight of Hand minigame."
+  market_strategy:
+    notes:
+      - "Niche demand from Tai Bwo Wannai Trio completion"
+      - "Guam tar production for thieving training"
+      - "Very low buy limit (100) caps speculation"
+      - "Cheap to produce — guam leaf + pestle and mortar"
+      - "Cannot make potions, limiting demand vs whole herbs"
+  trading_tips:
+    - Grind your own guam leaves for guaranteed supply
+    - Watch demand during league events that reset quests
+    - Low alch value — never alch
+  history:
+    - date: "2005-10-24"
+      description: "Item added to the game alongside the Tai Bwo Wannai Trio quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

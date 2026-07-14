@@ -1,6 +1,6 @@
 ---
 title: Dragon keel parts | OSRS Price Data
-description: "Dragon keel parts: Parts for creating a dragon keel for a boat.. High alch: 22,500 GP, GE limit: 100."
+description: "Dragon keel parts: Parts for creating a dragon keel for a boat. High alch: 22,500 GP, GE limit: 100."
 osrs:
   id: 32017
   name: Dragon keel parts
@@ -12,9 +12,81 @@ osrs:
   lowalch: 15000
   highalch: 22500
   limit: 100
-  about: "Dragon keel parts is a members-only item in Old School RuneScape. High alchemy value: 22,500 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2024-09-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Vorkath
+        combat_level: 732
+        quantity: "1"
+        rarity: 1/3000
+        notes: "Drop table item used in Eastern boatbuilding contracts."
+      - source: Calvar'ion
+        combat_level: 590
+        quantity: "1"
+        rarity: 1/2400
+        notes: "Wilderness boss reward shared with Vet'ion."
+  recipes:
+    - skill: crafting
+      level: 78
+      xp: 0
+      materials:
+        - item_id: 32017
+          item_name: Dragon keel parts
+          quantity: 1
+      output:
+        item_id: 32014
+        item_name: Dragon keel
+        output_quantity: 1
+      tools: []
+      facility: Boatbuilding workbench
+      members: true
+      notes: "Used as a Boatbuilding contract material toward a Dragon keel."
+  related_items:
+    - item_id: 32014
+      item_name: Dragon keel
+      slug: dragon-keel
+      relationship: upgrade
+      description: "Assembled keel built from these parts."
+    - item_id: 32016
+      item_name: Dragon mast parts
+      slug: dragon-mast-parts
+      relationship: alternative
+      description: "Sister Boatbuilding component piece."
+    - item_id: 32018
+      item_name: Dragon hull parts
+      slug: dragon-hull-parts
+      relationship: alternative
+      description: "Sister Boatbuilding component piece."
+  about: "Dragon keel parts are a Boatbuilding tradeable used to construct a Dragon keel, obtained as a rare drop from Vorkath and Wilderness bosses, with a 100 buy limit and a 22,500 high alch value."
+  market_strategy:
+    notes:
+      - "Boatbuilding contract demand sets the floor for dragon parts."
+      - "Vorkath and Wilderness boss supply keeps daily volume tight."
+      - "Limit 100 per 4 hours throttles large-scale flipping."
+  trading_tips:
+    - "Stock parts during Boatbuilding meta updates and contract pushes."
+    - "Compare keel parts vs hull/mast spread to balance supplier rotations."
+  history:
+    - date: "2024-09-04"
+      description: "Released with the Boatbuilding skill expansion as a Dragon-tier component."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

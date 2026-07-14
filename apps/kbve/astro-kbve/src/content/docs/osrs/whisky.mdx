@@ -12,9 +12,59 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 13000
-  about: "Whisky is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 5
+    effects:
+      - description: Temporary Strength boost
+  shops:
+    - shop_name: The Asp & Snake Bar
+      location: Pollnivneach
+    - shop_name: Funch's Fine Groceries
+      location: Grand Tree
+    - shop_name: The Lighthouse Store
+      location: Lighthouse
+  drop_table:
+    sources:
+      - source: Drink troll
+        quantity: "1"
+        rarity: 1/10
+      - source: Dinky the drink troll
+        quantity: "1"
+        rarity: 1/10
+  related_items:
+    - item_name: Gnome cocktail
+      slug: gnome-cocktail
+      relationship: product
+      description: Used as a cocktail ingredient
+  about: Whisky is a bottle of Draynor Malt sold by various shops across Gielinor and used as an ingredient in gnome cocktails.
+  market_strategy:
+    notes:
+      - Stocked by multiple shops so margins above shop price are the main profit lever
+      - Daily GE volume is thin so flip in small batches
+  trading_tips:
+    - Check vendor restocks in Pollnivneach and the Grand Tree before buying off the GE
+    - Treat alch value as floor reference only; GE price is typically far above alch
+  history:
+    - date: "2002-02-27"
+      update: Latest RuneScape News
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: Latest RuneScape News
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

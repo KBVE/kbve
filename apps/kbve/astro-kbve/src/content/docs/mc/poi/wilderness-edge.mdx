@@ -1,0 +1,29 @@
+---
+title: Wilderness Edge
+template: splash
+description: Approximate boundary where the surveyed lot grid ends and unclaimed terrain begins.
+sidebar:
+    label: Wilderness Edge
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-poi
+mc_poi:
+    poi_id: wilderness_edge
+    display_name: Wilderness Edge
+    kind: biome
+    world: minecraft:overworld
+    chunk_x: 0
+    chunk_z: 0
+    radius_chunks: 24
+    anchor_y: 63
+    icon: '~'
+    about:
+        summary: Boundary where the surveyed plaza ends and the open wilderness begins.
+        notes: Past this ring, claims happen through the lot RPC against fresh chunks. PvP is enabled.
+---
+
+import MCPoiPanel from '@/components/mcdb/MCPoiPanel.astro';
+
+<MCPoiPanel data={frontmatter.mc_poi} />

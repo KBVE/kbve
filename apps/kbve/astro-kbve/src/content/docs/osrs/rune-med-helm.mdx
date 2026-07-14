@@ -12,24 +12,82 @@ osrs:
   lowalch: 7680
   highalch: 11520
   limit: 70
-  item_id: 1147
-  item_type: armor
-  slot: head
-  type: med_helm
-  tradeable: true
-  weight: 1.814
-  requirements:
-    defence: 40
-  stats:
-    stab_defence: 22
-    slash_defence: 23
-    crush_defence: 21
-    magic: -3
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2001-07-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1.814
+    requirements:
+      defence: 40
+    attack_bonus:
+      magic: -3
+    defence_bonus:
+      stab: 22
+      slash: 23
+      crush: 21
+      magic: -1
+      ranged: 22
+    other_bonus: {}
+  recipes:
+    - skill: smithing
+      level: 88
+      xp: 75
+      materials:
+        - item_name: Runite bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Blast Furnace Armour Shop
+      location: Keldagrim
+      price: 19200
+      currency: Coins
+      stock: 10
   related_items:
-    - slug: rune-full-helm
-    - slug: runite-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Rune full helm
+      slug: rune-full-helm
+      relationship: upgrade
+      description: Full helm with stronger defensive bonuses.
+    - item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smithed at level 88 to produce this helmet.
+    - item_name: Adamant med helm
+      slug: adamant-med-helm
+      relationship: downgrade
+      description: Lower tier med helm.
+  about: "The rune med helm is a medium helmet that requires 40 Defence to wear. It can be smithed at level 88 Smithing from a runite bar for 75 experience and is purchased new from the Blast Furnace armour shop in Keldagrim. Released 26 July 2001 as part of the original rune equipment set, it remains a common starter Defence helm for ironmen and pures who skip the full helm Defence requirement."
+  market_strategy:
+    notes:
+      - "Buy limit of 70 makes bulk reselling slow; better suited for moderate flips."
+      - "Rune bar price drives the smithing margin; helmets typically high-alch profitable."
+  trading_tips:
+    - Compare GE price against high alch (11,520) - common profitable alch when over-supplied.
+  history:
+    - date: "2001-07-26"
+      description: Released with the original rune armour set.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

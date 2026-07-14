@@ -12,9 +12,52 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Mahogany magic wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about:
+    text: "The mahogany magic wardrobe (flatpack) is a members-only Construction flatpack made at a workbench with level 78 Construction for 560 experience. It is used on the Magic wardrobe space in the Costume Room of a player-owned house, letting players build the storage furniture without needing to make the planks on site."
+    sections:
+      - heading: How do you make the mahogany magic wardrobe flatpack?
+        anchor: making
+        body: "A mahogany magic wardrobe flatpack is made at a workbench in the Workshop of a player-owned house with level 78 Construction, granting 560 Construction experience per flatpack. Building one requires four mahogany planks and uses a bench with a vice as the facility, with a saw and a hammer in your inventory. Each flatpack takes 5 game ticks (3 seconds) to assemble. Because the finished flatpack trades on the Grand Exchange for far less than the cost of four mahogany planks, making them is not profitable, so players generally make flatpacks for Construction experience or for personal use rather than to sell. The flatpack form lets you transport the furniture as a single tradeable item."
+      - heading: How do you use the flatpack in the Costume Room?
+        anchor: usage
+        body: "The mahogany magic wardrobe flatpack is used on the Magic wardrobe space in the Costume Room of a player-owned house, where it becomes a built mahogany magic wardrobe. To build it you must have a hammer and a saw in your inventory. Using a flatpack is a popular way to furnish the Costume Room without first making the mahogany planks at your own workbench, since you can buy ready-made flatpacks from other players via the Grand Exchange. The built mahogany magic wardrobe can later be upgraded into a carved teak magic wardrobe using the relevant flatpack. This makes the flatpack a convenient shortcut for players setting up storage for their costume and holiday items at home."
+  recipes:
+    - skill: construction
+      level: 78
+      xp: 560
+      facility: Bench with vice
+      ticks: 5
+      product: Mahogany magic wardrobe (flatpack)
+      materials:
+        - { item_name: Mahogany plank, quantity: 4 }
+  related_items:
+    - item_name: Mahogany magic wardrobe
+      slug: mahogany-magic-wardrobe
+      relationship: product
+      description: Built furniture made by using the flatpack on a Magic wardrobe space
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Four mahogany planks are used at a workbench to make the flatpack
+  trivia:
+    - "The mahogany magic wardrobe was released on 18 October 2006 with the Player-Owned House Costume Room update."
+    - "On 26 February 2015 the item was renamed from 'Mahogany mw' to 'Mahogany magic wardrobe' alongside the Grand Exchange update."
+    - "Making the flatpack from four mahogany planks costs far more than its Grand Exchange price, so it is built for Construction experience or personal use rather than profit."
+  faq:
+    - question: Is the mahogany magic wardrobe flatpack members-only?
+      answer: "Yes. The mahogany magic wardrobe flatpack is a members-only item. It is made through the Construction skill at a player-owned house workbench and used in the Costume Room, both of which are members-only content, so it cannot be made or used in free-to-play."
+    - question: What Construction level do you need to make it?
+      answer: "You need Construction level 78 to make the mahogany magic wardrobe flatpack at a workbench, which grants 560 Construction experience per flatpack. Building it requires four mahogany planks plus a saw and hammer, and each takes 5 game ticks (3 seconds) to assemble."
+    - question: How do you use the mahogany magic wardrobe flatpack?
+      answer: "You use the flatpack on the Magic wardrobe space in the Costume Room of a player-owned house, where it becomes a built mahogany magic wardrobe. You must have a hammer and a saw in your inventory to build it, letting you furnish the room without making planks on site."
+    - question: What materials does the mahogany magic wardrobe flatpack need?
+      answer: "The flatpack is made from four mahogany planks at a workbench in the Workshop of a player-owned house, using a bench with a vice. You also need a saw and a hammer in your inventory. It grants 560 Construction experience at level 78 Construction."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Mahogany_magic_wardrobe_(flatpack)"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

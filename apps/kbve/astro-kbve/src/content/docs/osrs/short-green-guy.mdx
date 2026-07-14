@@ -13,8 +13,69 @@ osrs:
   highalch: 18
   limit: 2000
   about: "Short green guy is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cocktail
+    tier: consumable
+  properties:
+    release_date: "2004-08-23"
+    quest_item: false
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    destroy_action: drop
+    options:
+      - drink
+      - empty
+      - drop
+  consumable:
+    heals: 3
+  recipes:
+    - skill: cooking
+      level: 19
+      xp: 30
+      materials:
+        - item_name: Cocktail glass
+          item_id: 2026
+          quantity: 1
+        - item_name: Vodka
+          item_id: 2015
+          quantity: 1
+        - item_name: Lime chunks
+          item_id: 2122
+          quantity: 1
+        - item_name: Lemon chunks
+          item_id: 2104
+          quantity: 1
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 2026
+      item_name: Cocktail glass
+      slug: cocktail-glass
+      relationship: component
+      description: Vessel for mixing
+    - item_id: 2025
+      item_name: Cocktail shaker
+      slug: cocktail-shaker
+      relationship: component
+      description: Required for mixing
+    - item_id: 2074
+      item_name: Pineapple punch
+      slug: pineapple-punch
+      relationship: alternative
+      description: Another Gnome cocktail
+  market_strategy:
+    notes:
+      - "Gnome cocktail recipe item"
+      - "Tiny heal makes it niche"
+      - "Used by Cooking trainers"
+      - "Steady but small volume"
+  trading_tips:
+    - "Buying tip: source cheap from Gnome chefs"
+    - "Selling tip: bundle with other gnome dishes for diary completion"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

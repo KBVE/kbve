@@ -1,5 +1,6 @@
 ---
 title: Spruce Trapdoor
+template: splash
 description: |
     Minecraft Spruce Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 302
     ref: spruce_trapdoor
     slug: spruce-trapdoor
+    content_rev: 1
     display_name: Spruce Trapdoor
     material: wood
     hardness: 3
@@ -24,10 +26,54 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            A Spruce Trapdoor is a hinged panel that opens and closes like
+            a horizontal door, fitting into the top or bottom half of a
+            block space. It can be opened by hand or wired to redstone for
+            automatic hidden entrances and gates.
+        lore: |
+            Trapdoors paired with fence gates and ladders enable classic
+            hidden-base and secret-passage designs.
+    uses:
+        - title: Hidden Entrances & Redstone Doors
+          ref: spruce_planks
+          detail: |
+              Combine with pistons, levers, or pressure plates to build
+              concealed entrances; also usable as furnace fuel.
+    found_in:
+        - location: Crafting table
+          detail: Six spruce planks arranged in a 2x3 grid craft two spruce trapdoors.
+        - location: Villages, shipwrecks, and igloos
+          detail: Generates naturally as basement hatches and shipwreck hatches.
+    faq:
+        - question: What tool mines a Spruce Trapdoor fastest?
+          answer: |
+              An axe. Any tool, or bare hands, still breaks it and it
+              always drops itself.
+        - question: Can players climb through an open trapdoor on a ladder?
+          answer: |
+              Yes, an open trapdoor placed directly above a ladder can be
+              climbed through like part of the ladder.
+        - question: Is a Spruce Trapdoor waterloggable?
+          answer: |
+              Yes, it can hold a water source block when placed underwater
+              without draining it.
+        - question: Does redstone open a Spruce Trapdoor automatically?
+          answer: |
+              Yes, any redstone power source such as a lever, button, or
+              redstone signal toggles it open or closed.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Dead Bubble Coral Wall Fan
+template: splash
 description: |
     Minecraft Dead Bubble Coral Wall Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 747
     ref: dead_bubble_coral_wall_fan
     slug: dead-bubble-coral-wall-fan
+    content_rev: 1
     display_name: Dead Bubble Coral Wall Fan
     material: stone
     hardness: 0
@@ -26,9 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: dead_bubble_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Dead Bubble Coral Wall Fan is the technical block state used when
+            a dead bubble coral fan is attached to the side of a block
+            instead of standing upright. It behaves identically to Dead
+            Bubble Coral Fan, dropping the item form of the fan when mined
+            with Silk Touch.
+        lore: |
+            Wall fan states exist for every coral fan color and mirror the
+            wall-torch pattern of separate "standing" and "wall" block
+            states used throughout Minecraft.
+    found_in:
+        - location: Converted from Bubble Coral Wall Fan
+          detail: When a live bubble coral wall fan on the side of a block dies, it becomes this dead wall fan variant.
+        - location: Warm ocean coral reef walls
+          detail: Bedrock Edition can generate dead coral wall fans attached to reef structure walls.
+    faq:
+        - question: Can players place this block directly?
+          answer: |
+              Not directly by name — placing a Dead Bubble Coral Fan item
+              against the side of a block automatically creates this wall
+              fan block state.
+        - question: Does it drop itself or the standing fan item?
+          answer: |
+              Mining it with Silk Touch drops a Dead Bubble Coral Fan item,
+              the same item used to place either the standing or wall
+              variant.
+        - question: Is Silk Touch required to obtain it?
+          answer: |
+              Yes. Without Silk Touch, breaking a dead coral wall fan yields
+              no drop at all.
+        - question: How is it different from the standing fan?
+          answer: |
+              Only in orientation and hitbox — the wall fan sticks out
+              horizontally from a vertical surface instead of standing
+              upright on a horizontal one.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

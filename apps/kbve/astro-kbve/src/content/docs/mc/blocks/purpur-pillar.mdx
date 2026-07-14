@@ -1,5 +1,6 @@
 ---
 title: Purpur Pillar
+template: splash
 description: |
     Minecraft Purpur Pillar — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 627
     ref: purpur_pillar
     slug: purpur-pillar
+    content_rev: 1
     display_name: Purpur Pillar
     material: end
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purpur_pillar
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - the_end
+    about:
+        description: |
+            Purpur Pillar is an axis-orientable variant of Purpur Block that
+            can be placed vertically or along either horizontal axis. It
+            appears throughout End cities as columns and supports.
+        lore: |
+            Purpur Pillar was first revealed by Jeb on Instagram on June 22,
+            2015, ahead of MINECON 2015.
+    uses:
+        - title: Purpur Slab
+          ref: purpur_slab
+          detail: |
+              Craft 2 Purpur Pillars into 6 Purpur Slabs, or cut a pillar
+              into slabs with a stonecutter.
+        - title: Purpur Stairs
+          ref: purpur_stairs
+          detail: |
+              Craft Purpur Pillars in a stair pattern for 4 Purpur Stairs,
+              or use a stonecutter for a 1:1 conversion.
+    found_in:
+        - location: End cities
+          detail: Generates as columns and support beams throughout End city towers.
+        - location: End ships
+          detail: Used as structural pillars within the End ship's hull.
+    faq:
+        - question: How do I craft Purpur Pillar?
+          answer: |
+              Place 2 Purpur Slabs stacked in a crafting grid, or cut a
+              Purpur Block with a stonecutter.
+        - question: Can I control which way it faces?
+          answer: |
+              Yes, the pillar's axis orientation follows the face of the
+              block you place it against, same as logs.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting from wooden tier; without one it drops
+              nothing.
+        - question: Is it flammable?
+          answer: |
+              No, Purpur Pillar does not burn and is safe to use near fire
+              or lava.
     data_version: "1.21.5"
 ---
 

@@ -12,51 +12,99 @@ osrs:
   lowalch: 1530
   highalch: 2295
   limit: 10000
+  material:
+    type: jewellery
+    tier: mid-high
   equipment:
     slot: hands
-    requirements:
-      crafting: 58
+    weapon_type: none
+    weight: 0.25
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
   recipes:
-    - skill: crafting
+    - skill: Crafting
       level: 58
       xp: 95
-      inputs:
+      tools:
+        - Bracelet mould
+        - Furnace
+      output_quantity: 1
+      materials:
         - item_name: Diamond
+          item_id: 1601
           quantity: 1
         - item_name: Gold bar
+          item_id: 2357
           quantity: 1
+    - skill: Magic
+      level: 57
+      xp: 67
+      spell: Lvl-4 Enchant
+      tools: []
       output_quantity: 1
+      materials:
+        - item_name: Diamond bracelet
+          item_id: 11092
+          quantity: 1
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 10
   related_items:
     - item_id: 11085
       item_name: Ruby bracelet
       slug: ruby-bracelet
       relationship: downgrade
-      description: Previous tier bracelet
+      description: Previous tier gem bracelet
     - item_id: 11115
       item_name: Dragonstone bracelet
       slug: dragonstone-bracelet
       relationship: upgrade
-      description: Next tier bracelet
-  about: |-
-    Crafting (Level 58): Diamond + Gold bar at a furnace with bracelet mould (95 XP)
-
-    > *"A diamond bracelet."*
-
-    Lvl-4 Enchant (57 Magic): 1 cosmic rune + 10 earth runes (67 XP)
-
-    The Abyssal bracelet allows entry to the Abyss without being skulled (5 charges). Normally, using the Mage of Zamorak to enter the Abyss skulls you, risking all items on death. This bracelet removes that risk.
-
-    Useful for:
-    - Runecrafting via the Abyss without skull risk
-    - Protecting expensive equipment while crafting runes
-    - Ironman accounts who can't afford to lose gear
+      description: Next tier gem bracelet
+    - item_id: 11104
+      item_name: Abyssal bracelet
+      slug: abyssal-bracelet
+      relationship: product
+      description: Enchanted form used to enter the Abyss without being skulled
+  about: "Crafted from a diamond and gold bar at level 58 Crafting, then enchanted with Lvl-4 Enchant into an Abyssal bracelet for Runecrafting via the Abyss without the skull penalty."
   market_strategy:
     notes:
-      - Steady Runecrafting demand
-      - 5 charges per bracelet — consumed regularly
-      - Cheap to enchant
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Steady Runecrafting demand drives the enchanted Abyssal bracelet market
+      - Five charges per bracelet keeps consumption rate high
+      - Cheap to enchant; profit margin is thin but consistent
+      - Crafting Lvl-4 Enchant gives modest Magic XP
+  trading_tips:
+    - Watch Runecrafting meta updates for demand spikes
+    - Bulk-craft when diamond and gold bar prices dip
+    - Sell enchanted Abyssal bracelets rather than the base diamond bracelet for better margin
+  history:
+    - date: "2007-04-30"
+      description: Diamond bracelet released alongside the gem bracelet rework.
+    - date: "2018-02-22"
+      description: Inventory sprite rotated to differentiate from the enchanted Abyssal bracelet.
+  properties:
+    release_date: "2007-04-30"
+    update: Stuff
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

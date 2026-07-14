@@ -1,6 +1,6 @@
 ---
 title: Premade wiz blz'd | OSRS Price Data
-description: "Premade wiz blz'd: A Premade Wizard Blizzard.. High alch: 18 GP, GE limit: 2,000."
+description: "Premade wiz blz'd: A Premade Wizard Blizzard. High alch: 18 GP, GE limit: 2,000."
 osrs:
   id: 2040
   name: Premade wiz blz'd
@@ -12,9 +12,68 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Premade wiz blz'd is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: consumable
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.45
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Blurberry Bar
+      location: Grand Tree
+      price: 30
+      currency: coins
+      stock: 10
+    - shop_name: Blurberry Bar
+      location: Gnome Stronghold
+      price: 30
+      currency: coins
+      stock: 10
+  potion:
+    effects:
+      - description: "Restores 5 Hitpoints"
+        duration: 0
+      - description: "Boosts Strength by 6% + 1 levels"
+        duration: 0
+      - description: "Reduces Attack by 2% + 3 levels"
+        duration: 0
+  related_items:
+    - item_name: Wizard blizzard
+      slug: wizard-blizzard
+      relationship: variant
+      description: Player-made version of the cocktail
+    - item_name: Premade choc saturday
+      slug: premade-choc-saturday
+      relationship: alternative
+      description: Another Blurberry Bar premade cocktail
+  about: "Premade wiz blz'd is a pre-mixed Wizard Blizzard cocktail sold at the Blurberry Bar inside the Grand Tree and Gnome Stronghold. When drunk it restores 5 Hitpoints, boosts Strength by 6% + 1 levels and reduces Attack by 2% + 3 levels, making it a niche budget Strength boost for certain F2P-adjacent training scenarios. Originally released as 'Wizard blizzard' in 2002, it was renamed to its current short form during the 2006 Gnome Cuisine update."
+  market_strategy:
+    notes:
+      - "Shop-bought item with a soft ceiling around the 30 gp store price"
+      - "Occasional demand spikes from low-level Strength boost users"
+      - "Low margin flipping but steady volume"
+  trading_tips:
+    - Buy from Blurberry Bar at 30 gp when GE prices spike
+    - Bulk flip near the 2,000 buy limit for thin steady margins
+    - Watch for content updates that reference the Strength boost
+  history:
+    - date: "2002-12-12"
+      description: "Added to the game as 'Wizard blizzard'."
+    - date: "2006-08-07"
+      description: "Renamed to 'Premade wiz blz'd' as part of the Gnome Cuisine update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

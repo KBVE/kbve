@@ -1,0 +1,559 @@
+fileFormatVersion: 2
+guid: 6a7b729312aa5416b9cbe8365280a9a7
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2770323847347349913
+    second: sea ice 1_0
+  - first:
+      213: 2009813853168426007
+    second: sea ice 1_1
+  - first:
+      213: -1558701239251325201
+    second: sea ice 1_2
+  - first:
+      213: 2758454098106420526
+    second: sea ice 1_3
+  - first:
+      213: 2544532348532820330
+    second: sea ice 1_4
+  - first:
+      213: -1229990210206363197
+    second: sea ice 1_5
+  - first:
+      213: 8637930408446412824
+    second: sea ice 1_6
+  - first:
+      213: 7337830998775029648
+    second: sea ice 1_7
+  - first:
+      213: 8632375389029538924
+    second: sea ice 1_8
+  - first:
+      213: -2102631104588582795
+    second: sea ice 1_9
+  - first:
+      213: -2175968308676897312
+    second: sea ice 1_10
+  - first:
+      213: -7390656720217544014
+    second: sea ice 1_11
+  - first:
+      213: 516203039700500477
+    second: sea ice 1_12
+  - first:
+      213: 1950639392960958690
+    second: sea ice 1_13
+  - first:
+      213: -4938605988281333617
+    second: sea ice 1_14
+  - first:
+      213: 3275770711126985807
+    second: sea ice 1_15
+  - first:
+      213: -3529001707583090317
+    second: sea ice 1_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: sea ice 1_0
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 58
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 999aee18cda227620800000000000000
+      internalID: 2770323847347349913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_1
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 60
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71c53ce0d0b44eb10800000000000000
+      internalID: 2009813853168426007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_2
+      rect:
+        serializedVersion: 2
+        x: 10
+        y: 51
+        width: 13
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: feea6733b716e5ae0800000000000000
+      internalID: -1558701239251325201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_3
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 46
+        width: 19
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2d8ad6236ff74620800000000000000
+      internalID: 2758454098106420526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_4
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 52
+        width: 12
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a690ac180beff4320800000000000000
+      internalID: 2544532348532820330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_5
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 41
+        width: 11
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c1117bab623eeee0800000000000000
+      internalID: -1229990210206363197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_6
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 31
+        width: 30
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8184ef5d0f710e770800000000000000
+      internalID: 8637930408446412824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_7
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 43
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09fd5d77a6635d560800000000000000
+      internalID: 7337830998775029648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_8
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 34
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6c1ee61eab5cc770800000000000000
+      internalID: 8632375389029538924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_9
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 24
+        width: 14
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5707f4d8624f1d2e0800000000000000
+      internalID: -2102631104588582795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_10
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 22
+        width: 17
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e55ece1a586dc1e0800000000000000
+      internalID: -2175968308676897312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_11
+      rect:
+        serializedVersion: 2
+        x: 47
+        y: 31
+        width: 13
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ba649ecedc1f6990800000000000000
+      internalID: -7390656720217544014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_12
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 17
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dff335dfdebe92700800000000000000
+      internalID: 516203039700500477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_13
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 16
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e052566130121b10800000000000000
+      internalID: 1950639392960958690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_14
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 8
+        width: 13
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f88cfdef40c867bb0800000000000000
+      internalID: -4938605988281333617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_15
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 17
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4c4a522b10e57d20800000000000000
+      internalID: 3275770711126985807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sea ice 1_16
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 7
+        width: 12
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37153c7f4a7760fc0800000000000000
+      internalID: -3529001707583090317
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      sea ice 1_0: 2770323847347349913
+      sea ice 1_1: 2009813853168426007
+      sea ice 1_10: -2175968308676897312
+      sea ice 1_11: -7390656720217544014
+      sea ice 1_12: 516203039700500477
+      sea ice 1_13: 1950639392960958690
+      sea ice 1_14: -4938605988281333617
+      sea ice 1_15: 3275770711126985807
+      sea ice 1_16: -3529001707583090317
+      sea ice 1_2: -1558701239251325201
+      sea ice 1_3: 2758454098106420526
+      sea ice 1_4: 2544532348532820330
+      sea ice 1_5: -1229990210206363197
+      sea ice 1_6: 8637930408446412824
+      sea ice 1_7: 7337830998775029648
+      sea ice 1_8: 8632375389029538924
+      sea ice 1_9: -2102631104588582795
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

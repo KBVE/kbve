@@ -1,5 +1,6 @@
 ---
 title: Cherry Trapdoor
+template: splash
 description: |
     Minecraft Cherry Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 769
     ref: cherry_trapdoor
     slug: cherry-trapdoor
+    content_rev: 1
     display_name: Cherry Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Cherry Trapdoor is a wooden trapdoor variant crafted from cherry
+            planks that can be opened and closed manually or with redstone power.
+            It is transparent, waterloggable, and can be affected by wind charges,
+            making it useful for hidden passages and decorative builds.
+        lore: |
+            Introduced alongside the rest of the cherry wood set, this trapdoor
+            brings the Cherry Grove's blossom-pink tones to functional building
+            pieces.
+    faq:
+        - question: How do I craft a Cherry Trapdoor?
+          answer: |
+            Arrange 6 cherry planks in a crafting table to produce 2 cherry
+            trapdoors.
+        - question: Does a Cherry Trapdoor need redstone to open?
+          answer: |
+            No, players can open and close it by hand, though redstone power will
+            also toggle it automatically.
+        - question: Can a Cherry Trapdoor be waterlogged?
+          answer: |
+            Yes, placing it inside a water source block allows it to hold water
+            while remaining functional.
+        - question: Is Cherry Trapdoor flammable?
+          answer: |
+            Yes, since it is a wooden variant it can catch fire and burn when
+            exposed to flames, unlike stone-based building blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

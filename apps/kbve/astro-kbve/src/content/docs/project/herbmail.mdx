@@ -1,8 +1,7 @@
 ---
-title: HerbMail
-description: |
-    HerbMail.com is a global online platform offering a variety of herbs and spices, including regional kits, seasonal specials, and rare finds.
-    The company's innovative services include subscription boxes, an interactive Spice Sommelier, and a community with workshops, all while committing to sustainability through eco-friendly packaging and fair trade practices.
+title: "HerbMail — Global Gourmet Herbs & Spices Delivery Platform"
+description: HerbMail is a global online herbs and spices platform with regional kits, seasonal specials, rare finds, subscription boxes, and a Spice Sommelier tool.
+sem: 1
 sidebar:
     label: HerbMail
     order: 11
@@ -25,7 +24,79 @@ has_test: true
 author: h0lybyte
 license: KBVE
 status: active
+kube:
+    stack: application
+    environment: prod
+    tier: api
+    owner: h0lybyte
+    criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is HerbMail?
+          answer: HerbMail.com is a global online platform for gourmet herbs and spices, offering regional herb kits, seasonal specials, and rare hard-to-find finds delivered to your kitchen.
+        - question: What services does HerbMail offer?
+          answer: HerbMail offers monthly spice-box subscriptions tailored to your tastes, an AI-driven Spice Sommelier that pairs herbs and spices to your ingredients, live online workshops with chefs, and a loyalty rewards program.
+        - question: How is HerbMail built and hosted?
+          answer: HerbMail runs on an axum (Rust) backend shipped as the kbve/herbmail Docker image and deployed on the KBVE application Kubernetes stack in production.
+bento:
+    badge: design
+    title: Gourmet herbs & spices from
+    accent: HerbMail
+    lede: >-
+        A global online herbs and spices platform — regional kits, seasonal
+        specials, rare finds, subscription boxes, and an AI Spice Sommelier,
+        served by a Rust axum backend on the KBVE application stack.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/herbmail
+          primary: true
+          external: true
+        - label: Products
+          href: "#products"
+        - label: Brand
+          href: "#brand"
+    stats:
+        - { label: App, value: herbmail, icon: box }
+        - { label: Backend, value: 'Rust (axum)', icon: rust }
+        - { label: Image, value: kbve/herbmail, icon: package }
+        - { label: Deploy, value: prod, icon: deploy }
+    features:
+        - title: Regional herb kits
+          icon: map
+          body: Curated selections from specific regions like Provence, Tuscany, Kerala, and Sichuan.
+        - title: Subscription boxes
+          icon: calendar
+          body: A monthly spice box tailored to your culinary preferences, with recipes, usage tips, and the stories behind each spice.
+        - title: Spice Sommelier
+          icon: sensor
+          body: An AI-driven tool that pairs the perfect herbs and spices with your meals — just enter your ingredients.
+        - title: Community & workshops
+          icon: forum
+          body: Live online workshops hosted by seasoned chefs and spice experts, plus a loyalty rewards program.
+    related:
+        - title: API
+          href: /project/api/
+          copy: The KBVE core API service.
+          icon: server
+        - title: Edge
+          href: /project/edge/
+          copy: KBVE edge application services.
+          icon: network
+    related_heading: Related
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="products" eyebrow="Platform & products" heading="Explore & innovations">
 
 ## Introduction
 
@@ -34,6 +105,17 @@ HerbMail.com - Your Global Gateway to Gourmet Herbs and Spices
 Welcome to HerbMail.com, where the fragrant secrets of the world's most exotic herbs and spices are just a click away.
 Our mission is simple: to bring the world's finest flavors right to your kitchen doorstep.
 Whether you are a seasoned chef looking for the perfect pinch of rare saffron or a home cook eager to experiment with aromatic herbs, HerbMail.com is your ultimate spice rack!
+
+## Key facts
+
+| | |
+|---|---|
+| **App** | `herbmail` |
+| **Version** | 0.1.1 |
+| **Backend** | Rust (axum), image `kbve/herbmail` |
+| **Deploy** | KBVE application Kubernetes stack (prod) |
+| **License** | KBVE |
+| **Source** | [`apps/herbmail`](https://github.com/KBVE/kbve/tree/main/apps/herbmail) |
 
 ## Explore Our Products
 
@@ -57,6 +139,10 @@ Just enter your ingredients, and our AI-driven tool will suggest the best spices
 
 Join live online workshops hosted by seasoned chefs and spice experts.
 Learn new recipes, get tips on herb and spice pairings, and connect with fellow culinary enthusiasts.
+
+</BentoProse>
+
+<BentoProse id="brand" eyebrow="Growth & values" heading="Marketing & sustainability">
 
 ## Marketing Magic
 
@@ -114,3 +200,7 @@ By implementing these practices, HerbMail.com aims to contribute to the long-ter
 Visit us at HerbMail.com and discover how easy and enjoyable it is to bring the rich tastes of the world into your home kitchen.
 Sign up today and receive 10% off your first order.
 Let’s spice up your mealtime adventures together!
+
+</BentoProse>
+
+</BentoDoc>

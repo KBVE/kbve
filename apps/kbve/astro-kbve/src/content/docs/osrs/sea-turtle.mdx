@@ -1,6 +1,6 @@
 ---
 title: Sea turtle | OSRS Price Data
-description: "Sea turtle: Tasty!. High alch: 120 GP, GE limit: 10,000."
+description: "Sea turtle: a cooked turtle that heals 21 HP. Cooking 82 to cook from raw, sourced via Fishing Trawler. High alch: 120 GP, GE limit: 10,000."
 osrs:
   id: 397
   name: Sea turtle
@@ -12,18 +12,73 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: mid-high
+  properties:
+    release_date: "2003-07-28"
+    tradeable: true
+    stackable: false
+    equipable: false
+    noteable: true
+    weight: 1.0
+    quest_item: false
+    options:
+      - Eat
+      - Drop
+    destroy: "Are you sure you want to drop the Sea turtle?"
+  consumable:
+    type: food
+    heals: 21
+  recipes:
+    - skill: cooking
+      level: 82
+      xp: 211.3
+      materials:
+        - item_name: Raw sea turtle
+          item_id: 395
+          quantity: 1
+      output: Sea turtle
+      output_id: 397
+      output_quantity: 1
+      facility: Range
   related_items:
     - item_id: 395
       item_name: Raw sea turtle
       slug: raw-sea-turtle
       relationship: component
       description: Uncooked version
-  about: |-
-    > _"Tasty!"_
-
-    Sea turtle heals 21 Hitpoints. A high-level food primarily obtained from the Fishing Trawler minigame. Slightly less healing than manta ray (22) but cheaper.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 391
+      item_name: Manta ray
+      slug: manta-ray
+      relationship: upgrade
+      description: Higher healing high-level food (22 HP)
+    - item_id: 379
+      item_name: Lobster
+      slug: lobster
+      relationship: downgrade
+      description: Lower tier cooked food
+  market_strategy:
+    notes:
+      - "Heals 21 HP — alternative to shark/manta"
+      - "Cooked from raw sea turtles (Fishing Trawler drop)"
+      - "Cooking 82 required: profit ~316 GP per cooked turtle pre-tax"
+      - "Hosidius Kitchen gives cooking success boost"
+      - "Buy limit: 10,000 per 4 hours"
+      - "Cooking flip viable at high success rate"
+      - "Slightly less heal than manta ray (22) but cheaper"
+  history:
+    - date: "2003-07-28"
+      update: Release
+      description: "Released with Fishing Trawler minigame."
+    - date: "2018-09-06"
+      update: Value reduction
+      description: "Base value reduced from 500 to 200 coins."
+  trivia:
+    - Heals 21 Hitpoints per turtle.
+    - Burns at high Cooking levels without proper gear/location.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

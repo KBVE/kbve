@@ -1,5 +1,6 @@
 ---
 title: Spruce Button
+template: splash
 description: |
     Minecraft Spruce Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 412
     ref: spruce_button
     slug: spruce-button
+    content_rev: 1
     display_name: Spruce Button
     material: redstone
     hardness: 0.5
@@ -24,10 +26,65 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - redstone_component
+    about:
+        description: |
+            Spruce Button is a wooden redstone component crafted from a
+            single spruce plank. When pressed, it briefly emits a redstone
+            signal, making it a simple manual power source.
+        lore: |
+            Wooden buttons predate stone buttons in Minecraft's history and
+            remain distinct in that arrows and tridents can trigger them.
+    uses:
+        - title: Redstone Trigger
+          ref: redstone
+          detail: |
+              Sends a momentary redstone pulse to power adjacent blocks or
+              wires, commonly used for doors, dispensers, and note blocks.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              As an Overworld wood variant, Spruce Button can be burned in a
+              furnace as fuel, unlike Crimson or Warped buttons.
+    found_in:
+        - location: Crafting
+          detail: |
+              Crafted from a single Spruce Plank on a crafting grid to yield
+              one Spruce Button.
+        - location: Trial Chambers and Desert Villages
+          detail: |
+              Wooden buttons of varying types can also generate naturally as
+              part of structure loot rooms and village houses.
+    faq:
+        - question: How long does a Spruce Button stay pressed?
+          answer: |
+              About 1.5 seconds when clicked by a player, hand, or projectile
+              before it automatically pops back up and cuts the signal.
+        - question: Can arrows activate a Spruce Button?
+          answer: |
+              Yes. Unlike stone buttons, wooden buttons like Spruce can be
+              triggered by arrows and thrown tridents, making them useful for
+              archery-based redstone contraptions.
+        - question: Does Fortune increase Spruce Button drops?
+          answer: |
+              No. It always drops exactly one button regardless of the tool
+              or enchantments used.
+        - question: Can Spruce Button burn or be used as fuel?
+          answer: |
+              It can be used as furnace fuel since it's an Overworld wood
+              type, but it does not ignite on its own from nearby fire.
     data_version: "1.21.5"
 ---
 

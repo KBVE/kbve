@@ -1,5 +1,6 @@
 ---
 title: Sponge
+template: splash
 description: |
     Minecraft Sponge — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 99
     ref: sponge
     slug: sponge
+    content_rev: 1
     display_name: Sponge
     material: plant
     hardness: 0.6
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sponge
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+    about:
+        description: |
+            Sponge is a rare block that absorbs nearby water when placed,
+            turning into a Wet Sponge in the process. It is found only in
+            ocean monument sponge rooms, guarded by Elder Guardians.
+        lore: |
+            Sponge predates the finite-water update, originally serving as a
+            redstone-powered water remover before becoming a survival-obtainable
+            block in the Aquatic Update.
+    uses:
+        - title: Water Removal
+          ref: wet_sponge
+          detail: |
+              Placing a dry Sponge next to water absorbs up to 65 connected
+              water source and flowing blocks, turning the Sponge into a Wet
+              Sponge that must be dried out before reuse.
+        - title: Furnace Fuel Drying
+          ref: bucket
+          detail: |
+              Smelting a Wet Sponge in a furnace dries it back into a
+              reusable Sponge; smelting it with a bucket in the fuel slot
+              yields a bucket of water as a byproduct.
+    found_in:
+        - location: Ocean Monuments
+          detail: |
+              Each monument has one sponge room containing roughly 30 wet
+              sponge blocks, guarded by an Elder Guardian.
+    faq:
+        - question: Can I get Sponge without fighting Elder Guardians?
+          answer: |
+              No. The only source is the sponge room inside an ocean
+              monument, which is always guarded by at least one Elder
+              Guardian and several regular guardians.
+        - question: How much water does a Sponge absorb?
+          answer: |
+              Up to 65 connected water blocks within a taxicab-distance
+              radius of 6, turning itself into a Wet Sponge afterward.
+        - question: Is Sponge flammable or affected by Fortune?
+          answer: |
+              No to both. It cannot catch fire and Fortune has no effect on
+              its drop, which is always exactly one Sponge.
+        - question: What's the fastest way to mine Sponge?
+          answer: |
+              A hoe of any tier breaks it quickest, though it can be mined
+              by hand since it has no minimum tool tier requirement.
     data_version: "1.21.5"
 ---
 

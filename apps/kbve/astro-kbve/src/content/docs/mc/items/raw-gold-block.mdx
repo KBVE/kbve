@@ -1,5 +1,6 @@
 ---
 title: Block of Raw Gold
+template: splash
 description: |
     Minecraft Block of Raw Gold — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 86
     ref: raw_gold_block
     slug: raw-gold-block
+    content_rev: 1
     display_name: Block of Raw Gold
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A block of raw gold is a compact storage block equivalent to nine raw gold items, with a hardness of 5 and requiring an iron pickaxe or better to mine. It offers an efficient way to store large amounts of raw gold in a single block. These blocks cannot be smelted into regular gold blocks, making them a pure storage solution.
+        lore: |
+            Piglins are mysteriously drawn to raw gold blocks, inspecting dropped ones for several seconds before claiming them as their own.
+    faq:
+        - question: How do I craft a Block of Raw Gold?
+          answer: |
+              Arrange nine raw gold items in a 3x3 crafting grid to create one block of raw gold, or reverse the process by placing one block in the crafting grid to recover nine raw gold.
+        - question: Where can I find raw gold to make this block?
+          answer: |
+              Mine gold ore with an iron pickaxe or better, or deepslate gold ore and nether gold ore, to gather raw gold for crafting.
+        - question: What's the main purpose of this block?
+          answer: |
+              It provides a compact way to store raw gold for inventory management and base organization, though it serves no crafting or processing function beyond storage.
+        - question: Should I store gold as blocks or ingots?
+          answer: |
+              Blocks are better for bulk storage since nine items compress into one, but only raw gold can become this block. Smelted gold ingots must be crafted into gold blocks separately for that same compression.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

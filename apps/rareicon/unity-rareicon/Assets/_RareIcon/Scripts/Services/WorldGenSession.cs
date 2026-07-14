@@ -67,9 +67,7 @@ namespace RareIcon
             _chunks = chunks;
             _rivers = rivers;
             _locale = locale;
-            // First boot starts at the Language picker; once the player
-            // commits a locale (LocaleService persists it via PlayerPrefs)
-            // every subsequent launch boots straight into the AoE menu.
+
             _stage = new ReactiveProperty<TitleStage>(
                 _locale.HasUserPickedLocale ? TitleStage.Info : TitleStage.Locale);
         }
@@ -115,10 +113,6 @@ namespace RareIcon
             if (!WorldStoreSystem.RestoreSlotAndReopen(slot, out failureReason))
                 return false;
 
-            // Pull the seed back from the slot's manifest so the biome
-            // generator resumes against the same noise field the saved
-            // world was rolled with. Legacy slots (no manifest) keep the
-            // current seed so the world isn't visibly mismatched.
             var slotPath = SaveSlotService.PathForSlot(slot);
             if (SaveBundleIO.IsZipBundle(slotPath))
             {

@@ -9,6 +9,12 @@ export {
 } from "../_shared/supabase.ts";
 
 import { jsonResponse } from "../_shared/supabase.ts";
+import {
+  SERVICE_RE,
+  SNOWFLAKE_RE,
+  TOKEN_NAME_RE,
+  UUID_RE,
+} from "../_shared/formats.ts";
 
 // ---------------------------------------------------------------------------
 // Guild-vault-specific request type
@@ -25,12 +31,6 @@ export interface GuildVaultRequest {
 // ---------------------------------------------------------------------------
 // Validators (guard pattern: return Response on failure, null on success)
 // ---------------------------------------------------------------------------
-
-const SNOWFLAKE_RE = /^\d{17,20}$/;
-const TOKEN_NAME_RE = /^[a-z0-9_-]{3,64}$/;
-const SERVICE_RE = /^[a-z0-9_]{2,32}$/;
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function validateSnowflake(
   id: unknown,
@@ -197,6 +197,35 @@ export function invalidateOwnershipCache(
   serverId: string,
 ): void {
   ownershipCache.delete(getCacheKey(userId, serverId));
+}
+
+export function verifyOwnedGuildsClaim(
+  claims: import("../_shared/supabase.ts").JwtClaims,
+  serverId: string,
+): Response | null {
+  const og = (claims as unknown as { owned_guilds?: unknown }).owned_guilds;
+  if (!Array.isArray(og)) {
+    return jsonResponse(
+      {
+        error:
+          "JWT owned_guilds claim missing. Re-bootstrap or sign in with Discord.",
+      },
+      403,
+    );
+  }
+  const found = og.some((g) =>
+    typeof g === "string" && /^[0-9]{17,20}$/.test(g) && g === serverId
+  );
+  if (!found) {
+    return jsonResponse(
+      {
+        error:
+          "JWT owned_guilds claim does not include this server_id. Re-bootstrap or sign in with Discord.",
+      },
+      403,
+    );
+  }
+  return null;
 }
 
 /**

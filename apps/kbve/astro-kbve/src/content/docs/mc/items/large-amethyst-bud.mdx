@@ -1,5 +1,6 @@
 ---
 title: Large Amethyst Bud
+template: splash
 description: |
     Minecraft Large Amethyst Bud — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1324
     ref: large_amethyst_bud
     slug: large-amethyst-bud
+    content_rev: 1
     display_name: Large Amethyst Bud
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The large amethyst bud is the third growth stage of an amethyst
+            cluster, forming on budding amethyst inside geodes and emitting a light
+            level of 4. It must be harvested with Silk Touch, since mining it
+            normally yields nothing.
+        lore: |
+            A near-fully formed crystal spike, one growth cycle away from becoming
+            a gleaming amethyst cluster.
+    faq:
+        - question: How does a large amethyst bud form?
+          answer: |
+              It forms when a budding amethyst block randomly ticks and
+              progresses an adjacent bud through the small and medium stages
+              before reaching the large stage.
+        - question: How do you harvest a large amethyst bud?
+          answer: |
+              It must be mined with a Silk Touch tool to drop itself; mining it
+              without Silk Touch yields nothing.
+        - question: Does the large amethyst bud give off light?
+          answer: |
+              Yes, it emits a light level of 4, dimmer than a fully grown
+              amethyst cluster.
+        - question: Where do large amethyst buds spawn?
+          answer: |
+              They generate naturally on budding amethyst blocks inside
+              amethyst geodes found underground.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

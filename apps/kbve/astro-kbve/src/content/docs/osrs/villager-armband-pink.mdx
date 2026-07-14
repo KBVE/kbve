@@ -12,9 +12,70 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 150
-  about: "Villager armband (pink) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.68
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.68
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      price: 60
+      currency: Trading sticks
+      stock: 0
+  about: "Villager armband (pink) is a members-only hands-slot cosmetic from Tai Bwo Wannai. Despite the pink set name the armband appears white; bought with trading sticks at Gabooty's Cooperative. High alchemy value: 90 coins. Grand Exchange buy limit: 150 per 4 hours."
+  market_strategy:
+    notes:
+      - "Cosmetic with no combat bonuses, demand is roleplay-driven"
+      - "Buyable directly from Gabooty's with trading sticks, capping GE price ceiling"
+      - "Magic wardrobe storage frees bank slots for hoarders"
+  trading_tips:
+    - Check Gabooty's stock for cheap arbitrage versus Grand Exchange
+    - Pair with other pink set pieces for full Tai Bwo Wannai look
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Clean-Up update."
+    - date: "2005-09-19"
+      description: "Examine text updated from 'A brightly coloured purple arm band.' to 'A white armband, as worn by the Tai Bwo Wannai locals.'"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

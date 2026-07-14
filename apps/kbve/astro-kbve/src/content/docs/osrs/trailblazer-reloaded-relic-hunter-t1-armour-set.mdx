@@ -12,9 +12,54 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: null
-  about: "Trailblazer reloaded relic hunter (t1) armour set is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2023-11-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Trailblazer reloaded headband (t1)
+      slug: trailblazer-reloaded-headband-t1
+      relationship: set-piece
+      description: "Hood component of the tier 1 armour set"
+    - item_name: Trailblazer reloaded top (t1)
+      slug: trailblazer-reloaded-top-t1
+      relationship: set-piece
+      description: "Top component of the tier 1 armour set"
+    - item_name: Trailblazer reloaded trousers (t1)
+      slug: trailblazer-reloaded-trousers-t1
+      relationship: set-piece
+      description: "Trousers component of the tier 1 armour set"
+    - item_name: Trailblazer reloaded boots (t1)
+      slug: trailblazer-reloaded-boots-t1
+      relationship: set-piece
+      description: "Boots component of the tier 1 armour set"
+  about: |-
+    The Trailblazer reloaded relic hunter (t1) armour set bundles all four cosmetic tier 1 Trailblazer Reloaded pieces into a single bank-friendly placeholder. Players exchange the individual components with the Grand Exchange clerk via the Sets option to receive the set, or break the set back into its parts.
+
+    The set is purely a storage convenience for Grand Exchange trading; equipping the cosmetic requires breaking the set back into individual pieces.
+  market_strategy:
+    notes:
+      - "Set price typically trades at a discount versus the sum of its components"
+      - "Use the GE clerk's Sets interface to merge or break the set"
+      - "Trailblazer Reloaded cosmetics are tied to the 2023 Leagues iteration and rarely re-release"
+  history:
+    - date: "2023-11-29"
+      description: "Released alongside Leagues IV: Trailblazer Reloaded"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Oxidized Copper Trapdoor
+template: splash
 description: |
     Minecraft Oxidized Copper Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1018
     ref: oxidized_copper_trapdoor
     slug: oxidized-copper-trapdoor
+    content_rev: 1
     display_name: Oxidized Copper Trapdoor
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oxidized_copper_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Oxidized Copper Trapdoor is the fully weathered stage of the
+            copper trapdoor, a redstone-operable trapdoor crafted from
+            copper ingots that ages through four visual stages unless
+            waxed with honeycomb.
+        lore: |
+            Copper Trapdoor was revealed at Minecraft Live 2023 and
+            released in Java Edition 1.21, extending copper's weathering
+            mechanic to functional furniture pieces.
+    uses:
+        - title: Copper Door
+          ref: oxidized_copper_door
+          detail: |
+              Pairs with the matching Oxidized Copper Door as part of the
+              oxidizable copper building set, useful for redstone-controlled
+              entrances themed around aged copper.
+        - title: Honeycomb Waxing
+          ref: honeycomb
+          detail: |
+              Apply honeycomb to an Oxidized Copper Trapdoor to wax it,
+              locking it permanently at its current, fully weathered
+              appearance.
+    found_in:
+        - location: Weathering
+          detail: An unwaxed Copper Trapdoor left exposed long enough progresses through Exposed and Weathered before reaching Oxidized.
+        - location: Crafted (base stage)
+          detail: The unoxidized Copper Trapdoor is crafted from 4 copper ingots in a square pattern, then weathers naturally.
+    faq:
+        - question: What tool do I need to mine an Oxidized Copper Trapdoor?
+          answer: |
+              A stone pickaxe or better; lower tools break it without a
+              drop.
+        - question: Does it still oxidize further once fully oxidized?
+          answer: |
+              No. Oxidized is the final stage — it stops changing further
+              unless reversed by an axe or lightning.
+        - question: Can I stop it from reverting or changing?
+          answer: |
+              Apply honeycomb to wax it, which locks the trapdoor
+              permanently at the oxidized stage.
+        - question: How do I reverse its oxidation?
+          answer: |
+              Right-click with an axe (while not waxed) to scrape off one
+              oxidation stage, or expose it to a lightning strike.
     data_version: "1.21.5"
 ---
 

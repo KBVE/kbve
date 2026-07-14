@@ -5,16 +5,37 @@ osrs:
   id: 33074
   name: Facility bottle (empty)
   slug: facility-bottle-empty
-  examine: With proper application of directed exhalations, this complicated technology doubles as a folk instrument.
+  examine: "With proper application of directed exhalations, this complicated technology doubles as a folk instrument."
   members: true
   icon: Facility bottle (empty).png
   value: 57693
   lowalch: 23077
   highalch: 34615
   limit: 100
-  about: "Facility bottle (empty) is a members-only item in Old School RuneScape. High alchemy value: 34,615 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Shipwright Seb
+      location: Shipyard
+      price: 75000
+  about: "Facility bottle (empty) stores boat facilities so they can be moved between facility hotspots and boats. Used at the Shipyard with a hammer and saw. High alchemy value: 34,615 coins. Grand Exchange buy limit: 100 per 4 hours."
+  history:
+    - date: "2026-01-28"
+      description: "Released in the Deadman: Annihilation update."
+    - date: "2026-02-25"
+      description: "Appearance updated to distinguish it from the boat bottle."
+  properties:
+    release_date: "2026-01-28"
+    update: "Deadman: Annihilation"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    alchable: false
+    destroy: Destroy
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

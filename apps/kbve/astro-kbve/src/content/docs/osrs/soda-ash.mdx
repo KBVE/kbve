@@ -12,49 +12,71 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: material
+    tier: low
+  properties:
+    release_date: "2002-03-18"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: crafting
       level: 1
       xp: 10
       materials:
-        - item_id: 1781
-          item_name: Soda ash
+        - item_name: Soda ash
           quantity: 1
-        - item_id: 1783
-          item_name: Bucket of sand
+        - item_name: Bucket of sand
           quantity: 1
-      product: Molten glass
-      product_id: 1775
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Trader Stan's Trading Post
+      location: Charter ships
+      price: 5
+      currency: Coins
+      stock: 0
   related_items:
-    - item_id: 401
-      item_name: Seaweed
+    - item_name: Seaweed
       slug: seaweed
       relationship: component
-      description: Raw material
-    - item_id: 21504
-      item_name: Giant seaweed
+      description: Cook on a range or fire to produce a single soda ash.
+    - item_name: Giant seaweed
       slug: giant-seaweed
       relationship: component
-      description: Higher yield option
-    - item_id: 1775
-      item_name: Molten glass
+      description: Cooks into six soda ash per successful action.
+    - item_name: Bucket of sand
+      slug: bucket-of-sand
+      relationship: component
+      description: Smelted with soda ash to make molten glass.
+    - item_name: Molten glass
       slug: molten-glass
       relationship: product
-      description: Crafted product
+      description: Furnace product made by combining soda ash with sand.
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-
-    Combine with bucket of sand at furnace to create molten glass.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Soda ash is the cooked product of seaweeds and a core Crafting ingredient. Combined with a bucket of sand in a furnace it produces molten glass for vials, lanterns, lenses, and Superglass Make.
+  market_strategy:
+    notes:
+      - "Sea-weed underwater agility farms control supply elasticity."
+      - "Demand is steady from Crafting trainers funnelling into molten glass."
+  trading_tips:
+    - Stack soda ash from giant seaweed for the best yield-per-buy.
+    - Pair with bucket of sand orders to keep furnace runs uninterrupted.
+  history:
+    - date: "2002-03-18"
+      description: "Soda ash released alongside the original glass crafting flow."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

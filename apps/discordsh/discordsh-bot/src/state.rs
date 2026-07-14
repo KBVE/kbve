@@ -40,6 +40,7 @@ impl RelayConfig {
 use crate::discord::game::{ProfileStore, SessionStore};
 use crate::discord::github_cache::GitHubCache;
 use crate::discord::github_permissions::GitHubCommandGuard;
+use crate::discord::mention::MentionResolver;
 use crate::discord::n8n::N8nConfig;
 use crate::health::HealthMonitor;
 use crate::tracker::ShardTracker;
@@ -106,6 +107,18 @@ pub struct AppState {
     pub irc: Option<ChatClient>,
 
     pub relay: Option<RelayConfig>,
+
+    /// Resolves Discord snowflakes to KBVE usernames for relayed mentions.
+    /// `None` when Supabase isn't configured; the relay then falls back to the
+    /// Discord display name.
+    pub mentions: Option<Arc<MentionResolver>>,
+
+    /// Guards against spawning per-`Ready` background workers more than once.
+    /// The `Ready` event fires once per shard, so these ensure a single
+    /// instance regardless of shard count (otherwise work duplicates N times).
+    pub irc_forwarder_started: AtomicBool,
+    pub github_board_scheduler_started: AtomicBool,
+    pub gh_sync_worker_started: AtomicBool,
 
     /// Optional n8n webhook forwarder. `None` when `N8N_BASE_URL`,
     /// `N8N_HMAC_SECRET`, or `N8N_ALLOWED_PATHS` are missing — in which case
@@ -232,6 +245,16 @@ impl AppState {
             );
         }
 
+        // Shared L1+L2 cache (Valkey via KBVE_KV_URL when set, else L1-only) for
+        // the gh reverse-sync lookups. Same namespace/Valkey as other services.
+        let kv_cache = jedi::state::kv::KvCache::from_env().await;
+        let mentions = MentionResolver::from_env(kv_cache.clone()).map(Arc::new);
+        if mentions.is_none() {
+            tracing::info!(
+                "Mention resolver disabled (no Supabase) — relayed mentions use Discord names"
+            );
+        }
+
         Self {
             health_monitor,
             tracker,
@@ -248,9 +271,13 @@ impl AppState {
             github_repo_policy: jedi::entity::github::RepoPolicy::from_env(),
             github_guard: GitHubCommandGuard::from_env(),
             github_cache: GitHubCache::new(),
-            github_store: Arc::new(GithubStore::from_env()),
+            github_store: Arc::new(GithubStore::from_env().with_kv(Some(kv_cache))),
             irc,
             relay,
+            mentions,
+            irc_forwarder_started: AtomicBool::new(false),
+            github_board_scheduler_started: AtomicBool::new(false),
+            gh_sync_worker_started: AtomicBool::new(false),
             n8n,
             local_db,
         }

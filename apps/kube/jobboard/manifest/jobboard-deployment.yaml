@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: jobboard-deployment
+    namespace: kbve
+    labels:
+        app: jobboard
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
+        secret.reloader.stakater.com/reload: supabase-shared
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: jobboard
+    template:
+        metadata:
+            annotations:
+                rollout-restart: '2026-06-15T00:00:00Z'
+            labels:
+                app: jobboard
+                version: 0.1.9
+        spec:
+            serviceAccountName: jobboard-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: jobboard
+                  image: ghcr.io/kbve/jobboard:0.1.9
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 5400
+                        protocol: TCP
+                  env:
+                      - name: APP_VERSION
+                        value: 0.1.9
+                      - name: HTTP_HOST
+                        value: 0.0.0.0
+                      - name: HTTP_PORT
+                        value: '5400'
+                      - name: SECURE_COOKIES
+                        value: 'true'
+                      - name: AUTH_MODE
+                        value: local
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: jwt-secret
+                      - name: KBVE_PG_RW_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url
+                      - name: KBVE_PG_RO_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url-ro
+                      - name: KBVE_PG_ANY_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url-any
+                      - name: KBVE_PG_CA_PEM_FILE
+                        value: /etc/ssl/pgca/ca.crt
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: 5400
+                      initialDelaySeconds: 5
+                      periodSeconds: 15
+                      timeoutSeconds: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: 5400
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                  resources:
+                      requests:
+                          memory: 256Mi
+                          cpu: 100m
+                      limits:
+                          memory: 512Mi
+                          cpu: 1000m
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+                      - name: pg-ca
+                        mountPath: /etc/ssl/pgca
+                        readOnly: true
+            volumes:
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
+                - name: pg-ca
+                  secret:
+                      secretName: supabase-shared
+                      items:
+                          - key: db-ca-crt
+                            path: ca.crt
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: jobboard-service
+    namespace: kbve
+    labels:
+        app: jobboard
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        app: jobboard
+    ports:
+        - port: 5400
+          targetPort: 5400
+          protocol: TCP

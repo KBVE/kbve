@@ -40,11 +40,6 @@ namespace RareIcon
             }
             if (uiDoc.rootVisualElement == null) return;
 
-            // Inline-styled because SelectionOverlay attaches the marquee
-            // straight to the UIDocument root, not through UIPanelLoader.
-            // Loading styles.uss into rootVisualElement once would also
-            // work but inlining keeps the overlay self-contained and
-            // independent of the panel-loader timing.
             _marquee = new VisualElement { pickingMode = PickingMode.Ignore };
             _marquee.AddToClassList("drag-marquee");
             _marquee.style.position = Position.Absolute;

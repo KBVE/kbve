@@ -1,64 +1,79 @@
 ---
 title: Saltpetre | OSRS Price Data
-description: "Saltpetre: A power that can be added to compost to make fertiliser.. High alch: 3 GP, GE limit: 13,000."
+description: "Saltpetre: A powder that can be added to compost to make fertiliser.. High alch: 3 GP, GE limit: 13,000."
 osrs:
   id: 13421
   name: Saltpetre
   slug: saltpetre
-  examine: A power that can be added to compost to make fertiliser.
+  examine: A powder that can be added to compost to make fertiliser.
   members: true
   icon: Saltpetre.png
   value: 5
   lowalch: 2
   highalch: 3
   limit: 13000
-  item:
+  material:
     type: mining_resource
-    tradeable: true
-    weight: 0.003
-  obtaining:
-    methods:
-      - source: Saltpetre deposits
-        location: Hosidius
-        method: Dig with spade
-        yield: 1,600/hour at 80+ Mining
-      - source: Chambers of Xeric
-        method: Reward
-      - source: Wintertodt
-        method: Reward
-  creation:
-    uses:
-      - item_name: Supercompost
-        recipe: 3 saltpetre + 1 compost
-      - item_name: Dynamite
-        note: Crafting component
-      - item_name: Fertiliser
-        note: Component
+    tier: low
+  drop_table:
+    sources:
+      - source: Saltpetre deposit (Hosidius)
+        quantity: "1"
+        rarity: Always (mining)
+  recipes:
+    - skill: farming
+      level: 21
+      xp: 26
+      materials:
+        - item_name: Saltpetre
+          quantity: 3
+        - item_name: Compost
+          quantity: 1
+      tools: []
+      product: Supercompost
+      output_quantity: 1
+      notes: Use 3 saltpetre on a bucket of compost.
   related_items:
-    - item_id: 6034
-      item_name: Supercompost
+    - item_name: Supercompost
       slug: supercompost
       relationship: product
-      description: Created product
-    - item_id: 0
-      item_name: Dynamite
+      description: Created product when added to compost
+    - item_name: Dynamite
       slug: dynamite
       relationship: product
-      description: Crafting use
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Mining Resource |
-    | Tradeable | Yes |
-    | Weight | 0.003 kg |
-    | Requirements | None |
-
-    Used to create supercompost (3 saltpetre + 1 compost).
-
-    Component for dynamite and fertiliser.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Blast mining crafting component
+    - item_name: Fertiliser
+      slug: fertiliser
+      relationship: product
+      description: Vinery component
+  about: "Saltpetre is a Hosidius mining resource used to upgrade compost into supercompost and to craft dynamite. Mined northeast of the Woodcutting Guild with a spade."
+  market_strategy:
+    notes:
+      - Strong steady demand from supercompost crafters
+      - Bulk-friendly with a 13,000 buy limit
+      - Price tied to compost and herb farming activity
+  trading_tips:
+    - Compare against supercompost price for arbitrage windows
+    - Track blast mining content updates that lift dynamite demand
+  history:
+    - date: "2016-01-07"
+      description: Released with Zeah, Great Kourend.
+  properties:
+    release_date: "2016-01-07"
+    update: Zeah - Great Kourend
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.003
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

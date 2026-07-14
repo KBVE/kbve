@@ -7,7 +7,7 @@ namespace RareIcon
     {
         public const byte None      = 0;
         public const byte Active    = 1;
-        public const byte Completed = 2;   // all objectives satisfied; awaiting reward pay-out
+        public const byte Completed = 2;
         public const byte Failed    = 3;
     }
 

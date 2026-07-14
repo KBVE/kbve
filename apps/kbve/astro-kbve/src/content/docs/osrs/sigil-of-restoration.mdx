@@ -1,6 +1,6 @@
 ---
 title: Sigil of restoration | OSRS Price Data
-description: "Sigil of restoration: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP."
+description: "Sigil of restoration is a members-only Deadman Mode sigil that heals the wearer for 10% of damage dealt on single-target hits. High alch: 6,000 GP."
 osrs:
   id: 29670
   name: Sigil of restoration
@@ -11,13 +11,78 @@ osrs:
   value: 10000
   lowalch: 4000
   highalch: 6000
-  limit: null
-  about: "Sigil of restoration is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 0
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sigil
+    tier: mid-high
+  properties:
+    release_date: "2024-07-17"
+    update: "Deadman: Apocalypse"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Drop
+      - Examine
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Restoration
+      description: "Restores Hitpoints equal to 10% of damage dealt (rounded up) on successful single-target hits, excluding special attacks and multi-target attacks."
+  drop_table:
+    sources:
+      - source: Deadman Mode loot table
+        quantity: "1"
+        rarity: Variable
+        notes: "Dropped by most monsters during Deadman Mode events; un-attuned version is tradeable on the Grand Exchange before attuning."
+      - source: Skull shop
+        quantity: "1"
+        rarity: Shop
+        notes: "Purchasable from the skull shop during Deadman: Annihilation events."
+  related_items:
+    - item_name: Sigil of supreme stamina
+      slug: sigil-of-supreme-stamina
+      relationship: alternative
+      description: "Tier 2 utility sigil from the same Deadman sigil family."
+    - item_name: Sigil of resistance
+      slug: sigil-of-resistance
+      relationship: alternative
+      description: "Defensive sigil that reduces incoming damage."
+    - item_name: Sigil of fortification
+      slug: sigil-of-fortification
+      relationship: alternative
+      description: "Defensive Deadman Mode sigil from the same set."
+    - item_name: Sigil of finality
+      slug: sigil-of-finality
+      relationship: alternative
+      description: "Tier 3 Deadman Mode combat sigil with stronger effects."
+  about: "Sigil of restoration is a tier 2 combat sigil from Old School RuneScape's Deadman Mode that, once attuned, restores Hitpoints equal to 10% of damage dealt on successful single-target hits. It is a marquee sustain pick during Deadman: Apocalypse, Reborn, and Armageddon, sharing the broader sigil ecosystem with resistance, fortification, and finality."
+  market_strategy:
+    notes:
+      - "Only obtainable during Deadman Mode events: liquidity disappears between cycles."
+      - "Pre-attune tradeable status creates a brief speculative window each tournament."
+      - "Demand spikes on PvP meta posts that favor hybrid sustain builds."
+  trading_tips:
+    - "Watch Jagex Deadman blog posts for event start dates: stock prior to attune lock."
+    - "Compare sigil pricing against finality and fortification before committing inventory."
+  history:
+    - date: "2024-07-17"
+      update: "Deadman: Apocalypse"
+      description: "Sigil of restoration introduced as a tier 2 combat sigil."
+    - date: "2024-09-25"
+      update: "Deadman: Reborn"
+      description: "Returned as part of the Reborn rotation with the same restoration passive."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

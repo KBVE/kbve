@@ -11,11 +11,20 @@
  *
  * Mirrors the rareicon Head override (apps/rareicon/astro-rareicon/...).
  */
-import { ClientRouter } from 'astro:transitions';
+import { seo } from '@/lib/seo';
+import { dedupeGraph } from '@kbve/astro/seo';
 
 const route = Astro.locals.starlightRoute;
 const head = route.head;
 const data = route.entry.data as Record<string, unknown>;
+
+const osrsData = (data.osrs ?? {}) as Record<string, unknown>;
+const canonicalOverride =
+	typeof osrsData.canonical === 'string'
+		? osrsData.canonical
+		: typeof data.canonical === 'string'
+			? (data.canonical as string)
+			: undefined;
 
 const ogTitle = typeof data.ogTitle === 'string' ? data.ogTitle : undefined;
 const ogDescription =
@@ -38,6 +47,23 @@ if (twitterTitle) owned['twitter:title'] = twitterTitle;
 if (twitterDescription) owned['twitter:description'] = twitterDescription;
 if (twitterImage) owned['twitter:image'] = twitterImage;
 
+type JsonLdFm = {
+	disable?: boolean;
+	type?: 'WebPage' | 'Article';
+	image?: string;
+	datePublished?: string;
+	dateModified?: string;
+	author?: string;
+	section?: string;
+	keywords?: string[];
+	breadcrumb?: { name: string; path: string }[];
+	faq?: { question: string; answer: string }[];
+};
+
+const jl = (data.jsonld ?? {}) as JsonLdFm;
+const isArticle = jl.type === 'Article';
+if (isArticle) owned['og:type'] = 'article';
+
 type HeadTag = (typeof head)[number];
 
 function tagKey(t: HeadTag): string | undefined {
@@ -49,10 +75,20 @@ function tagKey(t: HeadTag): string | undefined {
 	return undefined;
 }
 
-const filteredHead = head.filter((t) => {
+const filteredHeadBase = head.filter((t) => {
 	const key = tagKey(t);
-	return !key || !(key in owned);
+	return !key || (!(key in owned) && key !== 'robots');
 });
+
+// Override the self-referencing canonical with an explicit target when set
+// (variant -> base item, or dose page -> potion family page).
+const filteredHead = canonicalOverride
+	? filteredHeadBase.map((t) =>
+			t.tag === 'link' && t.attrs?.rel === 'canonical'
+				? { ...t, attrs: { ...t.attrs, href: canonicalOverride } }
+				: t,
+		)
+	: filteredHeadBase;
 
 const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 	const isTwitter = key.startsWith('twitter:');
@@ -63,6 +99,108 @@ const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 			: { property: key, content: content! },
 	} as HeadTag;
 });
+
+const pageTitle = typeof data.title === 'string' ? data.title : undefined;
+const pageDescription =
+	typeof data.description === 'string' ? data.description : undefined;
+
+// Software project pages (project collection) carry source_path / app_name /
+// version / license in frontmatter. Derive a SoftwareSourceCode node from
+// those so every project page ships structured data without per-page jsonld.
+const str = (v: unknown): string | undefined =>
+	typeof v === 'string' && v.trim() ? v.trim() : undefined;
+const srcPath = str(data.source_path);
+const appName = str(data.app_name);
+const fmTags = Array.isArray(data.tags)
+	? (data.tags.filter((t) => typeof t === 'string') as string[])
+	: [];
+const LANG_TAGS = new Set([
+	'rust',
+	'python',
+	'typescript',
+	'javascript',
+	'go',
+	'cpp',
+	'c++',
+	'csharp',
+	'c#',
+	'astro',
+	'svelte',
+	'react',
+	'lua',
+	'zig',
+	'java',
+]);
+const langs = fmTags.filter((t) => LANG_TAGS.has(t.toLowerCase()));
+const software =
+	(srcPath || appName) && pageTitle
+		? {
+				name: appName ?? pageTitle,
+				description: pageDescription,
+				codeRepository: srcPath
+					? `https://github.com/KBVE/kbve/tree/main/${srcPath}`
+					: undefined,
+				version: str(data.version),
+				license: str(data.license),
+				author: str(data.author),
+				programmingLanguage: langs.length ? langs : undefined,
+				keywords: fmTags.length ? fmTags : undefined,
+				dateModified: jl.dateModified,
+			}
+		: undefined;
+
+const jsonLdGraph =
+	jl.disable || !pageTitle
+		? null
+		: dedupeGraph(
+				seo.page({
+					pathname: Astro.url.pathname,
+					title: pageTitle,
+					description: pageDescription,
+					type: jl.type,
+					image: jl.image ?? ogImage,
+					datePublished: jl.datePublished,
+					dateModified: jl.dateModified,
+					keywords:
+						jl.keywords ?? (fmTags.length ? fmTags : undefined),
+					breadcrumb: jl.breadcrumb?.map(
+						(c) => [c.name, c.path] as [string, string],
+					),
+					faq: jl.faq,
+					software,
+				}),
+			);
+
+const jsonLdPayload = jsonLdGraph
+	? jsonLdGraph.length === 1
+		? { '@context': 'https://schema.org', ...jsonLdGraph[0] }
+		: { '@context': 'https://schema.org', '@graph': jsonLdGraph }
+	: null;
+
+const noindex = data.noindex === true;
+const robotsContent = noindex
+	? 'noindex, nofollow'
+	: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+
+const articleTags: { property: string; content: string }[] = [];
+if (isArticle) {
+	if (jl.datePublished)
+		articleTags.push({
+			property: 'article:published_time',
+			content: jl.datePublished,
+		});
+	if (jl.dateModified)
+		articleTags.push({
+			property: 'article:modified_time',
+			content: jl.dateModified,
+		});
+	if (jl.author)
+		articleTags.push({ property: 'article:author', content: jl.author });
+	if (jl.section)
+		articleTags.push({ property: 'article:section', content: jl.section });
+	for (const tag of jl.keywords ?? [])
+		articleTags.push({ property: 'article:tag', content: tag });
+}
 ---
 
 {
@@ -72,21 +210,49 @@ const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 }
 {overrideTags.map(({ tag: Tag, attrs }) => <Tag {...attrs} />)}
 
+<meta name="robots" content={robotsContent} />
+{articleTags.map((t) => <meta property={t.property} content={t.content} />)}
+
+{
+	jsonLdPayload && (
+		<script
+			type="application/ld+json"
+			is:inline
+			set:html={JSON.stringify(jsonLdPayload)}
+		/>
+	)
+}
+
 <slot />
 
 {
-	/* Astro SPA-style nav. Pairs with the native browser
-   `<meta name="view-transition">` below so supporting browsers also
-   get cross-doc transitions when the router falls back to a full nav
-   (initial entry, external links with prefetch off, manual reload).
-   onMount() from @kbve/astro/utils/clientRouter is wired across the
-   component scripts to re-init per swap. */
+	/* Native cross-document view transitions only — no ClientRouter SPA.
+   `@view-transition { navigation: auto }` in global.css opts pages in;
+   onMount() from @kbve/astro/utils/clientRouter handles per-arrival
+   re-init via `pagereveal` / DOMContentLoaded / bfcache. */
 }
-<ClientRouter />
-<meta name="view-transition" content="same-origin" />
+
+<link
+	rel="alternate"
+	type="application/rss+xml"
+	title="KBVE Journal"
+	href="https://kbve.com/rss.xml"
+/>
+
+<link rel="preconnect" href="https://images.unsplash.com" crossorigin />
 
 <!-- YouTube hero-bg DNS + TLS warm so the iframe doesn't gate LCP -->
 <link rel="preconnect" href="https://www.youtube.com" crossorigin />
 <link rel="preconnect" href="https://i.ytimg.com" crossorigin />
 <link rel="preconnect" href="https://yt3.ggpht.com" crossorigin />
 <link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
+
+<script>
+	import { initObserv } from '@kbve/observ';
+	initObserv({
+		endpoint: 'https://metrics.kbve.com/api/v1/ingest/errors',
+		project: 'astro-kbve',
+		platform: 'web',
+		environment: import.meta.env.MODE,
+	});
+</script>

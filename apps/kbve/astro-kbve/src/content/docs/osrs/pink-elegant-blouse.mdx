@@ -12,21 +12,65 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  material:
+    type: cosmetic
+    tier: mid
   equipment:
     slot: body
+    weight: 0.453
     requirements: {}
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 12341
-      item_name: Pink elegant skirt
+    - item_name: Pink elegant skirt
       slug: pink-elegant-skirt
       relationship: set-piece
-      description: Matching elegant skirt
+      description: Matching elegant skirt that completes the women's outfit.
+    - item_name: Red elegant blouse
+      slug: red-elegant-blouse
+      relationship: variant
+      description: Red colour variant of the elegant blouse.
+    - item_name: Purple elegant blouse
+      slug: purple-elegant-blouse
+      relationship: variant
+      description: Purple colour variant of the elegant blouse.
+  market_strategy:
+    notes:
+      - Cosmetic hard clue reward with no combat stats.
+      - Buy limit of 4 per 4 hours keeps flip volume low.
+      - Pairs with the matching skirt for the full pink elegant outfit.
+      - Price is driven by collectors and fashionscape demand.
+  trading_tips:
+    - List set bundles (blouse plus skirt) for a small premium.
+    - Watch for hard clue popularity spikes after gameplay updates.
   about: |-
-    > *"A well made elegant ladies' pink blouse."*
+    > _"A well made elegant ladies' pink blouse."_
 
-    Purely cosmetic treasure trail reward with no combat stats. Part of the pink elegant clothing set (women's variant). Pairs with the pink elegant skirt.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Purely cosmetic treasure trail reward with no combat stats. Part of the pink elegant clothing set (women's variant) and pairs with the pink elegant skirt.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2006-12-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2006-12-04"
+      description: Pink elegant blouse added as part of the elegant clothing treasure trail rewards.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

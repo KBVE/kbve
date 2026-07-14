@@ -1,5 +1,6 @@
 ---
 title: Brown Candle
+template: splash
 description: |
     Minecraft Brown Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 916
     ref: brown_candle
     slug: brown-candle
+    content_rev: 1
     display_name: Brown Candle
     material: stone
     hardness: 0.1
     blast_resistance: 0.1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_candle
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Brown Candle is a dyed variant of the base Candle block, up to
+            four of which can be stacked in a single block space. It
+            breaks instantly with any tool and drops one item per candle
+            present in the block.
+        lore: |
+            Candles were added in the Caves & Cliffs update as a
+            craftable, waterloggable light source available in all 16 dye
+            colors.
+    uses:
+        - title: Decorative Lighting
+          ref: brown_candle
+          detail: |
+              Light with flint and steel or a fire charge for light level
+              3 per candle, up to 12 with four stacked in one block.
+        - title: Candle Cake
+          ref: brown_candle_cake
+          detail: |
+              Place a single Brown Candle on top of a Cake block to form
+              Cake with Brown Candle.
+    found_in:
+        - location: Trail Ruins
+          detail: Found in suspicious gravel with roughly a 4.4% chance per block.
+        - location: Trial Chambers
+          detail: Generates naturally as decoration within Trial Chambers.
+        - location: Crafting
+          detail: Craft a base Candle from string and honeycomb, then combine with brown dye.
+    faq:
+        - question: What tool do I need to mine Brown Candle?
+          answer: |
+              None. It breaks with any tool or bare hands almost
+              instantly.
+        - question: How many Brown Candles can occupy one block space?
+          answer: |
+              Up to four, each adding to the light level, from 3 for one
+              candle up to 12 for four.
+        - question: Can Brown Candle be lit underwater?
+          answer: |
+              No. It is waterloggable but cannot be ignited or stay lit
+              while submerged.
+        - question: How do I craft Brown Candle?
+          answer: |
+              Craft a base Candle from string and honeycomb, then combine
+              it with brown dye in a crafting grid.
     data_version: "1.21.5"
 ---
 

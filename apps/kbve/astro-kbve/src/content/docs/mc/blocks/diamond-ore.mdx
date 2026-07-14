@@ -1,5 +1,6 @@
 ---
 title: Diamond Ore
+template: splash
 description: |
     Minecraft Diamond Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 190
     ref: diamond_ore
     slug: diamond-ore
+    content_rev: 1
     display_name: Diamond Ore
     material: stone
     hardness: 3
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,74 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: diamond
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: diamond_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - ore
+        - overworld
+    about:
+        description: |
+            Diamond Ore is a rare Overworld ore that generates deep
+            underground and drops a diamond when mined. A deepslate variant
+            appears in the lowest layers and is actually more common than the
+            stone version, rewarding players who dig near bedrock.
+        lore: |
+            Long the icon of Minecraft progression, diamonds gate the best
+            gear tier and unlock enchanting, netherite crafting, and the
+            toughest tools and armor.
+    uses:
+        - title: Diamond
+          ref: diamond
+          detail: |
+              Mining drops one diamond plus experience; diamonds craft tools,
+              armor, and key blocks.
+        - title: Fortune Yield
+          detail: |
+              A Fortune III pickaxe averages about 2.2 diamonds per ore block
+              mined.
+        - title: Silk Touch Collection
+          detail: |
+              With Silk Touch, the ore block itself drops for later smelting
+              or display.
+    found_in:
+        - location: Overworld
+          detail: Generates from Y = 16 down to Y = -63, more common deeper.
+        - location: Deepslate Layers
+          detail: |
+              Deepslate diamond ore peaks around Y = -58 to -59, the best
+              level to mine.
+    faq:
+        - question: What tool do I need to mine diamond ore?
+          answer: |
+              An iron pickaxe or better. A wooden or stone pickaxe breaks the
+              block but drops nothing.
+        - question: What is the best Y level to find diamonds?
+          answer: |
+              Around Y = -58 to -59, where deepslate diamond ore is most
+              concentrated.
+        - question: How do I get more diamonds per ore?
+          answer: |
+              Use a pickaxe enchanted with Fortune; Fortune III can drop
+              several diamonds from a single block.
+        - question: Can I collect the ore block itself?
+          answer: |
+              Yes. A Silk Touch pickaxe drops the ore block instead of a
+              diamond so you can smelt it later.
+        - question: Why do exposed diamonds seem rare?
+          answer: |
+              Ore blocks exposed to air have reduced generation odds, so
+              deep, enclosed mining is more efficient.
     data_version: "1.21.5"
 ---
 

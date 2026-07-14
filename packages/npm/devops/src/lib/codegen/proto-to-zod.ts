@@ -68,8 +68,7 @@ function collectMessages(
 			// Skip well-known types (they're inlined as Zod expressions)
 			if (isWellKnownType(msg.typeName)) continue;
 
-			// Apply include/exclude filters
-			if (config.include && config.include.length > 0) {
+			if (config.include) {
 				if (!config.include.includes(msg.typeName)) continue;
 			}
 			if (config.exclude?.includes(msg.typeName)) {

@@ -1,6 +1,6 @@
 ---
 title: Fishing bait | OSRS Price Data
-description: "Fishing bait: For use with a fishing rod.. High alch: 1 GP, GE limit: 8,000."
+description: "Fishing bait: For use with a fishing rod. High alch: 1 GP, GE limit: 8,000."
 osrs:
   id: 313
   name: Fishing bait
@@ -12,18 +12,120 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 8000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: bait
+    tier: low
+  properties:
+    tradeable: true
+    stackable: true
+    equipable: false
+    noteable: false
+    weight: 0
+    release_date: "2001-06-11"
+    quest_item: false
+    options:
+      - Drop
+    destroy: "Drop"
+  recipes:
+    - skill: fishing
+      level: 5
+      xp: 20
+      materials:
+        - item_name: Fishing bait
+          quantity: 1
+        - item_name: Fishing rod
+          quantity: 1
+      output_quantity: 1
+      notes: "Catch a sardine from bait fishing spots"
+    - skill: fishing
+      level: 10
+      xp: 30
+      materials:
+        - item_name: Fishing bait
+          quantity: 1
+        - item_name: Fishing rod
+          quantity: 1
+      output_quantity: 1
+      notes: "Catch a herring from bait fishing spots"
+    - skill: fishing
+      level: 25
+      xp: 60
+      materials:
+        - item_name: Fishing bait
+          quantity: 1
+        - item_name: Fishing rod
+          quantity: 1
+      output_quantity: 1
+      notes: "Catch a pike from lure/bait spots"
+  shops:
+    - shop_name: Gerrant's Fishy Business
+      location: Port Sarim
+      price: 3
+      stock: 1500
+      restock_time: "60s per item"
+      currency: Coins
+    - shop_name: Lovecraft's Tackle
+      location: Catherby
+      price: 3
+      stock: 50
+      restock_time: "60s per item"
+      currency: Coins
+    - shop_name: Harry's Fishing Shop
+      location: Catherby
+      price: 3
+      stock: 50
+      restock_time: "60s per item"
+      currency: Coins
+    - shop_name: Etceteria Fishing Shop
+      location: Etceteria
+      price: 3
+      stock: 50
+      restock_time: "60s per item"
+      currency: Coins
   related_items:
     - item_id: 307
       item_name: Fishing rod
       slug: fishing-rod
       relationship: component
-      description: Used with fishing rod
+      description: "Paired with fishing bait to catch sardine, herring, and pike"
+    - item_id: 327
+      item_name: Sardine
+      slug: sardine
+      relationship: product
+      description: "Caught at Fishing 5 using fishing bait"
+    - item_id: 345
+      item_name: Herring
+      slug: herring
+      relationship: product
+      description: "Caught at Fishing 10 using fishing bait"
+    - item_id: 349
+      item_name: Pike
+      slug: pike
+      relationship: product
+      description: "Caught at Fishing 25 using fishing bait"
   about: |-
     > _"For use with a fishing rod."_
 
-    Fishing bait is consumed one per catch when using a fishing rod. Used to catch sardines (5 Fishing), herring (10 Fishing), pike (25 Fishing), and other bait fish. Stackable.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Fishing bait is the consumable required to catch sardine, herring and pike from bait fishing spots when paired with a fishing rod. One bait is consumed per successful catch, making it one of the most heavily moved low-tier Fishing supplies in the game.
+
+    The most reliable source is Gerrant's Fishy Business in Port Sarim, which stocks 1,500 bait at 3 GP each and restocks roughly once per minute. Catherby and Etceteria fishing shops sell the same item at the same price with smaller base stock. Many low-level undead monsters also drop fishing bait, a Recipe for Disaster running joke that explains the bait as maggots.
+
+    Beyond entry-level Fishing training, bait sees small-volume demand from summer pie cooking and from ironman accounts feeding the bait pipeline before swapping to fly fishing. The 8,000 buy limit gives plenty of room to move bulk stacks without hitting the 4-hour cap.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Shop-anchored at 3 GP from Gerrant's; spreads stay tight around that price"
+      - "Daily volume is very high so flips clear fast even at single-coin margins"
+      - "Drops from undead monsters add a steady supply tail outside of shops"
+      - "Buy limit of 8,000 per 4 hours covers virtually all bulk plays"
+      - "Buy near 2 GP from undead farmers and resell at the shop ceiling"
+      - "Avoid stockpiling: thin margins mean fast turnover beats holding"
+      - "Watch for Fishing event boosts that lift demand for bait fishing"
+  history:
+    - date: "2001-06-11"
+      description: "Released as part of the original Fishing skill rollout"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,82 +12,98 @@ osrs:
   lowalch: 352
   highalch: 528
   limit: 11000
-  ammunition:
-    type: enchanted_bolt
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2018-01-04"
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: null
+    attack_speed: null
     weight: 0
     requirements:
       ranged: 64
-    stats:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 122
-  creation:
-    method: Enchant Diamond dragon bolts
-    spell: Enchant Crossbow Bolt
-    requirements:
-      magic: 57
-    runes:
-      - 1 Cosmic
-      - 2 Law
-      - 10 Earth
-  special_effect:
-    name: Armour Piercing
-    description: Guaranteed hit with +15% max hit
-    proc_rate_pvm: 10%
-    proc_rate_pvp: 5%
-    damage_range: 0-115% of max
-  market:
-    buy_limit: 11000
-    price_estimate: 3815
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: magic
+      level: 57
+      xp: 0
+      materials:
+        - item_name: Diamond dragon bolts
+          quantity: 10
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Earth rune
+          quantity: 10
+      tools: []
+      output_quantity: 10
+  passive_effects:
+    - name: Armour piercing
+      description: 10% chance (5% in PvP) to guarantee the hit and deal up to +15% max damage; with Zaryte crossbow the boost rises to +26%. Hard Kandarin Diary raises the trigger chance by 10%.
   related_items:
-    - item_id: 21944
-      item_name: Ruby dragon bolts (e)
-      slug: ruby-dragon-bolts-e
-      relationship: alternative
-      description: High HP switch
-    - item_id: 21948
-      item_name: Diamond dragon bolts
+    - item_name: Diamond dragon bolts
       slug: diamond-dragon-bolts
       relationship: downgrade
-      description: Unenchanted
-    - item_id: 21950
-      item_name: Dragonstone dragon bolts (e)
+      description: Unenchanted variant
+    - item_name: Ruby dragon bolts (e)
+      slug: ruby-dragon-bolts-e
+      relationship: alternative
+      description: High HP target switch
+    - item_name: Dragonstone dragon bolts (e)
       slug: dragonstone-dragon-bolts-e
       relationship: alternative
-      description: Alternative
-  about: |-
-    Enchant Diamond dragon bolts with Enchant Crossbow Bolt.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 57 |
-    | Cosmic rune | 1 |
-    | Law rune | 2 |
-    | Earth rune | 10 |
-
-    | Offense | Value |
-    |---------|-------|
-    | Ranged Strength | +122 |
-
-    Armour Piercing:
-    - +15% max hit
-    - Guaranteed to hit
-    - 10% proc (PvM), 5% proc (PvP)
-    - Damage: 0-115% of max
-
-    BiS for:
-    - Low HP finishers
-    - General crossbow use
-    - After ruby switches
-
-    Best bolts for consistent damage.
+      description: Magic-defence ignoring variant
+    - item_name: Dragon crossbow
+      slug: dragon-crossbow
+      relationship: alternative
+      description: Required crossbow tier
+  about: "Diamond dragon bolts (e) are enchanted dragon bolts with a 10% Armour Piercing proc (5% in PvP) that guarantees the hit and adds 15% to maximum damage (26% on Zaryte crossbow). With the hard Kandarin Diary the proc rate rises to 11%. Common best-in-slot consistency bolt for crossbow setups, especially after ruby HP threshold switches."
   market_strategy:
     notes:
-      - Switch from ruby at low HP
-      - Ignores defence on proc
-      - Great all-around bolt
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Strong steady demand from PvM crossbow users"
+      - "Enchanting margin frequently negative; manual flips preferred"
+      - "Watch ruby and dragonstone bolt spreads for tier swaps"
+  trading_tips:
+    - Switch from ruby bolts when target HP drops below threshold
+    - Stockpile before raids and high-level slayer content updates
+  history:
+    - date: "2018-01-04"
+      description: "Released with the Dragon Slayer II update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

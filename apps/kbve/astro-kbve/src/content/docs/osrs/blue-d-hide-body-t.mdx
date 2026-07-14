@@ -12,89 +12,95 @@ osrs:
   lowalch: 3744
   highalch: 5616
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragonhide
+    tier: mid-high
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 6.803
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
-    type: ranged_armour
+    weapon_type: null
+    attack_speed: null
+    weight: 6.803
     requirements:
       ranged: 50
       defence: 40
-      quest: Dragon Slayer I
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -15
-      attack_ranged: 20
-      defence_stab: 23
-      defence_slash: 30
-      defence_crush: 30
-      defence_magic: 28
-      defence_ranged: 40
-      melee_strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -15
+      ranged: 20
+    defence_bonus:
+      stab: 23
+      slash: 30
+      crush: 30
+      magic: 28
+      ranged: 40
+    other_bonus:
+      strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    weight: 6.803
-  obtaining:
-    methods:
+  drop_table:
+    sources:
       - source: Reward casket (hard)
-        drop_rate: 1/1,625
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 2499
-      item_name: Blue d'hide body
+    - item_name: Blue d'hide body
       slug: blue-dhide-body
       relationship: alternative
-      description: Same stats, non-trimmed
-    - item_id: 7374
-      item_name: Blue d'hide body (g)
+      description: Untrimmed variant, identical stats
+    - item_name: Blue d'hide body (g)
       slug: blue-dhide-body-g
       relationship: alternative
-      description: Gold-trimmed variant, same stats
-    - item_id: 7372
-      item_name: Green d'hide body (t)
+      description: Gold-trimmed cosmetic variant
+    - item_name: Green d'hide body (t)
       slug: green-dhide-body-t
-      relationship: alternative
-      description: Lower tier trimmed body
+      relationship: downgrade
+      description: Lower-tier trimmed dragonhide body
   about: |-
     "Made from 100% real dragonhide. With colourful trim!"
 
-    | Stat | Value |
-    |------|-------|
-    | Stab Attack | +0 |
-    | Slash Attack | +0 |
-    | Crush Attack | +0 |
-    | Magic Attack | -15 |
-    | Ranged Attack | +20 |
-    | Stab Defence | +23 |
-    | Slash Defence | +30 |
-    | Crush Defence | +30 |
-    | Magic Defence | +28 |
-    | Ranged Defence | +40 |
-    | Melee Strength | +0 |
-    | Ranged Strength | +0 |
-    | Magic Damage | +0% |
-    | Prayer | +0 |
-
-    Requirements: 50 Ranged, 40 Defence, Dragon Slayer I
-
-    | Item | Ranged Atk | Ranged Def | Magic Def | Source |
-    |------|-----------|-----------|----------|--------|
-    | Blue d'hide body (t) | +20 | +40 | +28 | Hard clues |
-    | Blue d'hide body | +20 | +40 | +28 | Crafting (71) |
-
-    Stats are identical to the standard blue d'hide body. The trimmed version is purely cosmetic and more expensive due to its rarity from Treasure Trails.
+    Blue d'hide body (t) is a cosmetic trimmed variant of the standard blue dragonhide body, exclusively rewarded from hard Treasure Trails reward caskets at 1/1,625. Stats are identical to the untrimmed version (+20 Ranged Attack, +40 Ranged Defence, +28 Magic Defence) and requirements remain 50 Ranged plus 40 Defence. Value is purely cosmetic rarity.
   market_strategy:
     notes:
-      - Fashionscape / cosmetic flex
-      - Hard clue reward rarity
-      - Collection log completionists
-      - Trimmed d'hide set completion
-      - Identical stats to blue d'hide body
-      - Value is purely cosmetic rarity
-      - Price fluctuates with clue scroll activity
-      - Low trade volume, watch for manipulation
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Fashionscape cosmetic flex"
+      - "Hard clue reward rarity drives price"
+      - "Collection log completionist demand"
+      - "Trimmed d'hide set completion target"
+      - "Identical stats to standard body"
+      - "Price tracks clue activity events"
+      - "Low trade volume risks manipulation"
+  trading_tips:
+    - Watch hard clue events for supply spikes
+    - Pair with chaps (t) for set premium
+    - Thin order book, ladder bids
+  history:
+    - date: "2006-02-20"
+      description: Released with Treasure Trails reward expansion.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

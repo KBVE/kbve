@@ -5,6 +5,14 @@ metadata:
     namespace: argocd
     finalizers:
         - resources-finalizer.argocd.argoproj.io
+    annotations:
+        kbve.com/source-path: kube/n8n
+        kbve.com/manifest-path: apps/kube/n8n/manifest
+        kbve.com/application-file: kube/n8n/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
 spec:
     project: default
     source:

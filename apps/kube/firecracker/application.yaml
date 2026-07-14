@@ -5,16 +5,29 @@ metadata:
     namespace: argocd
     finalizers:
         - resources-finalizer.argocd.argoproj.io
+    annotations:
+        kbve.com/source-path: kube/firecracker
+        kbve.com/manifest-path: apps/kube/firecracker/manifests
+        kbve.com/application-file: kube/firecracker/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: virtualization
+        kbve.com/stack: core
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
     project: default
     source:
         repoURL: https://github.com/kbve/kbve
         targetRevision: HEAD
         path: apps/kube/firecracker/manifests
-        kustomize: {}
     destination:
         server: https://kubernetes.default.svc
         namespace: firecracker
+    ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+              - /spec/replicas
     syncPolicy:
         automated:
             prune: true

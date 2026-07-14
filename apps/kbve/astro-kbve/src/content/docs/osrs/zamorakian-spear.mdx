@@ -12,37 +12,90 @@ osrs:
   lowalch: 40002
   highalch: 60003
   limit: 8
+  material:
+    type: zamorakian
+    tier: high
   equipment:
     slot: weapon
-    type: spear
-    tradeable: true
+    weapon_type: spear
+    attack_speed: 4
     weight: 3
     requirements:
       attack: 70
-    stats:
-      attack_stab: 85
-      attack_slash: 65
-      attack_crush: 65
+    attack_bonus:
+      stab: 85
+      slash: 65
+      crush: 65
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 13
+      slash: 13
+      crush: 12
+      magic: 0
+      ranged: 13
+    other_bonus:
       strength: 75
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 2
   special_attack:
     name: Shove
     energy_cost: 25
-    description: Stuns target for 3 seconds
+    description: "Pushes an opponent back and stuns them for three seconds. Cannot be used against creatures occupying multiple tiles."
+  drop_table:
+    sources:
+      - source: K'ril Tsutsaroth
+        quantity: "1"
+        rarity: "1/127"
+      - source: Tstanon Karlak
+        quantity: "1"
+        rarity: "3/16129"
+      - source: Balfrug Kreeyath
+        quantity: "1"
+        rarity: "3/16129"
+      - source: Zakl'n Gritch
+        quantity: "1"
+        rarity: "3/16129"
   related_items:
-    - item_id: 11889
-      item_name: Zamorakian hasta
-      slug: zamorakian-hasta
-      relationship: alternative
-      description: One-hand version after conversion
-    - item_id: 22978
-      item_name: Dragon hunter lance
-      slug: dragon-hunter-lance
+    - name: "Zamorakian hasta"
+      relationship: variant
+    - name: "Dragon hunter lance"
       relationship: upgrade
-      description: Upgraded dragon-slaying weapon
-  about: "Shove: Stuns target for 3 seconds. Costs 25% spec."
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Zamorakian spear is a powerful two-handed stab spear in Old School RuneScape requiring 70 Attack, dropped by K'ril Tsutsaroth in the God Wars Dungeon. It can be converted to a Zamorakian hasta (one-handed) for 300,000 coins (150,000 with Elite Kandarin Diary)."
+  market_strategy:
+    notes:
+      - "High-tier stab weapon used at Corporeal Beast and other stab-weak bosses."
+      - "Conversion to Zamorakian hasta adds 300,000 coin sink unless Elite Kandarin Diary is done."
+      - "GE buy limit of 8 every 4 hours throttles large-scale flipping."
+  trading_tips:
+    - "Buy after K'ril mass-kill events; sell into Corp-team demand."
+    - "Convert to hasta when targeting Vorkath/Zulrah loadouts."
+  history:
+    - date: "2013-10-17"
+      description: "Released alongside the God Wars Dungeon update as a unique drop from K'ril Tsutsaroth."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2013-10-17"
+    update: "The God Wars Dungeon"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Lunge
+      - Swipe
+      - Pound
+      - Block
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

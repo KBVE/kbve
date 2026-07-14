@@ -1,6 +1,6 @@
 ---
 title: Zaryte crossbow | OSRS Price Data
-description: "Zaryte crossbow is a members weapon slot item requiring 80 Ranged. High alch: 594,000 GP, GE limit: 8."
+description: "Zaryte crossbow is a members two-handed crossbow requiring 80 Ranged dropped by Nex. High alch: 594,000 GP, GE limit: 8."
 osrs:
   id: 26374
   name: Zaryte crossbow
@@ -12,77 +12,156 @@ osrs:
   lowalch: 396000
   highalch: 594000
   limit: 8
+  material:
+    type: metal
+    tier: high
   equipment:
     slot: weapon
-    type: crossbow
-    attack_style: ranged
+    weapon_type: crossbow
+    weight: 3.628
     attack_speed: 5
+    attack_range: 7
+    tradeable: true
     requirements:
       ranged: 80
-    stats:
-      attack_ranged: 110
-  effect:
-    bolt_effect_bonus: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 110
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
   special_attack:
     name: Evoke
     energy: 75
-    effect: Double accuracy, guaranteed bolt effect on hit
-  drop_sources:
-    - name: Nex
-      combat_level: 1001
-      drop_rate: 1/258
-      members_only: true
+    description: "Doubles accuracy on the next shot and guarantees the bolt special effect proc on hit."
+    accuracy_modifier: 2.0
+  drop_table:
+    sources:
+      - source: Nex
+        combat_level: 1001
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/258"
+        members_only: true
   related_items:
-    - item_id: 25865
+    - item_id: 25884
       item_name: Bow of faerdhinen (c)
       slug: bow-of-faerdhinen-c
       relationship: alternative
-      description: Higher base DPS
+      description: "Crystal bow alternative with higher raw DPS but no bolt proc bonus"
     - item_id: 20997
       item_name: Twisted bow
       slug: twisted-bow
       relationship: alternative
-      description: High magic targets
+      description: "BiS against high-magic-level NPCs and large raid bosses"
     - item_id: 11785
       item_name: Armadyl crossbow
       slug: armadyl-crossbow
       relationship: downgrade
-      description: Lower tier crossbow
+      description: "Previous BiS crossbow now displaced by Zaryte"
+    - item_id: 26352
+      item_name: Ancestral hat
+      slug: ancestral-hat
+      relationship: set-piece
+      description: "Often paired in ranged hybrid setups despite being magic-focused"
+    - item_id: 24201
+      item_name: Ruby dragon bolts (e)
+      slug: ruby-dragon-bolts-e
+      relationship: component
+      description: "Primary bolt choice that benefits from the +10% bolt effect bonus"
+    - item_id: 24203
+      item_name: Diamond dragon bolts (e)
+      slug: diamond-dragon-bolts-e
+      relationship: component
+      description: "High-defence target bolt choice scaled by the crossbow's bonus"
+  passive_effects:
+    - name: Enhanced bolt effects
+      description: "Boosts the proc chance of enchanted bolt special effects by 10% (additive) compared to other crossbows."
+      trigger: on_hit
+      affected_skill: ranged
+      boost_value: 10
+    - name: Prayer bonus
+      description: "Grants +1 Prayer bonus while equipped."
+      trigger: while_worn
+      affected_skill: prayer
+      boost_value: 1
   about: |-
     | Stat | Value |
     |------|-------|
     | Attack style | Ranged |
     | Ranged attack | +110 |
     | Attack speed | 5 tick (3.0s) rapid |
+    | Effective range | 7 tiles (10 with longrange) |
     | Requirements | 80 Ranged |
 
     Bolt Enhancement:
-    - +10% strength to enchanted bolt effects
-    - Works with all enchanted bolts
-    - Stacks with other bonuses
+    - +10% additive proc chance to enchanted bolt effects
+    - Works with every enchanted bolt type, scaling ruby, diamond, opal, and onyx specs
+    - Stacks with bolt-effect-improving prayers and gear
 
     Evoke (75% energy):
-    - Double accuracy
-    - Guaranteed bolt proc on hit
-    - Great for ruby bolt specs
+    - Doubles accuracy on the special shot
+    - Guarantees the bolt's enchanted proc effect on hit
+    - Strongest against rare high-defence targets where ruby bolts otherwise miss
 
     PvM:
-    - Best crossbow in game
-    - Ruby bolt specs at high HP bosses
-    - Diamond bolts for high defence
+    - Best-in-slot crossbow for general PvM where bolt procs scale with target HP
+    - Ruby bolt specs at high-HP bosses such as Corporeal Beast
+    - Diamond bolts on high-defence Solak / Phantom Muspah style targets
+    - Outperforms Twisted bow vs low-magic-level targets like Kree'arra and Nex herself
 
     Best For:
     - Nex
     - Corporeal Beast
     - High HP bosses
-    - Any crossbow content
+    - Any crossbow PvM content
   market_strategy:
     notes:
-      - Nex kills affect supply
-      - BiS for crossbow content
-      - Pairs with ruby/diamond bolts
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Sole source is Nex - mass drops directly track team activity at the boss."
+      - "BiS crossbow keeps demand sticky; Twisted bow announcements and meta shifts rarely dent price."
+      - "Pairs with ruby or diamond bolts; bolt prices indirectly affect demand."
+      - "GE limit of 8 per 4 hours means flips clear quickly but volume is constrained."
+  trading_tips:
+    - "Track Nex mass server activity (Discord teaming) for short-term supply waves."
+    - "Buy during week-of-update lulls when streamers focus on the new content."
+    - "Resell into the next bossing meta announcement - DT2 / Sote-tier releases consistently move price."
+  history:
+    - date: "2021-03-24"
+      description: "Zaryte crossbow released alongside the Nex boss fight in the God Wars Dungeon update."
+    - date: "2021-04-21"
+      description: "Bolt effect bonus mechanics clarified following community feedback."
+    - date: "2023-09-13"
+      description: "Buffed to apply the bolt effect bonus to a wider list of enchanted bolts."
+  properties:
+    release_date: "2021-03-24"
+    update: Nex
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

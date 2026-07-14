@@ -1,6 +1,6 @@
 ---
 title: Calquat keg | OSRS Price Data
-description: "Calquat keg: Sliced and hollowed out to form a keg.. High alch: 1 GP, GE limit: 10,000."
+description: "Calquat keg: Sliced and hollowed out to form a keg. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 5769
   name: Calquat keg
@@ -12,9 +12,52 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Calquat keg is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Calquat fruit
+          quantity: 1
+      tools:
+        - Knife
+      output_item: Calquat keg
+      output_quantity: 1
+      notes: Use a knife on a calquat fruit to slice and hollow it into a keg.
+  related_items:
+    - item_name: Calquat fruit
+      slug: calquat-fruit
+      relationship: component
+      description: Sliced with a knife to produce the keg.
+    - item_name: Asgarnian ale (4)
+      slug: asgarnian-ale-4
+      relationship: product
+      description: Brewed using calquat kegs as the storage vessel.
+  about: "Calquat keg is the four-pint storage vessel used in the Brewing aspect of the Cooking skill; two kegs are needed to drain a fermenting barrel of finished ale, cider, or mead."
+  market_strategy:
+    notes:
+      - Supply comes from calquat farmers and shop runs to Brimhaven.
+      - Demand rises whenever Brewing ales for Keldagrim trade or Forestry stews.
+      - Cannot be filled with ale stored in beer glasses.
+  trading_tips:
+    - Stack with calquat fruit and ale ingredients before brewing batches.
+    - Watch for price spikes during Mahogany Homes or events that drive ale demand.
+  history:
+    - date: "2005-07-11"
+      description: Released with the original Farming skill update.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

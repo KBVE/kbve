@@ -1,0 +1,447 @@
+name: CI - Blender Flow
+
+# Reusable headless-Blender builder. Pulls the target object from an external
+# LFS host (Forgejo or Azure DevOps), runs the requested task on a self-hosted
+# mac-blender runner, and uploads the artifacts. Invoked by ci-blender-router.yml.
+
+on:
+    workflow_call:
+        inputs:
+            task:
+                description: 'render | export | batch-export | script | validate'
+                required: true
+                type: string
+            app_name:
+                description: 'Project name or identifier (artifact naming)'
+                required: false
+                type: string
+                default: 'blender-project'
+            lfs_backend:
+                description: 'forgejo | azure — where the object lives'
+                required: true
+                type: string
+            object_glob:
+                description: '[forgejo] LFS include path to smudge (e.g. apps/foo/assets)'
+                required: false
+                type: string
+                default: ''
+            external_repo_url:
+                description: '[azure] Azure DevOps repo URL (host/org/_git/repo)'
+                required: false
+                type: string
+                default: ''
+            external_ref:
+                description: '[azure] branch/ref to clone'
+                required: false
+                type: string
+                default: 'main'
+            external_path:
+                description: '[azure] checkout dir for the cloned repo'
+                required: false
+                type: string
+                default: 'external-blender'
+            blend_file:
+                description: 'Path to .blend file (relative to repo root)'
+                required: false
+                type: string
+                default: ''
+            output_path:
+                description: 'Output directory for renders/exports'
+                required: false
+                type: string
+                default: '/tmp/blender-output'
+            script_path:
+                description: '[script] Path to Python script to execute'
+                required: false
+                type: string
+                default: ''
+            render_engine:
+                description: '[render] CYCLES | BLENDER_EEVEE | BLENDER_WORKBENCH'
+                required: false
+                type: string
+                default: 'CYCLES'
+            render_device:
+                description: '[render] CPU | GPU'
+                required: false
+                type: string
+                default: 'GPU'
+            render_format:
+                description: '[render] PNG | JPEG | OPEN_EXR | TIFF'
+                required: false
+                type: string
+                default: 'PNG'
+            frame_range:
+                description: '[render] Frame range (e.g. "1", "1-100", "1,5,10")'
+                required: false
+                type: string
+                default: '1'
+            samples:
+                description: '[render] Render samples (overrides blend file)'
+                required: false
+                type: string
+                default: ''
+            resolution_scale:
+                description: '[render] Resolution % (50, 100, etc.)'
+                required: false
+                type: string
+                default: '100'
+            export_format:
+                description: '[export] FBX | GLTF | OBJ | USD | ALEMBIC | STL'
+                required: false
+                type: string
+                default: 'FBX'
+            export_selection_only:
+                description: '[export] Export selected objects only'
+                required: false
+                type: boolean
+                default: false
+            export_apply_modifiers:
+                description: '[export] Apply modifiers on export'
+                required: false
+                type: boolean
+                default: true
+
+permissions:
+    contents: read
+
+jobs:
+    # --- Fork guard: self-hosted runners only for trusted origin/actors ---
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v9
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo} cannot use self-hosted runners`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    blender:
+        name: Blender ${{ inputs.task }} (${{ inputs.lfs_backend }})
+        needs: guard
+        if: needs.guard.outputs.allowed == 'true'
+        runs-on: [self-hosted, macOS, ARM64, mac-blender]
+        timeout-minutes: 120
+        permissions:
+            contents: read
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Blender flow: actor=${{ github.actor }}, task=${{ inputs.task }}, app=${{ inputs.app_name }}, lfs=${{ inputs.lfs_backend }}, runner=$RUNNER_NAME"
+
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 1
+
+            # --- Forgejo LFS: pull the object via git.kbve.com netrc creds ---
+            - name: Pull object (Forgejo LFS)
+              if: inputs.lfs_backend == 'forgejo' && inputs.object_glob != ''
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com (object would ship as a pointer stub)"
+                    exit 1
+                  fi
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+                  echo "Forgejo LFS credentials configured for git.kbve.com"
+                  git lfs install --local
+                  git lfs pull -I "${{ inputs.object_glob }}/**"
+                  echo "::notice::Pulled Forgejo LFS objects under ${{ inputs.object_glob }}"
+
+            # --- Azure DevOps: clone the external repo (hosts its own LFS) ---
+            - name: Clone object repo (Azure DevOps)
+              if: inputs.lfs_backend == 'azure' && inputs.external_repo_url != ''
+              env:
+                  AZURE_PAT: ${{ secrets.AZURE_PAT }}
+              run: |
+                  if [ -z "$AZURE_PAT" ]; then
+                    echo "::error::AZURE_PAT secret missing — required for Azure DevOps checkout"
+                    exit 1
+                  fi
+                  rm -rf "${{ inputs.external_path }}"
+                  git clone --depth 1 --branch "${{ inputs.external_ref }}" \
+                    "https://kbve:${AZURE_PAT}@${{ inputs.external_repo_url }}" \
+                    "${{ inputs.external_path }}"
+                  ( cd "${{ inputs.external_path }}" && git lfs install --local && git lfs pull )
+                  echo "::notice::Cloned Azure DevOps repo into ${{ inputs.external_path }}"
+
+            - name: Install Blender (if needed)
+              id: setup
+              run: |
+                  if command -v blender &> /dev/null; then
+                    BLENDER_BIN="blender"
+                  elif [ -d "/Applications/Blender.app" ]; then
+                    BLENDER_BIN="/Applications/Blender.app/Contents/MacOS/Blender"
+                  else
+                    echo "::notice::Blender not found, installing via Homebrew..."
+                    brew install --cask blender
+                    BLENDER_BIN="/Applications/Blender.app/Contents/MacOS/Blender"
+                  fi
+                  echo "binary=$BLENDER_BIN" >> "$GITHUB_OUTPUT"
+                  "$BLENDER_BIN" --version
+
+            - name: Create output directory
+              run: mkdir -p "${{ inputs.output_path }}"
+
+            # --- validate ---
+            - name: Validate blend file
+              if: inputs.task == 'validate' && inputs.blend_file != ''
+              run: |
+                  if [ ! -f "${{ inputs.blend_file }}" ]; then
+                    echo "::error::Blend file not found: ${{ inputs.blend_file }}"
+                    exit 1
+                  fi
+                  ${{ steps.setup.outputs.binary }} -b "${{ inputs.blend_file }}" \
+                    --python-expr "import bpy; print(f'Scene: {bpy.context.scene.name}'); print(f'Objects: {len(bpy.data.objects)}')"
+
+            # --- render ---
+            - name: Generate render script
+              if: inputs.task == 'render'
+              run: |
+                  cat > /tmp/blender_render.py <<'RENDER_SCRIPT'
+                  import bpy
+                  import sys
+                  import os
+
+                  argv = sys.argv
+                  argv = argv[argv.index("--") + 1:] if "--" in argv else []
+
+                  output_path = argv[0] if len(argv) > 0 else "/tmp/blender-output"
+                  render_engine = argv[1] if len(argv) > 1 else "CYCLES"
+                  render_device = argv[2] if len(argv) > 2 else "GPU"
+                  render_format = argv[3] if len(argv) > 3 else "PNG"
+                  samples = argv[4] if len(argv) > 4 else ""
+                  resolution_scale = int(argv[5]) if len(argv) > 5 else 100
+
+                  scene = bpy.context.scene
+                  scene.render.engine = render_engine
+                  scene.render.image_settings.file_format = render_format
+                  scene.render.resolution_percentage = resolution_scale
+                  scene.render.filepath = os.path.join(output_path, "render_")
+
+                  if render_engine == 'CYCLES':
+                      scene.cycles.device = render_device
+                      if samples:
+                          scene.cycles.samples = int(samples)
+                      if render_device == 'GPU':
+                          prefs = bpy.context.preferences.addons['cycles'].preferences
+                          if hasattr(prefs, 'compute_device_type'):
+                              try:
+                                  prefs.compute_device_type = 'METAL'
+                                  prefs.get_devices()
+                                  for device in prefs.devices:
+                                      if device.type == 'METAL':
+                                          device.use = True
+                                          print(f"Enabled GPU: {device.name}")
+                              except:
+                                  print("Metal GPU not available, falling back to CPU")
+                                  scene.cycles.device = 'CPU'
+
+                  print(f"Render Engine: {render_engine}")
+                  print(f"Render Device: {scene.cycles.device if render_engine == 'CYCLES' else 'N/A'}")
+                  print(f"Output Format: {render_format}")
+                  print(f"Resolution: {resolution_scale}%")
+                  print(f"Output Path: {scene.render.filepath}")
+
+                  bpy.ops.render.render(write_still=True)
+                  print("Render complete")
+                  RENDER_SCRIPT
+
+            - name: Execute render
+              if: inputs.task == 'render'
+              run: |
+                  if [ ! -f "${{ inputs.blend_file }}" ]; then
+                    echo "::error::Blend file required for render task"
+                    exit 1
+                  fi
+                  ${{ steps.setup.outputs.binary }} -b "${{ inputs.blend_file }}" \
+                    --python /tmp/blender_render.py \
+                    -- "${{ inputs.output_path }}" \
+                       "${{ inputs.render_engine }}" \
+                       "${{ inputs.render_device }}" \
+                       "${{ inputs.render_format }}" \
+                       "${{ inputs.samples }}" \
+                       "${{ inputs.resolution_scale }}"
+
+            - name: Render animation frames
+              if: inputs.task == 'render' && (contains(inputs.frame_range, '-') || contains(inputs.frame_range, ','))
+              run: |
+                  RANGE="${{ inputs.frame_range }}"
+                  if [[ "$RANGE" == *"-"* ]]; then
+                    START=$(echo "$RANGE" | cut -d'-' -f1)
+                    END=$(echo "$RANGE" | cut -d'-' -f2)
+                    ${{ steps.setup.outputs.binary }} -b "${{ inputs.blend_file }}" \
+                      -o "${{ inputs.output_path }}/frame_####" \
+                      -F "${{ inputs.render_format }}" \
+                      -s "$START" -e "$END" -a
+                  else
+                    IFS=',' read -ra FRAMES <<< "$RANGE"
+                    for frame in "${FRAMES[@]}"; do
+                      ${{ steps.setup.outputs.binary }} -b "${{ inputs.blend_file }}" \
+                        -o "${{ inputs.output_path }}/frame_$(printf "%04d" "$frame")" \
+                        -F "${{ inputs.render_format }}" \
+                        -f "$frame"
+                    done
+                  fi
+
+            # --- export ---
+            - name: Generate export script
+              if: inputs.task == 'export'
+              run: |
+                  cat > /tmp/blender_export.py <<'EXPORT_SCRIPT'
+                  import bpy
+                  import sys
+                  import os
+
+                  argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+
+                  output_path = argv[0] if len(argv) > 0 else "/tmp/blender-output"
+                  export_format = argv[1] if len(argv) > 1 else "FBX"
+                  selection_only = argv[2].lower() == 'true' if len(argv) > 2 else False
+                  apply_modifiers = argv[3].lower() == 'true' if len(argv) > 3 else True
+
+                  format_map = {
+                      'FBX': ('export_scene.fbx', '.fbx'),
+                      'GLTF': ('export_scene.gltf', '.gltf'),
+                      'OBJ': ('wm.obj_export', '.obj'),
+                      'USD': ('wm.usd_export', '.usd'),
+                      'ALEMBIC': ('wm.alembic_export', '.abc'),
+                      'STL': ('wm.stl_export', '.stl'),
+                  }
+
+                  if export_format not in format_map:
+                      print(f"Unknown format: {export_format}")
+                      sys.exit(1)
+
+                  op_name, ext = format_map[export_format]
+                  output_file = os.path.join(output_path, f"export{ext}")
+
+                  print(f"Exporting as {export_format} to {output_file}")
+                  print(f"Selection only: {selection_only}")
+                  print(f"Apply modifiers: {apply_modifiers}")
+
+                  if export_format == 'FBX':
+                      bpy.ops.export_scene.fbx(filepath=output_file, use_selection=selection_only,
+                          apply_scale_options='FBX_SCALE_ALL', use_mesh_modifiers=apply_modifiers, bake_anim=True)
+                  elif export_format == 'GLTF':
+                      bpy.ops.export_scene.gltf(filepath=output_file, use_selection=selection_only, export_apply=apply_modifiers)
+                  elif export_format == 'OBJ':
+                      bpy.ops.wm.obj_export(filepath=output_file, export_selected_objects=selection_only, apply_modifiers=apply_modifiers)
+                  elif export_format == 'USD':
+                      bpy.ops.wm.usd_export(filepath=output_file, selected_objects_only=selection_only, export_meshes=True, export_materials=True)
+                  elif export_format == 'ALEMBIC':
+                      bpy.ops.wm.alembic_export(filepath=output_file, selected=selection_only, apply_subdiv=apply_modifiers)
+                  elif export_format == 'STL':
+                      bpy.ops.wm.stl_export(filepath=output_file, export_selected_objects=selection_only, apply_modifiers=apply_modifiers)
+
+                  print(f"Export complete: {output_file}")
+                  EXPORT_SCRIPT
+
+            - name: Execute export
+              if: inputs.task == 'export'
+              run: |
+                  ${{ steps.setup.outputs.binary }} -b "${{ inputs.blend_file }}" \
+                    --python /tmp/blender_export.py \
+                    -- "${{ inputs.output_path }}" \
+                       "${{ inputs.export_format }}" \
+                       "${{ inputs.export_selection_only }}" \
+                       "${{ inputs.export_apply_modifiers }}"
+
+            # --- batch-export ---
+            - name: Generate batch export script
+              if: inputs.task == 'batch-export'
+              run: |
+                  cat > /tmp/blender_batch_export.py <<'BATCH_SCRIPT'
+                  import bpy
+                  import sys
+                  import os
+
+                  argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+
+                  output_path = argv[0] if len(argv) > 0 else "/tmp/blender-output"
+                  export_format = argv[1] if len(argv) > 1 else "FBX"
+
+                  format_ext = {'FBX': '.fbx', 'GLTF': '.gltf', 'OBJ': '.obj', 'USD': '.usd', 'ALEMBIC': '.abc', 'STL': '.stl'}
+                  ext = format_ext.get(export_format, '.fbx')
+                  objects_to_export = [obj for obj in bpy.data.objects if obj.type == 'MESH']
+
+                  print(f"Batch exporting {len(objects_to_export)} objects as {export_format}")
+
+                  for obj in objects_to_export:
+                      bpy.ops.object.select_all(action='DESELECT')
+                      obj.select_set(True)
+                      bpy.context.view_layer.objects.active = obj
+                      filepath = os.path.join(output_path, f"{obj.name}{ext}")
+                      if export_format == 'FBX':
+                          bpy.ops.export_scene.fbx(filepath=filepath, use_selection=True, apply_scale_options='FBX_SCALE_ALL', bake_anim=True)
+                      elif export_format == 'GLTF':
+                          bpy.ops.export_scene.gltf(filepath=filepath, use_selection=True)
+                      elif export_format == 'OBJ':
+                          bpy.ops.wm.obj_export(filepath=filepath, export_selected_objects=True)
+                      print(f"Exported: {filepath}")
+
+                  print(f"Batch export complete: {len(objects_to_export)} files")
+                  BATCH_SCRIPT
+
+            - name: Execute batch export
+              if: inputs.task == 'batch-export'
+              run: |
+                  ${{ steps.setup.outputs.binary }} -b "${{ inputs.blend_file }}" \
+                    --python /tmp/blender_batch_export.py \
+                    -- "${{ inputs.output_path }}" "${{ inputs.export_format }}"
+
+            # --- script ---
+            - name: Execute custom script
+              if: inputs.task == 'script'
+              run: |
+                  if [ ! -f "${{ inputs.script_path }}" ]; then
+                    echo "::error::Script not found: ${{ inputs.script_path }}"
+                    exit 1
+                  fi
+                  if [ -n "${{ inputs.blend_file }}" ] && [ -f "${{ inputs.blend_file }}" ]; then
+                    ${{ steps.setup.outputs.binary }} -b "${{ inputs.blend_file }}" --python "${{ inputs.script_path }}"
+                  else
+                    ${{ steps.setup.outputs.binary }} -b --python "${{ inputs.script_path }}"
+                  fi
+
+            - name: Upload artifacts
+              if: always() && inputs.task != 'validate'
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-${{ inputs.task }}
+                  path: ${{ inputs.output_path }}
+                  if-no-files-found: ${{ inputs.task == 'script' && 'ignore' || 'error' }}

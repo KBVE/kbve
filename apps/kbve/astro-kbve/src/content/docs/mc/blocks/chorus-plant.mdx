@@ -1,5 +1,6 @@
 ---
 title: Chorus Plant
+template: splash
 description: |
     Minecraft Chorus Plant — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 624
     ref: chorus_plant
     slug: chorus-plant
+    content_rev: 1
     display_name: Chorus Plant
     material: plant
     hardness: 0.4
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chorus_fruit
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - end
+    about:
+        description: |
+            Chorus Plant is the stalk-like block that forms the trunk and
+            branches of chorus trees found on the outer End islands. It
+            breaks instantly, dropping zero or one chorus fruit, and cannot
+            be collected as a block even with Silk Touch.
+        lore: |
+            Chorus trees were added in the 1.9 Combat Update alongside the
+            expanded End dimension, giving players a renewable food and
+            teleport-item source outside the Overworld.
+    uses:
+        - title: Chorus Fruit
+          ref: chorus_fruit
+          detail: |
+              Broken chorus plant blocks drop chorus fruit, which can be
+              eaten to randomly teleport the player, or cooked into popped
+              chorus fruit for crafting End rods and purpur blocks.
+    found_in:
+        - location: Outer End islands
+          detail: Grows naturally as chorus trees, typically 10-15 blocks tall, on end stone away from the main island.
+    faq:
+        - question: Can I get Chorus Plant as an item with Silk Touch?
+          answer: |
+              No. Chorus Plant blocks cannot be obtained as an item in
+              Survival mode under any circumstances, including Silk Touch.
+        - question: What tool should I use on Chorus Plant?
+          answer: |
+              An axe breaks it fastest, but any tool or bare hands work
+              since no minimum tier is required.
+        - question: Why did the whole tree collapse when I broke one block?
+          answer: |
+              Chorus Plant blocks need proper support from below; breaking a
+              lower section causes everything above it to break as well.
+        - question: Does Fortune increase chorus fruit drops?
+          answer: |
+              No. Fortune has no effect — you always get either zero or one
+              chorus fruit per block broken.
     data_version: "1.21.5"
 ---
 

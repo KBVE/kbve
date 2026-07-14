@@ -12,9 +12,45 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 40
-  about: "Secateurs is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Vanessa's Farming Shop
+      location: Catherby
+      price: 5
+    - shop_name: Richard's Farming Shop
+      location: East Ardougne
+      price: 5
+    - shop_name: Hosidius Farming Shop
+      location: Hosidius
+      price: 5
+    - shop_name: Farming Guild Shop
+      location: Farming Guild
+      price: 5
+    - shop_name: Prifddinas Farming Shop
+      location: Prifddinas
+      price: 5
+  about: "Secateurs are a Farming tool used to prune diseased leaves from bushes and fruit trees; sold by Farming shops across Gielinor and used as a precursor to the upgraded magic secateurs."
+  history:
+    - date: "2005-06-06"
+      description: Released with the Seeds, Bankspace And Advisors update.
+    - date: "2005-07-11"
+      description: "The Wield option was removed and examine changed from 'Farming skill coming in July!' to 'Good for pruning away diseased leaves.'"
+    - date: "2021-07-07"
+      description: Positioning on female players was adjusted for proper appearance during farming activities.
+  properties:
+    release_date: "2005-06-06"
+    update: Seeds, Bankspace And Advisors
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -124,8 +124,7 @@ namespace RareIcon
             if (ok)
             {
                 Debug.Log($"[SaveSlotService] saved slot '{slot}' → {dst}");
-                // Mirror to Steam Cloud when the runtime supports it.
-                // Stubs out on mobile / web / DISABLESTEAMWORKS builds.
+
                 SteamCloudSync.Upload(dst, slot + SaveExt);
             }
             else

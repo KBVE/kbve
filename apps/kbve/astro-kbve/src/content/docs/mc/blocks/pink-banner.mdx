@@ -1,5 +1,6 @@
 ---
 title: Pink Banner
+template: splash
 description: |
     Minecraft Pink Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 537
     ref: pink_banner
     slug: pink-banner
+    content_rev: 1
     display_name: Pink Banner
     material: wood
     hardness: 1
@@ -24,10 +26,68 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - non_solid
+    about:
+        description: |
+            Pink Banner is a tall, customizable standing or wall-mounted
+            block crafted from pink wool and a stick. It can carry up to
+            six pattern layers applied at a loom and copy those designs
+            onto shields.
+        lore: |
+            Banners were added in Java Edition 1.8 as a heraldry system,
+            letting players design and share unique flags across their
+            worlds.
+    uses:
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Combine with dye and an optional banner pattern item at a
+              loom to add a decorative layer; up to 6 layers can stack in
+              survival.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Place a banner and a shield together in a crafting grid to
+              copy the banner's design onto the shield.
+    found_in:
+        - location: Crafting
+          detail: |
+              Crafted from 6 pink wool and 1 stick in a sign-like pattern;
+              also obtained by dyeing any banner pink.
+        - location: Structure loot
+          detail: |
+              Undyed and pre-patterned banners of other colors generate in
+              end cities, woodland mansions, savanna villages, and
+              pillager outposts.
+    faq:
+        - question: What does a Pink Banner drop when mined?
+          answer: |
+              Itself as an item, including any patterns applied to it. An
+              axe breaks it fastest but any tool works.
+        - question: How do I craft a Pink Banner?
+          answer: |
+              Combine 6 pink wool with 1 stick in a crafting table in the
+              standard banner pattern, or dye an existing banner pink.
+        - question: Can I change its base color later?
+          answer: |
+              No. Once a banner is crafted, its base color is fixed;
+              recoloring requires crafting a new banner.
+        - question: Does it burn?
+          answer: |
+              Yes, banners are flammable and can be destroyed by fire since
+              they are made of wool and wood.
     data_version: "1.21.5"
 ---
 

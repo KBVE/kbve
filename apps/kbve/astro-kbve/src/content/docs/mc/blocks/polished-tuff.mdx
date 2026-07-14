@@ -1,5 +1,6 @@
 ---
 title: Polished Tuff
+template: splash
 description: |
     Minecraft Polished Tuff — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 947
     ref: polished_tuff
     slug: polished-tuff
+    content_rev: 1
     display_name: Polished Tuff
     material: stone
     hardness: 1.5
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_tuff
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Polished Tuff is a smoothed building-block variant of tuff,
+            crafted from four tuff blocks in a 2x2 pattern. It is a core
+            block of the trial chambers palette and the base for further
+            tuff-brick and wall variants.
+        lore: |
+            Revealed at Minecraft Live 2023, tuff and its variants were
+            added to give the long-overlooked raw material a full building
+            set, first shipping alongside the Trial Chambers in Java 1.21.
+    uses:
+        - title: Polished Tuff Slab / Stairs / Wall
+          ref: polished_tuff_wall
+          detail: |
+              Crafts into polished tuff slabs (3 to 6), stairs (4 to 4), and
+              walls (6 to 6), and can be cut into tuff bricks via a
+              stonecutter.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates as a primary ceiling and structural block throughout trial chamber structures.
+        - location: Crafting table
+          detail: Crafted from 4 tuff blocks arranged in a 2x2 square.
+    faq:
+        - question: What tool do I need to mine Polished Tuff?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: Where does Polished Tuff generate naturally?
+          answer: |
+              It is not found loose in the world; it generates pre-placed as
+              part of Trial Chamber structures, or must be crafted or
+              stonecut from Tuff.
+        - question: Is Polished Tuff affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops one of itself regardless of enchantments.
+        - question: What can I turn Polished Tuff into with a stonecutter?
+          answer: |
+              A stonecutter can cut it into polished tuff slabs, stairs,
+              walls, tuff bricks, and chiseled tuff bricks.
     data_version: "1.21.5"
 ---
 

@@ -11,10 +11,62 @@ osrs:
   value: 1
   lowalch: 1
   highalch: 1
-  limit: null
-  about: "Willow leaves is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: plant
+    tier: low
+  properties:
+    release_date: "2004-07-26"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Willow tree (Eadgar's Ruse search)
+        quantity: "1"
+        rarity: always
+        members_only: true
+  related_items:
+    - item_id: 6055
+      item_name: Goutweed
+      slug: goutweed
+      relationship: alternative
+      description: Quest reagent also gathered during Eadgar's Ruse
+    - item_id: 5993
+      item_name: Pineapple
+      slug: pineapple
+      relationship: component
+      description: Combined with willow leaves in Eadgar's Ruse troll potion recipe
+    - item_id: 1517
+      item_name: Willow logs
+      slug: willow-logs
+      relationship: alternative
+      description: Standard Woodcutting product from willow trees
+  about: "Willow leaves are a quest item gathered during Eadgar's Ruse by searching specific willow trees near the Troll Stronghold. Used as a reagent for the troll potion fed to Eadgar to fool the trolls; untradeable and worth nothing on alch, so they only exist for quest progression."
+  market_strategy:
+    notes:
+      - "Untradeable quest reagent with no Grand Exchange market"
+      - "Held only during active Eadgar's Ruse playthroughs"
+      - "No alch value; not worth banking after the quest"
+      - "Supply is gated entirely by quest spawns"
+  trading_tips:
+    - "Drop after Eadgar's Ruse since they cannot be sold or alched"
+    - "Pair gathering with other quest items in the Troll Stronghold area"
+    - "Track quest guide updates to confirm respawn spots if collection breaks"
+  history:
+    - date: "2004-07-26"
+      description: "Added to the game with the Eadgar's Ruse quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

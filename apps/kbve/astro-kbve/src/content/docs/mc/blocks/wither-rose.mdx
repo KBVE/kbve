@@ -1,5 +1,6 @@
 ---
 title: Wither Rose
+template: splash
 description: |
     Minecraft Wither Rose — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 169
     ref: wither_rose
     slug: wither-rose
+    content_rev: 1
     display_name: Wither Rose
     material: plant
     hardness: 0
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: wither_rose
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Wither Rose is a black flower with a damaging touch — it
+            inflicts the Wither status effect on any player or non-immune
+            mob standing on it, dealing damage over time.
+        lore: |
+            Introduced alongside the Wither boss in Java Edition 1.4.2, it
+            drops from any mob or player killed by the Wither.
+    uses:
+        - title: Black Dye
+          ref: black_dye
+          detail: |
+              Crafts into one black dye, usable for dyeing wool, banners,
+              and other colorable blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Used as an ingredient for suspicious stew, which inflicts the
+              Wither effect for 7 seconds when eaten.
+    found_in:
+        - location: Wither kills
+          detail: Drops at the death location of any mob or player killed by the Wither, even with mob_drops disabled.
+    faq:
+        - question: What tool do I need to break a wither rose?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: Is the wither rose dangerous to touch?
+          answer: |
+              Yes. Standing on it applies the Wither effect, dealing damage
+              over time to players and most mobs.
+        - question: Can bees interact with wither roses?
+          answer: |
+              Bees will pollinate wither roses but take Wither damage while
+              doing so.
+        - question: How do I get a wither rose?
+          answer: |
+              It drops from any entity killed directly by the Wither boss.
     data_version: "1.21.5"
 ---
 

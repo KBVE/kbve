@@ -12,12 +12,65 @@ osrs:
   lowalch: 37500
   highalch: 56250
   limit: 100
-  about: "Large rosewood hull parts is a members-only item in Old School RuneScape. High alchemy value: 56,250 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rosewood
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 84
+      xp: 2.5
+      materials:
+        - item_name: Rosewood hull parts
+          quantity: 5
+      tools:
+        - Saw
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Rosewood hull parts
+      slug: rosewood-hull-parts
+      relationship: component
+      description: Smaller part assembled into the large variant
+    - item_name: Rosewood plank
+      slug: rosewood-plank
+      relationship: component
+      description: Base plank used in the upstream parts
+    - item_name: Rosewood hull
+      slug: rosewood-hull
+      relationship: product
+      description: Final hull built from sixteen large parts
+  about: "Large rosewood hull parts are a Construction component built at a Shipwrights' Workbench. Sixteen are required to assemble a rosewood sloop hull alongside dragon nails, swamp tar, and cupronickel bars."
+  market_strategy:
+    notes:
+      - "Mid-game Construction shipbuilding component"
+      - "Material cost roughly 53k versus 68k market price"
+      - "Profit window depends on rosewood plank cost"
+  trading_tips:
+    - "Price tracks rosewood plank and shipyard demand"
+    - "Watch for bulk listings as Sailing 93 players ramp builds"
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the Sailing skill and rosewood sloop construction."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

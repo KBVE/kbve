@@ -1,5 +1,6 @@
 ---
 title: Blue Banner
+template: splash
 description: |
     Minecraft Blue Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 542
     ref: blue_banner
     slug: blue-banner
+    content_rev: 1
     display_name: Blue Banner
     material: wood
     hardness: 1
@@ -24,10 +26,64 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+    about:
+        description: |
+            Blue Banner is a tall, swaying decorative block dyed with lapis
+            lazuli. Like all banners, it can hold up to six pattern layers
+            applied with a loom, and those patterns can be copied onto
+            shields.
+        lore: |
+            Banners were added in Java Edition 1.8 as craftable heraldry
+            items, later expanding to support loom-applied custom patterns.
+    uses:
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Combine with dye and an optional pattern item at a loom to
+              stack up to six custom pattern layers onto the banner.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Place a patterned banner with a shield in a crafting grid to
+              copy its design onto the shield.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns as fuel in a furnace, smelting 1.5 items per banner.
+    found_in:
+        - location: Crafted
+          detail: Craft 6 blue wool with 1 stick to make a blue banner.
+        - location: Villager Trades
+          detail: Purchasable from shepherd or cartographer villagers for 3 emeralds, color depending on trade and biome.
+        - location: Generated Structures
+          detail: Found undyed or pre-colored in villages, woodland mansions, end cities, and pillager outposts.
+    faq:
+        - question: What tool do I need to break a Blue Banner?
+          answer: |
+              None required — it can be broken by hand instantly, though an
+              axe breaks it fastest.
+        - question: Is a Blue Banner affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single banner, patterns and
+              all.
+        - question: How many patterns can I add to a Blue Banner?
+          answer: |
+              Up to six layers total, applied one at a time using a loom
+              with dye and, for all but the base layer, a pattern item.
+        - question: Can Blue Banner patterns be put on a shield?
+          answer: |
+              Yes. Placing the patterned banner together with a shield in a
+              crafting grid copies the design onto the shield.
     data_version: "1.21.5"
 ---
 

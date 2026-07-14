@@ -1,13 +1,15 @@
 ---
-title: ERust
-description: |
-    ERust crate for KBVE.
+title: ERust — egui and eframe Component Crate
+description: ERust is a Rust crate that extends egui and eframe with reusable generic states, widgets, and components for building KBVE desktop and WASM apps.
+sem: 1
 sidebar:
     label: ERust Crate
     order: 74
 tags:
     - crates
     - rust
+    - egui
+    - eframe
 key: erust_crate
 pipeline: crates
 package_name: erust
@@ -17,8 +19,77 @@ version_toml: packages/rust/erust/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the ERust crate?
+          answer: ERust is a Rust package that extends egui and eframe with reusable generic states, widgets, and components, giving KBVE apps a shared foundation for immediate-mode GUIs on desktop and WASM.
+        - question: Which features does ERust expose?
+          answer: The default egui feature pulls in egui, eframe, and image support for widgets and application state, while an optional tauri feature integrates ERust with Tauri-based shells.
+        - question: Does ERust run in the browser?
+          answer: Yes. It targets both native desktop via eframe with the glow backend and WebAssembly through wasm-bindgen-futures for wasm32 builds.
+bento:
+    badge: crates · rust · egui
+    title: egui components for
+    accent: erust
+    lede: >-
+        A Rust crate that extends egui and eframe with reusable generic states,
+        widgets, and components for building KBVE desktop and WASM apps.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/erust
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: package
+        title: Built on egui + eframe
+        body: >-
+            Generic application state, widgets, and components layered on the
+            immediate-mode GUI stack. ERust depends on the internal
+            <a href="/project/holy-crate/">holy</a> crate and integrates ehttp,
+            image decoding, and Supabase state helpers.
+        points:
+            - <strong>Native</strong> — desktop via eframe with the glow backend.
+            - <strong>WASM</strong> — wasm32 builds through wasm-bindgen-futures.
+    stats:
+        - { label: Language, value: Rust, icon: rust }
+        - { label: egui / eframe, value: "0.34", icon: package }
+        - { label: Targets, value: native + WASM, icon: expand }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: egui / eframe extensions
+          icon: package
+          body: Generic application state, widgets, and components layered on top of the immediate-mode GUI stack.
+        - title: Feature-gated backends
+          icon: settings
+          body: The default egui feature enables egui, eframe, and image support; the optional tauri feature integrates with Tauri shells.
+        - title: Cross-platform
+          icon: expand
+          body: Builds for native desktop with the glow backend and for WebAssembly via wasm-bindgen-futures.
+        - title: State + networking helpers
+          icon: network
+          body: Bundled Supabase state module and ehttp for making HTTP requests from the UI.
+    related:
+        - title: Holy Crate
+          href: /project/holy-crate/
+          copy: Internal dependency ERust builds on.
+          icon: package
+        - title: KBVE Crate
+          href: /project/kbve-crate/
+          copy: Companion Rust crate in the workspace.
+          icon: rust
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-ERust crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

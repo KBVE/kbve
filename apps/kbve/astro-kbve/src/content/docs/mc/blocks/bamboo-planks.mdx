@@ -1,5 +1,6 @@
 ---
 title: Bamboo Planks
+template: splash
 description: |
     Minecraft Bamboo Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 23
     ref: bamboo_planks
     slug: bamboo-planks
+    content_rev: 1
     display_name: Bamboo Planks
     material: wood
     hardness: 2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Bamboo Planks are a general-purpose building block crafted
+            from a Block of Bamboo. They function like other wood planks,
+            serving as the base ingredient for stairs, slabs, doors,
+            fences, and more in the bamboo wood set.
+        lore: |
+            Bamboo Planks were added in the 1.20 Trails & Tales update
+            as the plank variant tied to Minecraft's bamboo building set.
+    uses:
+        - title: Bamboo building set
+          ref: bamboo_planks
+          detail: |
+              Crafts into Bamboo Stairs, Slabs, Doors, Trapdoors, Fences,
+              Fence Gates, Signs, Buttons, and Pressure Plates.
+        - title: Furnace fuel
+          ref: bamboo_planks
+          detail: |
+              Burns in a furnace like other plank types, smelting 1.5
+              items per plank.
+    found_in:
+        - location: Player crafting
+          detail: One Block of Bamboo crafts into 2 Bamboo Planks.
+        - location: Generated structures
+          detail: Occasionally found in villages, mineshafts, and Trial Chambers loot.
+    faq:
+        - question: What tool do I need to mine Bamboo Planks?
+          answer: |
+              None — any tool or bare hands work, though an axe is fastest.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops itself regardless of enchantments.
+        - question: Does it burn in fire?
+          answer: |
+              Yes, Bamboo Planks are flammable and usable as furnace fuel,
+              unlike Crimson and Warped planks.
+        - question: How do I get Bamboo Planks?
+          answer: |
+              Craft a Block of Bamboo from 9 bamboo, then craft that block
+              into 2 Bamboo Planks.
     data_version: "1.21.5"
 ---
 

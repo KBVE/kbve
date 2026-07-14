@@ -12,9 +12,65 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Magic leaves is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: leaves
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Magic tree (Forestry kit chance)
+        quantity: "1"
+        rarity: 1/4
+      - source: Curing a diseased magic tree (Farming)
+        quantity: "1"
+        rarity: Always
+      - source: Forestry events (Struggling sapling, Friendly ent)
+        quantity: "1"
+        rarity: Common
+  related_items:
+    - item_name: Magic logs
+      slug: magic-logs
+      relationship: alternative
+      description: Primary woodcutting yield from a magic tree.
+    - item_name: Cooked chicken
+      slug: cooked-chicken
+      relationship: component
+      description: Combined with magic leaves to make forester's rations.
+    - item_name: Forester's ration
+      slug: foresters-ration
+      relationship: product
+      description: Cooking product that grants extra logs while woodcutting.
+  about: |-
+    Magic leaves are gathered while chopping magic trees with a Forestry kit or curing diseased magic trees. They stack in the inventory and feed into forester's rations or compost bins.
+  market_strategy:
+    notes:
+      - "Forestry-meta drives most of the demand for magic leaves."
+      - "Stackable + zero weight makes it easy to bulk for crafters."
+  trading_tips:
+    - Buy when Forestry events rotate out of the spotlight.
+    - Bulk to forester's ration producers ahead of woodcutting double XP events.
+  history:
+    - date: "2005-07-11"
+      description: "Magic leaves introduced with the magic tree Farming and Woodcutting rework."
+    - date: "2023-06-01"
+      description: "Magic leaves became tradeable on the Grand Exchange following Forestry release."
+    - date: "2023-10-01"
+      description: "Magic leaves were made stackable in the inventory."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

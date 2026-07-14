@@ -12,9 +12,82 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 8
-  about: "Mystic steam staff is a members-only item in Old School RuneScape. High alchemy value: 27,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mystic
+    tier: mid-high
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 40
+      magic: 40
+    attack_bonus:
+      stab: 10
+      slash: -1
+      crush: 40
+      magic: 14
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 14
+      ranged: 0
+    other_bonus:
+      strength: 50
+      prayer: 0
+      magic_damage: 0
+  recipes:
+    - materials:
+        - item_name: "Steam battlestaff"
+          quantity: 1
+        - item_name: "Coins"
+          quantity: 40000
+      tools: []
+      output_quantity: 1
+      notes: "Thormac upgrades the steam battlestaff; cost drops to 20,000 with full Seers' Village hard diary."
+  related_items:
+    - item_name: "Steam battlestaff"
+      relationship: component
+    - item_name: "Mystic mud staff"
+      relationship: alternative
+    - item_name: "Mystic lava staff"
+      relationship: alternative
+    - item_name: "Mystic smoke staff"
+      relationship: alternative
+  about: "Mystic steam staff is a members-only magic weapon that provides unlimited water and fire runes; created by Thormac after a Scorpion Catcher quest from a steam battlestaff."
+  market_strategy:
+    notes:
+      - "Demand tied to Standard-spellbook autocasters that benefit from free water + fire runes."
+      - "Floor price tethered to steam battlestaff + Thormac upgrade fee."
+  trading_tips:
+    - "Watch steam battlestaff supply; the staff floor moves with it."
+    - "Diary completion shifts upgrade cost from 40k to 20k — sell pressure rises when more players unlock the discount."
+  history:
+    - date: "2013-10-17"
+      description: "Released alongside the mystic mud, lava, and smoke staves."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2013-10-17"
+    update: "Mystic Battlestaves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: "Scorpion Catcher"
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

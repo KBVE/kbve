@@ -1,5 +1,6 @@
 ---
 title: Tadpole Spawn Egg
+template: splash
 description: |
     Minecraft Tadpole Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1130
     ref: tadpole_spawn_egg
     slug: tadpole-spawn-egg
+    content_rev: 1
     display_name: Tadpole Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The tadpole spawn egg is a Creative-mode item that instantly spawns a tadpole when used on a
+            block surface. Like all spawn eggs, it is obtained via the Creative inventory or commands and
+            is consumed on use outside of Creative mode.
+        lore: |
+            Crafted from the essence of creatures, these eggs grant builders dominion over life itself.
+    faq:
+        - question: Can I use spawn eggs in Survival mode?
+          answer: |
+              Yes, but they're unobtainable without Creative menu access or commands. Once obtained, they
+              function normally but are consumed upon use.
+        - question: What happens if I rename a spawn egg "Dinnerbone"?
+          answer: |
+              When a spawn egg is renamed "Dinnerbone" or "Grumm," the spawned mob appears upside down.
+        - question: Do spawn eggs work on monster spawners?
+          answer: |
+              All spawn eggs can also be used on a monster spawner or trial spawner to change the mob that
+              spawns.
+        - question: Are there spawn eggs for every mob?
+          answer: |
+              No. Most mobs have eggs, but a few lack them, including the Giant, Illusioner, and certain
+              edition-specific mobs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -12,9 +12,85 @@ osrs:
   lowalch: 22000
   highalch: 33000
   limit: null
-  about: "Dragon felling axe is a members-only item in Old School RuneScape. High alchemy value: 33,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Dragon felling axe is a two-handed Forestry woodcutting axe combined from a felling axe handle and a dragon axe. Grants 10% bonus Woodcutting XP when wielded with Forester's rations and shares the Lumber Up special. High alchemy value: 33,000 coins."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-10-25"
+    tradeable: true
+    stackable: false
+    equipable: true
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 1.814
+  material:
+    type: metal
+    tier: dragon
+  equipment:
+    slot: two_handed
+    weapon_type: axe
+    attack_speed: 7
+    requirements:
+      attack: 60
+      woodcutting: 61
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 51
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 67
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: "Lumber Up"
+    description: "Temporarily boosts Woodcutting by 3 levels at the cost of 100% special attack energy."
+    energy: 100
+  recipes:
+    - item_name: Dragon felling axe
+      skill: Smithing
+      level: 61
+      xp: 0
+      tools:
+        - Anvil
+        - Hammer
+      materials:
+        - item_name: Dragon axe
+          quantity: 1
+        - item_name: Felling axe handle
+          quantity: 1
+      output_quantity: 1
+  market_strategy:
+    notes:
+      - "flip_potential: \"medium\""
+      - "Forestry meta tool tied to dragon axe pricing and Forester's rations supply; demand spikes during Woodcutting events."
+  trading_tips:
+    - "Combine cheap dragon axes with felling axe handles when the spread justifies the smith conversion."
+    - "Watch Forestry update news — buffs to Forestry XP often spike axe demand."
+    - "Hold Forester's rations alongside the axe to capture the 10% bonus XP setup premium."
+  history:
+    - date: "2023-10-25"
+      description: "Released as part of the Forestry: Part Two update."
+  relationships:
+    - item_name: Dragon axe
+      relationship: component
+    - item_name: Felling axe handle
+      relationship: component
+    - item_name: Crystal felling axe
+      relationship: upgrade
+    - item_name: 3rd age felling axe
+      relationship: variant
+    - item_name: Forester's rations
+      relationship: alternative
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

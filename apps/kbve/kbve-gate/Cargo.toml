@@ -1,0 +1,18 @@
+[package]
+name = "kbve-gate"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.8"
+edition = "2021"
+rust-version.workspace = true
+publish = false
+
+[[bin]]
+name = "kbve-gate"
+path = "src/main.rs"
+
+[dependencies]
+kbve = { path = "../../../packages/rust/kbve", features = ["gate"] }
+tokio = { version = "1.0", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dotenvy = "0.15"

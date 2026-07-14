@@ -9,14 +9,54 @@ description: |
     June 5th. AstroPad
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'June 5,'
+    accent: every year.
+    lede: 'The June 5th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jun 4'
+          href: /journal/06-04/
+        - label: 'Jun 6 →'
+          href: /journal/06-06/
+    related:
+        - title: 'Previous · Jun 4'
+          copy: 'Step back a day to the June 4th log.'
+          href: /journal/06-04/
+          icon: calendar
+        - title: 'Next · Jun 6'
+          copy: 'Jump ahead to the June 6th log.'
+          href: /journal/06-06/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1717570994511-7abcd5f84183?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-
 
 import {
   Adsense
 } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Codex Test Run
 
@@ -46,7 +86,15 @@ import {
     The marketing plan to reach over 1000 wishlists will not be too hard because of the friends of friends system, but going into the 10,000 mark will be a pain.
     I am thinking the best way to do that will be to ask if some communities would like to help in exchange for in game items, basically extend the lore out for them to be involved.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Music** 
 
@@ -157,7 +205,9 @@ There are a couple cool tools that I could add into the page but for now getting
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 7:00am - Most of the morning was spent looking into how I should handle svelte within this `kbve.com` repo, but I need to open up Unity and dive a bit deeper into that workflow.
 I was able to clear up the invoice for Silver and we should be holding a meeting later today regarding the future of the game.
@@ -170,14 +220,22 @@ I was able to clear up the invoice for Silver and we should be holding a meeting
 I will have to look into how to setup the whole Unity DevOps, but from my basic understanding, it looks pretty straight forward!
 We might try and have both repos active, one on Github and one of Unity cloud but it might end up becoming a bit too costly to run in the long term.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The person who lives life fully, glowing with life's energy, is the person who lives a successful life.
 > — <cite>Daisaku Ikeda</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [X] - Fix the Git LFS / Github build issue with Unity. UPDATE: This task was just removed from our log.
 - [ ] - Integrate Unity Cloud builder for RougeJester.
+
+</BentoProse>
+
+</BentoDoc>

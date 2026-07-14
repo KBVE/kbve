@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: ch-ingest-grants-script
+    namespace: clickhouse
+    labels:
+        kbve.com/category: database
+        kbve.com/stack: clickhouse
+        kbve.com/managed-by: argocd
+data:
+    grants.sh:
+        "#!/bin/sh\nset -eu\n\necho \"Verifying ClickHouse admin connectivity...\"\
+        \ncurl -sf --max-time 10 \\\n  \"${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}\"\
+        \ \\\n  -d \"SELECT 1\" >/dev/null || {\n  echo \"ERROR: Cannot connect to ClickHouse\
+        \ at ${CH_ADMIN_URL} with admin user\"\n  exit 1\n}\necho \"Admin connection OK.\"\
+        \n\ngrant() {\n  echo \"GRANT: $1\"\n  curl -sf --max-time 30 \\\n    \"${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}\"\
+        \ \\\n    -d \"$1\" || {\n    echo \"ERROR: grant failed: $1\"\n    exit 1\n \
+        \ }\n}\n\n# CLUSTER privilege is required for every ON CLUSTER statement (CH 25.x);\n\
+        # without it the per-pipeline setup jobs fail ACCESS_DENIED (Code 497).\ngrant\
+        \ \"GRANT CLUSTER ON *.* TO kbve_ingest ON CLUSTER 'cluster'\"\n\n# Data access for\
+        \ each direct-write pipeline. Creating a table does not\n# grant the creator data\
+        \ rights in CH RBAC.\ngrant \"GRANT ALL ON telemetry.* TO kbve_ingest ON CLUSTER 'cluster'\"\ngrant \"\
+        GRANT ALL ON observability.* TO kbve_ingest ON CLUSTER 'cluster'\"\ngrant \"GRANT\
+        \ ALL ON mc.* TO kbve_ingest ON CLUSTER 'cluster'\"\n\necho \"\"\necho \"Ingest-user\
+        \ grants applied.\"\n"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: ch-ingest-grants
+    namespace: clickhouse
+    labels:
+        app: ch-ingest-grants
+        component: clickhouse
+        kbve.com/category: database
+        kbve.com/stack: clickhouse
+        kbve.com/managed-by: argocd
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+    ttlSecondsAfterFinished: 86400
+    backoffLimit: 5
+    template:
+        metadata:
+            labels:
+                app: ch-ingest-grants
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: grants
+                  image: curlimages/curl:8.12.1
+                  command:
+                      - /bin/sh
+                      - /scripts/grants.sh
+                  env:
+                      - name: CH_ADMIN_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-admin-credentials
+                                key: url
+                      - name: CH_ADMIN_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-admin-credentials
+                                key: username
+                      - name: CH_ADMIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-admin-credentials
+                                key: password
+                  volumeMounts:
+                      - name: grants-script
+                        mountPath: /scripts
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: 32Mi
+                          cpu: 50m
+                      limits:
+                          memory: 64Mi
+                          cpu: 100m
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: grants-script
+                  configMap:
+                      name: ch-ingest-grants-script
+                      defaultMode: 365

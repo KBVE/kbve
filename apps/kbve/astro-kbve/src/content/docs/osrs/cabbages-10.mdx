@@ -12,9 +12,48 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  about: "Cabbages(10) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: produce-sack
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Fill
+      - Empty
+      - Drop
+    alchable: false
+  related_items:
+    - item_name: Cabbage
+      slug: cabbage
+      relationship: component
+      description: Individual vegetable stored in this sack.
+    - item_name: Vegetable sack
+      slug: vegetable-sack
+      relationship: variant
+      description: Empty sack used to hold cabbages or other vegetables.
+    - item_name: Tomatoes(10)
+      slug: tomatoes-10
+      relationship: alternative
+      description: Similar Farming payment sack for allotment patches.
+  about: "Cabbages(10) is a full vegetable sack containing ten cabbages. Players fill an empty vegetable sack with cabbages from their inventory and empty them out one at a time when needed. Two full sacks of cabbages can be paid to a farmer to protect a tomato allotment from disease, while three sacks are used as protection payment for Krandorian hops. Cabbages picked from the Draynor Manor patch cannot be stored in the sack. Released 11 July 2005 with the Farming skill expansion."
+  market_strategy:
+    notes:
+      - "Low GE limit of 600 caps bulk arbitrage between individual cabbages and full sacks."
+      - "Demand comes from Farming protection payments rather than direct consumption."
+  trading_tips:
+    - Buying 10 cabbages individually is often cheaper than a full sack at GE.
+  history:
+    - date: "2005-07-11"
+      description: Added as a vegetable sack format with the Farming skill.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

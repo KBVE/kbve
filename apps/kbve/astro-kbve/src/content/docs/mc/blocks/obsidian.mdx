@@ -1,5 +1,6 @@
 ---
 title: Obsidian
+template: splash
 description: |
     Minecraft Obsidian — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 180
     ref: obsidian
     slug: obsidian
+    content_rev: 1
     display_name: Obsidian
     material: stone
     hardness: 50
     blast_resistance: 1200
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 4
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,74 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: obsidian
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_diamond_tool
+        - blast_resistant
+        - crafting
+    about:
+        description: |
+            Obsidian is one of the toughest blocks obtainable in Survival,
+            with a blast resistance of 1,200 — among the highest in the game.
+            It forms when water flows over a lava source block, turning the
+            volcanic glass into a near-indestructible material used for
+            portals, storage, and high-value crafting.
+        lore: |
+            Obsidian has existed since Classic 0.28 and originally dropped
+            cobblestone; it became renewable once Nether portals were added
+            in Alpha, letting players regenerate it from portal frames.
+    uses:
+        - title: Nether Portal
+          detail: |
+              Forms the frame of a Nether portal, a vertical rectangle from
+              4x5 up to 23x23 activated with flint and steel.
+        - title: Enchanting Table
+          ref: enchanting_table
+          detail: |
+              Crafted from 1 book, 2 diamonds, and 4 obsidian.
+        - title: Ender Chest
+          ref: ender_chest
+          detail: |
+              Crafted from 8 obsidian and 1 eye of ender for shared,
+              cross-dimensional storage.
+        - title: Beacon Base
+          ref: beacon
+          detail: |
+              Combined with glass and a nether star to craft a beacon.
+    found_in:
+        - location: Overworld
+          detail: Ruined portals, cold ocean ruins, and woodland mansions.
+        - location: The Nether
+          detail: Ruined portals, fortress chests, and bastion remnants.
+        - location: The End
+          detail: The spawn platform, obsidian pillars, and End ships.
+    faq:
+        - question: What tool do I need to mine obsidian?
+          answer: |
+              A diamond or netherite pickaxe. Weaker tools break it slowly
+              and drop nothing; a diamond pickaxe takes about 9.4 seconds.
+        - question: Is obsidian the strongest block in Survival?
+          answer: |
+              Its blast resistance of 1,200 is the highest of any block
+              obtainable in Survival, tied with crying obsidian, anvils,
+              and netherite blocks.
+        - question: Can anything destroy obsidian?
+          answer: |
+              Blue wither skulls ignore blast resistance and can break
+              obsidian — the wither is the only mob capable of it.
+        - question: Can pistons move obsidian?
+          answer: |
+              No. Neither normal nor sticky pistons can push or pull it.
+        - question: How do I farm obsidian without mining it?
+          answer: |
+              Direct water onto lava source blocks to create it on demand;
+              End platforms and portal frames also regenerate obsidian.
     data_version: "1.21.5"
 ---
 

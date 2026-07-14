@@ -1,5 +1,6 @@
 ---
 title: Light Blue Concrete Powder
+template: splash
 description: |
     Minecraft Light Blue Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 697
     ref: light_blue_concrete_powder
     slug: light-blue-concrete-powder
+    content_rev: 1
     display_name: Light Blue Concrete Powder
     material: dirt
     hardness: 0.5
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Light Blue Concrete Powder is a gravity-affected block crafted
+            from light blue dye, sand, and gravel. It falls when
+            unsupported and instantly hardens into solid Light Blue
+            Concrete the moment it touches water.
+        lore: |
+            Concrete powder was teased by developer Jeb in February 2017
+            and released in Java Edition 1.12, giving players a
+            fully-saturated, non-flammable alternative to wool and
+            terracotta.
+    uses:
+        - title: Light Blue Concrete
+          ref: light_blue_concrete
+          detail: |
+              Contact with any water source, flowing water, or a
+              waterlogged block converts the powder into solid Light Blue
+              Concrete.
+    found_in:
+        - location: Crafting table
+          detail: Craft from 1 light blue dye, 4 sand, and 4 gravel for 8 concrete powder.
+        - location: Piglin bartering
+          detail: Gravel obtained from piglins makes the recipe fully renewable.
+    faq:
+        - question: What tool do I need to mine Light Blue Concrete Powder?
+          answer: |
+              None required for the drop, but a shovel mines it fastest;
+              any tool or hand also works.
+        - question: Does it fall like sand and gravel?
+          answer: |
+              Yes. It is affected by gravity and falls if the block below
+              it is removed.
+        - question: How do I turn it into concrete?
+          answer: |
+              Let it touch a water source, flowing water, or a
+              waterlogged block; it instantly solidifies into concrete of
+              the same color.
+        - question: Is Light Blue Concrete Powder renewable?
+          answer: |
+              Yes. Gravel from piglin bartering, plus infinite sand and
+              dye sources, make the full recipe renewable.
     data_version: "1.21.5"
 ---
 

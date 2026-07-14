@@ -12,12 +12,51 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of the lightbearer is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2023-08-23"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    worn_options: []
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  passive_effects:
+    - name: Lightbearer attunement
+      description: "Special attack regeneration becomes 15 seconds per 10%. If a Lightbearer ring is also equipped, special attack regeneration becomes 10 seconds per 10%."
+  related_items:
+    - item_name: Lightbearer
+      slug: lightbearer
+      relationship: alternative
+      description: Ring that stacks with the sigil for faster spec regen
+  about: "Sigil of the lightbearer is a Deadman Mode exclusive sigil that drastically accelerates special attack regeneration. The un-attuned form has appeared as a Deadman skull-shop purchase and, in past events, as a tradeable drop from monsters via the Deadman drop table. Once attuned, the sigil locks to the player and must be unattuned before it can be destroyed."
+  market_strategy:
+    notes:
+      - "Untradeable outside of Deadman events; value reflects in-event power"
+      - "Combined with Lightbearer ring it slashes spec regen to 10s per 10%"
+      - "Strictly a Deadman item; non-DMM accounts cannot obtain it"
+  trading_tips:
+    - "Track Deadman skull-shop pricing for the un-attuned sigil"
+    - "Plan attunement carefully; locked sigils require unattune to destroy"
+  history:
+    - date: "2023-08-23"
+      description: "Released as part of the Deadman Mode reward suite."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

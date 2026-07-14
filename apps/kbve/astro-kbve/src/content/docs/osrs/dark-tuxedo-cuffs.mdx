@@ -12,9 +12,76 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 4
-  about: "Dark tuxedo cuffs is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: hands
+    weight: 0.5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/12750
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - name: Dark tuxedo jacket
+      relationship: set-piece
+    - name: Dark tuxedo trousers
+      relationship: set-piece
+    - name: Dark tuxedo shoes
+      relationship: set-piece
+    - name: Dark tuxedo cane
+      relationship: set-piece
+  about: "Dark tuxedo cuffs are a cosmetic hands-slot item in Old School RuneScape obtained as a 1/12,750 reward from elite Treasure Trail caskets. They form part of the dark tuxedo outfit and can be stored in the costume room treasure chests."
+  market_strategy:
+    notes:
+      - Cosmetic clue reward — value is driven by outfit completionists.
+      - Extremely thin supply (1/12,750 elite casket); GE limit of 4 per 4 hours.
+      - Stores in the POH costume room; Ultimate Ironmen can only retrieve once the full set is stored.
+  trading_tips:
+    - Track elite clue casket completion rates around content updates for supply spikes.
+    - Compare against the white/regular tuxedo cuffs to price the dark variant premium.
+  history:
+    - date: "2016-07-06"
+      description: Released as part of the Treasure Trail Expansion update; obtainable as an elite clue reward.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

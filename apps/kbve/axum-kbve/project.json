@@ -68,9 +68,19 @@
 				"parallel": false
 			}
 		},
+		"container-prep": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"echo 'no arpg prep: the game art + embed bundle now live on arpg.kbve.com (CDN); kbve.com loads them cross-origin, so the astro build bundles nothing arpg-specific'"
+				]
+			}
+		},
 		"container": {
 			"executor": "nx:run-commands",
 			"defaultConfiguration": "local",
+			"dependsOn": ["container-prep"],
 			"options": {
 				"parallel": false
 			},
@@ -89,7 +99,7 @@
 				},
 				"ci": {
 					"commands": [
-						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/kbve:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
+						"bash scripts/ci/retry-transient.sh 'BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .'",
 						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
 					]
 				}

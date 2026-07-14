@@ -3,17 +3,19 @@ kind: Application
 metadata:
     name: valkey
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/valkey
+        kbve.com/manifest-path: kube/valkey
+        kbve.com/application-file: kube/valkey/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: database
+        kbve.com/stack: core
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
     project: default
     sources:
         - repoURL: https://valkey-io.github.io/valkey-helm/
-          # Bumped 0.9.3 -> 0.9.4 (Valkey app 9.0.1 -> 9.0.2, patch only)
-          # to pick up the new `workloadAnnotations` value (annotates the
-          # Deployment metadata directly — cleaner Reloader wiring than
-          # podAnnotations) plus chart-default seccompProfile RuntimeDefault
-          # and allowPrivilegeEscalation: false. Selector labels are
-          # identical between 0.9.3 and 0.9.4 (verified via helm template
-          # diff), so no immutability conflict on upgrade.
           targetRevision: 0.9.4
           chart: valkey
           helm:

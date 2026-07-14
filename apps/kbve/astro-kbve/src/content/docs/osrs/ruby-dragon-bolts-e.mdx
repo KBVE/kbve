@@ -1,6 +1,6 @@
 ---
 title: Ruby dragon bolts (e) | OSRS Price Data
-description: "Ruby dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with ruby.. High alch: 498 GP, GE limit: 11,000."
+description: "Ruby dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with ruby. High alch: 498 GP, GE limit: 11,000."
 osrs:
   id: 21944
   name: Ruby dragon bolts (e)
@@ -12,31 +12,69 @@ osrs:
   lowalch: 332
   highalch: 498
   limit: 11000
-  ammunition:
-    type: enchanted_bolt
-    tradeable: true
-    stackable: true
-    weight: 0
+  properties:
+    release_date: "2018-01-04"
+    quest_item: false
+    destroy: Drop
+  material:
+    type: ammunition
+    tier: enchanted-bolt
+  equipment:
+    slot: ammo
+    weapon_type: bolts
+    attack_speed: 1
+    weight: 0.001
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 122
+      magic_damage: 0
+      prayer: 0
     requirements:
       ranged: 64
-    stats:
-      ranged_strength: 122
-  creation:
-    method: Enchant Ruby dragon bolts
-    spell: Enchant Crossbow Bolt
-    requirements:
-      magic: 49
-  special_effect:
+    degradable: false
+  recipes:
+    - skill: magic
+      level: 49
+      xp: 59
+      item_name: Ruby dragon bolts (e)
+      tools:
+        - Staff
+      materials:
+        - item_name: Ruby dragon bolts
+          quantity: 10
+        - item_name: Fire rune
+          quantity: 5
+        - item_name: Blood rune
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+      product: Ruby dragon bolts (e)
+      product_id: 21944
+      product_quantity: 10
+      output_quantity: 10
+      members_only: true
+  special_attack:
     name: Blood Forfeit
-    description: Removes 20% of target's current HP
-    damage_cap: 100
-    self_damage: 10% of your HP
-    proc_rate_pvm: 6%
-    proc_rate_pvp: 11%
-    kandarin_diary_boost: +10% proc rate
-  market:
-    buy_limit: 11000
-    price_estimate: 3938
+    description: "Removes 20% of target's current HP (capped at 100). Costs 10% of your current HP. 6% PvM / 11% PvP proc; +10% with Hard Kandarin Diary."
+  drop_table:
+    primary_source: Magic enchantment
+    sources:
+      - source: Enchant Crossbow Bolt
+        quantity: "10"
+        rarity: craftable
+        members_only: true
   related_items:
     - item_id: 21946
       item_name: Diamond dragon bolts (e)
@@ -52,7 +90,7 @@ osrs:
       item_name: Ruby dragon bolts
       slug: ruby-dragon-bolts
       relationship: downgrade
-      description: Unenchanted
+      description: Unenchanted base
   about: |-
     Enchant Ruby dragon bolts with Enchant Crossbow Bolt.
 
@@ -79,11 +117,18 @@ osrs:
     Best bolts for high-HP targets.
   market_strategy:
     notes:
-      - Switch to diamond at low HP
-      - Amazing for boss starts
-      - Kandarin Diary helps
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Switch to diamond at low HP"
+      - "Amazing for boss starts"
+      - "Kandarin Diary helps"
+  trading_tips:
+    - Enchanting 10 per cast keeps margins thin; buy unenchanted dumps
+    - Demand spikes during Nex/Corp meta updates
+    - Stack vs market dragon crossbow bolt price closely
+  history:
+    - date: "2018-01-04"
+      description: "Released with Dragon Slayer II."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

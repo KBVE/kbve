@@ -12,9 +12,56 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 70
-  about: "Proselyte harness m is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: blessed
+    tier: mid
+  shops:
+    - shop_name: Sir Tiffy Cashien's Armour Shop
+      location: Falador Park
+      price: 25000
+      stock: 10
+      notes: Requires completion of The Slug Menace quest.
+  related_items:
+    - name: Proselyte sallet
+      relationship: component
+    - name: Proselyte hauberk
+      relationship: component
+    - name: Proselyte cuisse
+      relationship: component
+    - name: Proselyte harness f
+      relationship: alternative
+  about: "Proselyte harness m is a packaged male Temple Knight armour set sold by Sir Tiffy Cashien after the Slug Menace quest, which unpacks into a Proselyte sallet, hauberk, and cuisse for prayer-focused melee setups."
+  market_strategy:
+    notes:
+      - Demand is driven by prayer-bonus seekers leveling melee with Piety or Chivalry.
+      - Premium over individual GE prices for the pack reflects convenience and shop-supply stability.
+      - Limited buy limit (70) keeps margins modest unless Proselyte armour becomes meta.
+  trading_tips:
+    - Buy directly from Sir Tiffy Cashien if you have completed The Slug Menace for a stable 25,000 coin price.
+    - Unpack only when ready to equip - resealing is not possible.
+    - Compare GE prices for individual pieces before unpacking to capture spreads.
+  history:
+    - date: "2006-09-20"
+      description: Released with The Slug Menace quest as a Temple Knight armour pack.
+  properties:
+    release_date: "2006-09-20"
+    update: The Slug Menace
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: The Slug Menace
+    weight: 14.514
+    options:
+      - Unpack
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

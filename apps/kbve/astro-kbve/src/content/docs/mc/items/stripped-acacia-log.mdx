@@ -1,5 +1,6 @@
 ---
 title: Stripped Acacia Log
+template: splash
 description: |
     Minecraft Stripped Acacia Log — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 152
     ref: stripped_acacia_log
     slug: stripped-acacia-log
+    content_rev: 1
     display_name: Stripped Acacia Log
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Stripped Acacia Log is created by using an axe on a regular acacia log while sneaking,
+            exposing the wood's interior without its bark texture. Like other stripped logs, it serves as
+            a common building and crafting material with a hardness of 2, stacking up to 64.
+        lore: |
+            Once stripped, the bark cannot be put back, making the transformation permanent.
+    faq:
+        - question: How do I obtain a stripped acacia log?
+          answer: |
+              Use an axe on an acacia log while sneaking (or right-clicking in older versions) to convert
+              it into its stripped variant.
+        - question: What can I craft with stripped acacia logs?
+          answer: |
+              They can be crafted into acacia planks, stripped acacia wood, and used in campfires and
+              various wood-based decorative items.
+        - question: Are stripped acacia logs useful for building?
+          answer: |
+              Yes, with a hardness of 2 and a stack size of 64 they are practical, decorative structural
+              blocks for building projects.
+        - question: Can I reverse the stripping process?
+          answer: |
+              No, once a log is stripped the transformation is permanent and cannot be undone.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

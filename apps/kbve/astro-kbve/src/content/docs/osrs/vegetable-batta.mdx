@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Vegetable batta is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 30
+      xp: 156
+      materials:
+        - item_name: Unfinished batta (vegetable)
+          quantity: 1
+        - item_name: Equa leaves
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  shops:
+    - shop_name: Gnome Waiters
+      location: Grand Tree
+      price: 120
+      currency: coins
+      stock: 3
+  related_items:
+    - item_name: Unfinished batta (vegetable)
+      slug: unfinished-batta-vegetable
+      relationship: component
+      description: Cooked into vegetable batta
+    - item_name: Gianne dough
+      slug: gianne-dough
+      relationship: component
+      description: Base dough used in batta preparation
+  about: "Vegetable batta is a members-only gnome cooking food cooked from an unfinished vegetable batta and equa leaves on a cooking range at level 30 Cooking for 156 xp. Stops burning at level 38. Premade copies are sold by gnome waiters at the Grand Tree for 120 coins each."
+  market_strategy:
+    notes:
+      - "Used primarily for gnome cooking training and Gnome Restaurant runs"
+      - "High GE limit (6,000) supports bulk training material flips"
+  trading_tips:
+    - Watch for cooking-bonus event spikes that drain stock
+    - Margin opportunities right after Gnome Restaurant minigame patches
+  history:
+    - date: "2002-12-12"
+      description: "Released as part of the Agility skill update."
+    - date: "2006-08-07"
+      description: "Graphically updated during the Gnome Restaurant overhaul."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Piston Head
+template: splash
 description: |
     Minecraft Piston Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 139
     ref: piston_head
     slug: piston-head
+    content_rev: 1
     display_name: Piston Head
     material: redstone
     hardness: 1.5
@@ -22,12 +24,45 @@ mc_block:
     light_emission: 0
     light_opacity: 0
     transparent: false
-    placeable: true
+    placeable: false
     solid: true
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - technical
+    about:
+        description: |
+            Piston Head is a technical block that automatically forms the
+            extended face of a Piston or Sticky Piston when it is powered.
+            It cannot be obtained as an item and does not exist in any
+            inventory or creative menu.
+        lore: |
+            Pistons were added in Beta 1.7, and the separate piston-head
+            block was implemented to render the moving arm distinct from the
+            piston base.
+    found_in:
+        - location: Extended Pistons
+          detail: Appears automatically at the tip of any piston that has been powered and extended.
+    faq:
+        - question: Can I get a Piston Head in my inventory?
+          answer: |
+              No. It is a technical block with no item form; breaking it or
+              retracting the piston simply removes it.
+        - question: What tool mines it fastest?
+          answer: |
+              A pickaxe, though it yields nothing regardless of tool.
+        - question: Can other pistons push a Piston Head?
+          answer: |
+              No. It behaves as an immovable object and blocks piston chains
+              from pushing through it.
+        - question: How is Piston Head different from a Moving Piston?
+          answer: |
+              Piston Head is the static extended face after the push
+              finishes; Moving Piston is the brief animation block used
+              while the piston is in motion.
     data_version: "1.21.5"
 ---
 

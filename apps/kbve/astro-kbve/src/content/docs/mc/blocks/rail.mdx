@@ -1,5 +1,6 @@
 ---
 title: Rail
+template: splash
 description: |
     Minecraft Rail — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 209
     ref: rail
     slug: rail
+    content_rev: 1
     display_name: Rail
     material: redstone
     hardness: 0.7
@@ -23,11 +25,61 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: rail
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Rail is the basic, unpowered track block that lets minecarts
+            travel along a path — placed flat, as a ramp, or curved to
+            change direction, forming the backbone of every minecart
+            transit system.
+        lore: |
+            One of the oldest blocks in the game, rails date back to
+            Infdev and have received numerous mechanical refinements,
+            including waterlogging support added in Java Edition 1.17.
+    uses:
+        - title: Minecart Transport
+          ref: minecart
+          detail: |
+              Laid in tracks, rails let minecarts roll along set paths;
+              combine with powered rails for speed and detector rails for
+              redstone triggers.
+    found_in:
+        - location: Crafting Table
+          detail: Craft 6 Iron Ingots and 1 Stick in a specific pattern to yield 16 Rails.
+        - location: Mineshaft Chests
+          detail: Common loot in mineshaft minecart chests, with 4-8 rails at roughly 70-78% chance.
+        - location: Woodland Mansion
+          detail: Found generating in certain "pumpkin ring room" layouts.
+    faq:
+        - question: What tool do I need to mine Rail?
+          answer: |
+              None — rails drop with any tool or even bare hands, no
+              minimum tier required.
+        - question: Can Rail be placed on any block?
+          answer: |
+              Only on blocks with a full or rimmed top surface, such as
+              full blocks, hoppers, and top slabs — not on the side or
+              bottom of a block.
+        - question: How fast can a minecart go on plain rails?
+          answer: |
+              An empty minecart tops out around 8 m/s on flat rails;
+              reaching that speed from a stop typically needs about 7
+              powered rails to accelerate it.
+        - question: Can Rail be waterlogged?
+          answer: |
+              Yes, since Java Edition 1.17 rails can be placed underwater
+              without breaking, letting water flow through harmlessly.
     data_version: "1.21.5"
 ---
 

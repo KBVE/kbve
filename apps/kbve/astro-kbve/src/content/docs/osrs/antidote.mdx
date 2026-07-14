@@ -1,0 +1,140 @@
+---
+title: Antidote+ | OSRS Price Data
+description: "Antidote+(4): 4 doses of extra strong antipoison potion.. High alch: 216 GP, GE limit: 4,000."
+osrs:
+  id: 5943
+  name: Antidote+
+  slug: antidote
+  examine: 4 doses of extra strong antipoison potion.
+  members: true
+  icon: Antidote+(4).png
+  value: 360
+  lowalch: 144
+  highalch: 216
+  limit: 4000
+  potion:
+    doses: 4
+    effects:
+      - description: Cures poison on consumption.
+      - description: Grants 9 minutes of poison immunity per dose.
+      - description: Two doses reduce venom to poison then cure it.
+  recipes:
+    - skill: Herblore
+      level: 68
+      xp: 155
+      materials:
+        - item_name: Toadflax (clean)
+          quantity: 1
+        - item_name: Coconut milk
+          quantity: 1
+        - item_name: Yew roots
+          quantity: 1
+      tools:
+        - Vial
+  related_items:
+    - item_id: 5945
+      item_name: Antidote+(3)
+      slug: antidote-3
+      relationship: variant
+      description: 3-dose vial
+    - item_id: 5947
+      item_name: Antidote+(2)
+      slug: antidote-2
+      relationship: variant
+      description: 2-dose vial
+    - item_id: 5949
+      item_name: Antidote+(1)
+      slug: antidote-1
+      relationship: variant
+      description: 1-dose vial
+    - item_id: 5952
+      item_name: Antidote++(4)
+      slug: antidote-pp-4
+      relationship: upgrade
+      description: Longer immunity variant
+  about: "Antidote+(4) is a 4-dose extra strong antipoison brewed at 68 Herblore that cures poison and grants 9 minutes of immunity per dose."
+  market_strategy:
+    notes:
+      - Made at 68 Herblore for 155 xp
+      - Brewed using coconut milk for 4 doses
+      - Buy limit 4,000 per 4 hours
+      - Two doses cure venom
+  trading_tips:
+    - Coconut milk inflates batch yield to 4 doses
+    - Pre-2016 antipoisons reset immunity timers
+  history:
+    - date: "2005-07-11"
+      description: Released with the Farming update.
+    - date: "2016-04-07"
+      description: Drinking antipoisons no longer shortens existing immunity.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  family_ref:
+    family_slug: antidote
+    role: base
+  family:
+    slug: antidote
+    name: Antidote+
+    type: dose
+    canonical_id: 5943
+    members:
+    - id: 5943
+      slug: antidote
+      name: Antidote+
+      icon: Antidote+(4).png
+      role: base
+      dose: null
+      value: 360
+      lowalch: 144
+      highalch: 216
+    - id: 5949
+      slug: antidote-1
+      name: Antidote+(1)
+      icon: Antidote+(1).png
+      role: dose
+      dose: 1
+      value: 144
+      lowalch: 57
+      highalch: 86
+    - id: 5947
+      slug: antidote-2
+      name: Antidote+(2)
+      icon: Antidote+(2).png
+      role: dose
+      dose: 2
+      value: 216
+      lowalch: 86
+      highalch: 129
+    - id: 5945
+      slug: antidote-3
+      name: Antidote+(3)
+      icon: Antidote+(3).png
+      role: dose
+      dose: 3
+      value: 288
+      lowalch: 115
+      highalch: 172
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

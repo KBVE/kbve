@@ -12,9 +12,49 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of enhanced harvest is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  related_items:
+    - item_name: Sigil of resilience
+      slug: sigil-of-resilience
+      relationship: alternative
+      description: Defensive Deadman sigil offering damage reduction.
+    - item_name: Sigil of consistency
+      slug: sigil-of-consistency
+      relationship: alternative
+      description: Combat sigil that floors hit variance for steadier damage.
+    - item_name: Sigil of the augury
+      slug: sigil-of-the-augury
+      relationship: alternative
+      description: Late game offensive sigil for high tier Deadman builds.
+  about: "Sigil of enhanced harvest is a Deadman event sigil that grants triple resources from Mining, Fishing, Woodcutting, and Farming once attuned. It originated in Deadman: Reborn and reappeared across subsequent Annihilation, Armageddon, and Apocalypse seasons. Because it is event exclusive and untradeable, it does not appear on the Grand Exchange after the season ends."
+  market_strategy:
+    notes:
+      - "Untradeable, so listed alch and value are reference only."
+      - "Acquired via Deadman point shops during temporary seasons."
+      - "Resource sigils dominate early Deadman skilling pivots."
+  trading_tips:
+    - Plan attunement before the season ends, you cannot unlock it later.
+    - Prioritise this sigil for skilling alts in Deadman events.
+    - Carry an unattuned spare only if your build needs late season flexibility.
+  history:
+    - date: "2021-08-25"
+      description: "Released with Deadman: Reborn."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

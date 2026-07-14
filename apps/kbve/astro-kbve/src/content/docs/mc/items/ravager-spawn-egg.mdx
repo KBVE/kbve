@@ -1,5 +1,6 @@
 ---
 title: Ravager Spawn Egg
+template: splash
 description: |
     Minecraft Ravager Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1116
     ref: ravager_spawn_egg
     slug: ravager-spawn-egg
+    content_rev: 1
     display_name: Ravager Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Ravager Spawn Egg is a Creative-mode item used to instantly spawn a
+            ravager, the large hostile illager beast, by using it on a block
+            surface. It is only obtainable through the Creative inventory or
+            commands.
+        lore: |
+            Unlike naturally spawned ravagers that sometimes carry an illager rider,
+            ravagers created from a spawn egg never appear being ridden.
+    faq:
+        - question: How do I get a Ravager Spawn Egg?
+          answer: |
+              It cannot be obtained in Survival; it is only available in the
+              Creative inventory or via the /give command.
+        - question: Does the spawned ravager have a rider?
+          answer: |
+              No, ravagers spawned from the egg never appear being ridden by an
+              illager, unlike some naturally-occurring ones.
+        - question: Can I use the egg on a spawner or existing mob?
+          answer: |
+              Yes, spawn eggs can set a monster spawner's mob type, or be used on a
+              matching adult mob to spawn a baby version if applicable.
+        - question: Can dispensers use spawn eggs?
+          answer: |
+              Yes, a dispenser loaded with a spawn egg will spawn the mob directly
+              in front of it, consuming the egg.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

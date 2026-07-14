@@ -1,5 +1,6 @@
 ---
 title: Bamboo Mosaic
+template: splash
 description: |
     Minecraft Bamboo Mosaic — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 24
     ref: bamboo_mosaic
     slug: bamboo-mosaic
+    content_rev: 1
     display_name: Bamboo Mosaic
     material: wood
     hardness: 2
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_mosaic
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Bamboo Mosaic is a decorative wood block with a woven
+            crosshatch pattern, crafted by stacking two Bamboo Slabs. It
+            behaves like other wooden blocks and serves as a premium
+            building material and furnace fuel.
+        lore: |
+            Announced at Minecraft Live 2022, Bamboo Mosaic released in
+            the 1.20 Trails & Tales update as the decorative anchor of the
+            bamboo wood set.
+    uses:
+        - title: Bamboo Mosaic Slab
+          ref: bamboo_mosaic_slab
+          detail: |
+              3 Bamboo Mosaic blocks craft into 6 Bamboo Mosaic Slabs for
+              half-height detailing.
+        - title: Bamboo Mosaic Stairs
+          ref: bamboo_mosaic_stairs
+          detail: |
+              6 Bamboo Mosaic blocks craft into 4 Bamboo Mosaic Stairs for
+              sloped surfaces and roofing.
+    found_in:
+        - location: Player crafting only
+          detail: Crafted from 2 Bamboo Slabs stacked vertically; does not generate naturally.
+    faq:
+        - question: What tool do I need to mine Bamboo Mosaic?
+          answer: |
+              None — any tool or bare hands work, though an axe is fastest.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops itself regardless of enchantments.
+        - question: Does it burn in fire?
+          answer: |
+              Yes, it is flammable and can be used as furnace fuel like
+              other wood blocks.
+        - question: Where does Bamboo Mosaic come from?
+          answer: |
+              It is renewable but crafting-only — stack 2 Bamboo Slabs
+              vertically in a crafting grid to make one Bamboo Mosaic.
     data_version: "1.21.5"
 ---
 

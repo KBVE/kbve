@@ -1,6 +1,6 @@
 ---
 title: Skeletal boots | OSRS Price Data
-description: "Skeletal boots: Some finely crafted Fremennik boots, made from the bones of a wallasalki.. High alch: 390 GP, GE limit: 125."
+description: "Skeletal boots: Some finely crafted Fremennik boots, made from the bones of a wallasalki. High alch: 390 GP, GE limit: 125."
 osrs:
   id: 6147
   name: Skeletal boots
@@ -12,9 +12,81 @@ osrs:
   lowalch: 260
   highalch: 390
   limit: 125
-  about: "Skeletal boots is a members-only item in Old School RuneScape. High alchemy value: 390 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bone
+    tier: mid
+  equipment:
+    slot: feet
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Wallasalki
+        quantity: "1"
+        rarity: 2/128
+  related_items:
+    - item_id: 6145
+      item_name: Skeletal helm
+      slug: skeletal-helm
+      relationship: set-piece
+      description: Helmet of the skeletal Fremennik set.
+    - item_id: 6143
+      item_name: Skeletal top
+      slug: skeletal-top
+      relationship: set-piece
+      description: Body piece of the skeletal Fremennik set.
+    - item_id: 6141
+      item_name: Skeletal bottoms
+      slug: skeletal-bottoms
+      relationship: set-piece
+      description: Legs of the skeletal Fremennik set.
+    - item_id: 6149
+      item_name: Skeletal gloves
+      slug: skeletal-gloves
+      relationship: set-piece
+      description: Gloves of the skeletal Fremennik set.
+  about: "Skeletal boots are a Fremennik foot slot drop from wallasalkis on Waterbirth Island, part of the skeletal armour set with mage-friendly footwear bonuses."
+  market_strategy:
+    notes:
+      - Tight 125 buy limit creates persistent supply scarcity
+      - Demand spikes whenever mage-friendly set cosmetics trend
+  history:
+    - date: "2005-08-01"
+      description: Released alongside the Waterbirth Island update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-01"
+    update: "Waterbirth Island"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

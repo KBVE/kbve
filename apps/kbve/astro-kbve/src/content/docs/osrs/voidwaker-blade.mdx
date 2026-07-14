@@ -1,6 +1,6 @@
 ---
 title: Voidwaker blade | OSRS Price Data
-description: "Voidwaker blade: The blade of a broken sword.. High alch: 480,000 GP, GE limit: 8."
+description: "Voidwaker blade: The blade of a broken sword. High alch: 480,000 GP, GE limit: 8."
 osrs:
   id: 27684
   name: Voidwaker blade
@@ -12,9 +12,80 @@ osrs:
   lowalch: 320000
   highalch: 480000
   limit: 8
-  about: "Voidwaker blade is a members-only item in Old School RuneScape. High alchemy value: 480,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: weapon-component
+    tier: high
+  drop_table:
+    sources:
+      - source: "Vet'ion"
+        quantity: "1"
+        rarity: "1/360"
+      - source: "Calvar'ion"
+        quantity: "1"
+        rarity: "1/912"
+  recipes:
+    - name: Voidwaker assembly
+      skill: None
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Voidwaker blade
+          quantity: 1
+        - item_name: Voidwaker hilt
+          quantity: 1
+        - item_name: Voidwaker gem
+          quantity: 1
+        - item_name: Coins
+          quantity: 500000
+      tools: []
+      notes: Combined by Madam Sikaro in Ferox Enclave Dungeon to assemble the Voidwaker.
+  related_items:
+    - item_id: 27687
+      item_name: Voidwaker hilt
+      slug: voidwaker-hilt
+      relationship: component
+      description: Companion piece dropped by Callisto.
+    - item_id: 27681
+      item_name: Voidwaker gem
+      slug: voidwaker-gem
+      relationship: component
+      description: Companion piece dropped by Venenatis.
+    - item_id: 27690
+      item_name: Voidwaker
+      slug: voidwaker
+      relationship: product
+      description: The completed weapon assembled from all three pieces.
+  about: One of three Voidwaker components dropped by Wilderness bosses; combined with the hilt and gem to assemble the Voidwaker.
+  market_strategy:
+    notes:
+      - Demand follows Voidwaker assembly costs
+      - Wilderness boss supply throttles volume
+  trading_tips:
+    - Watch for spikes after Wilderness boss reworks or PvP events
+    - Compare against full Voidwaker price minus hilt and gem
+  history:
+    - date: "2023-01-25"
+      description: Released with the Wilderness Boss Rework update.
+    - date: "2023-02-02"
+      description: No longer converts to coins upon Wilderness death.
+  properties:
+    release_date: "2023-01-25"
+    update: Wilderness Boss Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Inspect
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

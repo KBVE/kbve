@@ -12,9 +12,67 @@ osrs:
   lowalch: 52
   highalch: 78
   limit: 6000
-  about: "Cooked chompy is a members-only item in Old School RuneScape. High alchemy value: 78 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 10
+    bites: 1
+  recipes:
+    - skill: cooking
+      level: 30
+      xp: 100
+      materials:
+        - item_name: Skewered chompy
+          item_id: 2876
+          quantity: 1
+      tools:
+        - Any fire or range
+      product: Cooked chompy
+      product_id: 2878
+      product_quantity: 1
+      facility: Fire or range
+      members_only: true
+  related_items:
+    - item_id: 2876
+      item_name: Skewered chompy
+      slug: skewered-chompy
+      relationship: component
+      description: Raw skewered chompy used for cooking
+    - item_id: 2877
+      item_name: Chompy
+      slug: chompy
+      relationship: component
+      description: Raw chompy bird meat
+  about: "Cooked chompy heals 10 Hitpoints and is created by cooking a skewered chompy at level 30 Cooking, granting 100 XP. The heavy 10 kg weight makes hunting near Castle Wars practical."
+  market_strategy:
+    notes:
+      - Heaviest food tied with cooked jubbly
+      - Cooked by chompy hunters
+      - Niche use due to weight
+  trading_tips:
+    - Supply driven by chompy hunter activity
+    - Limited demand outside Big Chompy Bird Hunting content
+  history:
+    - date: "2004-05-18"
+      description: Released with the Big Chompy Bird Hunting update.
+    - date: "2005-06-06"
+      description: Item value increased from 10 to 130 coins.
+  properties:
+    release_date: "2004-05-18"
+    update: Big Chompy Bird Hunting
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Big Chompy Bird Hunting
+    weight: 10
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

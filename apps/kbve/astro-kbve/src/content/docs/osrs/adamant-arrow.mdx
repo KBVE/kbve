@@ -12,6 +12,56 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 11000
+  family_ref:
+    family_slug: adamant-arrow
+    role: base
+  family:
+    slug: adamant-arrow
+    name: Adamant arrow
+    type: poison
+    canonical_id: 890
+    members:
+    - id: 890
+      slug: adamant-arrow
+      name: Adamant arrow
+      icon: Adamant arrow 5.png
+      role: base
+      dose: null
+      value: 80
+      lowalch: 32
+      highalch: 48
+    - id: 891
+      slug: adamant-arrow-p
+      name: Adamant arrow(p)
+      icon: Adamant arrow(p) 5.png
+      role: poison
+      dose: null
+      value: 80
+      lowalch: 32
+      highalch: 48
+    - id: 5620
+      slug: adamant-arrow-p-5620
+      name: Adamant arrow(p+)
+      icon: Adamant arrow(p+) 5.png
+      role: poison
+      dose: null
+      value: 80
+      lowalch: 32
+      highalch: 48
+    - id: 5626
+      slug: adamant-arrow-p-5626
+      name: Adamant arrow(p++)
+      icon: Adamant arrow(p++) 5.png
+      role: poison
+      dose: null
+      value: 80
+      lowalch: 32
+      highalch: 48
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ammo
+    tier: mid
   equipment:
     slot: ammo
     type: arrow
@@ -21,30 +71,39 @@ osrs:
   stats:
     other:
       ranged_strength: 31
-  fletching:
-    level: 60
-    xp: 10
-    method: Adamant arrowtips + headless arrows
+  recipes:
+    - skill: fletching
+      level: 60
+      xp: 10
+      materials:
+        - item_name: Adamant arrowtips
+          quantity: 1
+        - item_name: Headless arrow
+          quantity: 1
+      tools: []
+      output_quantity: 1
   drop_table:
     sources:
       - source: Ankou
         source_id: 2514
         combat_level: 75
-        quantity: 5-15
+        quantity: "5-15"
         rarity: common
       - source: Steel dragon
         source_id: 274
         combat_level: 246
-        quantity: 20-50
+        quantity: "20-50"
         rarity: common
         members_only: true
   shops:
-    - shop_name: Lowe's Archery Emporium
+    - shop_name: "Lowe's Archery Emporium"
       location: Varrock
       price: 160
-    - shop_name: Brian's Archery Supplies
+      stock: 0
+    - shop_name: "Brian's Archery Supplies"
       location: Rimmington
       price: 160
+      stock: 0
   related_items:
     - item_id: 892
       item_name: Rune arrow
@@ -78,8 +137,13 @@ osrs:
     Used with any shortbow or longbow.
 
     Mid-tier arrow for training and combat.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - "Steady demand from Ranged trainers between mithril and rune tiers"
+      - "Fletching margin depends on arrowtip and headless arrow prices"
+  trading_tips:
+    - "Buy limit 11,000 per 4 hours"
+    - "Shop price 160 gp at Lowe's and Brian's archery shops"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

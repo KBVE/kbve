@@ -1,5 +1,6 @@
 ---
 title: Tuff Stairs
+template: splash
 description: |
     Minecraft Tuff Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 945
     ref: tuff_stairs
     slug: tuff-stairs
+    content_rev: 1
     display_name: Tuff Stairs
     material: stone
     hardness: 1.5
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tuff_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Tuff Stairs are a decorative stair variant of tuff, letting
+            players build sloped surfaces and staircases that match tuff's
+            gray, mottled stone look. They can be placed in any of the
+            standard stair orientations and waterlogged like other stairs.
+        lore: |
+            Added alongside the wider tuff block family in the Trails &
+            Tales update (Java Edition 1.21, snapshot 24w18a).
+    uses:
+        - title: Tuff
+          ref: tuff
+          detail: |
+              Crafted from 6 Tuff blocks in a stair shape, or produced
+              1-for-1 from Tuff at a Stonecutter for a cheaper conversion.
+    found_in:
+        - location: Crafting table or Stonecutter
+          detail: Not naturally generated; obtained only by crafting or cutting Tuff blocks.
+    faq:
+        - question: What tool do I need to mine Tuff Stairs?
+          answer: |
+              Any pickaxe. There is no minimum tier — even a wooden pickaxe
+              drops the block.
+        - question: Do Tuff Stairs drop themselves when mined?
+          answer: |
+              Yes, with any pickaxe, with or without Silk Touch.
+        - question: How do I get Tuff Stairs?
+          answer: |
+              Craft 6 Tuff blocks in a staircase pattern, or cut a single
+              Tuff block at a Stonecutter for a 1:1 conversion.
+        - question: Can Tuff Stairs be waterlogged?
+          answer: |
+              Yes, like other stair blocks they can hold water when placed
+              underwater or filled with a water bucket.
     data_version: "1.21.5"
 ---
 

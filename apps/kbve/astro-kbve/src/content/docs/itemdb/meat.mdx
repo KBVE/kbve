@@ -1,5 +1,9 @@
 ---
 title: 'Meat'
+template: splash
+sidebar:
+    label: 'Meat'
+    hidden: true
 description: |
     Dark red cut of game meat, dense and faintly gamy through the paper it was wrapped in, edges already darkening toward brown within the first hour off the spit. Heavier in the hand than farm-raised cuts, and noticeably warmer to the touch when fresh.
 lore: |
@@ -17,6 +21,8 @@ buy_price: 4
 pool_group: 'food'
 food:
   restore_energy: 12
+  regen_per_second: 3
+  regen_duration: 6
   perishable: true
   shelf_life_seconds: 86400
   spoils_into_ref: 'rotten-meat'

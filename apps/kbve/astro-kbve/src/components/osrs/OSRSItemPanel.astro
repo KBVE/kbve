@@ -15,11 +15,15 @@ import OSRSGatheringInfo from './OSRSGatheringInfo.astro';
 import OSRSMarketStrategy from './OSRSMarketStrategy.astro';
 import OSRSTradingTips from './OSRSTradingTips.astro';
 import OSRSItemTrivia from './OSRSItemTrivia.astro';
+import OSRSFaq from './OSRSFaq.astro';
+import OSRSLore from './OSRSLore.astro';
+import OSRSItemFamily from './OSRSItemFamily.astro';
 import OSRSShops from './OSRSShops.astro';
 import OSRSUsedIn from './OSRSUsedIn.astro';
 import OSRSHistory from './OSRSHistory.astro';
 import OSRSItemJsonLd from './OSRSItemJsonLd.astro';
 import OSRSDisclaimer from './OSRSDisclaimer.astro';
+import OSRSAdsenseSlot from './OSRSAdsenseSlot.astro';
 import { getUsedInIndex } from '@/data/osrs-used-in-index';
 import type {
 	OSRSExtended,
@@ -44,6 +48,9 @@ import {
 	hasUsedIn,
 	hasHistory,
 	hasItemTrivia,
+	hasFaq,
+	hasLore,
+	hasFamily,
 } from '@/data/schema';
 
 type OSRSItemData = OSRSExtended;
@@ -85,6 +92,10 @@ const showTradingTips = hasTradingTips(item);
 const showShops = hasShopSources(item);
 const showHistory = hasHistory(item);
 const showTrivia = hasItemTrivia(item);
+const showFaq = hasFaq(item);
+const showLore = hasLore(item);
+const showFamily = hasFamily(item);
+const aboutData = typeof item.about === 'object' ? item.about : undefined;
 
 let usedInEntries: OSRSUsedInEntry[] | undefined;
 if (hasUsedIn(item)) {
@@ -212,11 +223,13 @@ const showUsedIn = (usedInEntries?.length ?? 0) > 0;
 				<span class="osrs-section__dot"></span>
 				<h4 class="osrs-section__title">Live GE Prices</h4>
 			</div>
-			<OSRSPriceWidget itemId={item.id} client:load />
+			<OSRSPriceWidget itemId={item.id} client:visible />
 		</div>
 
 		<!-- Price History Chart — full width -->
-		<OSRSCharts itemId={item.id} client:load />
+		<OSRSCharts itemId={item.id} client:visible />
+
+		<OSRSAdsenseSlot />
 
 		<!-- Bento Grid: cards flow into responsive columns -->
 		<div class="osrs-bento">
@@ -228,7 +241,17 @@ const showUsedIn = (usedInEntries?.length ?? 0) > 0;
 							text={getAboutText(item)!}
 							name={item.name}
 							examine={item.examine}
+							sections={aboutData?.sections}
 						/>
+					</div>
+				)
+			}
+
+			<!-- Family variants (consolidated graphs) -->
+			{
+				showFamily && item.family && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSItemFamily family={item.family} />
 					</div>
 				)
 			}
@@ -374,6 +397,24 @@ const showUsedIn = (usedInEntries?.length ?? 0) > 0;
 				showTradingTips && item.trading_tips && (
 					<div class="osrs-bento__item">
 						<OSRSTradingTips tips={item.trading_tips} />
+					</div>
+				)
+			}
+
+			<!-- Trivia / Lore -->
+			{
+				showLore && item.trivia && (
+					<div class="osrs-bento__item">
+						<OSRSLore trivia={item.trivia} name={item.name} />
+					</div>
+				)
+			}
+
+			<!-- FAQ -->
+			{
+				showFaq && item.faq && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSFaq faq={item.faq} name={item.name} />
 					</div>
 				)
 			}

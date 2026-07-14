@@ -1,5 +1,6 @@
 ---
 title: Cauldron
+template: splash
 description: |
     Minecraft Cauldron — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1065
     ref: cauldron
     slug: cauldron
+    content_rev: 1
     display_name: Cauldron
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A cauldron is an iron block crafted from seven iron ingots that can hold
+            water, lava, or powder snow. It lets players dye or clean leather armor,
+            wash dye off items, clean banners, and serves as a leatherworker villager
+            workstation.
+        lore: |
+            Cauldrons were Minecraft's original potion-brewing vessel before the
+            brewing stand replaced that role, leaving them as multi-purpose utility
+            blocks.
+    faq:
+        - question: How do you craft a cauldron?
+          answer: |
+              Arrange seven iron ingots in a U-shape on a crafting table — three across
+              the bottom, one on each side, and one on each top corner.
+        - question: Can a cauldron hold more than one liquid at a time?
+          answer: |
+              No, adding an incompatible liquid such as lava or a potion to a
+              water-filled cauldron simply empties it instead of mixing.
+        - question: Do cauldrons fill up on their own?
+          answer: |
+              Yes, they slowly collect water during rain if empty or partially filled,
+              at roughly 5% the rate that snow accumulates.
+        - question: Can a cauldron dye my leather armor?
+          answer: |
+              In Bedrock Edition yes — dye colored water in a cauldron and dip leather
+              armor in it, or use plain water to strip dye back off.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

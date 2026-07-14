@@ -12,12 +12,88 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 5
-  about: "Twisted trousers (t1) is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2020-01-16"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: League hall
+      price: 1000
+      currency: League points
+      stock: 1
+  related_items:
+    - item_name: Twisted hat (t1)
+      slug: twisted-hat-t1
+      relationship: set-piece
+      description: Head slot of the tier 1 Twisted Relic Hunter outfit
+    - item_name: Twisted coat (t1)
+      slug: twisted-coat-t1
+      relationship: set-piece
+      description: Body slot of the tier 1 Twisted Relic Hunter outfit
+    - item_name: Twisted boots (t1)
+      slug: twisted-boots-t1
+      relationship: set-piece
+      description: Feet slot of the tier 1 Twisted Relic Hunter outfit
+    - item_name: Twisted trousers (t2)
+      slug: twisted-trousers-t2
+      relationship: upgrade
+      description: Tier 2 cosmetic upgrade of the same outfit
+  about: |-
+    Twisted trousers (t1) is the tier 1 leg slot piece of the Twisted Relic Hunter outfit set, a cosmetic reward from the Twisted League. It can be purchased from the Leagues Reward Shop for 1,000 League points and provides no combat bonuses.
+
+    The outfit can be stored in costume room armour cases or displayed on League hall outfit stands. Available for both male and female character models.
+  market_strategy:
+    notes:
+      - "Pure cosmetic with zero combat stats"
+      - "Buy limit of 5 keeps supply tight relative to demand"
+      - "Often paired with the rest of the t1 set for collectors"
+  history:
+    - date: "2020-01-16"
+      description: "Twisted trousers (t1) added to the Twisted League Reward Shop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

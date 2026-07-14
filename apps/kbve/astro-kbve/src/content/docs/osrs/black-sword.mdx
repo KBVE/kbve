@@ -1,6 +1,6 @@
 ---
 title: Black sword | OSRS Price Data
-description: "Black sword: A razor sharp sword.. High alch: 374 GP, GE limit: 125."
+description: "Black sword is a free-to-play sword requiring 10 Attack. High alch: 374 GP, GE limit: 125."
 osrs:
   id: 1283
   name: Black sword
@@ -12,26 +12,99 @@ osrs:
   lowalch: 249
   highalch: 374
   limit: 125
-  item_id: 1283
-  item_type: equipment
-  slot: weapon
-  type: sword
-  attack_style: stab
-  attack_speed: 4
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 10
-  stats:
-    stab_attack: 14
-    slash_attack: 10
-    crush_attack: -2
-    strength: 12
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2001-12-08"
+    update: RuneScape Beta release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  equipment:
+    slot: weapon
+    weapon_type: sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 14
+      slash: 10
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Varrock Swordshop
+      location: Varrock
+      price: 624
+      stock: 3
+      members_only: false
+    - shop_name: Warrior Guild Armoury
+      location: Warriors' Guild
+      price: 748
+      stock: 3
+      members_only: true
+    - shop_name: Briget's Weapons
+      location: Shayzien
+      price: 624
+      stock: 3
+      members_only: true
   related_items:
-    - slug: mithril-sword
-    - slug: black-scimitar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1295
+      item_name: Mithril sword
+      slug: mithril-sword
+      relationship: upgrade
+      description: "Next-tier one-handed sword"
+    - item_id: 1281
+      item_name: Black scimitar
+      slug: black-scimitar
+      relationship: alternative
+      description: "Faster black-tier slash weapon"
+    - item_id: 1285
+      item_name: Black longsword
+      slug: black-longsword
+      relationship: alternative
+      description: "Longer reach black sword variant"
+  market_strategy:
+    notes:
+      - "Trader Notes"
+      - "Stocked by three shops; rarely worth flipping above shop price"
+      - "Strength bonus makes it a budget pick for low-level pures"
+      - "Free-to-play accessible, capped by 125 GE limit per four hours"
+      - "F2P demand: thin but steady from early-game accounts"
+      - "Watch for league/event spikes on starter weapons"
+  history:
+    - date: "2001-12-08"
+      update: Beta era release
+      description: "Black sword added alongside the original black equipment set."
+    - date: "2004-03-29"
+      update: RuneScape 2 graphical update
+      description: "Sword received an updated model during the RS2 transition."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

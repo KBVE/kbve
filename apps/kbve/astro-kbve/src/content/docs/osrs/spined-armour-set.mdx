@@ -12,9 +12,62 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: null
-  about: "Spined armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dagannoth hide
+    tier: mid
+  properties:
+    release_date: "2025-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Grand Exchange Sets
+      location: Grand Exchange
+      price: 0
+      currency: coins
+      stock: 0
+  related_items:
+    - item_name: Spined helm
+      slug: spined-helm
+      relationship: set-piece
+      description: "Head slot piece of the Spined Ranged armour set."
+    - item_name: Spined body
+      slug: spined-body
+      relationship: set-piece
+      description: "Body slot piece of the Spined Ranged armour set."
+    - item_name: Spined chaps
+      slug: spined-chaps
+      relationship: set-piece
+      description: "Legs slot piece of the Spined Ranged armour set."
+    - item_name: Spined boots
+      slug: spined-boots
+      relationship: set-piece
+      description: "Boots slot piece of the Spined Ranged armour set."
+    - item_name: Spined gloves
+      slug: spined-gloves
+      relationship: set-piece
+      description: "Hands slot piece of the Spined Ranged armour set."
+  about: "Spined armour set bundles the full five-piece Spined Ranged armour into a single tradeable item via the Grand Exchange sets exchange. High alchemy value: 87,000 coins."
+  market_strategy:
+    notes:
+      - "Convenient single-trade purchase for Fremennik Ranged kits before Dagannoth Kings."
+      - "Set premium fluctuates with the lower-volume pieces, especially the Spined helm."
+  trading_tips:
+    - "Compare the set price to the sum of individual components before buying; the set frequently trades above intrinsic value."
+  history:
+    - date: "2025-08-20"
+      description: "Added as a Grand Exchange item set bundling all five Spined armour pieces."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

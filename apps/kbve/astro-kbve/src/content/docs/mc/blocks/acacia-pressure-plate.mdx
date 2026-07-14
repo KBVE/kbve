@@ -1,5 +1,6 @@
 ---
 title: Acacia Pressure Plate
+template: splash
 description: |
     Minecraft Acacia Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 252
     ref: acacia_pressure_plate
     slug: acacia-pressure-plate
+    content_rev: 1
     display_name: Acacia Pressure Plate
     material: redstone
     hardness: 0.5
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Acacia Pressure Plate is a redstone component that emits a
+            signal when a player, mob, or item lands on it. It is crafted
+            from two acacia planks and checks for entities every game tick
+            while active.
+        lore: |
+            Wooden pressure plates react to any entity, unlike stone
+            plates which only trigger for players and mobs.
+    uses:
+        - title: Redstone Circuit
+          ref: redstone_dust
+          detail: |
+              Placed atop doors, traps, or mob farms to trigger mechanisms
+              when stepped on, sending a signal strength of 15.
+        - title: Furnace Fuel
+          ref: charcoal
+          detail: |
+              Being a wooden item, it can be burned in a furnace as fuel,
+              smelting 1.5 items per plate.
+    found_in:
+        - location: Savanna villages
+          detail: Generates in some savanna village buildings and trial chambers.
+        - location: Crafted from Acacia Planks
+          detail: Two acacia planks craft one acacia pressure plate.
+    faq:
+        - question: What is the best tool to mine Acacia Pressure Plate?
+          answer: |
+              An axe breaks it fastest, though any tool or bare hands will
+              still drop it.
+        - question: Does it require a specific tool tier?
+          answer: |
+              No. It always drops when broken, regardless of tool.
+        - question: Does Silk Touch or Fortune affect its drop?
+          answer: |
+              No. It always drops itself as a single item.
+        - question: What triggers an Acacia Pressure Plate?
+          answer: |
+              Any entity — players, mobs, items, or arrows — landing on
+              top of it activates a redstone signal.
     data_version: "1.21.5"
 ---
 

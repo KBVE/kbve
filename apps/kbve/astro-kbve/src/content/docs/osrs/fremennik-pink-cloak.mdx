@@ -12,9 +12,71 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik pink cloak is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Fremennik cyan cloak
+      slug: fremennik-cyan-cloak
+      relationship: variant
+      description: Another colour variant of the Fremennik cloak
+    - item_name: Fremennik blue cloak
+      slug: fremennik-blue-cloak
+      relationship: variant
+      description: Another colour variant of the Fremennik cloak
+    - item_name: Fremennik red cloak
+      slug: fremennik-red-cloak
+      relationship: variant
+      description: Another colour variant of the Fremennik cloak
+  about: "The Fremennik pink cloak is one of eleven colourful cloaks representing the latest fashion in Rellekka. Sold by Rasolo the wandering merchant without quest requirements (unlike the other Fremennik cloaks sold by Yrsa, which require The Fremennik Trials), it provides cape-slot defence bonuses identical to a standard cape."
+  market_strategy:
+    notes:
+      - "Niche fashionscape buyers drive most demand"
+      - "Low buy limit keeps swings sharp"
+      - "Alch margin is thin against GE price"
+  history:
+    - date: "2004-11-02"
+      description: "Released alongside The Fremennik Trials."
+    - date: "2014-12-10"
+      description: "Renamed from 'Fremennik cloak' to 'Fremennik pink cloak'."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

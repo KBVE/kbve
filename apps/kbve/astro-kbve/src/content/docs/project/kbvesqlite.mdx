@@ -1,7 +1,7 @@
 ---
-title: KBVESQLite
-description: |
-    SQLite embedded database plugin for Unreal Engine.
+title: KBVESQLite — Embedded SQLite Database Plugin for Unreal
+description: KBVESQLite is an embedded SQLite database plugin for Unreal Engine, vendoring the sqlite3 amalgamation with an RAII connection, statement, and key/value store.
+sem: 1
 sidebar:
     label: KBVESQLite
     order: 93
@@ -23,8 +23,98 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVESQLite plugin?
+          answer: KBVESQLite wraps SQLite as an embedded database plugin for Unreal Engine, bundling a vendored sqlite3 amalgamation with a thin RAII wrapper so consumers never touch raw sqlite3 calls. It exposes FKBVESQLiteConnection, FKBVESQLiteStatement, and a scoped key/value FKBVESettingsStore.
+        - question: Why must KBVESQLite be the single SQLite provider?
+          answer: Consumers must never also link the engine's SQLiteCore in the same module, because duplicate sqlite3 symbols crash the build and run. KBVESQLite is the one sqlite provider for KBVE code.
+        - question: How should KBVESQLite be used in a Mass game loop?
+          answer: It is a persistence boundary, not a Mass hot-loop datasource. A single connection is not thread-safe; WAL allows many readers and one writer across separate connections, so you load at boundaries, keep the working set in memory or Mass fragments, and flush asynchronously.
+bento:
+    badge: unreal · database
+    title: Embedded SQLite for
+    accent: KBVESQLite
+    lede: >-
+        An embedded SQLite database plugin for Unreal Engine — a vendored
+        sqlite3 amalgamation plus a thin RAII wrapper so consumers never touch
+        raw sqlite3_* calls.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVESQLite
+          primary: true
+          external: true
+        - label: Access seam
+          href: "#features"
+        - label: Rules
+          href: "#rules"
+    aside:
+        icon: alert
+        title: One sqlite provider
+        body: >-
+            Never link the engine's <code>SQLiteCore</code> in the same module —
+            duplicate <code>sqlite3_*</code> symbols crash the build and run.
+            KBVESQLite is the single sqlite provider for KBVE code.
+        points:
+            - <strong>Not a Mass hot-loop datasource</strong> — a persistence boundary only.
+            - <strong>WAL</strong> — many readers + one writer across separate connections.
+    stats:
+        - { label: SQLite, value: "3.51.3", icon: database }
+        - { label: Min engine, value: UE 5.4, icon: box }
+        - { label: Platforms, value: Win · Linux · Mac, icon: gears }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: FKBVESQLiteConnection
+          icon: database
+          body: 'RAII connection: <code>Open(path, bUseWAL)</code> / <code>Close</code> / <code>Exec</code> / <code>Prepare</code> / <code>Begin</code> / <code>Commit</code> / <code>Rollback</code>.'
+        - title: FKBVESQLiteStatement
+          icon: code
+          body: 'RAII prepared statement: <code>Bind*</code>, <code>Step</code> / <code>Execute</code> / <code>Reset</code>, <code>Column*</code> accessors.'
+        - title: FKBVESettingsStore
+          icon: settings
+          body: Scoped key/value prefs on a connection (<code>kv_settings(scope, key, value)</code>, UPSERT) — typed Set/Get String, Int, Float, Bool plus RemoveKey and LoadScope. Agnostic settings persistence; UI is KBVEUI's job.
+    features_heading: Access seam
+    related:
+        - title: KBVEItemDB
+          href: /project/kbveitemdb/
+          copy: Item database and inventory plugin that persists through KBVESQLite.
+          icon: inventory
+        - title: KBVEZstd
+          href: /project/kbvezstd/
+          copy: Compression plugin in the same Unreal plugin family.
+          icon: package
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-KBVESQLite wraps SQLite as an embedded database plugin for Unreal Engine.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="rules" eyebrow="Integration" heading="Rules & consumers">
+
+Add `KBVESQLite` to your module's `PrivateDependencyModuleNames` and
+`dependency_plugins: packages/unreal/KBVESQLite` to your ci-registry entry so the
+CI plugin build stages it.
+
+### Rules
+
+- **Single sqlite provider** — never link the engine's `SQLiteCore` in the same
+  module; duplicate `sqlite3_*` symbols crash the build/run.
+- **Persistence boundary, not a Mass hot-loop datasource** — one connection is not
+  thread-safe; WAL gives many readers + one writer across separate connections.
+  Load at boundaries, keep the working set in memory/Mass fragments, flush async.
+
+Consumers: `FKBVEWorldChunkCache` (KBVEWorld), `FKBVEInventoryStore` +
+`FKBVEItemCatalogStore` (KBVEItemDB), `FKBVESettingsStore` (chuck `UchuckSettings`
+window geometry, `Saved/KBVE/settings.db`).
+
+</BentoProse>
+
+</BentoDoc>

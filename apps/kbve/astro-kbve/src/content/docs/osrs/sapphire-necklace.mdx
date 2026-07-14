@@ -1,59 +1,113 @@
 ---
 title: Sapphire necklace | OSRS Price Data
-description: "Sapphire necklace is a F2P neck slot item. High alch: 630 GP, GE limit: 18,000."
+description: "Sapphire necklace is a F2P neck slot item enchantable into the Games necklace. High alch: 630 GP, GE limit: 18,000."
 osrs:
   id: 1656
   name: Sapphire necklace
   slug: sapphire-necklace
-  examine: I wonder if this is valuable.
+  examine: "I wonder if this is valuable."
   members: false
   icon: Sapphire necklace.png
   value: 1050
   lowalch: 420
   highalch: 630
   limit: 18000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sapphire
+    tier: low
+  properties:
+    release_date: "2001-12-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
+    weapon_type: none
+    weight: 0.01
     requirements:
       crafting: 22
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 22
       xp: 55
-      inputs:
+      materials:
         - item_name: Sapphire
           quantity: 1
         - item_name: Gold bar
           quantity: 1
+      tools:
+        - Necklace mould
+      facility: Furnace
       output_quantity: 1
+    - skill: magic
+      level: 7
+      xp: 17.5
+      materials:
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
+      output_quantity: 1
+      product: Games necklace(8)
+      notes: "Lvl-1 Enchant transforms the necklace into a Games necklace with 8 teleport charges."
   related_items:
     - item_id: 1658
       item_name: Emerald necklace
       slug: emerald-necklace
       relationship: upgrade
-      description: Next tier necklace
+      description: "Next-tier necklace in the gem progression"
+    - item_id: 3853
+      item_name: Games necklace(8)
+      slug: games-necklace-8
+      relationship: product
+      description: "Enchanted form with 8 teleport charges to minigame locations"
   about: |-
-    Crafting (Level 22): Sapphire + Gold bar at a furnace with necklace mould (55 XP)
+    > _"I wonder if this is valuable."_
 
-    > *"A sapphire necklace."*
-
-    Lvl-1 Enchant (7 Magic): 1 cosmic rune + 1 water rune (17.5 XP)
-
-    The Games necklace provides 8 teleport charges to minigame locations:
-    - Burthorpe — games room, Warriors' Guild area
-    - Barbarian Outpost — Barbarian Assault
-    - Corporeal Beast lair entrance
-    - Wintertodt Camp — Firemaking training
-    - Tears of Guthix cavern
-
-    The Wintertodt and Corporeal Beast teleports make this one of the most useful budget teleport items.
+    Sapphire necklace is the entry-tier gem necklace in Old School RuneScape, crafted at 22 Crafting from a sapphire, a gold bar and a necklace mould at any furnace for 55 XP. Its main purpose is to be enchanted by the Lvl-1 Enchant spell (7 Magic, 1 cosmic + 1 water rune) into a Games necklace, which provides 8 charges of teleports to Burthorpe, Barbarian Outpost, Corporeal Beast lair, Wintertodt Camp, and the Tears of Guthix cavern.
   market_strategy:
     notes:
-      - Games necklace consumed after 8 charges — steady demand
-      - Wintertodt access drives most demand
-      - Very cheap to enchant
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Games necklace consumed after 8 charges — steady demand"
+      - "Wintertodt access drives most demand"
+      - "Very cheap to enchant — high gp/hr for enchanters"
+  trading_tips:
+    - "Watch sapphire and gold bar prices for crafting margin"
+    - "Buy unenchanted, enchant in bulk, sell as Games necklace(8) for steady profit"
+  history:
+    - date: "2001-12-17"
+      description: "Released alongside the original gem necklace crafting chain."
+    - date: "2003-05-27"
+      description: "Lvl-1 Enchant added, transforming this into the Games necklace."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

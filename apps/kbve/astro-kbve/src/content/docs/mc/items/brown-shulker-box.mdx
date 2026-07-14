@@ -1,5 +1,6 @@
 ---
 title: Brown Shulker Box
+template: splash
 description: |
     Minecraft Brown Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 565
     ref: brown_shulker_box
     slug: brown-shulker-box
+    content_rev: 1
     display_name: Brown Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The brown shulker box is a portable storage block dyed with brown dye, holding
+            27 inventory slots that stay intact when the box is broken or moved. It behaves
+            identically to other colored shulker boxes aside from its appearance.
+        lore: |
+            A shell-born container that carries its contents through the Overworld unharmed, no matter how many times it's dropped.
+    faq:
+        - question: |
+              How do I make a brown shulker box?
+          answer: |
+              Craft an undyed shulker box from a shulker shell and a chest, then combine it
+              with brown dye in a crafting grid to color it.
+        - question: |
+              Does breaking a brown shulker box drop its items?
+          answer: |
+              No, the box's contents remain stored inside the dropped item rather than
+              spilling out, unlike a regular chest.
+        - question: |
+              How much can a brown shulker box hold?
+          answer: |
+              It has 27 inventory slots, the same capacity as a chest or barrel, and can be
+              nested inside another inventory for extra storage.
+        - question: |
+              Is it safe to open a shulker box near piglins?
+          answer: |
+              No, piglins become hostile toward players who open or mine any shulker box,
+              including the brown variant.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -8,17 +8,20 @@ members = [
 	'packages/rust/jedi',
 	'apps/kbve/kilobase',
 	'packages/rust/q',
-	'apps/godot/nexus-defense/server',
 'apps/herbmail/axum-herbmail',
 	'apps/memes/axum-memes',
 	'apps/irc/irc-gateway',
 	'apps/discordsh/axum-discordsh',
 	'apps/discordsh/discordsh-bot',
 	'apps/kbve/axum-kbve',
+	'apps/kbve/kbve-gate',
 	'apps/chuckrpg/axum-chuckrpg',
+	'apps/rentearth/axum-rentearth',
 	'apps/rareicon/axum-rareicon',
 	'apps/cryptothrone/axum-cryptothrone',
 	'apps/rows',
+	'apps/jobboard',
+	'apps/metrics',
 	'apps/kbve/isometric/src-tauri',
 	'apps/kbve/desktop-kbve/src-tauri',
 	'packages/rust/bevy/bevy_inventory',
@@ -27,6 +30,7 @@ members = [
 	'packages/rust/bevy/bevy_cam',
 	'packages/rust/bevy/bevy_kbve_net',
 	'packages/rust/bevy/bevy_items',
+	'packages/rust/bevy/bevy_spells',
 	'packages/rust/bevy/bevy_npc',
 	'packages/rust/bevy/bevy_mapdb',
 	'packages/rust/bevy/bevy_quests',
@@ -38,25 +42,27 @@ members = [
 	'packages/rust/bevy/bevy_pathfinder',
 	'packages/rust/bevy/bevy_behavior',
 	'apps/vm/firecracker-ctl',
+	'apps/vm/factorio-ctl',
 	'apps/vm/kubectl',
 	'apps/mc/behavior_statetree',
 	'apps/mc/mc_auth',
 	'packages/rust/bevy/uniti',
 	'apps/agones/factorio/relay',
+	'packages/rust/simgrid',
+	'apps/agones/cryptothrone/server',
+	'apps/agones/arpg/server',
+	'packages/rust/kbve_wgpu',
 ]
 
 exclude = [
 	'packages/rust/bevy/uniti/fuzz',
 ]
 
+[workspace.package]
+rust-version = "1.96"
+
 [profile.dev]
 opt-level = 1
-
-[profile.dev.overrides.kilobase]
-panic = 'unwind'
-
-[profile.dev.overrides.isometric-game]
-panic = 'unwind'
 
 [profile.release]
 opt-level = 3
@@ -64,21 +70,3 @@ lto = true
 strip = true
 codegen-units = 1
 panic = 'abort'
-
-[profile.release.overrides.kilobase]
-panic = 'unwind'
-opt-level = 3
-lto = 'fat'
-codegen-units = 1
-
-[profile.release.overrides.isometric-game]
-panic = 'unwind'
-opt-level = 3
-lto = 'fat'
-codegen-units = 1
-
-[profile.release.overrides.uniti]
-panic = 'unwind'
-opt-level = 3
-lto = 'fat'
-codegen-units = 1

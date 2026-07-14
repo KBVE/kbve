@@ -1,5 +1,6 @@
 ---
 title: Light Blue Shulker Box
+template: splash
 description: |
     Minecraft Light Blue Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 556
     ref: light_blue_shulker_box
     slug: light-blue-shulker-box
+    content_rev: 1
     display_name: Light Blue Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Light Blue Shulker Box is a dyeable storage block offering 27 inventory slots, the same
+            capacity as a chest. Its defining feature is that it keeps its contents intact when broken,
+            dropping as a single item that can be picked up and placed elsewhere without losing anything
+            inside. This makes it a favorite tool for players who need portable storage.
+        lore: |
+            The box's design and behavior were inspired by the shulkers of the End, the creatures whose
+            shells are required to craft it.
+    faq:
+        - question: How do you craft a Light Blue Shulker Box?
+          answer: |
+              Combine two shulker shells with one chest, then dye the resulting shulker box light blue
+              at a crafting table.
+        - question: Does breaking a Light Blue Shulker Box destroy its contents?
+          answer: |
+              No, the box keeps its inventory intact and drops as a single item that can be picked up
+              and reopened later.
+        - question: How many slots does it have?
+          answer: |
+              It has 27 storage slots, matching the capacity of a standard chest or barrel.
+        - question: Can a dyed shulker box be undyed?
+          answer: |
+              Yes, placing a dyed shulker box in a cauldron with water removes the color, returning it
+              to the plain undyed variant.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

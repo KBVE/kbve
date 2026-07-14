@@ -12,9 +12,85 @@ osrs:
   lowalch: 39200
   highalch: 58800
   limit: 8
-  about: "Uncharged trident (e) is a members-only item in Old School RuneScape. High alchemy value: 58,800 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Trident
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: powered_staff
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      magic: 75
+    attack_bonus:
+      magic: 15
+    defence_bonus:
+      magic: 15
+  charges:
+    max_charges: 20000
+    charge_type: casts
+    per_charge_cost:
+      - item_name: Death rune
+        quantity: 1
+      - item_name: Chaos rune
+        quantity: 1
+      - item_name: Fire rune
+        quantity: 5
+      - item_name: Coins
+        quantity: 10
+  recipes:
+    - skill: None
+      level: 0
+      experience: 0
+      materials:
+        - item_name: Uncharged trident
+          quantity: 1
+        - item_name: Kraken tentacle
+          quantity: 10
+      tools: []
+      facilities:
+        - Lieve McCracken
+      output_quantity: 1
+  related_items:
+    - name: Uncharged trident
+      relationship: component
+    - name: Trident of the seas (e)
+      relationship: product
+    - name: Kraken tentacle
+      relationship: component
+    - name: Uncharged toxic trident (e)
+      relationship: upgrade
+  about: "Uncharged trident (e) is the enhanced empty variant of the trident of the seas, created by Lieve McCracken from an uncharged trident and 10 kraken tentacles. It holds up to 20,000 charges (eight times the base trident) and must be charged with death runes, chaos runes, fire runes, and coins before it can attack."
+  market_strategy:
+    notes:
+      - Kraken tentacle cost dominates total price
+      - Higher charge cap appeals to long-session PvMers
+      - Pathway item toward toxic trident upgrade
+  trading_tips:
+    - Compare cost vs base trident + tentacles for arbitrage
+    - Watch kraken tentacle supply for ripple effects
+  history:
+    - date: "2018-02-08"
+      description: Released with the PvM QoL updates.
+  properties:
+    release_date: "2018-02-08"
+    update: PvM QoL updates
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,0 +1,97 @@
+{
+	"name": "kbve-react-native",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/kbve/kbve-react-native",
+	"projectType": "application",
+	"tags": ["scope:mobile", "type:app"],
+	"implicitDependencies": ["rn"],
+	"targets": {
+		"start": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo start"
+			}
+		},
+		"ios": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo start --ios"
+			}
+		},
+		"android": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo start --android"
+			}
+		},
+		"web": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo start --web"
+			}
+		},
+		"export": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo export -p all --output-dir dist"
+			}
+		},
+		"prebuild": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo prebuild"
+			}
+		},
+		"run:ios": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo run:ios"
+			}
+		},
+		"run:android": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo run:android"
+			}
+		},
+		"build:native:ios": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"cwd": "apps/kbve/kbve-react-native",
+				"commands": [
+					"npx nx run kbve_wgpu:build:ios",
+					"expo prebuild --clean -p ios",
+					"expo run:ios"
+				]
+			}
+		},
+		"build:native:android": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"cwd": "apps/kbve/kbve-react-native",
+				"commands": [
+					"npx nx run kbve_wgpu:build:android",
+					"expo prebuild --clean -p android",
+					"expo run:android"
+				]
+			}
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p apps/kbve/kbve-react-native/tsconfig.json"
+			}
+		}
+	}
+}

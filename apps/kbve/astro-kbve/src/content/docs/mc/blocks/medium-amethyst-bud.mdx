@@ -1,5 +1,6 @@
 ---
 title: Medium Amethyst Bud
+template: splash
 description: |
     Minecraft Medium Amethyst Bud — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 941
     ref: medium_amethyst_bud
     slug: medium-amethyst-bud
+    content_rev: 1
     display_name: Medium Amethyst Bud
     material: stone
     hardness: 1.5
@@ -24,10 +26,54 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: medium_amethyst_bud
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Medium Amethyst Bud is the second of four growth stages that
+            budding amethyst passes through, sitting between the small bud
+            and the large bud. It glows faintly and grows on the exposed
+            faces of budding amethyst blocks inside geodes.
+        lore: |
+            Introduced with amethyst geodes in the Caves & Cliffs update
+            (1.17), the growth stages simulate a crystal slowly forming
+            over time.
+    uses:
+        - title: Grows Into Large Bud
+          ref: large_amethyst_bud
+          detail: |
+              Left alone on budding amethyst, a medium bud eventually
+              receives enough random ticks to progress into a large bud and
+              finally a full amethyst cluster.
+    found_in:
+        - location: Amethyst Geodes
+          detail: Generates on budding amethyst faces inside geode pockets underground.
+    faq:
+        - question: Can I harvest a Medium Amethyst Bud without Silk Touch?
+          answer: |
+              No, breaking it without Silk Touch destroys the bud with no
+              drop; only a Silk Touch tool retrieves the block.
+        - question: What tool should I use?
+          answer: |
+              A pickaxe mines it fastest, though it can technically be
+              broken by hand since it requires no minimum tool tier.
+        - question: Will it keep growing if I leave it?
+          answer: |
+              Yes, on budding amethyst it randomly progresses from small to
+              medium to large bud and finally to a mature amethyst cluster.
+        - question: Does it emit light?
+          answer: |
+              Yes, medium buds emit a light level of 2, brighter than small
+              buds but dimmer than large buds and clusters.
     data_version: "1.21.5"
 ---
 

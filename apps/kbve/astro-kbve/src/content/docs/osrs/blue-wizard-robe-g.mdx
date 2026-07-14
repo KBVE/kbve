@@ -12,30 +12,77 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: Drop
   equipment:
     slot: body
+    weight: 0.907
     requirements: {}
     attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
       magic: 3
+      ranged: 0
     defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
       magic: 3
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 7394
-      item_name: Blue wizard hat (g)
+    - item_name: Blue wizard hat (g)
       slug: blue-wizard-hat-g
       relationship: set-piece
-      description: Matching gold-trimmed wizard hat
-    - item_id: 7392
-      item_name: Blue wizard robe (t)
+      description: Matching gold-trimmed wizard hat.
+    - item_name: Blue wizard robe (t)
       slug: blue-wizard-robe-t
       relationship: variant
-      description: Trimmed variant
+      description: Trimmed cloth variant.
+    - item_name: Blue wizard robe
+      slug: blue-wizard-robe
+      relationship: variant
+      description: Standard untrimmed base robe.
   about: |-
-    > *"I can do magic better in this."*
+    The Blue wizard robe (g) is a gold-trimmed cosmetic variant of the standard blue wizard robe and a reward from easy clue scrolls. It offers the same +3 Magic attack and +3 Magic defence as the base robe, so the gold trim is purely a fashion-scape upgrade.
 
-    The blue wizard robe (g) is a gold-trimmed cosmetic variant of the standard blue wizard robe. It provides identical stats (+3 magic attack and defence) but with decorative gold trim. No requirements to equip, making it popular with pure accounts. F2P item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Both free and members players can equip it without any skill requirements, which keeps it popular on pure accounts and on low-level magic-styled players who want a clean cosmetic without trading away any combat power.
+  market_strategy:
+    notes:
+      - "Tiny buy limit of 4 makes price spikes common on new clue updates."
+      - "Cosmetic demand keeps long-term value above untrimmed version."
+      - "Easy clue supply is steady but not abundant."
+      - "Trade volume is thin — verify recent sales before listing."
+  trading_tips:
+    - Pair with the matching hat (g) for a small set premium.
+    - Avoid undercutting by GE minimum — listings sit for days.
+  history:
+    - date: "2006-02-20"
+      description: "Added as a reward from easy Treasure Trails."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

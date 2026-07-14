@@ -12,9 +12,76 @@ osrs:
   lowalch: 90
   highalch: 135
   limit: 4
-  about: "Orange boater is a members-only item in Old School RuneScape. High alchemy value: 135 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Orange boater is a cosmetic straw hat headwear obtained as a reward from medium Treasure Trails. Part of the boater color set with no combat bonuses. High alchemy value: 135 coins. Grand Exchange buy limit: 4 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    equipable: true
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.01
+  material:
+    type: cloth
+    tier: cosmetic
+  equipment:
+    slot: head
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    rarity: "1/1,133"
+  drop_table:
+    - source: "Medium Clue Casket"
+      quantity: "1"
+      rarity: "1/1,133"
+  market_strategy:
+    notes:
+      - "flip_potential: \"low\""
+      - "Cosmetic clue reward with steady fashionscape demand across the boater color set."
+  trading_tips:
+    - "Compare orange boater spread against other color variants for fashionscape arbitrage."
+    - "Stock during medium clue events when supply spikes briefly."
+  history:
+    - date: "2006-02-20"
+      description: "Released as a medium Treasure Trail reward."
+  relationships:
+    - item_name: Black boater
+      relationship: variant
+    - item_name: Blue boater
+      relationship: variant
+    - item_name: Green boater
+      relationship: variant
+    - item_name: Red boater
+      relationship: variant
+    - item_name: Pink boater
+      relationship: variant
+    - item_name: Purple boater
+      relationship: variant
+    - item_name: White boater
+      relationship: variant
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: metrics
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/metrics
+        kbve.com/manifest-path: apps/kube/metrics/manifest
+        kbve.com/application-file: kube/metrics/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: observability
+        kbve.com/stack: core
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: HEAD
+        path: apps/kube/metrics/manifest
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kbve
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - PrunePropagationPolicy=foreground
+            - PruneLast=true
+            - RespectIgnoreDifferences=true
+            - Replace=false

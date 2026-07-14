@@ -12,9 +12,54 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 40
-  about: "Gardening trowel is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    role: Required tool to fill plant pots with earth and to plant tree seeds in plant pots.
+  shops:
+    - shop_name: Heskel's Farming Store
+      location: Falador
+      price: 12
+    - shop_name: Sarah's Farming Shop
+      location: North Ardougne
+      price: 12
+    - shop_name: Farming Guild stock
+      location: Farming Guild
+      price: 12
+    - shop_name: Catherby farming sellers
+      location: Catherby
+      price: 12
+  about: "Essential Farming tool used to fill plant pots with earth before planting tree seeds; stocked across most farming shops for 12 coins and exempt from GE convenience fees."
+  market_strategy:
+    notes:
+      - Shop-stocked at unlimited stock; rarely worth GE flipping
+      - High alch of 7 coins is below value, never alch
+      - Exempt from GE convenience fees since 2021
+  trading_tips:
+    - Buy direct from any farming shop for 12 gp
+    - Bank a noted stack for tree runs to skip shop trips
+  history:
+    - date: "2005-06-06"
+      description: Added to the game cache ahead of the Farming release.
+    - date: "2005-07-11"
+      description: Made obtainable with Farming; examine set and value raised from 3 to 12 coins.
+    - date: "2021-12-09"
+      description: Exempted from Grand Exchange convenience fees.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

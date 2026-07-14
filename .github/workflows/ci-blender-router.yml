@@ -1,0 +1,215 @@
+name: CI - Blender Router
+
+run-name: 'CI - Blender / ${{ inputs.task }} ${{ inputs.app_name }} (${{ inputs.lfs_backend }})'
+
+# Dispatch entry point. Validates inputs, resolves the LFS backend, then hands
+# off to the reusable ci-blender-flow.yml builder which runs headless Blender on
+# the self-hosted mac-blender runner.
+
+on:
+    workflow_dispatch:
+        inputs:
+            task:
+                description: 'render | export | batch-export | script | validate'
+                required: true
+                type: choice
+                default: validate
+                options:
+                    - render
+                    - export
+                    - batch-export
+                    - script
+                    - validate
+            app_name:
+                description: 'Project name or identifier'
+                required: false
+                type: string
+                default: 'blender-project'
+            lfs_backend:
+                description: 'Where the object lives'
+                required: true
+                type: choice
+                default: forgejo
+                options:
+                    - forgejo
+                    - azure
+            object_glob:
+                description: '[forgejo] LFS include path to smudge (e.g. apps/foo/assets)'
+                required: false
+                type: string
+                default: ''
+            external_repo_url:
+                description: '[azure] Azure DevOps repo URL (host/org/_git/repo, no https://)'
+                required: false
+                type: string
+                default: ''
+            external_ref:
+                description: '[azure] branch/ref to clone'
+                required: false
+                type: string
+                default: 'main'
+            blend_file:
+                description: 'Path to .blend file (relative to repo root, or external_path for azure)'
+                required: false
+                type: string
+                default: ''
+            output_path:
+                description: 'Output directory for renders/exports'
+                required: false
+                type: string
+                default: '/tmp/blender-output'
+            script_path:
+                description: '[script] Path to Python script to execute'
+                required: false
+                type: string
+                default: ''
+            render_engine:
+                description: '[render] CYCLES | BLENDER_EEVEE | BLENDER_WORKBENCH'
+                required: false
+                type: choice
+                default: CYCLES
+                options:
+                    - CYCLES
+                    - BLENDER_EEVEE
+                    - BLENDER_WORKBENCH
+            render_device:
+                description: '[render] CPU | GPU'
+                required: false
+                type: choice
+                default: GPU
+                options:
+                    - CPU
+                    - GPU
+            render_format:
+                description: '[render] Output format'
+                required: false
+                type: choice
+                default: PNG
+                options:
+                    - PNG
+                    - JPEG
+                    - OPEN_EXR
+                    - TIFF
+            frame_range:
+                description: '[render] Frame range (e.g. "1", "1-100", "1,5,10")'
+                required: false
+                type: string
+                default: '1'
+            samples:
+                description: '[render] Render samples (overrides blend file)'
+                required: false
+                type: string
+                default: ''
+            resolution_scale:
+                description: '[render] Resolution % (50, 100, etc.)'
+                required: false
+                type: string
+                default: '100'
+            export_format:
+                description: '[export] FBX | GLTF | OBJ | USD | ALEMBIC | STL'
+                required: false
+                type: choice
+                default: FBX
+                options:
+                    - FBX
+                    - GLTF
+                    - OBJ
+                    - USD
+                    - ALEMBIC
+                    - STL
+            export_selection_only:
+                description: '[export] Export selected objects only'
+                required: false
+                type: boolean
+                default: false
+            export_apply_modifiers:
+                description: '[export] Apply modifiers on export'
+                required: false
+                type: boolean
+                default: true
+
+permissions:
+    contents: read
+
+jobs:
+    resolve:
+        name: Resolve dispatch
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - name: Validate LFS backend inputs
+              run: |
+                  echo "task=${{ inputs.task }} backend=${{ inputs.lfs_backend }} app=${{ inputs.app_name }}"
+                  case "${{ inputs.lfs_backend }}" in
+                    forgejo)
+                      if [ -z "${{ inputs.object_glob }}" ]; then
+                        echo "::error::object_glob required for forgejo backend (the LFS path to pull)"
+                        exit 1
+                      fi ;;
+                    azure)
+                      if [ -z "${{ inputs.external_repo_url }}" ]; then
+                        echo "::error::external_repo_url required for azure backend"
+                        exit 1
+                      fi ;;
+                    *)
+                      echo "::error::unknown lfs_backend: ${{ inputs.lfs_backend }}"; exit 1 ;;
+                  esac
+                  if [ "${{ inputs.task }}" != "validate" ] && [ "${{ inputs.task }}" != "script" ] && [ -z "${{ inputs.blend_file }}" ]; then
+                    echo "::error::blend_file required for task ${{ inputs.task }}"
+                    exit 1
+                  fi
+
+    flow:
+        name: Blender flow
+        needs: resolve
+        uses: ./.github/workflows/ci-blender-flow.yml
+        with:
+            task: ${{ inputs.task }}
+            app_name: ${{ inputs.app_name }}
+            lfs_backend: ${{ inputs.lfs_backend }}
+            object_glob: ${{ inputs.object_glob }}
+            external_repo_url: ${{ inputs.external_repo_url }}
+            external_ref: ${{ inputs.external_ref }}
+            blend_file: ${{ inputs.blend_file }}
+            output_path: ${{ inputs.output_path }}
+            script_path: ${{ inputs.script_path }}
+            render_engine: ${{ inputs.render_engine }}
+            render_device: ${{ inputs.render_device }}
+            render_format: ${{ inputs.render_format }}
+            frame_range: ${{ inputs.frame_range }}
+            samples: ${{ inputs.samples }}
+            resolution_scale: ${{ inputs.resolution_scale }}
+            export_format: ${{ inputs.export_format }}
+            export_selection_only: ${{ inputs.export_selection_only }}
+            export_apply_modifiers: ${{ inputs.export_apply_modifiers }}
+        secrets: inherit
+
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs: [resolve, flow]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Blender Router'
+            job_name: ${{ inputs.app_name }}
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
+
+    track_success:
+        name: Track Success
+        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+        needs: [resolve, flow]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Blender Router'
+            job_name: ${{ inputs.app_name }}
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'success'

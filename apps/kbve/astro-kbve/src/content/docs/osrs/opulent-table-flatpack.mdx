@@ -12,9 +12,68 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Opulent table (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: flatpack
+    tier: mid
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 72
+      xp: 3100
+      materials:
+        - item_name: Mahogany plank
+          quantity: 6
+        - item_name: Bolt of cloth
+          quantity: 4
+        - item_name: Gold leaf
+          quantity: 4
+        - item_name: Marble block
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Primary plank used to make this flatpack
+    - item_name: Marble block
+      slug: marble-block
+      relationship: component
+      description: High-tier material required for the build
+    - item_name: Gold leaf
+      slug: gold-leaf
+      relationship: component
+      description: Decorative material consumed by the flatpack
+  about: "Opulent table (flatpack) is a members-only Construction product made at a bench with vice in a workshop. Crafting requires 72 Construction and rewards 3,100 XP per flatpack. Most players make these for experience rather than profit, as material costs vastly exceed the Grand Exchange resale price."
+  market_strategy:
+    notes:
+      - "Costs roughly 1.16 million coins in materials to craft"
+      - "Resale price is far below crafting cost"
+      - "Made primarily for Construction experience, not profit"
+      - "Mahogany plank and marble block prices drive crafting break-even"
+  trading_tips:
+    - "Compare current marble block and gold leaf prices before committing to a flatpacking session"
+    - "Track Construction training bonuses or DXP events that shift demand"
+  history:
+    - date: "2006-05-31"
+      description: "Released alongside the Construction skill flatpack expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

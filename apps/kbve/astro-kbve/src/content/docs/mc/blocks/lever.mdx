@@ -1,5 +1,6 @@
 ---
 title: Lever
+template: splash
 description: |
     Minecraft Lever — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 245
     ref: lever
     slug: lever
+    content_rev: 1
     display_name: Lever
     material: redstone
     hardness: 0.5
     blast_resistance: 0.5
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lever
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            The Lever is a manually toggled redstone power source. Right-
+            clicking flips it on or off, strongly powering the block it is
+            attached to and sending a full-strength signal through adjacent
+            redstone dust, repeaters, and comparators.
+        lore: |
+            Notch floated the idea of levers in May 2009, and they debuted
+            in Java Edition Alpha v1.0.1 as one of the earliest redstone
+            components.
+    uses:
+        - title: Redstone Power Source
+          ref: redstone
+          detail: |
+              Toggling a Lever powers connected redstone wire, doors,
+              pistons, and other mechanisms for as long as it stays on.
+        - title: Trapdoor and Door Switch
+          ref: trapdoor
+          detail: |
+              Commonly placed beside doors or trapdoors as a manual on/off
+              control that does not reset like a button.
+    found_in:
+        - location: Crafted
+          detail: Made from one Stick and one Cobblestone at a crafting table.
+        - location: Villages and structures
+          detail: Occasionally found pre-placed near village or structure mechanisms.
+    faq:
+        - question: What tool do I need to mine a Lever?
+          answer: |
+              None required. Any tool or bare hands break it, and it always
+              drops itself.
+        - question: How do I craft a Lever?
+          answer: |
+              Combine one Stick and one Cobblestone at a crafting table to
+              produce a single Lever.
+        - question: Does a Lever stay powered after breaking it?
+          answer: |
+              No, breaking a powered Lever removes the redstone signal
+              immediately, just like turning it off.
+        - question: Can a Lever be waterlogged?
+          answer: |
+              In Bedrock Edition, yes; in Java Edition, Levers cannot be
+              waterlogged.
     data_version: "1.21.5"
 ---
 

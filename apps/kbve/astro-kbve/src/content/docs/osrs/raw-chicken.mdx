@@ -1,6 +1,6 @@
 ---
 title: Raw chicken | OSRS Price Data
-description: "Raw chicken: I need to cook this first.. High alch: 1 GP, GE limit: 13,000."
+description: "Raw chicken: I need to cook this first. High alch: 0 GP, GE limit: 13,000."
 osrs:
   id: 2138
   name: Raw chicken
@@ -9,12 +9,80 @@ osrs:
   members: false
   icon: Raw chicken.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: 0
+  highalch: 0
   limit: 13000
-  about: "Raw chicken is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Raw chicken is a free-to-play food item in Old School RuneScape, primarily obtained as a drop from chickens and roosters. It is the raw form of cooked chicken and is used in cooking training as well as several quests."
+  properties:
+    release_date: "2001-12-08"
+    update: Runescape Launched
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.17
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Chicken
+        quantity: "1"
+        rarity: Always
+      - source: Rooster
+        quantity: "1"
+        rarity: Always
+      - source: Evil Chicken
+        quantity: "1"
+        rarity: Always
+  shops:
+    - shop_name: Wydin's Food Store
+      location: Port Sarim
+      stock: 5
+      price: 1
+      restock_time: 60
+    - shop_name: Rufus' Meat Emporium
+      location: Canifis
+      stock: 10
+      price: 1
+      restock_time: 60
+  recipes:
+    - name: Cooked chicken
+      skill: Cooking
+      level: 1
+      experience: 30
+      materials:
+        - item_name: Raw chicken
+          quantity: 1
+      tools:
+        - Fire or Range
+      output_quantity: 1
+  related_items:
+    - name: Cooked chicken
+      relationship: product
+    - name: Burnt chicken
+      relationship: alternative
+    - name: Raw rabbit
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "Raw chicken has a high buy limit (13,000) making it suitable for bulk cooking training."
+      - "Prices fluctuate based on Cooking training demand from low-level players."
+  trading_tips:
+    - "Buy raw chickens in bulk for fast Cooking XP from level 1-34."
+    - "Compare cost vs. cooked chicken price to evaluate profit/loss from cooking."
+    - "Can be obtained free by killing chickens in Lumbridge."
+  history:
+    - date: "2001-12-08"
+      description: "Raw chicken added to the game alongside the chicken NPC."
+    - date: "2007-02-26"
+      description: "Item became available on the Grand Exchange."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,0 +1,61 @@
+# Longhorn RecurringJobs — automated block-level space reclaim for Forgejo LFS.
+#
+# Context (issue #12793, follow-up from #11930): deleting LFS objects in ext4
+# does NOT unmap the underlying blocks, so freed space stays pinned in the
+# Longhorn volume/snapshot chain until a filesystem trim runs. Forgejo's
+# scheduled gc_lfs cron (apps/kube/forgejo/application.yaml) frees the files;
+# these jobs return the actual disk.
+#
+# SCOPING — these jobs run ONLY on volumes labeled into the "forgejo-reclaim"
+# group, NOT the built-in "default" group. The default group is auto-applied by
+# Longhorn to every volume in the cluster (~46 here, incl. 200-322Gi database
+# volumes), so a default-group snapshot/trim would fan out cluster-wide. We bind
+# only the Forgejo LFS volume (PVC gitea-shared-storage /
+# pvc-0d5edbf3-53e5-4b1f-8cf2-b28359844f73) with:
+#
+#   kubectl -n longhorn-system label volume \
+#     pvc-0d5edbf3-53e5-4b1f-8cf2-b28359844f73 \
+#     recurring-job-group.longhorn.io/forgejo-reclaim=enabled
+#
+# That label lives on the CSI-created Volume CR (not in git). It must be
+# re-applied if the PVC is ever recreated — see the runbook in
+# apps/kube/forgejo/README.md.
+#
+# trim relies on defaultSettings.removeSnapshotsDuringFilesystemTrim=true
+# (values.yaml) to also reclaim space trapped in the snapshot chain. That global
+# setting only has an effect while a volume is being trimmed, and forgejo-reclaim
+# is the only scheduled trim, so its practical blast radius is the LFS volume.
+---
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+    name: forgejo-filesystem-trim-weekly
+    namespace: longhorn-system
+spec:
+    # Sunday 03:00 — after the weekly Forgejo gc_lfs run has freed the files.
+    cron: "0 3 * * 0"
+    task: filesystem-trim
+    groups:
+        - forgejo-reclaim
+    concurrency: 1
+    # filesystem-trim produces no snapshots/backups, so retain is irrelevant; 0.
+    retain: 0
+    labels:
+        kbve.com/managed-by: argocd
+---
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+    name: forgejo-snapshot-weekly
+    namespace: longhorn-system
+spec:
+    # Saturday 02:00 — a safety point before the Sunday trim so cleanups are
+    # recoverable without taking manual snapshots (issue #12793, optional item).
+    cron: "0 2 * * 6"
+    task: snapshot
+    groups:
+        - forgejo-reclaim
+    concurrency: 1
+    retain: 2
+    labels:
+        kbve.com/managed-by: argocd

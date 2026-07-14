@@ -8,7 +8,31 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["src/*"],
-			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"]
+			"@kbve/astro": ["../../../packages/npm/astro/src/index.ts"],
+			"@kbve/astro/ui": ["../../../packages/npm/astro/src/ui.ts"],
+			"@kbve/astro/components/*": [
+				"../../../packages/npm/astro/src/components/*"
+			],
+			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"],
+			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"],
+			"@kbve/observ": ["../../../packages/npm/observ/src/index.ts"],
+			"@kbve/laser/ecs": ["../../../packages/npm/laser/src/ecs.ts"],
+			"@kbve/chat/gamechat": [
+				"../../../packages/npm/chat/src/gamechat.ts"
+			],
+			"@kbve/itemdb-data": [
+				"../../../packages/data/codegen/generated/itemdb.json"
+			],
+			"@kbve/itemdb-schema": [
+				"../../../packages/data/codegen/generated/itemdb-schema.ts"
+			],
+			"@kbve/npcdb-data": [
+				"../../../packages/data/codegen/generated/npcdb-data.json"
+			],
+			"@kbve/npcdb": ["../../../packages/data/codegen/npcdb.ts"],
+			"@kbve/npcdb-schema": [
+				"../../../packages/data/codegen/generated/npcdb-schema.ts"
+			]
 		}
 	}
 }

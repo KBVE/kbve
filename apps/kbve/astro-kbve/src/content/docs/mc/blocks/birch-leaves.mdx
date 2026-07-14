@@ -1,5 +1,6 @@
 ---
 title: Birch Leaves
+template: splash
 description: |
     Minecraft Birch Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 90
     ref: birch_leaves
     slug: birch-leaves
+    content_rev: 1
     display_name: Birch Leaves
     material: leaves
     hardness: 0.2
@@ -24,11 +26,71 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: birch_sapling
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: stick
+          qty_min: 0
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: birch_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Birch Leaves are the fragile foliage blocks generated on birch
+            trees, transparent to light and prone to decaying once cut off
+            from a connected log. They are the only leaf type that never
+            drops apples.
+        lore: |
+            Leaves decay in Java Edition to discourage leaving floating tree
+            canopies after logging, pushing players toward full tree removal
+            or Silk Touch harvesting.
+    uses:
+        - title: Sapling Farming
+          ref: birch_sapling
+          detail: |
+              Breaking leaves by hand has a small chance to drop a Birch
+              Sapling, which can be replanted to grow new birch trees.
+        - title: Composting
+          ref: birch_leaves
+          detail: |
+              Leaves can be placed in a composter for a 30% chance to raise
+              the compost level by one, a low-value but plentiful compost
+              source.
+    found_in:
+        - location: Birch trees
+          detail: Generates as the canopy of every birch tree in birch forest and related biomes.
+        - location: Player-grown from Birch Saplings
+          detail: Planting and growing a Birch Sapling produces a new tree with matching leaves.
+    faq:
+        - question: What tool should I use on Birch Leaves?
+          answer: |
+              Shears or a Silk Touch tool if you want the leaf block itself;
+              a hoe breaks them fastest otherwise, though any tool works.
+        - question: Do Birch Leaves ever drop apples?
+          answer: |
+              No. Only oak and dark oak leaves have a chance to drop apples;
+              birch leaves never do.
+        - question: Why did the leaves above my cut tree disappear?
+          answer: |
+              Leaves not within 6 blocks of a connected log or wood block
+              decay automatically after a short delay in Java Edition.
+        - question: Does Fortune help when breaking Birch Leaves?
+          answer: |
+              Yes. Fortune increases the chance of sapling and stick drops,
+              though it has no effect if you use Silk Touch instead.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

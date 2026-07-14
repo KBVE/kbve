@@ -1,5 +1,6 @@
 ---
 title: Crimson Slab
+template: splash
 description: |
     Minecraft Crimson Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 844
     ref: crimson_slab
     slug: crimson-slab
+    content_rev: 1
     display_name: Crimson Slab
     material: nether
     hardness: 2
@@ -24,10 +26,55 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Crimson Slab is a half-height building block cut from Crimson
+            Stems. Unlike most wood, it does not burn — a quirk of nylium
+            and fungus wood in the Nether that lets it survive lava and
+            fire without protection.
+        lore: |
+            Added with the Nether Update (1.16) alongside the rest of the
+            crimson wood set, themed around the Crimson Forest biome.
+    uses:
+        - title: Building & Detailing
+          ref: crimson_slab
+          detail: |
+              Used for half-height steps, edging on crimson wood builds,
+              and paired with stairs for smoother rooflines. Two slabs of
+              the same type stacked in the same space form a full block.
+    found_in:
+        - location: Crafted from Crimson Planks
+          detail: Three crimson planks in a horizontal row yield six crimson slabs at a crafting table.
+        - location: Bastion Remnants
+          detail: Occasionally used as decoration in bastion remnant structures built from crimson wood.
+    faq:
+        - question: What tool do I need to mine a Crimson Slab?
+          answer: |
+              Any tool works, including bare hands. An axe is fastest, but
+              there is no minimum tool tier requirement.
+        - question: Does Crimson Slab burn in fire or lava?
+          answer: |
+              No. Crimson and Warped wood variants are non-flammable in
+              Java Edition, unlike every other wood type in the game.
+        - question: What does mining a Crimson Slab drop?
+          answer: |
+              It always drops itself — one slab per mined slab, regardless
+              of enchantments like Fortune or Silk Touch.
+        - question: Can I combine two slabs into a full block?
+          answer: |
+              Yes. Placing a second matching slab into the same half-block
+              space creates a full Crimson Planks-textured double slab.
     data_version: "1.21.5"
 ---
 

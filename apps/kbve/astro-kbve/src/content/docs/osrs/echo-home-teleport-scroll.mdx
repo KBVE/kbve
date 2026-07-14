@@ -1,6 +1,6 @@
 ---
 title: Echo home teleport scroll | OSRS Price Data
-description: "Echo home teleport scroll: A scroll which unlocks the Raging Echoes Home Teleport animation.. High alch: 15,000 GP."
+description: "Echo home teleport scroll: A scroll which unlocks the Raging Echoes Home Teleport animation. High alch: 15,000 GP."
 osrs:
   id: 30453
   name: Echo home teleport scroll
@@ -12,9 +12,55 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: null
-  about: "Echo home teleport scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: scroll
+    tier: high
+  properties:
+    release_date: "2025-01-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  passive_effects:
+    - name: Cosmetic unlock
+      description: "Permanently unlocks the Raging Echoes Home Teleport animation override on read"
+  related_items:
+    - item_name: Echo death scroll
+      slug: echo-death-scroll
+      relationship: alternative
+      description: "Sibling Raging Echoes Leagues cosmetic scroll"
+    - item_name: Echo NPC contact scroll
+      slug: echo-npc-contact-scroll
+      relationship: alternative
+      description: "Another Leagues animation unlock from the same shop"
+  about: |-
+    > _"A scroll which unlocks the Raging Echoes Home Teleport animation."_
+
+    The echo home teleport scroll permanently unlocks an animation override for the Home Teleport spell. Purchasable from the Leagues Reward Shop at Lumbridge Castle for 1,000 League Points after participating in the Raging Echoes League. Tradeable on the GE until consumed, after which the unlock is bound to the account.
+  market_strategy:
+    notes:
+      - "Cosmetic demand from Leagues completionists drives most volume"
+      - "No GE buy limit on this item"
+      - "Not alchable, so price floor is purely cosmetic demand"
+  trading_tips:
+    - "Stock tends to spike post-Leagues then taper"
+    - "Compare against sibling Echo scroll prices for relative value"
+  history:
+    - date: "2024-11-27"
+      description: "Added to the game alongside the Raging Echoes League announcement"
+    - date: "2025-01-15"
+      description: "Became obtainable when Raging Echoes rewards went live"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

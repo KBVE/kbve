@@ -294,6 +294,13 @@ function refundForBuilding(b: Building): number {
 	return Math.floor(value * 0.5);
 }
 
+type NexusAuraObject = Phaser.GameObjects.GameObject & {
+	setDepth(depth: number): NexusAuraObject;
+	setBlendMode(mode: number): NexusAuraObject;
+	setAlpha(alpha: number): NexusAuraObject;
+	offset: number;
+};
+
 export class TowerDefenseScene extends Phaser.Scene {
 	private path!: GeneratedPath;
 	private world!: World;
@@ -637,12 +644,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private placementRange!: Phaser.GameObjects.Arc;
 	private placementCoverage!: Phaser.GameObjects.Graphics;
 	private grassController: GrassController | null = null;
-	private nexusAura:
-		| (Phaser.GameObjects.GameObject & {
-				setAlpha(alpha: number): unknown;
-				offset: number;
-		  })
-		| null = null;
+	private nexusAura: NexusAuraObject | null = null;
 	private cameraPauseBlur: unknown = null;
 	private hoverRangeIndicator: Phaser.GameObjects.Arc | null = null;
 	private hoverRangeOwner: Building | null = null;
@@ -1139,12 +1141,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				y: number,
 				width: number,
 				height: number,
-			) => Phaser.GameObjects.GameObject & {
-				setDepth(depth: number): unknown;
-				setAlpha(alpha: number): unknown;
-				setBlendMode(mode: number): unknown;
-				offset: number;
-			};
+			) => unknown;
 		};
 		if (typeof factory.gradient !== 'function') return;
 		const size = TILE * 5;
@@ -1177,7 +1174,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			cy,
 			size,
 			size,
-		);
+		) as unknown as NexusAuraObject;
 		aura.setDepth(baseDepth - 1)
 			.setBlendMode(Phaser.BlendModes.ADD)
 			.setAlpha(0.85);

@@ -1,0 +1,313 @@
+---
+interface ApiLink {
+	name: string;
+	href: string;
+	body: string;
+	docs?: { label: string; href: string }[];
+	external?: boolean;
+}
+
+interface ApiGroup {
+	label: string;
+	blurb: string;
+	links: ApiLink[];
+}
+
+const groups: ApiGroup[] = [
+	{
+		label: 'Live OpenAPI specifications',
+		blurb: 'Interactive OpenAPI 3.1 explorers rendered inside the dashboard.',
+		links: [
+			{
+				name: 'KBVE Public API',
+				href: '/dashboard/api/#kbve',
+				body: 'The primary public REST API served by axum-kbve — auth, profiles, chat, and platform services.',
+				docs: [{ label: 'API project docs', href: '/project/api/' }],
+			},
+			{
+				name: 'Firecracker Control',
+				href: '/dashboard/api/#firecracker',
+				body: 'Staff-only firecracker-ctl service for managing microVM build and runtime workloads.',
+			},
+			{
+				name: 'ROWS (ChuckRPG)',
+				href: '/dashboard/api/#rows',
+				body: 'Game-services API behind the ChuckRPG launcher — sessions, characters, and instance orchestration.',
+				docs: [{ label: 'ROWS project docs', href: '/project/rows/' }],
+			},
+		],
+	},
+	{
+		label: 'Static data endpoints',
+		blurb: 'Prebuilt JSON generated from the MDX content collections at every deploy.',
+		links: [
+			{
+				name: '/api/itemdb.json',
+				href: '/api/itemdb.json',
+				body: 'Every item in the shared ItemDB with stats, sprites, and cross-game references.',
+				docs: [{ label: 'ItemDB', href: '/itemdb/' }],
+			},
+			{
+				name: '/api/npcdb.json',
+				href: '/api/npcdb.json',
+				body: 'NPC definitions — stats, behaviors, and dialogue hooks.',
+				docs: [{ label: 'NpcDB', href: '/npcdb/' }],
+			},
+			{
+				name: '/api/mapdb.json',
+				href: '/api/mapdb.json',
+				body: 'Map and tilemap metadata for every registered world.',
+				docs: [{ label: 'MapDB', href: '/mapdb/' }],
+			},
+			{
+				name: '/api/mapdb.proto.json',
+				href: '/api/mapdb.proto.json',
+				body: 'MapDB serialized against the shared protobuf schema for engine clients.',
+				docs: [{ label: 'MapDB', href: '/mapdb/' }],
+			},
+			{
+				name: '/api/questdb.json',
+				href: '/api/questdb.json',
+				body: 'Quest chains, objectives, and reward tables.',
+				docs: [{ label: 'QuestDB', href: '/questdb/' }],
+			},
+			{
+				name: '/api/osrs.json',
+				href: '/api/osrs.json',
+				body: 'Old School RuneScape item metadata powering the OSRS wiki pages.',
+				docs: [{ label: 'OSRS', href: '/osrs/' }],
+			},
+			{
+				name: '/api/projects.json',
+				href: '/api/projects.json',
+				body: 'Every project page — pipelines, versions, and source paths.',
+				docs: [{ label: 'Projects', href: '/docs/' }],
+			},
+			{
+				name: '/api/applications.json',
+				href: '/api/applications.json',
+				body: 'The application reference index — tools, services, and integrations.',
+				docs: [{ label: 'Applications', href: '/docs/' }],
+			},
+			{
+				name: '/api/mc-items.json',
+				href: '/api/mc-items.json',
+				body: 'Minecraft item registry from the MC content collection.',
+				docs: [{ label: 'MC', href: '/mc/' }],
+			},
+			{
+				name: '/api/mc-blocks.json',
+				href: '/api/mc-blocks.json',
+				body: 'Minecraft block registry with states and drops.',
+				docs: [{ label: 'MC', href: '/mc/' }],
+			},
+			{
+				name: '/api/mc-enchants.json',
+				href: '/api/mc-enchants.json',
+				body: 'Minecraft enchantment registry with levels and exclusions.',
+				docs: [{ label: 'MC', href: '/mc/' }],
+			},
+			{
+				name: '/api/ci-registry.json',
+				href: '/api/ci-registry.json',
+				body: 'The CI dispatch registry — every buildable target in the monorepo.',
+			},
+			{
+				name: '/api/sitegraph.json',
+				href: '/api/sitegraph.json',
+				body: 'The full site link graph used by the graph explorer.',
+				docs: [{ label: 'Graph', href: '/dashboard/graph/' }],
+			},
+			{
+				name: '/api/resources.json',
+				href: '/api/resources.json',
+				body: 'Curated resource index across the docs.',
+			},
+			{
+				name: '/api/structures.json',
+				href: '/api/structures.json',
+				body: 'Structure definitions for the building and simulation systems.',
+			},
+			{
+				name: '/api/docs-meta.json',
+				href: '/api/docs-meta.json',
+				body: 'Metadata for every docs page — titles, descriptions, and tags.',
+			},
+		],
+	},
+	{
+		label: 'Feeds & machine-readable',
+		blurb: 'Syndication and LLM-friendly exports of the site.',
+		links: [
+			{
+				name: '/rss.xml',
+				href: '/rss.xml',
+				body: 'RSS feed of the KBVE journal.',
+				docs: [{ label: 'Blog', href: '/blog/' }],
+			},
+			{
+				name: '/llms.txt',
+				href: '/llms.txt',
+				body: 'Condensed site index for language models.',
+			},
+			{
+				name: '/llms-full.txt',
+				href: '/llms-full.txt',
+				body: 'Full-content export for language models.',
+			},
+		],
+	},
+];
+---
+
+<section class="apidir not-content">
+	{
+		groups.map((group) => (
+			<div class="apidir__group">
+				<div class="apidir__head">
+					<h2 class="apidir__heading">{group.label}</h2>
+					<span class="apidir__count">
+						{group.links.length} endpoints
+					</span>
+				</div>
+				<p class="apidir__blurb">{group.blurb}</p>
+				<div class="apidir__grid">
+					{group.links.map((link) => (
+						<div class="apidir__card">
+							<a
+								href={link.href}
+								class="apidir__name"
+								data-astro-prefetch={
+									link.href.endsWith('.json') ||
+									link.href.endsWith('.xml') ||
+									link.href.endsWith('.txt')
+										? 'false'
+										: undefined
+								}>
+								{link.name}
+							</a>
+							<p class="apidir__body">{link.body}</p>
+							{link.docs && (
+								<div class="apidir__links">
+									{link.docs.map((doc) => (
+										<a
+											href={doc.href}
+											class="apidir__doc"
+											data-astro-prefetch>
+											{doc.label} →
+										</a>
+									))}
+								</div>
+							)}
+						</div>
+					))}
+				</div>
+			</div>
+		))
+	}
+</section>
+
+<style>
+	.apidir {
+		display: flex;
+		flex-direction: column;
+		gap: 2.5rem;
+		margin: 2.5rem 0;
+	}
+
+	.apidir__head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-bottom: 0.6rem;
+		border-bottom: 1px solid
+			color-mix(
+				in oklab,
+				var(--sl-color-text-accent, #c9a56a) 30%,
+				transparent
+			);
+	}
+
+	.apidir__heading {
+		margin: 0;
+		font-size: 1.15rem;
+		font-weight: 700;
+		color: var(--sl-color-text-accent, #c9a56a);
+	}
+
+	.apidir__count {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	.apidir__blurb {
+		margin: 0.6rem 0 1rem;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	.apidir__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+		gap: 0.6rem;
+	}
+
+	.apidir__card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		padding: 0.85rem 1rem;
+		border-radius: 10px;
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		background: var(--sl-color-bg-nav, #111);
+		transition:
+			border-color 180ms ease,
+			transform 180ms ease;
+	}
+
+	.apidir__card:hover {
+		border-color: color-mix(
+			in oklab,
+			var(--sl-color-text-accent, #c9a56a) 55%,
+			transparent
+		);
+		transform: translateY(-2px);
+	}
+
+	.apidir__name {
+		font-size: 0.9rem;
+		font-weight: 700;
+		color: var(--sl-color-white, #fff);
+		text-decoration: none;
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+		letter-spacing: -0.01em;
+	}
+
+	.apidir__body {
+		margin: 0;
+		font-size: 0.78rem;
+		line-height: 1.4;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	.apidir__links {
+		display: flex;
+		gap: 0.8rem;
+		flex-wrap: wrap;
+	}
+
+	.apidir__doc {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-text-accent, #c9a56a);
+		text-decoration: none;
+	}
+
+	.apidir__doc:hover {
+		text-decoration: underline;
+	}
+</style>

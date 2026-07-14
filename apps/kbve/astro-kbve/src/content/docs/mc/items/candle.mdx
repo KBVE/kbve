@@ -1,5 +1,6 @@
 ---
 title: Candle
+template: splash
 description: |
     Minecraft Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1305
     ref: candle
     slug: candle
+    content_rev: 1
     display_name: Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A candle is a dyable decoration block crafted from string and honeycomb, available in
+            an uncolored form plus all 16 dye colors. Up to four identical-colored candles can
+            occupy the same block space, each adding 3 light levels for a maximum of 12 when lit
+            with flint and steel or a fire-based source.
+        lore: |
+            Candles were first teased at Minecraft Live 2020 as part of the deep dark biome's
+            aesthetic before their full release.
+    faq:
+        - question: Can a dyed candle be recolored later?
+          answer: |
+              No, once a candle has been combined with a dye, it cannot be changed to a different
+              color afterward.
+        - question: How bright can a group of candles get?
+          answer: |
+              Four candles stacked in one block space produce light level 12, comparable to a
+              torch or lantern.
+        - question: Are candles a fire hazard?
+          answer: |
+              No, candles are non-flammable and will not ignite nearby blocks even while lit.
+        - question: Can I place a candle on a cake?
+          answer: |
+              Yes, a single unlit candle can be placed on top of an uneaten cake as decoration,
+              and lighting it adds a small glow until the cake is eaten.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

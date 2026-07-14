@@ -1,6 +1,6 @@
 ---
 title: Dragon scale dust | OSRS Price Data
-description: "Dragon scale dust: Finely ground scale of Dragon.. High alch: 31 GP, GE limit: 13,000."
+description: "Dragon scale dust is a Herblore secondary made by crushing blue dragon scales, used in antifire and weapon poison potions. High alch: 31 GP, GE limit: 13,000."
 osrs:
   id: 241
   name: Dragon scale dust
@@ -12,94 +12,90 @@ osrs:
   lowalch: 20
   highalch: 31
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
-    type: secondary
+    type: herblore-secondary
     tier: mid
-  processing:
-    method: Crush blue dragon scale with pestle and mortar
-    source_id: 243
-    source_name: Blue dragon scale
-    npc_service: Wesley in Nardah (50 gp per item)
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
-      - source: Blue dragon
-        source_id: 264
-        combat_level: 111
+      - source: Blue dragon scale (pestle and mortar)
         quantity: "1"
         rarity: always
-      - source: Brutal blue dragon
-        source_id: 7273
-        combat_level: 271
-        quantity: "2"
+      - source: Wesley (Nardah, 50 gp per item)
+        quantity: "1"
         rarity: always
-        members_only: true
   recipes:
     - skill: herblore
       level: 60
       xp: 137.5
       materials:
         - item_name: Kwuarm potion (unf)
-          item_id: 105
           quantity: 1
         - item_name: Dragon scale dust
-          item_id: 241
           quantity: 1
-      product: Weapon poison(3)
-      product_id: 187
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
     - skill: herblore
       level: 69
       xp: 157.5
       materials:
         - item_name: Lantadyme potion (unf)
-          item_id: 2483
           quantity: 1
         - item_name: Dragon scale dust
-          item_id: 241
           quantity: 1
-      product: Antifire potion(3)
-      product_id: 2454
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 243
-      item_name: Blue dragon scale
+    - item_name: Blue dragon scale
       slug: blue-dragon-scale
       relationship: component
-      description: Raw material
-    - item_id: 2454
-      item_name: Antifire potion(3)
+      description: Raw material crushed for dust
+    - item_name: Antifire potion(3)
       slug: antifire-potion-3
       relationship: product
-      description: Primary end product
-    - item_id: 187
-      item_name: Weapon poison(3)
+      description: Primary end product at 69 Herblore
+    - item_name: Weapon poison(3)
       slug: weapon-poison-3
       relationship: product
-      description: Combat product
-    - item_id: 233
-      item_name: Pestle and mortar
+      description: Combat product at 60 Herblore
+    - item_name: Pestle and mortar
       slug: pestle-and-mortar
       relationship: component
-      description: Processing tool
+      description: Tool used to grind blue dragon scales
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Herblore Secondary |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
+    Dragon scale dust is the Herblore secondary made by using a pestle and mortar on a blue dragon scale. Players who want to skip the grinding can pay Wesley in Nardah 50 coins per scale to do it for them.
 
-    Secondary ingredient for:
-    - Weapon poison (with kwuarm potion unf)
-    - Weapon poison+ (with cactus spine)
-    - Antifire (with lantadyme potion unf)
-    - Extended antifire (with lava scale shard)
-
-    Essential for antifire potion production.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    It feeds two core potions: weapon poison at 60 Herblore (with kwuarm potion unf) and antifire potion at 69 Herblore (with lantadyme potion unf). The antifire chain is the largest sink, making dust price track antifire and extended antifire demand.
+  market_strategy:
+    notes:
+      - "Demand is tied to antifire and weapon poison production"
+      - "Supply scales with blue dragon and brutal blue dragon farming"
+      - "Wesley service caps practical labour cost"
+      - "Watch for slayer task updates that affect blue dragon throughput"
+  trading_tips:
+    - Buy scales, grind, and sell dust when spread covers Wesley's 50 gp fee
+    - Stockpile ahead of antifire-heavy boss release windows
+    - Note remap removals from reward shops that historically lowered supply
+  history:
+    - date: "2002-02-27"
+      description: "Released as a Herblore secondary."
+    - date: "2023-08-30"
+      description: "Removed from Dom Onion's reward shop, reducing alternate supply."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -6,11 +6,16 @@ import {
 	syncColor,
 	fetchResourceTree,
 	fetchAppEvents,
+	fetchManagedResources,
 	detectAppStall,
 	detectResourceStall,
 	formatAge,
+	diffLines,
+	prettyManifest,
 	type AppEvent,
+	type AppTab,
 	type ArgoApplication,
+	type ManagedResource,
 	type ResourceTree,
 	type ResourceNode,
 	type ResourceSelector,
@@ -21,31 +26,15 @@ import {
 	XCircle,
 	AlertCircle,
 	RefreshCw,
+	RotateCw,
 	Loader2,
 	ChevronDown,
 	ChevronRight,
 	Box,
 	Clock,
+	FileDiff,
+	Undo2,
 } from 'lucide-react';
-
-const ARGO_TABLE_CSS = `
-.kbve-argo-row {
-	display: grid;
-	grid-template-columns: 24px 1fr 100px 120px 120px 180px;
-}
-.kbve-argo-header {
-	display: grid;
-}
-@media (max-width: 768px) {
-	.kbve-argo-row {
-		grid-template-columns: 24px 1fr auto auto;
-	}
-	.kbve-argo-col-project,
-	.kbve-argo-col-last {
-		display: none;
-	}
-}
-`;
 
 function StallBadge({
 	reason,
@@ -83,33 +72,27 @@ function StallBadge({
 // Status helpers
 // ---------------------------------------------------------------------------
 
-function healthIcon(status: string) {
-	switch (status) {
-		case 'Healthy':
-			return <CheckCircle2 size={14} />;
-		case 'Degraded':
-			return <XCircle size={14} />;
-		case 'Progressing':
-			return (
-				<Loader2
-					size={14}
-					style={{ animation: 'spin 1s linear infinite' }}
-				/>
-			);
-		default:
-			return <AlertCircle size={14} />;
-	}
+const UNKNOWN_ICON = <AlertCircle size={14} />;
+
+const HEALTH_ICONS: Record<string, React.ReactNode> = {
+	Healthy: <CheckCircle2 size={14} />,
+	Degraded: <XCircle size={14} />,
+	Progressing: (
+		<Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+	),
+};
+
+const SYNC_ICONS: Record<string, React.ReactNode> = {
+	Synced: <CheckCircle2 size={14} />,
+	OutOfSync: <RefreshCw size={14} />,
+};
+
+export function healthIcon(status: string) {
+	return HEALTH_ICONS[status] ?? UNKNOWN_ICON;
 }
 
-function syncIcon(status: string) {
-	switch (status) {
-		case 'Synced':
-			return <CheckCircle2 size={14} />;
-		case 'OutOfSync':
-			return <RefreshCw size={14} />;
-		default:
-			return <AlertCircle size={14} />;
-	}
+export function syncIcon(status: string) {
+	return SYNC_ICONS[status] ?? UNKNOWN_ICON;
 }
 
 export function StatusBadge({
@@ -209,6 +192,25 @@ function ResourceRow({
 		version: node.version,
 		uid: node.uid,
 	};
+	const stall = detectResourceStall(node);
+	const health = node.health?.status;
+	const severity =
+		health === 'Degraded' || health === 'Missing'
+			? 'crit'
+			: stall || health === 'Progressing'
+				? 'warn'
+				: null;
+	const accent =
+		severity === 'crit'
+			? '#ef4444'
+			: severity === 'warn'
+				? '#fbbf24'
+				: null;
+	const idleBg = accent
+		? severity === 'crit'
+			? 'rgba(239, 68, 68, 0.07)'
+			: 'rgba(251, 191, 36, 0.07)'
+		: 'transparent';
 	return (
 		<>
 			<button
@@ -224,11 +226,14 @@ function ResourceRow({
 					color: 'var(--sl-color-text, #e6edf3)',
 					cursor: 'pointer',
 					borderRadius: 4,
-					background: selected
-						? 'rgba(139, 92, 246, 0.12)'
-						: 'transparent',
+					background: selected ? 'rgba(139, 92, 246, 0.12)' : idleBg,
+					borderLeft: accent
+						? `3px solid ${accent}`
+						: '3px solid transparent',
 					transition: 'background 0.12s',
-					border: 'none',
+					borderTop: 'none',
+					borderRight: 'none',
+					borderBottom: 'none',
 					textAlign: 'left',
 					width: '100%',
 					font: 'inherit',
@@ -243,7 +248,7 @@ function ResourceRow({
 				}}
 				onMouseLeave={(e) => {
 					if (!selected) {
-						e.currentTarget.style.background = 'transparent';
+						e.currentTarget.style.background = idleBg;
 					}
 				}}>
 				{node.health && (
@@ -272,18 +277,15 @@ function ResourceRow({
 					{node.namespace}/
 				</span>
 				{node.name}
-				{(() => {
-					const stall = detectResourceStall(node);
-					return stall ? (
-						<span style={{ marginLeft: 'auto' }}>
-							<StallBadge
-								reason={stall.reason}
-								ageMs={stall.ageMs}
-								compact
-							/>
-						</span>
-					) : null;
-				})()}
+				{stall ? (
+					<span style={{ marginLeft: 'auto' }}>
+						<StallBadge
+							reason={stall.reason}
+							ageMs={stall.ageMs}
+							compact
+						/>
+					</span>
+				) : null}
 			</button>
 			{selected && (
 				<ReactArgoResourceDetail
@@ -294,6 +296,46 @@ function ResourceRow({
 				/>
 			)}
 		</>
+	);
+}
+
+// Cap on rows rendered at once. A fat app (namespace with hundreds of
+// resources) would otherwise build the entire list every expand; this keeps
+// the initial render bounded with an opt-in "show all" escape hatch.
+const MAX_VISIBLE_RESOURCES = 75;
+
+function ShowMoreBar({
+	shown,
+	total,
+	onShowAll,
+}: {
+	shown: number;
+	total: number;
+	onShowAll: () => void;
+}) {
+	if (shown >= total) return null;
+	return (
+		<button
+			type="button"
+			onClick={onShowAll}
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				gap: 6,
+				width: '100%',
+				marginTop: 6,
+				padding: '6px 8px',
+				borderRadius: 6,
+				border: '1px dashed var(--sl-color-gray-5, #262626)',
+				background: 'transparent',
+				color: 'var(--sl-color-gray-3, #8b949e)',
+				fontSize: '0.75rem',
+				fontWeight: 600,
+				cursor: 'pointer',
+			}}>
+			Show all {total} resources ({total - shown} hidden)
+		</button>
 	);
 }
 
@@ -316,9 +358,11 @@ function ResourceTreePanel({
 	const [kindFilter, setKindFilter] = useState<string>('');
 	const [healthFilter, setHealthFilter] = useState<string>('');
 	const [search, setSearch] = useState<string>('');
+	const [showAll, setShowAll] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
+		setShowAll(false);
 		(async () => {
 			try {
 				setLoading(true);
@@ -505,34 +549,39 @@ function ResourceTreePanel({
 			return kids.some(includesFilteredDescendant);
 		};
 
-		const renderNode = (
-			n: ResourceNode,
-			depth: number,
-		): React.ReactNode => {
-			if (!includesFilteredDescendant(n)) return null;
+		const ordered: { node: ResourceNode; depth: number }[] = [];
+		const collect = (n: ResourceNode, depth: number) => {
+			if (!includesFilteredDescendant(n)) return;
+			ordered.push({ node: n, depth });
 			const kids =
 				(n.uid && childrenByParentUid.get(n.uid)) ||
 				([] as ResourceNode[]);
-			return (
-				<React.Fragment
-					key={`${n.uid ?? `${n.namespace}-${n.name}-${depth}`}`}>
-					<ResourceRow
-						node={n}
-						depth={depth}
-						appName={appName}
-						selected={isSelected(n)}
-						token={token}
-						onSelectResource={onSelectResource}
-					/>
-					{kids.map((k) => renderNode(k, depth + 1))}
-				</React.Fragment>
-			);
+			kids.forEach((k) => collect(k, depth + 1));
 		};
+		roots.forEach((r) => collect(r, 0));
+		const visible = showAll
+			? ordered
+			: ordered.slice(0, MAX_VISIBLE_RESOURCES);
 
 		return (
 			<div>
 				{filterControls}
-				{roots.map((r) => renderNode(r, 0))}
+				{visible.map(({ node, depth }) => (
+					<ResourceRow
+						key={`${node.uid ?? `${node.namespace}-${node.name}-${depth}`}`}
+						node={node}
+						depth={depth}
+						appName={appName}
+						selected={isSelected(node)}
+						token={token}
+						onSelectResource={onSelectResource}
+					/>
+				))}
+				<ShowMoreBar
+					shown={visible.length}
+					total={ordered.length}
+					onShowAll={() => setShowAll(true)}
+				/>
 			</div>
 		);
 	}
@@ -547,35 +596,52 @@ function ResourceTreePanel({
 		{} as Record<string, ResourceNode[]>,
 	);
 
+	const kindLimit = showAll ? Infinity : MAX_VISIBLE_RESOURCES;
+	let kindBudget = kindLimit;
+
 	return (
 		<div>
 			{filterControls}
-			{Object.entries(grouped).map(([kind, nodes]) => (
-				<div key={kind} style={{ marginBottom: '0.75rem' }}>
-					<div
-						style={{
-							fontSize: '0.75rem',
-							fontWeight: 600,
-							color: 'var(--sl-color-gray-3, #8b949e)',
-							marginBottom: 4,
-							textTransform: 'uppercase',
-							letterSpacing: '0.05em',
-						}}>
-						{kind} ({nodes.length})
+			{Object.entries(grouped).map(([kind, nodes]) => {
+				if (kindBudget <= 0) return null;
+				const take = nodes.slice(0, kindBudget);
+				kindBudget -= take.length;
+				return (
+					<div key={kind} style={{ marginBottom: '0.75rem' }}>
+						<div
+							style={{
+								fontSize: '0.75rem',
+								fontWeight: 600,
+								color: 'var(--sl-color-gray-3, #8b949e)',
+								marginBottom: 4,
+								textTransform: 'uppercase',
+								letterSpacing: '0.05em',
+							}}>
+							{kind} ({nodes.length})
+						</div>
+						{take.map((node, i) => (
+							<ResourceRow
+								key={`${node.uid ?? `${node.namespace}-${node.name}-${i}`}`}
+								node={node}
+								depth={0}
+								appName={appName}
+								selected={isSelected(node)}
+								token={token}
+								onSelectResource={onSelectResource}
+							/>
+						))}
 					</div>
-					{nodes.map((node, i) => (
-						<ResourceRow
-							key={`${node.uid ?? `${node.namespace}-${node.name}-${i}`}`}
-							node={node}
-							depth={0}
-							appName={appName}
-							selected={isSelected(node)}
-							token={token}
-							onSelectResource={onSelectResource}
-						/>
-					))}
-				</div>
-			))}
+				);
+			})}
+			<ShowMoreBar
+				shown={
+					showAll
+						? filtered.length
+						: Math.min(filtered.length, MAX_VISIBLE_RESOURCES)
+				}
+				total={filtered.length}
+				onShowAll={() => setShowAll(true)}
+			/>
 		</div>
 	);
 }
@@ -625,6 +691,10 @@ function AppEventsPanel({
 }
 
 function AppHistoryPanel({ app }: { app: ArgoApplication }) {
+	const busy = useStore(argoService.$actionBusy);
+	const name = app.metadata.name;
+	const rolling = busy === `${name}:rollback`;
+	const anyBusy = busy !== null;
 	const history = (app.status as Record<string, unknown>)?.history as
 		| Array<Record<string, unknown>>
 		| undefined;
@@ -704,6 +774,68 @@ function AppHistoryPanel({ app }: { app: ArgoApplication }) {
 									? new Date(deployedAt).toLocaleString()
 									: ''}
 							</span>
+							{i === 0 ? (
+								<span
+									style={{
+										padding: '1px 6px',
+										borderRadius: 4,
+										background: 'rgba(34, 197, 94, 0.12)',
+										border: '1px solid rgba(34, 197, 94, 0.35)',
+										color: '#4ade80',
+										fontSize: '0.65rem',
+										fontWeight: 600,
+										textTransform: 'uppercase',
+									}}>
+									Current
+								</span>
+							) : (
+								id != null && (
+									<button
+										type="button"
+										disabled={anyBusy}
+										title={`Roll back to revision #${id}`}
+										onClick={() => {
+											if (
+												window.confirm(
+													`Roll back ${name} to revision #${id}? This deploys the older manifests.`,
+												)
+											)
+												void argoService.rollbackApp(
+													name,
+													id,
+												);
+										}}
+										style={{
+											display: 'inline-flex',
+											alignItems: 'center',
+											gap: 4,
+											padding: '0.2rem 0.5rem',
+											borderRadius: 5,
+											border: '1px solid var(--sl-color-gray-5, #262626)',
+											background:
+												'var(--sl-color-bg-nav, #111)',
+											color: 'var(--sl-color-gray-2, #c9d1d9)',
+											fontSize: '0.7rem',
+											fontWeight: 500,
+											cursor: anyBusy
+												? 'wait'
+												: 'pointer',
+										}}>
+										{rolling ? (
+											<Loader2
+												size={11}
+												style={{
+													animation:
+														'spin 1s linear infinite',
+												}}
+											/>
+										) : (
+											<Undo2 size={11} />
+										)}
+										Rollback
+									</button>
+								)
+							)}
 						</div>
 						{source && (
 							<div
@@ -725,7 +857,160 @@ function AppHistoryPanel({ app }: { app: ArgoApplication }) {
 	);
 }
 
-function AppExpandedPanel({
+function resourceLabel(r: ManagedResource): string {
+	const g = r.group ? `${r.group}/` : '';
+	const ns = r.namespace ? `${r.namespace}/` : '';
+	return `${g}${r.kind} · ${ns}${r.name}`;
+}
+
+function isOutOfSync(r: ManagedResource): boolean {
+	const live = prettyManifest(r.normalizedLiveState ?? r.liveState);
+	const target = prettyManifest(r.predictedLiveState ?? r.targetState);
+	return live !== target;
+}
+
+function DiffView({ before, after }: { before: string; after: string }) {
+	const lines = diffLines(before, after);
+	return (
+		<pre
+			style={{
+				margin: 0,
+				padding: '0.5rem 0.75rem',
+				overflowX: 'auto',
+				fontSize: '0.72rem',
+				lineHeight: 1.55,
+				fontFamily: 'var(--sl-font-mono, monospace)',
+				background: 'var(--sl-color-bg, #0d1117)',
+				borderRadius: 6,
+				border: '1px solid var(--sl-color-gray-5, #262626)',
+			}}>
+			{lines.map((l, i) => {
+				const sign =
+					l.op === 'add' ? '+' : l.op === 'remove' ? '-' : ' ';
+				const color =
+					l.op === 'add'
+						? '#22c55e'
+						: l.op === 'remove'
+							? '#ef4444'
+							: 'var(--sl-color-gray-3, #8b949e)';
+				const bg =
+					l.op === 'add'
+						? 'rgba(34, 197, 94, 0.08)'
+						: l.op === 'remove'
+							? 'rgba(239, 68, 68, 0.08)'
+							: 'transparent';
+				return (
+					<div key={i} style={{ color, background: bg }}>
+						{sign} {l.text}
+					</div>
+				);
+			})}
+		</pre>
+	);
+}
+
+function AppDiffPanel({ token, appName }: { token: string; appName: string }) {
+	const [resources, setResources] = useState<ManagedResource[] | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+		(async () => {
+			try {
+				setLoading(true);
+				const data = await fetchManagedResources(token, appName);
+				if (!cancelled) setResources(data);
+			} catch (e: unknown) {
+				if (!cancelled)
+					setError(e instanceof Error ? e.message : 'Failed to load');
+			} finally {
+				if (!cancelled) setLoading(false);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [token, appName]);
+
+	if (loading) return <LoadingBlock label="Computing diff..." />;
+	if (error) return <ErrorBlock message={error} />;
+
+	const drifted = (resources ?? []).filter(isOutOfSync);
+	if (drifted.length === 0) {
+		return (
+			<div
+				style={{
+					padding: '1rem',
+					color: '#22c55e',
+					fontSize: '0.85rem',
+					display: 'flex',
+					alignItems: 'center',
+					gap: 8,
+				}}>
+				<CheckCircle2 size={14} />
+				All managed resources match the desired state
+			</div>
+		);
+	}
+
+	return (
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+			<div
+				style={{
+					fontSize: '0.75rem',
+					color: 'var(--sl-color-gray-4, #6b7280)',
+				}}>
+				{drifted.length} resource{drifted.length === 1 ? '' : 's'}{' '}
+				differ from target —{' '}
+				<span style={{ color: '#ef4444' }}>red</span> is live,{' '}
+				<span style={{ color: '#22c55e' }}>green</span> is target.
+			</div>
+			{drifted.map((r, i) => (
+				<div key={`${r.kind}-${r.namespace}-${r.name}-${i}`}>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							marginBottom: 4,
+							fontSize: '0.78rem',
+							fontWeight: 600,
+							color: 'var(--sl-color-text, #e6edf3)',
+						}}>
+						<FileDiff size={13} style={{ color: '#8b5cf6' }} />
+						{resourceLabel(r)}
+						{r.requiresPruning && (
+							<span
+								style={{
+									padding: '0 6px',
+									borderRadius: 4,
+									background: 'rgba(239, 68, 68, 0.12)',
+									border: '1px solid rgba(239, 68, 68, 0.35)',
+									color: '#fca5a5',
+									fontSize: '0.65rem',
+									fontWeight: 600,
+									textTransform: 'uppercase',
+								}}>
+								Prune
+							</span>
+						)}
+					</div>
+					<DiffView
+						before={prettyManifest(
+							r.normalizedLiveState ?? r.liveState,
+						)}
+						after={prettyManifest(
+							r.predictedLiveState ?? r.targetState,
+						)}
+					/>
+				</div>
+			))}
+		</div>
+	);
+}
+
+export function AppExpandedPanel({
 	app,
 	token,
 	tab,
@@ -735,13 +1020,15 @@ function AppExpandedPanel({
 }: {
 	app: ArgoApplication;
 	token: string;
-	tab: 'resources' | 'events' | 'history';
-	onTabChange: (t: 'resources' | 'events' | 'history') => void;
+	tab: AppTab;
+	onTabChange: (t: AppTab) => void;
 	selectedResource: ResourceSelector | null;
 	onSelectResource: (sel: ResourceSelector) => void;
 }) {
-	const tabs: { id: 'resources' | 'events' | 'history'; label: string }[] = [
+	const outOfSync = app.status.sync.status === 'OutOfSync';
+	const tabs: { id: AppTab; label: string }[] = [
 		{ id: 'resources', label: 'Resources' },
+		{ id: 'diff', label: outOfSync ? 'Diff •' : 'Diff' },
 		{ id: 'events', label: 'Events' },
 		{ id: 'history', label: 'Sync History' },
 	];
@@ -790,6 +1077,9 @@ function AppExpandedPanel({
 					onSelectResource={onSelectResource}
 				/>
 			)}
+			{tab === 'diff' && (
+				<AppDiffPanel token={token} appName={app.metadata.name} />
+			)}
 			{tab === 'events' && (
 				<AppEventsPanel token={token} appName={app.metadata.name} />
 			)}
@@ -802,7 +1092,7 @@ function AppExpandedPanel({
 // Application Row
 // ---------------------------------------------------------------------------
 
-export function ApplicationRow({
+function ApplicationRowImpl({
 	app,
 	token,
 	expanded,
@@ -816,8 +1106,8 @@ export function ApplicationRow({
 	token: string;
 	expanded: boolean;
 	onToggle: () => void;
-	tab: 'resources' | 'events' | 'history';
-	onTabChange: (t: 'resources' | 'events' | 'history') => void;
+	tab: AppTab;
+	onTabChange: (t: AppTab) => void;
 	selectedResource: ResourceSelector | null;
 	onSelectResource: (sel: ResourceSelector) => void;
 }) {
@@ -829,6 +1119,7 @@ export function ApplicationRow({
 
 	return (
 		<div
+			id={`argo-app-${app.metadata.name}`}
 			style={{
 				background: expanded
 					? 'var(--sl-color-bg-nav, #111)'
@@ -916,6 +1207,7 @@ export function ApplicationRow({
 					{lastSync}
 				</span>
 			</button>
+			{expanded && <AppActionBar app={app} />}
 			{expanded && (
 				<AppExpandedPanel
 					app={app}
@@ -930,12 +1222,105 @@ export function ApplicationRow({
 	);
 }
 
+// Memoized so the 30s poll only re-renders rows whose app object actually
+// changed (refs are reconciled in argoService). Closure props (onToggle, etc.)
+// are behaviorally stable, so they are intentionally excluded from the compare.
+// tab/selectedResource only matter for the expanded row.
+export const ApplicationRow = React.memo(ApplicationRowImpl, (a, b) => {
+	if (a.app !== b.app || a.expanded !== b.expanded || a.token !== b.token)
+		return false;
+	if (!a.expanded) return true;
+	return a.tab === b.tab && a.selectedResource === b.selectedResource;
+});
+
+export function AppActionBar({ app }: { app: ArgoApplication }) {
+	const busy = useStore(argoService.$actionBusy);
+	const actionError = useStore(argoService.$actionError);
+	const actionMsg = useStore(argoService.$actionMsg);
+	const name = app.metadata.name;
+	const syncing = busy === `${name}:sync`;
+	const refreshing = busy === `${name}:refresh`;
+	const anyBusy = busy !== null;
+
+	const btn: React.CSSProperties = {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 6,
+		padding: '0.35rem 0.7rem',
+		borderRadius: 6,
+		border: '1px solid var(--sl-color-gray-5, #262626)',
+		background: 'var(--sl-color-bg, #0d0d0d)',
+		color: 'var(--sl-color-text, #e6edf3)',
+		fontSize: '0.78rem',
+		fontWeight: 500,
+		cursor: anyBusy ? 'wait' : 'pointer',
+	};
+
+	return (
+		<div
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				gap: 8,
+				padding: '0.5rem 1rem',
+				borderTop: '1px solid var(--sl-color-gray-6, #1c1c1c)',
+				flexWrap: 'wrap',
+			}}>
+			<button
+				type="button"
+				disabled={anyBusy}
+				onClick={() => argoService.syncApp(name)}
+				style={btn}
+				title="Trigger an ArgoCD sync (requires manage permission)">
+				{syncing ? (
+					<Loader2
+						size={13}
+						style={{ animation: 'spin 1s linear infinite' }}
+					/>
+				) : (
+					<RefreshCw size={13} />
+				)}
+				Sync
+			</button>
+			<button
+				type="button"
+				disabled={anyBusy}
+				onClick={() => argoService.hardRefreshApp(name)}
+				style={btn}
+				title="Force ArgoCD to re-read the live cluster state">
+				{refreshing ? (
+					<Loader2
+						size={13}
+						style={{ animation: 'spin 1s linear infinite' }}
+					/>
+				) : (
+					<RotateCw size={13} />
+				)}
+				Hard Refresh
+			</button>
+			{actionMsg && (
+				<span style={{ color: '#22c55e', fontSize: '0.75rem' }}>
+					{actionMsg}
+				</span>
+			)}
+			{actionError && (
+				<span style={{ color: '#fca5a5', fontSize: '0.75rem' }}>
+					{actionError}
+				</span>
+			)}
+		</div>
+	);
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
 export default function ReactArgoAppTable() {
-	const applications = useStore(argoService.$applications);
+	// Defer the list so a 30s poll re-render yields to clicks/typing.
+	const applications = React.useDeferredValue(
+		useStore(argoService.$applications),
+	);
 	const loading = useStore(argoService.$loading);
 	const error = useStore(argoService.$error);
 	const accessToken = useStore(argoService.$accessToken);
@@ -993,8 +1378,6 @@ export default function ReactArgoAppTable() {
 
 	return (
 		<>
-			<style>{ARGO_TABLE_CSS}</style>
-			{/* Table header */}
 			<div
 				className="kbve-argo-row kbve-argo-header"
 				style={{

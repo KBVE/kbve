@@ -12,9 +12,58 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 6000
-  about: "Triangle sandwich is a free-to-play item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2006-01-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Sandwich lady (random event)
+        quantity: "1"
+        rarity: Common
+      - source: Tower of Life construction workers (pickpocket)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Tower of Life crates
+        quantity: "1"
+        rarity: Uncommon
+  related_items:
+    - item_name: Baguette
+      slug: baguette
+      relationship: alternative
+      description: "Alternative Sandwich lady drop"
+    - item_name: Roll
+      slug: roll
+      relationship: alternative
+      description: "Alternative Sandwich lady drop"
+  about: "Triangle sandwich is a free-to-play food obtained from the Sandwich lady random event, pickpocketing Tower of Life construction workers, or telekinetic-grabbing the spawn in the Woodcutting Guild. Heals 6 hitpoints per bite."
+  market_strategy:
+    notes:
+      - "Low alch value caps downside risk"
+      - "Steady supply from random events and pickpocket loot"
+      - "Niche food for low-level training and ironmen"
+  trading_tips:
+    - "Bulk pickup target: stack Tower of Life thieving runs and note the loot"
+    - "Watch for Sandwich lady event spikes during double XP weekends"
+  history:
+    - date: "2006-01-10"
+      description: "Released with The Hand in the Sand update alongside the Sandwich lady random event"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

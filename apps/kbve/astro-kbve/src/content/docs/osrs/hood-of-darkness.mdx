@@ -1,6 +1,6 @@
 ---
 title: Hood of darkness | OSRS Price Data
-description: "Hood of darkness: A dark power is woven into this hood.. High alch: 6,000 GP, GE limit: 70."
+description: "Hood of darkness: A dark power is woven into this hood. High alch: 6,000 GP, GE limit: 70."
 osrs:
   id: 20128
   name: Hood of darkness
@@ -12,9 +12,96 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 70
-  about: "Hood of darkness is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid-high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/851
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Robe top of darkness
+      slug: robe-top-of-darkness
+      relationship: set-piece
+      description: Body slot piece of the robes of darkness set.
+    - item_name: Robe bottom of darkness
+      slug: robe-bottom-of-darkness
+      relationship: set-piece
+      description: Leg slot piece of the robes of darkness set.
+    - item_name: Gloves of darkness
+      slug: gloves-of-darkness
+      relationship: set-piece
+      description: Hand slot piece of the robes of darkness set.
+    - item_name: Boots of darkness
+      slug: boots-of-darkness
+      relationship: set-piece
+      description: Foot slot piece of the robes of darkness set.
+  about: |-
+    Hood of darkness is a Zaros-aligned head slot piece rewarded only from master clue scroll caskets at a 1/851 drop rate. It demands 40 Magic and 20 Defence to wear, and grants +4 Magic attack and +4 Magic defence.
+
+    Inside the Ancient Prison area of the God Wars Dungeon, wearing the hood (and the rest of the robes of darkness) provides safe passage past Zarosian followers, similar to how other faction items work elsewhere in GWD.
+
+    Requirements: 40 Magic, 20 Defence | Slot: Head | Weight: 0.453 kg
+  market_strategy:
+    notes:
+      - "Hard-locked supply: master clue completions only."
+      - "Buy limit of 70 caps quick flips, but spreads stay wide."
+      - "Demand tied to Ancient Prison content and cosmetic collectors."
+  trading_tips:
+    - Track master clue popularity (boss drops, leagues) for supply spikes.
+    - List near the 4h limit during prime EU/US activity for fastest fills.
+  history:
+    - date: "2016-07-06"
+      description: "Released as a reward from master Treasure Trails."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

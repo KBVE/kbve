@@ -33,10 +33,11 @@
 					"tags": ["ghcr.io/kbve/kasm-void:dev"]
 				},
 				"production": {
-					"tags": ["ghcr.io/kbve/kasm-void:latest"],
-					"push": true,
+					"load": true,
+					"push": false,
 					"metadata": {
-						"images": ["ghcr.io/kbve/kasm-void"]
+						"images": ["ghcr.io/kbve/kasm-void", "kbve/kasm-void"],
+						"tags": ["latest"]
 					},
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/kasm-void:buildcache"
@@ -61,21 +62,45 @@
 					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^LAUNCH_DISCORD=1$' && echo 'PASS: LAUNCH_DISCORD default on'",
 					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^LAUNCH_NAV_SHIM=1$' && echo 'PASS: LAUNCH_NAV_SHIM default on'",
 					"docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-void:dev --version && echo 'PASS: cloakbrowser binary runs --version'",
+					"docker run --rm --entrypoint readlink ghcr.io/kbve/kasm-void:dev -e /opt/cloakbrowser/cloakbrowser | grep -q . && echo 'PASS: cloakbrowser symlink resolves to a real file'",
 					"docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-void:dev -c 'import websocket; assert websocket.__version__ == \"1.8.0\", websocket.__version__' && echo 'PASS: websocket-client 1.8.0 importable'",
-					"docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-void:dev -m py_compile /dockerstartup/nav_shim.py && echo 'PASS: nav_shim.py compiles'",
+					"docker run --rm -e PYTHONPYCACHEPREFIX=/tmp/pycache --entrypoint python3 ghcr.io/kbve/kasm-void:dev -m py_compile /dockerstartup/nav_shim.py && echo 'PASS: nav_shim.py compiles'",
 					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/nav_shim.py && echo 'PASS: nav_shim.py executable'",
 					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/custom_startup.sh && echo 'PASS: custom_startup.sh executable'",
 					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q cloak_loop && echo 'PASS: custom_startup.sh has cloak supervisor'",
 					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q discord_loop && echo 'PASS: custom_startup.sh has discord supervisor'",
 					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q nav_shim_loop && echo 'PASS: custom_startup.sh has nav_shim supervisor'",
 					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/discord_startup.sh && echo 'PASS: upstream discord startup preserved'",
-					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -f /home/kasm-user/Desktop/cloakbrowser.desktop && echo 'PASS: cloakbrowser.desktop deployed'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -f /opt/kasm-void/Desktop/CloakBrowser.desktop && echo 'PASS: CloakBrowser.desktop template baked'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -f /opt/kasm-void/Desktop/Terminal.desktop && echo 'PASS: Terminal.desktop template baked'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -f /opt/kasm-void/Desktop/Discord.desktop && echo 'PASS: Discord.desktop template baked'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -f /opt/kasm-void/Desktop/LaunchURL.desktop && echo 'PASS: LaunchURL.desktop template baked'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -f /opt/kasm-void/Desktop/ReloadCloak.desktop && echo 'PASS: ReloadCloak.desktop template baked'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -f /opt/kasm-void/Desktop/ResetDiscord.desktop && echo 'PASS: ResetDiscord.desktop template baked'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /opt/kasm-void/scripts/launch-url.sh && echo 'PASS: launch-url.sh executable'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /opt/kasm-void/scripts/reload-cloak.sh && echo 'PASS: reload-cloak.sh executable'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /opt/kasm-void/scripts/reset-discord.sh && echo 'PASS: reset-discord.sh executable'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /opt/kasm-void/scripts/seed-discord-config.sh && echo 'PASS: seed-discord-config.sh executable'",
+					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q stage_user_workspace && echo 'PASS: custom_startup stages templates over PVC'",
+					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'command -v xfce4-terminal && command -v zenity' >/dev/null && echo 'PASS: xfce4-terminal + zenity installed'",
 					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{.Config.Healthcheck.Test}}' | grep -q '/healthz' && echo 'PASS: HEALTHCHECK targets nav_shim /healthz'",
-					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range $$k, $$v := .Config.ExposedPorts}}{{$$k}} {{end}}' | grep -q '9222/tcp' && echo 'PASS: CDP port 9222 exposed'",
-					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range $$k, $$v := .Config.ExposedPorts}}{{$$k}} {{end}}' | grep -q '9998/tcp' && echo 'PASS: nav-shim port 9998 exposed'",
+					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{json .Config.ExposedPorts}}' | grep -q '\"9222/tcp\"' && echo 'PASS: CDP port 9222 exposed'",
+					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{json .Config.ExposedPorts}}' | grep -q '\"9998/tcp\"' && echo 'PASS: nav-shim port 9998 exposed'",
 					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{.Config.StopSignal}}' | grep -q '^SIGTERM$' && echo 'PASS: STOPSIGNAL=SIGTERM'",
 					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{index .Config.Labels \"org.opencontainers.image.source\"}}' | grep -q 'github.com/KBVE/kbve' && echo 'PASS: OCI source label set'",
-					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{index .Config.Labels \"org.opencontainers.image.title\"}}' | grep -q '^kasm-void$' && echo 'PASS: OCI title label set'"
+					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{index .Config.Labels \"org.opencontainers.image.title\"}}' | grep -q '^kasm-void$' && echo 'PASS: OCI title label set'",
+					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^CLOAK_HOME=/opt/cloakbrowser$' && echo 'PASS: CLOAK_HOME env set'",
+					"docker inspect ghcr.io/kbve/kasm-void:dev --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^CLOAK_BIN=/opt/cloakbrowser/cloakbrowser$' && echo 'PASS: CLOAK_BIN env set'",
+					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'missing=$(ldd /opt/cloakbrowser/chrome 2>/dev/null | grep \"not found\" || true); [ -z \"$missing\" ] || { echo \"missing libs: $missing\" >&2; exit 1; }' && echo 'PASS: chrome shared lib deps resolve'",
+					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'touch /tmp/probe && rm /tmp/probe' && echo 'PASS: /tmp writable by uid 1000'",
+					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'command -v python3 && command -v pip3' >/dev/null && echo 'PASS: python3 + pip3 on PATH'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/maximize_window.sh && echo 'PASS: upstream maximize_window.sh preserved'",
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /usr/share/discord/Discord && echo 'PASS: Discord binary executable'",
+					"docker run --rm --entrypoint readlink ghcr.io/kbve/kasm-void:dev -e /usr/share/discord/Discord | grep -q . && echo 'PASS: Discord symlink resolves to a real file'",
+					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'real=$(readlink -e /usr/share/discord/Discord); size=$(stat -c %s \"$real\"); [ \"$size\" -gt 1048576 ] || { echo \"Discord binary suspiciously small: $size bytes ($real)\" >&2; exit 1; }' && echo 'PASS: Discord binary larger than 1 MiB (not a stub)'",
+					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'real=$(readlink -e /usr/share/discord/Discord); missing=$(ldd \"$real\" 2>/dev/null | grep \"not found\" || true); [ -z \"$missing\" ] || { echo \"missing libs: $missing\" >&2; exit 1; }' && echo 'PASS: Discord shared lib deps resolve'",
+					"bash packages/docker/kasm-void/tests/nav-shim-smoke.sh",
+					"bash packages/docker/kasm-void/tests/full-session-smoke.sh"
 				],
 				"parallel": false
 			}

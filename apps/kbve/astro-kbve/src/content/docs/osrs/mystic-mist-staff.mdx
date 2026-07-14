@@ -12,9 +12,76 @@ osrs:
   lowalch: 17000
   highalch: 25500
   limit: 8
+  material:
+    type: magical
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 40
+      magic: 40
+    attack_bonus:
+      stab: 10
+      crush: 40
+      magic: 14
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 14
+    other_bonus:
+      magic_damage: 0
+  recipes:
+    - materials:
+        - item_name: Mist battlestaff
+          quantity: 1
+        - item_name: Coins
+          quantity: 40000
+      tools: []
+      output_quantity: 1
+      requirements: "Completion of Scorpion Catcher. Cost reduced to 30,000 with Hard Kandarin Diary, or 20,000 with Elite Kandarin Diary. Spoken to Thormac in the Sorcerer's Tower."
+  related_items:
+    - name: Mist battlestaff
+      relationship: component
+    - name: Mystic air staff
+      relationship: alternative
+    - name: Mystic water staff
+      relationship: alternative
   about: "Mystic mist staff is a members-only item in Old School RuneScape. High alchemy value: 25,500 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - "Upgraded from mist battlestaff via Thormac for 40,000 coins (reduced with Kandarin Diary tiers)."
+      - "Provides unlimited air and water runes when wielded, useful for hybrid spells like Water Strike through Water Surge."
+      - "Buy limit of 8 per 4 hours; check GE margin against mist battlestaff cost plus Thormac fee before flipping."
+  trading_tips:
+    - "Compare GE price to mist battlestaff + Thormac fee to spot arbitrage."
+    - "Players with Elite Kandarin Diary can produce these cheapest (20,000 coin upgrade)."
+    - "Demand is steady from low-level mages training combined magic."
+  history:
+    - date: "2016-09-15"
+      description: "Released as part of the Superior Slayer Encounters update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-09-15"
+    update: "Superior Slayer Encounters"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

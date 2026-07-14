@@ -1,5 +1,6 @@
 ---
 title: Twisting Vines
+template: splash
 description: |
     Minecraft Twisting Vines — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 839
     ref: twisting_vines
     slug: twisting-vines
+    content_rev: 1
     display_name: Twisting Vines
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: twisting_vines
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - hand_mineable
+        - shears_mineable
+        - nether
+        - climbable
+        - flammable_free
+    about:
+        description: |
+            Twisting Vines are climbable Nether vegetation that grow upward
+            from the ground or from warped fungus, exclusive to warped
+            forests. Holding jump while inside them lets a player scale
+            great heights safely.
+        lore: |
+            Added in Java Edition 1.16 (Nether Update) as the warped-forest
+            counterpart to weeping vines, giving the biome its own
+            traversal mechanic.
+    uses:
+        - title: Composting
+          ref: twisting_vines
+          detail: |
+              Placing a Twisting Vine in a composter has a 50% chance to
+              raise the compost level by one.
+    found_in:
+        - location: Warped forest biome
+          detail: Generates on the ground or on warped huge fungus, growing upward over time.
+    faq:
+        - question: What tool do I need to break Twisting Vines?
+          answer: |
+              None — it breaks instantly with anything, though shears or
+              Silk Touch guarantee a drop.
+        - question: Do Twisting Vines always drop themselves?
+          answer: |
+              No. Without shears or Silk Touch there is only a 33% drop
+              chance, rising to 55%/77%/100% with Fortune I/II/III.
+        - question: Can I climb Twisting Vines like a ladder?
+          answer: |
+              Yes, hold jump while inside the vines to climb, similar to
+              scaffolding or ladders.
+        - question: Where do Twisting Vines generate?
+          answer: |
+              Only in the warped forest biome of the Nether, on the ground
+              or growing on warped huge fungus.
     data_version: "1.21.5"
 ---
 

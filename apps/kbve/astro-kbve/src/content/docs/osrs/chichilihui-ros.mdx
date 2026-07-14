@@ -12,9 +12,54 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: null
-  about: "Chichilihui rosé is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Chichilihui rosé is a Tlati wine introduced with the Varlamore: The Rising Darkness update, sold at Moonrise Wines in Aldarin and used as a niche Herblore booster."
+  potion:
+    doses: 1
+    effects:
+      - description: "Restores 16 Hitpoints when consumed."
+      - description: "Boosts Herblore by 1 level temporarily."
+      - description: "Drains Attack by 5 levels."
+      - description: "Drains Farming by 1 level."
+  shops:
+    - shop_name: Moonrise Wines
+      location: Aldarin
+      stock: 20
+      price: 100
+      currency: Coins
+  related_items:
+    - item_name: Tlati pinot blanc
+      relationship: alternative
+    - item_name: Tlati merlot
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "Niche consumable from the Varlamore wine line — small Herblore boost offset by Attack and Farming drains."
+      - "No published GE limit; Moonrise Wines restocks 20 at 100 GP each."
+      - "Low daily GE volume keeps price soft outside specific Herblore boost niches."
+  trading_tips:
+    - "Buy direct from Moonrise Wines for guaranteed 100 GP each before flipping on GE."
+    - "Carry one or two when squeezing a +1 Herblore boost for borderline potions, not as a healing food."
+    - "Track wine bundle demand around new Varlamore content drops."
+  history:
+    - date: "2024-09-25"
+      description: "Chichilihui rosé released with the Varlamore: The Rising Darkness update."
+  properties:
+    release_date: "2024-09-25"
+    update: "Varlamore: The Rising Darkness"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

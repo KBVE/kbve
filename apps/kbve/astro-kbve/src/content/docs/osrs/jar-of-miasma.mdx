@@ -9,50 +9,62 @@ osrs:
   members: true
   icon: Jar of miasma.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 4
-  item:
+  material:
     type: jar
-    tradeable: true
-    weight: 0.04
-  obtaining:
-    methods:
-      - source: Font of Consumption
-        method: Use unsired on Font of Consumption
-        chance: 13/128
-        effective_rate: ~1/984 from Abyssal Sire
-  usage:
-    description: Decoration for Achievement Gallery boss lair display
-    requirements: Defeating Abyssal Sire at least once to place
-    cosmetic: true
+    tier: high
+  drop_table:
+    sources:
+      - source: Abyssal Sire (via Unsired on Font of Consumption)
+        quantity: "1"
+        rarity: 1/984
+      - source: Unsired (Font of Consumption)
+        quantity: "1"
+        rarity: 13/128
   related_items:
     - item_id: 13273
       item_name: Unsired
       slug: unsired
       relationship: component
-      description: Required to obtain
+      description: Required to obtain via Font of Consumption
     - item_id: 13263
       item_name: Abyssal bludgeon
       slug: abyssal-bludgeon
       relationship: alternative
-      description: Same source
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Jar |
-    | Tradeable | Yes |
-    | Weight | 0.04 kg |
-    | Requirements | None |
-
-    Decoration for Achievement Gallery boss lair display.
-
-    Requires defeating Abyssal Sire at least once to place.
-
-    Cosmetic/collectible item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Alternative reward from same Unsired pool
+  about: "The Jar of miasma is a cosmetic collectible used as a decoration in the Achievement Gallery's boss lair display. It requires defeating the Abyssal Sire at least once before it can be placed, and is obtained by feeding an Unsired to the Font of Consumption."
+  market_strategy:
+    notes:
+      - Low daily volume keeps the GE price volatile
+      - Demand is driven almost entirely by collection log and Achievement Gallery hunters
+      - Supply trickles from Abyssal Sire PvMers consuming unsired in bulk
+      - Buy limit of 4 per 4 hours restricts arbitrage
+  trading_tips:
+    - Track GE volume before large purchases since liquidity is thin
+    - Price tends to spike around boss rework or content reveal updates
+  history:
+    - date: "2015-10-01"
+      description: Added to the game with the release of the Abyssal Sire.
+    - date: "2024-09-25"
+      description: "Inventory icon adjusted as part of the Varlamore: The Rising Darkness update."
+  properties:
+    release_date: "2015-10-01"
+    update: The Abyssal Sire
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.04
+    options:
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

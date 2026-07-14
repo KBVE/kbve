@@ -1,5 +1,6 @@
 ---
 title: Warped Stem
+template: splash
 description: |
     Minecraft Warped Stem — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 821
     ref: warped_stem
     slug: warped-stem
+    content_rev: 1
     display_name: Warped Stem
     material: nether
     hardness: 2
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_stem
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Warped Stem is the log-equivalent block of the warped fungus
+            "tree," the trunk of the giant warped fungi found in Warped
+            Forest biomes. Its bark-free, ring-free texture stays
+            consistent from every side.
+        lore: |
+            Warped Stem grew alongside its red counterpart, Crimson Stem,
+            in the Nether Update (1.16), rooting the fungal forests in
+            soul soil rather than netherrack.
+    uses:
+        - title: Warped Planks
+          ref: warped_planks
+          detail: |
+              Craft into Warped Planks (4 per stem), the base material for
+              warped-themed furniture, stairs, doors, and trapdoors.
+    found_in:
+        - location: Warped Forest biomes
+          detail: Generates as the trunk of huge warped fungi across the Nether's warped forest biome.
+        - location: Stripped variant
+          detail: Axing a warped stem produces Stripped Warped Stem, removing the bark-like outer texture.
+    faq:
+        - question: What tool do I need to mine Warped Stem?
+          answer: |
+              Any tool works, and an axe is fastest. There is no minimum
+              tool tier required to get the drop.
+        - question: Does Warped Stem burn in fire or lava?
+          answer: |
+              No. Crimson and warped stems are the only log-type blocks
+              immune to fire and lava in Java Edition.
+        - question: Can it produce charcoal?
+          answer: |
+              No. Only true logs smelt into charcoal; warped and crimson
+              stems cannot be smelted for that purpose.
+        - question: What's the difference between a stem and a log?
+          answer: |
+              Stems come from Nether fungi (crimson and warped), while
+              logs come from Overworld trees; both function the same way
+              for crafting planks.
     data_version: "1.21.5"
 ---
 

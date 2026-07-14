@@ -1,6 +1,6 @@
 ---
 title: Vesta's longsword | OSRS Price Data
-description: "Vesta's longsword: A powerful longsword.. High alch: 180,000 GP, GE limit: 10."
+description: "Vesta's longsword is a P2P degradable PvP longsword requiring 75 Attack. High alch: 180,000 GP, GE limit: 10."
 osrs:
   id: 22613
   name: Vesta's longsword
@@ -12,9 +12,109 @@ osrs:
   lowalch: 120000
   highalch: 180000
   limit: 10
-  about: "Vesta's longsword is a members-only item in Old School RuneScape. High alchemy value: 180,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 1.814
+  properties:
+    release_date: "2019-07-11"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: metal
+    tier: third_age
+    category: weapon
+  equipment:
+    slot: weapon
+    weapon_type: longsword
+    attack_speed: 5
+    requirements:
+      attack: 75
+    attack_bonus:
+      stab: 106
+      slash: 121
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 4
+      crush: 3
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 118
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    has_special: true
+    name: "Statius's Slam"
+    energy: 25
+    description: "Performs an enhanced strike that ignores a portion of the target's defence."
+  charges:
+    has_charges: true
+    max_charges: 30000
+    notes: "Degrades while in PvP combat; uncharged version is alchable for full value."
+  drop_table:
+    - source: "Revenant"
+      quantity: "1"
+      rarity: "Rare"
+      notes: "Dropped by Revenants in the Forinthry Dungeon."
+    - source: "PvP Player Kill"
+      quantity: "1"
+      rarity: "Rare"
+      notes: "Possible drop from PvP kills in the Wilderness."
+  related_items:
+    - item_id: 22610
+      item_name: Statius's warhammer
+      slug: statius-s-warhammer
+      relationship: alternative
+      description: "Crush-focused degradable PvP weapon"
+    - item_id: 22616
+      item_name: Morrigan's javelin
+      slug: morrigan-s-javelin
+      relationship: alternative
+      description: "Ranged degradable PvP weapon"
+    - item_id: 22622
+      item_name: Zuriel's staff
+      slug: zuriel-s-staff
+      relationship: alternative
+      description: "Magic degradable PvP weapon"
+    - item_id: 27904
+      item_name: Vesta's longsword (bh)
+      slug: vesta-s-longsword-bh
+      relationship: variant
+      description: "Bounty Hunter store variant"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Watch Revenant drop volume; price spikes during PvP events.\""
+      - "sell_strategy: \"Sell during PvP-focused weekends or when degradation pool is low.\""
+      - "price_trend: \"Volatile; tied to PvP/wildy meta.\""
+      - "profit_margin: \"High variance; requires market timing.\""
+  trading_tips:
+    - "Always check charges before buying — uncharged is alchable but combat-useless."
+    - "Drop from Revenants is rare; expect long camp sessions."
+    - "Compare against Statius's warhammer for crush slot."
+  history:
+    - date: "2019-07-11"
+      update: "Last Man Standing rework"
+      description: "Vesta's longsword re-released to OSRS via the Last Man Standing minigame and Revenant drop table."
+  about: |-
+    Vesta's longsword is a high-tier degradable longsword used in PvP and Revenant content.
+
+    | Stat | Value |
+    |------|-------|
+    | Attack req | 75 |
+    | Slash | +121 |
+    | Strength | +118 |
+    | Speed | 5 ticks (3.0s) |
+    | Charges | 30,000 hits in PvP combat |
+
+    Pairs with Statius's full helm + platebody + platelegs for the Vesta's set bonus in PvP.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

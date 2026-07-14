@@ -12,9 +12,64 @@ osrs:
   lowalch: 250
   highalch: 375
   limit: 100
-  about: "Large iron keel parts is a members-only item in Old School RuneScape. High alchemy value: 375 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: iron
+    tier: low
+  recipes:
+    - skill: smithing
+      level: 22
+      tools:
+        - Hammer
+        - Anvil
+      materials:
+        - item_name: Iron keel parts
+          item_id: 32022
+          quantity: 5
+      product: Large iron keel parts
+      product_id: 32023
+      members_only: true
+  related_items:
+    - item_name: Iron keel parts
+      slug: iron-keel-parts
+      relationship: component
+      description: Smaller part smithed up into large iron keel parts
+    - item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: Raw material; 400 iron bars make one full keel
+    - item_name: Iron keel
+      slug: iron-keel
+      relationship: product
+      description: Sailing keel assembled from 16 large iron keel parts
+  about: "Large iron keel parts are a Sailing/Smithing component made at level 22 Smithing from 5 iron keel parts and used to assemble iron keels for sloops."
+  market_strategy:
+    notes:
+      - Demand is anchored to Sailing keel construction so volume tracks the post-Pandemonium meta
+      - Cost basis is 100 iron bars per stack of 5 large parts; compare against GE price for craft-vs-buy
+  trading_tips:
+    - Check current iron bar price against GE price for large parts before smithing
+    - 16 large parts per keel; size orders to match a clean keel run
+  history:
+    - date: "2025-11-19"
+      update: Sailing is OUT TODAY!
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    quest: Pandemonium
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Fire Coral
+template: splash
 description: |
     Minecraft Fire Coral — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 632
     ref: fire_coral
     slug: fire-coral
+    content_rev: 1
     display_name: Fire Coral
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Fire Coral is a non-solid decorative block that naturally generates in
+            coral reef structures within warm ocean biomes. It must be mined with a
+            Silk Touch tool to keep it alive, since it survives only while touching
+            water and quickly dies into Dead Fire Coral otherwise.
+        lore: |
+            A vivid orange-red coral colony that marks the edge of a thriving warm-ocean reef.
+    faq:
+        - question: What happens if I place Fire Coral outside of water?
+          answer: |
+              It dies within seconds and turns into Dead Fire Coral, even with the
+              randomTickSpeed game rule set to 0.
+        - question: How do I collect it without killing it?
+          answer: |
+              Mine it with a tool enchanted with Silk Touch; any other tool destroys
+              it and drops nothing.
+        - question: Can Dead Fire Coral be revived?
+          answer: |
+              No, once it becomes dead coral it cannot be turned back into a living
+              block.
+        - question: How can I grow more Fire Coral?
+          answer: |
+              Apply bone meal to dirt, sand, gravel, or clay submerged in warm ocean
+              water to generate new coral formations nearby.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

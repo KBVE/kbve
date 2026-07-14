@@ -5,11 +5,18 @@ metadata:
     namespace: argocd
     annotations:
         argocd.argoproj.io/sync-wave: '2'
+        kbve.com/source-path: kube/clickhouse-operator
+        kbve.com/manifest-path: kube/clickhouse-operator
+        kbve.com/application-file: kube/clickhouse-operator/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: operator
+        kbve.com/stack: clickhouse
 spec:
     project: default
     sources:
         - repoURL: https://docs.altinity.com/clickhouse-operator/
-          targetRevision: 0.25.4
+          targetRevision: 0.27.1
           chart: altinity-clickhouse-operator
           helm:
               releaseName: clickhouse-operator

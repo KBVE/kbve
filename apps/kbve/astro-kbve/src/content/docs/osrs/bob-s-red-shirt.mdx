@@ -1,6 +1,6 @@
 ---
 title: Bob's red shirt | OSRS Price Data
-description: "Bob's red shirt: 'Bob says: Never give your password out to anyone.'. High alch: 1 GP, GE limit: 4."
+description: "Bob's red shirt: 'Bob says: Never give your password out to anyone.' An easy clue reward. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 10316
   name: Bob's red shirt
@@ -12,9 +12,94 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Bob's red shirt is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: rare
+  related_items:
+    - item_name: Bob's blue shirt
+      slug: bob-s-blue-shirt
+      relationship: variant
+      description: Blue colour variant
+    - item_name: Bob's green shirt
+      slug: bob-s-green-shirt
+      relationship: variant
+      description: Green colour variant
+    - item_name: Bob's purple shirt
+      slug: bob-s-purple-shirt
+      relationship: variant
+      description: Purple colour variant
+    - item_name: Bob's black shirt
+      slug: bob-s-black-shirt
+      relationship: variant
+      description: Black colour variant
+  about: |-
+    > _"Bob says: Never give your password out to anyone."_
+
+    Bob's red shirt is a cosmetic easy clue scroll reward (drop rate 1/1,404 from easy reward caskets). The shirt provides no combat bonuses and is purely a vanity item that can be stored in a costume room treasure chest.
+  market_strategy:
+    notes:
+      - "Tiny GE limit of 4 per 4 hours"
+      - "Cosmetic-only easy clue reward"
+      - "Demand driven by collection log hunters"
+  trading_tips:
+    - List buy orders early in the day to fill the 4-item limit
+    - Track collection log spikes after easy clue updates
+  history:
+    - date: "2006-12-05"
+      description: "Added as a random reward from easy clue scrolls."
+    - date: "2014-12-10"
+      description: "Renamed from 'Bob shirt' to 'Bob's red shirt'."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

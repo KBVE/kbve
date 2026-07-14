@@ -1,5 +1,6 @@
 ---
 title: Jungle Door
+template: splash
 description: |
     Minecraft Jungle Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 746
     ref: jungle_door
     slug: jungle-door
+    content_rev: 1
     display_name: Jungle Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The jungle door is a wooden door crafted from six jungle planks arranged in a 2x3 pattern, yielding three doors per craft. It generates naturally in desert villages and in shipwrecks, and can be broken fastest with an axe.
+            Like all wooden doors it opens instantly with a redstone signal, lets villagers pass through automatically, and can be broken down by certain hard-difficulty mobs.
+        lore: |
+            A wood-matched door lets builders dress jungle-themed houses without mixing in a mismatched plank type.
+    faq:
+        - question: How many jungle doors does one craft produce?
+          answer: |
+              Six jungle planks arranged in a 2x3 grid yield three jungle doors.
+        - question: Can jungle doors be opened with redstone?
+          answer: |
+              Yes. A redstone signal on an adjacent block opens the door immediately, and removing the signal closes it again.
+        - question: Are jungle doors flammable?
+          answer: |
+              No, wooden doors are non-flammable and will not catch fire from nearby flames, though they can still burn if directly exposed to lava.
+        - question: Can hostile mobs break through jungle doors?
+          answer: |
+              On Hard difficulty, some zombie variants and raid-spawned vindicators have a chance to break down closed wooden doors to reach their target.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

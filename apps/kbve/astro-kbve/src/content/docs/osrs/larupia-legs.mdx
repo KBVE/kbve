@@ -12,9 +12,72 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Larupia legs is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: hunter_gear
+    tier: low
+  properties:
+    release_date: "21 November 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weight: 0.226
+    requirements:
+      hunter: 28
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -7
+    defence_bonus:
+      stab: 11
+      slash: 10
+      crush: 10
+      magic: 0
+      ranged: 10
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Larupia hat
+      slug: larupia-hat
+      relationship: set-piece
+      description: "Head piece of the Larupia hunter set"
+    - item_name: Larupia top
+      slug: larupia-top
+      relationship: set-piece
+      description: "Body piece of the Larupia hunter set"
+  about: |-
+    > *"These should make me harder to spot in woodland and jungle areas."*
+
+    Larupia legs are part of the Larupia hunter gear set, providing a camouflage bonus when hunting in woodland and jungle environments. Requires 28 Hunter to equip and can be stored in a costume room's armour case.
+  market_strategy:
+    notes:
+      - "Demand tied to Hunter training and clothing-set collectors"
+      - "Low buy limit (150) keeps individual flips small"
+      - "Often noted in bulk by Hunter trainers"
+  trading_tips:
+    - "Stock up around Hunter XP weekends and tasks"
+    - "Larupia set demand persists for camouflage Hunter spots"
+  history:
+    - date: "21 November 2006"
+      description: "Released as part of the Hunter skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

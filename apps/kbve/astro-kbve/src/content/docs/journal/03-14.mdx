@@ -10,25 +10,67 @@ description: |
     Happy Pi Day! The magical number that sits within our heart and soul.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 14,'
+    accent: every year.
+    lede: 'The March 14th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#tasks'
+          primary: true
+        - label: '← Mar 13'
+          href: /journal/03-13/
+        - label: 'Mar 15 →'
+          href: /journal/03-15/
+    related:
+        - title: 'Previous · Mar 13'
+          copy: 'Step back a day to the March 13th log.'
+          href: /journal/03-13/
+          icon: calendar
+        - title: 'Next · Mar 15'
+          copy: 'Jump ahead to the March 15th log.'
+          href: /journal/03-15/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1632229095740-8c75082087c5?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-
-## Tasks
+<BentoProse id="tasks" heading="Tasks">
 
 - [X] - Check on the CD account and see if it has matured.
 - [x] - Take notes for a new stream!
 - [x] - Prepare Travel Jam R&D
 - [x] - Make Posts requesting Discord Jammers
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Foundation
 
@@ -61,8 +103,9 @@ import { Adsense } from '@/components/astropad';
     The goal of the CD funds is to get to 100,000 reserve that will collect that nice 4% interest.
     Afterwards, I might move the funds into picking up a condo?
 
+</BentoProse>
 
-## 2024
+<BentoProse id="2024" heading="2024">
 
 ### Twitch
 
@@ -112,3 +155,6 @@ That ended up being easier to manage than I would have thought.
 
 The travel tag might be a bit weird but also these notes for this year , 2024, will extend into the next day because its almost 3:39am here.
 
+</BentoProse>
+
+</BentoDoc>

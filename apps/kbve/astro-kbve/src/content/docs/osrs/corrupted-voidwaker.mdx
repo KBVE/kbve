@@ -12,9 +12,74 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: null
-  about: "Corrupted voidwaker is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Corrupted alloy
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 65
+    attack_bonus:
+      stab: 56
+      slash: 64
+      crush: -2
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 2
+      ranged: 0
+    other_bonus:
+      strength: 64
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Disrupt
+    energy_cost: 50
+    description: "Delivers guaranteed magic damage between 50% and 150% of the wielder's maximum melee hit. Grants 2 Magic experience per damage dealt and ignores melee defensive bonuses."
+  related_items:
+    - name: Voidwaker
+      relationship: variant
+    - name: Trinket of advanced weaponry
+      relationship: component
+    - name: Corrupted Armadyl godsword
+      relationship: alternative
+  about: "Corrupted voidwaker is a one-handed stab sword obtained exclusively during temporary Deadman Mode events by opening a Trinket of Advanced Weaponry. It mirrors the Voidwaker's Disrupt special attack but carries roughly 20% lower combat bonuses than the regular variant."
+  market_strategy:
+    notes:
+      - "Only listed on the Grand Exchange during active Deadman Mode events."
+      - "Drop rate from Trinket of Advanced Weaponry is 1/8 inside breaches."
+      - "Demand is concentrated around the start of a Deadman season when PvP supplies stack."
+  trading_tips:
+    - "Stock up before Deadman finals where the special attack is meta against high-defence targets."
+    - "Price collapses post-event as the item becomes unobtainable but unusable in main worlds."
+  history:
+    - date: "2023-08-23"
+      description: "Released for Deadman Mode: Apocalypse alongside other corrupted weaponry."
+  properties:
+    release_date: "2023-08-23"
+    update: "Deadman Mode: Apocalypse"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: grafana-gate
+    namespace: monitoring
+    labels:
+        app: grafana-gate
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: grafana-gate
+    template:
+        metadata:
+            labels:
+                app: grafana-gate
+        spec:
+            serviceAccountName: grafana-gate-sa
+            automountServiceAccountToken: false
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: kbve-gate
+                  image: ghcr.io/kbve/kbve-gate:0.1.8
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: gateway
+                        containerPort: 5678
+                        protocol: TCP
+                  env:
+                      - name: GATE_LISTEN
+                        value: 0.0.0.0:5678
+                      - name: GATE_UPSTREAM
+                        value: http://monitoring-grafana.monitoring.svc.cluster.local:80
+                      - name: GATE_UPSTREAM_PREFIX
+                        value: /dashboard/grafana/proxy
+                      - name: GATE_FORWARD_USER_HEADER
+                        value: X-WEBAUTH-USER
+                      - name: GATE_FORWARD_USER_VALUE
+                        value: kbve-staff
+                      - name: GATE_AUTHZ
+                        value: is_staff
+                      - name: GATE_STAFF_SCHEMA
+                        value: forum
+                      - name: GATE_LOGIN_REDIRECT
+                        value: https://kbve.com/login
+                      - name: GATE_COOKIE_DOMAIN
+                        value: .kbve.com
+                      - name: SUPABASE_URL
+                        value: http://kong.kilobase.svc.cluster.local:8000
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: grafana-gate-supabase-jwt
+                                key: SUPABASE_JWT_SECRET
+                      - name: SUPABASE_ANON_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: grafana-gate-supabase-jwt
+                                key: anon-key
+                      - name: RUST_LOG
+                        value: info
+                  resources:
+                      requests:
+                          memory: 64Mi
+                          cpu: 50m
+                      limits:
+                          memory: 128Mi
+                          cpu: 500m
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                  livenessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: gateway
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: gateway
+                      initialDelaySeconds: 3
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3

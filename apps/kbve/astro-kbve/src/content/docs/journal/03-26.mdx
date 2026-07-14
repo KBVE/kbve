@@ -9,14 +9,52 @@ description: |
     26th of March.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 26,'
+    accent: every year.
+    lede: 'The March 26th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2026'
+          primary: true
+        - label: '← Mar 25'
+          href: /journal/03-25/
+        - label: 'Mar 27 →'
+          href: /journal/03-27/
+    related:
+        - title: 'Previous · Mar 25'
+          copy: 'Step back a day to the March 25th log.'
+          href: /journal/03-25/
+          icon: calendar
+        - title: 'Next · Mar 27'
+          copy: 'Jump ahead to the March 27th log.'
+          href: /journal/03-27/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1615563821068-a15bbe32b305?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2026
+<BentoProse id="2026" heading="2026">
 
 ### ROWS Dashboard
 
@@ -25,8 +63,15 @@ import { Adsense } from '@/components/astropad';
       The dashboard needs to be extended to include data from the ROWS deployment.
       I am going to start off with a basic proof of concept for the dashboard, then slowly look at bumping up the integration, making it easier to build around it.
 
+</BentoProse>
 
-## 2025
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### REDIS v3
 
@@ -36,8 +81,9 @@ import { Adsense } from '@/components/astropad';
     We still have to figure out the best way to handle the gRPC but getting closer to a performant WSS.
     Eventually, the goal should be to move away from the JSON and go straight flexbuffers and binary.
 
-## 2024
+</BentoProse>
 
+<BentoProse id="2024" heading="2024">
 
 ### Action
 
@@ -181,3 +227,7 @@ Let me see if I can add something that might be missing from the Github Actions?
 ```
 
 We will try this next! Hopefully this might solve the issue with the automated builds within the pipeline.
+
+</BentoProse>
+
+</BentoDoc>

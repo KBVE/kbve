@@ -1,32 +1,37 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sealed-secrets
-  namespace: argocd
+    name: sealed-secrets
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/sealed-secrets
+        kbve.com/manifest-path: kube/sealed-secrets
+        kbve.com/application-file: kube/sealed-secrets/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: security
+        kbve.com/stack: core
 spec:
-  project: default
-  source:
-    repoURL: https://bitnami-labs.github.io/sealed-secrets
-    chart: sealed-secrets
-    targetRevision: 2.17.3
-    helm:
-      values: |
-        fullnameOverride: sealed-secrets-controller
-        secretName: sealed-secrets-key
-        existingSecret: sealed-secrets-key
-        resources:
-          limits:
-            cpu: 1000m
-            memory: 1280Mi
-          requests:
-            cpu: 500m
-            memory: 128Mi
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: kube-system
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
-    syncOptions:
-      - CreateNamespace=true
+    project: default
+    source:
+        # Repo moved: bitnami-labs.github.io Pages site removed → 404 broke Argo
+        # manifest generation (app stuck Unknown). Canonical host is now
+        # bitnami.github.io/sealed-secrets. Chart 2.17.3 = appVersion 0.30.0,
+        # identical to the running controller, so this is a diffing-only fix.
+        repoURL: https://bitnami.github.io/sealed-secrets
+        chart: sealed-secrets
+        targetRevision: 2.17.3
+        helm:
+            values:
+                "fullnameOverride: sealed-secrets-controller\nsecretName: sealed-secrets-key\n\
+                existingSecret: sealed-secrets-key\nresources:\n  limits:\n    cpu: 1000m\n\
+                \    memory: 1280Mi\n  requests:\n    cpu: 500m\n    memory: 128Mi\n"
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kube-system
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true

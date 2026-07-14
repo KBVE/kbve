@@ -91,7 +91,6 @@ namespace RareIcon
             BuildTabs();
             _root.Q<Button>("inspector-close").clicked += Close;
 
-            // Stop the panel's clicks from falling through to the map below.
             _panel.RegisterCallback<ClickEvent>(e => e.StopPropagation());
 
             var bag = MessagePipe.DisposableBag.CreateBuilder();
@@ -152,9 +151,6 @@ namespace RareIcon
             if (_panel == null) return;
             _tabs = new BuildingPanelTabs();
 
-            // Info tab — reparent the existing inspector-scroll under the
-            // tab stage so the storage / production / health labels keep
-            // working without re-binding.
             var scrollView = _root.Q<ScrollView>("inspector-scroll");
             var infoContent = new VisualElement { name = "tab-info-content" };
             infoContent.style.flexGrow = 1f;
@@ -166,9 +162,6 @@ namespace RareIcon
             }
             _tabs.AddTab("info", _locale.Get("inspector.tab_info"), infoContent);
 
-            // Upgrades tab — moves the existing upgrade-panel-cards element
-            // out of the floating panel and into a dedicated tab. The
-            // standalone "Upgrade" button + close button become redundant.
             var upgradesContent = new VisualElement { name = "tab-upgrades-content" };
             if (_upgradePanelCards != null)
             {
@@ -177,9 +170,6 @@ namespace RareIcon
             }
             _tabs.AddTab("upgrades", _locale.Get("inspector.tab_upgrades"), upgradesContent);
 
-            // Recruit tab — Scout for Barracks, Goblin for the Cave. Each
-            // button toggles via Refresh based on the inspected building's
-            // tags. Drop the now-redundant standalone Upgrade panel + button.
             var recruitContent = new VisualElement { name = "tab-recruit-content" };
             if (_recruitScoutBtn != null)
             {
@@ -204,16 +194,12 @@ namespace RareIcon
             recruitContent.Add(_heroTimerLabel);
             _tabs.AddTab("recruit", _locale.Get("inspector.tab_recruit"), recruitContent);
 
-            // Insert the tabs container before the action button row so the
-            // Demolish / Release shortcuts stay anchored at the bottom.
             int beforeIdx = _releaseBtn != null
                 ? _panel.IndexOf(_releaseBtn)
                 : _panel.childCount;
             if (beforeIdx < 0) beforeIdx = _panel.childCount;
             _panel.Insert(beforeIdx, _tabs.Root);
 
-            // Hide the legacy standalone Upgrade button + the floating
-            // upgrade panel — tabs own that surface now.
             if (_upgradeBtn != null) SetHidden(_upgradeBtn, true);
             if (_upgradePanel != null) SetHidden(_upgradePanel, true);
 
@@ -516,7 +502,6 @@ namespace RareIcon
             Close();
         }
 
-
         void Refresh()
         {
             if (_titleLabel == null) return;
@@ -753,9 +738,7 @@ namespace RareIcon
 
         void RefreshStorage(EntityManager em)
         {
-            // Read whichever per-bank ledger this building entity carries.
-            // Five types to check; all share BankLedgerBase layout so we
-            // reinterpret once and iterate the common shape.
+
             DynamicBuffer<BankLedgerBase> slots = default;
             bool hasSlots = false;
             if (em.HasBuffer<CapitalLedger>(_target))      { slots = em.GetBuffer<CapitalLedger>(_target).Reinterpret<BankLedgerBase>(); hasSlots = true; }

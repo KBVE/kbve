@@ -12,12 +12,20 @@ osrs:
   lowalch: 16640
   highalch: 24960
   limit: 70
+  material:
+    type: rune
+    tier: mid-high
   equipment:
     slot: weapon
+    weapon_type: battleaxe
+    attack_speed: 6
+    weight: 2.721
+    requirements:
+      attack: 40
     attack_bonus:
       stab: -2
       slash: 48
-      crush: 42
+      crush: 43
       magic: 0
       ranged: 0
     defence_bonus:
@@ -25,15 +33,26 @@ osrs:
       slash: 0
       crush: 0
       magic: 0
-      ranged: 0
+      ranged: -1
     other_bonus:
       melee_strength: 64
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 40
-    attack_speed: 6
+  special_attack:
+    name: Rampage
+    energy_cost: 100
+    description: Drains Attack, Defence, Ranged, and Magic by 10%, then boosts Strength by 10% + 10 levels.
+  recipes:
+    - materials:
+        - item_name: Runite bar
+          quantity: 3
+      tools:
+        - Hammer
+      output_quantity: 1
+      skill: smithing
+      level: 95
+      xp: 225
   related_items:
     - item_id: 1333
       item_name: Rune scimitar
@@ -50,38 +69,32 @@ osrs:
       slug: rune-warhammer
       relationship: alternative
       description: Crush alternative
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Slash | +48 |
-    | Crush | +42 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +64 |
-
-    Requirements: 40 Attack | Speed: 6 tick (3.6s)
-
-    At +64 Strength, the rune battleaxe has the highest Strength bonus of any rune weapon. However, its slow 6-tick speed (3.6s) means it has lower DPS than the rune scimitar.
-
-    | Stat | Rune Battleaxe | Rune Scimitar | Rune Warhammer | Rune 2h Sword |
-    |------|---------------|---------------|----------------|---------------|
-    | Best Atk | +48 slash | +45 slash | +53 crush | +69 slash |
-    | Strength | +64 | +44 | +62 | +69 |
-    | Speed | 6 tick | 4 tick | 6 tick | 7 tick |
-    | Hands | 1H | 1H | 1H | 2H |
-
-    For raw strength training in F2P, the battleaxe offers the best Strength bonus in a one-handed weapon. The warhammer is close (+62) and was buffed to compete.
-
-    Rampage (100% energy): Drains Attack, Defence, Ranged, and Magic by 10%, then boosts Strength by 10% + 10 levels. Useful for maximizing hits in PvM — use before switching to a faster weapon.
+  about: "Rune battleaxe is a one-handed F2P melee weapon requiring 40 Attack; with +64 Strength it owns the highest Strength bonus of any rune weapon but its 6-tick speed yields lower DPS than the rune scimitar."
   market_strategy:
     notes:
       - Smithing training product (3 runite bars)
       - GE price near alch value
       - F2P Strength training niche
       - Rampage spec used as a budget Strength boost
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2001-08-13"
+      description: Released alongside the Wilderness system update.
+  properties:
+    release_date: "2001-08-13"
+    update: Wilderness
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

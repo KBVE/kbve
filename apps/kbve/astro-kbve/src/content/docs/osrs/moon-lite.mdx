@@ -1,6 +1,6 @@
 ---
 title: Moon-lite | OSRS Price Data
-description: "Moon-lite: A popular spirit all across Varlamore.. High alch: 9 GP."
+description: "Moon-lite is a members Varlamore drink purchased at taverns. High alch: 9 GP."
 osrs:
   id: 29418
   name: Moon-lite
@@ -11,10 +11,58 @@ osrs:
   value: 15
   lowalch: 6
   highalch: 9
-  limit: null
-  about: "Moon-lite is a members-only item in Old School RuneScape. High alchemy value: 9 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: drink
+    tier: low
+  properties:
+    release_date: "2024-02-21"
+    update: "Varlamore: The Final Dawn"
+    quest_item: false
+    tradeable: false
+    equipable: false
+    stackable: false
+    noteable: false
+    weight: 0.45
+    destroy: "Drop"
+    options:
+      - Drink
+      - Drop
+    examine_options:
+      - Examine
+    alchable: true
+  obtaining:
+    - method: Purchase
+      source: Varlamore taverns
+      location: Civitas illa Fortis
+      currency: coins
+      cost: 15
+      notes: "Bought from publicans at Varlamore inns and taverns"
+  related_items:
+    - item_name: Sunset slugger
+      slug: sunset-slugger
+      relationship: alternative
+      description: Another Varlamore tavern drink
+    - item_name: Beer
+      slug: beer
+      relationship: alternative
+      description: Classic Gielinor tavern drink
+    - item_name: Wizard's mind bomb
+      slug: wizards-mind-bomb
+      relationship: alternative
+      description: Magic boost cocktail alternative
+  market_strategy:
+    notes:
+      - "Untradeable cosmetic drink, no GE liquidity"
+      - "Only obtained directly from Varlamore taverns"
+      - "Collectors of Varlamore flavour items keep light demand"
+      - "Not worth alching at scale; value tied to tavern roleplay"
+  history:
+    - date: "2024-02-21"
+      description: "Released with Varlamore: The Final Dawn"
+  about: "Moon-lite is a Varlamore-themed alcoholic beverage purchased from taverns across Civitas illa Fortis. Drinking it slightly drains stats and provides cosmetic flavour for players exploring the Varlamore content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

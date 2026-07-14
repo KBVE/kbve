@@ -9,13 +9,52 @@ description: |
    May 29th. Start of Summer.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'May 29,'
+    accent: every year.
+    lede: 'The May 29th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← May 28'
+          href: /journal/05-28/
+        - label: 'May 30 →'
+          href: /journal/05-30/
+    related:
+        - title: 'Previous · May 28'
+          copy: 'Step back a day to the May 28th log.'
+          href: /journal/05-28/
+          icon: calendar
+        - title: 'Next · May 30'
+          copy: 'Jump ahead to the May 30th log.'
+          href: /journal/05-30/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1624221023334-16e25184b8b0?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
+
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### NVDA Cover Calls
 
@@ -52,8 +91,15 @@ public interface ICharacterRegistry
     Now we can build out the next part, which will be the the actual CharacterData singleton.
     Our goal for that singleton will be to find each character quickly at the global level.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Heat**
 
@@ -88,7 +134,9 @@ I made some slight changes to the `tsconfig` for the Astropad, hopefully these m
 
 While we are building out the Resume application, I want to migrate over the invoice application into the Astropad.
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 8:30am Happy Memorial Day! I did not have any major plans for this weekend, I am still in the grindset mode but my sleep schedule is still a mess.
 - 11:00am - Going to look over that Magic shell script that Ziggy found and see if I can add that into KBVE. One of the ideas I was having for it was to integrate a basic GPT into the questions that the user types into the application? So it combines the audio return of yes / no but also gives you a GPT generated response via the typewriter effect. Its a bit tough to describe the product, as I can already see how to build it out within my head. Putting the pieces together will be the focus.
@@ -96,13 +144,21 @@ While we are building out the Resume application, I want to migrate over the inv
 - 5:00pm - One of the things that has been stopping the puppeteer from scraping is anti-bot protections that websites have. So I am thinking of ways of going around it, not for any other reason but science. Within the industry, this is known as the Cat and Mouse game, where developers on both, red and blue teams, are trying to beat each other. 
 - 9:30pm - Going to see if I can get a mock version of the magic conch shell up and running! There are two ways I could do the background image of bikini bottom, I could add it into the background scene or I could load it.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Chaos and Order are not enemies, only opposites.
 > — <cite>Richard Garriott</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

@@ -1,5 +1,6 @@
 ---
 title: Warped Planks
+template: splash
 description: |
     Minecraft Warped Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 843
     ref: warped_planks
     slug: warped-planks
+    content_rev: 1
     display_name: Warped Planks
     material: nether
     hardness: 2
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Warped Planks are the sawn-lumber form of Warped Stems, sharing
+            the teal palette of the Warped Forest. Like all Nether wood,
+            they are immune to fire, making them a safe building material
+            near lava.
+        lore: |
+            Nether wood planks were added in the Nether Update (1.16) as
+            fireproof counterparts to overworld lumber.
+    uses:
+        - title: Building and Crafting
+          ref: warped_stairs
+          detail: |
+              Craft into stairs, slabs, fences, fence gates, doors,
+              trapdoors, pressure plates, buttons, signs, and boats — the
+              same recipes as any other plank type.
+        - title: Fire-Safe Construction
+          ref: warped_stem
+          detail: |
+              Because Nether planks never burn, builders use them for bases
+              and structures placed near lava or fire hazards.
+    found_in:
+        - location: Crafted from Warped Stems
+          detail: One Warped Stem or its stripped variant crafts into 4 Warped Planks.
+        - location: Nether structures
+          detail: Occasionally found in bastion remnants and other Nether generation.
+    faq:
+        - question: Do Warped Planks burn?
+          answer: |
+              No. Warped and Crimson planks are the only plank types immune
+              to fire and lava, unlike every overworld wood.
+        - question: What tool should I use to break Warped Planks?
+          answer: |
+              An axe is fastest, though any tool or bare hands will
+              eventually break it since no minimum tier is required.
+        - question: How do I get Warped Planks?
+          answer: |
+              Craft them from Warped Stems or stripped Warped Stems found in
+              the Warped Forest biome of the Nether.
     data_version: "1.21.5"
 ---
 

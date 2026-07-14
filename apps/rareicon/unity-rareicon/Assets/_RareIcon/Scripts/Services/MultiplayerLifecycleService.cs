@@ -56,25 +56,16 @@ namespace RareIcon
             _disposables?.Dispose();
         }
 
-        // -- Bridge lifecycle --
-
         void MaybeStart()
         {
             if (_bridgeUp) return;
             if (!_coord.InLobby) return;
 
-            // Lobby data carries a `started` flag the host flips when
-            // launching the match. Until that's set we stay idle so a
-            // peer browsing the lobby UI doesn't allocate transport
-            // queues prematurely.
             if (!IsMatchStarted()) return;
 
             try
             {
-                // ActivatePeer wires the bridge + stamps LocalSteamId for
-                // the driver constructor that was already registered at
-                // BeforeSceneLoad. Driver picks them up the next time
-                // NetCode opens a session.
+
                 SteamNetworkDriverConstructor.ActivatePeer();
                 _bridgeUp = true;
                 Debug.Log($"[MultiplayerLifecycle] transport bridge online — host={_coord.IsHost.CurrentValue} mode={_coord.Mode.CurrentValue}");
@@ -101,10 +92,7 @@ namespace RareIcon
 
         bool IsMatchStarted()
         {
-            // MultiplayerCoordinator already gates on this internally;
-            // the indirect check via lobby data keeps the lifecycle
-            // service decoupled from coordinator internals so it can
-            // drive transport even if the coordinator API evolves.
+
             return MultiplayerAuthorityBridge.Lobby?.GetData(LobbyDataKeys.Started) == "1";
         }
     }

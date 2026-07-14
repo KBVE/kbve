@@ -12,8 +12,26 @@ osrs:
   lowalch: 24000
   highalch: 36000
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    alchable: true
   equipment:
     slot: head
+    weight: 2.721
+    requirements:
+      defence: 45
     attack_bonus:
       stab: -5
       slash: -5
@@ -31,50 +49,48 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 45
-    weight: 2.721
+  drop_table:
+    sources:
+      - source: Dagannoth Supreme
+        quantity: "1"
+        rarity: 1/128
+      - source: Dagannoth (Waterbirth Island)
+        quantity: "1"
+        rarity: 1/2048
+      - source: Barbarian Assault High Gamble
+        quantity: "1"
+        rarity: 1/32
   related_items:
-    - item_id: 3751
-      item_name: Berserker helm
+    - item_name: Berserker helm
       slug: berserker-helm
       relationship: alternative
-      description: Melee variant (+3 Str)
-    - item_id: 3755
-      item_name: Farseer helm
+      description: Melee variant of the Fremennik helms (+3 strength).
+    - item_name: Farseer helm
       slug: farseer-helm
       relationship: alternative
-      description: Magic variant
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Ranged | +6 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +6 |
-    | Slash | +8 |
-    | Crush | +10 |
-    | Magic | +6 |
-    | Ranged | +6 |
-
-    Requirements: 45 Defence | Weight: 2.72 kg
-
-    The +6 ranged attack makes this competitive with the Karil's coif (+7) while providing substantially better melee defence. At 45 Defence it's accessible earlier than Armadyl helm (70 Def/Ranged).
-
-    | Stat | Archer Helm | Karil's Coif | Armadyl Helm |
-    |------|------------|-------------|-------------|
-    | Ranged Atk | +6 | +7 | +10 |
-    | Stab Def | +6 | +4 | +6 |
-    | Magic Def | +6 | +4 | +10 |
-    | Req | 45 Def | 70 Def | 70 Def/70 Rng |
+      description: Magic variant of the Fremennik helms.
+    - item_name: Karil's coif
+      slug: karils-coif
+      relationship: upgrade
+      description: Higher ranged attack bonus at 70 Defence.
+    - item_name: Armadyl helmet
+      slug: armadyl-helmet
+      relationship: upgrade
+      description: Endgame ranged helm at 70 Defence and 70 Ranged.
+  about: "The archer helm is a Fremennik ranged helm purchasable from Skulgrimen's Battle Gear in Rellekka for 78,000 coins after completing The Fremennik Trials. It requires 45 Defence and gives +6 ranged attack with well-rounded melee defence, making it a popular budget ranged helm for the Wilderness, mid-game Slayer, and ironmen who want a replaceable Karil's coif substitute. Higher-tier replacements like Karil's coif and the Armadyl helmet outclass it at endgame, but the low GE price keeps it relevant for risky content."
   market_strategy:
     notes:
-      - Budget ranged helm with solid defence
-      - Useful for mid-game Slayer ranging
-      - Outclassed by Armadyl/Masori at endgame
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Budget ranged helm with solid all-round defensive stats."
+      - "Useful for mid-game Slayer and Wilderness PvP where loss is expected."
+      - "Outclassed by Armadyl helmet and Masori at endgame."
+  trading_tips:
+    - Drop rates from Dagannoth Supreme and BA High Gamble cap effective supply — price spikes follow PvP and Wilderness updates.
+    - Buy in bulk during Wilderness death updates that change risk thresholds.
+  history:
+    - date: "2004-11-02"
+      description: "Released with The Fremennik Trials quest update."
+    - date: "2025-08-13"
+      description: "Equipped model updated."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,76 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik grey shirt is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Yrsa's Accoutrements
+      location: Rellekka
+      price: 325
+      currency: Coins
+      stock: 5
+    - shop_name: Miscellanian Clothes Shop
+      location: Miscellania and Etceteria Dungeon
+      price: 250
+      currency: Coins
+      stock: 5
+  about: "Fremennik grey shirt is a cosmetic Fremennik-themed body item sold by Yrsa in Rellekka and the Miscellania clothes vendor."
+  market_strategy:
+    notes:
+      - "Cosmetic cloth body slot for Fremennik-themed outfits"
+      - "Cheaper to buy from Yrsa than from the Grand Exchange when stocked"
+  trading_tips:
+    - "Buy limit: 150 per 4 hours"
+    - Restock at Yrsa's Accoutrements if shop stock is empty
+  history:
+    - date: "2004-11-02"
+      description: Item released
+    - date: "2005-01-17"
+      description: Received a graphical update
+    - date: "2014-12-10"
+      description: 'Renamed from "Fremennik shirt" to "Fremennik grey shirt"'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

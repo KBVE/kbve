@@ -12,7 +12,7 @@ import {
 	QuestObjectiveSchema,
 	QuestRewardsSchema,
 	AchievementMetaSchema,
-} from '../../../../../../packages/data/codegen/generated/questdb-schema';
+} from '@kbve/proto/questdb-schema';
 
 // Re-export generated types for downstream consumers
 export {
@@ -29,7 +29,7 @@ export type {
 	QuestObjective,
 	QuestRewards,
 	AchievementMeta,
-} from '../../../../../../packages/data/codegen/generated/questdb-schema';
+} from '@kbve/proto/questdb-schema';
 
 // ---------------------------------------------------------------------------
 // Astro extensions — fields not in the proto Quest message but used in MDX

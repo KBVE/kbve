@@ -12,9 +12,57 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Yellow dark bow paint is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-09-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  shops:
+    - shop_name: "Justine's stuff for the Last Shopper Standing"
+      location: Last Man Standing lobby
+      price: 25
+      currency: Last Man Standing points
+      stock: 100
+  related_items:
+    - item_name: Green dark bow paint
+      slug: green-dark-bow-paint
+      relationship: alternative
+      description: Green cosmetic variant of the dark bow paint.
+    - item_name: Blue dark bow paint
+      slug: blue-dark-bow-paint
+      relationship: alternative
+      description: Blue cosmetic variant of the dark bow paint.
+    - item_name: White dark bow paint
+      slug: white-dark-bow-paint
+      relationship: alternative
+      description: White cosmetic variant of the dark bow paint.
+    - item_name: Dark bow
+      slug: dark-bow
+      relationship: component
+      description: Base weapon receiving the cosmetic paint job.
+  about: "Yellow dark bow paint is a cosmetic Last Man Standing reward purchased for 25 points. Using it on a dark bow recolours the weapon into a yellow Dark bow (yy) with no change to its stats. The cosmetic is permanent once applied."
+  market_strategy:
+    notes:
+      - "GE supply is rate-limited by LMS engagement and the 4-per-4h buy limit."
+      - "Price is driven almost entirely by cosmetic demand and rarity perception."
+      - "High alch and low alch are 1 coin so flipping is the only viable strategy."
+  trading_tips:
+    - List close to current GE midprice; spread is wide because of low volume.
+    - Stock up when LMS rewards see hype-driven sell pressure post-update.
+    - Combine with a clean Dark bow listing to capture full-set pricing.
+  history:
+    - date: "2014-09-18"
+      description: "Released alongside the Bounty Hunter update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

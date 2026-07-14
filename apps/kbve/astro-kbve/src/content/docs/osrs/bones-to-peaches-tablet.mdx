@@ -12,9 +12,54 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Bones to peaches (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    alchable: true
+  recipes:
+    - skill: magic
+      level: 60
+      xp: 35.5
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Nature rune
+          quantity: 2
+        - item_name: Earth rune
+          quantity: 4
+        - item_name: Water rune
+          quantity: 4
+      tools:
+        - Mahogany demon lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Bones to peaches
+      slug: bones-to-peaches
+      relationship: alternative
+      description: Standard spellbook version of the spell.
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Required base material for tablet creation.
+    - item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: Two nature runes are consumed per tablet.
+  history:
+    - date: "2024-05-08"
+      description: Tablets were updated to function on bones inside the Mage Training Arena's Creature Graveyard.
+  about: "Bones to peaches (tablet) is a stackable magic tablet that breaks to cast the Bones to peaches spell, converting bones in the inventory into peaches without needing the spellbook or runes. Each tablet is created at a mahogany (or better) demon lectern at 60 Magic, consuming soft clay alongside nature, earth, and water runes for 35.5 Magic experience. Breaking the tablet itself awards no experience but is popular for slayer tasks and Bounty Hunter trips where flexibility matters."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

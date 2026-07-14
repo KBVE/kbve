@@ -1,5 +1,6 @@
 ---
 title: Pitcher Pod
+template: splash
 description: |
     Minecraft Pitcher Pod — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1216
     ref: pitcher_pod
     slug: pitcher-pod
+    content_rev: 1
     display_name: Pitcher Pod
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Pitcher Pod is an ancient seed dropped when a sniffer finishes digging in dirt, grass, podzol, mud, or moss blocks. Planting it on suitable soil grows it through five stages into a mature pitcher plant.
+            It can also be used to speed up chick growth when fed to chickens, or to tame parrots, and it is a valid composting material.
+        lore: |
+            Rediscovered through sniffers, ancient creatures revived from long-buried eggs, the pitcher pod represents a plant species otherwise lost to time.
+    faq:
+        - question: |
+              How do I obtain a Pitcher Pod?
+          answer: |
+              Sniffers occasionally dig into the ground and have a chance to unearth a pitcher pod once they finish digging.
+        - question: |
+              What do I do with a Pitcher Pod?
+          answer: |
+              Plant it on farmland-like soil to grow a pitcher plant through five growth stages over time.
+        - question: |
+              Can Pitcher Pods be used for anything besides farming?
+          answer: |
+              Yes, they can feed chickens to reduce chick growth time by 10%, tame parrots, or be added to composters.
+        - question: |
+              Can bees fertilize pitcher crops grown from pods?
+          answer: |
+              No, in Java Edition pitcher crops cannot be fertilized by bees, unlike some other crops.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

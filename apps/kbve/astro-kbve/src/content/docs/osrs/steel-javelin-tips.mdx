@@ -12,9 +12,68 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 10000
-  about: "Steel javelin tips is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 36
+      xp: 37.5
+      materials:
+        - item_name: Steel bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 5
+  related_items:
+    - item_name: Steel javelin
+      slug: steel-javelin
+      relationship: product
+      description: Final javelin produced by fletching tips onto shafts
+    - item_name: Javelin shaft
+      slug: javelin-shaft
+      relationship: component
+      description: Wooden shaft attached to the tips
+    - item_name: Steel bar
+      slug: steel-bar
+      relationship: component
+      description: Raw material smithed into tips
+    - item_name: Mithril javelin tips
+      slug: mithril-javelin-tips
+      relationship: upgrade
+      description: Higher tier javelin tip variant
+  about: "Steel javelin tips are stackable smithing products created from a single steel bar at level 36 Smithing, yielding 5 tips and 37.5 experience per bar. They combine with javelin shafts via Fletching at level 32 to produce steel javelins (75 xp per 15 javelins). The process is currently unprofitable due to bar costs outpacing tip prices."
+  market_strategy:
+    notes:
+      - "Loss-making smithing route caps natural supply"
+      - "Demand tied to Fletching trainers and PvM javelin users"
+      - "Large 10,000 buy limit supports bulk flips"
+      - "Renamed from \"javelin heads\" in late 2025"
+  trading_tips:
+    - Compare against steel bar cost when planning Smithing routes
+    - Bulk flips work given the 10k buy limit
+    - Watch ranged content updates for javelin demand swings
+  history:
+    - date: "2016-05-06"
+      description: "Released with the Monkey Madness II update."
+    - date: "2025-11-05"
+      description: "Renamed from Steel javelin heads to Steel javelin tips."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

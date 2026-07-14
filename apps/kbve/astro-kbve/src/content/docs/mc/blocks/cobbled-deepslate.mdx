@@ -1,5 +1,6 @@
 ---
 title: Cobbled Deepslate
+template: splash
 description: |
     Minecraft Cobbled Deepslate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1060
     ref: cobbled_deepslate
     slug: cobbled-deepslate
+    content_rev: 1
     display_name: Cobbled Deepslate
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobbled_deepslate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Cobbled Deepslate is the deepslate equivalent of cobblestone,
+            dropped when deepslate is mined without Silk Touch. It
+            functions like cobblestone or blackstone for crafting stone
+            tools, furnaces, and brewing stands.
+        lore: |
+            Added in Java Edition 1.17 (snapshot 21w08a) as part of the
+            Caves & Cliffs update, it later gained natural generation in
+            ancient cities and trial chambers.
+    uses:
+        - title: Cobbled Deepslate Slab, Stairs & Wall
+          ref: cobbled_deepslate_slab
+          detail: |
+              Crafted or stonecut into slabs, stairs, walls, and polished
+              deepslate; also usable for crafting stone-tier tools and
+              repairing them on an anvil.
+    found_in:
+        - location: Deepslate Layer (Y ≤ 0)
+          detail: Obtained by mining deepslate with a pickaxe lacking Silk Touch.
+        - location: Ancient Cities & Trial Chambers
+          detail: Generates naturally as part of these deep-underground structures.
+    faq:
+        - question: What tool do I need to mine Cobbled Deepslate?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: How is Cobbled Deepslate obtained?
+          answer: |
+              By mining deepslate without Silk Touch, or by finding it
+              naturally generated in ancient cities and trial chambers.
+        - question: Can Cobbled Deepslate replace Cobblestone in every recipe?
+          answer: |
+              No. It substitutes for cobblestone in tools, furnaces, and
+              brewing stands, but not in recipes for dispensers, droppers,
+              or pistons — a deliberate design restriction.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No, mining cobbled deepslate itself always drops exactly one
+              block regardless of enchantments.
     data_version: "1.21.5"
 ---
 

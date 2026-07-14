@@ -1,5 +1,6 @@
 ---
 title: Spruce Hanging Sign
+template: splash
 description: |
     Minecraft Spruce Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 222
     ref: spruce_hanging_sign
     slug: spruce-hanging-sign
+    content_rev: 1
     display_name: Spruce Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            A Spruce Hanging Sign is a decorative wood block that suspends
+            from chains beneath a ceiling block, a wall, or a fence post. It
+            can display two lines of narrower text than a standard sign and
+            supports dye colors, a glowing effect, and wax sealing.
+        lore: |
+            Hanging signs were added in Java Edition 1.20, conceptualized by
+            Minecraft designer Agnes Larsson.
+    uses:
+        - title: Wayfinding and Labels
+          ref: spruce_hanging_sign
+          detail: |
+              Used to label storage rooms, shops, and builds with editable
+              text; can be waxed with honeycomb to permanently lock the
+              message against further edits.
+    found_in:
+        - location: Crafted by the player
+          detail: 2 chains plus 6 stripped spruce logs or stems craft 6 spruce hanging signs.
+        - location: Trial Chambers and Trail Ruins
+          detail: Occasionally generates as decoration in these structures.
+    faq:
+        - question: What material do I need to craft a spruce hanging sign?
+          answer: |
+              Two iron chains and six stripped spruce logs (or spruce wood)
+              craft six spruce hanging signs at once.
+        - question: What tool mines it fastest?
+          answer: |
+              An axe, though any tool or bare hands will break it — there is
+              no minimum tier required to get the drop.
+        - question: Can I change the text after placing it?
+          answer: |
+              Yes, right-click it with an empty hand to open the edit
+              screen, unless it has been waxed with a honeycomb.
+        - question: Does it burn?
+          answer: |
+              Overworld wood variants like spruce are flammable and can
+              catch fire from nearby lava or fire spreading.
     data_version: "1.21.5"
 ---
 

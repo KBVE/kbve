@@ -6,6 +6,15 @@ metadata:
     labels:
         app.kubernetes.io/name: kilobase
         app.kubernetes.io/component: database
+    annotations:
+        kbve.com/source-path: kube/kilobase
+        kbve.com/manifest-path: apps/kube/kilobase/manifests
+        kbve.com/application-file: kube/kilobase/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
     project: default
     source:
@@ -35,21 +44,17 @@ spec:
           jsonPointers:
               - /status
               - /metadata/generation
-        - group: ''
-          kind: Pod
+        - kind: Pod
           jsonPointers:
               - /spec/containers/*/resources
               - /metadata/labels/role
               - /metadata/annotations
-        - group: ''
-          kind: Secret
+        - kind: Secret
           jsonPointers:
               - /data
-        - group: ''
-          kind: Service
+        - kind: Service
           jsonPointers:
               - /spec/selector
-        - group: ''
-          kind: PersistentVolumeClaim
+        - kind: PersistentVolumeClaim
           jsonPointers:
               - /status

@@ -12,9 +12,69 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 150
-  about: "Citizen shoes is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-09-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: true
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Trader Sven's General Store
+      location: Meiyerditch
+      price: 6
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Citizen top
+      slug: citizen-top
+      relationship: set-piece
+      description: Matching upper-body disguise piece
+    - item_name: Citizen trousers
+      slug: citizen-trousers
+      relationship: set-piece
+      description: Matching lower-body disguise piece
+  about: "Citizen shoes are a members-only feet slot item worn as part of the Meiyerditch citizen disguise outfit during the Darkness of Hallowvale quest. The disguise allows players to blend in with the local population and access certain areas of the vampyre-ruled city. Sold by Trader Sven in Meiyerditch for 6 coins and providing only minor slash and crush defence bonuses, the shoes are cosmetic for everyday use but functionally important for the quest."
+  market_strategy:
+    notes:
+      - "Cheap disguise piece tied to Darkness of Hallowvale quest progression"
+      - "Trader Sven undercuts the Grand Exchange at 6 coins each"
+      - "High alchemy nets 3 coins per shoe so alching is unprofitable"
+      - "Demand is driven by questers replacing lost outfit pieces"
+      - "Buy limit of 150 per 4 hours rarely binds at this volume"
+  history:
+    - date: "2006-09-04"
+      description: "Released alongside the Darkness of Hallowvale quest as part of the Meiyerditch citizen disguise."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

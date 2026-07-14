@@ -1,6 +1,6 @@
 ---
 title: Mystic water staff | OSRS Price Data
-description: "Mystic water staff is a members weapon slot item with +50 melee strength requiring 40 Attack. High alch: 25,500 GP, GE limit: 18,000."
+description: "Mystic water staff is a members two-handed staff with +50 strength and +14 magic, requiring 40 Attack and 40 Magic. High alch: 25,500 GP, GE limit: 18,000."
 osrs:
   id: 1403
   name: Mystic water staff
@@ -12,9 +12,35 @@ osrs:
   lowalch: 17000
   highalch: 25500
   limit: 18000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: staff
+    tier: mid
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
+    weapon_type: staff
     attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 40
+      magic: 40
     attack_bonus:
       stab: 10
       slash: -1
@@ -28,66 +54,53 @@ osrs:
       magic: 14
       ranged: 0
     other_bonus:
-      melee_strength: 50
+      strength: 50
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 40
-      magic: 40
-    weight: 2.267
+  passive_effects:
+    - name: Unlimited water runes
+      description: "Provides unlimited water runes while wielded, including for Lunar Humidify and Charge Water Orb"
   related_items:
-    - item_id: 1401
-      item_name: Mystic fire staff
+    - item_name: Water battlestaff
+      slug: water-battlestaff
+      relationship: downgrade
+      description: "Base battlestaff upgraded by Thormac into the mystic version"
+    - item_name: Mystic fire staff
       slug: mystic-fire-staff
-      relationship: set-piece
-      description: Fire elemental mystic staff
-    - item_id: 1407
-      item_name: Mystic earth staff
+      relationship: variant
+      description: "Fire elemental mystic staff"
+    - item_name: Mystic earth staff
       slug: mystic-earth-staff
-      relationship: set-piece
-      description: Earth elemental mystic staff
-    - item_id: 6563
-      item_name: Mystic mud staff
+      relationship: variant
+      description: "Earth elemental mystic staff"
+    - item_name: Mystic air staff
+      slug: mystic-air-staff
+      relationship: variant
+      description: "Air elemental mystic staff"
+    - item_name: Mystic mud staff
       slug: mystic-mud-staff
       relationship: upgrade
-      description: Water+Earth combination staff
+      description: "Water and Earth combination mystic staff"
+    - item_name: Mystic steam staff
+      slug: mystic-steam-staff
+      relationship: upgrade
+      description: "Water and Fire combination mystic staff"
   about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +14 |
-    | Crush | +40 |
+    The mystic water staff is the upgraded form of the water battlestaff, made by paying Thormac in the Sorcerers' Tower south of Seers' Village after completing Scorpion Catcher. The standard upgrade fee is 40,000 coins, reduced to 30,000 with the Hard Kandarin Diary and 20,000 with the Elite Kandarin Diary.
 
-    | Defence | Value |
-    |---------|-------|
-    | Magic | +14 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +50 |
-
-    Requirements: 40 Attack, 40 Magic
-
-    Provides unlimited water runes. Useful for:
-    - Water spells (Water Blast through Water Surge)
-    - Charge Water Orb — saves water runes for crafting
-    - Humidify (Lunar spellbook) — requires water runes
-    - Autocast with standard spellbook
-
-    | Diary Tier | Cost | Battlestaff GE | Profit |
-    |-----------|------|----------------|--------|
-    | None | 40,000 | ~8,500 | ~-6,000 |
-    | Hard Kandarin | 30,000 | ~8,500 | ~4,000 |
-    | Elite Kandarin | 20,000 | ~8,500 | ~14,000 |
-
-    The Kandarin diary discount makes mystic staff upgrades progressively more profitable.
+    It provides unlimited water runes for any water-based spell, autocast styles, Charge Water Orb crafting, and Lunar spellbook utility spells such as Humidify, on top of being a reasonable budget crush weapon thanks to +40 crush attack and +50 strength.
   market_strategy:
     notes:
-      - Thormac upgrade profitable with Hard+ diary
-      - High volume item
-      - GE price tracks near high alch value
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Thormac upgrade profitable with Hard or Elite Kandarin Diary"
+      - "High GE volume — slim margins, predictable fills"
+      - "GE price tracks close to high alch value most days"
+  trading_tips:
+    - "Use battlestaff buy / Thormac sell to GE as a steady money maker once Kandarin Hard is unlocked"
+    - "Compare against the air, earth, and fire mystic staves before alching — sometimes one outpaces high alch"
+  history:
+    - date: "2002-03-25"
+      description: "Released alongside the rest of the elemental mystic staves."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

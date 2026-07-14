@@ -1,0 +1,630 @@
+<aside
+	class="bento-dock not-content"
+	data-bento-dock
+	aria-hidden="true"
+	aria-label="Extra information dock">
+	<div class="bento-dock__panel os-window">
+		<header class="os-titlebar">
+			<span class="os-traffic">
+				<button
+					type="button"
+					class="os-light os-light--close"
+					data-dock-close
+					aria-label="Close dock">
+				</button>
+				<button
+					type="button"
+					class="os-light os-light--min"
+					data-dock-min
+					aria-label="Minimize dock">
+				</button>
+				<button
+					type="button"
+					class="os-light os-light--max"
+					data-dock-max
+					aria-label="Expand dock">
+				</button>
+			</span>
+			<span class="os-title">
+				<span class="os-title__name">globe</span>
+				<span class="os-title__sep">—</span>
+				<span class="os-title__crumb">community.kbve</span>
+			</span>
+		</header>
+		<div class="os-body bento-dock__globe" data-dock-globe></div>
+		<p class="os-statusbar" data-dock-status>
+			Drag to spin. One planet, one player base.
+		</p>
+	</div>
+</aside>
+
+<svg class="bento-dock__live" data-dock-live fill="none" aria-hidden="true">
+	<path
+		class="bento-wire bento-wire--dots bento-wire--live"
+		data-dock-live-path
+		stroke-linecap="round">
+	</path>
+</svg>
+<span
+	class="bento-dock__live-tag bento-chip bento-card--glass"
+	data-dock-live-tag
+	aria-hidden="true">
+</span>
+
+<style>
+	.bento-dock {
+		display: none;
+	}
+
+	@media (min-width: 90rem) {
+		.bento-dock {
+			display: block;
+			position: fixed;
+			top: 50%;
+			right: 0.75rem;
+			z-index: 40;
+			transform: translate(calc(100% + 1.5rem), -50%);
+			transition: transform 420ms cubic-bezier(0.25, 1, 0.5, 1);
+		}
+
+		.bento-dock.is-open {
+			transform: translate(0, -50%);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-dock {
+			transition: none;
+		}
+	}
+
+	.bento-dock__panel {
+		width: 20rem;
+	}
+
+	.bento-dock__panel.is-max {
+		width: 28rem;
+	}
+
+	.bento-dock__panel.is-min .bento-dock__globe,
+	.bento-dock__panel.is-min .os-statusbar {
+		display: none;
+	}
+
+	.bento-dock__globe {
+		width: 100%;
+		aspect-ratio: 1;
+		padding: 0.625rem;
+	}
+
+	.bento-dock__live {
+		display: none;
+	}
+
+	@media (min-width: 90rem) {
+		.bento-dock__live {
+			display: block;
+			position: fixed;
+			inset: 0;
+			z-index: 41;
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 260ms ease;
+		}
+
+		.bento-dock__live.is-active {
+			opacity: 1;
+		}
+	}
+
+	.bento-dock__live-tag {
+		display: none;
+	}
+
+	@media (min-width: 90rem) {
+		.bento-dock__live-tag {
+			display: inline-flex;
+			position: fixed;
+			z-index: 41;
+			transform: translate(-100%, -50%);
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 260ms ease;
+			color: var(--sl-color-white);
+			border-color: color-mix(
+				in srgb,
+				var(--sl-color-text-accent) 45%,
+				transparent
+			);
+		}
+
+		.bento-dock__live-tag.is-active {
+			opacity: 1;
+		}
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	onMount(() => {
+		const dock = document.querySelector<HTMLElement>('[data-bento-dock]');
+		const globeEl = dock?.querySelector<HTMLElement>('[data-dock-globe]');
+		const closeBtn = dock?.querySelector<HTMLElement>('[data-dock-close]');
+		const minBtn = dock?.querySelector<HTMLElement>('[data-dock-min]');
+		const maxBtn = dock?.querySelector<HTMLElement>('[data-dock-max]');
+		const panel = dock?.querySelector<HTMLElement>('.bento-dock__panel');
+		if (!dock || !globeEl || !closeBtn || !minBtn || !maxBtn || !panel)
+			return;
+
+		const desktop = window.matchMedia('(min-width: 90rem)');
+		const reduced = window.matchMedia(
+			'(prefers-reduced-motion: reduce)',
+		).matches;
+
+		type GlobeHandle = {
+			start(): void;
+			stop(): void;
+			destroy(): void;
+			fireEvent(lon: number, lat: number): void;
+			screenPoint(lon: number, lat: number): [number, number] | null;
+			leaderPoint(lon: number, lat: number): [number, number] | null;
+		};
+		let globe: GlobeHandle | null = null;
+		let globeLoad: Promise<GlobeHandle | null> | null = null;
+
+		const initGlobe = async (): Promise<GlobeHandle | null> => {
+			const [d3geo, topo, worldMod, lakesMod] = (await Promise.all([
+				import('d3-geo'),
+				import('topojson-client'),
+				import('world-atlas/countries-110m.json'),
+				import('./lakes-110m.json'),
+			])) as any[];
+			if (globe) return globe;
+			const world = worldMod.default ?? worldMod;
+			const countries = topo.feature(world, world.objects.countries);
+			const lakes = lakesMod.default ?? lakesMod;
+
+			const cssColor = (name: string, fallback: string) => {
+				const v = getComputedStyle(document.documentElement)
+					.getPropertyValue(name)
+					.trim();
+				return /^#[0-9a-f]{3,8}$/i.test(v) ? v : fallback;
+			};
+			const accent = cssColor('--sl-color-accent-high', '#a67d43');
+			const live = cssColor('--sl-color-text-accent', '#ad0013');
+
+			const size = globeEl.clientWidth || 288;
+			const dpr = window.devicePixelRatio || 1;
+			const canvas = document.createElement('canvas');
+			canvas.width = size * dpr;
+			canvas.height = size * dpr;
+			canvas.style.width = '100%';
+			canvas.style.height = '100%';
+			canvas.style.cursor = 'grab';
+			canvas.style.touchAction = 'none';
+			globeEl.appendChild(canvas);
+			const ctx = canvas.getContext('2d');
+			if (!ctx) return null;
+
+			const projection = d3geo
+				.geoOrthographic()
+				.fitExtent(
+					[
+						[6, 6],
+						[size - 6, size - 6],
+					],
+					{ type: 'Sphere' },
+				)
+				.rotate([0, -18]);
+			const path = d3geo.geoPath(projection, ctx);
+			const graticule = d3geo.geoGraticule10();
+
+			const draw = () => {
+				ctx.save();
+				ctx.scale(dpr, dpr);
+				ctx.clearRect(0, 0, size, size);
+				ctx.lineJoin = 'round';
+				ctx.beginPath();
+				path({ type: 'Sphere' });
+				ctx.fillStyle = 'rgba(128, 128, 128, 0.08)';
+				ctx.fill();
+				ctx.beginPath();
+				path(graticule);
+				ctx.strokeStyle = 'rgba(128, 128, 128, 0.14)';
+				ctx.lineWidth = 0.5;
+				ctx.stroke();
+				ctx.beginPath();
+				path(countries);
+				ctx.globalAlpha = 0.55;
+				ctx.fillStyle = accent;
+				ctx.fill();
+				ctx.globalAlpha = 1;
+				ctx.strokeStyle = accent;
+				ctx.lineWidth = 0.5;
+				ctx.stroke();
+				ctx.save();
+				ctx.beginPath();
+				path(lakes);
+				ctx.globalCompositeOperation = 'destination-out';
+				ctx.fill();
+				ctx.restore();
+				ctx.beginPath();
+				path(lakes);
+				ctx.strokeStyle = accent;
+				ctx.globalAlpha = 0.35;
+				ctx.lineWidth = 0.4;
+				ctx.stroke();
+				ctx.globalAlpha = 1;
+				ctx.beginPath();
+				path({ type: 'Sphere' });
+				ctx.globalAlpha = 0.7;
+				ctx.lineWidth = 1;
+				ctx.stroke();
+				ctx.globalAlpha = 1;
+				ctx.restore();
+			};
+
+			let raf = 0;
+			let last = 0;
+			let dragging = false;
+			let marker: { lon: number; lat: number; start: number } | null =
+				null;
+
+			const STEM_REACH = 16;
+			const center = size / 2;
+			const radius = size / 2 - 6;
+
+			const stemGeom = (
+				lon: number,
+				lat: number,
+			): {
+				base: [number, number];
+				ctrl: [number, number];
+				tip: [number, number];
+			} | null => {
+				const r = projection.rotate();
+				if (d3geo.geoDistance([lon, lat], [-r[0], -r[1]]) > Math.PI / 2)
+					return null;
+				const pt = projection([lon, lat]);
+				if (!pt) return null;
+				const dx = pt[0] - center;
+				const dy = pt[1] - center;
+				const dist = Math.hypot(dx, dy) || 1;
+				const len = radius - dist + STEM_REACH;
+				const ux = dx / dist;
+				const uy = dy / dist;
+				const cx = pt[0] + ux * len;
+				const cy = pt[1] + uy * len;
+				return {
+					base: [pt[0], pt[1]],
+					ctrl: [cx, cy],
+					tip: [cx - 18, cy],
+				};
+			};
+
+			const drawMarker = (now: number) => {
+				if (!marker) return;
+				const age = now - marker.start;
+				if (age > 3200) {
+					marker = null;
+					return;
+				}
+				const r = projection.rotate();
+				if (
+					d3geo.geoDistance(
+						[marker.lon, marker.lat],
+						[-r[0], -r[1]],
+					) >
+					Math.PI / 2
+				)
+					return;
+				const pt = projection([marker.lon, marker.lat]);
+				if (!pt) return;
+				const phase = (age % 1200) / 1200;
+				const stem = stemGeom(marker.lon, marker.lat);
+				if (stem) {
+					ctx.save();
+					ctx.beginPath();
+					ctx.moveTo(stem.base[0], stem.base[1]);
+					ctx.quadraticCurveTo(
+						stem.ctrl[0],
+						stem.ctrl[1],
+						stem.tip[0],
+						stem.tip[1],
+					);
+					ctx.strokeStyle = live;
+					ctx.lineWidth = 1.5;
+					ctx.lineCap = 'round';
+					ctx.shadowColor = live;
+					ctx.shadowBlur = 6;
+					ctx.stroke();
+					ctx.restore();
+				}
+				ctx.beginPath();
+				ctx.arc(pt[0], pt[1], 2.5, 0, Math.PI * 2);
+				ctx.fillStyle = live;
+				ctx.fill();
+				ctx.beginPath();
+				ctx.arc(pt[0], pt[1], 4 + phase * 11, 0, Math.PI * 2);
+				ctx.globalAlpha = 1 - phase;
+				ctx.strokeStyle = live;
+				ctx.lineWidth = 1.25;
+				ctx.stroke();
+				ctx.globalAlpha = 1;
+			};
+
+			const tick = (now: number) => {
+				if (last && !dragging && !reduced) {
+					const r = projection.rotate();
+					projection.rotate([
+						r[0] + (now - last) * 0.008,
+						r[1],
+						r[2],
+					]);
+				}
+				last = now;
+				draw();
+				ctx.save();
+				ctx.scale(dpr, dpr);
+				drawMarker(now);
+				ctx.restore();
+				raf = requestAnimationFrame(tick);
+			};
+
+			let px = 0;
+			let py = 0;
+			const onDown = (e: PointerEvent) => {
+				dragging = true;
+				px = e.clientX;
+				py = e.clientY;
+				canvas.setPointerCapture(e.pointerId);
+				canvas.style.cursor = 'grabbing';
+			};
+			const onMove = (e: PointerEvent) => {
+				if (!dragging) return;
+				const r = projection.rotate();
+				projection.rotate([
+					r[0] + (e.clientX - px) * 0.35,
+					Math.max(-80, Math.min(80, r[1] - (e.clientY - py) * 0.35)),
+					r[2],
+				]);
+				px = e.clientX;
+				py = e.clientY;
+			};
+			const onUp = () => {
+				dragging = false;
+				canvas.style.cursor = 'grab';
+			};
+			canvas.addEventListener('pointerdown', onDown);
+			canvas.addEventListener('pointermove', onMove);
+			canvas.addEventListener('pointerup', onUp);
+			canvas.addEventListener('pointercancel', onUp);
+
+			globe = {
+				start() {
+					if (!raf) {
+						last = 0;
+						raf = requestAnimationFrame(tick);
+					}
+				},
+				stop() {
+					cancelAnimationFrame(raf);
+					raf = 0;
+				},
+				destroy() {
+					this.stop();
+					canvas.remove();
+				},
+				fireEvent(lon: number, lat: number) {
+					marker = { lon, lat, start: performance.now() };
+				},
+				screenPoint(lon: number, lat: number) {
+					const r = projection.rotate();
+					if (
+						d3geo.geoDistance([lon, lat], [-r[0], -r[1]]) >
+						Math.PI / 2
+					)
+						return null;
+					const pt = projection([lon, lat]);
+					if (!pt) return null;
+					const rect = canvas.getBoundingClientRect();
+					return [
+						rect.left + (pt[0] / size) * rect.width,
+						rect.top + (pt[1] / size) * rect.height,
+					] as [number, number];
+				},
+				leaderPoint(lon: number, lat: number) {
+					const stem = stemGeom(lon, lat);
+					if (!stem) return null;
+					const rect = canvas.getBoundingClientRect();
+					return [
+						rect.left + (stem.tip[0] / size) * rect.width,
+						rect.top + (stem.tip[1] / size) * rect.height,
+					] as [number, number];
+				},
+			};
+			return globe;
+		};
+
+		const open = async () => {
+			if (!desktop.matches) return;
+			dock.classList.add('is-open');
+			dock.setAttribute('aria-hidden', 'false');
+			let g: GlobeHandle | null = null;
+			try {
+				g = await (globeLoad ??= initGlobe());
+			} catch {
+				return;
+			}
+			g?.start();
+			startLive();
+		};
+
+		const close = () => {
+			dock.classList.remove('is-open');
+			dock.setAttribute('aria-hidden', 'true');
+			globe?.stop();
+			stopLive();
+		};
+
+		const reinitGlobe = async () => {
+			globe?.destroy();
+			globe = null;
+			globeLoad = null;
+			const g = await (globeLoad = initGlobe());
+			if (!panel.classList.contains('is-min')) g?.start();
+		};
+
+		const onMin = () => {
+			const min = panel.classList.toggle('is-min');
+			if (min) {
+				globe?.destroy();
+				globe = null;
+				globeLoad = null;
+			} else {
+				void reinitGlobe();
+			}
+		};
+
+		const onMax = () => {
+			panel.classList.toggle('is-max');
+			if (panel.classList.contains('is-min')) {
+				panel.classList.remove('is-min');
+			}
+			void reinitGlobe();
+		};
+
+		const CITIES = [
+			{ name: 'NYC, USA', lon: -74.006, lat: 40.7128 },
+			{ name: 'London, UK', lon: -0.1276, lat: 51.5072 },
+			{ name: 'Tokyo, Japan', lon: 139.6503, lat: 35.6762 },
+			{ name: 'Berlin, Germany', lon: 13.405, lat: 52.52 },
+			{ name: 'São Paulo, Brazil', lon: -46.6333, lat: -23.5505 },
+			{ name: 'Sydney, Australia', lon: 151.2093, lat: -33.8688 },
+			{ name: 'Toronto, Canada', lon: -79.3832, lat: 43.6532 },
+			{ name: 'Mumbai, India', lon: 72.8777, lat: 19.076 },
+			{ name: 'Seoul, Korea', lon: 126.978, lat: 37.5665 },
+			{ name: 'Austin, USA', lon: -97.7431, lat: 30.2672 },
+		];
+		const liveSvg =
+			document.querySelector<SVGSVGElement>('[data-dock-live]');
+		const livePath = document.querySelector<SVGPathElement>(
+			'[data-dock-live-path]',
+		);
+		const statusEl = dock.querySelector<HTMLElement>('[data-dock-status]');
+		const liveTag = document.querySelector<HTMLElement>(
+			'[data-dock-live-tag]',
+		);
+		let liveTimer = 0;
+		let hideTimer = 0;
+		let lineRaf = 0;
+
+		const stopLine = () => {
+			cancelAnimationFrame(lineRaf);
+			lineRaf = 0;
+			liveSvg?.classList.remove('is-active');
+			liveTag?.classList.remove('is-active');
+		};
+
+		const trackLine = (city: { lon: number; lat: number }) => {
+			if (!liveSvg || !livePath) return;
+			cancelAnimationFrame(lineRaf);
+			const step = () => {
+				const from = globe?.leaderPoint(city.lon, city.lat);
+				const iconEl = document.querySelector<HTMLElement>(
+					'[data-showcase-key="community"] .bento-board__cell-icon',
+				);
+				const r = iconEl?.getBoundingClientRect();
+				if (!from || !r || r.bottom < 0 || r.top > window.innerHeight) {
+					stopLine();
+					return;
+				}
+				const to = [r.right + 4, r.top + r.height / 2];
+				liveSvg.setAttribute('width', String(window.innerWidth));
+				liveSvg.setAttribute('height', String(window.innerHeight));
+				liveSvg.setAttribute(
+					'viewBox',
+					`0 0 ${window.innerWidth} ${window.innerHeight}`,
+				);
+				let start = from;
+				if (liveTag) {
+					liveTag.style.left = `${from[0]}px`;
+					liveTag.style.top = `${from[1]}px`;
+					const tagR = liveTag.getBoundingClientRect();
+					start = [tagR.left, tagR.top + tagR.height / 2];
+				}
+				const cx = (start[0] + to[0]) / 2;
+				livePath.setAttribute(
+					'd',
+					`M ${start[0]} ${start[1]} C ${cx} ${start[1]}, ${cx} ${to[1]}, ${to[0]} ${to[1]}`,
+				);
+				lineRaf = requestAnimationFrame(step);
+			};
+			liveSvg.classList.add('is-active');
+			liveTag?.classList.add('is-active');
+			lineRaf = requestAnimationFrame(step);
+			clearTimeout(hideTimer);
+			hideTimer = window.setTimeout(stopLine, 2800);
+		};
+
+		const fireLive = () => {
+			if (
+				reduced ||
+				document.hidden ||
+				!globe ||
+				!dock.classList.contains('is-open') ||
+				panel.classList.contains('is-min')
+			)
+				return;
+			const g = globe;
+			const visible = CITIES.filter((c) => g.screenPoint(c.lon, c.lat));
+			if (!visible.length) return;
+			const city = visible[Math.floor(Math.random() * visible.length)];
+			g.fireEvent(city.lon, city.lat);
+			if (statusEl)
+				statusEl.textContent = `feedback in from ${city.name}`;
+			if (liveTag)
+				liveTag.textContent = `Feedback from user · ${city.name}`;
+			trackLine(city);
+		};
+
+		const startLive = () => {
+			if (!liveTimer && !reduced) {
+				liveTimer = window.setInterval(fireLive, 7000);
+				window.setTimeout(fireLive, 1600);
+			}
+		};
+
+		const stopLive = () => {
+			clearInterval(liveTimer);
+			clearTimeout(hideTimer);
+			liveTimer = 0;
+			stopLine();
+		};
+
+		const onDock = (e: Event) => {
+			if ((e as CustomEvent).detail?.panel === 'globe') open();
+		};
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') close();
+		};
+
+		window.addEventListener('bento:dock', onDock);
+		window.addEventListener('keydown', onKey);
+		closeBtn.addEventListener('click', close);
+		minBtn.addEventListener('click', onMin);
+		maxBtn.addEventListener('click', onMax);
+
+		return () => {
+			window.removeEventListener('bento:dock', onDock);
+			window.removeEventListener('keydown', onKey);
+			closeBtn.removeEventListener('click', close);
+			minBtn.removeEventListener('click', onMin);
+			maxBtn.removeEventListener('click', onMax);
+			stopLive();
+			globe?.destroy();
+			globe = null;
+		};
+	});
+</script>

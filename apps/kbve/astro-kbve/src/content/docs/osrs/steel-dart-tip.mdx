@@ -12,6 +12,30 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 13000
+  material:
+    type: steel
+    tier: low
+  recipes:
+    - skill: smithing
+      level: 34
+      xp: 37.5
+      materials:
+        - item_name: Steel bar
+          quantity: 1
+      output_quantity: 10
+      tools:
+        - Hammer
+        - Anvil
+    - skill: fletching
+      level: 37
+      xp: 75
+      materials:
+        - item_name: Steel dart tip
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      output_quantity: 10
+      tools: []
   related_items:
     - item_id: 820
       item_name: Iron dart tip
@@ -23,12 +47,41 @@ osrs:
       slug: mithril-dart-tip
       relationship: variant
       description: Higher tier dart tip
-  about: |-
-    > _"Can be used to make steel darts."_
-
-    Steel dart tips are used with feathers at 37 Fletching to create steel darts (7.5 XP each). One bar makes 10 tips.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 807
+      item_name: Steel dart
+      slug: steel-dart
+      relationship: product
+      description: Finished throwing weapon
+  about: "Smithed at 34 Smithing after Tourist Trap from a steel bar into 10 tips; attached to feathers at 37 Fletching to create steel darts."
+  market_strategy:
+    notes:
+      - Tourist Trap completion gates production
+      - Bulk profit from smithing tips for daily flips
+      - Pairs with feathers for Fletching XP runs
+  trading_tips:
+    - Smith tips when steel bar prices dip
+    - Stock during Fletching XP events
+  history:
+    - date: "2003-04-14"
+      description: Released alongside the New Throwing Weapons update.
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Tourist Trap
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

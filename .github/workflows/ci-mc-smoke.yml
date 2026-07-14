@@ -53,7 +53,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Setup Java 21
               uses: actions/setup-java@v5
@@ -73,7 +73,7 @@ jobs:
                   run_install: false
 
             - name: Cache Gradle (Loom MC + libs)
-              uses: actions/cache@v5
+              uses: actions/cache@v6
               with:
                   path: |
                       ~/.gradle/caches
@@ -119,7 +119,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Setup Node v24
               uses: actions/setup-node@v6
@@ -137,7 +137,7 @@ jobs:
               run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
-              uses: actions/cache@v5
+              uses: actions/cache@v6
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
@@ -229,7 +229,7 @@ jobs:
             pull-requests: write
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Dependency Review
               uses: actions/dependency-review-action@v5

@@ -1,7 +1,7 @@
 ---
-title: AR
-description: |
-    AR Project for KBVE
+title: AR — Augmented Reality Glasses and SDK Research Notes
+description: KBVE augmented reality (AR) research notes covering AR glasses hardware such as the Nreal Air and their SDKs for building spatial and heads-up experiences.
+sem: 1
 sidebar:
     label: AR
     order: 10
@@ -9,11 +9,52 @@ unsplash: 1477959858617-67f85cf4f1df
 img: https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?fit=crop&w=1400&h=700&q=75
 tags:
     - ar
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVE AR project?
+          answer: It is a research and note-taking page for augmented reality work at KBVE, tracking AR glasses hardware and their SDKs as candidates for building spatial and heads-up experiences.
+        - question: Which AR glasses does this page cover?
+          answer: The current notes focus on the Nreal Air AR glasses and their SDK, with more hardware and SDK evaluations to be added over time.
+bento:
+    badge: ar
+    title: Augmented reality
+    accent: research notes
+    lede: >-
+        KBVE's augmented reality research — hardware notes on AR glasses and their
+        software development kits. An evolving concept page rather than a shipped
+        package, capturing candidates for spatial and heads-up experiences as they
+        are evaluated.
+    stats:
+        - { label: Topic, value: 'AR glasses + SDKs', icon: eye }
+        - { label: Status, value: Research, icon: book }
+        - { label: Hardware, value: Nreal Air, icon: sensor }
+        - { label: Focus, value: Heads-up, icon: expand }
+    features:
+        - title: AR glasses hardware
+          icon: eye
+          body: Evaluating wearable displays such as the Nreal Air.
+        - title: SDK evaluation
+          icon: code
+          body: Reviewing each device's SDK for building AR applications.
+        - title: Spatial / heads-up experiences
+          icon: expand
+          body: How AR overlays could pair with KBVE apps.
+    features_eyebrow: Focus areas
+    features_heading: Focus areas
+    related:
+        - title: Pirate
+          href: /project/pirate/
+          copy: A KBVE game jam project exploring another interactive medium.
+          icon: sword
+    related_heading: Related
 ---
 
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-## TO:DO - 
-
-## Glasses
-
-- Nreal Air AR Glasses + SDK Notes have to be added.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

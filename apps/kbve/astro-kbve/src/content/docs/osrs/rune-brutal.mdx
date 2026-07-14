@@ -1,20 +1,89 @@
 ---
 title: Rune brutal | OSRS Price Data
-description: "Rune brutal: Blunt rune arrow... ouch.. High alch: 270 GP, GE limit: 11,000."
+description: "Rune brutal: Blunt rune arrow... ouch. High alch: 270 GP, GE limit: 11,000."
 osrs:
   id: 4803
   name: Rune brutal
   slug: rune-brutal
-  examine: Blunt rune arrow... ouch.
+  examine: "Blunt rune arrow... ouch."
   members: true
   icon: Rune brutal 5.png
   value: 450
   lowalch: 180
   highalch: 270
   limit: 11000
-  about: "Rune brutal is a members-only item in Old School RuneScape. High alchemy value: 270 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: high
+  equipment:
+    slot: ammo
+    weapon_type: arrow
+    weight: 0
+    other_bonus:
+      ranged_strength: 60
+  recipes:
+    - skill: fletching
+      level: 77
+      xp: 12.5
+      materials:
+        - item_name: Flighted ogre arrow
+          quantity: 1
+        - item_name: Rune nails
+          quantity: 1
+      tools:
+        - Chisel
+      product: Rune brutal
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 4773
+      item_name: Bronze brutal
+      slug: bronze-brutal
+      relationship: variant
+      description: Lowest tier brutal arrow.
+    - item_id: 4783
+      item_name: Iron brutal
+      slug: iron-brutal
+      relationship: variant
+      description: Tier 2 brutal arrow.
+    - item_id: 4793
+      item_name: Steel brutal
+      slug: steel-brutal
+      relationship: variant
+      description: Tier 3 brutal arrow.
+    - item_id: 10033
+      item_name: Comp ogre bow
+      slug: comp-ogre-bow
+      relationship: component
+      description: Required to wield brutal arrows.
+  about: "Rune brutal is the highest-tier brutal arrow, fletched at 77 Fletching from flighted ogre arrows and rune nails for use with the composite ogre bow against zogres, skogres, and chompy birds."
+  market_strategy:
+    notes:
+      - Niche demand from Zogre Flesh Eaters-related content and chompy hunting.
+      - Best ranged strength among brutal arrows (+60).
+      - Requires partial completion of Zogre Flesh Eaters to fletch or wield.
+  trading_tips:
+    - Track rune nail and flighted ogre arrow GE prices for fletching margin.
+    - Demand is event/diary-driven; avoid long holds outside of clue/diary cycles.
+  history:
+    - date: "2005-05-17"
+      description: "Released as part of the Zogre Flesh Eaters update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-17"
+    update: Zogre Flesh Eaters
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

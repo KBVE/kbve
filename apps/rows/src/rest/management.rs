@@ -1,8 +1,12 @@
+//! Admin user-management routes (`/api/Users` GET/POST/PUT). Tenant-gated by
+//! `require_customer_guid`.
+
 use super::HandlerState;
 use crate::error::{ApiResult, SuccessResponse};
 use crate::middleware::{extract_customer_guid, require_customer_guid};
 use axum::{Json, Router, extract::State, http::HeaderMap, middleware, routing::get};
 use serde::Deserialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 pub(super) fn management_routes(hs: HandlerState) -> Router {
@@ -11,11 +15,18 @@ pub(super) fn management_routes(hs: HandlerState) -> Router {
             "/api/Users",
             get(list_users).post(create_user_admin).put(edit_user_admin),
         )
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 
-async fn list_users(
+/// Lists all users in the tenant.
+#[utoipa::path(get, path = "/api/Users", tag = "users",
+    responses((status = 200, description = "Users", body = [crate::models::UserInfo]))
+)]
+pub(crate) async fn list_users(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
 ) -> ApiResult<Vec<crate::models::UserInfo>> {
@@ -25,16 +36,21 @@ async fn list_users(
     Ok(Json(users))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct CreateUserAdminDto {
+pub(crate) struct CreateUserAdminDto {
     first_name: String,
     last_name: String,
     email: String,
     password: String,
 }
 
-async fn create_user_admin(
+/// Admin-creates a local user with a hashed password.
+#[utoipa::path(post, path = "/api/Users", tag = "users",
+    request_body = inline(CreateUserAdminDto),
+    responses((status = 200, description = "Creation result", body = SuccessResponse))
+)]
+pub(crate) async fn create_user_admin(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CreateUserAdminDto>,
@@ -65,9 +81,9 @@ async fn create_user_admin(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct EditUserAdminDto {
+pub(crate) struct EditUserAdminDto {
     #[serde(alias = "UserGUID", alias = "userGUId")]
     user_guid: Uuid,
     first_name: String,
@@ -75,7 +91,12 @@ struct EditUserAdminDto {
     email: String,
 }
 
-async fn edit_user_admin(
+/// Admin-edits a user's profile fields.
+#[utoipa::path(put, path = "/api/Users", tag = "users",
+    request_body = inline(EditUserAdminDto),
+    responses((status = 200, description = "Update result", body = SuccessResponse))
+)]
+pub(crate) async fn edit_user_admin(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<EditUserAdminDto>,

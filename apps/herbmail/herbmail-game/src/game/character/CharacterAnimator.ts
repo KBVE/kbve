@@ -1,0 +1,260 @@
+import * as THREE from 'three';
+
+export interface PlayOptions {
+	fade?: number;
+	loop?: boolean;
+	timeScale?: number;
+}
+
+function syncPhase(
+	from: THREE.AnimationAction,
+	to: THREE.AnimationAction,
+): void {
+	const fd = from.getClip().duration;
+	const td = to.getClip().duration;
+	if (fd <= 0 || td <= 0) return;
+	to.time = ((from.time % fd) / fd) * td;
+}
+
+export class CharacterAnimator {
+	readonly mixer: THREE.AnimationMixer;
+	private readonly actions = new Map<string, THREE.AnimationAction>();
+	private readonly additive = new Map<string, THREE.AnimationAction>();
+	private readonly masked = new Map<string, THREE.AnimationAction>();
+	private readonly activeBase = new Set<THREE.AnimationAction>();
+	private base: THREE.AnimationAction | null = null;
+	private baseName = '';
+
+	constructor(root: THREE.Object3D, clips: THREE.AnimationClip[]) {
+		this.mixer = new THREE.AnimationMixer(root);
+		for (const clip of clips) {
+			this.actions.set(clip.name, this.mixer.clipAction(clip));
+		}
+	}
+
+	has(name: string): boolean {
+		return this.actions.has(name);
+	}
+
+	list(): string[] {
+		return [...this.actions.keys()];
+	}
+
+	/** Clip duration in seconds, or 0 if unknown. */
+	duration(name: string): number {
+		return this.actions.get(name)?.getClip().duration ?? 0;
+	}
+
+	/** Crossfade the base (locomotion/stance) layer to a looping clip. */
+	play(name: string, opts: PlayOptions = {}): void {
+		const next = this.actions.get(name);
+		if (!next) return;
+		// Already the sole running base? nothing to do (also self-heals a
+		// StrictMode remount that stopped the action).
+		if (
+			next === this.base &&
+			next.isRunning() &&
+			this.activeBase.size === 1
+		)
+			return;
+		const fade = opts.fade ?? 0.2;
+		const once = opts.loop === false;
+		const loop = once ? THREE.LoopOnce : THREE.LoopRepeat;
+		// A LoopOnce base clip (Jump_Start/Jump_Land) must clamp on its last
+		// frame; without it Three snaps to the bind pose at clip end and pops
+		// through any crossfade still draining it (e.g. land → idle).
+		next.clampWhenFinished = once;
+		if (next.isRunning() && this.activeBase.has(next)) {
+			// Already contributing (a blend partner). Keep its phase and take it
+			// to full weight — resetting + fadeIn would drop weight to 0 first
+			// and flash the bind (T) pose while the total weight is < 1.
+			next.setEffectiveTimeScale(opts.timeScale ?? 1)
+				.setLoop(loop, Infinity)
+				.stopFading();
+			next.setEffectiveWeight(1);
+		} else {
+			next.reset()
+				.setEffectiveTimeScale(opts.timeScale ?? 1)
+				.setEffectiveWeight(1)
+				.setLoop(loop, Infinity)
+				.fadeIn(fade)
+				.play();
+		}
+		for (const a of this.activeBase) if (a !== next) a.fadeOut(fade);
+		this.activeBase.clear();
+		this.activeBase.add(next);
+		this.base = next;
+		this.baseName = name;
+	}
+
+	current(): string {
+		return this.baseName;
+	}
+
+	/** Play a one-shot clip over the base; resolves when it finishes. */
+	playOnce(
+		name: string,
+		fade = 0.12,
+		timeScale = 1,
+		fadeOut = fade,
+	): Promise<void> {
+		const action = this.actions.get(name);
+		if (!action) return Promise.resolve();
+		return new Promise((resolve) => {
+			const onFinished = (e: { action: THREE.AnimationAction }) => {
+				if (e.action !== action) return;
+				this.mixer.removeEventListener('finished', onFinished);
+				action.fadeOut(fadeOut);
+				resolve();
+			};
+			this.mixer.addEventListener('finished', onFinished);
+			action
+				.reset()
+				.setLoop(THREE.LoopOnce, 1)
+				.setEffectiveWeight(1)
+				.setEffectiveTimeScale(timeScale);
+			action.clampWhenFinished = true;
+			action.fadeIn(fade).play();
+		});
+	}
+
+	/** Continuous blend between two looping clips (e.g. walk↔run), phase-synced. */
+	blend(a: string, b: string, alpha: number): void {
+		const wa = this.actions.get(a);
+		const wb = this.actions.get(b);
+		if (!wa || !wb) return;
+		alpha = THREE.MathUtils.clamp(alpha, 0, 1);
+		if (!wa.isRunning())
+			wa.reset().setLoop(THREE.LoopRepeat, Infinity).play();
+		if (!wb.isRunning()) {
+			wb.reset().setLoop(THREE.LoopRepeat, Infinity).play();
+			syncPhase(wa, wb);
+		}
+		wa.setEffectiveWeight(1 - alpha);
+		wb.setEffectiveWeight(alpha);
+		for (const act of this.activeBase)
+			if (act !== wa && act !== wb) act.fadeOut(0.15);
+		this.activeBase.clear();
+		this.activeBase.add(wa);
+		this.activeBase.add(wb);
+		this.base = alpha > 0.5 ? wb : wa;
+		this.baseName = alpha > 0.5 ? b : a;
+	}
+
+	/**
+	 * Register a body-masked one-shot: a copy of `srcName` keeping only the
+	 * tracks whose bone passes `keepBone`. Played on top of the base at full
+	 * weight, it overwrites just those bones (e.g. upper body) while the base
+	 * clip keeps driving the rest (e.g. running legs).
+	 */
+	registerMasked(
+		name: string,
+		srcName: string,
+		keepBone: (boneName: string) => boolean,
+	): boolean {
+		if (this.masked.has(name)) return true;
+		const src = this.actions.get(srcName);
+		if (!src) return false;
+		const clip = src.getClip().clone();
+		clip.tracks = clip.tracks.filter((t) => keepBone(t.name.split('.')[0]));
+		if (!clip.tracks.length) return false;
+		clip.name = name;
+		const action = this.mixer.clipAction(clip);
+		action.setLoop(THREE.LoopOnce, 1);
+		this.masked.set(name, action);
+		return true;
+	}
+
+	/**
+	 * Hold a masked overlay on/off (a guard the legs keep walking under). `loop`
+	 * plays a seamless guard clip; otherwise it freezes at `frac`. Idempotent —
+	 * safe to call every frame.
+	 */
+	holdMasked(
+		name: string,
+		on: boolean,
+		loop = true,
+		frac = 0.5,
+		fade = 0.15,
+	): void {
+		const action = this.masked.get(name);
+		if (!action) return;
+		if (on) {
+			if (action.isRunning() && action.getEffectiveWeight() > 0.99)
+				return;
+			action.reset().setEffectiveWeight(1);
+			if (loop) {
+				action.setLoop(THREE.LoopRepeat, Infinity);
+			} else {
+				action.setLoop(THREE.LoopOnce, 1);
+				action.clampWhenFinished = true;
+				action.time = frac * action.getClip().duration;
+				action.paused = true;
+			}
+			action.fadeIn(fade).play();
+		} else if (action.isRunning()) {
+			action.paused = false;
+			action.fadeOut(fade);
+		}
+	}
+
+	/** Fire a masked one-shot over the base; resolves when it finishes. */
+	playMaskedOnce(
+		name: string,
+		fade = 0.12,
+		timeScale = 1,
+		fadeOut = fade,
+	): Promise<void> {
+		const action = this.masked.get(name);
+		if (!action) return Promise.resolve();
+		return new Promise((resolve) => {
+			const onFinished = (e: { action: THREE.AnimationAction }) => {
+				if (e.action !== action) return;
+				this.mixer.removeEventListener('finished', onFinished);
+				action.fadeOut(fadeOut);
+				resolve();
+			};
+			this.mixer.addEventListener('finished', onFinished);
+			action
+				.reset()
+				.setLoop(THREE.LoopOnce, 1)
+				.setEffectiveWeight(1)
+				.setEffectiveTimeScale(timeScale);
+			action.clampWhenFinished = false;
+			action.fadeIn(fade).play();
+		});
+	}
+
+	/** Register an additive overlay clip (recoil/breathing/flinch). */
+	registerAdditive(name: string, reference?: THREE.AnimationClip): void {
+		const src = this.actions.get(name);
+		if (!src || this.additive.has(name)) return;
+		const clip = THREE.AnimationUtils.makeClipAdditive(
+			src.getClip().clone(),
+			0,
+			reference,
+			this.mixer.time,
+		);
+		const action = this.mixer.clipAction(clip);
+		action.blendMode = THREE.AdditiveAnimationBlendMode;
+		action.setLoop(THREE.LoopOnce, 1);
+		action.clampWhenFinished = true;
+		this.additive.set(name, action);
+	}
+
+	/** Fire a one-shot additive overlay on top of whatever the base is doing. */
+	pulseAdditive(name: string, weight = 1): void {
+		const action = this.additive.get(name);
+		if (!action) return;
+		action.reset().setEffectiveWeight(weight).play();
+	}
+
+	update(dt: number): void {
+		this.mixer.update(dt);
+	}
+
+	dispose(): void {
+		this.mixer.stopAllAction();
+		this.activeBase.clear();
+	}
+}

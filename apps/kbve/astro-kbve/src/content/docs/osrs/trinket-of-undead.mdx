@@ -12,9 +12,46 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Trinket of undead is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-08-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Summon Lil Zuk
+      - Summon Lil Kal
+      - Summon Lil Wisp
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Sigil of the Augmented Thrall
+      slug: sigil-of-the-augmented-thrall
+      relationship: upgrade
+      description: Deadman sigil that scales thrall damage from 0-3 up to 0-15
+    - item_name: Resurrect Greater Ghommal
+      slug: resurrect-greater-ghommal
+      relationship: alternative
+      description: Standard Arceuus greater thrall spell
+  about: "Trinket of undead is a Deadman Mode reward that summons one of three themed greater thralls without requiring runes, Magic level, or the Arceuus spellbook. Players choose between Lil Zuk (melee), Lil Kal (ranged), or Lil Wisp (magic), each functionally identical to the corresponding greater thrall with a ten second cooldown between summons. The trinket is obtained from breach drops and Deadman's chests on permanent Deadman world 345 or during temporary Deadman events."
+  market_strategy:
+    notes:
+      - "Only flows into the main game through Deadman Mode trades"
+      - "Useful for any combat style that wants free thrall damage"
+      - "No Magic level, runes, or spellbook requirement to use"
+      - "Supply is throttled by Deadman event cadence"
+      - "High alchemy returns only 6,000 coins so alching is unprofitable"
+  history:
+    - date: "2023-08-23"
+      description: "Released as a Deadman Mode reward."
+    - date: "2026-01-21"
+      description: "Players can now pick which thrall to summon, models were differentiated, and the in-game value rose from 10,000 to 100,000 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

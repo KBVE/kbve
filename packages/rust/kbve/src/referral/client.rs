@@ -39,7 +39,7 @@ impl ReferralClient {
     /// Postgres side.
     pub async fn record_click(&self, input: &RecordClickInput) -> Result<RecordClickOutcome> {
         let mut conn = self.pool.get().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
 
         let row: RecordClickRow = sql_query(
             "SELECT click_id, target_slug, target_url, qualified, credited, ledger_id \
@@ -68,7 +68,7 @@ impl ReferralClient {
         target_slug: Option<&str>,
     ) -> Result<Option<ResolvedTargetRow>> {
         let mut conn = self.pool.get().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
 
         let row: Option<ResolvedTargetRow> = sql_query(
             "SELECT slug, title, url \
@@ -93,7 +93,7 @@ impl ReferralClient {
     /// disabled rows with a re-enable affordance.
     pub async fn list_user_targets(&self, user_id: Uuid) -> Result<Vec<UserTargetView>> {
         let mut conn = self.pool.get().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
 
         let rows: Vec<UserTargetRow> = sql_query(
             "SELECT target_slug, title, url, is_default, active, enabled_at, \
@@ -117,7 +117,7 @@ impl ReferralClient {
         set_as_default: bool,
     ) -> Result<UserTargetMutation> {
         let mut conn = self.pool.get().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
 
         let row: UserTargetMutationRow = sql_query(
             "SELECT target_slug, demoted_target_slug, is_default, active, \
@@ -144,7 +144,7 @@ impl ReferralClient {
         target_slug: &str,
     ) -> Result<DisableTargetOutcome> {
         let mut conn = self.pool.get().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
 
         let row: DisableTargetRow = sql_query(
             "SELECT target_slug, promoted_target_slug, is_default, active, \
@@ -167,7 +167,7 @@ impl ReferralClient {
         target_slug: &str,
     ) -> Result<UserTargetMutation> {
         let mut conn = self.pool.get().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
 
         let row: UserTargetMutationRow = sql_query(
             "SELECT target_slug, demoted_target_slug, is_default, active, \
@@ -186,7 +186,7 @@ impl ReferralClient {
     /// `referral.service_get_user_stats(user_id)`.
     pub async fn get_user_stats(&self, user_id: Uuid) -> Result<UserStats> {
         let mut conn = self.pool.get().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
 
         let row: UserStatsRow = sql_query(
             "SELECT clicks_total, clicks_credited, credits_total, last_click_at \

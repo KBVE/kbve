@@ -52,9 +52,6 @@ namespace RareIcon
             _root = UIPanelLoader.Load(uiDoc, "UI/ScreenFrame");
             if (_root == null) return;
 
-            // Frame mounts FIRST so modals stacking on top of UIDoc's root
-            // render above the chrome by default. Panels can still call
-            // BringToFront on themselves to be sure.
             _root.SendToBack();
 
             _topLeft     = _root.Q<VisualElement>("region-top-left");

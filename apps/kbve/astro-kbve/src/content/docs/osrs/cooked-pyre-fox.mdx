@@ -12,9 +12,60 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 10000
-  about: "Cooked pyre fox is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 59
+      xp: 154
+      materials:
+        - item_name: Raw pyre fox
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  related_items:
+    - item_name: Raw pyre fox
+      slug: raw-pyre-fox
+      relationship: component
+      description: Hunter meat cooked to produce this food.
+    - item_name: Cooked sunlight antelope
+      slug: cooked-sunlight-antelope
+      relationship: alternative
+      description: Higher-tier delayed-heal hunter meat from Varlamore.
+    - item_name: Cooked moonlight antelope
+      slug: cooked-moonlight-antelope
+      relationship: alternative
+      description: Lower-tier delayed-heal hunter meat from Varlamore.
+  about: "Cooked pyre fox is a Varlamore hunter food cooked at level 59 Cooking for 154 experience. Eating restores 11 Hitpoints immediately and a further 8 Hitpoints after 7 ticks (4.2 seconds), provided the player does not eat another hunter meat in the meantime. It stops burning at level 92 on a range or 93 on a fire."
+  market_strategy:
+    notes:
+      - "Buy limit of 10,000 supports large PvM and DMM food stockpiles."
+      - "Delayed heal gating means demand spikes during boss meta shifts."
+      - "Inputs are gated behind 25 Hunters' Rumours, throttling supply."
+  trading_tips:
+    - Hunter trainers can convert raw stock straight to GE for steady Cooking profit.
+    - Watch Hunters' Rumours engagement for supply slumps that move price up.
+    - Pair with raw pyre fox flips when the cook margin is positive.
+  history:
+    - date: "2024-03-20"
+      description: "Released with Varlamore - Part One alongside the hunter rumours rework."
+    - date: "2026-05-13"
+      description: "Received a graphical refresh as part of an item polish pass."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

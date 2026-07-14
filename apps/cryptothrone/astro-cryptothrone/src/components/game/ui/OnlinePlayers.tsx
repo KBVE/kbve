@@ -1,0 +1,49 @@
+import { useGameSelector } from '../store/GameStoreContext';
+import { onExternalClick } from '../../../lib/kbve-links';
+
+export function OnlinePlayers() {
+	const players = useGameSelector((s) => s.players);
+	const me = useGameSelector((s) => s.player.stats.username);
+
+	return (
+		<div className="mb-4">
+			<h2 className="text-lg font-semibold mb-2">
+				Online
+				<span className="ml-2 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-300">
+					{players.length}
+				</span>
+			</h2>
+			{players.length === 0 ? (
+				<p className="text-sm text-gray-500">Nobody in the realm.</p>
+			) : (
+				<ul className="space-y-1">
+					{players.map((p) => (
+						<li
+							key={p.slot}
+							className="flex items-center gap-2 text-sm">
+							<span
+								className="h-1.5 w-1.5 rounded-full bg-emerald-400"
+								aria-hidden="true"
+							/>
+							<a
+								href={`https://kbve.com/@${p.username}`}
+								target="_blank"
+								rel="noopener"
+								onClick={onExternalClick(
+									`https://kbve.com/@${p.username}`,
+								)}
+								className="truncate text-stone-300 no-underline hover:text-amber-300">
+								{p.username}
+								{p.username === me && (
+									<span className="ml-1 text-xs text-gray-500">
+										(you)
+									</span>
+								)}
+							</a>
+						</li>
+					))}
+				</ul>
+			)}
+		</div>
+	);
+}

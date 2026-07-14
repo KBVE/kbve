@@ -1,6 +1,6 @@
 ---
 title: Sigil of the treasure hunter | OSRS Price Data
-description: "Sigil of the treasure hunter: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of the treasure hunter: A power enhancing sigil not yet attuned to you. High alch: 6,000 GP, GE limit: 10."
 osrs:
   id: 26051
   name: Sigil of the treasure hunter
@@ -12,9 +12,42 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of the treasure hunter is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: high
+  related_items:
+    - slug: scroll-box-easy
+      item_name: Scroll box (easy)
+      relationship: product
+      description: Unlimited storage enabled by the sigil.
+  about: "Sigil of the treasure hunter is a Deadman Mode sigil that, once attuned, triples NPC clue scroll drop rates and grants a 75% caskets-on-step roll for any clue tier."
+  market_strategy:
+    notes:
+      - Deadman-exclusive sigil with seasonal supply spikes.
+      - Untradeable in main game; pricing reflects seasonal Deadman skull shop bounties.
+  trading_tips:
+    - Convert duplicate sigils at the skull shop during Deadman seasons.
+    - Outside Deadman the sigil is effectively a collectable, not a tradeable.
+  history:
+    - date: "2021-08-25"
+      description: "Released as part of the Deadman: Reborn season."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Unlock
+      - Inspect
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

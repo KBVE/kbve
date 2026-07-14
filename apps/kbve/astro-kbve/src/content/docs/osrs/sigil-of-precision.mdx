@@ -12,9 +12,44 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of precision is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-08-23"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  drop_table:
+    sources:
+      - source: Deadman Mode global loot table
+        quantity: "1"
+        rarity: Rare
+  about: |-
+    The Sigil of precision is a tier 2 combat sigil unique to Deadman Mode seasonal events. The un-attuned form drops from the Deadman global loot table and becomes character-bound once attuned.
+
+    When attuned, the sigil grants a 50% accuracy bonus against all monsters across melee, ranged, and magic combat styles, making it a high-impact PvM upgrade for the duration of the event. The sigil must be unattuned before it can be destroyed and is not available outside Deadman seasons.
+  market_strategy:
+    notes:
+      - "Untradeable — no GE flipping."
+      - "Acquisition value comes from grinding event drops only."
+      - "Effect is event-bound; zero utility outside Deadman."
+      - "Stack with other sigils for best PvM throughput."
+  trading_tips:
+    - Cannot trade; only obtainable through Deadman drops.
+    - Prioritize early-event acquisition for full-season uptime.
+  history:
+    - date: "2023-08-23"
+      description: "Released with Deadman: Apocalypse."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

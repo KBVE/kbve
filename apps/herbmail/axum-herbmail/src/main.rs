@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod astro;
 mod transport;
 
@@ -21,10 +23,9 @@ async fn main() -> anyhow::Result<()> {
     // Tracing
     tracing_subscriber::registry()
         .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| {
-                    format!("{}=info,tower_http=debug", env!("CARGO_CRATE_NAME")).into()
-                }),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                format!("{}=info,tower_http=debug", env!("CARGO_CRATE_NAME")).into()
+            }),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();

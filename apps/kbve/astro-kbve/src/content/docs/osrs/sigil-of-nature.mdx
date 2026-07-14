@@ -12,9 +12,58 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of nature is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: deadman sigil
+    tier: mid-high
+  properties:
+    release_date: "2021-08-25"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Activate
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table
+        quantity: "1"
+        rarity: Varies
+  shops:
+    - shop_name: Skull Shop
+      location: Deadman Mode hub
+      price: 0
+      currency: Skulls
+      stock: 0
+  related_items:
+    - item_name: Sigil of the menacing mage
+      slug: sigil-of-the-menacing-mage
+      relationship: alternative
+      description: Another Deadman sigil
+    - item_name: Sigil of the formidable fighter
+      slug: sigil-of-the-formidable-fighter
+      relationship: alternative
+      description: Another Deadman sigil
+  about: "Sigil of nature is a Deadman-only sigil, first released for Deadman Reborn (2021-08-25). When activated it lets the player select their own Farming Contracts, grows farming patches instantly, and prevents disease (excluding Tithe Farm). In Annihilation it is bought from the skull shop; in past events it dropped from the Deadman drop table."
+  market_strategy:
+    notes:
+      - "Only tradeable inside active Deadman events; price reflects event meta and farming relevance."
+      - "Limited demand outside Deadman seasons; long-term holding is risky as effects vary between events."
+      - "Buy limit of 8 per 4h is largely irrelevant given thin volume."
+  trading_tips:
+    - Buy early in a Deadman event when farming-focused players seek faster contracts.
+    - Sell back via the skull shop if duplicate to avoid GE liquidity issues.
+    - Effects can change per event — don't assume past mechanics carry forward.
+  history:
+    - date: "2021-08-25"
+      description: "Released with the Deadman Reborn event"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

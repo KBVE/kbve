@@ -12,69 +12,76 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 15
-  item:
-    type: crafting_material
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: crystal
+    tier: high
+  properties:
+    release_date: "2015-08-27"
     tradeable: true
-  obtaining:
-    methods:
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
       - source: Cerberus
-        drop_rate: 1/520
-        requirements:
-          slayer: 91
-  creation:
-    creates:
-      item_id: 13239
-      item_name: Primordial boots
-      slug: primordial-boots
-    combine_with:
-      item_id: 11840
-      item_name: Dragon boots
-      slug: dragon-boots
-    requirements:
-      magic: 60
-      runecraft: 60
-    warning: Irreversible process
+        quantity: "1"
+        rarity: 1/520
+  recipes:
+    - skill: magic
+      level: 60
+      xp: 200
+      materials:
+        - item_name: Dragon boots
+          quantity: 1
+        - item_name: Primordial crystal
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 0
-      item_name: Cerberus
+    - item_name: Cerberus
       slug: cerberus
       relationship: component
-      description: Boss drop
-    - item_id: 13239
-      item_name: Primordial boots
+      description: Boss source of the primordial crystal drop
+    - item_name: Primordial boots
       slug: primordial-boots
       relationship: product
-      description: Created item
-    - item_id: 13229
-      item_name: Pegasian crystal
+      description: Boots created by combining the crystal with dragon boots
+    - item_name: Pegasian crystal
       slug: pegasian-crystal
       relationship: alternative
-      description: Ranged version
+      description: Ranged equivalent dropped by Cerberus
+    - item_name: Eternal crystal
+      slug: eternal-crystal
+      relationship: alternative
+      description: Magic equivalent dropped by Cerberus
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Stackable | No |
+    The primordial crystal is a rare drop from Cerberus (1/520) that combines with dragon boots to produce primordial boots, the best-in-slot melee strength boots. The combination requires level 60 Magic and 60 Runecraft (no boosts), grants 200 experience in both skills, and is irreversible.
 
-    Combine with Dragon boots to create Primordial boots.
-
-    | Requirement | Level |
-    |-------------|-------|
-    | Magic | 60 |
-    | Runecraft | 60 |
-
-    Warning: Irreversible process.
+    Cerberus requires 91 Slayer to fight, so most players farm the boss while on a hellhound task to maximise value.
   market_strategy:
     notes:
-      - Most valuable Cerberus crystal
-      - Creates BiS melee boots
-      - Farm Cerberus on task
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Most valuable Cerberus crystal of the three"
+      - "Creates BiS melee strength boots, demand is steady"
+      - "Farm Cerberus on task for compounded slayer xp"
+      - "Buy limit of 15 keeps swing rooms tight"
+  trading_tips:
+    - Hold during boss flips when dragon boots crash
+  history:
+    - date: "2015-08-27"
+      description: "Primordial crystal released as a rare drop from Cerberus."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

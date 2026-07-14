@@ -1,6 +1,6 @@
 ---
 title: Gold amulet (u) | OSRS Price Data
-description: "Gold amulet (u): It needs a string so I can wear it.. High alch: 210 GP, GE limit: 18,000."
+description: "Gold amulet (u): It needs a string so I can wear it. Unstrung gold amulet for Crafting XP; high alch 210 GP; GE limit 18,000."
 osrs:
   id: 1673
   name: Gold amulet (u)
@@ -12,9 +12,93 @@ osrs:
   lowalch: 140
   highalch: 210
   limit: 18000
-  about: "Gold amulet (u) is a free-to-play item in Old School RuneScape. High alchemy value: 210 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: jewellery
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 8
+      xp: 30
+      materials:
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+        - item_name: Amulet mould
+          item_id: 1595
+          quantity: 1
+      tools:
+        - Amulet mould
+      facility: Furnace
+      product: Gold amulet (u)
+      product_id: 1673
+      product_quantity: 1
+      output_quantity: 1
+    - skill: crafting
+      level: 4
+      xp: 4
+      materials:
+        - item_name: Gold amulet (u)
+          item_id: 1673
+          quantity: 1
+        - item_name: Ball of wool
+          item_id: 1759
+          quantity: 1
+      product: Gold amulet
+      product_id: 1692
+      product_quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 2357
+      item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Smelted from gold ore to produce this unstrung amulet
+    - item_id: 1595
+      item_name: Amulet mould
+      slug: amulet-mould
+      relationship: component
+      description: Required mould for casting any amulet
+    - item_id: 1759
+      item_name: Ball of wool
+      slug: ball-of-wool
+      relationship: component
+      description: Strung onto the amulet to make a wearable gold amulet
+    - item_id: 1692
+      item_name: Gold amulet
+      slug: gold-amulet
+      relationship: product
+      description: Strung wearable version of this amulet
+  about: "Gold amulet (u) is the unstrung product of casting a gold bar in a furnace with an amulet mould (8 Crafting, 30 XP). String it with a ball of wool (4 Crafting, 4 XP) to make a wearable gold amulet, which can then be enchanted into a Strung amulet of magic or used as a base for higher-tier jewellery. The unstrung amulet itself has no combat use but is a steady free-to-play Crafting flip."
+  market_strategy:
+    notes:
+      - "Supply tracks gold bar prices and casual Crafting trainers casting at Edgeville furnace"
+      - "Demand comes from Crafting players stringing for the small 4 XP bonus"
+      - "GE limit 18,000/4h enables bulk supply flips"
+      - "F2P accessibility keeps liquidity high"
+  trading_tips:
+    - "Compare gold bar cost versus gold amulet (u) price to value the cast directly"
+    - "String margin: gold amulet (u) + ball of wool versus strung gold amulet for tiny but consistent flips"
+    - "Watch for free-to-play double XP weekends — Crafting cast volume spikes"
+  history:
+    - date: "2001-08-13"
+      description: "Released alongside the Crafting jewellery system update."
+  properties:
+    release_date: "2001-08-13"
+    update: Crafting Jewellery
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0
+    options:
+      - String
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

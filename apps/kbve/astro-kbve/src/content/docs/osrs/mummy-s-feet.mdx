@@ -12,9 +12,89 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Mummy's feet is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cloth
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 0.5
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: "1/12,765"
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Mummy's head
+      slug: mummy-s-head
+      relationship: set-piece
+      description: "Matching head from the mummy outfit"
+    - item_name: Mummy's body
+      slug: mummy-s-body
+      relationship: set-piece
+      description: "Matching body from the mummy outfit"
+    - item_name: Mummy's legs
+      slug: mummy-s-legs
+      relationship: set-piece
+      description: "Matching legs from the mummy outfit"
+    - item_name: Mummy's hands
+      slug: mummy-s-hands
+      relationship: set-piece
+      description: "Matching hands from the mummy outfit"
+  about: "Mummy's feet is a members-only cosmetic boot piece obtained as a rare reward from master Treasure Trails. Provides no combat stats and is valued by fashionscape collectors completing the mummy outfit."
+  market_strategy:
+    notes:
+      - "Drop rate of 1/12,765 from master caskets makes supply extremely limited."
+      - "Buy limit of 4 caps reseller turnover."
+      - "Price tracks fashionscape demand and overall master clue completion volume."
+  trading_tips:
+    - "Acquire individual pieces during clue scroll competitions when supply briefly spikes"
+    - "Pair listings with other mummy outfit pieces to attract set buyers"
+  history:
+    - date: "2016-07-06"
+      description: "Released as a master clue scroll reward"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

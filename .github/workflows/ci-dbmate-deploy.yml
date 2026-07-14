@@ -37,7 +37,7 @@ jobs:
         outputs:
             sha: ${{ steps.sha.outputs.short }}
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - id: sha
               # --short=7 pins the length so operator-supplied 7-char
               # SHAs match regardless of local abbrev config drift.
@@ -60,7 +60,7 @@ jobs:
         runs-on: arc-runner-set
         timeout-minutes: 5
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install kubectl
               uses: azure/setup-kubectl@v5
@@ -117,7 +117,7 @@ jobs:
             url: https://kbve.com/forum/
         timeout-minutes: 15
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install kubectl
               uses: azure/setup-kubectl@v5

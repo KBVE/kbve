@@ -1,6 +1,6 @@
 ---
 title: Sigil of rampage | OSRS Price Data
-description: "Sigil of rampage: A power enhancing sigil not yet attuned to you.. High alch: 18,000 GP, GE limit: 4."
+description: "Sigil of rampage: A power enhancing sigil not yet attuned to you. Deadman Mode exclusive."
 osrs:
   id: 26135
   name: Sigil of rampage
@@ -12,9 +12,43 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 4
-  about: "Sigil of rampage is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Sigil of rampage is a Deadman Mode reward sigil that boosts damage and accuracy when the player rotates combat styles. Each rampage stack adds a percentage bonus, but using the same style consecutively resets the count."
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - name: Sigil of aggression
+      relationship: alternative
+    - name: Sigil of consistency
+      relationship: alternative
+    - name: Sigil of devotion
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "Untradeable Deadman Mode reward, no Grand Exchange market."
+      - "Acquired from the Deadman Mode skull shop during seasonal events."
+      - "Does not stack with Sigil of Aggression."
+  trading_tips:
+    - "Not tradeable; obtain via Deadman Mode skull shop."
+    - "Pair with frequent style-switching loadouts to maximise rampage uptime."
+    - "Plan attack rotations to keep two distinct styles ready."
+  history:
+    - date: "2021-08-25"
+      description: "Sigil of rampage introduced with Deadman: Reborn."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

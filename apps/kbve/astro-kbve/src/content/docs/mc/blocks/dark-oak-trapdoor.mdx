@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Trapdoor
+template: splash
 description: |
     Minecraft Dark Oak Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 307
     ref: dark_oak_trapdoor
     slug: dark-oak-trapdoor
+    content_rev: 1
     display_name: Dark Oak Trapdoor
     material: wood
     hardness: 3
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Dark Oak Trapdoor is a hinged wooden barrier that can be
+            opened and closed manually, with a lever or button, or via a
+            redstone signal. It occupies the top or bottom half of a
+            block space and can be oriented to seal a hatch or a
+            vertical doorway.
+        lore: |
+            Trapdoors have been part of Minecraft since Beta 1.7, with
+            wood-specific variants added alongside their matching tree
+            types.
+    uses:
+        - title: Hidden Entrances
+          ref: dark_oak_trapdoor
+          detail: |
+              Combined with a fence or wall block below, a trapdoor
+              placed on the side of a block creates a passable but
+              visually sealed 1x1 hole, a common technique for secret
+              bases and iron farms.
+        - title: Redstone Doors
+          ref: dark_oak_trapdoor
+          detail: |
+              Wired to a lever, pressure plate, or redstone circuit, a
+              trapdoor functions as a door substitute that blocks mobs
+              and villagers while remaining pathable when open.
+    found_in:
+        - location: Woodland Mansions
+          detail: Dark oak trapdoors generate as decorative and secret-room elements throughout the mansion's dark-oak-themed rooms.
+        - location: Crafting Table
+          detail: Crafted from 6 dark oak planks arranged in a 2x3 grid, yielding 2 trapdoors.
+    faq:
+        - question: What tool do I need to mine a Dark Oak Trapdoor?
+          answer: |
+              None required — it can be broken by hand, though an axe
+              is fastest and always drops the trapdoor itself.
+        - question: Does a Dark Oak Trapdoor burn?
+          answer: |
+              No, wooden trapdoors do not catch fire from nearby flames
+              in vanilla survival, unlike some other wood-based blocks.
+        - question: Can I use a Dark Oak Trapdoor underwater?
+          answer: |
+              Yes, and when placed underwater it traps an air pocket
+              behind it when closed, useful for underwater bases.
+        - question: How many Dark Oak Trapdoors does one crafting recipe give?
+          answer: |
+              Six dark oak planks in a 2x3 pattern yield 2 trapdoors per
+              craft.
     data_version: "1.21.5"
 ---
 

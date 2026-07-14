@@ -1,5 +1,6 @@
 ---
 title: Pink Banner
+template: splash
 description: |
     Minecraft Pink Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 553
     ref: pink_wall_banner
     slug: pink-wall-banner
+    content_rev: 1
     display_name: Pink Banner
     material: wood
     hardness: 1
@@ -24,10 +26,59 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pink Wall Banner is the wall-mounted form of the Pink Banner,
+            placed automatically when a banner is attached to a vertical
+            surface instead of the ground. It sways gently and can carry up
+            to six pattern layers.
+        lore: |
+            Banners were added in 1.8 and expanded with loom-based patterning
+            in 1.14, turning a decorative block into a full heraldry system.
+    uses:
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combine a patterned banner with a shield at a crafting table to
+              stamp the shield with the banner's design.
+        - title: Map Marker
+          ref: map
+          detail: |
+              Right-click a held map while looking at a placed banner to add
+              a persistent marker at that location.
+    found_in:
+        - location: Player-placed
+          detail: Crafted from 6 Pink Wool and 1 Stick, then hung on a wall.
+        - location: Shepherd Villager Trades
+          detail: Expert-level shepherds occasionally sell banners for emeralds.
+    faq:
+        - question: What tool mines a banner fastest?
+          answer: |
+              An axe, though any tool breaks it since it has only 1 hardness.
+        - question: Can I get Silk Touch drops?
+          answer: |
+              Not needed — a banner always drops itself as an item regardless
+              of tool or enchantment.
+        - question: How do I customize a banner's pattern?
+          answer: |
+              Combine it with dye and pattern-shaped items on a loom, or
+              layer dyes directly in a crafting grid.
+        - question: Does breaking a wall banner keep its pattern?
+          answer: |
+              Yes. Custom names and applied patterns persist through
+              breaking, moving, and re-placing.
     data_version: "1.21.5"
 ---
 

@@ -12,20 +12,73 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 150
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    alchable: true
   equipment:
     slot: feet
+    weight: 0.34
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Rometti's Fine Fashions
+      location: Grand Tree, Kandarin
+      price: 200
+      currency: Coins
+      stock: 5
   related_items:
-    - item_id: 642
-      item_name: Cream robe top
+    - item_name: Cream robe top
       slug: cream-robe-top
       relationship: set-piece
-      description: Matching top
-  about: |-
-    > _"A pair of cream coloured boots."_
-
-    Cream boots are part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching cream gnome top
+    - item_name: Cream hat
+      slug: cream-hat
+      relationship: set-piece
+      description: Matching cream gnome hat
+    - item_name: Cream robe bottoms
+      slug: cream-robe-bottoms
+      relationship: set-piece
+      description: Matching cream gnome bottoms
+  about: "Cream boots are part of the gnome cream robes outfit sold by Rometti's Fine Fashions in the Grand Tree. They provide only token slash and crush defence and are valued primarily as a fashionscape feet slot item and clue rewardable set piece."
+  market_strategy:
+    notes:
+      - "Shop supply caps player demand; price floors near 200 coin shop price"
+      - "Fashion-only demand makes price spike during clue meta and outfit events"
+      - "Buy limit of 150 supports steady shop-to-GE arbitrage"
+  trading_tips:
+    - Stock up from Rometti's at 200 coins and resell when GE bids spike above 800
+    - List at daily high during fashionscape weeks and big outfit reveals
+    - Watch for Leagues or Trailblazer relaunches where gnome outfits get re-explored
+  history:
+    - date: "2002-12-12"
+      description: "Added to the game alongside the Tree Gnome Stronghold gnome clothing line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

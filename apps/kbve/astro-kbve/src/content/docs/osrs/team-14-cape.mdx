@@ -12,9 +12,61 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-14 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Cloth
+    tier: low
+  equipment:
+    slot: cape
+    weight: 0.453
+    requirements:
+      defence: 1
+    defence_bonus:
+      slash: 1
+      crush: 1
+      ranged: 2
+  shops:
+    - shop_name: Darren's Wilderness Cape Shop
+      location: East of the Wilderness Agility Course
+      stock: 5
+      price: 50
+  related_items:
+    - name: Team-1 cape
+      relationship: variant
+    - name: Team-2 cape
+      relationship: variant
+    - name: Team-50 cape
+      relationship: variant
+  about: "Team-14 cape is one of fifty team capes purchasable from Darren's Wilderness Cape Shop. Players wearing matching team capes appear as blue dots on each other's minimaps, useful for organized clan PvP and Wilderness events."
+  market_strategy:
+    notes:
+      - Shop-stocked at 50 gp caps upside
+      - F2P cape with niche team-identification use
+      - 150 GE limit supports light flipping
+  trading_tips:
+    - Buy from Darren's shop and flip GE at minor margin
+    - Team capes spike during clan events and tournaments
+  history:
+    - date: "2005-02-22"
+      description: Released with the Wilderness Capes, and Changes update.
+  properties:
+    release_date: "2005-02-22"
+    update: Wilderness Capes, and Changes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

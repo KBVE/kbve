@@ -1,5 +1,6 @@
 ---
 title: Potted Orange Tulip
+template: splash
 description: |
     Minecraft Potted Orange Tulip — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 398
     ref: potted_orange_tulip
     slug: potted-orange-tulip
+    content_rev: 1
     display_name: Potted Orange Tulip
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,48 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: orange_tulip
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Orange Tulip is a decorative block made by placing an
+            Orange Tulip into a flower pot, displaying the flower without
+            needing a plantable grass tile.
+        lore: |
+            Tulips, including the orange variant, were added in Java
+            Edition 1.7.2 alongside the game's other single-block flowers.
+    found_in:
+        - location: Crafted by hand
+          detail: Place an Orange Tulip item into an empty Flower Pot to create it.
+        - location: Woodland Mansions and village houses
+          detail: Pre-potted orange tulips occasionally decorate these structures.
+    faq:
+        - question: What tool do I need to break it?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: What does it drop?
+          answer: |
+              The empty Flower Pot and the Orange Tulip item drop as two
+              separate items.
+        - question: Can I get the flower back without breaking the pot?
+          answer: |
+              Yes. Pressing use on the pot removes the tulip into your
+              inventory and leaves the empty pot in place.
+        - question: Where do Orange Tulips normally grow?
+          answer: |
+              Orange Tulips naturally generate in plains and meadow biomes
+              before being harvested and potted.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Waxed Oxidized Copper Grate
+template: splash
 description: |
     Minecraft Waxed Oxidized Copper Grate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1031
     ref: waxed_oxidized_copper_grate
     slug: waxed-oxidized-copper-grate
+    content_rev: 1
     display_name: Waxed Oxidized Copper Grate
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_oxidized_copper_grate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Oxidized Copper Grate is a perforated, chain-link-style
+            copper block locked at the fully teal, oxidized stage. It lets
+            light and line-of-sight pass through its holes while blocking
+            mob spawns and redstone signals.
+        lore: |
+            Copper grates were revealed at Minecraft Live 2023 and released
+            in Java Edition 1.21, inspired by real-world chain link
+            fencing.
+    uses:
+        - title: Ventilated Flooring & Walls
+          ref: waxed_oxidized_copper_grate
+          detail: |
+              Used as a see-through floor or wall panel that blocks mob
+              spawning and can be waterlogged, popular in industrial and
+              vault-style copper builds.
+    found_in:
+        - location: Crafted from Blocks of Copper
+          detail: Craft 4 matching copper blocks into 4 grates, or stonecut a single copper block, then wax with honeycomb.
+        - location: Trial Chambers
+          detail: Waxed oxidized copper grates generate naturally as decorative flooring inside trial chambers.
+    faq:
+        - question: Does it conduct redstone signals?
+          answer: |
+              No, copper grates do not conduct redstone.
+        - question: Can mobs spawn on top of it?
+          answer: |
+              No, mobs cannot spawn on copper grates.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better; mining by hand drops nothing.
+        - question: Will it oxidize further after waxing?
+          answer: |
+              No, the honeycomb coating locks it permanently at the
+              oxidized stage.
     data_version: "1.21.5"
 ---
 

@@ -9,17 +9,52 @@ description: |
     March 3rd! The weather shift for this month is always wild.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'March 3,'
+    accent: every year.
+    lede: 'The March 3rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Mar 2'
+          href: /journal/03-02/
+        - label: 'Mar 4 →'
+          href: /journal/03-04/
+    related:
+        - title: 'Previous · Mar 2'
+          copy: 'Step back a day to the March 2nd log.'
+          href: /journal/03-02/
+          icon: calendar
+        - title: 'Next · Mar 4'
+          copy: 'Jump ahead to the March 4th log.'
+          href: /journal/03-04/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Godot Build Test
 
@@ -28,9 +63,15 @@ import { Adsense } from '@/components/astropad';
     There was a weird error in our build, going to fix it now.
     The new command for the `q` crate will be the `debug-mac`, which will not only run the mac build command but also move the final dylib into the right directory for testing.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
+<BentoProse id="2024" heading="2024">
 
 ### FishChip
 
@@ -94,3 +135,6 @@ The patch to add the W A S D was just checking for the keys being down and then 
 I went through the start of the inventory proof of concept!
 I am aware that there might be some issues with how to handle it via iframe.
 
+</BentoProse>
+
+</BentoDoc>

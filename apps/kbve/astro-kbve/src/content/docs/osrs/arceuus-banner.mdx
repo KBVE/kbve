@@ -12,9 +12,98 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 4
+  material:
+    type: cosmetic
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: polestaff
+    attack_speed: 6
+    weight: 2.267
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 12
+      slash: 12
+      crush: 12
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/1133
+        members_only: true
+  related_items:
+    - item_id: 20245
+      item_name: Hosidius banner
+      slug: hosidius-banner
+      relationship: variant
+      description: Hosidius house banner variant
+    - item_id: 20247
+      item_name: Lovakengj banner
+      slug: lovakengj-banner
+      relationship: variant
+      description: Lovakengj house banner variant
+    - item_id: 20249
+      item_name: Piscarilius banner
+      slug: piscarilius-banner
+      relationship: variant
+      description: Piscarilius house banner variant
+    - item_id: 20253
+      item_name: Shayzien banner
+      slug: shayzien-banner
+      relationship: variant
+      description: Shayzien house banner variant
   about: "Arceuus banner is a members-only item in Old School RuneScape. High alchemy value: 42 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Medium clue reward, cosmetic polestaff
+      - Stats decent but overshadowed by combat weapons
+      - One of five Kourend house banners
+  trading_tips:
+    - Demand cosmetic / completionist focused
+    - Buy limit 4 keeps flipping volume low
+    - Track medium clue completion rates for supply
+  history:
+    - date: "2016-07-06"
+      description: Released with the Treasure Trail Expansion update.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -40,10 +40,6 @@ namespace RareIcon
             KingInventory  = 1,
         }
 
-        // -- Costs --
-        // Capital is intentionally just the Land Grant — the scroll is
-        // imbued with the materials, narratively. All other buildings
-        // draw real materials from the empire's central stockpile.
         static readonly Ingredient[] CostCapital    = { new((ushort)ItemId.CapitalLandGrant, 1) };
         static readonly Ingredient[] CostFarm       = { new((ushort)ItemId.Timber,     1) };
         static readonly Ingredient[] CostBarracks   = { new((ushort)ItemId.Timber,     3),
@@ -71,10 +67,6 @@ namespace RareIcon
                                                         new((ushort)ItemId.Log,         200) };
         static readonly Ingredient[] CostNone     = System.Array.Empty<Ingredient>();
 
-        // -- Upgrade chain costs --
-        // Market (tier 0) → Trade House (tier 1) → Merchants Guild (tier 2).
-        // Farm   (tier 0) → Village (tier 1).
-        // Barracks (tier 0) → Keep (tier 1) → Castle (tier 2).
         static readonly Ingredient[] UpgradeMarketToTradeHouse    = { new((ushort)ItemId.GoldBar,   5) };
         static readonly Ingredient[] UpgradeTradeHouseToGuild     = { new((ushort)ItemId.GoldBar,  50) };
         static readonly Ingredient[] UpgradeFarmToVillage         = { new((ushort)ItemId.Timber,   10),
@@ -148,12 +140,12 @@ namespace RareIcon
                                                                        new((ushort)ItemId.IronOre,   3) };
 
         static readonly byte[] _defaultVariant    = { 0 };
-        static readonly byte[] _towerT0Variants   = { 0, 1, 2 }; // Watch / Beacon / Highwatch
-        static readonly byte[] _innT0Variants     = { 0, 1 };    // Tavern / AleHouse
-        static readonly byte[] _furnaceT0Variants = { 0, 1 };    // Forge / Glassworks
-        static readonly byte[] _outpostT0Variants = { 0, 1, 2 }; // Watchpost / BeaconOutpost / Gatepost
-        static readonly byte[] _barracksT0Variants = { 0, 1, 2 }; // Keep / Stables / Guildhall
-        static readonly byte[] _wallT0Variants    = { 0, 1, 2 }; // Reinforced / Buttress / Palisade
+        static readonly byte[] _towerT0Variants   = { 0, 1, 2 };
+        static readonly byte[] _innT0Variants     = { 0, 1 };
+        static readonly byte[] _furnaceT0Variants = { 0, 1 };
+        static readonly byte[] _outpostT0Variants = { 0, 1, 2 };
+        static readonly byte[] _barracksT0Variants = { 0, 1, 2 };
+        static readonly byte[] _wallT0Variants    = { 0, 1, 2 };
 
         /// <summary>Returns the variant ids selectable when upgrading <paramref name="buildingType"/> from <paramref name="fromTier"/>. Default-track tiers return a single-element {0} array; alt-pick tiers return all available variant ids in display order. Inspector reads this for the upgrade card stack.</summary>
         public static byte[] GetUpgradeVariants(byte buildingType, byte fromTier)
@@ -353,11 +345,6 @@ namespace RareIcon
         public static bool SpawnsFullyBuilt(byte buildingType)
             => buildingType == BuildingType.Capital;
 
-        // -- Footprints --
-        // Capital claims the centre + 6 axial neighbours (7-hex flower);
-        // every other building is single-hex. When a Walls / Tower /
-        // Bridge building lands with a custom footprint, add a new
-        // offsets array + case here.
         static readonly int2[] FlowerOffsets =
         {
             new int2( 0,  0), new int2( 1,  0), new int2( 1, -1),
@@ -378,7 +365,6 @@ namespace RareIcon
             _                    => 2.0f / 3.0f,
         };
 
-        // -- Biome rules --
         /// <summary>Returns true if `biome` can host `buildingType`. Ocean refuses every build; river refuses every build except the Dock (river-only); Lumbercamp must be on Forest; Mining Pit must be on Sand.</summary>
         public static bool IsBuildable(byte buildingType, byte biome)
         {
@@ -388,9 +374,7 @@ namespace RareIcon
             if (biome == BiomeGenerator.BIOME_RIVER) return false;
             if (buildingType == BuildingType.Lumbercamp) return biome == BiomeGenerator.BIOME_FOREST;
             if (buildingType == BuildingType.MiningPit)  return biome == BiomeGenerator.BIOME_SAND;
-            // Per-type future rules slot here:
-            //   Furnace might forbid Snow (no fuel),
-            //   Wall might allow only Stone / Dirt for foundation, etc.
+
             return true;
         }
 

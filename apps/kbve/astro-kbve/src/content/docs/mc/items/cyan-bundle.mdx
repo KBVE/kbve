@@ -1,5 +1,6 @@
 ---
 title: Cyan Bundle
+template: splash
 description: |
     Minecraft Cyan Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 984
     ref: cyan_bundle
     slug: cyan-bundle
+    content_rev: 1
     display_name: Cyan Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Cyan Bundle is a dyed variant of the bundle, a storage item that can hold a mixture of
+            item types within a single inventory slot. It is made by combining a bundle with cyan dye, and
+            items placed inside occupy space based on their normal stack size, so 64-stack items take up
+            far less room than single-use items.
+        lore: |
+            A tightly bound cyan sack, able to carry a jumble of odds and ends that would otherwise clutter a pack.
+    faq:
+        - question: How do I make a Cyan Bundle?
+          answer: |
+              Craft a bundle first from one string and one leather, then combine that bundle with cyan
+              dye in a crafting grid to recolor it.
+        - question: What can a Cyan Bundle store?
+          answer: |
+              It can hold a mix of different item types up to a stack's worth of total space, with each
+              item consuming a fraction of that space based on its normal maximum stack size.
+        - question: Can I nest bundles inside a Cyan Bundle?
+          answer: |
+              Yes, other bundles can be placed inside it, though each nested bundle consumes 1/16 of the
+              space plus whatever it is holding.
+        - question: Can I change a Cyan Bundle to a different color later?
+          answer: |
+              Yes, combining it with a different color of dye recolors it, though a bundle cannot be dyed
+              the same color it already is.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

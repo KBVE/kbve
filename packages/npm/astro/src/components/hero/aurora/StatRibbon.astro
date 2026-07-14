@@ -1,0 +1,168 @@
+---
+interface Stat {
+	value: string;
+	label: string;
+}
+
+interface Props {
+	stats: Stat[];
+	accent?: string;
+	id?: string;
+	ariaLabel?: string;
+	xData?: string;
+}
+
+const {
+	stats,
+	accent = 'var(--sl-color-accent, #6366f1)',
+	id,
+	ariaLabel = 'Key statistics',
+	xData,
+} = Astro.props;
+---
+
+<div
+	class="asr not-content"
+	id={id}
+	role="group"
+	aria-label={ariaLabel}
+	style={`--asr-accent: ${accent};`}
+	{...xData ? { 'x-data': xData } : {}}>
+	{
+		stats.map((stat) => (
+			<div class="asr__stat">
+				<span class="asr__rule" aria-hidden="true" />
+				<span class="asr__num" data-asr-value={stat.value}>
+					{stat.value}
+				</span>
+				<span class="asr__label">{stat.label}</span>
+			</div>
+		))
+	}
+</div>
+
+<script>
+	import { onMount, claimOnce } from '../../../utils/clientRouter';
+
+	const DURATION_MS = 1400;
+
+	const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+
+	const animate = (el: HTMLElement) => {
+		const raw = el.dataset.asrValue ?? '';
+		const match = raw.match(/^([\d,.]+)(.*)$/);
+		if (!match) return;
+		const target = Number(match[1].replace(/,/g, ''));
+		if (!Number.isFinite(target) || target === 0) return;
+		const suffix = match[2];
+		const decimals = (match[1].split('.')[1] ?? '').length;
+		const start = performance.now();
+
+		const tick = (now: number) => {
+			const t = Math.min((now - start) / DURATION_MS, 1);
+			const value = target * easeOut(t);
+			el.textContent =
+				value.toLocaleString(undefined, {
+					minimumFractionDigits: decimals,
+					maximumFractionDigits: decimals,
+				}) + suffix;
+			if (t < 1) requestAnimationFrame(tick);
+		};
+		requestAnimationFrame(tick);
+	};
+
+	onMount(() => {
+		const nums = Array.from(
+			document.querySelectorAll<HTMLElement>('.asr__num'),
+		).filter((el) => claimOnce(el, 'data-asr-init'));
+		if (!nums.length) return;
+
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+			return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (!entry.isIntersecting) continue;
+					observer.unobserve(entry.target);
+					animate(entry.target as HTMLElement);
+				}
+			},
+			{ threshold: 0.4 },
+		);
+		nums.forEach((el) => observer.observe(el));
+
+		return () => {
+			observer.disconnect();
+			nums.forEach((el) => el.removeAttribute('data-asr-init'));
+		};
+	});
+</script>
+
+<style>
+	.asr {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+		gap: 1rem;
+		margin: 2rem 0;
+	}
+
+	.asr__stat {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding: 1.25rem 1.5rem;
+		border-radius: 1rem;
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-gray-5, #262626) 80%, transparent);
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg, #0b0c10) 82%,
+			transparent
+		);
+		backdrop-filter: blur(10px);
+		transition: border-color 0.25s ease;
+	}
+
+	.asr__stat:hover {
+		border-color: color-mix(in srgb, var(--asr-accent) 40%, transparent);
+	}
+
+	.asr__rule {
+		width: 1.75rem;
+		height: 2px;
+		border-radius: 999px;
+		background: linear-gradient(
+			90deg,
+			var(--asr-accent),
+			color-mix(in srgb, var(--asr-accent) 20%, transparent)
+		);
+	}
+
+	.asr__num {
+		font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		font-variant-numeric: tabular-nums;
+		background: linear-gradient(
+			92deg,
+			var(--sl-color-white, #fff) 20%,
+			var(--asr-accent) 120%
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.asr__label {
+		font-size: 0.85rem;
+		letter-spacing: 0.02em;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.asr__stat {
+			transition: none;
+		}
+	}
+</style>

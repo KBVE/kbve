@@ -1,6 +1,6 @@
 ---
 title: Samurai greaves | OSRS Price Data
-description: "Samurai greaves: Armoured greaves of the Samurai.. High alch: 1,920 GP, GE limit: 70."
+description: "Samurai greaves are a master-tier Treasure Trail leg slot drop requiring 35 Defence with strong all-round defensive stats. High alch: 1,920 GP, GE limit: 70."
 osrs:
   id: 20044
   name: Samurai greaves
@@ -12,9 +12,86 @@ osrs:
   lowalch: 1280
   highalch: 1920
   limit: 70
-  about: "Samurai greaves is a members-only item in Old School RuneScape. High alchemy value: 1,920 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic-armour
+    tier: high
+  equipment:
+    slot: legs
+    weight: 1.5
+    requirements:
+      defence: 35
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 42
+      slash: 40
+      crush: 38
+      magic: 3
+      ranged: 40
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Samurai kasa
+      slug: samurai-kasa
+      relationship: set-piece
+      description: Helmet from the samurai set
+    - item_name: Samurai shirt
+      slug: samurai-shirt
+      relationship: set-piece
+      description: Body slot from the samurai set
+    - item_name: Samurai gloves
+      slug: samurai-gloves
+      relationship: set-piece
+      description: Hands slot from the samurai set
+    - item_name: Samurai boots
+      slug: samurai-boots
+      relationship: set-piece
+      description: Feet slot from the samurai set
+  about: Samurai greaves are the leg slot of the samurai cosmetic outfit, dropped from master Treasure Trail reward caskets at roughly 1/851. They require 35 Defence to wear and provide solid melee and ranged defence at the cost of any offensive bonus.
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Supply is gated by master clue completions, so price tracks clue popularity"
+      - "Set buyers drive premiums over per-piece value when other samurai pieces are scarce"
+      - "Watch master clue droprates for the full samurai set before committing capital"
+  trading_tips:
+    - Track the rest of the samurai set — bundled flips often beat piece-by-piece sales
+    - GE buy limit of 70 leaves room for moderate inventory swings
+  history:
+    - date: "2016-07-06"
+      update: Treasure Trails Expansion
+      description: Added as a master Treasure Trails reward in the samurai outfit set.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trails Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

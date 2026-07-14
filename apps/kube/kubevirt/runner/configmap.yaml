@@ -1,15 +1,28 @@
-# ConfigMap with the GitHub Actions runner install/update script.
+# ConfigMap with the GitHub Actions runner install/heal script.
 #
-# Orchestrates the full runner lifecycle via the QEMU Guest Agent:
-#   1. Scales up the file-server pod
-#   2. Downloads the runner package to the file-server
-#   3. Obtains a registration token from the GitHub API
-#   4. Executes PowerShell inside the Windows VM (via virsh guest-exec)
-#      to install/replace the runner as a Windows service
-#   5. Scales the file-server back down
+# Runs via the QEMU Guest Agent against the persistent-disk Windows VM:
+#   0. Skip if the VM is not running.
+#   1. Wait for the guest agent.
+#   2. CHECK (no token): is the runner service installed and running as
+#      LocalSystem? If so, Start-Service if stopped and EXIT.
+#   3a. NEEDS_ELEVATE — service exists but runs as the wrong account (e.g.
+#       NETWORK SERVICE): reconfigure it to LocalSystem with `sc.exe config`
+#       and restart. No token, no download — keeps the GitHub registration.
+#   3b. NEEDS_INSTALL — no service yet: mint a registration token from the
+#       admin:org PAT (github-arc-token), download the runner from GitHub if
+#       needed (the VM has internet egress but cannot reach the in-cluster
+#       file-server), config.cmd --runasservice, then sc.exe config to
+#       LocalSystem.
 #
-# Self-contained: no VNC, no RDP, no manual steps.
-# Idempotent: uses --replace to update an existing runner.
+# LocalSystem is a built-in service account: fully privileged (installs to
+# Program Files + machine PATH for win-setup) with no password and no
+# SeServiceLogonRight grant. config.cmd --windowslogonaccount cannot change an
+# already-installed service's account (it only applies on first install), so the
+# elevation is done with sc.exe against the existing service. See issue #11967.
+#
+# The VM rootdisk is a PVC, so C:\actions-runner (.runner + .credentials)
+# persists across stop/start — normal boots auto-start the service and the CHECK
+# exits fast.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -30,152 +43,151 @@ data:
         RUNNER_LABELS="${RUNNER_LABELS:-UE5-Win}"
         RUNNER_VERSION="${RUNNER_VERSION:-2.333.0}"
         RUNNER_INSTALL_DIR="${RUNNER_INSTALL_DIR:-C:\\actions-runner}"
-        FILE_SERVER_URL="http://file-server.angelscript.svc:8080"
+        RUNNER_LOGON_ACCOUNT="${RUNNER_LOGON_ACCOUNT:-LocalSystem}"
+        ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"
         RUNNER_ZIP="actions-runner-win-x64-${RUNNER_VERSION}.zip"
         RUNNER_DOWNLOAD_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${RUNNER_ZIP}"
 
-        echo "=== GitHub Actions Runner Install: ${VM_NAME} ==="
-        echo "  Org: ${GITHUB_ORG}"
-        echo "  Runner: ${RUNNER_NAME} (labels: ${RUNNER_LABELS})"
-        echo "  Version: ${RUNNER_VERSION}"
+        echo "=== GitHub Actions Runner Install/Heal: ${VM_NAME} ==="
+        echo "  Org: ${GITHUB_ORG} | Runner: ${RUNNER_NAME} (${RUNNER_LABELS}) | v${RUNNER_VERSION} | account=${RUNNER_LOGON_ACCOUNT}"
 
-        # ── Phase 1: Scale up file-server ──
-        echo ""
-        echo "--- Phase 1: File server ---"
-        CURRENT_REPLICAS=$(kubectl get deploy file-server -n "${NAMESPACE}" \
-            -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
-
-        if [ "${CURRENT_REPLICAS}" = "0" ]; then
-            echo "Scaling up file-server..."
-            kubectl scale deploy file-server -n "${NAMESPACE}" --replicas=1
-            echo "Waiting for file-server pod..."
-            kubectl wait --for=condition=ready pod \
-                -l app=file-server -n "${NAMESPACE}" --timeout=120s
-        else
-            echo "File-server already running (replicas: ${CURRENT_REPLICAS})"
+        # ── Phase 0: Skip if VM is not running ──
+        STATUS=$(kubectl get vm "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.printableStatus}' 2>/dev/null || echo "Unknown")
+        if [ "${STATUS}" != "Running" ]; then
+            echo "SKIP: VM not running (${STATUS}); runner heals on next boot."
+            exit 0
         fi
 
-        FS_POD=$(kubectl get pods -n "${NAMESPACE}" -l app=file-server \
-            -o jsonpath='{.items[0].metadata.name}')
-        echo "File-server pod: ${FS_POD}"
-
-        # ── Phase 2: Stage runner package ──
+        # ── Phase 1: Wait for VM guest agent ──
         echo ""
-        echo "--- Phase 2: Stage runner package ---"
-        # Check if already staged
-        EXISTS=$(kubectl exec "${FS_POD}" -n "${NAMESPACE}" -- \
-            sh -c "[ -f /shared/${RUNNER_ZIP} ] && echo yes || echo no")
-        if [ "${EXISTS}" = "yes" ]; then
-            echo "Runner package already staged: ${RUNNER_ZIP}"
-        else
-            echo "Downloading ${RUNNER_ZIP} to file-server..."
-            kubectl exec "${FS_POD}" -n "${NAMESPACE}" -- \
-                wget -q -O "/shared/${RUNNER_ZIP}" "${RUNNER_DOWNLOAD_URL}"
-            echo "Downloaded."
-        fi
-
-        # ── Phase 3: Get registration token ──
-        echo ""
-        echo "--- Phase 3: Registration token ---"
-        REG_TOKEN=$(wget -q -O - \
-            --header="Authorization: token ${GITHUB_TOKEN}" \
-            --header="Accept: application/vnd.github.v3+json" \
-            --post-data="" \
-            "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners/registration-token" \
-            2>/dev/null | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
-
-        if [ -z "${REG_TOKEN}" ]; then
-            echo "ERROR: Failed to obtain registration token"
-            echo "Ensure GITHUB_TOKEN has admin:org scope"
-            exit 1
-        fi
-        echo "Registration token obtained."
-
-        # ── Phase 4: Wait for VM guest agent ──
-        echo ""
-        echo "--- Phase 4: VM guest agent ---"
+        echo "--- Phase 1: VM guest agent ---"
         for i in $(seq 1 60); do
             AGENT=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
                 -o jsonpath='{.status.conditions[?(@.type=="AgentConnected")].status}' \
                 2>/dev/null || echo "")
-            if [ "${AGENT}" = "True" ]; then
-                echo "Guest agent connected"
-                break
-            fi
-            if [ "$i" -eq 60 ]; then
-                echo "ERROR: Guest agent not connected after 10 minutes"
-                exit 1
-            fi
+            [ "${AGENT}" = "True" ] && { echo "Guest agent connected"; break; }
+            [ "$i" -eq 60 ] && { echo "ERROR: Guest agent not connected after 10 minutes"; exit 1; }
             echo "  Waiting... (${i}/60)"
             sleep 10
         done
 
-        # Find virt-launcher pod and domain
-        POD=$(kubectl get pods -n "${NAMESPACE}" \
-            -l "vm.kubevirt.io/name=${VM_NAME}" \
-            -o jsonpath='{.items[0].metadata.name}')
-        DOMAIN=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
-            sh -c "virsh list --name 2>/dev/null | grep -v '^\s*$' | head -1")
+        POD=$(kubectl get pods -n "${NAMESPACE}" -l "vm.kubevirt.io/name=${VM_NAME}" -o jsonpath='{.items[0].metadata.name}')
+        DOMAIN=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- sh -c "virsh list --name 2>/dev/null | grep -v '^\s*$' | head -1")
         echo "Virt-launcher: ${POD}, Domain: ${DOMAIN}"
 
-        # ── Phase 5: Install runner via guest agent ──
-        echo ""
-        echo "--- Phase 5: Install runner ---"
-
-        # Build the PowerShell install script
-        # Uses single quotes in PS to avoid escaping issues
-        PS_SCRIPT="\$ErrorActionPreference = 'Stop'; \$installDir = '${RUNNER_INSTALL_DIR}'; \$fsUrl = '${FILE_SERVER_URL}'; \$zip = '${RUNNER_ZIP}'; \$org = '${GITHUB_ORG}'; \$token = '${REG_TOKEN}'; \$name = '${RUNNER_NAME}'; \$labels = '${RUNNER_LABELS}'; Write-Output 'Stopping existing runner service...'; try { Stop-Service actions.runner.* -Force -ErrorAction SilentlyContinue } catch {}; Write-Output 'Downloading runner from file-server...'; New-Item -ItemType Directory -Force -Path \$installDir | Out-Null; \$zipPath = Join-Path \$installDir \$zip; Invoke-WebRequest -Uri \"\$fsUrl/\$zip\" -OutFile \$zipPath -UseBasicParsing; Write-Output 'Extracting...'; Expand-Archive -Path \$zipPath -DestinationPath \$installDir -Force; Remove-Item \$zipPath -Force; Write-Output 'Configuring runner...'; Set-Location \$installDir; & .\\config.cmd --url \"https://github.com/\$org\" --token \$token --name \$name --labels \$labels --runasservice --replace --unattended; Write-Output 'Runner installed and running as service.'"
-
-        # Escape for JSON
-        ESCAPED_PS=$(printf '%s' "${PS_SCRIPT}" | sed 's/\\/\\\\/g; s/"/\\"/g')
-
-        echo "Executing runner install inside Windows..."
-        RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
-            virsh qemu-agent-command "${DOMAIN}" \
-            "{\"execute\":\"guest-exec\",\"arguments\":{\"path\":\"powershell.exe\",\"arg\":[\"-NoProfile\",\"-ExecutionPolicy\",\"Bypass\",\"-Command\",\"${ESCAPED_PS}\"],\"capture-output\":true}}" \
-            --timeout 300 2>&1)
-        echo "Guest agent response: ${RESULT}"
-
-        # Check result
-        PID=$(echo "${RESULT}" | sed -n 's/.*"pid":\([0-9]*\).*/\1/p')
-        if [ -n "${PID}" ]; then
-            echo "Waiting for install to complete (PID: ${PID})..."
-            sleep 60
-            STATUS_RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+        # Run a PowerShell snippet inside the VM via the guest agent; print its
+        # decoded stdout, mirror stderr, and return the guest exit code. Polls
+        # guest-exec-status until the process exits (or max seconds elapse).
+        guest_exec_ps() {
+            _ps="$1"; _max="${2:-360}"
+            _esc=$(printf '%s' "${_ps}" | sed 's/\\/\\\\/g; s/"/\\"/g')
+            _r=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
                 virsh qemu-agent-command "${DOMAIN}" \
-                "{\"execute\":\"guest-exec-status\",\"arguments\":{\"pid\":${PID}}}" \
-                --timeout 30 2>&1)
-            echo "Exec status: ${STATUS_RESULT}"
+                "{\"execute\":\"guest-exec\",\"arguments\":{\"path\":\"powershell.exe\",\"arg\":[\"-NoProfile\",\"-ExecutionPolicy\",\"Bypass\",\"-Command\",\"${_esc}\"],\"capture-output\":true}}" \
+                --timeout 60 2>&1)
+            _pid=$(echo "${_r}" | sed -n 's/.*"pid":\([0-9]*\).*/\1/p')
+            if [ -z "${_pid}" ]; then echo "guest-exec returned no pid: ${_r}" >&2; return 99; fi
+            _el=0; _s=""
+            while [ "${_el}" -lt "${_max}" ]; do
+                sleep 10; _el=$((_el + 10))
+                _s=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+                    virsh qemu-agent-command "${DOMAIN}" \
+                    "{\"execute\":\"guest-exec-status\",\"arguments\":{\"pid\":${_pid}}}" \
+                    --timeout 30 2>&1)
+                echo "${_s}" | grep -q '"exited":true' && break
+            done
+            _out=$(echo "${_s}" | sed -n 's/.*"out-data":"\([^"]*\)".*/\1/p')
+            _err=$(echo "${_s}" | sed -n 's/.*"err-data":"\([^"]*\)".*/\1/p')
+            _ec=$(echo "${_s}" | sed -n 's/.*"exitcode":\([0-9]*\).*/\1/p')
+            [ -n "${_out}" ] && echo "${_out}" | base64 -d 2>/dev/null
+            [ -n "${_err}" ] && { echo "--- guest stderr ---" >&2; echo "${_err}" | base64 -d 2>/dev/null >&2; }
+            return "${_ec:-1}"
+        }
 
-            EXITCODE=$(echo "${STATUS_RESULT}" | sed -n 's/.*"exitcode":\([0-9]*\).*/\1/p')
-            if [ "${EXITCODE}" = "0" ]; then
-                echo ""
-                echo "=== SUCCESS: Runner installed on ${VM_NAME} ==="
-                echo "  Name:   ${RUNNER_NAME}"
-                echo "  Labels: ${RUNNER_LABELS}"
-                echo "  Dir:    ${RUNNER_INSTALL_DIR}"
-            else
-                echo "WARNING: Install exited with code ${EXITCODE}"
-                # Decode base64 output if present
-                OUT_DATA=$(echo "${STATUS_RESULT}" | sed -n 's/.*"out-data":"\([^"]*\)".*/\1/p')
-                if [ -n "${OUT_DATA}" ]; then
-                    echo "Output: $(echo "${OUT_DATA}" | base64 -d 2>/dev/null || echo "${OUT_DATA}")"
-                fi
-                ERR_DATA=$(echo "${STATUS_RESULT}" | sed -n 's/.*"err-data":"\([^"]*\)".*/\1/p')
-                if [ -n "${ERR_DATA}" ]; then
-                    echo "Stderr: $(echo "${ERR_DATA}" | base64 -d 2>/dev/null || echo "${ERR_DATA}")"
-                fi
+        # Mint an org runner token (arg: registration-token | remove-token).
+        mint_token() {
+            curl -s -X POST \
+                -H "Authorization: token ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners/$1" \
+                | sed -n 's/.*"token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p'
+        }
+
+        # True if the StartName in a RESULT line is an elevated account.
+        elevated() { echo "$1" | grep -iqE "account=(LocalSystem|[^ ]*Administrator|[^ ]*SYSTEM)"; }
+
+        # ── Phase 2: CHECK (no token, no download) ──
+        echo ""
+        echo "--- Phase 2: Check runner state ---"
+        CHECK_PS="\$svc = Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" -ErrorAction SilentlyContinue | Select-Object -First 1; if (\$svc) { \$sn = \$svc.StartName; if (\$sn -eq 'LocalSystem' -or \$sn -match 'Administrator' -or \$sn -match 'SYSTEM') { if (\$svc.State -ne 'Running') { Start-Service \$svc.Name }; Write-Output \"ALREADY_OK \$(\$svc.Name) account=\$sn \$((Get-Service \$svc.Name).Status)\" } else { Write-Output \"NEEDS_ELEVATE \$(\$svc.Name) [\$sn]\" } } else { Write-Output 'NEEDS_INSTALL absent' }"
+        CHECK_OUT=$(guest_exec_ps "${CHECK_PS}" 90 || true)
+        echo "Check: ${CHECK_OUT}"
+        if echo "${CHECK_OUT}" | grep -q "ALREADY_OK"; then
+            echo "=== Runner already running elevated — nothing to do. ==="
+            exit 0
+        fi
+
+        # ── Phase 3a: Elevate existing service — fallback chain A -> B -> C ──
+        if echo "${CHECK_OUT}" | grep -q "NEEDS_ELEVATE"; then
+            echo ""
+            echo "--- Phase 3a: Elevate existing service (A: LocalSystem/sc.exe -> B: Administrator/config.cmd -> C: Administrator/sc.exe+secedit) ---"
+
+            # A: LocalSystem via sc.exe (no token, no password, no logon-right grant)
+            echo ">> A: sc.exe config obj= LocalSystem"
+            A_PS="\$ErrorActionPreference='Stop'; \$svc=(Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; Stop-Service \$svc -Force -ErrorAction SilentlyContinue; & sc.exe config \$svc obj= 'LocalSystem' | Out-Null; Start-Service \$svc; \$acct=(Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; \$st=(Get-Service \$svc).Status; Write-Output \"RESULT account=\$acct state=\$st\""
+            OUT=$(guest_exec_ps "${A_PS}" 120 || true); echo "A: ${OUT}"
+            if elevated "${OUT}"; then echo "=== SUCCESS (A: LocalSystem): runner elevated on ${VM_NAME} ==="; exit 0; fi
+            echo "A did not elevate; trying B."
+
+            if [ -z "${ADMIN_PASSWORD}" ]; then
+                echo "ERROR: A failed and ADMIN_PASSWORD unset — B/C (Administrator) unavailable."
                 exit 1
             fi
-        else
-            echo "WARNING: Could not parse PID — check VM manually"
+            ADMIN_PASSWORD_PS=$(printf '%s' "${ADMIN_PASSWORD}" | sed "s/'/''/g")
+
+            # B: Administrator via config.cmd remove + fresh install (config.cmd grants the logon right)
+            echo ">> B: config.cmd remove + fresh --windowslogonaccount .\\Administrator"
+            RM_TOKEN=$(mint_token remove-token)
+            RG_TOKEN=$(mint_token registration-token)
+            if [ -n "${RM_TOKEN}" ] && [ -n "${RG_TOKEN}" ]; then
+                B_PS="\$ErrorActionPreference='Stop'; Set-Location '${RUNNER_INSTALL_DIR}'; & .\\config.cmd remove --token '${RM_TOKEN}' 2>&1 | Out-Null; & .\\config.cmd --url \"https://github.com/${GITHUB_ORG}\" --token '${RG_TOKEN}' --name '${RUNNER_NAME}' --labels '${RUNNER_LABELS}' --runasservice --windowslogonaccount '.\\Administrator' --windowslogonpassword '${ADMIN_PASSWORD_PS}' --unattended; \$svc=(Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; \$acct=(Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; Write-Output \"RESULT account=\$acct\""
+                OUT=$(guest_exec_ps "${B_PS}" 420 || true); echo "B: ${OUT}"
+                if elevated "${OUT}"; then echo "=== SUCCESS (B: Administrator via config.cmd): runner elevated ==="; exit 0; fi
+            else
+                echo "B skipped: could not mint remove/registration tokens."
+            fi
+            echo "B did not elevate; trying C."
+
+            # C: Administrator via sc.exe + secedit SeServiceLogonRight grant (token-free)
+            echo ">> C: secedit grant SeServiceLogonRight + sc.exe config obj= .\\Administrator"
+            C_PS="\$ErrorActionPreference='Stop'; \$sid=(New-Object System.Security.Principal.NTAccount('Administrator')).Translate([System.Security.Principal.SecurityIdentifier]).Value; \$inf=Join-Path \$env:TEMP 'sl.inf'; \$db=Join-Path \$env:TEMP 'sl.sdb'; secedit /export /cfg \$inf /areas USER_RIGHTS | Out-Null; \$txt=Get-Content \$inf; if (\$txt -match 'SeServiceLogonRight') { \$txt = \$txt | ForEach-Object { if (\$_.StartsWith('SeServiceLogonRight') -and (-not \$_.Contains(\$sid))) { \$_ + ',*' + \$sid } else { \$_ } } } else { \$txt = \$txt | ForEach-Object { \$_; if (\$_.StartsWith('[Privilege Rights]')) { 'SeServiceLogonRight = *' + \$sid } } }; Set-Content -Path \$inf -Value \$txt; secedit /configure /db \$db /cfg \$inf /areas USER_RIGHTS | Out-Null; \$svc=(Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; Stop-Service \$svc -Force -ErrorAction SilentlyContinue; & sc.exe config \$svc obj= '.\\Administrator' password= '${ADMIN_PASSWORD_PS}' | Out-Null; Start-Service \$svc; \$acct=(Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; Write-Output \"RESULT account=\$acct\""
+            OUT=$(guest_exec_ps "${C_PS}" 180 || true); echo "C: ${OUT}"
+            if elevated "${OUT}"; then echo "=== SUCCESS (C: Administrator via sc.exe+secedit): runner elevated ==="; exit 0; fi
+
+            echo "ERROR: all elevation methods (A/B/C) failed"
+            exit 1
         fi
 
-        # ── Phase 6: Scale down file-server ──
+        # ── Phase 3b: Fresh install (mint token) + elevate ──
         echo ""
-        echo "--- Phase 6: Cleanup ---"
-        if [ "${CURRENT_REPLICAS}" = "0" ]; then
-            echo "Scaling file-server back to 0..."
-            kubectl scale deploy file-server -n "${NAMESPACE}" --replicas=0
+        echo "--- Phase 3b: Fresh install + elevate to ${RUNNER_LOGON_ACCOUNT} ---"
+        REG_TOKEN=$(curl -s -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners/registration-token" \
+            | sed -n 's/.*"token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+        if [ -z "${REG_TOKEN}" ]; then
+            echo "ERROR: Failed to obtain registration token (GITHUB_TOKEN needs admin:org)"
+            exit 1
         fi
-        echo "Done."
+        echo "Registration token obtained."
+
+        INSTALL_PS="\$ErrorActionPreference = 'Stop'; \$installDir = '${RUNNER_INSTALL_DIR}'; \$dlUrl = '${RUNNER_DOWNLOAD_URL}'; \$zip = '${RUNNER_ZIP}'; \$org = '${GITHUB_ORG}'; \$token = '${REG_TOKEN}'; \$name = '${RUNNER_NAME}'; \$labels = '${RUNNER_LABELS}'; try { Stop-Service actions.runner.* -Force -ErrorAction SilentlyContinue } catch {}; New-Item -ItemType Directory -Force -Path \$installDir | Out-Null; if (-not (Test-Path (Join-Path \$installDir 'config.cmd'))) { Write-Output 'Downloading runner from GitHub...'; \$zipPath = Join-Path \$installDir \$zip; curl.exe -L -s --retry 5 --retry-all-errors -C - -o \$zipPath \$dlUrl; Expand-Archive -Path \$zipPath -DestinationPath \$installDir -Force; Remove-Item \$zipPath -Force } else { Write-Output 'Runner binaries present, reusing' }; Set-Location \$installDir; & .\\config.cmd --url \"https://github.com/\$org\" --token \$token --name \$name --labels \$labels --runasservice --replace --unattended; \$svc = (Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; Stop-Service \$svc -Force -ErrorAction SilentlyContinue; & sc.exe config \$svc obj= \"${RUNNER_LOGON_ACCOUNT}\" | Out-Null; Start-Service \$svc; \$acct = (Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; Write-Output \"RESULT account=\$acct\""
+        OUT=$(guest_exec_ps "${INSTALL_PS}" 420 || true)
+        echo "Install: ${OUT}"
+        if echo "${OUT}" | grep -q "account=${RUNNER_LOGON_ACCOUNT}"; then
+            echo "=== SUCCESS: runner installed + running as ${RUNNER_LOGON_ACCOUNT} on ${VM_NAME} (${RUNNER_NAME}, ${RUNNER_LABELS}) ==="
+        else
+            echo "ERROR: install/elevate did not confirm ${RUNNER_LOGON_ACCOUNT}"
+            exit 1
+        fi

@@ -1,6 +1,6 @@
 ---
 title: Green spiky vambraces | OSRS Price Data
-description: "Green spiky vambraces: Vambraces made from 100% real dragonhide. Now with added spikiness.. High alch: 1,500 GP, GE limit: 125."
+description: "Green spiky vambraces add +2 Strength to standard green d'hide vambs. High alch: 1,500 GP, GE limit: 125."
 osrs:
   id: 10079
   name: Green spiky vambraces
@@ -12,9 +12,99 @@ osrs:
   lowalch: 1000
   highalch: 1500
   limit: 125
-  about: "Green spiky vambraces is a members-only item in Old School RuneScape. High alchemy value: 1,500 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragonhide
+    tier: mid
+  properties:
+    release_date: "2006-11-21"
+    weight: 0.283
+    tradeable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    destroy: "Are you sure you want to drop this item?"
+  equipment:
+    slot: hands
+    attack_speed: null
+    requirements:
+      ranged: 40
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 8
+    defence_bonus:
+      stab: 3
+      slash: 2
+      crush: 4
+      magic: 2
+      ranged: 0
+    other_bonus:
+      strength: 2
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 32
+      xp: 5
+      materials:
+        - item_name: Green dragonhide vambraces
+          item_id: 1065
+          quantity: 1
+        - item_name: Kebbit claws
+          item_id: 10113
+          quantity: 1
+      product: Green spiky vambraces
+      product_id: 10079
+      output_quantity: 1
+      facility: Anywhere
+  related_items:
+    - item_id: 1065
+      item_name: Green dragonhide vambraces
+      slug: green-dragonhide-vambraces
+      relationship: component
+      description: Base vambraces upgraded with kebbit claws
+    - item_id: 10113
+      item_name: Kebbit claws
+      slug: kebbit-claws
+      relationship: component
+      description: Hunter-skill claws used to spike the vambs
+    - item_id: 10081
+      item_name: Blue spiky vambraces
+      slug: blue-spiky-vambraces
+      relationship: upgrade
+      description: Higher-tier blue d'hide spiked variant
+  market_strategy:
+    notes:
+      - "+2 Strength edge over plain green d'hide vambs for ranged tanks and pures"
+      - "Demand tied to Hunter kebbit claw supply"
+      - "GE limit 125: easy to stack inventory daily"
+      - "Buy point: under 1,800 GP keeps high alch floor margin"
+      - "Sell point: spike when kebbit claws price rises"
+      - "Note: Fletching XP only 5 per craft so margin trade > XP trade"
+  history:
+    - date: "2006-11-21"
+      update: Hunter release
+      description: "Released alongside the Hunter skill update."
+    - date: "2020-04-01"
+      update: Name change
+      description: "Renamed from Green spiky vambs to the full Green spiky vambraces."
+  about: |-
+    > _"Vambraces made from 100% real dragonhide. Now with added spikiness."_
+
+    Green spiky vambraces are crafted by combining 1 kebbit claw with green dragonhide vambraces at 32 Fletching (5 XP). The spiked variant grants +2 Strength bonus on top of the standard ranged vambrace stats, making them a budget option for ranged pures and low-level strength tanks.
+
+    Requires 40 Ranged to equip. Often a cheaper Strength alternative to gloves of slaughter or fancy gloves for ironmen training Slayer.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

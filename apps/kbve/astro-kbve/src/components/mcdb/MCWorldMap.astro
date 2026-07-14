@@ -1,0 +1,340 @@
+---
+import { getLotEntries, getPoiEntries } from './mc-collections';
+
+interface Props {
+	world?: string;
+	minChunk?: number;
+	maxChunk?: number;
+}
+const world = Astro.props.world ?? 'minecraft:overworld';
+const MIN = Astro.props.minChunk ?? -32;
+const MAX = Astro.props.maxChunk ?? 32;
+const span = MAX - MIN + 1;
+const SIZE = 640;
+const cell = SIZE / span;
+
+const lots = await getLotEntries(world);
+const pois = await getPoiEntries(world);
+
+const kindAccent: Record<string, string> = {
+	spawn: '#fde68a',
+	marketplace: '#7dd3fc',
+	portal: '#f9a8d4',
+	monument: '#fcd34d',
+	biome: '#86efac',
+	shop: '#a5b4fc',
+	guild: '#fca5a5',
+	admin: '#f87171',
+	landmark: '#cbd5e1',
+};
+
+const stateAccent: Record<string, string> = {
+	vacant: '#86efac',
+	owned: '#7dd3fc',
+	built: '#a5b4fc',
+	under_build: '#fcd34d',
+	demolishing: '#fca5a5',
+};
+
+const blockMin = MIN * 16;
+const blockMax = (MAX + 1) * 16 - 1;
+---
+
+<section class="mcworld not-content">
+	<header class="mcworld__head">
+		<h2>World overview · {world}</h2>
+		<p>
+			Chunks <code>{MIN}</code> .. <code>{MAX}</code> · blocks <code>
+				{blockMin}
+			</code> .. <code>{blockMax}</code> ·
+			{lots.length} surveyed lot{lots.length === 1 ? '' : 's'} ·
+			{pois.length} POI{pois.length === 1 ? '' : 's'}.
+		</p>
+	</header>
+
+	<div class="mcworld__legend">
+		<div>
+			<strong>Lots</strong>
+			{
+				Object.entries(stateAccent).map(([k, c]) => (
+					<span>
+						<i style={`background:${c}`} />
+						{k}
+					</span>
+				))
+			}
+		</div>
+		<div>
+			<strong>POIs</strong>
+			{
+				Object.entries(kindAccent).map(([k, c]) => (
+					<span>
+						<i style={`background:${c}; border-radius: 999px`} />
+						{k}
+					</span>
+				))
+			}
+		</div>
+	</div>
+
+	<div class="mcworld__wrap" data-world={world} data-min={MIN} data-max={MAX}>
+		<svg
+			viewBox={`0 0 ${SIZE} ${SIZE}`}
+			width={SIZE}
+			height={SIZE}
+			class="mcworld__svg"
+			role="img"
+			aria-label={`World map for ${world} covering chunks ${MIN} to ${MAX}`}>
+			<rect x={0} y={0} width={SIZE} height={SIZE} fill="#0a0d12"></rect>
+
+			{
+				Array.from({ length: span + 1 }, (_, i) => i).map((i) => (
+					<line
+						x1={i * cell}
+						y1={0}
+						x2={i * cell}
+						y2={SIZE}
+						stroke={
+							i % 16 === 0
+								? '#3b4252'
+								: i % 4 === 0
+									? '#222a36'
+									: '#161c25'
+						}
+						stroke-width={
+							i % 16 === 0 ? 1 : i % 4 === 0 ? 0.6 : 0.2
+						}
+					/>
+				))
+			}
+			{
+				Array.from({ length: span + 1 }, (_, i) => i).map((i) => (
+					<line
+						x1={0}
+						y1={i * cell}
+						x2={SIZE}
+						y2={i * cell}
+						stroke={
+							i % 16 === 0
+								? '#3b4252'
+								: i % 4 === 0
+									? '#222a36'
+									: '#161c25'
+						}
+						stroke-width={
+							i % 16 === 0 ? 1 : i % 4 === 0 ? 0.6 : 0.2
+						}
+					/>
+				))
+			}
+
+			<line
+				x1={(0 - MIN) * cell}
+				y1={0}
+				x2={(0 - MIN) * cell}
+				y2={SIZE}
+				stroke="#475569"
+				stroke-width="1">
+			</line>
+			<line
+				x1={0}
+				y1={(0 - MIN) * cell}
+				x2={SIZE}
+				y2={(0 - MIN) * cell}
+				stroke="#475569"
+				stroke-width="1">
+			</line>
+
+			{
+				pois
+					.filter((p) => p.radius_chunks > 0 && p.kind === 'biome')
+					.map((p) => {
+						const cx = (p.chunk_x - MIN) * cell + cell / 2;
+						const cz = (p.chunk_z - MIN) * cell + cell / 2;
+						const r = p.radius_chunks * cell;
+						return (
+							<circle
+								cx={cx}
+								cy={cz}
+								r={r}
+								fill="none"
+								stroke={kindAccent[p.kind]}
+								stroke-width="1.5"
+								stroke-dasharray="4 4"
+								opacity="0.65">
+								<title>{p.display_name}</title>
+							</circle>
+						);
+					})
+			}
+
+			{
+				lots.map((lot) => {
+					const x = (lot.chunk_x_min - MIN) * cell;
+					const y = (lot.chunk_z_min - MIN) * cell;
+					const w = (lot.chunk_x_max - lot.chunk_x_min + 1) * cell;
+					const h = (lot.chunk_z_max - lot.chunk_z_min + 1) * cell;
+					const accent = stateAccent[lot.state] ?? '#cbd5e1';
+					return (
+						<a href={`/${lot.slug}/`}>
+							<rect
+								x={x}
+								y={y}
+								width={w}
+								height={h}
+								fill={accent}
+								fill-opacity={0.55}
+								stroke="#0a0d12"
+								stroke-width={0.6}>
+								<title>
+									{lot.lot_id} · {lot.state}
+								</title>
+							</rect>
+						</a>
+					);
+				})
+			}
+
+			<g data-mcworld-live-lots></g>
+			<g data-mcworld-live-players></g>
+
+			{
+				pois
+					.filter((p) => p.kind !== 'biome')
+					.map((p) => {
+						const cx = (p.chunk_x - MIN) * cell + cell / 2;
+						const cz = (p.chunk_z - MIN) * cell + cell / 2;
+						return (
+							<a href={`/${p.slug}/`}>
+								<circle
+									cx={cx}
+									cy={cz}
+									r={6}
+									fill={kindAccent[p.kind] ?? '#cbd5e1'}
+									stroke="#0a0d12"
+									stroke-width="1.5">
+									<title>
+										{p.display_name} · {p.kind} · chunk (
+										{p.chunk_x}, {p.chunk_z})
+									</title>
+								</circle>
+								<text
+									x={cx + 9}
+									y={cz + 4}
+									font-size="10"
+									fill="#e5e7eb"
+									font-weight="500">
+									{p.display_name}
+								</text>
+							</a>
+						);
+					})
+			}
+		</svg>
+	</div>
+
+	<p class="mcworld__hint">
+		1 grid cell = 1 chunk = 16×16 blocks. Faint gridlines: 1-chunk; medium:
+		4-chunk; heavy: 16-chunk (1 region edge). Tinted gray crosshair: world
+		origin (0, 0).
+	</p>
+</section>
+
+<style>
+	.mcworld {
+		display: flex;
+		flex-direction: column;
+		gap: 0.7rem;
+		padding: 1rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.6rem;
+		background: var(--sl-color-bg-nav);
+		align-items: flex-start;
+	}
+
+	.mcworld__head h2 {
+		margin: 0;
+		font-size: 1.2rem;
+	}
+
+	.mcworld__head p {
+		margin: 0.2rem 0 0;
+		color: var(--sl-color-gray-3);
+		font-size: 0.9em;
+	}
+
+	.mcworld__legend {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		font-size: 0.82em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.mcworld__legend > div {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		align-items: center;
+	}
+
+	.mcworld__legend strong {
+		color: var(--sl-color-white);
+		min-width: 3.5rem;
+	}
+
+	.mcworld__legend span {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	.mcworld__legend i {
+		display: inline-block;
+		width: 0.75rem;
+		height: 0.75rem;
+		border-radius: 0.15rem;
+		opacity: 0.7;
+		border: 1px solid var(--sl-color-gray-6);
+	}
+
+	.mcworld__wrap {
+		width: 100%;
+		max-width: 640px;
+		position: relative;
+	}
+
+	.mcworld__svg {
+		width: 100%;
+		height: auto;
+		border-radius: 0.4rem;
+		display: block;
+	}
+
+	.mcworld__svg a:hover rect,
+	.mcworld__svg a:focus-visible rect {
+		fill-opacity: 0.85;
+	}
+
+	.mcworld__svg a:hover circle,
+	.mcworld__svg a:focus-visible circle {
+		stroke: var(--sl-color-white);
+	}
+
+	.mcworld__svg a:focus-visible {
+		outline: 2px solid var(--sl-color-accent);
+		outline-offset: 1px;
+		border-radius: 0.2rem;
+	}
+
+	.mcworld__svg a:focus-visible rect {
+		stroke: var(--sl-color-white);
+		stroke-width: 2;
+	}
+
+	.mcworld__hint {
+		margin: 0;
+		font-size: 0.78em;
+		color: var(--sl-color-gray-4);
+	}
+</style>

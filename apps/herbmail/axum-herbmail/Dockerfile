@@ -13,21 +13,27 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS ast
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
     pnpm install --frozen-lockfile
 
 COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
+COPY packages/npm/core/ packages/npm/core/
+COPY packages/npm/rn/ packages/npm/rn/
+COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
 COPY apps/herbmail/astro-herbmail/ apps/herbmail/astro-herbmail/
 
 WORKDIR /app/apps/herbmail/astro-herbmail
-RUN rm -rf .astro && npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-herbmail-cache,sharing=locked \
+    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    npx astro sync && \
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
+    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets

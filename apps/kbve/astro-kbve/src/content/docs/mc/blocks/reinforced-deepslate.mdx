@@ -1,5 +1,6 @@
 ---
 title: Reinforced Deepslate
+template: splash
 description: |
     Minecraft Reinforced Deepslate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1090
     ref: reinforced_deepslate
     slug: reinforced-deepslate
+    content_rev: 1
     display_name: Reinforced Deepslate
     material: stone
     hardness: 55
@@ -27,7 +29,45 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - creative_only
+        - blast_resistant
+        - ancient_city
+        - decoration
+    about:
+        description: |
+            Reinforced deepslate is the hardest and most durable block in
+            the game, with a hardness of 55 and blast resistance of 1200.
+            It cannot be obtained in Survival even with Silk Touch, breaks
+            at the same speed regardless of tool, and drops nothing. It is
+            immune to explosions and cannot be destroyed by the wither or
+            pushed by pistons.
+        lore: |
+            It exists only as the mysterious framework buried at the heart
+            of ancient cities, added to deepen the deep dark's mystery.
+    uses:
+        - title: Decoration
+          detail: |
+              Its sole use is decorative — a rare, indestructible framing
+              block available through the Creative inventory or commands.
+    found_in:
+        - location: Ancient Cities
+          detail: 56 blocks form a frame-like structure in the central part of each ancient city.
+        - location: Creative inventory
+          detail: The only way to obtain it in Survival is via pick block, commands, or Creative mode.
+    faq:
+        - question: Can I mine reinforced deepslate in Survival?
+          answer: |
+              You can break it, but it drops nothing — not even with Silk
+              Touch. It can only be obtained through Creative or commands.
+        - question: Can the wither or a bed explosion destroy it?
+          answer: |
+              No. Reinforced deepslate is immune to explosions and is one
+              of the few blocks the wither cannot break.
+        - question: What is it for?
+          answer: |
+              It has no functional use — it is a purely decorative,
+              indestructible block that adds mystery to ancient cities.
     data_version: "1.21.5"
 ---
 

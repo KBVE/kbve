@@ -1,5 +1,6 @@
 ---
 title: Iron Bars
+template: splash
 description: |
     Minecraft Iron Bars — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 377
     ref: iron_bars
     slug: iron-bars
+    content_rev: 1
     display_name: Iron Bars
     category: misc
     rarity: common
@@ -20,6 +22,32 @@ mc_item:
     tier: iron
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Iron bars are thin decorative blocks used to build fences, prison cells, and
+            windows without fully blocking visibility. They connect visually to adjacent
+            bars and solid blocks, and despite their slim profile they still stop fluids
+            and explosions, making them popular for underwater or defensive builds.
+        lore: |
+            First revealed by Notch on July 11, 2011, iron bars were added to the game in
+            Beta 1.8 as a slimmer, iron-themed alternative to fences.
+    faq:
+        - question: How do I craft iron bars?
+          answer: |
+              Six iron ingots arranged in a row across the middle of the crafting grid
+              produce 16 iron bars.
+        - question: Where can I find iron bars naturally?
+          answer: |
+              They generate in strongholds, woodland mansions, village blacksmith shops,
+              igloo basements, ruined portals, and trail ruins.
+        - question: Do iron bars stop water and explosions?
+          answer: |
+              Yes, even though they look thin, iron bars block fluid flow and explosions
+              while remaining visually open, which makes them useful for underwater bases.
+        - question: Can iron bars help with zombie villager curing?
+          answer: |
+              Yes, placing iron bars near a zombie villager (along with beds) speeds up the
+              curing process, mirroring the look of a classic prison cell.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

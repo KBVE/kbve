@@ -1,0 +1,36 @@
+[workspace]
+
+[package]
+name = "chuck-launcher"
+version = "0.1.0"
+edition = "2021"
+description = "ChuckRPG desktop launcher — Tauri 2 + React"
+repository = "https://github.com/KBVE/kbve"
+license = "MIT"
+
+[lib]
+name = "chuck_launcher_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "chuck-launcher"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+erust = { path = "../../../../packages/rust/erust", default-features = false, features = ["tauri"] }
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-store = "2"
+tauri-plugin-deep-link = "2"
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream"] }
+futures-util = "0.3"
+zip = "2"
+dirs = "5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"

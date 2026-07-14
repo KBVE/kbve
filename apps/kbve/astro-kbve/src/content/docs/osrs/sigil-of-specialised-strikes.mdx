@@ -1,6 +1,6 @@
 ---
 title: Sigil of specialised strikes | OSRS Price Data
-description: "Sigil of specialised strikes: A power enhancing sigil not yet attuned to you.. High alch: 12,000 GP, GE limit: 8."
+description: "Sigil of specialised strikes is a members Echo boss sigil that boosts special attack regeneration. High alch: 12,000 GP, GE limit: 8."
 osrs:
   id: 26060
   name: Sigil of specialised strikes
@@ -12,9 +12,68 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of specialised strikes is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.0
+    options:
+      - Attune
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Specialised strikes
+      description: "Once attuned, special attack energy regenerates 50% faster."
+      trigger: while_attuned
+  drop_table:
+    sources:
+      - source: Sol Heredit
+        quantity: "1"
+        rarity: 1/200
+        notes: "Dropped from the Echo boss Sol Heredit in the Colosseum."
+  related_items:
+    - item_name: Sigil of the formidable fighter
+      slug: sigil-of-the-formidable-fighter
+      relationship: alternative
+      description: Alternative Colosseum reward sigil with combat bonus.
+    - item_name: Sigil of the menacing mage
+      slug: sigil-of-the-menacing-mage
+      relationship: alternative
+      description: Magic-focused Colosseum sigil drop.
+    - item_name: Sigil of the ruthless ranger
+      slug: sigil-of-the-ruthless-ranger
+      relationship: alternative
+      description: Ranged-focused Colosseum sigil drop.
+    - item_name: Tonalztics of ralos
+      slug: tonalztics-of-ralos
+      relationship: alternative
+      description: Other notable Colosseum reward weapon.
+  about: Sigil of specialised strikes is one of the prestige sigils dropped by Sol Heredit at the end of the Fortis Colosseum. Once attuned to a player it becomes untradeable and grants 50% faster special attack energy regeneration, valuable for spec-heavy bossing rotations.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Supply gated by Sol Heredit drop rate at the Colosseum"
+      - "Price tracks spec-weapon meta (Voidwaker, Saradomin godsword, Dragon claws)"
+      - "8-per-4h GE limit caps flip volume"
+      - "Once attuned the item becomes untradeable, locking supply"
+  trading_tips:
+    - "Buy before major spec-weapon buffs hit live"
+    - "Verify untradeable status before high-value resale"
+    - "Watch Colosseum completion-rate news for supply pressure"
+  history:
+    - date: "2024-03-20"
+      description: "Released with the Fortis Colosseum and Sol Heredit boss."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

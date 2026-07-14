@@ -1,0 +1,49 @@
+{
+	"include": [
+		"kbve.agents.AgentTokenRow",
+		"kbve.agents.AgentError",
+		"kbve.agents.SetTokenRequest",
+		"kbve.agents.ListTokensRequest",
+		"kbve.agents.ListTokensResponse",
+		"kbve.agents.DeleteTokenRequest",
+		"kbve.agents.ToggleTokenRequest",
+		"kbve.agents.PeekTokenRequest",
+		"kbve.agents.PeekTokenResponse"
+	],
+
+	"enums": {
+		"kbve.agents.TokenService": {
+			"mode": "const_array",
+			"stripPrefix": "TOKEN_SERVICE_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "TokenServices",
+			"sourceEnum": "kbve.agents.TokenService",
+			"typeName": "TokenServiceValue",
+			"zodSchemaName": "TokenServiceSchema"
+		}
+	],
+
+	"refinements": {
+		"kbve.agents.SetTokenRequest.server_id": ".regex(/^\\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)')",
+		"kbve.agents.SetTokenRequest.service": ".regex(/^[a-z0-9_]{2,32}$/, 'Service must be 2-32 chars: lowercase a-z, 0-9, underscore')",
+		"kbve.agents.SetTokenRequest.token_name": ".regex(/^[a-z0-9_-]{3,64}$/, 'Token name must be 3-64 lowercase chars: a-z, 0-9, underscore, dash')",
+		"kbve.agents.SetTokenRequest.token_value": ".min(10, 'Token value must be 10-8000 characters').max(8000, 'Token value must be 10-8000 characters')",
+		"kbve.agents.DeleteTokenRequest.server_id": ".regex(/^\\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)')",
+		"kbve.agents.ToggleTokenRequest.server_id": ".regex(/^\\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)')",
+		"kbve.agents.PeekTokenRequest.server_id": ".regex(/^\\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)')",
+		"kbve.agents.PeekTokenRequest.service": ".regex(/^[a-z0-9_]{2,32}$/, 'Service must be 2-32 chars: lowercase a-z, 0-9, underscore')",
+		"kbve.agents.ListTokensRequest.server_id": ".regex(/^\\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)')",
+		"kbve.agents.DeleteTokenRequest.token_id": ".regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'token_id must be a UUID')",
+		"kbve.agents.ToggleTokenRequest.token_id": ".regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'token_id must be a UUID')"
+	},
+
+	"fieldOverrides": {
+		"kbve.agents.AgentTokenRow.description": "z.string().nullish()",
+		"kbve.agents.AgentTokenRow.updated_at": "z.string().nullish()"
+	}
+}

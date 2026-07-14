@@ -1,6 +1,6 @@
 ---
 title: Adamant med helm | OSRS Price Data
-description: "Adamant med helm: A medium sized helmet.. High alch: 1,152 GP, GE limit: 125."
+description: "Adamant med helm is a free-to-play medium head-slot helmet requiring 30 Defence. High alch: 1,152 GP, GE limit: 125."
 osrs:
   id: 1145
   name: Adamant med helm
@@ -12,25 +12,65 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 125
-  item_id: 1145
-  item_type: armor
-  slot: head
-  type: med_helm
-  tradeable: true
-  weight: 2.267
-  requirements:
-    defence: 30
-  stats:
-    stab_defence: 14
-    slash_defence: 15
-    crush_defence: 13
-    magic_defence: -1
-    ranged_defence: 14
+  material:
+    type: adamant
+    tier: mid
+  equipment:
+    slot: head
+    weight: 2.267
+    requirements:
+      defence: 30
+    defence_bonus:
+      stab: 14
+      slash: 15
+      crush: 13
+      magic: -1
+      ranged: 14
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 53
+      xp: 62.5
+      materials:
+        - item_name: Adamantite bar
+          item_id: 2361
+          quantity: "1"
+      product: Adamant med helm
+      product_id: 1145
+      output_quantity: 1
+      facility: Anvil
   related_items:
-    - slug: rune-med-helm
-    - slug: adamant-full-helm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Rune med helm
+      slug: rune-med-helm
+      relationship: upgrade
+      description: Stronger rune-tier medium helmet
+    - item_name: Adamant full helm
+      slug: adamant-full-helm
+      relationship: upgrade
+      description: Better defensive adamant alternative
+    - item_id: 1143
+      item_name: Mithril med helm
+      slug: mithril-med-helm
+      relationship: downgrade
+      description: Weaker mithril variant
+  market_strategy:
+    notes:
+      - Smithed at 53 Smithing from 1 adamantite bar
+      - Med helms are unpopular vs full helms; trades thin
+      - Used briefly during F2P Defence training progression
+  trading_tips:
+    - Compare full helm price before listing med helm
+    - High alch yields profit when bar prices crash
+  about: Adamant med helm is a free-to-play medium head-slot helmet smithable from a single adamantite bar at level 53 Smithing, requiring 30 Defence to wear.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2001-01-04"
+      description: Adamant med helm added with the original Smithing skill.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

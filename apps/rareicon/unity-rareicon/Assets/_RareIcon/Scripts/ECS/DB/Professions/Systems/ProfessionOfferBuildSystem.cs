@@ -1,11 +1,12 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Rebuilds the world-level TaskOffer pool + dispatch context on cadence (§0-C). Keeps offer enumeration out of ProfessionDispatchSystem so the per-unit scoring loop reads one flat list and the world-scan cost amortises. BuildVersion increments each rebuild so the dispatcher can gate "full dispatch" frames off the singleton instead of owning its own timer. ISystem + [BurstCompile] — managed bootstrap lives in OnCreate; the per-frame cadence check + Rebuild run on Burst.</summary>
+    /// <summary>Rebuilds the world-level TaskOffer pool + dispatch context on cadence (§0-C). Keeps offer enumeration out of ProfessionDispatchSystem so the per-unit scoring loop reads one flat list and the world-scan cost amortises. BuildVersion increments each rebuild so the dispatcher can gate "full dispatch" frames off the singleton instead of owning its own timer. The two big world scans (HexResources × HexCoord and HexCoord × ItemDrop) run as [BurstCompile] IJobEntity parallel jobs into NativeList<TaskOffer>.ParallelWriter; smaller foreach scans (FarmTag, GoblinCaveTag, ConstructionSite, damaged buildings, BarracksTag, FurnaceTag) stay main-thread since each iterates few entities. A trailing Burst IJob does counting + per-kind sort off the main thread.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateBefore(typeof(ProfessionDispatchSystem))]
@@ -16,31 +17,44 @@ namespace RareIcon
         Entity _singleton;
         float  _lastBuildTime;
 
+        EntityQuery _hexResourceQuery;
+        EntityQuery _itemDropQuery;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<ItemDBSingleton>();
 
             var db = new ProfessionOffersSingleton
             {
-                Offers        = new NativeList<TaskOffer>(256, Allocator.Persistent),
-                OffersPerKind = new NativeArray<int>(13, Allocator.Persistent),
-                NeedyCaves    = new NativeList<NeedyCave>(4, Allocator.Persistent),
-                BuildVersion  = 0,
+                Offers             = new NativeList<TaskOffer>(256, Allocator.Persistent),
+                OffersPerKind      = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent),
+                OffersSortedByKind = new NativeList<TaskOffer>(256, Allocator.Persistent),
+                OfferKindStart     = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent),
+                OfferKindCount     = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent),
+                NeedyCaves         = new NativeList<NeedyCave>(4, Allocator.Persistent),
+                BuildVersion       = 0,
             };
             _singleton = state.EntityManager.CreateEntity(typeof(ProfessionOffersSingleton));
             state.EntityManager.SetName(_singleton, "ProfessionOffers");
             state.EntityManager.SetComponentData(_singleton, db);
 
             _lastBuildTime = -BuildIntervalSeconds;
+
+            _hexResourceQuery = SystemAPI.QueryBuilder().WithAll<HexResources, HexCoord>().Build();
+            _itemDropQuery    = SystemAPI.QueryBuilder().WithAll<HexCoord, ItemDrop>().Build();
         }
 
         public void OnDestroy(ref SystemState state)
         {
             if (!state.EntityManager.Exists(_singleton)) return;
+            state.CompleteDependency();
             var db = state.EntityManager.GetComponentData<ProfessionOffersSingleton>(_singleton);
-            if (db.Offers.IsCreated)        db.Offers.Dispose();
-            if (db.OffersPerKind.IsCreated) db.OffersPerKind.Dispose();
-            if (db.NeedyCaves.IsCreated)    db.NeedyCaves.Dispose();
+            if (db.Offers.IsCreated)             db.Offers.Dispose();
+            if (db.OffersPerKind.IsCreated)      db.OffersPerKind.Dispose();
+            if (db.OffersSortedByKind.IsCreated) db.OffersSortedByKind.Dispose();
+            if (db.OfferKindStart.IsCreated)     db.OfferKindStart.Dispose();
+            if (db.OfferKindCount.IsCreated)     db.OfferKindCount.Dispose();
+            if (db.NeedyCaves.IsCreated)         db.NeedyCaves.Dispose();
         }
 
         [BurstCompile]
@@ -56,9 +70,11 @@ namespace RareIcon
         [BurstCompile]
         void Rebuild(ref SystemState state)
         {
-            ref var db   = ref SystemAPI.GetSingletonRW<ProfessionOffersSingleton>().ValueRW;
-            var itemDB   = SystemAPI.GetSingleton<ItemDBSingleton>();
-            var capLookup  = SystemAPI.GetBufferLookup<CapitalLedger>(true);
+            ref var db    = ref SystemAPI.GetSingletonRW<ProfessionOffersSingleton>().ValueRW;
+            var itemDB    = SystemAPI.GetSingleton<ItemDBSingleton>();
+            var capLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true);
+
+            state.CompleteDependency();
 
             db.Offers.Clear();
             db.NeedyCaves.Clear();
@@ -100,31 +116,6 @@ namespace RareIcon
             }
 
             var offers = db.Offers;
-
-            foreach (var (resRO, coordRO) in
-                     SystemAPI.Query<RefRO<HexResources>, RefRO<HexCoord>>())
-            {
-                var res = resRO.ValueRO;
-                var hex = new int2(coordRO.ValueRO.Q, coordRO.ValueRO.R);
-
-                if ((res.Wood | res.Leaves | res.Branches) != 0)
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Lumberjack, Variant = OfferVariant.Default, Hex = hex });
-                if (res.Stone != 0)
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Miner, Variant = OfferVariant.Default, Hex = hex });
-                if ((res.Berries | res.Mushrooms | res.Herbs | res.Cactus) != 0)
-                    offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterForage, Hex = hex });
-            }
-
-            foreach (var (coordRO, dropsRO) in
-                     SystemAPI.Query<RefRO<HexCoord>, DynamicBuffer<ItemDrop>>())
-            {
-                if (dropsRO.Length == 0) continue;
-                var hex = new int2(coordRO.ValueRO.Q, coordRO.ValueRO.R);
-                offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterDropPickup, Hex = hex });
-            }
-
-            if (db.HasFarm)
-                offers.Add(new TaskOffer { Kind = ProfessionKind.Farmer, Variant = OfferVariant.Default, Hex = db.FarmHex, Target = db.NearestFarm });
 
             foreach (var (siteRO, e) in SystemAPI.Query<RefRO<ConstructionSite>>().WithEntityAccess())
             {
@@ -168,20 +159,115 @@ namespace RareIcon
                 });
             }
 
+            if (db.HasFarm)
+                offers.Add(new TaskOffer { Kind = ProfessionKind.Farmer, Variant = OfferVariant.Default, Hex = db.FarmHex, Target = db.NearestFarm });
+
             for (int ci = 0; ci < db.NeedyCaves.Length; ci++)
                 offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterDeliver, Hex = db.NeedyCaves[ci].Hex, Target = db.NeedyCaves[ci].Entity });
 
             if (db.HasCapital && db.CapitalHasFood && db.NeedyCaves.Length > 0)
                 offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterFetch, Hex = db.CapitalHex, Target = db.Capital });
 
-            var opk = db.OffersPerKind;
-            for (int oi = 0; oi < offers.Length; oi++)
+            int hexResourceCount = _hexResourceQuery.CalculateEntityCount();
+            int itemDropCount    = _itemDropQuery.CalculateEntityCount();
+            int extraNeeded      = hexResourceCount * 3 + itemDropCount;
+            int required         = offers.Length + extraNeeded;
+            if (offers.Capacity < required)
+                offers.SetCapacity(math.max(required, offers.Capacity * 2));
+
+            var hexHandle  = new BuildHexResourceOffersJob { Writer = offers.AsParallelWriter() }.ScheduleParallel(state.Dependency);
+            var dropHandle = new BuildItemDropOffersJob    { Writer = offers.AsParallelWriter() }.ScheduleParallel(hexHandle);
+
+            var finalizeJob = new FinalizeOffersJob
             {
-                byte ok = offers[oi].Kind;
-                if (ok < opk.Length) opk[ok]++;
-            }
+                Offers             = db.Offers,
+                OffersPerKind      = db.OffersPerKind,
+                OffersSortedByKind = db.OffersSortedByKind,
+                OfferKindStart     = db.OfferKindStart,
+                OfferKindCount     = db.OfferKindCount,
+            };
+            state.Dependency  = finalizeJob.Schedule(dropHandle);
+            db.PipelineHandle = state.Dependency;
 
             db.BuildVersion++;
+        }
+
+        [BurstCompile]
+        partial struct BuildHexResourceOffersJob : IJobEntity
+        {
+            public NativeList<TaskOffer>.ParallelWriter Writer;
+
+            void Execute(in HexResources r, in HexCoord c)
+            {
+                var hex = new int2(c.Q, c.R);
+                if ((r.Wood | r.Leaves | r.Branches) != 0)
+                    Writer.AddNoResize(new TaskOffer { Kind = ProfessionKind.Lumberjack, Variant = OfferVariant.Default, Hex = hex });
+                if (r.Stone != 0)
+                    Writer.AddNoResize(new TaskOffer { Kind = ProfessionKind.Miner, Variant = OfferVariant.Default, Hex = hex });
+                if ((r.Berries | r.Mushrooms | r.Herbs | r.Cactus) != 0)
+                    Writer.AddNoResize(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterForage, Hex = hex });
+            }
+        }
+
+        [BurstCompile]
+        partial struct BuildItemDropOffersJob : IJobEntity
+        {
+            public NativeList<TaskOffer>.ParallelWriter Writer;
+
+            void Execute(in HexCoord c, in DynamicBuffer<ItemDrop> drops)
+            {
+                if (drops.Length == 0) return;
+                Writer.AddNoResize(new TaskOffer
+                {
+                    Kind    = ProfessionKind.Looter,
+                    Variant = OfferVariant.LooterDropPickup,
+                    Hex     = new int2(c.Q, c.R),
+                });
+            }
+        }
+
+        [BurstCompile]
+        struct FinalizeOffersJob : IJob
+        {
+            [ReadOnly] public NativeList<TaskOffer> Offers;
+            public NativeArray<int>      OffersPerKind;
+            public NativeList<TaskOffer> OffersSortedByKind;
+            public NativeArray<int>      OfferKindStart;
+            public NativeArray<int>      OfferKindCount;
+
+            public void Execute()
+            {
+                var opk = OffersPerKind;
+                for (int i = 0; i < opk.Length; i++) opk[i] = 0;
+
+                for (int oi = 0; oi < Offers.Length; oi++)
+                {
+                    byte ok = Offers[oi].Kind;
+                    if (ok < opk.Length) opk[ok]++;
+                }
+
+                var oks = OfferKindStart;
+                var okc = OfferKindCount;
+                int running = 0;
+                for (int k = 0; k < ProfessionKind.Count; k++)
+                {
+                    oks[k] = running;
+                    okc[k] = opk[k];
+                    running += opk[k];
+                }
+
+                OffersSortedByKind.Clear();
+                OffersSortedByKind.Length = Offers.Length;
+                var cursor = new NativeArray<int>(ProfessionKind.Count, Allocator.Temp);
+                for (int oi = 0; oi < Offers.Length; oi++)
+                {
+                    var o = Offers[oi];
+                    if (o.Kind >= ProfessionKind.Count) continue;
+                    int idx = oks[o.Kind] + cursor[o.Kind]++;
+                    OffersSortedByKind[idx] = o;
+                }
+                cursor.Dispose();
+            }
         }
 
         static int CountFood(in ItemDBSingleton itemDB, DynamicBuffer<BankLedgerBase> buf)

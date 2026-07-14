@@ -1,6 +1,6 @@
 ---
 title: Ironwood plank | OSRS Price Data
-description: "Ironwood plank: A plank of robust ironwood.. High alch: 900 GP, GE limit: 13,000."
+description: "Ironwood plank is a Forestry-themed members construction material. High alch: 900 GP, GE limit: 13,000."
 osrs:
   id: 31435
   name: Ironwood plank
@@ -12,9 +12,50 @@ osrs:
   lowalch: 600
   highalch: 900
   limit: 13000
-  about: "Ironwood plank is a members-only item in Old School RuneScape. High alchemy value: 900 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: plank
+    tier: mid-high
+  properties:
+    release_date: "2023-08-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: alternative
+      description: "Standard Construction plank used across mid-tier furniture builds."
+    - item_name: Teak plank
+      slug: teak-plank
+      relationship: alternative
+      description: "Higher tier Construction plank competing for the same furniture slots."
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: upgrade
+      description: "Top-tier Construction plank used in high-level Player-Owned House builds."
+  about: "Ironwood plank is a members-only Construction material introduced with the Forestry update. Used in select Forestry rewards and POH furniture builds, the plank carries a 900 coin high alch value and a generous 13,000 buy limit, making it a steady-volume staple for ironmen and gold-route construction workers."
+  market_strategy:
+    notes:
+      - "13,000 GE buy limit supports bulk Construction training pulls"
+      - "Forestry supply pulses keep stocks plentiful but volatile"
+      - "Pairs with Sawmill flips when standard plank prices spike"
+  trading_tips:
+    - "Track Forestry event cycles: heavy Forestry weeks compress prices"
+    - "Cross-check against Teak/Mahogany planks for the cheapest XP rate per coin"
+  history:
+    - date: "2023-08-30"
+      description: "Added to the game with the Forestry Part 2 expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

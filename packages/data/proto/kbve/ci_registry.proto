@@ -24,6 +24,7 @@ enum DispatchPipeline {
   DISPATCH_PIPELINE_GODOT = 8;        // Godot game export (godot-ci docker)
   DISPATCH_PIPELINE_UNREAL_GAME = 9;  // UE standalone game build (vs server / vs plugin)
   DISPATCH_PIPELINE_BEVY_GAME = 10;   // Bevy game executable (vs library crate)
+  DISPATCH_PIPELINE_VITE_GAME = 11;   // Vite/Nx web game bundle → itch.io html5
 }
 
 // Language / framework that determines which CI toolchain is needed for tests.
@@ -43,8 +44,10 @@ enum TestFramework {
 }
 
 // Game-engine specific config — used by Unity / Godot / Unreal-Game / Bevy-Game
-// pipelines. One shared sub-message instead of per-engine fields keeps CiProject
-// flat; engine-specific knowledge lives in the per-engine workflow.
+// / Vite-Game pipelines. One shared sub-message instead of per-engine fields
+// keeps CiProject flat; engine-specific knowledge lives in the per-engine
+// workflow. Vite-Game reuses project_path (the Nx app dir) + build_targets
+// (["html5"]); version is unused (Vite/Nx, no engine pin).
 message GameEngineConfig {
   // Engine version pin. Examples:
   //   Unity:  "6000.0.30f1"
@@ -84,6 +87,28 @@ message GameEngineConfig {
   // (e.g. Azure DevOps repo for a private Unity project that ships
   // public artifacts).
   optional string external_repo_url = 8;
+
+  // Branch / ref of external_repo_url to clone. Empty = repo default branch.
+  optional string external_repo_ref = 9;
+
+  // UE Server target name (e.g. chuckServerDev, chuckServerBeta). Drives -target and
+  // the PVC artifact dir /ows-server/<server_target>/<version>. Empty = build.toml.
+  optional string server_target = 10;
+
+  // UE dedicated-server build config: Development | Shipping | Test | DebugGame | Debug.
+  optional string server_config = 11;
+
+  // UE game-client build config: Development | Shipping | Test | DebugGame | Debug.
+  optional string client_config = 12;
+
+  // Maps to cook. Empty = -allmaps.
+  repeated string maps = 13;
+
+  // Server launch game mode (e.g. /Script/Chuck.ChuckGameMode) for the Agones fleet.
+  optional string game_mode = 14;
+
+  // UE -CustomConfig client cook layer (e.g. Beta). Empty = no custom config.
+  optional string custom_config = 15;
 }
 
 // One Steam application entry for [`ExternalPublish`]. Demos, the main
@@ -106,6 +131,40 @@ message SteamApp {
 message FactorioMod {
   string name = 1;        // Portal slug (must match info.json::name and the URL on mods.factorio.com)
   string source_path = 2; // Repo-relative path to the mod folder containing info.json
+}
+
+// Kubernetes deployment metadata — drives label generation for pods, services,
+// and Argo Applications. Maps to both standard app.kubernetes.io/* labels and
+// custom kbve.com/* labels. Used for graph visualization, RBAC policies, and
+// monitoring tag extraction.
+//
+// All fields optional. When unset, downstream tooling can infer defaults:
+//   - stack: derived from pipeline or tags
+//   - environment: derived from deployment_yaml path or instance suffix
+//   - tier: inferred from pipeline (docker→api, unreal_game→web, etc.)
+//   - owner: defaults to author field
+//   - part_of: defaults to key field
+message KubeMetadata {
+  optional string stack = 1;         // kbve.com/stack — Infrastructure category
+                                     // (agones, infrastructure, application, data, tooling)
+
+  optional string environment = 2;   // kbve.com/environment — Deployment stage
+                                     // (dev, beta, prod)
+
+  optional string tier = 3;          // kbve.com/tier — Application layer
+                                     // (web, api, worker, database, cache, gateway, server)
+
+  optional string owner = 4;         // kbve.com/owner — Team or maintainer
+                                     // (h0lybyte, platform-team, etc.)
+
+  optional string criticality = 5;   // kbve.com/criticality — Service priority
+                                     // (critical, high, medium, low)
+
+  optional string component = 6;     // app.kubernetes.io/component — Sub-component
+                                     // (rcon, graceful-restart, vnc-auth, etc.)
+
+  optional string part_of = 7;       // app.kubernetes.io/part-of — Parent application
+                                     // Defaults to key if unset
 }
 
 // External publish targets — storefronts, mod platforms, package indexes
@@ -156,6 +215,85 @@ message ExternalPublish {
   // portal slug + the repo path to the mod folder. Field numbers 60 / 61
   // retired with the migration to the repeated FactorioMod shape.
   repeated FactorioMod factorio_mods = 62;
+}
+
+// ── Bento splash-doc presentation model ─────────────────────────────
+// Data for the bento splash rendering of a project doc page, consumed by
+// BentoDoc.astro. Presentation-only: ignored by CI dispatch tooling.
+// Icon fields hold a named key (resolved to an SVG path by the component's
+// icon map) or a raw SVG path string beginning with "M".
+message BentoDoc {
+  optional string badge = 1;                // Hero eyebrow pill text
+  string title = 2;                         // Hero heading lead-in
+  string accent = 3;                        // Gradient accent word/phrase
+  optional string lede = 4;                 // Hero sub-paragraph (defaults to page description)
+  repeated BentoCta ctas = 5;               // Hero CTA buttons
+  optional BentoAside aside = 6;            // Optional hero highlight card
+  repeated BentoStat stats = 7;             // Key-fact stat tiles
+  repeated BentoFeature features = 8;       // Feature cards
+  repeated BentoRelated related = 9;        // Cross-link cards
+  optional BentoUsage usage = 10;           // Optional code panel
+  repeated BentoFaq faqs = 11;              // FAQ cards (defaults to page jsonld.faq)
+  optional BentoTheme theme = 12;           // Per-page accent retint knobs
+  optional string features_eyebrow = 13;
+  optional string features_heading = 14;
+  optional string related_eyebrow = 15;
+  optional string related_heading = 16;
+  optional string usage_eyebrow = 17;
+  optional string usage_heading = 18;
+}
+
+message BentoCta {
+  string label = 1;
+  string href = 2;
+  optional bool primary = 3;
+  optional bool external = 4;
+}
+
+message BentoAside {
+  optional string icon = 1;
+  optional string title = 2;
+  optional string body = 3;                 // May contain inline HTML
+  repeated string points = 4;               // Each may contain inline HTML
+}
+
+message BentoStat {
+  string label = 1;
+  string value = 2;
+  string icon = 3;
+}
+
+message BentoFeature {
+  string title = 1;
+  string body = 2;                          // May contain inline HTML
+  string icon = 3;
+}
+
+message BentoRelated {
+  string href = 1;
+  string title = 2;
+  string copy = 3;
+  string icon = 4;
+  optional bool external = 5;
+}
+
+message BentoUsage {
+  optional string label = 1;                // Filename-style label, e.g. "main.rs"
+  string lang = 2;                          // Highlight language
+  string code = 3;                          // Source to render
+}
+
+message BentoFaq {
+  string question = 1;
+  string answer = 2;
+}
+
+message BentoTheme {
+  optional string accent = 1;
+  optional string accent2 = 2;
+  optional string btn_fg = 3;
+  optional string live = 4;
+  optional string hero_bg = 5;
 }
 
 // A tracked item in the CI dispatch registry.
@@ -225,6 +363,16 @@ message CiProject {
   // Required when pipeline is one of the four game-engine pipelines.
   // Drives the per-engine workflow's matrix, test runner, and build args.
   optional GameEngineConfig engine = 35;
+
+  // --- Kubernetes deployment metadata (label generation) ----------------
+  // Consumed by manifest generation tooling and graph visualization.
+  // All fields optional; downstream tools can infer defaults from other fields.
+  optional KubeMetadata kube = 37;
+
+  // --- Bento splash-doc presentation (Astro rendering only) -------------
+  // Consumed by BentoDoc.astro to render the project page as a bento
+  // splash. Ignored by CI dispatch tooling.
+  optional BentoDoc bento = 38;
 }
 
 // The full registry — a flat list of all tracked items.

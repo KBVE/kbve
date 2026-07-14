@@ -29,11 +29,7 @@ export default defineConfig({
 			formats: ['es'],
 		},
 		rollupOptions: {
-			external: [
-				'openpgp',
-				'@kbve/droid',
-				'comlink',
-			],
+			external: ['openpgp', '@kbve/droid', 'comlink'],
 		},
 	},
 

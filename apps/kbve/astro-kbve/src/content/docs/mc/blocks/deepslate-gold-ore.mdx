@@ -1,5 +1,6 @@
 ---
 title: Deepslate Gold Ore
+template: splash
 description: |
     Minecraft Deepslate Gold Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 43
     ref: deepslate_gold_ore
     slug: deepslate-gold-ore
+    content_rev: 1
     display_name: Deepslate Gold Ore
     material: stone
     hardness: 4.5
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,65 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: raw_gold
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: deepslate_gold_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - ore
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Gold Ore is the deepslate variant of Gold Ore, dropping
+            raw gold when mined. It shares the same tool requirements and
+            drops as the stone version, but appears in the deeper deepslate
+            layers and in Badlands terrain.
+        lore: |
+            Gold has long attracted the attention of Piglins in the Nether,
+            but the Overworld's deepslate variant lets survival players
+            gather it far from Nether dangers.
+    uses:
+        - title: Raw Gold and Gold Ingots
+          ref: raw_gold
+          detail: |
+              Smelt raw gold in a furnace or blast furnace to produce gold
+              ingots, used for golden tools, armor, and powered rails.
+        - title: Piglin Bartering
+          detail: |
+              Gold ingots are the primary currency for bartering with
+              Piglins in the Nether.
+    found_in:
+        - location: Deepslate Layers
+          detail: Peaks around Y = -16, part of the lower of two generation batches.
+        - location: Badlands (Deepslate)
+          detail: Where Badlands terrain dips into deepslate, gold generates abundantly.
+    faq:
+        - question: What tool do I need to mine Deepslate Gold Ore?
+          answer: |
+              An iron pickaxe or better. Wood, gold, and stone pickaxes break
+              it without dropping anything.
+        - question: Does Deepslate Gold Ore drop gold ingots directly?
+          answer: |
+              No. It drops raw gold, which must be smelted into gold ingots
+              in a furnace or blast furnace.
+        - question: Does Fortune increase the yield?
+          answer: |
+              Yes. Fortune I, II, and III raise the raw gold drop up to 2, 3,
+              or 4 per block respectively.
+        - question: Where is the best place to find it?
+          answer: |
+              Around Y = -16 in the deepslate layer, or anywhere Badlands
+              terrain extends down into deepslate.
     data_version: "1.21.5"
 ---
 

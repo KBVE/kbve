@@ -1,0 +1,43 @@
+#include "/Engine/Public/Platform.ush"
+
+// KBVEWorld foliage placement compute shader.
+// Inputs: heightmap-noise params, chunk coord, RNG seed.
+// Outputs: per-instance FTransform-equivalent (Translation + Rotation + Scale)
+//          packed into structured buffer for HISM AddInstances on game thread.
+
+RWStructuredBuffer<float4> OutTransforms;  // packed: xyz=translation, w=yaw (radians)
+RWStructuredBuffer<float4> OutScales;      // xyz=scale, w=biome
+RWStructuredBuffer<uint>   OutInstanceCount;
+
+int2  ChunkCoord;
+uint  Seed;
+uint  CellsPerEdge;
+float CellSize;
+float WaterZ;
+float SlopeMax;
+uint  PerBlock;
+uint  BlockSize;
+
+float SamplePerlin(float2 P, uint S);
+
+float SampleHeight(float Wx, float Wy)
+{
+	return SamplePerlin(float2(Wx, Wy) * 0.0008f, Seed) * 600.f;
+}
+
+[numthreads(64, 1, 1)]
+void MainCS(uint3 DispatchThreadId : SV_DispatchThreadID)
+{
+	uint LinearIdx = DispatchThreadId.x;
+	uint BlocksPerEdge = max(1u, CellsPerEdge / max(1u, BlockSize));
+	uint TotalBlocks   = BlocksPerEdge * BlocksPerEdge;
+	if (LinearIdx >= TotalBlocks * PerBlock) return;
+	// per-thread block + per-block instance index extraction left as TODO once full RNG ported
+}
+
+float SamplePerlin(float2 P, uint S)
+{
+	// placeholder hash-noise; replace with proper Perlin/Simplex match for chuckNoise
+	float n = sin(dot(P + float2(S * 0.0001f, S * 0.00013f), float2(127.1, 311.7))) * 43758.5453;
+	return frac(n);
+}

@@ -9,12 +9,47 @@ osrs:
   members: false
   icon: Cornflour.png
   value: 1
-  lowalch: 1
+  lowalch: 0
   highalch: 1
   limit: 15
-  about: "Cornflour is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Sweetcorn
+          quantity: 1
+        - item_name: Pot
+          quantity: 1
+      tools:
+        - Windmill
+      output_quantity: 1
+      notes: "Using sweetcorn at a windmill with a pot actually yields a pot of cornflour, not loose cornflour."
+  about: "Cornflour is a free-to-play item in Old School RuneScape that exists in the game cache but is not normally obtainable in regular play."
+  market_strategy:
+    notes:
+      - "Item is classified as unobtainable; it persists in game data but cannot be reliably acquired."
+      - "A separate tradeable quest version remains listed on the Grand Exchange even though players cannot earn it."
+      - "High alchemy returns 1 coin; low alchemy returns 0 coins."
+  trading_tips:
+    - "Avoid speculating on cornflour as supply is fixed and listings are stale."
+    - "Players seeking cornflour for crafting purposes should look for 'pot of cornflour' instead, which is the actual milling output."
+  history:
+    - date: "2006-03-15"
+      description: "Released with the Recipe for Disaster quest update, the hundredth quest in RuneScape."
+  properties:
+    release_date: "2006-03-15"
+    update: "Hundredth Quest - Recipe for Disaster!"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

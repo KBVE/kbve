@@ -1,6 +1,6 @@
 ---
 title: Red d'hide shield | OSRS Price Data
-description: "Red d'hide shield: A solid magic wood shield covered in red dragon leather.. High alch: 6,600 GP, GE limit: 125."
+description: "Red d'hide shield: A solid magic wood shield covered in red dragon leather. High alch: 6,600 GP, GE limit: 125."
 osrs:
   id: 22281
   name: Red d'hide shield
@@ -12,9 +12,92 @@ osrs:
   lowalch: 4400
   highalch: 6600
   limit: 125
-  about: "Red d'hide shield is a members-only item in Old School RuneScape. High alchemy value: 6,600 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: ranged shield
+    tier: mid
+  properties:
+    release_date: "2018-02-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 8.0
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 8.0
+    requirements:
+      ranged: 60
+      defence: 40
+    attack_bonus:
+      stab: -15
+      slash: -15
+      crush: -11
+      magic: -10
+      ranged: 6
+    defence_bonus:
+      stab: 18
+      slash: 16
+      crush: 14
+      magic: 13
+      ranged: 13
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 76
+      xp: 156
+      materials:
+        - item_name: Red dragon leather
+          quantity: 2
+        - item_name: Magic shield
+          quantity: 1
+        - item_name: Adamantite nails
+          quantity: 15
+      tools: ["Hammer"]
+      output_quantity: 1
+  related_items:
+    - item_name: Magic shield
+      slug: magic-shield
+      relationship: component
+      description: "Base shield used in the Crafting recipe"
+    - item_name: Red dragon leather
+      slug: red-dragon-leather
+      relationship: component
+      description: "Two leathers required to stitch the shield covering"
+    - item_name: Black d'hide shield
+      slug: black-d-hide-shield
+      relationship: upgrade
+      description: "Higher tier dragonhide shield requiring 70 Ranged"
+    - item_name: Blue d'hide shield
+      slug: blue-d-hide-shield
+      relationship: downgrade
+      description: "Lower tier dragonhide shield requiring 50 Ranged"
+  about: "The Red d'hide shield is a mid-tier Ranged shield crafted at 76 Crafting using 2 red dragon leather, a magic shield, and 15 adamantite nails. It requires 60 Ranged and 40 Defence to wield, granting solid ranged defence bonuses while preserving a small ranged attack bonus."
+  market_strategy:
+    notes:
+      - "Crafted at 76 Crafting from magic shield, red dragonhide, and adamantite nails"
+      - "Niche demand from Rangers wanting a shield slot during PvM tasks"
+      - "GE price often sits below material cost, making it a Crafting XP loss"
+  trading_tips:
+    - "Check magic shield and red dragon leather prices before crafting for profit"
+    - "Useful for HCIM and Rangers who need a shield slot without dropping much Ranged accuracy"
+    - "Watch League and PvP cosmetic demand as it can spike Ranged shield interest"
+  history:
+    - date: "2018-02-01"
+      description: "Red d'hide shield added alongside the d'hide shield family."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

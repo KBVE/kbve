@@ -1,6 +1,6 @@
 ---
 title: Oranges(5) | OSRS Price Data
-description: "Oranges(5): A fruit basket filled with oranges.. High alch: 1 GP, GE limit: 600."
+description: "Oranges(5) is a fruit basket holding 5 oranges, filled from an orange tree or used as Cooking ingredients. High alch: 1 GP, GE limit: 600."
 osrs:
   id: 5396
   name: Oranges(5)
@@ -12,9 +12,78 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  about: "Oranges(5) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: fruit-basket
+    tier: low
+  properties:
+    release_date: "2005-05-09"
+    update: "Farming"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.8
+    options:
+      - Take
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: farming
+      level: 39
+      facility: Fruit tree patch
+      materials:
+        - item_id: 5376
+          item_name: Empty fruit basket
+          quantity: 1
+        - item_id: 2108
+          item_name: Orange
+          quantity: 5
+      output_quantity: 1
+      members_only: true
+      notes: "Use 5 oranges on an empty fruit basket, or fill the basket at a fruiting orange tree"
+  related_items:
+    - item_id: 5376
+      item_name: Empty fruit basket
+      slug: empty-fruit-basket
+      relationship: component
+      description: Container filled with 5 oranges to create Oranges(5)
+    - item_id: 2108
+      item_name: Orange
+      slug: orange
+      relationship: component
+      description: Individual orange harvested from orange trees
+    - item_id: 5384
+      item_name: Bananas(5)
+      slug: bananas-5
+      relationship: alternative
+      description: Banana-filled fruit basket used as gnome restaurant payment
+    - item_id: 5497
+      item_name: Orange tree seed
+      slug: orange-tree-seed
+      relationship: component
+      description: Seed planted in a fruit tree patch at 39 Farming to grow oranges
+  about: "Oranges(5) is a fruit basket bundle that holds five oranges, created by filling an empty fruit basket with oranges or by picking from a fruiting orange tree directly into a basket. Used primarily as Cooking ingredients for orange chocolate cakes and as a stackable Farming-run carry, the basket exists to consolidate inventory space when transporting orange harvests. With a GE limit of 600 and a 1 gp alch value, it is bulk-trade fodder with thin margins."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Supply tied to Farming run output from orange tree patches"
+      - "Demand limited to Cooking ingredient buyers and Farming alts"
+      - "GE limit of 600 per 4 hours allows mid-scale bulk flips"
+      - "Alch value of 1 gp makes the basket exclusively a tradeable, not an alch target"
+  trading_tips:
+    - "Compare basket vs individual orange price for arbitrage on Farming runs"
+    - "Stack baskets to save inventory slots when carrying oranges between patches"
+    - "Watch for Cooking event spikes that drive short-term demand on orange-based recipes"
+  history:
+    - date: "2005-05-09"
+      description: "Released with the Farming skill alongside the empty fruit basket system."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

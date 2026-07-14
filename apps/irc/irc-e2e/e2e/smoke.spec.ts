@@ -27,11 +27,14 @@ test.describe('Smoke: Security Headers', () => {
 });
 
 test.describe('Smoke: CORS', () => {
-	test('CORS headers are present', async ({ request }) => {
-		const response = await request.get('/health');
+	test('CORS headers echo allowed Origin', async ({ request }) => {
+		const origin = 'http://localhost:4321';
+		const response = await request.get('/health', {
+			headers: { Origin: origin },
+		});
 		const headers = response.headers();
 
-		expect(headers['access-control-allow-origin']).toBeTruthy();
+		expect(headers['access-control-allow-origin']).toBe(origin);
 	});
 });
 

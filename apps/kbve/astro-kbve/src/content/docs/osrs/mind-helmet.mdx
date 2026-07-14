@@ -1,6 +1,6 @@
 ---
 title: Mind helmet | OSRS Price Data
-description: "Mind helmet: A magic helmet.. High alch: 1,800 GP, GE limit: 70."
+description: "Mind helmet: A magic helmet. High alch: 1,800 GP, GE limit: 70."
 osrs:
   id: 9733
   name: Mind helmet
@@ -12,9 +12,85 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 70
-  about: "Mind helmet is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Mind helmet is a members-only magic-defence helmet crafted at the Elemental Workshop after completing the Elemental Workshop II quest. It is part of the mind armour set and provides minor magic defence with no offensive bonuses."
+  properties:
+    release_date: "2006-10-02"
+    update: "Elemental Workshop II"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.113
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  material:
+    type: Mind
+    tier: low
+  equipment:
+    slot: head
+    weight: 0.113
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 6
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - name: Mind helmet
+      skill: Smithing
+      level: 30
+      experience: 30
+      materials:
+        - item_name: Primed mind bar
+          quantity: 1
+        - item_name: Beaten book
+          quantity: 1
+      tools:
+        - Workbench (Elemental Workshop)
+      output_quantity: 1
+  related_items:
+    - name: Mind shield
+      relationship: set-piece
+    - name: Primed mind bar
+      relationship: component
+    - name: Beaten book
+      relationship: component
+    - name: Body helmet
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "Niche cosmetic / minor magic defence helm, low demand."
+      - "Often used for the Kandarin Medium Diary task."
+      - "Supply is limited by Elemental Workshop II completion."
+  trading_tips:
+    - "Targets Kandarin Diary completionists buying to satisfy the task."
+    - "Buy limit of 70 allows light flipping but volumes are thin."
+    - "Hold during diary update / promotion windows for resale."
+  history:
+    - date: "2006-10-02"
+      description: "Mind helmet added with Elemental Workshop II."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

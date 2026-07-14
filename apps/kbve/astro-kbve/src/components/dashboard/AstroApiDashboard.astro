@@ -1,5 +1,5 @@
 ---
-import { getConfiguration } from '@scalar/client-side-rendering';
+import ReactScalar from '@/components/api/ReactScalar';
 
 interface Source {
 	url: string;
@@ -12,39 +12,59 @@ interface Props {
 	specUrl?: string;
 	sources?: Source[];
 	title?: string;
+	hubHref?: string;
 }
 
 const {
 	specUrl = '/api/openapi.json',
 	sources,
 	title = 'KBVE API Reference',
+	hubHref = '/api/',
 } = Astro.props as Props;
-
-const sourceConfig =
-	sources && sources.length > 0 ? { sources } : { url: specUrl };
-
-const configuration = getConfiguration({
-	...sourceConfig,
-	theme: 'none',
-	hideClientButton: false,
-	defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },
-	metaData: { title },
-});
-
-const configJson = JSON.stringify(configuration);
 ---
 
-<div id="scalar-app"></div>
-<script
-	is:inline
-	type="application/json"
-	id="scalar-config"
-	set:html={configJson}
-/>
+<div class="api-dash not-content">
+	<ReactScalar
+		client:only="react"
+		sources={sources}
+		specUrl={specUrl}
+		title={title}
+	/>
+	<p class="api-foot">
+		Looking for the static JSON data endpoints and feeds? Browse the full
+		<a href={hubHref}>API hub</a>.
+	</p>
+</div>
+
+<style>
+	.api-dash {
+		padding: 1.5rem 1rem 3rem;
+	}
+
+	@media (min-width: 640px) {
+		.api-dash {
+			padding-inline: 1.5rem;
+		}
+	}
+
+	.api-foot {
+		margin: 1rem 0 0;
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.api-foot a {
+		color: var(--sl-color-accent-high);
+	}
+</style>
 
 <style is:global>
 	#scalar-app {
-		min-height: calc(100vh - 4rem);
+		min-height: calc(100vh - 8rem);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: var(--bento-radius, 0.625rem);
+		overflow: hidden;
+		box-shadow: var(--bento-shadow);
 	}
 	#scalar-app .scalar-app {
 		min-height: inherit;
@@ -59,25 +79,44 @@ const configJson = JSON.stringify(configuration);
 		--scalar-color-3: var(--sl-color-gray-3);
 		--scalar-color-accent: var(--sl-color-accent-high);
 
-		--scalar-background-1: var(--sl-color-bg);
-		--scalar-background-2: var(--sl-color-bg-sidebar);
-		--scalar-background-3: var(--sl-color-bg-nav);
+		--scalar-background-1: var(--bento-cell-bg, var(--sl-color-black));
+		--scalar-background-2: color-mix(
+			in srgb,
+			var(--sl-color-white) 3%,
+			transparent
+		);
+		--scalar-background-3: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			transparent
+		);
 		--scalar-background-accent: var(--sl-color-accent);
 
-		--scalar-border-color: var(--sl-color-gray-5);
+		--scalar-border-color: var(--bento-hairline-strong);
 
-		--scalar-sidebar-background-1: var(--sl-color-bg-sidebar);
+		--scalar-sidebar-background-1: var(
+			--bento-cell-bg,
+			var(--sl-color-black)
+		);
 		--scalar-sidebar-color-1: var(--sl-color-text);
 		--scalar-sidebar-color-2: var(--sl-color-gray-3);
-		--scalar-sidebar-color-active: var(--sl-color-text-accent);
-		--scalar-sidebar-background-active: var(--sl-color-gray-6);
-		--scalar-sidebar-item-hover-background: var(--sl-color-gray-6);
+		--scalar-sidebar-color-active: var(--sl-color-accent-high);
+		--scalar-sidebar-background-active: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 14%,
+			transparent
+		);
+		--scalar-sidebar-item-hover-background: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			transparent
+		);
 		--scalar-sidebar-item-hover-color: var(--sl-color-white);
-		--scalar-sidebar-border-color: var(--sl-color-gray-5);
+		--scalar-sidebar-border-color: var(--bento-hairline);
 
-		--scalar-button-1: var(--sl-color-accent);
-		--scalar-button-1-hover: var(--sl-color-accent-high);
-		--scalar-button-1-color: var(--sl-color-text-invert);
+		--scalar-button-1: var(--sl-color-accent-high);
+		--scalar-button-1-hover: var(--sl-color-accent);
+		--scalar-button-1-color: var(--sl-color-black);
 	}
 
 	#scalar-app .scalar-api-client__container,
@@ -86,72 +125,57 @@ const configJson = JSON.stringify(configuration);
 	#scalar-app .scalar-app-layout {
 		z-index: 100;
 	}
+
+	.scalar-host {
+		position: relative;
+	}
+
+	.scalar-state {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 1rem;
+		text-align: center;
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.scalar-state__hint {
+		max-width: 34ch;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-4);
+	}
+
+	.scalar-spinner {
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 50%;
+		border: 2px solid var(--bento-hairline-strong);
+		border-top-color: var(--sl-color-accent-high);
+		animation: scalar-spin 0.7s linear infinite;
+	}
+
+	@keyframes scalar-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.scalar-spinner {
+			animation: none;
+		}
+	}
+
+	/* Scalar's API-client modal is position:fixed. BentoShell's scroll-reveal
+	   sets a transform on the wrapper, which would make it the containing block
+	   and mis-position the modal. Drop the transform on this page — the reveal
+	   still fades via opacity. */
+	#api-reference[data-bento-reveal] {
+		transform: none;
+	}
 </style>
-
-<script>
-	// Module script — Astro bundles `@scalar/api-reference` so we don't
-	// depend on a CDN tag racing the mount script (the CDN approach
-	// broke on client-router transitions: the inline `<script src=...>`
-	// re-injected async, but the inline mount script ran immediately
-	// and bailed on `window.Scalar` not being defined yet — blank page
-	// until a full reload).
-	import { createApiReference } from '@scalar/api-reference';
-	import '@scalar/api-reference/style.css';
-	import { attachScalarAuthBridge } from '@/components/api/scalar-auth-bridge';
-
-	type ScalarInstance = {
-		updateConfiguration?: (cfg: Record<string, unknown>) => void;
-		destroy?: () => void;
-	};
-
-	declare global {
-		interface Window {
-			__scalarRef?: ScalarInstance;
-			__scalarBaseConfig?: Record<string, unknown>;
-		}
-	}
-
-	function readConfig(): Record<string, unknown> | null {
-		const node = document.getElementById('scalar-config');
-		if (!node?.textContent) return null;
-		try {
-			return JSON.parse(node.textContent) as Record<string, unknown>;
-		} catch {
-			return null;
-		}
-	}
-
-	function mount() {
-		// astro:page-load fires on every route; bail when the route the
-		// user landed on doesn't have the Scalar mount node.
-		const host = document.getElementById('scalar-app');
-		if (!host) return;
-		const cfg = readConfig();
-		if (!cfg) return;
-		window.__scalarBaseConfig = cfg;
-		// Reuse the existing instance when the same DOM node is still
-		// alive (e.g. partial swap that left the host mounted); destroy
-		// otherwise so the new mount doesn't double-render.
-		const existing = window.__scalarRef;
-		if (existing && host.childElementCount > 0) {
-			existing.updateConfiguration?.(cfg);
-			void attachScalarAuthBridge();
-			return;
-		}
-		try {
-			existing?.destroy?.();
-		} catch {
-			/* old instance already gone */
-		}
-		window.__scalarRef = createApiReference(
-			'#scalar-app',
-			cfg,
-		) as ScalarInstance;
-		void attachScalarAuthBridge();
-	}
-
-	// astro:page-load fires after the initial parse AND after every
-	// client-router swap, so a single subscription covers both modes
-	// without any data-astro-rerun gymnastics.
-	document.addEventListener('astro:page-load', mount);
-</script>

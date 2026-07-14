@@ -12,18 +12,98 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 18000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: hide
+    tier: low
+  properties:
+    release_date: "2002-09-02"
+    update: Wolves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Grey wolf (level 64)
+        quantity: "1"
+        rarity: always
+      - source: Grey wolf (level 89)
+        quantity: "1"
+        rarity: always
+      - source: Wolf (level 89)
+        quantity: "1"
+        rarity: common
+      - source: Hati (level 122)
+        quantity: "1"
+        rarity: common
+  recipes:
+    - skill: crafting
+      level: 35
+      xp: 30
+      materials:
+        - item_name: Grey wolf fur
+          quantity: 1
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
+      product: Wolf cloak
+      facility: Fancy Dress Shop, Varrock
+  used_in:
+    - product: Wolf cloak
+      slug: wolf-cloak
+      skill: crafting
+      level: 35
+      xp: 30
+      quantity: 1
+    - product: Wolf mask
+      slug: wolf-mask
+      skill: crafting
+      level: 35
+      xp: 30
+      quantity: 1
   related_items:
-    - item_id: 948
-      item_name: Bear fur
-      slug: bear-fur
+    - item_id: 6814
+      item_name: Fur
+      slug: fur
       relationship: variant
-      description: Another fur type
-  about: |-
-    > _"This\"would\" " make a\"nice\" hat."_
-
-    Grey wolf fur is used in Crafting to make items at the Fancy Dress Shop in Varrock. Also used in Fremennik Trials to craft a lyre and in other quests.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Lower-tier fur dropped by werewolves and used for wooden cats"
+    - item_name: Wolf cloak
+      slug: wolf-cloak
+      relationship: product
+      description: "Crafted from grey wolf fur at 35 Crafting in the Varrock Fancy Dress Shop"
+    - item_name: Wolf mask
+      slug: wolf-mask
+      relationship: product
+      description: "Crafted from grey wolf fur for the matching wolf outfit"
+  about: "Grey wolf fur is a Crafting material dropped by grey wolves throughout the world, most notably outside the White Wolf Mountain tunnel and the Wolf Hill in the Fremennik province. It is used at the Varrock Fancy Dress Shop to craft the wolf cloak and wolf mask at 35 Crafting and is a required item for the Fremennik Trials quest to craft a lyre. Members-only and tradeable on the Grand Exchange with an 18,000 buy limit."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Quest-prep demand spikes around Fremennik Trials starts"
+      - "Crafting buyers source fur for wolf cloak and wolf mask"
+      - "Buy limit of 18,000 makes bulk flips easy"
+      - "Supply tied to slayer tasks and AFK wolf killing"
+  trading_tips:
+    - "Stock up during low-demand weekdays and offload during quest spotlight events"
+    - "Watch slayer task popularity for grey wolves; supply moves with rotation"
+  history:
+    - date: "2002-09-02"
+      update: Wolves
+      description: "Grey wolf fur added as a drop with the introduction of wolves to RuneScape."
+    - date: "2004-12-13"
+      update: Fremennik Trials
+      description: "Use case expanded; required to craft a lyre during the quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

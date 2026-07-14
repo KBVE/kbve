@@ -1,0 +1,218 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: buildkitd-cache
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: buildkitd
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn-sdb
+    resources:
+        requests:
+            storage: 150Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: buildkitd-config
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: buildkitd
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+data:
+    buildkitd.toml: |
+        debug = false
+        root = "/var/lib/buildkit"
+
+        [worker.oci]
+          enabled = true
+          # ext4 PVC, not the host overlay rootfs, so overlayfs snapshotter
+          # mounts cleanly (no overlay-on-overlay EINVAL like the DinD data-root
+          # hit on Talos kernel 6.18). Drop to "native" if EINVAL ever surfaces.
+          snapshotter = "overlayfs"
+          gc = true
+          # Self-prune well below PVC size so the cache never wedges a build with
+          # ENOSPC. Working set = astro .astro + cargo registry + sccache-local +
+          # pnpm store + layer cache across every app.
+          gckeepstorage = "60GB"
+          [[worker.oci.gcpolicy]]
+            keepBytes = "40GB"
+            keepDuration = "168h"
+          # Final tier has no keepDuration: a hard ceiling that evicts oldest
+          # regardless of age. Kept far below the 146GiB usable PVC so a burst
+          # of concurrent mode=max exports (each multi-GB) has ~90GB of headroom
+          # before the async LRU GC must reclaim, so it cannot outrun GC and hit
+          # ENOSPC on containerdmeta.db. A nightly buildkitd-prune CronJob is the
+          # proactive backstop the reactive async GC alone kept failing to hold.
+          [[worker.oci.gcpolicy]]
+            keepBytes = "50GB"
+
+        [worker.containerd]
+          enabled = false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    annotations:
+        reloader.stakater.com/auto: 'true'
+    name: buildkitd
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: buildkitd
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: buildkitd
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/name: buildkitd
+                app.kubernetes.io/part-of: arc-runner-set
+        spec:
+            containers:
+                - name: buildkitd
+                  image: moby/buildkit:v0.24.0
+                  imagePullPolicy: IfNotPresent
+                  args:
+                      - --addr
+                      - unix:///run/buildkit/buildkitd.sock
+                      - --addr
+                      - tcp://0.0.0.0:1234
+                      - --config
+                      - /etc/buildkit/buildkitd.toml
+                  ports:
+                      - name: grpc
+                        containerPort: 1234
+                  securityContext:
+                      privileged: true
+                  volumeMounts:
+                      - name: config
+                        mountPath: /etc/buildkit
+                        readOnly: true
+                      - name: cache
+                        mountPath: /var/lib/buildkit
+                  resources:
+                      limits:
+                          cpu: '16'
+                          memory: 32Gi
+                      requests:
+                          cpu: '2'
+                          memory: 4Gi
+                  readinessProbe:
+                      exec:
+                          command:
+                              - buildctl
+                              - debug
+                              - workers
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                  livenessProbe:
+                      exec:
+                          command:
+                              - buildctl
+                              - debug
+                              - workers
+                      initialDelaySeconds: 30
+                      periodSeconds: 60
+                      timeoutSeconds: 20
+                      failureThreshold: 5
+                - name: cache-watchdog
+                  image: moby/buildkit:v0.24.0
+                  imagePullPolicy: IfNotPresent
+                  command:
+                      - sh
+                      - -c
+                      - |
+                          set -u
+                          THRESHOLD=75
+                          KEEP=50000000000
+                          ADDR=tcp://127.0.0.1:1234
+                          while true; do
+                            USE=$(df /var/lib/buildkit | awk 'NR==2 {gsub("%","",$5); print $5}')
+                            if [ -n "$USE" ] && [ "$USE" -ge "$THRESHOLD" ]; then
+                              echo "watchdog: cache at ${USE}% (>=${THRESHOLD}%), pruning to keep $((KEEP/1000000000))GB"
+                              buildctl --addr "$ADDR" prune --keep-storage "$KEEP" --all || echo "watchdog: prune failed, retrying next cycle"
+                            fi
+                            sleep 120
+                          done
+                  volumeMounts:
+                      - name: cache
+                        mountPath: /var/lib/buildkit
+                        readOnly: true
+                  resources:
+                      limits:
+                          cpu: '1'
+                          memory: 256Mi
+                      requests:
+                          cpu: '50m'
+                          memory: 64Mi
+            volumes:
+                - name: config
+                  configMap:
+                      name: buildkitd-config
+                      items:
+                          - key: buildkitd.toml
+                            path: buildkitd.toml
+                - name: cache
+                  persistentVolumeClaim:
+                      claimName: buildkitd-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: buildkitd
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: buildkitd
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        app.kubernetes.io/name: buildkitd
+    ports:
+        - name: grpc
+          port: 1234
+          targetPort: grpc
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: buildkitd-ingress
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: buildkitd
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/name: buildkitd
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: arc-runners
+          ports:
+              - port: grpc
+                protocol: TCP

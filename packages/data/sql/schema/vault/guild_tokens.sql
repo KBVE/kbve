@@ -84,7 +84,7 @@ $$;
 
 REVOKE ALL ON FUNCTION discordsh.trg_guild_tokens_cleanup_vault() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION discordsh.trg_guild_tokens_cleanup_vault() TO service_role;
-ALTER FUNCTION discordsh.trg_guild_tokens_cleanup_vault() OWNER TO service_role;
+ALTER FUNCTION discordsh.trg_guild_tokens_cleanup_vault() OWNER TO postgres;
 
 DROP TRIGGER IF EXISTS trg_discordsh_guild_tokens_cleanup_vault ON discordsh.guild_tokens;
 CREATE TRIGGER trg_discordsh_guild_tokens_cleanup_vault
@@ -251,9 +251,8 @@ BEGIN
         ) INTO v_secret_id;
     EXCEPTION
         WHEN unique_violation THEN
-            UPDATE vault.secrets
-            SET secret = p_token_value, updated_at = NOW()
-            WHERE name = v_vault_key;
+            SELECT id INTO v_secret_id FROM vault.secrets WHERE name = v_vault_key;
+            PERFORM vault.update_secret(v_secret_id, p_token_value);
     END;
 
     -- Upsert the token reference
@@ -286,7 +285,7 @@ REVOKE ALL ON FUNCTION discordsh.service_set_guild_token(UUID, TEXT, TEXT, TEXT,
 GRANT EXECUTE ON FUNCTION discordsh.service_set_guild_token(UUID, TEXT, TEXT, TEXT, TEXT, TEXT)
     TO service_role;
 ALTER FUNCTION discordsh.service_set_guild_token(UUID, TEXT, TEXT, TEXT, TEXT, TEXT)
-    OWNER TO service_role;
+    OWNER TO postgres;
 
 -- ===========================================
 -- SERVICE FUNCTION: Get guild token (decrypted)
@@ -352,7 +351,7 @@ REVOKE ALL ON FUNCTION discordsh.service_get_guild_token(UUID, TEXT, UUID)
 GRANT EXECUTE ON FUNCTION discordsh.service_get_guild_token(UUID, TEXT, UUID)
     TO service_role;
 ALTER FUNCTION discordsh.service_get_guild_token(UUID, TEXT, UUID)
-    OWNER TO service_role;
+    OWNER TO postgres;
 
 -- ===========================================
 -- SERVICE FUNCTION: List guild tokens (metadata only)
@@ -484,7 +483,7 @@ REVOKE ALL ON FUNCTION discordsh.service_delete_guild_token(UUID, TEXT, UUID)
 GRANT EXECUTE ON FUNCTION discordsh.service_delete_guild_token(UUID, TEXT, UUID)
     TO service_role;
 ALTER FUNCTION discordsh.service_delete_guild_token(UUID, TEXT, UUID)
-    OWNER TO service_role;
+    OWNER TO postgres;
 
 -- ===========================================
 -- SERVICE FUNCTION: Toggle guild token status
@@ -643,7 +642,7 @@ REVOKE ALL ON FUNCTION discordsh.bot_get_guild_token(TEXT, TEXT)
 GRANT EXECUTE ON FUNCTION discordsh.bot_get_guild_token(TEXT, TEXT)
     TO service_role;
 ALTER FUNCTION discordsh.bot_get_guild_token(TEXT, TEXT)
-    OWNER TO service_role;
+    OWNER TO postgres;
 
 -- ===========================================
 -- VERIFICATION

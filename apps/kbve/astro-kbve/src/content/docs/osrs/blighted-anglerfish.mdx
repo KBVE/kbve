@@ -12,9 +12,60 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 10000
-  about: "Blighted anglerfish is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: blighted-food
+    tier: high
+  properties:
+    release_date: "2019-08-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Justine's Stuff for the Last Shopper Standing
+      location: Ferox Enclave
+      price: 1300
+      stock: 0
+  related_items:
+    - item_name: Anglerfish
+      slug: anglerfish
+      relationship: variant
+      description: Non-blighted version eaten anywhere in Gielinor.
+    - item_name: Blighted manta ray
+      slug: blighted-manta-ray
+      relationship: alternative
+      description: Lower-tier blighted food for Wilderness consumption.
+    - item_name: Blighted karambwan
+      slug: blighted-karambwan
+      relationship: alternative
+      description: Blighted combo food for tick-eating in the Wilderness.
+    - item_name: Raw anglerfish
+      slug: raw-anglerfish
+      relationship: component
+      description: Cooked into anglerfish before being blighted.
+  about: "Blighted anglerfish is a Wilderness-only food obtained from the Last Man Standing Bounty Hunter shop in Ferox Enclave, healing up to 22 HP based on the eater's level. Purchasable for 1,300 coins via Bounty Hunter points or 240 Last Man Standing points, it gives PKers and Wilderness slayers anglerfish-tier healing without flooding the regular GE supply since it cannot be eaten outside the Wilderness."
+  market_strategy:
+    notes:
+      - "Demand follows PKing meta and Wilderness PvM popularity"
+      - "Supply is point-shop gated; bulk buys move price more than typical foods"
+      - "Buy limit of 10,000 supports large PK restock orders"
+  trading_tips:
+    - "Stockpile during Bounty Hunter or LMS update windows"
+    - "Watch Wilderness boss release cadence for spike windows"
+  history:
+    - date: "2019-08-08"
+      description: "Released with the blighted supplies update for Wilderness PvP and PvM."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

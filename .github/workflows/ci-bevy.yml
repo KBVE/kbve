@@ -12,6 +12,11 @@ concurrency:
 
 permissions: {}
 
+env:
+    CARGO_NET_RETRY: '10'
+    CARGO_NET_TIMEOUT: '60'
+    RUSTUP_MAX_RETRIES: '10'
+
 jobs:
     # ---------------------------------------------------------------------------
     # Guard: skip if triggered by a failed CI - Main run.
@@ -63,7 +68,7 @@ jobs:
             contents: read
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
@@ -128,7 +133,7 @@ jobs:
               run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
-              uses: actions/cache@v5
+              uses: actions/cache@v6
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
@@ -170,7 +175,7 @@ jobs:
             actions: write
         steps:
             - name: Checkout dev
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: dev
                   fetch-depth: 1
@@ -257,22 +262,37 @@ jobs:
 
     # ---------------------------------------------------------------------------
     # Failure tracker — surfaces build failures as GitHub issues (#8186).
-    # Runs on any failure so async failures are not silently dropped.
+    # One call per job so each issue title auto-closes on its own success.
     # ---------------------------------------------------------------------------
-    track_failure:
-        name: Track Failures
-        if: always() && (needs.build_wasm.result == 'failure' || needs.deploy_wasm.result == 'failure')
-        needs: [build_wasm, deploy_wasm]
+    track_build_wasm:
+        name: Track build_wasm
+        if: always() && needs.build_wasm.result != 'cancelled' && needs.build_wasm.result != 'skipped'
+        needs: [build_wasm]
         permissions:
             issues: write
             contents: read
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
         with:
             workflow_name: 'CI - Bevy'
-            job_name: ${{ needs.build_wasm.result == 'failure' && 'build_wasm' || 'deploy_wasm' }}
+            job_name: 'build_wasm'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
+            status: ${{ needs.build_wasm.result }}
+
+    track_deploy_wasm:
+        name: Track deploy_wasm
+        if: always() && needs.deploy_wasm.result != 'cancelled' && needs.deploy_wasm.result != 'skipped'
+        needs: [deploy_wasm]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Bevy'
+            job_name: 'deploy_wasm'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.deploy_wasm.result }}
 
     # ---------------------------------------------------------------------------
     # Future build targets — disabled, scaffolded for when native builds land.
@@ -289,7 +309,7 @@ jobs:
     #   runs-on: macos-latest
     #   timeout-minutes: 120
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #     - run: cargo build --release
     #       working-directory: apps/kbve/isometric/src-tauri  # update path when native
@@ -301,7 +321,7 @@ jobs:
     #   runs-on: ubuntu-latest
     #   timeout-minutes: 120
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #     - run: cargo build --release
     #
@@ -312,7 +332,7 @@ jobs:
     #   runs-on: windows-latest
     #   timeout-minutes: 120
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #     - run: cargo build --release
     #
@@ -323,7 +343,7 @@ jobs:
     #   runs-on: macos-latest
     #   timeout-minutes: 120
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #       with:
     #         targets: aarch64-apple-ios
@@ -384,7 +404,7 @@ jobs:
     #   outputs:
     #     should_publish: ${{ steps.check.outputs.should_publish }}
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - id: check
     #       run: |
     #         LOCAL="${{ inputs.manifest_version }}"; VTOML="${{ inputs.version_toml }}"; PUB="0.0.0"
@@ -406,7 +426,7 @@ jobs:
     #     matrix:
     #       target: ${{ fromJSON(inputs.build_targets) }}
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #       with: { targets: ${{ matrix.target }} }
     #     - uses: Swatinem/rust-cache@v2

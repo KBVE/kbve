@@ -12,9 +12,91 @@ osrs:
   lowalch: 8
   highalch: 13
   limit: 11000
-  about: "Topaz bolts is a members-only item in Old School RuneScape. High alchemy value: 13 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: null
+    attack_speed: null
+    weight: 0
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 66
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 48
+      xp: 39
+      materials:
+        - item_name: Steel bolts
+          quantity: 10
+        - item_name: Topaz bolt tips
+          quantity: 10
+      tools: []
+      output_quantity: 10
+  related_items:
+    - item_name: Steel bolts
+      slug: steel-bolts
+      relationship: component
+      description: Base bolts for tipping
+    - item_name: Topaz bolt tips
+      slug: topaz-bolt-tips
+      relationship: component
+      description: Gem tip used in fletching
+    - item_name: Topaz bolts (e)
+      slug: topaz-bolts-e
+      relationship: upgrade
+      description: Enchanted variant
+    - item_name: Sapphire bolts
+      slug: sapphire-bolts
+      relationship: alternative
+      description: Same-tier gem-tipped bolt
+  about: "Topaz bolts are steel crossbow bolts tipped with red topaz gems. Fletched at level 48 Fletching for 39 XP per 10 bolts. Can be enchanted via the Enchant Crossbow Bolt spell at 29 Magic to create Topaz bolts (e)."
+  market_strategy:
+    notes:
+      - "Fletched from steel bolts + topaz bolt tips"
+      - "Enchantable into Topaz bolts (e)"
+      - "Mid-tier ranged ammo"
+      - "Decent ranged strength +66"
+  trading_tips:
+    - "Profit margin on fletching: ~470 gp per 10 after GE tax"
+    - "Buy bolts to enchant in bulk; e-variant carries Down to Earth effect"
+  history:
+    - date: "2006-07-31"
+      description: "Added with the gem-tipped bolt update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

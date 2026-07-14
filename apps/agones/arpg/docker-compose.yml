@@ -1,0 +1,86 @@
+# Personal local-dev compose for the ARPG vertical. NOT used by Agones/k8s.
+#
+#   docker compose -f apps/agones/arpg/docker-compose.yml up --build
+#       -> builds + runs arpg-server on :7979 + a Valkey on :6379. Placed env
+#          objects (campfires) persist to Valkey and survive a server restart;
+#          drop the valkey service / unset KBVE_KV_URL to degrade gracefully.
+#
+#   docker compose -f apps/agones/arpg/docker-compose.yml --profile web up --build
+#       -> also runs the standalone vite arpg client on :5402, pointed at the
+#          local server. The client is its own lightweight app (apps/agones/arpg/
+#          web), NOT the full astro-kbve site — fast boot, isolated node deps.
+#
+# The browser (on the host) talks to ws://localhost:7979/ws, so PUBLIC_ARPG_GAME_WS
+# uses localhost regardless of which service serves the page.
+#
+# Auth: the client runs the real Supabase login and sends its session JWT; the
+# server verifies it against Supabase GoTrue (SUPABASE_URL + ANON_KEY below) and
+# denies an empty/invalid token. The vite dev server proxies /supabase to dodge
+# the supabase.kbve.com localhost-CORS block.
+
+name: arpg-local
+
+services:
+    arpg-server:
+        build:
+            context: ../../..
+            dockerfile: apps/agones/arpg/server/Dockerfile
+        image: kbve/arpg-server:dev
+        ports:
+            - '7979:7979'
+        environment:
+            ARPG_SERVER_ADDR: 0.0.0.0:7979
+            RUST_LOG: ${RUST_LOG:-info,arpg_server=debug,simgrid=debug}
+            ARPG_SERVER_SEED: ${ARPG_SERVER_SEED:-12648430}
+            # Verify the browser's session JWT against Supabase GoTrue (no local
+            # secret needed). The URL + anon key are public (same values the web
+            # client ships in src/lib/supa.ts); the server caches verified tokens
+            # (LRU) so it hits GoTrue once each. Override only to point elsewhere.
+            SUPABASE_URL: ${SUPABASE_URL:-https://supabase.kbve.com}
+            SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg}
+            # Fallback: local HS256 verification if you'd rather hold the secret.
+            # Unset SUPABASE_URL to fall back to this, or to dev-accept if both unset.
+            SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-}
+            # Durable store for player-placed env objects (campfires). Unset to
+            # run without persistence (sim still works, placements are in-memory).
+            KBVE_KV_URL: ${KBVE_KV_URL:-redis://valkey:6379}
+        depends_on:
+            - valkey
+        restart: unless-stopped
+
+    valkey:
+        image: valkey/valkey:8-alpine
+        ports:
+            - '6379:6379'
+        # appendonly so placed objects survive a Valkey container restart too —
+        # restart persistence is then genuinely end-to-end testable.
+        command: ['valkey-server', '--appendonly', 'yes']
+        volumes:
+            - arpg-valkey-data:/data
+        restart: unless-stopped
+
+    arpg-web:
+        profiles: ['web']
+        image: node:24-bookworm
+        working_dir: /workspace/apps/agones/arpg/web
+        depends_on:
+            - arpg-server
+        ports:
+            - '5402:5402'
+        environment:
+            PUBLIC_ARPG_LOCAL: 'false'
+            PUBLIC_ARPG_GAME_WS: ws://localhost:7979/ws
+            PUBLIC_ARPG_CHAT_WS: ws://localhost:5402/gamechat
+        volumes:
+            - ../../..:/workspace
+            - arpg-web-node-modules:/workspace/apps/agones/arpg/web/node_modules
+        command:
+            - bash
+            - -lc
+            - |
+                npm install --no-save
+                npm run dev -- --host 0.0.0.0
+
+volumes:
+    arpg-web-node-modules:
+    arpg-valkey-data:

@@ -1,5 +1,6 @@
 ---
 title: Yellow Stained Glass
+template: splash
 description: |
     Minecraft Yellow Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 505
     ref: yellow_stained_glass
     slug: yellow-stained-glass
+    content_rev: 1
     display_name: Yellow Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Yellow Stained Glass is a dyed variant of glass that stays fully transparent while tinting the
+            light that passes through it. It is crafted from glass and yellow dye, and only drops as an item
+            when mined with a Silk Touch tool.
+        lore: |
+            Stacking colored glass above a beacon tints its light beam to match, letting builders blend hues.
+    faq:
+        - question: How is Yellow Stained Glass made?
+          answer: |
+              Combine 4 glass blocks with yellow dye in a crafting grid to produce 8 yellow stained glass
+              blocks at once.
+        - question: Does Yellow Stained Glass let light through?
+          answer: |
+              Yes, it remains transparent and passes light, though the light takes on a yellow tint as it
+              travels through the block.
+        - question: What happens when you mine Yellow Stained Glass?
+          answer: |
+              It drops nothing unless mined with a Silk Touch enchanted tool, in which case the block itself
+              is recovered.
+        - question: Can Yellow Stained Glass be used with beacons?
+          answer: |
+              Yes, stacking it above a beacon changes the color of the beacon's light beam to yellow, and
+              multiple colors can be layered to blend shades.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

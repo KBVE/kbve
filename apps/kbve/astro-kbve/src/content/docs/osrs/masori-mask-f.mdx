@@ -12,20 +12,51 @@ osrs:
   lowalch: 360000
   highalch: 540000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: masori
+    tier: high
+  properties:
+    release_date: "2022-08-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    type: ranged_armour
+    weapon_type: null
+    attack_speed: null
+    weight: 1.5
     requirements:
       ranged: 80
       defence: 80
-    stats:
-      defence_stab: 8
-      defence_slash: 10
-      defence_crush: 12
-      defence_magic: 12
-      defence_ranged: 9
-      attack_ranged: 12
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 12
+    defence_bonus:
+      stab: 8
+      slash: 10
+      crush: 12
+      magic: 12
+      ranged: 9
+    other_bonus:
+      strength: 0
       ranged_strength: 2
+      magic_damage: 0
       prayer: 1
   recipes:
     - skill: crafting
@@ -33,65 +64,40 @@ osrs:
       xp: 830
       materials:
         - item_name: Masori mask
-          item_id: 27226
           quantity: 1
         - item_name: Armadylean plate
-          item_id: 27232
           quantity: 1
-      product: Masori mask (f)
-      product_id: 27235
-      product_quantity: 1
-      facility: Hammer
-      members_only: true
+      tools:
+        - Hammer
+      output_quantity: 1
   related_items:
-    - item_id: 27238
-      item_name: Masori body (f)
+    - item_name: Masori mask
+      slug: masori-mask
+      relationship: component
+      description: "Standard Masori mask consumed in the fortification recipe"
+    - item_name: Masori body (f)
       slug: masori-body-f
       relationship: set-piece
-      description: Body slot
-    - item_id: 27241
-      item_name: Masori chaps (f)
+      description: "Body slot of the fortified Masori set"
+    - item_name: Masori chaps (f)
       slug: masori-chaps-f
       relationship: set-piece
-      description: Legs slot
-    - item_id: 11826
-      item_name: Armadyl helmet
+      description: "Legs slot of the fortified Masori set"
+    - item_name: Armadyl helmet
       slug: armadyl-helmet
       relationship: alternative
-      description: Budget option
-  about: |-
-    Combine Masori mask with Armadylean plate using a hammer (90 Crafting).
-
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Masori mask | Tombs of Amascut | ~50M gp |
-    | Armadylean plate | Armadyl armour | ~1M gp |
-
-    | Stat | Value |
-    |------|-------|
-    | Ranged attack | +12 |
-    | Ranged strength | +2 |
-    | Defence bonuses | +8 to +12 |
-    | Prayer bonus | +1 |
-    | Requirements | 80 Ranged, 80 Defence |
-
-    Part of the Masori armour (fortified) set:
-    - Masori mask (f) (head)
-    - Masori body (f) (body)
-    - Masori chaps (f) (legs)
-
-    PvM:
-    - Best-in-slot ranged helm
-    - Tombs of Amascut
-    - Theatre of Blood
-    - General ranged content
+      description: "Budget BiS replacement for ranged head slot"
+  about: "Masori mask (f) is the best-in-slot ranged helmet for Tombs of Amascut and most ranged PvM, narrowly edging out the Armadyl helmet thanks to its set bonus when worn with the fortified body and chaps. Fortification is irreversible and consumes an Armadylean plate from Armadyl armour."
   market_strategy:
     notes:
-      - ToA completions affect supply
-      - BiS ranged helm
-      - Fortified has better defence
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply is gated by ToA Expert raid completions plus Armadylean plate availability."
+      - "Demand spikes alongside any ranged buff or ToA reward shop reshuffle."
+  trading_tips:
+    - "Watch the spread between Masori mask + Armadylean plate vs the fortified piece - arbitrage when it widens."
+    - "Buy limit of 8 per 4 hours makes flips capital-intensive; long-term holds work better."
+  history:
+    - date: "2022-08-24"
+      description: "Released with the Tombs of Amascut raid as part of the fortified Masori upgrade path."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

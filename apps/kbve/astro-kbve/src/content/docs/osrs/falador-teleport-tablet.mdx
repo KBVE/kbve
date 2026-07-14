@@ -1,6 +1,6 @@
 ---
 title: Falador teleport (tablet) | OSRS Price Data
-description: "Falador teleport (tablet): A teleport to Falador.. High alch: 1 GP, GE limit: 15,000."
+description: "Falador teleport (tablet): A teleport to Falador. High alch: 1 GP, GE limit: 15,000."
 osrs:
   id: 8009
   name: Falador teleport (tablet)
@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15000
-  about: "Falador teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Falador
+    type: Tablet
+  recipes:
+    - product: Falador teleport (tablet)
+      product_id: 8009
+      skill: Magic
+      level: 37
+      experience: 48
+      materials:
+        - item_id: 563
+          item_name: Law rune
+          quantity: 1
+        - item_id: 556
+          item_name: Air rune
+          quantity: 3
+        - item_id: 555
+          item_name: Water rune
+          quantity: 1
+        - item_id: 1761
+          item_name: Soft clay
+          quantity: 1
+      tools:
+        - Eagle lectern
+      notes: Crafted at a player-owned house lectern.
+  about: "Falador teleport tablet is a members-only one-click teleport item created at a lectern in a player-owned house, requiring 37 Magic and granting 48 experience."
+  market_strategy:
+    notes:
+      - Standard teleport tablets were exempted from the Grand Exchange convenience fee in May 2025.
+      - Steady consumer demand keeps daily volume in the hundreds of thousands.
+  trading_tips:
+    - Bulk produce when law rune prices dip for the best margin.
+    - List slightly above material cost for fast sales.
+  history:
+    - date: "2006-05-31"
+      description: Added to the game with the Player-Owned Houses update.
+    - date: "2025-05-29"
+      description: Exempted from the Grand Exchange convenience fee.
+  properties:
+    release_date: "2006-05-31"
+    update: "PLAYER-OWNED HOUSES!"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

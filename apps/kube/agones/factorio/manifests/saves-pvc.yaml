@@ -5,6 +5,9 @@ metadata:
     namespace: factorio
     labels:
         app.kubernetes.io/part-of: factorio
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     accessModes:
         - ReadWriteOnce

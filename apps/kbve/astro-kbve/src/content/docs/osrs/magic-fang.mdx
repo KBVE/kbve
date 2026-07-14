@@ -12,57 +12,67 @@ osrs:
   lowalch: 40800
   highalch: 61200
   limit: 5
-  item:
-    type: upgrade_material
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: upgrade
+    tier: high
+  properties:
+    release_date: "2015-01-08"
     tradeable: true
-    weight: 0.01
-  obtaining:
-    methods:
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Dismantle
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Dismantle"
+  drop_table:
+    sources:
       - source: Zulrah
-        drop_rate: 1/1,024
-  creation:
-    uses:
-      - item_id: 12899
-        item_name: Trident of the swamp
-        slug: trident-of-the-swamp
-        description: Attaches to Trident of the seas to create Trident of the swamp
+        quantity: "1"
+        rarity: 2/1024
+  recipes:
+    - skill: crafting
+      level: 59
+      xp: 100
+      materials:
+        - item_name: Trident of the seas
+          quantity: 1
+        - item_name: Magic fang
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
   related_items:
-    - item_id: 0
-      item_name: Zulrah
+    - item_name: Zulrah
       slug: zulrah
       relationship: component
-      description: Boss drop
-    - item_id: 11905
-      item_name: Trident of the seas
+      description: Boss source dropping the magic fang
+    - item_name: Trident of the seas
       slug: trident-of-the-seas
       relationship: component
-      description: Base weapon
-    - item_id: 12899
-      item_name: Trident of the swamp
+      description: Base weapon upgraded with the magic fang
+    - item_name: Trident of the swamp
       slug: trident-of-the-swamp
       relationship: product
-      description: Created weapon
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Upgrade Material |
-    | Tradeable | Yes |
-    | Weight | 0.01 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Trident of the swamp | Trident of the seas + Magic fang |
-    | Toxic blowpipe | Tanzanite fang + Magic fang (not used) |
-    | Serpentine helm | Serpentine visage (separate) |
-
-    Attaches to Trident of the seas to create Trident of the swamp.
+      description: Venomous trident created from the upgrade
+  about: "Magic fang is a Zulrah-exclusive upgrade item used to attach to a trident of the seas (or staff of the dead variants) at 59 Crafting to create the trident of the swamp, the strongest non-Sanguinesti charged staff that inflicts venom. The fang can be dismantled to refund Zulrah's scales."
   market_strategy:
     notes:
-      - Zulrah exclusive drop
-      - Creates best non-Sanguinesti staff
-      - Adds venom effect to trident
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Zulrah is the only drop source; supply scales with boss popularity"
+      - "Demand spikes when trident of the swamp becomes BIS for new content"
+      - "Dismantle floor keeps a hard scale-equivalent price minimum"
+  history:
+    - date: "2015-01-08"
+      description: Magic fang released with Zulrah.
+    - date: "2016-02-18"
+      description: Dismantle option added to recover Zulrah's scales.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

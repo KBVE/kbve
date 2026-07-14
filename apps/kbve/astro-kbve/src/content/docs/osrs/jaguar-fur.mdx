@@ -11,10 +11,71 @@ osrs:
   value: 80
   lowalch: 32
   highalch: 48
-  limit: null
-  about: "Jaguar fur is a members-only item in Old School RuneScape. High alchemy value: 48 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 10000
+  material:
+    type: fur
+    tier: low
+  drop_table:
+    sources:
+      - source: Jaguar
+        quantity: "1"
+        rarity: Always
+      - source: Black jaguar
+        quantity: "1"
+        rarity: Always
+      - source: White jaguar
+        quantity: "1"
+        rarity: Always
+  recipes:
+    - materials:
+        - item_name: Mixed hide base
+          quantity: 1
+        - item_name: Jaguar fur
+          quantity: 1
+        - item_name: Thread
+          quantity: 1
+      tools:
+        - Needle
+      output_quantity: 1
+      output_item: Mixed hide cape
+      skills:
+        - skill: Crafting
+          level: 68
+          xp: 62
+  related_items:
+    - name: Mixed hide cape
+      relationship: product
+    - name: Mixed hide base
+      relationship: component
+  about: "Jaguar fur is a members-only crafting material dropped by jaguars in the Varlamore region. Used with a mixed hide base to craft a mixed hide cape at 68 Crafting. High alchemy value: 48 coins."
+  market_strategy:
+    notes:
+      - "Supply depends on Varlamore jaguar farmers; price tracks crafting demand."
+      - "Profitable alch is unlikely; flip via Crafting demand instead."
+  trading_tips:
+    - "Stock up before any Varlamore content drop that boosts hunting activity."
+    - "Pair sourcing with mixed hide bases to streamline cape production."
+  history:
+    - date: "2024-03-20"
+      description: "Jaguar fur released with the Varlamore: The Final Dawn expansion."
+    - date: "2026-04-22"
+      description: "Wiki refresh confirmed alch values and crafting recipe."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

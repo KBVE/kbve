@@ -102,7 +102,7 @@ pub fn spawn_modal(commands: &mut Commands, cfg: ModalConfig, marker: impl Compo
             .spawn((
                 Text::new(title),
                 TextFont {
-                    font_size: 14.0,
+                    font_size: bevy::text::FontSize::Px(14.0),
                     ..default()
                 },
                 TextColor(ui_color::TEXT_PRIMARY),
@@ -136,7 +136,7 @@ pub fn spawn_modal(commands: &mut Commands, cfg: ModalConfig, marker: impl Compo
         .with_child((
             Text::new("✕"),
             TextFont {
-                font_size: 12.0,
+                font_size: bevy::text::FontSize::Px(12.0),
                 ..default()
             },
             TextColor(ui_color::TEXT_SECONDARY),

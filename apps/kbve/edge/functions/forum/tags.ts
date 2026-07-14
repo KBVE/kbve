@@ -1,3 +1,4 @@
+import { logError } from "../_shared/logging.ts";
 import {
   clampLimit,
   createServiceClient,
@@ -18,7 +19,7 @@ const handlers: Record<string, Handler> = {
       p_limit: limit,
     });
     if (error) {
-      console.error("forum.tag.list error:", error);
+      logError("forum", error, { action: "tag.list" });
       return jsonResponse({ error: "tag list failed" }, 502);
     }
     return jsonResponse({ tags: data ?? [] });
@@ -33,7 +34,7 @@ const handlers: Record<string, Handler> = {
       .schema("forum")
       .rpc("service_get_tag_by_slug", { p_slug: slug as string });
     if (error) {
-      console.error("forum.tag.get error:", error);
+      logError("forum", error, { action: "tag.get" });
       return jsonResponse({ error: "tag lookup failed" }, 502);
     }
     const row = Array.isArray(data) ? data[0] : data;

@@ -9,12 +9,68 @@ osrs:
   members: false
   icon: Raw rat meat.png
   value: 1
-  lowalch: 1
+  lowalch: 0
   highalch: 1
   limit: 13000
-  about: "Raw rat meat is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Raw rat meat
+          quantity: 1
+      tools:
+        - Fire
+        - Range
+      output_quantity: 1
+      skill: Cooking
+      level: 1
+      xp: 30
+      notes: "Cooks into cooked meat; may produce burnt meat at very low levels."
+  drop_table:
+    sources:
+      - source: Giant rat
+        quantity: "1"
+        rarity: Always
+        notes: "The level 3 Lumbridge Swamp variant always drops raw rat meat."
+      - source: Brine rat
+        quantity: "1"
+        rarity: Always
+      - source: Brine rat
+        quantity: "18 (noted)"
+        rarity: Uncommon
+      - source: Dungeon rat
+        quantity: "1"
+        rarity: Always
+  shops:
+    - shop_name: "Rufus' Meat Emporium"
+      location: Canifis
+      stock: 10
+      price: 1
+  about: "Raw rat meat is a free-to-play food ingredient used for low-level Cooking training, hunter bait for sabre-toothed kebbits, and the Druidic Ritual quest."
+  market_strategy:
+    notes:
+      - "Steady demand from low-level Cooking trainers keeps GE price slightly above shop value."
+      - "Hunter players use raw rat meat as bait for sabre-toothed kebbits, providing secondary demand."
+      - "Alch value is zero, so the price floor sits at GE bid liquidity, not high alchemy."
+  trading_tips:
+    - "Buy directly from Rufus' Meat Emporium and resell on the GE when stock is well above ten."
+    - "Pair with raw chicken and raw beef listings to capture multi-item flips."
+  history:
+    - date: "2001-01-04"
+      description: "Released alongside early Cooking content."
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.141
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

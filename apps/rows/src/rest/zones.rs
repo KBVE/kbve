@@ -1,25 +1,32 @@
+//! Zone definition routes (`/api/Zones/*`). Tenant-gated by `require_customer_guid`.
+
 use super::HandlerState;
 use crate::error::SuccessResponse;
 use crate::middleware::{extract_customer_guid, require_customer_guid};
 use axum::{Json, Router, extract::State, http::HeaderMap, middleware, routing::post};
 use serde::Deserialize;
+use utoipa::ToSchema;
 
 pub(super) fn zones_routes(hs: HandlerState) -> Router {
     Router::new()
         .route("/api/Zones/AddZone", post(add_zone))
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 
-#[derive(Deserialize)]
-struct AddZoneWrapper {
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct AddZoneWrapper {
     #[serde(rename = "addOrUpdateZone")]
+    #[schema(inline)]
     add_or_update_zone: AddZonePayload,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct AddZonePayload {
+pub(crate) struct AddZonePayload {
     map_name: String,
     zone_name: String,
     soft_player_cap: i32,
@@ -27,7 +34,12 @@ struct AddZonePayload {
     map_mode: i32,
 }
 
-async fn add_zone(
+/// Adds (or updates) a zone definition for a map.
+#[utoipa::path(post, path = "/api/Zones/AddZone", tag = "zones",
+    request_body = inline(AddZoneWrapper),
+    responses((status = 200, description = "Upsert result", body = SuccessResponse))
+)]
+pub(crate) async fn add_zone(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<AddZoneWrapper>,

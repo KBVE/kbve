@@ -12,9 +12,81 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw beef is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.34
+    options:
+      - Cook
+      - Drop
+    alchable: true
+  drop_table:
+    sources:
+      - source: Cow
+        quantity: "1"
+        rarity: Always
+      - source: Cow calf
+        quantity: "1"
+        rarity: Always
+      - source: Werewolf
+        quantity: "5"
+        rarity: 10/512
+      - source: Buffalo
+        quantity: "1"
+        rarity: Always
+  shops:
+    - shop_name: Food Store
+      location: Port Sarim
+      price: 1
+      currency: Coins
+      stock: 10
+    - shop_name: Rufus' Meat Emporium
+      location: Canifis
+      price: 1
+      currency: Coins
+      stock: 10
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 30
+      materials:
+        - item_name: Raw beef
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Cooked meat
+      slug: cooked-meat
+      relationship: product
+      description: Result of cooking raw beef successfully.
+    - item_name: Burnt meat
+      slug: burnt-meat
+      relationship: alternative
+      description: Failed cook outcome at low levels.
+    - item_name: Sinew
+      slug: sinew
+      relationship: product
+      description: Members can dry raw beef on a range to produce sinew.
+  about: "Raw beef is the most accessible meat in Old School RuneScape, dropped by every cow in Lumbridge and the wider F2P world. New players grind it for early Cooking levels at level 1 for 30 XP per cook, and members repurpose stacks into sinew for Crafting strings. Its low alch value keeps it firmly a utility commodity rather than a profit item."
+  market_strategy:
+    notes:
+      - "Volume comes from new players and ironmen, not seasoned flippers."
+      - "Margins are thin because cows respawn quickly and the supply is endless."
+      - "Demand bumps slightly during Crafting bonus events that buy sinew."
+  trading_tips:
+    - Buy below 30 gp if you plan to convert into sinew for Crafting XP.
+    - Avoid overcommitting capital, the GE limit is huge but volume per tick is low.
+    - Watch for double Cooking XP weekends for short sell spikes.
+  history:
+    - date: "2001-01-04"
+      description: "Released as one of the original RuneScape meats."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

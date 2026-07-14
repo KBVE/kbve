@@ -12,25 +12,84 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 70
-  item_id: 1113
-  item_type: armor
-  slot: body
-  type: chainbody
-  tradeable: true
-  weight: 6.803
-  requirements:
-    defence: 40
-  stats:
-    stab_defence: 63
-    slash_defence: 72
-    crush_defence: 61
-    magic: -15
-    ranged: -15
+  material:
+    type: rune
+    tier: high
+  equipment:
+    slot: body
+    weapon_type: none
+    weight: 6.803
+    requirements:
+      defence: 40
+    attack_bonus: {}
+    defence_bonus:
+      stab: 63
+      slash: 72
+      crush: 61
+      magic: -15
+      ranged: -15
+    other_bonus: {}
+  recipes:
+    - materials:
+        - item_name: Runite bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
+      skill: Smithing
+      level: 96
+      xp: 225
+      output_quantity: 1
+  shops:
+    - shop_name: Scavvo's Rune Store
+      location: Champions' Guild
+      price: 50000
+    - shop_name: Seddu's Adventurer's Store
+      location: Shilo Village
+      price: 50000
   related_items:
-    - slug: rune-platebody
-    - slug: runite-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1127
+      item_name: Rune platebody
+      slug: rune-platebody
+      relationship: upgrade
+      description: Higher-tier rune torso with stronger defence bonuses.
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smelted material used to craft the chainbody.
+  about: "Rune chainbody is the highest-tier F2P chainbody and a strong budget torso for Defence level 40 players."
+  market_strategy:
+    notes:
+      - "GE buy limit of 70 per 4 hours keeps supply tight for crafters."
+      - "Smithing it at level 96 (3 runite bars, 225 xp) is currently a loss vs GE."
+      - "Drops widely from medium-tier monsters, so price tends to track PvM activity."
+  trading_tips:
+    - "Avoid smithing for profit; runite bar cost typically exceeds chainbody GE price."
+    - "Useful as a F2P PK alternative when plate is unavailable; demand spikes during Wilderness events."
+    - "High alch is below GE price, so don't alch unless you accept a loss."
+  properties:
+    release_date: "2001-07-26"
+    update: "RuneScape 1 era"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 6.803
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2001-07-26"
+      description: "Released as part of the original rune armour set during RuneScape's early metal-armour era."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

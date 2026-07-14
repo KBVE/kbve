@@ -1,20 +1,92 @@
 ---
 title: Kebab mix | OSRS Price Data
-description: "Kebab mix: A mixture of chopped tomatoes, onions and ugthanki meat in a bowl.. High alch: 5 GP, GE limit: 11,000."
+description: "Kebab mix: A mixture of chopped tomatoes, onions and ugthanki meat in a bowl. High alch: 5 GP, GE limit: 11,000."
 osrs:
   id: 1881
   name: Kebab mix
   slug: kebab-mix
-  examine: A mixture of chopped tomatoes, onions and ugthanki meat in a bowl.
+  examine: "A mixture of chopped tomatoes, onions and ugthanki meat in a bowl."
   members: true
   icon: Kebab mix.png
   value: 9
   lowalch: 3
   highalch: 5
   limit: 11000
-  about: "Kebab mix is a members-only item in Old School RuneScape. High alchemy value: 5 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food_component
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Ugthanki meat
+          quantity: 1
+        - item_name: Onion
+          quantity: 1
+        - item_name: Tomato
+          quantity: 1
+        - item_name: Bowl
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+    - skill: cooking
+      level: 1
+      xp: 40
+      materials:
+        - item_name: Kebab mix
+          quantity: 1
+        - item_name: Pitta bread
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Ugthanki kebab
+      slug: ugthanki-kebab
+      relationship: product
+      description: "Final kebab made by combining mix with pitta bread"
+    - item_name: Ugthanki meat
+      slug: ugthanki-meat
+      relationship: component
+      description: "Camel meat ingredient"
+    - item_name: Pitta bread
+      slug: pitta-bread
+      relationship: component
+      description: "Finishing ingredient"
+  about: |-
+    > _"A mixture of chopped tomatoes, onions and ugthanki meat in a bowl."_
+
+    Kebab mix is an intermediate ingredient used to craft ugthanki kebabs. Combine chopped ugthanki meat, onion and tomato in a bowl, then add pitta bread to finish (40 Cooking XP).
+  market_strategy:
+    notes:
+      - "Niche ingredient — thin volume"
+      - "Mostly used by ironmen and Gnome cooking trainers"
+      - "Ugthanki meat supply drives price"
+  trading_tips:
+    - "Resell only in small batches"
+    - "Better to flip the final ugthanki kebab"
+  history:
+    - date: "2003-04-14"
+      description: "Released with the Shilo Village update"
+    - date: "2006-01-30"
+      description: "Graphical update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

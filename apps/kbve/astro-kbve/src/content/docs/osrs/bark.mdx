@@ -1,6 +1,6 @@
 ---
 title: Bark | OSRS Price Data
-description: "Bark: Bark from a hollow tree.. High alch: 1 GP, GE limit: 13,000."
+description: "Bark: Bark from a hollow tree. Used to craft splitbark armour. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 3239
   name: Bark
@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Bark is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Vyrewatch
+        quantity: "1"
+        rarity: common
+      - source: Vyrewatch Sentinel
+        quantity: "1"
+        rarity: common
+      - source: Swamp crab
+        quantity: "1"
+        rarity: uncommon
+      - source: Araxxor
+        quantity: "1"
+        rarity: uncommon
+  related_items:
+    - item_name: Splitbark body
+      slug: splitbark-body
+      relationship: product
+      description: Splitbark armour piece
+    - item_name: Fine cloth
+      slug: fine-cloth
+      relationship: component
+      description: Paired material for crafting splitbark
+  about: |-
+    > _"Bark from a hollow tree."_
+
+    Bark is harvested from hollow trees with 45 Woodcutting (82.5 XP per piece) or dropped by Vyrewatch and other creatures. It pairs with fine cloth to craft splitbark armour at Wizard Jalarast in the Wizards' Tower; a full set requires 11 bark.
+  market_strategy:
+    notes:
+      - "High GE limit, low alch value"
+      - "Demand tied to splitbark crafting"
+      - "Steady drop volume from Vyrewatch slayer tasks"
+  trading_tips:
+    - Buy ahead of slayer cape resets when splitbark demand spikes
+    - Stack low entries to fill the 13k limit gradually
+  history:
+    - date: "2004-10-18"
+      description: "Released alongside splitbark armour."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

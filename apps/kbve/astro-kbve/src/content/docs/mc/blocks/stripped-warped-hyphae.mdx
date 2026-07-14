@@ -1,5 +1,6 @@
 ---
 title: Stripped Warped Hyphae
+template: splash
 description: |
     Minecraft Stripped Warped Hyphae — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 824
     ref: stripped_warped_hyphae
     slug: stripped-warped-hyphae
+    content_rev: 1
     display_name: Stripped Warped Hyphae
     material: nether
     hardness: 2
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_warped_hyphae
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Stripped Warped Hyphae is the bark-free, all-sides-stripped
+            form of Warped Hyphae, made by combining stripped warped stems
+            or stripping a placed hyphae block with an axe. Its cyan-teal
+            fungal texture makes it a popular non-flammable building
+            material for Nether bases.
+        lore: |
+            Warped Hyphae and its Crimson counterpart were introduced with
+            the Nether Update (Java Edition 1.16) alongside the warped
+            forest biome.
+    uses:
+        - title: Building material
+          ref: stripped_warped_hyphae
+          detail: |
+              Used for Nether hub builds and warped-forest-themed
+              structures since, unlike overworld wood, it does not burn.
+        - title: Warped Planks
+          ref: warped_planks
+          detail: |
+              Crafts into 4 Warped Planks per block for further building,
+              though it cannot be used as furnace fuel.
+    found_in:
+        - location: Warped Forest biome
+          detail: Player-made by stripping naturally generating Warped Hyphae with an axe.
+        - location: Crafting table
+          detail: Also crafted from four Stripped Warped Stems in a 2x2 grid.
+    faq:
+        - question: Is Stripped Warped Hyphae flammable?
+          answer: |
+              No. All Nether wood-type blocks, including warped hyphae, are
+              immune to fire, unlike their overworld counterparts.
+        - question: Can it be used as furnace fuel?
+          answer: |
+              No, Nether hyphae and stems cannot be burned as fuel, unlike
+              regular overworld wood and planks.
+        - question: What drops when it's mined?
+          answer: |
+              Always one Stripped Warped Hyphae, unaffected by Silk Touch
+              or Fortune.
+        - question: What tool mines it fastest?
+          answer: |
+              An axe; any tool or bare hands can still break it since it
+              requires no minimum tool tier.
     data_version: "1.21.5"
 ---
 

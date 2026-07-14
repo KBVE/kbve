@@ -13,11 +13,12 @@ import {
 	BarChart,
 	CartesianGrid,
 	Cell,
+	LabelList,
 	ResponsiveContainer,
-	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts';
+import { ChartTooltip, POLL_MS } from './chartTheme';
 import {
 	$alertsFiring,
 	$alertsFiringStatus,
@@ -32,6 +33,7 @@ import {
 	fetchAlertsFiring,
 	invalidateAlertsCache,
 	severityColor,
+	severityClass,
 	severityTextClass,
 	formatRelative,
 	ALERTS_RANGES,
@@ -39,13 +41,6 @@ import {
 	type AlertsRange,
 } from './alertsService';
 
-const POLL_MS = 30_000;
-const tooltipStyle = {
-	background: 'var(--sl-color-bg-nav, #111)',
-	border: '1px solid var(--sl-color-gray-5, #262626)',
-	borderRadius: '0.375rem',
-	fontSize: '0.75rem',
-};
 
 export type AlertsVariant = 'compact' | 'full';
 
@@ -247,27 +242,64 @@ export default function ReactAlerts({ variant = 'full' }: Props) {
 						)}
 					</div>
 					{severity && severity.length > 0 ? (
-						<ResponsiveContainer width="100%" height={180}>
-							<BarChart data={severity}>
+						<ResponsiveContainer width="100%" height={240}>
+							<BarChart
+								data={severity}
+								margin={{
+									top: 24,
+									right: 12,
+									left: 0,
+									bottom: 4,
+								}}
+								barCategoryGap="25%">
 								<CartesianGrid
-									stroke="#262626"
 									strokeDasharray="3 3"
+									vertical={false}
 								/>
 								<XAxis
 									dataKey="severity"
-									tick={{ fontSize: 10, fill: '#9ca3af' }}
+									tick={{
+										fontSize: 12,
+										fontWeight: 600,
+									}}
+									tickFormatter={(v: string) =>
+										v
+											? v.charAt(0).toUpperCase() +
+												v.slice(1)
+											: v
+									}
+									tickLine={false}
 								/>
 								<YAxis
-									tick={{ fontSize: 10, fill: '#9ca3af' }}
+									allowDecimals={false}
+									tick={{ fontSize: 11 }}
+									axisLine={false}
+									tickLine={false}
+									width={32}
 								/>
-								<Tooltip contentStyle={tooltipStyle} />
-								<Bar dataKey="firing_events">
+								<ChartTooltip
+									cursor={{
+										fill: 'color-mix(in srgb, var(--sl-color-gray-4) 18%, transparent)',
+									}}
+								/>
+								<Bar
+									dataKey="firing_events"
+									radius={[4, 4, 0, 0]}
+									maxBarSize={72}>
 									{severity.map((s, i) => (
 										<Cell
 											key={i}
-											fill={severityColor(s.severity)}
+											className={severityClass(
+												s.severity,
+											)}
 										/>
 									))}
+									<LabelList
+										dataKey="firing_events"
+										position="top"
+										fontSize={12}
+										fontWeight={700}
+									/>
 								</Bar>
 							</BarChart>
 						</ResponsiveContainer>

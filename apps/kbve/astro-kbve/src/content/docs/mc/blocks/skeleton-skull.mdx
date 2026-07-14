@@ -1,5 +1,6 @@
 ---
 title: Skeleton Skull
+template: splash
 description: |
     Minecraft Skeleton Skull — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 421
     ref: skeleton_skull
     slug: skeleton-skull
+    content_rev: 1
     display_name: Skeleton Skull
     material: stone
     hardness: 1
@@ -21,13 +23,63 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: skeleton_skull
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Skeleton Skull is a decorative head block that can be
+            placed standing on a floor (in 16 orientations) or mounted on a
+            wall. It always breaks instantly and drops itself, regardless
+            of the tool used.
+        lore: |
+            Skeleton skulls take their in-game texture from the standard
+            skeleton mob and have appeared since the Halloween Update
+            introduced mob heads in 2011.
+    uses:
+        - title: Firework Star Ingredient
+          ref: firework_star
+          detail: |
+              Craft with gunpowder and dye to add a creeper-style shaped
+              explosion effect to firework stars.
+        - title: Wearable Disguise
+          ref: skeleton_skull
+          detail: |
+              Worn as a helmet-slot item, it slightly reduces the detection
+              range of nearby skeletons.
+    found_in:
+        - location: Ancient Cities
+          detail: Naturally generates as decoration within the deep dark biome's ancient city structures.
+        - location: Charged Creeper Explosions
+          detail: A skeleton killed by a charged (lightning-struck) creeper's blast always drops its skull.
+    faq:
+        - question: What tool do I need to mine a Skeleton Skull?
+          answer: |
+              None — it has no minimum tool tier and breaks instantly with
+              any tool or bare hands, always dropping itself.
+        - question: How do I get a Skeleton Skull in survival?
+          answer: |
+              Have a charged creeper (one struck by lightning) kill a
+              skeleton, or find one placed as decoration in an ancient city.
+        - question: What is the difference between this and the wall skull?
+          answer: |
+              They are the same item; Skeleton Skull is the standing-on-floor
+              placement state, while Skeleton Wall Skull is the
+              wall-mounted placement state.
+        - question: Can it be used as a note block instrument?
+          answer: |
+              Yes, placing it above a note block produces a skeleton-themed
+              percussion sound instead of the default instrument.
     data_version: "1.21.5"
 ---
 

@@ -12,33 +12,38 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 11000
-  ammunition:
-    type: dart tip
-    ranged_strength: 0
-  fletching:
-    level: 95
-    xp: 25
-    product: Dragon dart
-    product_id: 11230
-    quantity_per_action: 10
+  about: "Dragon dart tip is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 11,000 per 4 hours."
+  material:
+    type: dragon_metal
+    tier: dragon
+  properties:
+    release_date: "2010-07-06"
+    quest_item: false
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    destroy_action: drop
+    options:
+      - drop
   drop_table:
     sources:
       - source: Vorkath
         source_id: 8061
         combat_level: 732
-        quantity: 25-50
+        quantity: "1"
         rarity: common
         members_only: true
       - source: Zalcano
         source_id: 9049
         combat_level: 654
-        quantity: 15-35
+        quantity: "1"
         rarity: common
         members_only: true
       - source: Dragon impling
         source_id: 1653
         combat_level: 0
-        quantity: 100-350
+        quantity: "1"
         rarity: uncommon
         members_only: true
   recipes:
@@ -52,9 +57,7 @@ osrs:
         - item_name: Feather
           item_id: 314
           quantity: 10
-      product: Dragon dart
-      product_id: 11230
-      product_quantity: 10
+      output_quantity: 10
       members_only: true
   related_items:
     - item_id: 11230
@@ -79,19 +82,22 @@ osrs:
       description: Alternative dart tip
   market_strategy:
     notes:
-      - Up to 2.25M XP/hour
-      - Requires feathers
-      - High demand tips
-      - Fletching training (99 grind)
-      - Dragon dart production
-      - Toxic blowpipe ammo
-      - High-level PvM
-      - Best Fletching XP method
-      - Vorkath primary source
-      - Expensive but fast
-      - 10 darts per action
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Up to 2.25M XP/hour"
+      - "Requires feathers"
+      - "High demand tips"
+      - "Fletching training (99 grind)"
+      - "Dragon dart production"
+      - "Toxic blowpipe ammo"
+      - "High-level PvM"
+      - "Best Fletching XP method"
+      - "Vorkath primary source"
+      - "Expensive but fast"
+      - "10 darts per action"
+  trading_tips:
+    - "Buying tip: stock up before Fletching DXP weekends"
+    - "Selling tip: list when Vorkath drop supply dips"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

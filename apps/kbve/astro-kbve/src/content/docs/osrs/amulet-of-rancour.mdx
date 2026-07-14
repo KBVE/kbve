@@ -12,9 +12,33 @@ osrs:
   lowalch: 160000
   highalch: 240000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: zenyte
+    tier: high
+  properties:
+    release_date: "2024-08-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.012
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
-    weight: 0.01
+    weapon_type: null
+    attack_speed: null
+    weight: 0.012
+    requirements:
+      hitpoints: 90
     attack_bonus:
       stab: 25
       slash: 25
@@ -32,62 +56,54 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 2
-    requirements:
-      hitpoints: 90
-      crafting: 86
-    degradable: false
+  recipes:
+    - skill: crafting
+      level: 86
+      xp: 500
+      materials:
+        - item_name: Amulet of torture
+          quantity: 1
+        - item_name: Araxyte fang
+          quantity: 1
+      tools: []
+      output_quantity: 1
   drop_table:
-    primary_source: Crafted
     sources:
-      - source: Araxxor (via Araxyte fang)
-        source_id: 12018
-        combat_level: 890
-        quantity: Component
-        rarity: rare
-        drop_rate: 1/600
-        members_only: true
+      - source: Araxxor (via Araxyte fang component)
+        quantity: "1"
+        rarity: 1/600
   related_items:
-    - item_id: 19553
-      item_name: Amulet of torture
+    - item_name: Amulet of torture
       slug: amulet-of-torture
       relationship: component
-      description: Base amulet required for crafting
-    - item_id: 29799
-      item_name: Araxyte fang
+      description: Base amulet upgraded into the amulet of rancour
+    - item_name: Araxyte fang
       slug: araxyte-fang
       relationship: component
-      description: Rare drop from Araxxor
-    - item_id: 29796
-      item_name: Noxious halberd
+      description: Rare Araxxor drop fused into the torture amulet
+    - item_name: Noxious halberd
       slug: noxious-halberd
       relationship: alternative
-      description: Another Araxxor reward
+      description: Alternative tradeable melee reward from Araxxor
   about: |-
-    | Stat | Torture | Rancour | Difference |
-    |------|---------|---------|------------|
-    | Melee attack | +15 | +25 | +10 |
-    | Strength | +10 | +12 | +2 |
-    | Prayer | +0 | +2 | +2 |
-    | Magic | +0 | -6 | -6 |
-    | Ranged | +0 | -8 | -8 |
+    The amulet of rancour is the best-in-slot melee amulet, upgraded from an amulet of torture by combining it with an araxyte fang at 86 Crafting for 500 experience. It requires 90 Hitpoints to equip.
 
-    Best-in-slot melee amulet for:
-    - All melee combat
-    - Bossing
-    - Slayer
-    - PvP
-
-    Note: Significant magic/ranged penalties make it unsuitable for hybrid setups.
+    Compared to the amulet of torture it gains +10 melee attack, +2 strength, and +2 prayer, at the cost of -6 magic and -8 ranged attack, making it unsuitable for hybrid setups but dominant for pure melee play.
   market_strategy:
     notes:
-      - Araxyte fang is untradeable, only the finished amulet is tradeable
-      - High demand as BiS melee neck
-      - 90 HP requirement limits some accounts
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Araxyte fang is untradeable, only the finished amulet is tradeable"
+      - "High demand as BiS melee neck for bossing and slayer"
+      - "90 HP requirement gates lower-tier accounts"
+      - "Price closely tied to Araxxor kill rates and fang drops"
+  trading_tips:
+    - Watch fang prices alongside torture amulets for crafting margin
+  history:
+    - date: "2024-08-28"
+      description: "Amulet of rancour released as a melee upgrade from Araxxor's araxyte fang drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

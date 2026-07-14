@@ -12,9 +12,75 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 5
-  about: "Trailblazer boots (t1) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-01-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 0.34
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: League hall
+      price: 1000
+      currency: League points
+      stock: 1
+  related_items:
+    - item_name: Trailblazer hood (t1)
+      slug: trailblazer-hood-t1
+      relationship: set-piece
+      description: Hood pairing for the Trailblazer Relic Hunter t1 outfit.
+    - item_name: Trailblazer top (t1)
+      slug: trailblazer-top-t1
+      relationship: set-piece
+      description: Top pairing for the Trailblazer Relic Hunter t1 outfit.
+    - item_name: Trailblazer trousers (t1)
+      slug: trailblazer-trousers-t1
+      relationship: set-piece
+      description: Trousers pairing for the Trailblazer Relic Hunter t1 outfit.
+  about: "Trailblazer boots (t1) is the boots slot piece of the tier 1 Trailblazer Relic Hunter outfit released with the Soul Wars and 20th Anniversary event update. Purchased for 1,000 League points from the Leagues Reward Shop and providing no combat bonuses. Storeable in costume rooms and outfit stands."
+  market_strategy:
+    notes:
+      - "Supply finite to Trailblazer League participants"
+      - "Buy limit of 5 caps daily flips; spreads stay wide"
+      - "Demand revives around future Leagues content and 20th anniversary callbacks"
+  trading_tips:
+    - Stockpile during Leagues hype lulls and sell on relaunches
+    - Compare to other Leagues outfits to gauge cosmetic premium
+  history:
+    - date: "2021-01-06"
+      description: "Released with Soul Wars and 20th Anniversary Event update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

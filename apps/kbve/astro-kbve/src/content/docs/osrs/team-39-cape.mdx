@@ -12,9 +12,78 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-39 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cape
+    tier: low
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    weight: 0.453
+    quest_item: false
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  equipment:
+    slot: cape
+    attack_speed: null
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      prayer: 0
+  shops:
+    - shop_name: Simon's Wilderness Cape Shop
+      location: Chaos Temple
+      price: 50
+      stock: 100
+      members: false
+  related_items:
+    - item_id: 4315
+      item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: alternative
+      description: First numbered team cape variant
+    - item_id: 4413
+      item_name: Team-50 cape
+      slug: team-50-cape
+      relationship: alternative
+      description: Last numbered team cape variant
+  market_strategy:
+    notes:
+      - "Cosmetic team-cape series 1-50"
+      - "Cheap shop supply caps price upside"
+      - "Niche minimap-blue utility for matched teams"
+      - "F2P available since 2013"
+  trading_tips:
+    - "Buy strategy: buy from Simon at 50 gp and arbitrage versus GE price"
+    - "Use case: matched team capes mark friendlies on the minimap and block left-click attack"
+    - "Risk: shop restock keeps a hard ceiling on price"
+  history:
+    - date: "2005-02-22"
+      description: "Release: team capes 1 through 50 added with the Wilderness team-cape system"
+    - date: "2013-05-23"
+      description: "Update: team capes made available to free-to-play players"
+  about: "Team-39 cape is a free-to-play cosmetic cape sold by Simon's Wilderness Cape Shop at the Chaos Temple for 50 coins. Matched team capes mark wearers as friendly on the minimap and prevent left-click attack between them. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

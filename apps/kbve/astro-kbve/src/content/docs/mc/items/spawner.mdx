@@ -1,5 +1,6 @@
 ---
 title: Monster Spawner
+template: splash
 description: |
     Minecraft Monster Spawner — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,44 @@ mc_item:
     id: 317
     ref: spawner
     slug: spawner
+    content_rev: 1
     display_name: Monster Spawner
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Monster Spawner is a special block found in structures like dungeons, mineshafts,
+            nether fortresses, strongholds, bastion remnants, and woodland mansions that
+            continuously attempts to spawn a specific mob near players. It displays a rotating
+            miniature of its mob and requires proper light and space conditions to spawn
+            successfully.
+        lore: |
+            The cage-like block hums with an unnatural energy, endlessly conjuring the creature
+            trapped within its spinning silhouette.
+    faq:
+        - question: |
+              Can I obtain a Monster Spawner in Survival mode?
+          answer: |
+              No, spawners cannot be broken and collected in Survival even with Silk Touch; they
+              are only obtainable in Creative mode or via commands.
+        - question: |
+              How do I stop a spawner from producing mobs?
+          answer: |
+              Fill the surrounding spawning volume with solid blocks or raise the light level
+              enough to prevent the target mob type from spawning.
+        - question: |
+              How close does a player need to be to activate a spawner?
+          answer: |
+              A spawner activates and attempts to spawn mobs whenever a player comes within 16
+              blocks of it.
+        - question: |
+              Can I change which mob a spawner produces?
+          answer: |
+              In Creative mode, using a spawn egg on the spawner reconfigures it to spawn that
+              egg's mob type instead.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

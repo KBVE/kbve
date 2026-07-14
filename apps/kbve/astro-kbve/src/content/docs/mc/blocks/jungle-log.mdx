@@ -1,5 +1,6 @@
 ---
 title: Jungle Log
+template: splash
 description: |
     Minecraft Jungle Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 52
     ref: jungle_log
     slug: jungle-log
+    content_rev: 1
     display_name: Jungle Log
     material: wood
     hardness: 2
@@ -24,10 +26,66 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Jungle Log is the trunk block of jungle trees, oriented along
+            whichever axis it grows. Stripping it with an axe reveals
+            Stripped Jungle Log, and it burns readily as fuel or in
+            wildfires.
+        lore: |
+            Jungle trees can grow into towering "giant" jungle trees up to
+            30+ blocks tall, among the largest natural structures generated
+            in the Overworld.
+    uses:
+        - title: Jungle Planks
+          ref: jungle_planks
+          detail: |
+              Craft into 4 Jungle Planks per log, the base ingredient for
+              most jungle-wood furniture, tools, and building blocks.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Smelts 1.5 items per log when used as furnace fuel.
+        - title: Stripped Jungle Log
+          ref: stripped_jungle_log
+          detail: |
+              Right-click with an axe to strip the bark, producing the
+              lighter Stripped Jungle Log variant used for detailed
+              building and hanging signs.
+    found_in:
+        - location: Jungle Biomes
+          detail: Generates as the trunk of jungle trees, including rare giant jungle trees.
+        - location: Wandering Trader
+          detail: Purchasable from wandering traders at roughly 1 emerald per log.
+    faq:
+        - question: What tool should I use to chop Jungle Log?
+          answer: |
+              An axe is fastest, though any tool (or bare hands) can break
+              it since no minimum tool tier is required.
+        - question: Does Fortune increase Jungle Log drops?
+          answer: |
+              No. Logs always drop as a single block regardless of
+              enchantments.
+        - question: Is Jungle Log renewable?
+          answer: |
+              Yes. Jungle Saplings grow into jungle trees, making the log
+              fully renewable.
+        - question: Can Jungle Log burn?
+          answer: |
+              Yes, like most overworld wood it is flammable and can catch
+              fire from adjacent flames or lava.
     data_version: "1.21.5"
 ---
 

@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "KBVE Agones",
+	"Description": "Server-only bridge between the Agones SDK and KBVE ROWS. Agones owns Ready/Health; this registers the dedicated-server instance with ROWS once Agones reports its GameServer identity.",
+	"Category": "Game",
+	"CreatedBy": "KBVE",
+	"CanContainContent": false,
+	"Modules": [
+		{
+			"Name": "KBVEAgones",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"TargetAllowList": [ "Server" ]
+		}
+	],
+	"Plugins": [
+		{ "Name": "Agones", "Enabled": true },
+		{ "Name": "KBVEROWS", "Enabled": true }
+	]
+}

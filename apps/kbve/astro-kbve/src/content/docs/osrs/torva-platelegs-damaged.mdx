@@ -12,43 +12,62 @@ osrs:
   lowalch: 160000
   highalch: 240000
   limit: 8
-  item:
-    type: damaged armour
+  properties:
+    release_date: "2022-01-05"
     tradeable: true
-    weight: 9.071
-  obtaining:
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: metal
+    tier: zarosian
+    primary_material: ancient_metal
+  drop_table:
     - source: Nex
-      drop_rate: 1/43 per unique roll
-      notes: Requires Bandos tassets to repair
+      quantity: "1"
+      rarity: "1/258"
+      notes: "Unique drop from Nex in the Ancient Prison."
   recipes:
-    - skill: none
-      level: 0
+    - item_name: Torva platelegs
+      skill: Smithing
+      level: 90
+      xp: 0
+      tools:
+        - Hammer
+        - Anvil
       materials:
         - item_id: 26380
           item_name: Torva platelegs (damaged)
+          slug: torva-platelegs-damaged
           quantity: 1
         - item_id: 11834
           item_name: Bandos tassets
+          slug: bandos-tassets
           quantity: 1
-      product: Torva platelegs
-      product_id: 26386
-      notes: No skill requirements
+      output_quantity: 1
   related_items:
     - item_id: 11834
       item_name: Bandos tassets
       slug: bandos-tassets
       relationship: component
-      description: Required to repair
+      description: Required Bandosian component (consumed on repair).
     - item_id: 26386
       item_name: Torva platelegs
       slug: torva-platelegs
-      relationship: product
-      description: Repaired BiS melee legs
+      relationship: variant
+      description: Restored BiS melee legs slot equipment.
     - item_id: 26376
       item_name: Torva full helm (damaged)
       slug: torva-full-helm-damaged
-      relationship: alternative
-      description: Damaged helm from Nex
+      relationship: set-piece
+      description: Damaged Torva helm dropped by Nex.
+    - item_id: 26384
+      item_name: Torva platebody (damaged)
+      slug: torva-platebody-damaged
+      relationship: set-piece
+      description: Damaged Torva body dropped by Nex.
   about: |-
     | Property | Value |
     |----------|-------|
@@ -61,7 +80,7 @@ osrs:
     | Torva platelegs (damaged) | Nex | ~220M |
     | Bandos tassets | God Wars Dungeon | ~22M |
 
-    No skill requirements to combine the items.
+    Requires 90 Smithing to repair at an anvil with a hammer.
 
     | Item Created | Materials |
     |--------------|-----------|
@@ -75,12 +94,19 @@ osrs:
     - +16 total HP with full set
   market_strategy:
     notes:
-      - Nex exclusive drop
-      - Tassets consumed in repair
-      - Creates BiS melee legs
-      - Part of Torva set
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Nex exclusive drop (1/258)"
+      - "Tassets consumed in repair"
+      - "Creates BiS melee legs"
+      - "Part of Torva set"
+  trading_tips:
+    - Buy damaged + Bandos tassets, repair only when restored Torva trades at a premium.
+    - GE buy limit 8 every 4 hours - long flips needed.
+    - Track Nex team participation rates for supply.
+  history:
+    - date: "2022-01-05"
+      description: "Released with Nex: The Fifth General update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

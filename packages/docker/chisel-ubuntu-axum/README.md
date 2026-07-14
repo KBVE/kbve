@@ -23,7 +23,7 @@ Full build environment for Rust + Astro services:
 
 | Component             | Version | Purpose                             |
 | --------------------- | ------- | ----------------------------------- |
-| **Rust**              | 1.94    | Axum service compilation            |
+| **Rust**              | 1.96    | Axum service compilation            |
 | **cargo-chef**        | latest  | Dependency layer caching for Docker |
 | **Node.js**           | 24      | Astro frontend builds               |
 | **pnpm**              | latest  | Package management (via corepack)   |

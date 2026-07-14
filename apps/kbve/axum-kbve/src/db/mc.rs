@@ -21,6 +21,18 @@ const MOJANG_SESSION: &str = "https://sessionserver.mojang.com/session/minecraft
 /// / `_PASSWORD`.
 const KNOWN_SERVERS: &[&str] = &["LOBBY", "SURVIVAL"];
 
+/// Block-space coordinates + dimension pulled per-poll from
+/// `/data get entity <name> Pos` and `... Dimension`. None when the
+/// backend is a proxy (LOBBY) or the RCON sub-call failed.
+#[derive(Clone, Debug, Serialize)]
+pub struct McPosition {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    /// Namespaced dimension id like `minecraft:overworld`.
+    pub dimension: String,
+}
+
 /// API response model — serialized to JSON for `/api/v1/mc/players`.
 #[derive(Clone, Debug, Serialize)]
 pub struct McPlayer {
@@ -29,6 +41,10 @@ pub struct McPlayer {
     pub skin_url: Option<String>,
     /// Backend server the player is connected to ("lobby", "survival").
     pub server: String,
+    /// Live block-space coordinates pulled via RCON. Missing on proxies
+    /// (lobby) and when the per-player data lookup failed this poll.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<McPosition>,
 }
 
 /// Per-server status for API clients that want a breakdown by backend.
@@ -197,7 +213,11 @@ impl McService {
     /// online-player cache first and falling back to Mojang sessionserver.
     /// Returns None when Mojang has no profile or the player has no skin.
     pub async fn resolve_skin_by_uuid(&self, uuid: &str) -> Option<String> {
-        let target = uuid.replace('-', "").to_lowercase();
+        let target: String = uuid
+            .chars()
+            .filter(|c| *c != '-')
+            .map(|c| c.to_ascii_lowercase())
+            .collect();
 
         for entry in self.players.iter() {
             if entry.uuid.eq_ignore_ascii_case(&target) && !entry.is_expired() {
@@ -249,12 +269,9 @@ impl McService {
     /// Poll every configured endpoint in parallel so one unreachable backend
     /// (e.g. an Agones fleet with 0 Fabric pods) doesn't sink the others.
     async fn refresh_player_list(&self) {
-        let polls = self.endpoints.iter().map(|ep| {
-            let ep = ep.clone();
-            async move {
-                let result = Self::rcon_list(&ep).await;
-                (ep.name, result)
-            }
+        let polls = self.endpoints.iter().map(|ep| async move {
+            let result = Self::rcon_list(ep).await;
+            (ep.name.clone(), result)
         });
         let results: Vec<RconPollResult> = join_all(polls).await;
 
@@ -274,13 +291,29 @@ impl McService {
                         max,
                         reachable: true,
                     });
-                    for name in names {
-                        let cached = self.resolve_player(&name).await;
+                    let endpoint = self.endpoints.iter().find(|e| e.name == server_name);
+                    let positions = match endpoint {
+                        Some(ep) if server_name == "survival" => {
+                            Self::rcon_positions(ep, &names).await
+                        }
+                        _ => Vec::new(),
+                    };
+
+                    // Resolve all players for this server concurrently — a
+                    // cold-cache resolve_player does two blocking Mojang round
+                    // trips, so serial awaits here can blow past REFRESH_INTERVAL.
+                    let resolved = join_all(names.iter().map(|n| self.resolve_player(n))).await;
+                    for (name, cached) in names.into_iter().zip(resolved) {
+                        let position = positions
+                            .iter()
+                            .find(|(n, _)| n.eq_ignore_ascii_case(&name))
+                            .map(|(_, p)| p.clone());
                         all_players.push(McPlayer {
                             name,
                             uuid: cached.as_ref().map(|c| c.uuid.clone()),
                             skin_url: cached.and_then(|c| c.skin_url),
                             server: server_name.clone(),
+                            position,
                         });
                     }
                 }
@@ -387,6 +420,38 @@ impl McService {
         let mut client = RconClient::connect(&ep.conn, RCON_TIMEOUT).await?;
         let body = client.exec("list").await?;
         parse_list_response(&body)
+    }
+
+    /// For each named player, issue `/data get entity <name> Pos` and
+    /// `/data get entity <name> Dimension`, parse, and return the pairs
+    /// that succeeded. Re-uses one RCON connection for the whole batch.
+    /// Per-player failures are skipped silently so a single offline /
+    /// AFK-out-of-bounds player can't black-hole the entire poll.
+    async fn rcon_positions(ep: &RconEndpoint, names: &[String]) -> Vec<(String, McPosition)> {
+        let mut client = match RconClient::connect(&ep.conn, RCON_TIMEOUT).await {
+            Ok(c) => c,
+            Err(e) => {
+                warn!(server = %ep.name, error = %e, "RCON connect for positions failed");
+                return Vec::new();
+            }
+        };
+        let mut out = Vec::with_capacity(names.len());
+        for name in names {
+            let pos_cmd = format!("data get entity {name} Pos");
+            let dim_cmd = format!("data get entity {name} Dimension");
+            let pos = match client.exec(&pos_cmd).await {
+                Ok(body) => parse_pos_response(&body),
+                Err(_) => None,
+            };
+            let dim = match client.exec(&dim_cmd).await {
+                Ok(body) => parse_dimension_response(&body),
+                Err(_) => None,
+            };
+            if let (Some((x, y, z)), Some(dimension)) = (pos, dim) {
+                out.push((name.clone(), McPosition { x, y, z, dimension }));
+            }
+        }
+        out
     }
 }
 
@@ -498,6 +563,38 @@ fn parse_list_response(response: &str) -> anyhow::Result<(Vec<String>, usize)> {
     };
 
     Ok((names, max))
+}
+
+/// Parse the response from `/data get entity <name> Pos`. Vanilla format:
+/// `KbveCEO has the following entity data: [-12.5d, 64.0d, 8.2d]`. The
+/// `d` suffix tags doubles. Returns None on any deviation so callers can
+/// silently drop the player from this poll.
+fn parse_pos_response(response: &str) -> Option<(f64, f64, f64)> {
+    // splitn(2) so a dimension-style suffix with a namespace colon
+    // doesn't truncate the captured body.
+    let body = response.split_once(':')?.1.trim();
+    let inner = body.strip_prefix('[').and_then(|s| s.strip_suffix(']'))?;
+    let mut parts = inner.split(',').map(|p| {
+        p.trim()
+            .trim_end_matches(['d', 'D', 'f', 'F'])
+            .parse::<f64>()
+            .ok()
+    });
+    Some((parts.next()??, parts.next()??, parts.next()??))
+}
+
+/// Parse the response from `/data get entity <name> Dimension`. Vanilla
+/// format: `KbveCEO has the following entity data: "minecraft:overworld"`.
+/// Trims the surrounding quotes; returns None if the format drifts.
+fn parse_dimension_response(response: &str) -> Option<String> {
+    // splitn(2) so the namespaced dimension id (which contains its own
+    // colon, e.g. `"minecraft:overworld"`) survives intact.
+    let body = response.split_once(':')?.1.trim();
+    let unquoted = body.strip_prefix('"').and_then(|s| s.strip_suffix('"'))?;
+    if unquoted.is_empty() {
+        return None;
+    }
+    Some(unquoted.to_string())
 }
 
 /// Extract the 60-64 char hex texture hash from a textures.minecraft.net URL.

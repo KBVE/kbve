@@ -6,6 +6,11 @@ metadata:
     labels:
         app: supabase-vector
         component: vector
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
 spec:
     selector:
         matchLabels:
@@ -41,19 +46,16 @@ spec:
                             fieldRef:
                                 fieldPath: metadata.namespace
                       - name: PROCFS_ROOT
-                        value: '/host/proc'
+                        value: /host/proc
                       - name: SYSFS_ROOT
-                        value: '/host/sys'
+                        value: /host/sys
                       - name: CLICKHOUSE_ENDPOINT
                         valueFrom:
                             secretKeyRef:
                                 name: clickhouse-vector-credentials
                                 key: endpoint
                       - name: CLICKHOUSE_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: clickhouse-vector-credentials
-                                key: username
+                        value: kbve_ingest
                       - name: CLICKHOUSE_PASSWORD
                         valueFrom:
                             secretKeyRef:
@@ -82,11 +84,11 @@ spec:
                         readOnly: true
                   resources:
                       requests:
-                          memory: '256Mi'
-                          cpu: '500m'
+                          memory: 256Mi
+                          cpu: 500m
                       limits:
-                          memory: '4096Mi'
-                          cpu: '6000m'
+                          memory: 4096Mi
+                          cpu: 6000m
                   securityContext:
                       runAsUser: 0
                       privileged: true
@@ -128,7 +130,6 @@ spec:
                 - name: sysfs
                   hostPath:
                       path: /sys
-
 ---
 apiVersion: v1
 kind: Service
@@ -138,6 +139,9 @@ metadata:
     labels:
         app: supabase-vector
         component: vector
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     ports:

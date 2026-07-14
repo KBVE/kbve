@@ -1,5 +1,6 @@
 ---
 title: Pink Stained Glass
+template: splash
 description: |
     Minecraft Pink Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 507
     ref: pink_stained_glass
     slug: pink-stained-glass
+    content_rev: 1
     display_name: Pink Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Pink Stained Glass is a dyed variant of glass, crafted from 4 Glass and 1 Pink Dye to yield 8 blocks. It is fully transparent to light while blocking mob line-of-sight, and it requires Silk Touch to be mined without breaking.
+            Stacking colored glass above a beacon tints its light beam, and Pink Stained Glass can be crafted further into Pink Stained Glass Panes.
+        lore: |
+            Molten sand fused with pink dye, letting light pass through in a soft rose tint while still shielding a room from prying mobs.
+    faq:
+        - question: How do you make Pink Stained Glass?
+          answer: |
+              Craft 4 Glass with 1 Pink Dye in a crafting table to produce 8 Pink Stained Glass blocks.
+        - question: Do you need Silk Touch to mine Pink Stained Glass?
+          answer: |
+              Yes, without Silk Touch, stained glass drops nothing when broken; with Silk Touch it drops itself.
+        - question: Can Pink Stained Glass change a beacon's beam color?
+          answer: |
+              Yes, placing Pink Stained Glass in the beacon's beam path tints the beam pink, and multiple colors can blend together.
+        - question: Can mobs see through Pink Stained Glass?
+          answer: |
+              No, although the block is visually transparent, mobs treat it as an opaque block and cannot see through it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

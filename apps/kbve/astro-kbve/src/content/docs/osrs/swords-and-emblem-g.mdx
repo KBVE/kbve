@@ -12,9 +12,74 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Swords and emblem (g) is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: mid-high
+  properties:
+    release_date: "2025-10-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.3
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Events Reward Shop
+      location: Varrock Square
+      price: 1100
+      currency: Event points
+      stock: 1
+  related_items:
+    - item_name: Grid master tabard (g)
+      slug: grid-master-tabard-g
+      relationship: set-piece
+      description: "Matching tabard cosmetic from the Grid Master event reward shop"
+  about: "Swords and emblem (g) is a cosmetic cape released alongside the Grid Master community event in October 2025. It is purchased from the Events Reward Shop in Varrock Square for 1,100 event points and provides no combat bonuses. It can be stored in a costume room armour case."
+  market_strategy:
+    notes:
+      - "Demand is purely cosmetic — drives mainly by collectors and outfit completionists"
+      - "Supply was tied to the Grid Master event window; post-event scarcity supports the price floor"
+      - "No alchemy value (lowalch/highalch null) means no alch backstop on price drops"
+  trading_tips:
+    - "Pair-trade with grid master tabard (g) — completers want the matching set"
+    - "Event-window collectibles tend to rise after the event ends as supply dries up"
+    - "Untradeable to anyone who missed the event — the buyer pool is essentially fixed"
+  history:
+    - date: "2025-10-15"
+      description: "Released as a reward in the Grid Master community event, sold from the Events Reward Shop in Varrock Square"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

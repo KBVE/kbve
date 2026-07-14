@@ -1,5 +1,6 @@
 ---
 title: Bookshelf
+template: splash
 description: |
     Minecraft Bookshelf — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 305
     ref: bookshelf
     slug: bookshelf
+    content_rev: 1
     display_name: Bookshelf
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A decorative wooden block that boosts the power of a nearby enchanting table. Crafted from
+            6 wooden planks and 3 books, it can also be bought from librarian villagers or found in
+            village and stronghold libraries. Placing 15 bookshelves around an enchanting table unlocks
+            access to level 30 enchantments.
+        lore: |
+            Knowledge preserved in wood and paper, waiting to amplify the magic of those who seek greater power.
+    faq:
+        - question: How do I craft a bookshelf?
+          answer: |
+              Arrange 6 wooden planks in the outer slots and 3 books in the center column of a crafting table.
+        - question: What's the maximum enchantment boost from bookshelves?
+          answer: |
+              Fifteen properly-positioned bookshelves around an enchanting table enable level 30 enchantments;
+              additional bookshelves provide no further benefit.
+        - question: Can I recover the books used to make a bookshelf?
+          answer: |
+              Yes, breaking a bookshelf drops 3 books, letting you recover materials for reconstruction elsewhere.
+        - question: Does a bookshelf have any use besides enchanting?
+          answer: |
+              Bookshelves are also a crafting ingredient for lecterns and can be burned as furnace fuel,
+              smelting 1.5 items per block.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

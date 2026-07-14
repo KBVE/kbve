@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/itemdb.binpb
  * Config: ../itemdb-zod-config.json
- * Generated: 2026-06-01T06:12:05.346Z
+ * Generated: 2026-06-22T21:31:58.903Z
  */
 
 import { z } from 'zod';
@@ -592,6 +592,9 @@ export const ItemSchema = z.object({
 	extensions: z.array(ItemExtensionSchema).optional(),
 	credits: z.string().optional(),
 	drafted: z.boolean().optional(),
+	key: z.number(),
+	has_img: z.boolean().optional(),
+	bonuses: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type Item = z.infer<typeof ItemSchema>;

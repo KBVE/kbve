@@ -1,5 +1,6 @@
 ---
 title: Dragon Head
+template: splash
 description: |
     Minecraft Dragon Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 431
     ref: dragon_head
     slug: dragon-head
+    content_rev: 1
     display_name: Dragon Head
     material: stone
     hardness: 1
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dragon_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - blast_resistant
+        - overworld
+    about:
+        description: |
+            Dragon Head is a decorative block resembling a shrunken Ender
+            Dragon skull. It can be worn as a helmet, placed on note blocks
+            to add a dragon-roar instrument, or mounted onto mobs by firing
+            it from a dispenser.
+        lore: |
+            Added in Java Edition 1.9 alongside the End Update, it is found
+            only aboard End ships rather than dropped by the Ender Dragon
+            itself.
+    uses:
+        - title: Note Block Instrument
+          ref: note_block
+          detail: |
+              Placing a Dragon Head on or above a note block changes its
+              sound to a dragon roar when played.
+        - title: Wearable Helmet
+          ref: dragon_head
+          detail: |
+              Equip it in the helmet armor slot purely for cosmetic effect;
+              it provides no armor value.
+    found_in:
+        - location: End Ships
+          detail: Generates on the deck of every End ship found in End cities.
+    faq:
+        - question: What tool do I need to mine a Dragon Head?
+          answer: |
+              None — it drops with any tool, or even by hand, since it has
+              no minimum tool tier requirement.
+        - question: Can I get a Dragon Head from killing the Ender Dragon?
+          answer: |
+              No. The only source is looting End ships inside End cities.
+        - question: Does it animate?
+          answer: |
+              Yes. When powered by redstone, the mouth opens and closes.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops itself once regardless of enchantments.
     data_version: "1.21.5"
 ---
 

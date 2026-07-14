@@ -1,5 +1,6 @@
 ---
 title: Block of Resin
+template: splash
 description: |
     Minecraft Block of Resin — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 384
     ref: resin_block
     slug: resin-block
+    content_rev: 1
     display_name: Block of Resin
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Block of Resin is a storage block crafted from nine resin clumps, functioning mainly as a compact way to store the sticky orange material. It has zero hardness and breaks instantly with any tool, and it also generates naturally in pale garden abandoned camps.
+            Beyond storage, it is a key crafting ingredient for the creaking heart, combined together with pale oak logs.
+        lore: |
+            Sap oozing from pale oaks hardens into blocks that later found a darker purpose inside the creaking's heart.
+    faq:
+        - question: |
+              How is a Block of Resin crafted?
+          answer: |
+              Nine resin clumps arranged in a full crafting grid produce one Block of Resin, and it can be crafted back into 9 resin clumps.
+        - question: |
+              Where can I find Blocks of Resin naturally?
+          answer: |
+              They generate naturally inside pale garden abandoned camps.
+        - question: |
+              What tool do I need to break a Block of Resin?
+          answer: |
+              None. It has zero hardness and breaks instantly regardless of the tool used, always dropping itself.
+        - question: |
+              What is the Block of Resin used for in crafting?
+          answer: |
+              It is combined with pale oak logs to craft a creaking heart, in addition to serving as a compact storage form for resin clumps.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

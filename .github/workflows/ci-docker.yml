@@ -67,7 +67,7 @@ jobs:
             local_version: ${{ steps.check.outputs.local_version }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Check version against version.toml
               id: check
@@ -162,7 +162,7 @@ jobs:
             external_publish: ${{ steps.resolve.outputs.external_publish }}
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   sparse-checkout: .github/ci-dispatch-manifest.json
                   sparse-checkout-cone-mode: false
@@ -214,9 +214,12 @@ jobs:
             project: ${{ needs.config.outputs.e2e_name }}
             runner: ${{ needs.config.outputs.runner }}
             image: ${{ needs.config.outputs.image }}
-            install_playwright: false
+            source_path: ${{ needs.config.outputs.source_path }}
             version_source: ${{ needs.config.outputs.version_source }}
             version_target: ${{ needs.config.outputs.version_target }}
+        secrets:
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     # ---------------------------------------------------------------------------
     # Publish — promotes the ci-{sha} tag built in test to the release tag.
@@ -243,10 +246,11 @@ jobs:
             cargo_toml: ${{ needs.config.outputs.cargo_toml }}
             version_source: ${{ needs.config.outputs.version_source }}
             version_target: ${{ needs.config.outputs.version_target }}
+            source_path: ${{ needs.config.outputs.source_path }}
         secrets:
-            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     # ---------------------------------------------------------------------------
     # Post-publish — single atomic PR: version.toml + Cargo.toml + kube manifest.
@@ -295,6 +299,7 @@ jobs:
         secrets:
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             MODRINTH_SESSION: ${{ secrets.MODRINTH_SESSION }}
+            MODRINTH_PASSKEY: ${{ secrets.MODRINTH_PASSKEY }}
             ITCH_API_KEY: ${{ secrets.ITCH_API }}
             STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
             STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
@@ -303,7 +308,7 @@ jobs:
 
     track_failure:
         name: Track Failures
-        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        if: ${{ always() && !contains(needs.*.result, 'cancelled') }}
         needs: [version_gate, test, publish, post_publish, external_publish]
         permissions:
             issues: write
@@ -314,4 +319,5 @@ jobs:
             job_name: ${{ inputs.app_name }}
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
+            status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
+            version: ${{ needs.version_gate.outputs.local_version }}

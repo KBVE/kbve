@@ -1,5 +1,6 @@
 ---
 title: Blue Concrete Powder
+template: splash
 description: |
     Minecraft Blue Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 612
     ref: blue_concrete_powder
     slug: blue-concrete-powder
+    content_rev: 1
     display_name: Blue Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Blue Concrete Powder is a gravity-affected block crafted from blue dye, sand, and gravel. Like sand and gravel, it falls when unsupported. When it comes into contact with water, it instantly solidifies into solid blue concrete.
+        lore: |
+            First teased by Jeb in 2017, its water-triggered color change made it one of the most anticipated building blocks of Java Edition 1.12.
+    faq:
+        - question: |
+            How do I craft Blue Concrete Powder?
+          answer: |
+            Combine one blue dye with four sand and four gravel in a shapeless recipe to yield eight blue concrete powder. Note that red sand cannot be substituted for regular sand.
+        - question: |
+            How does it turn into concrete?
+          answer: |
+            The powder solidifies into blue concrete the moment it touches water — a source block, flowing water, or a waterlogged block. Rain and splash potions do not trigger the change.
+        - question: |
+            Why does it fall like sand?
+          answer: |
+            Concrete powder is a gravity-affected block, so it drops when there is no solid block beneath it, just like sand and gravel.
+        - question: |
+            What is Blue Concrete Powder used for?
+          answer: |
+            It serves mainly as an intermediate for making solid blue concrete, valued for construction and decoration projects needing a vivid blue.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -16,6 +16,7 @@ apps/rareicon/**/Plugins/**/*.so    filter=lfs diff=lfs merge=lfs -text
 apps/rareicon/**/Plugins/**/*.a     filter=lfs diff=lfs merge=lfs -text
 apps/rareicon/**/Plugins/**/*.bundle filter=lfs diff=lfs merge=lfs -text
 apps/rareicon/**/Plugins/**/*.framework/** filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/**/Assets/_RareIcon/Textures/Environment/**/*.png filter=lfs diff=lfs merge=lfs -text
 # XCFramework binary slices — Info.plist + headers stay text, the
 # library payload (.a per arch slice) is matched by the *.a rule above.
 # Explicit rule for any future *.framework wrapped libraries too.
@@ -26,3 +27,75 @@ apps/godot/**/addons/**/bin/**/*.dylib filter=lfs diff=lfs merge=lfs -text
 apps/godot/**/addons/**/bin/**/*.dll   filter=lfs diff=lfs merge=lfs -text
 apps/godot/**/addons/**/bin/**/*.so    filter=lfs diff=lfs merge=lfs -text
 apps/godot/**/addons/**/bin/**/*.wasm  filter=lfs diff=lfs merge=lfs -text
+
+# KBVE UE plugin native libs (packages/unreal/**) are intentionally NORMAL git
+# blobs, NOT LFS — static (.a/.lib) and shared (.dylib/.dll/.so/.bundle) alike.
+# A plain clone (and the CI plugin build) gets every prebuilt lib at link/load
+# time with no LFS pull. Plugin libs are pinned third-party versions that change
+# rarely, so the history cost is acceptable for the zero-friction download.
+
+# Unreal Engine — apps/rentearth/unreal-rentearth binary assets
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/rentearth.git
+# (see apps/rentearth/unreal-rentearth/.lfsconfig). Routes through git.kbve.com
+# ingress-nginx the same way as the rareicon LFS repo.
+# UE cooked / serialized assets
+apps/rentearth/unreal-rentearth/**/*.uasset filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.umap   filter=lfs diff=lfs merge=lfs -text
+# Raw 3D / DCC source art
+apps/rentearth/unreal-rentearth/**/*.fbx    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.obj    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.blend  filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.psd    filter=lfs diff=lfs merge=lfs -text
+# Textures (raster + HDR)
+apps/rentearth/unreal-rentearth/**/*.png    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.jpg    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.jpeg   filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.tga    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.exr    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.hdr    filter=lfs diff=lfs merge=lfs -text
+# Audio
+apps/rentearth/unreal-rentearth/**/*.wav    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.mp3    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.ogg    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/*.flac   filter=lfs diff=lfs merge=lfs -text
+# Plugin / native binaries
+apps/rentearth/unreal-rentearth/**/Plugins/**/*.dylib filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/Plugins/**/*.dll   filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/Plugins/**/*.so    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/Plugins/**/*.a     filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal-rentearth/**/Plugins/**/*.bundle filter=lfs diff=lfs merge=lfs -text
+
+# ARPG — apps/agones/arpg/web standalone vite client game art (sprites + ground)
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/arpg.git
+# (see apps/agones/arpg/web/public/assets/arcade/arpg/.lfsconfig). Push/pull the
+# blobs to the arpg endpoint with `./kbve.sh -lfs arpg <push|pull|...>`; the
+# repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the
+# arpg endpoint. Raw 720px source sheets stay gitignored (characters/**/raw/).
+apps/agones/arpg/web/public/assets/arcade/arpg/**/*.png filter=lfs diff=lfs merge=lfs -text
+apps/agones/arpg/web/public/assets/arcade/arpg/**/*.webp filter=lfs diff=lfs merge=lfs -text
+
+# Cryptothrone — apps/cryptothrone/astro-cryptothrone isometric game art
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/cryptothrone.git
+# (see apps/cryptothrone/astro-cryptothrone/public/assets/.lfsconfig). Push/pull the
+# blobs to the cryptothrone endpoint with `./kbve.sh -lfs cryptothrone <push|pull|...>`;
+# the repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the endpoint.
+apps/cryptothrone/astro-cryptothrone/public/assets/**/*.png  filter=lfs diff=lfs merge=lfs -text
+apps/cryptothrone/astro-cryptothrone/public/assets/**/*.webp filter=lfs diff=lfs merge=lfs -text
+
+# Herbmail — apps/herbmail/herbmail-game PSX-style vite game art (textures + models + audio)
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/herbmail.git
+# (see apps/herbmail/herbmail-game/public/.lfsconfig). Push/pull the blobs to the
+# herbmail endpoint with `./kbve.sh -lfs herbmail <push|pull|register|...>`; the
+# repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the endpoint.
+apps/herbmail/herbmail-game/public/**/*.png  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.webp filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.jpg  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.glb  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.gltf filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.fbx  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.mp3  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.ogg  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/public/**/*.wav  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/art/**/*.blend   filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/herbmail-game/art/**/*.fbx     filter=lfs diff=lfs merge=lfs -text

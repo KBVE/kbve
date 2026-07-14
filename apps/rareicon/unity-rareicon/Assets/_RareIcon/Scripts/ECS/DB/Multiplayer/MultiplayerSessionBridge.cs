@@ -63,9 +63,6 @@ namespace RareIcon
                 EntityManager.SetComponentData(_singleton, s);
             }
 
-            // Static fast-path so spawner OnUpdate guards stay branch-free
-            // and don't pay the singleton-lookup cost. Cross-world readable
-            // (NetCode Server / Client worlds query this without singleton replication).
             bool prevStarted = MultiplayerAuthority.MatchStarted;
             MultiplayerAuthority.IsAuthority   = isAuthority == 1;
             MultiplayerAuthority.InMultiplayer = inMultiplayer == 1;

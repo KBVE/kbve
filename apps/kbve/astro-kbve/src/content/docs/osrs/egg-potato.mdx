@@ -1,6 +1,6 @@
 ---
 title: Egg potato | OSRS Price Data
-description: "Egg potato: A baked potato with egg and tomato.. High alch: 7 GP, GE limit: 13,000."
+description: "Egg potato is a 51 Cooking baked-potato dish that heals 16 Hitpoints in one tick. High alch: 7 GP, GE limit: 13,000."
 osrs:
   id: 7056
   name: Egg potato
@@ -12,9 +12,68 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 13000
-  about: "Egg potato is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2006-01-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  food:
+    heal_amount: 16
+    is_combo: false
+  recipes:
+    - skill: cooking
+      level: 51
+      xp: 45
+      materials:
+        - item_name: Potato with butter
+          quantity: 1
+        - item_name: Egg and tomato
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Potato with butter
+      slug: potato-with-butter
+      relationship: component
+      description: Buttered potato base for the egg potato
+    - item_name: Egg and tomato
+      slug: egg-and-tomato
+      relationship: component
+      description: Topping mixed with the buttered potato
+    - item_name: Potato with cheese
+      slug: potato-with-cheese
+      relationship: alternative
+      description: Same 16 HP heal with a simpler recipe
+    - item_name: Chilli potato
+      slug: chilli-potato
+      relationship: variant
+      description: Other baked-potato variant in the dish family
+  about: Egg potato is a baked-potato dish made at 51 Cooking by combining a potato with butter and an egg and tomato topping for 45 Cooking XP. It heals 16 Hitpoints in a single tick, the same as the simpler potato with cheese.
+  market_strategy:
+    notes:
+      - "Demand follows mid-level Cooking training and casual PvM food usage"
+      - "Eating the components separately heals more, so most demand is from Cooking XP rather than PvM"
+  trading_tips:
+    - Check potato with butter and egg and tomato prices together — combined cost vs. GE price drives margins
+    - Watch potato with cheese listings as a substitute that heals the same amount
+  history:
+    - date: "2006-01-30"
+      description: Added with the baked potato toppings expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

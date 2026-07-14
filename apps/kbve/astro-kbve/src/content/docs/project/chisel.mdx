@@ -1,7 +1,7 @@
 ---
-title: Chisel Ubuntu Axum
-description: |
-    Shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum services. Includes jemalloc, libpq, and CA certificates.
+title: Chisel Ubuntu Axum — Minimal Runtime Base Image
+description: Shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum services, bundling jemalloc, libpq5, and CA certificates in a scratch-based image.
+sem: 1
 sidebar:
     label: Chisel Base
     order: 900
@@ -14,7 +14,7 @@ tags:
 key: chisel_ubuntu_axum
 pipeline: docker
 app_name: chisel-ubuntu-axum
-version: "24.04.7"
+version: "24.04.10"
 version_toml: packages/docker/chisel-ubuntu-axum/version.toml
 source_path: packages/docker/chisel-ubuntu-axum
 runner: ubuntu-latest
@@ -23,9 +23,83 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the chisel-ubuntu-axum base image?
+          answer: It is a shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum services, built with Canonical's chisel so it contains only the runtime libraries — jemalloc, libpq5, and CA certificates — on a scratch-based, shell-less rootfs.
+        - question: Why use a chiseled image instead of full Ubuntu?
+          answer: Chisel slices Ubuntu packages into minimal filesystem layers, extracting only the exact files needed. This yields a much smaller image than the ~80MB+ full Ubuntu base and removes the shell and package manager, shrinking the attack surface.
+        - question: How does it simplify service Dockerfiles?
+          answer: Services reference it as their runtime base with FROM ghcr.io/kbve/chisel-ubuntu-axum, which eliminates about three build stages (chisel, jemalloc, libpq) per service and saves build time and disk space in CI.
+bento:
+    badge: docker · infrastructure · chisel
+    title: Minimal runtime base for
+    accent: Axum services
+    lede: >-
+        A shared chiseled Ubuntu 24.04 runtime base image for every KBVE Axum
+        service. Built with Canonical's chisel so it carries only the runtime
+        libraries — jemalloc, libpq5, and CA certificates — on a scratch-based,
+        shell-less rootfs.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/docker/chisel-ubuntu-axum
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+    aside:
+        icon: shield
+        title: Shell-less, smaller, safer
+        body: >-
+            Chisel slices Ubuntu packages into minimal filesystem layers,
+            extracting only the exact files needed — far smaller than the
+            <code>~80MB+</code> full Ubuntu base, with no shell or package
+            manager to shrink the attack surface.
+        points:
+            - <strong>jemalloc</strong> — preconfigured via <code>LD_PRELOAD</code>.
+            - <strong>Non-root</strong> — runs as <code>appuser:10001</code>.
+    stats:
+        - { label: Image, value: kbve/chisel-ubuntu-axum, icon: package }
+        - { label: Base, value: Ubuntu 24.04, icon: box }
+        - { label: User, value: appuser:10001, icon: lock }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Minimal rootfs
+          icon: box
+          body: Chiseled Ubuntu 24.04 rootfs — no shell, no package manager, just the exact files needed on a scratch base.
+        - title: jemalloc preloaded
+          icon: zap
+          body: Memory allocator pre-configured via LD_PRELOAD for every service that inherits the base.
+        - title: Postgres + TLS ready
+          icon: shield
+          body: Bundles libpq5, the PostgreSQL client library, and CA certificates for HTTPS/TLS connections.
+        - title: Fewer build stages
+          icon: check
+          body: Eliminates ~3 Docker stages (chisel + jemalloc + libpq) from each service Dockerfile, saving build time and disk in CI.
+    related:
+        - title: API
+          href: /project/api/
+          copy: Axum service that runs on this runtime base.
+          icon: server
+        - title: Herbmail
+          href: /project/herbmail/
+          copy: Another KBVE Axum service targeting this image.
+          icon: message
+    related_heading: Related
 ---
 
-## Chisel Ubuntu Axum
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="usage" eyebrow="Runtime base" heading="Chisel, contents & usage">
 
 Shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum services.
 
@@ -67,3 +141,7 @@ This eliminates ~3 Docker stages (chisel + jemalloc + libpq) from each service D
 | `axum-herbmail` | planned |
 | `axum-chuckrpg` | planned |
 | `axum-cryptothrone` | planned |
+
+</BentoProse>
+
+</BentoDoc>

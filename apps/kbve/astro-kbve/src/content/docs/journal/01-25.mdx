@@ -8,17 +8,64 @@ img: https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&c
 description: Daily Log for January 25th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 25,'
+    accent: every year.
+    lede: 'The January 25th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Jan 24'
+          href: /journal/01-24/
+        - label: 'Jan 26 →'
+          href: /journal/01-26/
+    related:
+        - title: 'Previous · Jan 24'
+          copy: 'Step back a day to the January 24th log.'
+          href: /journal/01-24/
+          icon: calendar
+        - title: 'Next · Jan 26'
+          copy: 'Jump ahead to the January 26th log.'
+          href: /journal/01-26/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1569396116180-210c182bedb8?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
 
+<BentoProse id="notes" heading="Notes">
 
 <Adsense />
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 -   **Godot**
 
@@ -38,7 +85,9 @@ import { Adsense } from '@/components/astropad';
 
         Watching season 2 of the shield hero while slowly drifting to sleep, I been slacking on the digital journal updates but I still keep a written log of all my journal entries.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
     -   6:30am  -   `Dreams`
 
@@ -63,3 +112,7 @@ import { Adsense } from '@/components/astropad';
             It might make sense to use both the bigint and ulid for the table management, thus I might have to go back and basically redo all the tables again.
             Thank god we do not have a large amount of data, so migrating this back would mean a bit of refactoring but the whole `kbve` package does need it regardless.
             I will update these notes again with how I plan to do that migration.
+
+</BentoProse>
+
+</BentoDoc>

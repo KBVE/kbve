@@ -1,6 +1,6 @@
 ---
 title: Villager robe (brown) | OSRS Price Data
-description: "Villager robe (brown): A brightly coloured robe prized by the Tai Bwo Wannai peoples.. High alch: 150 GP, GE limit: 150."
+description: "Villager robe (brown) is a Tai Bwo Wannai cosmetic legs item purchased with trading sticks. High alch: 150 GP, GE limit: 150."
 osrs:
   id: 6343
   name: Villager robe (brown)
@@ -12,9 +12,67 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Villager robe (brown) is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: legs
+    weight: 2
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai Village
+      currency: trading sticks
+      price: 300
+  related_items:
+    - item_id: 6339
+      item_name: Villager robe (blue)
+      slug: villager-robe-blue
+      relationship: variant
+      description: Blue colour variant
+    - item_id: 6341
+      item_name: Villager robe (yellow)
+      slug: villager-robe-yellow
+      relationship: variant
+      description: Yellow colour variant
+    - item_id: 6345
+      item_name: Villager robe (pink)
+      slug: villager-robe-pink
+      relationship: variant
+      description: Pink colour variant
+  about: "Villager robe (brown) is a cosmetic legs piece sold at Gabooty's Cooperative for 300 trading sticks (250 with Karamja gloves 1+); stores in the magic wardrobe."
+  market_strategy:
+    notes:
+      - Buy limit 150 makes flips slow
+      - Demand driven by Tai Bwo Wannai cosmetic collectors
+      - Pair with matching villager top for full outfit sales
+  trading_tips:
+    - Stock during Tai Bwo Wannai trading stick events
+    - List near high alch to floor downside
+  history:
+    - date: "2005-08-09"
+      description: Released with the Tai Bwo Wannai Clean-Up update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-09"
+    update: Tai Bwo Wannai Clean-Up
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

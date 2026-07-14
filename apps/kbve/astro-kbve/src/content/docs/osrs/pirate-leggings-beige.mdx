@@ -12,9 +12,86 @@ osrs:
   lowalch: 140
   highalch: 210
   limit: 150
-  about: "Pirate leggings (beige) is a members-only item in Old School RuneScape. High alchemy value: 210 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-02-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 1.0
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Dodgy Mike's Second-hand Clothing"
+      location: Mos Le'Harmless
+      price: 350
+      currency: Coins
+      stock: 10
+  related_items:
+    - item_name: Pirate bandana (red)
+      slug: pirate-bandana-red
+      relationship: set-piece
+      description: "Red headwear from the pirate clothing collection"
+    - item_name: Pirate hat
+      slug: pirate-hat
+      relationship: alternative
+      description: "Alternative pirate-themed headwear"
+    - item_name: Pirate boots
+      slug: pirate-boots
+      relationship: set-piece
+      description: "Matching footwear for the pirate outfit"
+    - item_name: Stripy pirate shirt (beige)
+      slug: stripy-pirate-shirt-beige
+      relationship: set-piece
+      description: "Matching beige body piece for the pirate outfit"
+  about: "Pirate leggings (beige) are cosmetic members-only leg armour purchased from Dodgy Mike's Second-hand Clothing on Mos Le'Harmless. Released alongside the Cabin Fever quest update in 2006, they offer no combat bonuses and are worn purely for fashion as part of a beige pirate outfit. The shop stocks 10 at 350 coins each with a 1 minute restock."
+  market_strategy:
+    notes:
+      - "Direct shop access at 350 coins caps GE upside near 210 alch value"
+      - "Casual cosmetic with low daily volume and tight buy limit (150)"
+      - "Fashionscape demand fluctuates with content updates that highlight pirates"
+  trading_tips:
+    - "Buy from Dodgy Mike's at 350 gp; sell into spikes above 400 gp"
+    - "Avoid over-stocking — daily volume is small and price drifts slowly"
+    - "Bundle with stripy pirate shirt (beige) for a matching set premium"
+  history:
+    - date: "2006-02-07"
+      description: "Released with the Cabin Fever quest"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

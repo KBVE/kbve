@@ -12,9 +12,56 @@ osrs:
   lowalch: 15
   highalch: 22
   limit: 11000
-  about: "Mushroom is a members-only item in Old School RuneScape. High alchemy value: 22 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    level: 53
+    seed_id: 5282
+    seed_name: Mushroom spore
+    xp_per_harvest: 58
+    growth_time_minutes: 240
+  related_items:
+    - item_id: 5282
+      item_name: Mushroom spore
+      slug: mushroom-spore
+      relationship: component
+      description: Seed used at the Canifis mushroom patch
+    - item_id: 7080
+      item_name: Mushroom potato
+      slug: mushroom-potato
+      relationship: product
+      description: Cooking use
+    - item_id: 7082
+      item_name: Fried mushrooms
+      slug: fried-mushrooms
+      relationship: product
+      description: Cooking use
+  about: "Mushroom (Bittercap) is a Farming product grown at the Canifis patch from level 53. Used in fairy ring construction, supercompost, Whiteberry farmer payment, fried mushrooms, and Hard Morytania Diary tasks."
+  market_strategy:
+    notes:
+      - Steady farming supply
+      - Multi-use across Farming, Cooking, Construction
+      - High GE limit (11,000)
+  trading_tips:
+    - Bulk sourced from Canifis patch growers
+    - Sulliuscep alternative source on Fossil Island
+  history:
+    - date: "2005-07-11"
+      description: Released with the Farming update.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

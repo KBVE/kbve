@@ -14,8 +14,6 @@ resources:
     - namespace/application.yaml
     - cnpg/application.yaml
     - cnpg/plugins-application.yaml
-    # MetalLB removed — Cilium LB IPAM handles IP allocation + L2 announcements
-    # ingress-nginx removed — Cilium Gateway API handles ingress + ACME HTTP-01 challenges
     - cert-manager/application.yaml
     - sealed-secrets/application.yaml
     # Stakater Reloader — auto-restart deployments when configmaps/secrets change
@@ -29,7 +27,6 @@ resources:
     - crossplane/providers-application.yaml
     - external-secrets/application.yaml
     - monitoring/application.yaml
-    - redis/application.yaml
     # Valkey — open-source Redis fork (Linux Foundation), secondary key-value store
     - valkey/application.yaml
     - storage/application.yaml
@@ -41,7 +38,6 @@ resources:
     - realtime/application.yaml
     - storage-api/application.yaml
     - meta/application.yaml
-    - analytics/application.yaml
     - studio/application.yaml
     - vector/application.yaml
     - discordsh/application.yaml
@@ -54,12 +50,27 @@ resources:
     - cityvote/application.yaml
     - herbmail/application.yaml
     - memes/application.yaml
+    - jobboard/application.yaml
+    - metrics/application.yaml
     - n8n/application.yaml
+    # Windmill — workflow engine (n8n replacement candidate), windmill.kbve.com
+    - windmill/application.yaml
     - rabbitmq/application.yaml
+    # rows = shared ROWS infra (ns `rows`): ows-valkey, externalsecrets, servicemonitor,
+    # and the `rows-agones-allocator-binding` Kyverno ClusterPolicy that grants every
+    # tenant's rows-instancelauncher SA GameServerAllocation rights (without it tenants 403).
+    # Live in-cluster but was applied out-of-band; declare it here so app-of-apps owns it
+    # and a rebuild-from-git reproduces it. Tenant overlays below layer on top.
+    - rows/application.yaml
+    - rows/tenants/overlays/chuckrpg-dev/application.yaml
+    - rows/tenants/overlays/chuckrpg-beta/application.yaml
     - agones/application.yaml
-    - agones/rows/application.yaml
+    - agones/rows-tenants/chuckrpg-dev/application.yaml
+    - agones/rows-tenants/chuckrpg-beta/application.yaml
+    # - agones/rows-tenants/chuckrpg-prod/application.yaml  # DISABLED: prod fleet scaffolded; enable per chuckrpg-prod/application.yaml steps
     - agones/mc/application.yaml
-    - agones/nd-server/application.yaml
+    - agones/cryptothrone/application.yaml
+    - agones/arpg/application.yaml
     - agones/factorio/application.yaml
     - chuckrpg/application.yaml
     # RareIcon — bullet-hell roguelite website + API
@@ -83,9 +94,8 @@ resources:
     # Cilium LB IPAM — IP pools + L2 announcements (replaces MetalLB)
     - cilium/lb-application.yaml
 
-    # ECK (Elastic Cloud on Kubernetes) — operator + Elasticsearch + Kibana
-    - elk/application.yaml
-    - elk/stack-application.yaml
+    # ECK (Elastic Cloud on Kubernetes) fully retired — ES + Kibana were
+    # unused (Vector ships to ClickHouse, no Kibana route, no consumers).
 
     # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
     - forgejo/application.yaml
@@ -110,6 +120,6 @@ resources:
     - kubevirt/file-server-application.yaml
     # Guacamole — browser-based RDP gateway for Windows VMs
     - kubevirt/guacamole-application.yaml
-    # Autologon — configures Windows VM autologon + VNC-ready registry keys
-    # via a PostSync Job. Idempotent; skips cleanly when the VM is stopped.
     - kubevirt/autologon-application.yaml
+    # Runner — (re)register the GitHub Actions runner as Administrator on VM boot
+    - kubevirt/runner-application.yaml

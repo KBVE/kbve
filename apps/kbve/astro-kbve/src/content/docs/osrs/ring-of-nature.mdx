@@ -12,9 +12,86 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: 4
+  material:
+    type: cosmetic
+    tier: high
+  equipment:
+    slot: ring
+    weight: 0.004
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    description: "Operating the ring transforms the wearer into a bush; movement ends the effect. Other players see a bush with normal interaction options."
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/14663
+        members_only: true
+  related_items:
+    - item_id: 19711
+      item_name: Reward casket (elite)
+      slug: reward-casket-elite
+      relationship: component
+      description: Source casket from elite Treasure Trails
   about: "Ring of nature is a free-to-play item in Old School RuneScape. High alchemy value: 4,800 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Elite clue reward, very rare
+      - Cosmetic transformation, no combat use
+      - F2P-tradeable since November 2016
+  trading_tips:
+    - Demand driven by collectors and bush memes
+    - Buy limit of 4 makes flipping slow
+    - Track elite clue completion rates for supply spikes
+  history:
+    - date: "2016-07-06"
+      description: Released with the Treasure Trail Expansion update.
+    - date: "2016-11-24"
+      description: Made available to F2P players.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.004
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Operate
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

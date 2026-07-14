@@ -1,6 +1,6 @@
 ---
 title: Yak-hide armour (top) | OSRS Price Data
-description: "Yak-hide armour (top) is a members body slot item requiring 20 Defence. High alch: 300 GP, GE limit: 70."
+description: "Yak-hide armour (top) is a members body slot melee armour requiring 20 Defence. High alch: 300 GP, GE limit: 70."
 osrs:
   id: 10822
   name: Yak-hide armour (top)
@@ -12,8 +12,34 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: yak-hide
+    tier: low
+  properties:
+    release_date: "2005-12-06"
+    update: "The Fremennik Isles"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 7
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: none
+    weight: 7
+    requirements:
+      defence: 20
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,33 +57,53 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 20
-    weight: 7
+  recipes:
+    - skill: crafting
+      level: 46
+      xp: 32
+      materials:
+        - item_name: Cured yak-hide
+          quantity: 2
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Cave horror
+        quantity: "1"
+        rarity: "uncommon"
+        notes: "Drop alongside cured yak-hides used in crafting the set."
   related_items:
     - item_id: 10824
       item_name: Yak-hide armour (legs)
       slug: yak-hide-armour-legs
       relationship: set-piece
-      description: Matching leg armour
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Slash | +31 |
-    | Stab | +27 |
-    | Ranged | +27 |
-    | Crush | +25 |
-
-    Requirements: 20 Defence | Weight: 7.0 kg
-
-    At only 20 Defence, yak-hide armour provides melee defence comparable to mithril. Useful for low-level accounts, especially during The Fremennik Isles quest.
+      description: "Matching leg armour from the same Crafting recipe."
+    - item_id: 10818
+      item_name: Cured yak-hide
+      slug: cured-yak-hide
+      relationship: component
+      description: "Two cured hides crafted into the top at 46 Crafting."
+    - item_id: 10820
+      item_name: Yak-hide
+      slug: yak-hide
+      relationship: component
+      description: "Raw hide tanned at Thakkrad into cured yak-hide."
+  about: "Yak-hide armour (top) is a body slot melee armour crafted at 46 Crafting using two cured yak-hides obtained on Neitiznot. At only 20 Defence to wear, it delivers slash, stab, and ranged defence comparable to mithril and is one of the better budget choices for low-level pures, ironmen, and the Fremennik Isles 'Defender of Varrock' style accounts. It is also a required step in the Fremennik Isles quest, where the player must hand over the armour to Thakkrad to soothe the moss giants."
   market_strategy:
     notes:
-      - Niche Fremennik quest armour
-      - 20 Defence makes it pure-friendly
-      - Most players upgrade quickly
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Niche Fremennik quest armour with a small but steady ironman demand."
+      - "20 Defence makes it attractive for low-level pures who skip rune armour."
+      - "Most regular players upgrade quickly to rune or barrows top tiers."
+      - "Buy limit 70 keeps wholesale flips modest but margins reliable."
+  trading_tips:
+    - "Stock before Fremennik Isles content runs and seasonal pure leagues."
+    - "Watch cured yak-hide cost as the upstream supply driver."
+    - "Bulk buy on weekend lows from skiller dumps and ironman sells."
+  history:
+    - date: "2005-12-06"
+      description: "Released with The Fremennik Isles quest and the yak-hide crafting line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

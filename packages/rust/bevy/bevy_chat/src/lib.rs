@@ -35,9 +35,11 @@
 
 mod config;
 mod message;
+mod proto;
 
 pub use config::{IrcConfig, IrcTransport};
 pub use message::{ChatMessage, MessageKind};
+pub use proto::chat::{ChatEnvelope, ChatKind, Platform};
 
 #[cfg(not(target_arch = "wasm32"))]
 mod client_native;

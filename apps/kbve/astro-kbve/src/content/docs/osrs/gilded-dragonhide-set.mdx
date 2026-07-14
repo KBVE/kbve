@@ -12,9 +12,56 @@ osrs:
   lowalch: 5000
   highalch: 7500
   limit: 8
-  about: "Gilded dragonhide set is a free-to-play item in Old School RuneScape. High alchemy value: 7,500 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic-set
+    tier: high
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_name: Gilded d'hide body
+      slug: gilded-dhide-body
+      relationship: set-piece
+      description: Body component of the set
+    - item_name: Gilded chaps
+      slug: gilded-chaps
+      relationship: set-piece
+      description: Legwear component of the set
+    - item_name: Gilded vambraces
+      slug: gilded-vambraces
+      relationship: set-piece
+      description: Glove component of the set
+    - item_name: Gilded coif
+      slug: gilded-coif
+      relationship: alternative
+      description: Matching headwear sold separately
+  about: "Gilded dragonhide set is a Grand Exchange convenience bundle of Gilded d'hide body, Gilded chaps, and Gilded vambraces, exchanged through the clerk's Sets option for one-tick swapping with the individual pieces. The components themselves are hard clue cosmetic rewards from the Treasure Trails system, prized as luxury PvM/PvP show-pieces rather than for stat upgrades."
+  market_strategy:
+    notes:
+      - "Cheaper than buying components when GE volume is thin"
+      - "Limit of 8 per 4 hours throttles flips"
+      - "Watch hard-clue rates after league events"
+  history:
+    - date: "2019-04-11"
+      description: Set placeholder added with the wider Grand Exchange set bundle update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

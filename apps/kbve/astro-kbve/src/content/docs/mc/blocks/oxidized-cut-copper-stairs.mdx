@@ -1,5 +1,6 @@
 ---
 title: Oxidized Cut Copper Stairs
+template: splash
 description: |
     Minecraft Oxidized Cut Copper Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 984
     ref: oxidized_cut_copper_stairs
     slug: oxidized-cut-copper-stairs
+    content_rev: 1
     display_name: Oxidized Cut Copper Stairs
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oxidized_cut_copper_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Oxidized Cut Copper Stairs are the fully weathered form of Cut
+            Copper Stairs, carrying the dull teal-green patina copper
+            develops after all four oxidation stages. They behave like any
+            other stair block but stop changing appearance once fully
+            oxidized, unless waxed to lock the look in earlier.
+        lore: |
+            Added with the Copper family in Java Edition 1.17, these stairs
+            let builders mimic real-world weathered copper roofing and
+            statuary.
+    uses:
+        - title: Waxed Oxidized Cut Copper Stairs
+          ref: waxed_oxidized_cut_copper_stairs
+          detail: |
+              Apply honeycomb to lock the oxidized look permanently,
+              preventing any further weathering or accidental deoxidation
+              from axes or lightning.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed oxidized cut copper stairs generate naturally as part of trial chamber vault and decoration structures.
+        - location: Crafted or stonecut
+          detail: Made from Oxidized Cut Copper via crafting table (4 stairs) or stonecutter.
+    faq:
+        - question: What tool do I need to mine Oxidized Cut Copper Stairs?
+          answer: |
+              A stone pickaxe or better. Mining without a pickaxe destroys
+              the block and drops nothing.
+        - question: Will the stairs oxidize further?
+          answer: |
+              No, oxidized is the final of four weathering stages, so the
+              block will not change appearance any further on its own.
+        - question: How do I stop it from being deoxidized?
+          answer: |
+              Apply honeycomb to wax it. Waxed copper is immune to axe
+              scraping and lightning-strike deoxidation.
+        - question: Can I reverse the oxidation?
+          answer: |
+              Yes, scraping an unwaxed oxidized block with an axe removes
+              one oxidation stage, turning it back to weathered.
     data_version: "1.21.5"
 ---
 

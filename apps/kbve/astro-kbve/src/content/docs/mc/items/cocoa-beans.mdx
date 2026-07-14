@@ -1,5 +1,6 @@
 ---
 title: Cocoa Beans
+template: splash
 description: |
     Minecraft Cocoa Beans — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 1003
     ref: cocoa_beans
     slug: cocoa-beans
+    content_rev: 1
     display_name: Cocoa Beans
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cocoa beans are harvested from cocoa pods that grow on the sides of jungle logs, maturing
+            through three growth stages before dropping their beans. They double as a farmable dye
+            source and a crafting ingredient, letting players tint blocks brown or bake cookies.
+        lore: |
+            A jungle-exclusive crop that turns any nearby log into a renewable brown dye farm.
+    faq:
+        - question: How do you get cocoa beans?
+          answer: |
+              Find cocoa pods growing on jungle logs in jungle biomes and mine a fully mature pod
+              to drop 3 beans, or a younger pod for fewer.
+        - question: What are cocoa beans used for?
+          answer: |
+              They craft brown dye and cookies, and can be planted on jungle logs to grow new pods.
+        - question: Can bone meal speed up cocoa growth?
+          answer: |
+              Yes, applying bone meal to a cocoa pod advances its growth stage by one.
+        - question: Does Fortune increase cocoa bean drops?
+          answer: |
+              No, unlike most crops, the Fortune enchantment does not boost the yield from harvesting
+              cocoa pods.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

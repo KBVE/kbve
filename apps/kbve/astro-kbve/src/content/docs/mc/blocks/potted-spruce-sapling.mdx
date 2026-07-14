@@ -1,5 +1,6 @@
 ---
 title: Potted Spruce Sapling
+template: splash
 description: |
     Minecraft Potted Spruce Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 383
     ref: potted_spruce_sapling
     slug: potted-spruce-sapling
+    content_rev: 1
     display_name: Potted Spruce Sapling
     material: plant
     hardness: 0
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: spruce_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Spruce Sapling is a decorative variant created by
+            placing a Spruce sapling into a Flower Pot. It breaks
+            instantly with any tool or by hand, and returns both the pot
+            and the sapling as separate items.
+        lore: |
+            Spruce saplings have been used to grow the tall conifer trees
+            of taiga biomes since the earliest versions of Minecraft.
+    found_in:
+        - location: Village houses
+          detail: Potted spruce saplings occasionally appear as decoration in taiga village houses.
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with a Spruce Sapling places it inside.
+    faq:
+        - question: What does breaking Potted Spruce Sapling drop?
+          answer: |
+              Both the Flower Pot and the Spruce Sapling item, recoverable
+              instantly with any tool or bare hands.
+        - question: Can the potted sapling be grown into a tree?
+          answer: |
+              No. Only a Spruce sapling planted on soil, not potted, can
+              be grown into a spruce tree with bone meal or time.
+        - question: Does it require a specific tool to mine?
+          answer: |
+              No. It has 0 hardness and breaks instantly with anything,
+              including bare hands.
+        - question: Where do Spruce Saplings come from?
+          answer: |
+              They drop from breaking spruce leaves, harvested from
+              spruce trees found naturally in taiga and snowy taiga
+              biomes.
     data_version: "1.21.5"
 ---
 

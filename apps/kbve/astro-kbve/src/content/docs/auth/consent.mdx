@@ -1,0 +1,35 @@
+---
+title: Authorize
+description: OAuth 2.1 consent screen for signing into third-party apps with your KBVE account.
+tableOfContents: false
+graph:
+  visible: false
+sidebar:
+  label: Authorize
+  order: 4
+image:
+  src: https://images.unsplash.com/photo-1555066931-4365d14bab8c?fit=crop&w=1400&h=700&q=75
+  alt: Secure authorization interface
+  credit: Unsplash
+tags:
+  - authentication
+  - oauth
+  - consent
+  - security
+  - webmaster
+---
+
+import AstroConsent from '@/components/auth/AstroConsent.astro';
+import { Aside } from '@astrojs/starlight/components';
+
+<AstroConsent />
+
+## OAuth Authorization
+
+This page is the consent screen for KBVE's OAuth 2.1 / OpenID Connect provider (Supabase Auth). When a third-party application — such as Forgejo at [git.kbve.com](https://git.kbve.com) — asks to sign you in with your KBVE account, you are sent here to review and approve the request.
+
+<Aside type="note">
+You must be signed in to your KBVE account to authorize an application. If you are not, you will be redirected to the login page and returned here afterward.
+</Aside>
+
+The authorization server passes an `authorization_id` to this page. The consent screen reads it, shows which application is requesting access and what it will receive, and on approval hands you back to the application with a one-time authorization code.

@@ -1,5 +1,6 @@
 ---
 title: Nether Portal
+template: splash
 description: |
     Minecraft Nether Portal — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 280
     ref: nether_portal
     slug: nether-portal
+    content_rev: 1
     display_name: Nether Portal
     material: stone
     hardness: -1
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 11
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
+    solid: false
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - nether
+        - overworld
+    about:
+        description: |
+            The Nether Portal is the swirling purple gateway that links the
+            Overworld and the Nether. It is unbreakable in survival and
+            cannot be obtained as an item — it only exists once activated
+            inside an obsidian frame.
+        lore: |
+            Present since the original Nether release (Alpha), it remains
+            the primary means of traveling between the two dimensions.
+    uses:
+        - title: Dimension travel
+          ref: nether_portal
+          detail: |
+              Standing inside an active portal for a few seconds teleports
+              the player between the Overworld and the Nether, converting
+              coordinates at an 8:1 ratio.
+    found_in:
+        - location: Player-built obsidian frames
+          detail: Build a minimum 4x5 obsidian frame and ignite the interior with flint and steel or fire charge.
+        - location: Ruined Portals
+          detail: Naturally generated obsidian frames sometimes contain partially formed, inactive portals that can be completed.
+    faq:
+        - question: Can Nether Portal blocks be mined?
+          answer: |
+              No. They cannot be broken or collected in survival mode; only
+              removing the surrounding obsidian frame deactivates the
+              portal.
+        - question: What creates a Nether Portal?
+          answer: |
+              Igniting the interior of a valid obsidian frame (minimum 4x5,
+              maximum 23x23) with flint and steel, a fire charge, lightning,
+              or fire spread.
+        - question: Does the Nether Portal emit light?
+          answer: |
+              Yes. It emits a light level of 11 and is fully transparent,
+              letting light and view pass through it like water or ice.
+        - question: How does Nether Portal coordinate conversion work?
+          answer: |
+              One block in the Nether corresponds to eight blocks in the
+              Overworld, so traveling through a portal can shift the
+              player's Overworld position dramatically.
     data_version: "1.21.5"
 ---
 

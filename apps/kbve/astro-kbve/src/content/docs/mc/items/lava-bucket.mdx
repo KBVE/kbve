@@ -1,5 +1,6 @@
 ---
 title: Lava Bucket
+template: splash
 description: |
     Minecraft Lava Bucket — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 952
     ref: lava_bucket
     slug: lava-bucket
+    content_rev: 1
     display_name: Lava Bucket
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The lava bucket is the only way to carry lava as a portable item,
+            obtained by using an empty bucket on a lava source block. It serves as
+            the most efficient furnace fuel and can also be placed to destroy
+            Nether portals or fill cauldrons.
+        lore: |
+            A bucket that should not be sold on its melting point alone; molten rock
+            sloshes inside, patient and unforgiving.
+    faq:
+        - question: How do you get a lava bucket?
+          answer: |
+              Use an empty bucket on a lava source block, which consumes the
+              source and fills the bucket.
+        - question: How good is a lava bucket as fuel?
+          answer: |
+              It burns for 1000 seconds and can smelt 100 items, making it the
+              most efficient furnace fuel in the game.
+        - question: Can a lava bucket destroy a Nether portal?
+          answer: |
+              Yes, in Java Edition placing lava adjacent to portal blocks breaks
+              the portal.
+        - question: Is the lava bucket renewable?
+          answer: |
+              Yes, it is fully renewable in Survival mode using pointed
+              dripstone to fill an empty bucket with lava.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

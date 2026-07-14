@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
+#include "Containers/Ticker.h"
 
 THIRD_PARTY_INCLUDES_START
 #include "git2.h"
@@ -26,4 +27,9 @@ public:
 private:
 	/** Registers the top-level KBVE menu in the editor menu bar */
 	void RegisterMenus();
+
+	/** One-shot ticker: warns (log + editor toast) if installed plugins drift from the lockfile */
+	bool CheckLockDriftOnStartup(float DeltaTime);
+
+	FTSTicker::FDelegateHandle LockDriftTickHandle;
 };

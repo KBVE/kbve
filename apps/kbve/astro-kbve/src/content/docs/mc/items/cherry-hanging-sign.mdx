@@ -1,5 +1,6 @@
 ---
 title: Cherry Hanging Sign
+template: splash
 description: |
     Minecraft Cherry Hanging Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 943
     ref: cherry_hanging_sign
     slug: cherry-hanging-sign
+    content_rev: 1
     display_name: Cherry Hanging Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Cherry Hanging Sign is a decorative sign suspended by chains beneath a block or wall, crafted from two iron chains and six stripped cherry logs to yield six signs. It displays customizable, dyeable text on up to four lines and can be waxed with a honeycomb to lock the text permanently. It can also be found as loot in Trail Ruins suspicious gravel.
+        lore: |
+            Chained beneath cherry-blossom eaves, this sign sways gently with every breeze that passes through the grove.
+    faq:
+        - question: Can Cherry Hanging Signs be used as furnace fuel?
+          answer: |
+              Yes, each sign smelts about 4 items in a furnace, since cherry wood is an Overworld wood type.
+        - question: How many text lines can a Cherry Hanging Sign display?
+          answer: |
+              Up to four lines, though each line has less horizontal space than a standing sign.
+        - question: What happens if I wax a Cherry Hanging Sign with honeycomb?
+          answer: |
+              The text becomes permanently locked and can no longer be edited afterward.
+        - question: Can water or lava destroy a Cherry Hanging Sign?
+          answer: |
+              No, hanging signs are immune to both fluids, making them useful for controlling liquid flow in builds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

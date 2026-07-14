@@ -12,9 +12,86 @@ osrs:
   lowalch: 652
   highalch: 979
   limit: 70
-  about: "Black shield (h3) is a free-to-play item in Old School RuneScape. High alchemy value: 979 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: black
+    tier: low
+  equipment:
+    slot: shield
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -3
+    defence_bonus:
+      stab: 17
+      slash: 19
+      crush: 18
+      magic: -1
+      ranged: 18
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 5.443
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 1195
+      item_name: Black kiteshield
+      slug: black-kiteshield
+      relationship: alternative
+      description: Same stats, no heraldic design
+  about: Heraldic black kiteshield variant with identical combat stats to a standard black kiteshield; obtained from easy Treasure Trail reward caskets at 1/1,404 and storable in the costume room treasure chest.
+  market_strategy:
+    notes:
+      - Easy clue cosmetic; cosmetic premium over plain kiteshield
+      - Free-to-play tradeable
+      - Buy limit 70; thin volume
+  trading_tips:
+    - Track easy clue casket output during clue weeks
+    - Cosmetic demand peaks around fashionscape events
+  history:
+    - date: "2006-02-20"
+      description: Released with heraldic shields.
+    - date: "2006-03-01"
+      description: Made available to free players.
+    - date: "2006-05-01"
+      description: Renamed from Black kiteshield(h).
+    - date: "2014-12-01"
+      description: Name formatting standardised.
+    - date: "2021-04-01"
+      description: Ranged defence bonus reduced from -2 to -3.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-02-20"
+    update: Heraldic shields
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

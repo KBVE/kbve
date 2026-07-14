@@ -5,6 +5,14 @@ metadata:
     namespace: argocd
     labels:
         app.kubernetes.io/part-of: factorio
+    annotations:
+        kbve.com/source-path: kube/agones/factorio
+        kbve.com/manifest-path: apps/kube/agones/factorio/manifests
+        kbve.com/application-file: kube/agones/factorio/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: game-server
+        kbve.com/stack: agones
 spec:
     project: default
     source:

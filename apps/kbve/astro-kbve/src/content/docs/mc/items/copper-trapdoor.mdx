@@ -1,5 +1,6 @@
 ---
 title: Copper Trapdoor
+template: splash
 description: |
     Minecraft Copper Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 776
     ref: copper_trapdoor
     slug: copper-trapdoor
+    content_rev: 1
     display_name: Copper Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Copper Trapdoor is a metal trapdoor crafted from four copper ingots
+            that opens and closes via right-click or redstone signal, just like
+            wooden trapdoors. It exists in eight visual forms across its four
+            oxidation stages, both waxed and unwaxed, and naturally generates in
+            trial chambers.
+        lore: |
+            Revealed at Minecraft Live 2023, it rounded out copper's building-block
+            set alongside the copper door and copper bulb.
+    faq:
+        - question: How do I craft a Copper Trapdoor?
+          answer: |
+              Arrange four copper ingots in a 2x2 pattern to craft one trapdoor.
+        - question: How do I remove oxidation from a Copper Trapdoor?
+          answer: |
+              Crouch while holding an axe and right-click it to deoxidize it one
+              stage; a lightning bolt strike can also remove oxidation.
+        - question: Can a Copper Trapdoor be prevented from oxidizing?
+          answer: |
+              Yes, applying honeycomb to it creates a waxed variant that stops
+              further oxidation.
+        - question: Where can I find naturally generated Copper Trapdoors?
+          answer: |
+              Oxidized and waxed oxidized copper trapdoors generate naturally in
+              trial chambers.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

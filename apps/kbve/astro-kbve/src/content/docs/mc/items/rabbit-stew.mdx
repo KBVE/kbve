@@ -1,5 +1,6 @@
 ---
 title: Rabbit Stew
+template: splash
 description: |
     Minecraft Rabbit Stew — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1183
     ref: rabbit_stew
     slug: rabbit-stew
+    content_rev: 1
     display_name: Rabbit Stew
     category: food
     rarity: common
@@ -22,6 +24,32 @@ mc_item:
         saturation: 240
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Rabbit Stew is a crafted food item made from cooked rabbit, a carrot, a
+            baked potato, a mushroom, and a bowl. It restores a large amount of
+            hunger and saturation, making it one of the most efficient foods in the
+            game, and leaves behind an empty bowl once eaten.
+        lore: |
+            A single bowl of rabbit stew restores as much hunger as several of its
+            raw ingredients would individually, at the cost of extra crafting steps.
+    faq:
+        - question: How do I craft Rabbit Stew?
+          answer: |
+              Combine cooked rabbit, a carrot, a baked potato, a red or brown
+              mushroom, and a bowl in a crafting grid to make one serving.
+        - question: How much hunger does it restore?
+          answer: |
+              Eating rabbit stew restores 10 hunger points and 12 saturation, second
+              only to cake among common foods.
+        - question: Can I buy Rabbit Stew instead of crafting it?
+          answer: |
+              Yes, novice-level butcher villagers sometimes sell rabbit stew for one
+              emerald.
+        - question: Does eating Rabbit Stew give me the bowl back?
+          answer: |
+              Yes, an empty bowl is left in your inventory after the stew is
+              consumed, just like mushroom stew.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

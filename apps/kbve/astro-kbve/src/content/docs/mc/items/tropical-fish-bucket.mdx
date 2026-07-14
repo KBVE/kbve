@@ -1,5 +1,6 @@
 ---
 title: Bucket of Tropical Fish
+template: splash
 description: |
     Minecraft Bucket of Tropical Fish — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 960
     ref: tropical_fish_bucket
     slug: tropical-fish-bucket
+    content_rev: 1
     display_name: Bucket of Tropical Fish
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A water bucket that holds a single living tropical fish, obtained by using a water bucket directly on a tropical fish in the wild or bought from a wandering trader. Using the bucket places a water source and releases the fish unharmed, and fish released this way never despawn, making it the go-to way to stock an aquarium.
+            It can also be fed to axolotls and tamed nautiluses to trigger breeding and speed up their growth.
+        lore: |
+            However it is stored, the bucket always shows a clownfish on the item icon no matter which tropical fish variety is actually inside.
+    faq:
+        - question: How do I get a Bucket of Tropical Fish?
+          answer: |
+              Use an empty water bucket directly on a tropical fish swimming in a warm ocean, mangrove swamp, or lush cave, or buy one from a wandering trader for 3 emeralds.
+        - question: Does the fish despawn after I release it?
+          answer: |
+              No. Tropical fish released from a bucket are flagged so they never despawn naturally, unlike fish that spawn on their own in the world.
+        - question: What can I use the bucket for besides decoration?
+          answer: |
+              Feeding a Bucket of Tropical Fish to an axolotl or a tamed nautilus triggers breeding and speeds up the growth of their babies.
+        - question: Does the item always look the same regardless of the fish inside?
+          answer: |
+              Yes, the bucket icon always shows a clownfish pattern even though the actual fish stored can be any of the 22 named varieties or a random combination.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

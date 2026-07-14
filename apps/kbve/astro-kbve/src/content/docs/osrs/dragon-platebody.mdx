@@ -12,8 +12,32 @@ osrs:
   lowalch: 800000
   highalch: 1200000
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2018-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 11.339
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weight: 11.339
+    requirements:
+      defence: 60
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,48 +55,46 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 60
+  recipes:
+    - skill: smithing
+      level: 90
+      xp: 2000
+      materials:
+        - item_name: Dragon chainbody
+          quantity: 1
+        - item_name: Dragon metal lump
+          quantity: 1
+        - item_name: Dragon metal shard
+          quantity: 1
+      tools:
+        - Dragon Forge
+      output_quantity: 1
   related_items:
-    - item_id: 3140
-      item_name: Dragon chainbody
+    - item_name: Dragon chainbody
       slug: dragon-chainbody
-      relationship: downgrade
-      description: Easier to obtain dragon body
-    - item_id: 11832
-      item_name: Bandos chestplate
+      relationship: component
+      description: Used in smithing the platebody
+    - item_name: Bandos chestplate
       slug: bandos-chestplate
       relationship: upgrade
       description: BiS melee body with strength bonus
-    - item_id: 1127
-      item_name: Rune platebody
+    - item_name: Rune platebody
       slug: rune-platebody
       relationship: downgrade
-      description: F2P alternative
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +117 |
-    | Slash | +120 |
-    | Crush | +113 |
-    | Magic | -6 |
-    | Ranged | +113 |
-
-    Requirements: 60 Defence, Dragon Slayer II
-
-    Best dragon body armour:
-    - Highest defensive stats for 60 Defence
-    - Does not degrade
-    - Cosmetically popular
-
-    Note: Bandos chestplate is preferred for the +4 Strength bonus despite lower Defence.
+      description: F2P tier alternative
+    - item_name: Dragon platebody ornament kit
+      slug: dragon-platebody-ornament-kit
+      relationship: variant
+      description: Adds gold trim cosmetic variant
+  about: "Dragon platebody is a high-tier melee body armour released with Dragon Slayer II. Requires 60 Defence and completion of Dragon Slayer I to equip. Smithed at 90 Smithing using a dragon chainbody, dragon metal lump, and dragon metal shard at the Dragon Forge. Provides the highest defensive stats for 60 Defence body armour but has no strength bonus, making Bandos chestplate the preferred choice for offensive setups."
   market_strategy:
     notes:
-      - Components are rare drops
-      - Popular for fashionscape
-      - Niche use where pure Defence matters
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Components are rare drops"
+      - "Popular for fashionscape and BiS defensive setups"
+      - "Niche use where pure Defence matters"
+  history:
+    - date: "2018-01-04"
+      description: Released with the Dragon Slayer II update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

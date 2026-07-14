@@ -12,9 +12,60 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7500
-  about: "Raurg bones is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bones
+    tier: mid
+  properties:
+    release_date: "2005-05-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.8
+    options:
+      - Bury
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  passive_effects:
+    - name: Bury
+      description: "Grants 96 Prayer experience when buried."
+    - name: Chaos Temple offering
+      description: "Up to 768 Prayer XP at the Chaos Temple with a 50% chance to preserve the bones."
+  drop_table:
+    sources:
+      - source: Ogre coffin (Thieving, 20 required)
+        quantity: "1"
+        rarity: Common
+  related_items:
+    - item_name: Blessed raurg bones
+      slug: blessed-raurg-bones
+      relationship: product
+      description: Blessed variant for higher Prayer XP
+    - item_name: Raurg bonemeal
+      slug: raurg-bonemeal
+      relationship: product
+      description: Ground bones for altar offerings
+    - item_name: Zogre bones
+      slug: zogre-bones
+      relationship: alternative
+      description: Other Zogre Flesh Eaters bone drop
+  about: |-
+    > *"Ancient ogre bones from the ogre burial tomb."*
+
+    Looted from ogre coffins after Zogre Flesh Eaters. Buries for 96 Prayer XP or up to 768 at the Chaos Temple altar with the preservation roll.
+  market_strategy:
+    notes:
+      - "Daily volume is low; large flips can move the price"
+      - "Demand fluctuates with Prayer training meta vs. dagannoth/superior bones"
+  history:
+    - date: "2005-05-17"
+      description: "Released with the Zogre Flesh Eaters quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

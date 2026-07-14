@@ -1,18 +1,18 @@
-## Shared Cilium Gateway — all namespaces route through this.
-## Cloudflare terminates TLS on the edge. Origin listeners handle
-## both HTTP (80) and HTTPS (443) for Full/Strict SSL modes.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
     name: kbve-gateway
     namespace: kbve
-    annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-dns
 spec:
     gatewayClassName: cilium
     infrastructure:
         labels:
             node.kbve.com/type: dedicated-server
+            kbve.com/lb-pool: public
+        annotations:
+            io.cilium/lb-ipam-ips: '142.132.206.71'
+            lbipam.cilium.io/sharing-key: public-71
+            lbipam.cilium.io/sharing-cross-namespace: arpg
     listeners:
         - name: http
           protocol: HTTP
@@ -20,13 +20,6 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
-        # HTTPS listeners — one per cert/hostname so Envoy can route TLS
-        # by SNI to the matching certificate. Cilium gateway does NOT
-        # perform SNI-based selection across multiple certificateRefs on
-        # a single listener (it uses only the first ref), so each cert
-        # gets its own listener with an explicit hostname filter.
-        # Cloudflare terminates public TLS at the edge; origin certs must
-        # match the SNI CF sends for Full/Strict SSL modes.
         - name: https-kbve
           protocol: HTTPS
           port: 443
@@ -49,26 +42,21 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
-        # Single listener for both meme.sh (apex) and www.meme.sh.
-        #
-        # `memes-tls` covers both names via SAN, and the Cilium gateway
-        # controller derives the filter chain SNI list from the cert SANs
-        # — not the listener `hostname` field. Splitting this into two
-        # listeners (one per hostname) made Cilium emit two filter chains
-        # with identical SNI=[meme.sh, www.meme.sh], which Envoy rejects
-        # as duplicate filter chain match. The whole memes routing block
-        # then fell through to a default 404 handler — meme.sh returned
-        # nginx-style 404s for 73 days even though the HTTPRoute was
-        # Accepted=True and the memes-service cluster was healthy. The
-        # ACME HTTP-01 challenge routes shared the same listener, so the
-        # cert reissue loop also couldn't complete (Reason=
-        # IncorrectCertificate stuck for 8 days).
-        #
-        # The HTTPRoute `memes/memes-route` has both hostnames in its
-        # spec.hostnames, so the single listener's SAN-driven SNI match
-        # still covers both names. Don't add a second listener here for
-        # any additional cert that already covers multiple SANs — issue
-        # a separate cert per hostname if you need per-host listeners.
+        # direct.git.kbve.com — DNS-only (grey-cloud) host for Forgejo git/LFS,
+        # bypassing Cloudflare's request-body cap so large LFS pushes reach the
+        # gateway. Two labels under kbve.com, so the *.kbve.com wildcard cert
+        # doesn't cover it — own listener + cert-manager-issued cert.
+        - name: https-direct-git
+          protocol: HTTPS
+          port: 443
+          hostname: direct.git.kbve.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - name: direct-git-tls
+          allowedRoutes:
+              namespaces:
+                  from: All
         - name: https-memes
           protocol: HTTPS
           port: 443
@@ -125,8 +113,144 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        - name: https-cryptothrone-game
+          protocol: HTTPS
+          port: 443
+          hostname: game.cryptothrone.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: cryptothrone-game-tls
+                    namespace: cryptothrone
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-chuckrpg
+          protocol: HTTPS
+          port: 443
+          hostname: chuckrpg.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: chuckrpg-tls
+                    namespace: chuckrpg
+          allowedRoutes:
+              namespaces:
+                  from: All
+        # Per-tenant ROWS API hosts. Each environment terminates origin TLS with
+        # its own tenant cert (cert-manager / letsencrypt-http) in its namespace:
+        #   api-dev.chuckrpg.com   -> rows-chuckrpg-dev   (live)
+        #   api-beta.chuckrpg.com  -> rows-chuckrpg-beta  (live)
+        #   api-prod.chuckrpg.com  -> rows-chuckrpg-prod  (scaffolded, DISABLED — see below)
+        # The bare api.chuckrpg.com host was removed to avoid env ambiguity.
+        - name: https-rows-chuckrpg-dev
+          protocol: HTTPS
+          port: 443
+          hostname: api-dev.chuckrpg.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rows-chuckrpg-dev-api-tls
+                    namespace: rows-chuckrpg-dev
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-rows-chuckrpg-beta
+          protocol: HTTPS
+          port: 443
+          hostname: api-beta.chuckrpg.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rows-chuckrpg-beta-api-tls
+                    namespace: rows-chuckrpg-beta
+          allowedRoutes:
+              namespaces:
+                  from: All
+        # DISABLED — prod tenant is scaffolded but not deployed yet. Uncomment this
+        # listener when enabling the chuckrpg-prod tenant (after sealing its secrets,
+        # applying its ArgoCD Application, and adding the api-prod.chuckrpg.com DNS
+        # record). Until then the rows-chuckrpg-prod cert/namespace do not exist, so a
+        # live listener here would sit unprogrammed.
+        # - name: https-rows-chuckrpg-prod
+        #   protocol: HTTPS
+        #   port: 443
+        #   hostname: api-prod.chuckrpg.com
+        #   tls:
+        #       mode: Terminate
+        #       certificateRefs:
+        #           - kind: Secret
+        #             group: ''
+        #             name: rows-chuckrpg-prod-api-tls
+        #             namespace: rows-chuckrpg-prod
+        #   allowedRoutes:
+        #       namespaces:
+        #           from: All
+        - name: https-cityvote
+          protocol: HTTPS
+          port: 443
+          hostname: cityvote.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: cityvote-tls
+                    namespace: cityvote
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-discordsh
+          protocol: HTTPS
+          port: 443
+          hostname: discord.sh
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: discordsh-tls
+                    namespace: discordsh
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-rentearth
+          protocol: HTTPS
+          port: 443
+          hostname: rentearth.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rentearth-tls
+                    namespace: rentearth
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-rentearth-www
+          protocol: HTTPS
+          port: 443
+          hostname: www.rentearth.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rentearth-tls
+                    namespace: rentearth
+          allowedRoutes:
+              namespaces:
+                  from: All
 ---
-## kbve.com routes
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -144,16 +268,10 @@ spec:
                     type: PathPrefix
                     value: /ws
           timeouts:
-              # WebSocket connections are long-lived — set a generous
-              # backend timeout so the Cilium proxy doesn't kill them.
-              # Default Cilium/Envoy timeout is ~15s which breaks game sessions.
               backendRequest: 3600s
           backendRefs:
               - name: kbve-service
                 port: 5000
-        # Dashboard WebSocket paths — VNC (noVNC), Guacamole (RDP),
-        # KASM proxy. These are long-lived WebSocket connections that
-        # need the same generous timeout as the game /ws path.
         - matches:
               - path:
                     type: PathPrefix
@@ -166,10 +284,6 @@ spec:
           backendRefs:
               - name: kbve-service
                 port: 4321
-        # Firecracker persistent endpoints — user-deployed HTTP servers
-        # routed by name into the firecracker-ctl-net pod. May stream,
-        # upgrade to WebSocket, or run long-polling handlers, so they
-        # need the same generous timeout as other long-lived routes.
         - matches:
               - path:
                     type: PathPrefix

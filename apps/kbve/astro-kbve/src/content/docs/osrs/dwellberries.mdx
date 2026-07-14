@@ -12,9 +12,83 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
-  about: "Dwellberries is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 2
+  farming:
+    seed: Dwellberry seed
+    level: 36
+    patch: Bush
+  drop_table:
+    sources:
+      - source: Tarn Razorlor
+        quantity: "1"
+        rarity: Uncommon
+      - source: Zombie (level 100)
+        quantity: "1"
+        rarity: Uncommon
+  shops:
+    - shop_name: Hudo's Grand Tree Groceries
+      location: Grand Tree
+      price: 4
+      stock: 5
+    - shop_name: Heckel Funch's Grand Tree Groceries
+      location: Grand Tree
+      price: 4
+      stock: 2
+  recipes:
+    - materials:
+        - item_name: Dwellberries
+          quantity: 1
+      tools:
+        - Compost bin
+      output_quantity: 1
+      output: Compost
+    - materials:
+        - item_name: Dwellberries
+          quantity: 1
+        - item_name: Gnome bowl mix
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      output: Worm hole
+      skill: Cooking
+      level: 36
+  related_items:
+    - name: Dwellberry seed
+      relationship: component
+    - name: Blue dye
+      relationship: alternative
+    - name: Cadava berries
+      relationship: alternative
+  about: "Dwellberries are blue gnome berries used in Plague City, Curse of Arrav, gnome cookery, and compost. They can be farmed from a dwellberry bush at Farming level 36, gathered from McGrubor's Wood, bought from Grand Tree grocers, or rolled from monsters in Tarn's Lair."
+  market_strategy:
+    notes:
+      - "High Grand Exchange buy limit (13,000) keeps prices stable for bulk gnome cooking."
+      - "Shops in the Grand Tree restock at 4 coins, so flips above GE price are common."
+      - "Demand spikes alongside gnome cocktail and gnome bowl chef tasks."
+  trading_tips:
+    - "Buy from Hudo and Heckel Funch when prices spike on the Grand Exchange."
+    - "Pair with gnome cocktail/bowl materials to flip restock runs."
+  history:
+    - date: "2002-08-27"
+      description: "Released alongside the Plague City quest."
+  properties:
+    release_date: "2002-08-27"
+    update: "Plague City"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    quest: Plague City
+    weight: 0.014
+    options:
+      - Eat
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

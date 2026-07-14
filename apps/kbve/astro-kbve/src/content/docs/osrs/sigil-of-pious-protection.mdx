@@ -1,6 +1,6 @@
 ---
 title: Sigil of pious protection | OSRS Price Data
-description: "Sigil of pious protection: A power enhancing sigil not yet attuned to you.. High alch: 18,000 GP, GE limit: 4."
+description: "Sigil of pious protection: A Tier 3 Deadman Mode sigil granting Protection prayers without Prayer drain. High alch: 18,000 GP, GE limit: 4."
 osrs:
   id: 26129
   name: Sigil of pious protection
@@ -12,9 +12,51 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 4
-  about: "Sigil of pious protection is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sigil
+    tier: mid
+  properties:
+    release_date: "2021-08-25"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    worn_options: []
+    alchable: true
+    destroy: "You must unattune the Sigil before you can destroy it."
+  passive_effects:
+    - name: Free Protection prayers
+      description: "Once attuned, the player can use Protect from Melee, Missiles, and Magic without any Prayer point drain."
+  related_items:
+    - item_name: Sigil of the skiller
+      slug: sigil-of-the-skiller
+      relationship: alternative
+      description: Tier 3 skilling sigil from the same Deadman Mode reward pool
+    - item_name: Sigil of onslaught
+      slug: sigil-of-onslaught
+      relationship: alternative
+      description: Tier 2 multi-target combat sigil from Deadman Mode
+  about: "Sigil of pious protection is a Tier 3 Deadman Mode sigil that, once attuned, lets the player run any Protection prayer without draining Prayer points, making it untradeable after attunement."
+  market_strategy:
+    notes:
+      - "Only available during Deadman Mode events"
+      - "Tier 3 reward; rarer than Tier 1 and 2 sigils"
+      - "Untradeable post-attunement, capping resale supply"
+  trading_tips:
+    - Hold for the next Deadman event window when demand spikes
+    - Compare value vs. Sigil of the skiller before attuning
+  history:
+    - date: "2021-08-25"
+      description: "Released with the Deadman Reborn update as a Tier 3 sigil reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

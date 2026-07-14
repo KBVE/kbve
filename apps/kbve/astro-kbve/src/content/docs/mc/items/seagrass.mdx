@@ -1,5 +1,6 @@
 ---
 title: Seagrass
+template: splash
 description: |
     Minecraft Seagrass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 211
     ref: seagrass
     slug: seagrass
+    content_rev: 1
     display_name: Seagrass
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Seagrass is a non-solid aquatic plant that naturally generates in oceans, rivers,
+            underwater caves, and swamps. It exists in a regular form and a two-block-tall form,
+            and can only be harvested with shears — any other tool destroys it without a drop.
+            It is used to breed and lead turtles and as compost material.
+        lore: |
+            Swaying gently in underwater currents, seagrass provides sustenance and shelter in
+            the ocean's verdant meadows.
+    faq:
+        - question: What are the main uses for seagrass?
+          answer: |
+              Seagrass can lead and breed turtles, function as compost material with a 30%
+              chance to raise a composter's level by 1, and accelerate baby turtles into adults
+              when used on them.
+        - question: How can I get tall seagrass?
+          answer: |
+              Tall seagrass cannot be obtained as an item, even in Creative mode, but it can be
+              created by applying bone meal to regular seagrass when there is enough space
+              above it.
+        - question: Where should I look for seagrass?
+          answer: |
+              Seagrass generates in either its tall or short form in rivers, non-frozen oceans,
+              underwater caves, and swamps where the water has access to the sky.
+        - question: Why can't mobs breathe through seagrass?
+          answer: |
+              Seagrass behaves like water itself, so mobs cannot spawn within it and cannot
+              replenish breath by swimming through it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

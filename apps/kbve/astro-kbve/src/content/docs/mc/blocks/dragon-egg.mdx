@@ -1,5 +1,6 @@
 ---
 title: Dragon Egg
+template: splash
 description: |
     Minecraft Dragon Egg — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 363
     ref: dragon_egg
     slug: dragon-egg
+    content_rev: 1
     display_name: Dragon Egg
     material: end
     hardness: 3
     blast_resistance: 9
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 1
     light_opacity: 0
@@ -26,8 +27,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dragon_egg
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - end
+    about:
+        description: |
+            Dragon Egg is a gravity-affected trophy block that spawns atop
+            the exit portal after the ender dragon is first defeated. It
+            teleports to a nearby random location whenever a player tries to
+            mine it directly.
+        lore: |
+            Added in Java Edition Beta 1.9 Prerelease as a reward for
+            defeating the ender dragon, it remains obtainable only once per
+            world in Java Edition.
+    uses:
+        - title: Trophy Decoration
+          ref: dragon_egg
+          detail: |
+              Mainly a decorative trophy item; placing and breaking it also
+              unlocks the "The Next Generation" advancement.
+    found_in:
+        - location: The End — Exit Portal
+          detail: |
+              Spawns once per world on top of the exit portal after the
+              ender dragon is defeated for the first time.
+    faq:
+        - question: How do I actually pick up a Dragon Egg?
+          answer: |
+              Push it with a piston, or make it fall onto a non-full block
+              like a torch or slab — direct mining just teleports it away.
+        - question: What tool do I need to mine a Dragon Egg?
+          answer: |
+              None. Any tool or bare hands works once the egg has been made
+              to fall or been pushed into a droppable state.
+        - question: Can I get more than one Dragon Egg?
+          answer: |
+              In Java Edition, no — it is a strictly one-time reward per
+              world. Bedrock Edition allows obtaining it a second time.
+        - question: Does a Dragon Egg emit light?
+          answer: |
+              Yes, a faint light level of 1, and it is non-flammable and
+              immune to fire.
     data_version: "1.21.5"
 ---
 

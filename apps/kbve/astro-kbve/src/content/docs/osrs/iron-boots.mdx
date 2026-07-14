@@ -1,6 +1,6 @@
 ---
 title: Iron boots | OSRS Price Data
-description: "Iron boots: These will protect my feet.. High alch: 50 GP, GE limit: 125."
+description: "Iron boots: These will protect my feet. High alch: 50 GP, GE limit: 125."
 osrs:
   id: 4121
   name: Iron boots
@@ -12,12 +12,90 @@ osrs:
   lowalch: 33
   highalch: 50
   limit: 125
-  about: "Iron boots is a members-only item in Old School RuneScape. High alchemy value: 50 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2005-01-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options: ["Wear", "Drop"]
+    worn_options: []
+    alchable: true
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 1.36
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 4
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Cockatrice
+        quantity: "1"
+        rarity: 1/128
+      - source: Cave slime
+        quantity: "1"
+        rarity: 1/128
+      - source: Cockathrice
+        quantity: "1"
+        rarity: 3/128
+      - source: Moonlight Cockatrice
+        quantity: "1"
+        rarity: 1/128
+  related_items:
+    - item_name: Bronze boots
+      slug: bronze-boots
+      relationship: downgrade
+      description: Weaker metal boots tier
+    - item_name: Steel boots
+      slug: steel-boots
+      relationship: upgrade
+      description: Stronger metal boots tier
+    - item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: set-piece
+      description: Matching iron armour piece
+  about: "Iron boots are members-only footwear that cannot be smithed and must be obtained as Slayer drops, primarily from cockatrices, cave slimes, and their Cockathrice/Moonlight variants. They sit in the iron metal tier of crush-defence boots and require no skill levels to equip, making them a budget early-game Slayer drop pickup."
+  market_strategy:
+    notes:
+      - "Slayer-locked supply keeps stock modest"
+      - "GE buy limit of 125 makes mid-volume flips viable"
+      - "Members-only foot slot drop from cockatrice tasks"
+      - "Alch value below GE price - not an alch target"
+  trading_tips:
+    - Watch cockatrice/moonlight cockatrice task popularity
+    - Slayer drop changes can swing supply quickly
+  history:
+    - date: "2005-01-26"
+      description: Released alongside the Slayer skill update.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

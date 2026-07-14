@@ -12,9 +12,60 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 10000
-  about: "Bagged sunflower is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: gardening
+    tier: mid
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 66
+      xp: 70
+      materials:
+        - item_name: Bagged sunflower
+          quantity: 1
+        - item_name: Watering can
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Sunflower
+      slug: sunflower
+      relationship: product
+      description: Planted decoration result
+    - item_name: Marigolds
+      slug: marigolds
+      relationship: alternative
+      description: Alternative formal garden decoration
+  about: "Bagged sunflower is a decorative gardening item purchased from Garden Suppliers in Falador or the Farming Guild for 5,000 coins. Players plant it in formal gardens of player-owned houses, requiring 66 Construction and granting 70 XP in both Construction and Farming. The result is a Sunflower decoration with no functional purpose beyond aesthetics."
+  market_strategy:
+    notes:
+      - "Niche POH decoration demand"
+      - "Construction training adjacent"
+      - "Players prefer GE over shop purchase"
+      - "Stable mid-tier value"
+      - "Buy limit 10,000 supports flips"
+  trading_tips:
+    - Margins driven by POH building activity
+    - Cheaper than shop value, decent flip
+    - Track Construction event spikes
+  history:
+    - date: "2006-05-31"
+      description: Bagged sunflower released alongside formal garden updates.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

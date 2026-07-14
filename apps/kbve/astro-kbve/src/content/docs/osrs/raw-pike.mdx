@@ -12,18 +12,50 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 15000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drop
+    alchable: true
+  recipes:
+    - skill: cooking
+      level: 20
+      xp: 80
+      materials:
+        - item_name: Raw pike
+          quantity: 1
+      tools:
+        - Fire or range
+      output_quantity: 1
   related_items:
-    - item_id: 351
-      item_name: Pike
+    - item_name: Pike
       slug: pike
       relationship: product
-      description: Cooked version
-  about: |-
-    > _"I should try cooking this."_
-
-    Raw pike can be cooked at 20 Cooking. The highest-tier fish catchable with bait in F2P.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Cooked version (level 20 Cooking, 80 xp).
+    - item_name: Burnt fish
+      slug: burnt-fish
+      relationship: alternative
+      description: Burnt result of failed cooking attempts.
+  about: "Raw pike is caught with a fishing rod and bait at rod fishing spots in rivers, requiring 25 Fishing and granting 60 Fishing experience per catch. It is the highest-tier fish catchable with bait in free-to-play. Cooked at 20 Cooking for 80 experience, producing pike or burnt fish on failure. Popular catch spots include Shilo Village (post-quest), Lumbridge, Barbarian Village, and around Seers' Village."
+  market_strategy:
+    notes:
+      - "Steady volume around 95,000 daily trades from Cooking trainers."
+      - "Cooking XP from raw to pike is competitive at low levels."
+  trading_tips:
+    - Buy raw, cook to pike for XP plus a small margin when the cooked/raw spread widens.
+    - Watch double Cooking XP events — raw supply surges and dips price.
+  history:
+    - date: "2001-06-11"
+      description: "Added to the game with the Fishing skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

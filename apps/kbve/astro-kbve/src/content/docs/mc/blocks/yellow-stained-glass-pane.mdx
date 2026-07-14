@@ -1,5 +1,6 @@
 ---
 title: Yellow Stained Glass Pane
+template: splash
 description: |
     Minecraft Yellow Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 472
     ref: yellow_stained_glass_pane
     slug: yellow-stained-glass-pane
+    content_rev: 1
     display_name: Yellow Stained Glass Pane
     material: glass
     hardness: 0.3
@@ -26,8 +28,48 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: yellow_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Yellow Stained Glass Pane is a thin, fully transparent window
+            block tinted yellow, using a quarter of the material of a full
+            glass block while covering the same opening.
+        lore: |
+            Panes let builders glaze large windows without the thick glass
+            borders a full block would create.
+    uses:
+        - title: Windows and Lattices
+          ref: yellow_stained_glass_pane
+          detail: |
+              Place in a row to form connected, seamless colored windows;
+              panes automatically link to adjacent panes, fences, and iron
+              bars.
+    found_in:
+        - location: Crafted only
+          detail: Made from 6 Yellow Stained Glass in a crafting grid (16 panes), or from 4 Glass Panes plus Yellow Dye (8 panes).
+    faq:
+        - question: Do I need Silk Touch to pick up a Yellow Stained Glass Pane?
+          answer: |
+              Yes. Breaking it without Silk Touch drops nothing at all.
+        - question: Can Yellow Stained Glass Panes be used to lock a map?
+          answer: |
+              No. Unlike plain glass panes, stained glass panes cannot lock
+              a cartography map.
+        - question: Do panes block light like the solid glass block?
+          answer: |
+              No. Panes stay fully transparent and don't dim light the way
+              connected stained glass blocks can.
+        - question: Can small mobs squeeze through a wall of stained glass panes?
+          answer: |
+              Yes, in some configurations. Gaps in certain pane arrangements
+              can be narrow enough for spiders to pass through.
     data_version: "1.21.5"
 ---
 

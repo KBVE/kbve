@@ -67,7 +67,7 @@ impl WalletClient {
 
     pub async fn service_account_for_user(&self, user_id: Uuid) -> Result<Uuid> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Uuid, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;

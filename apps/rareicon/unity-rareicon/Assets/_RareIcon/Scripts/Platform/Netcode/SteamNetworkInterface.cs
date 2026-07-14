@@ -1,13 +1,4 @@
-// Minimal Unity Transport INetworkInterface backed by SteamPacketBridge.
-// UTP treats this like any other transport — jobs produce outgoing
-// packets into its PacketsQueue, we drain those into the Steam outgoing
-// queue; incoming Steam packets flow back into UTP's receive queue each
-// tick. All socket / connection setup is handled by SteamNetworkingService
-// on the managed side; this interface is pure byte-shuffling.
-//
-// Compatible with Unity.Transport 2.x (NetCode 1.x). API surface may
-// need tweaks on future NetCode upgrades — see NetworkDriverStore +
-// INetworkInterface changelog in com.unity.transport.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
@@ -28,20 +19,15 @@ namespace RareIcon.Platform.Netcode
 
         public int Initialize(ref NetworkSettings settings, ref int packetPadding)
         {
-            // Ensure the bridge exists before any job touches it. Safe to
-            // call repeatedly — it's idempotent.
+
             SteamPacketBridge.Initialize();
-            // No padding needed; Steam delivers raw payloads.
+
             return 0;
         }
 
         public int Bind(NetworkEndpoint endpoint)
         {
-            // Bind is a no-op on Steam — the SDK handles identity routing.
-            // We just remember the local endpoint so UTP has something to
-            // return on queries. If the caller passed in a real endpoint
-            // (rare for Steam paths) echo it; otherwise synthesise one
-            // from the local SteamID.
+
             ulong localSteamId = SteamLocalId.Current;
             _localEndpoint = endpoint == default
                 ? SteamEndpoint.Encode(localSteamId)
@@ -52,15 +38,13 @@ namespace RareIcon.Platform.Netcode
 
         public int Listen()
         {
-            // Steam P2P is always listening once Init() succeeded. No-op.
+
             return _bound ? 0 : -1;
         }
 
         public void Dispose()
         {
-            // Bridge teardown is owned by SteamNetworkDriverConstructor
-            // (it's shared across client + server worlds in the editor,
-            // so only the last owner should Shutdown).
+
         }
 
         public JobHandle ScheduleReceive(ref ReceiveJobArguments arguments, JobHandle dep) =>
@@ -87,10 +71,9 @@ namespace RareIcon.Platform.Netcode
             {
                 while (Incoming.TryDequeue(out var packet))
                 {
-                    // PacketsQueue.EnqueuePacket in Unity.Transport 2.x
-                    // returns a bool + emits the PacketProcessor via out.
+
                     if (!ReceiveQueue.EnqueuePacket(out var processor))
-                        return;  // UTP's queue is full; drop + retry next tick.
+                        return;
                     processor.EndpointRef = packet.Endpoint;
                     processor.AppendToPayload(packet.Data, packet.Length);
                 }

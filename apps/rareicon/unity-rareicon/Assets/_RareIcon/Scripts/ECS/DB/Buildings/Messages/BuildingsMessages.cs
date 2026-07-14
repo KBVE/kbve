@@ -33,7 +33,7 @@ namespace RareIcon
     public readonly struct BuildingTierChangedMessage
     {
         public readonly Entity Entity;
-        public readonly byte   Type;       // The source BuildingType (Market/Farm/Barracks)
+        public readonly byte   Type;
         public readonly byte   NewTier;
         public BuildingTierChangedMessage(Entity e, byte t, byte tier)
         {

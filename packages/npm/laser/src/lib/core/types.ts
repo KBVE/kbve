@@ -71,6 +71,12 @@ export interface LaserEventMap {
 	'player:nearby': { position: Point2D; ranges: Range[] };
 	'char:event': CharacterEventData;
 	notification: NotificationEventData;
+	'laser:invariant': {
+		msg: string;
+		ctx?: unknown;
+		count: number;
+		time: number;
+	};
 	[key: string]: unknown;
 }
 

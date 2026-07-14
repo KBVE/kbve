@@ -1,5 +1,6 @@
 ---
 title: Salmon Spawn Egg
+template: splash
 description: |
     Minecraft Salmon Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1117
     ref: salmon_spawn_egg
     slug: salmon-spawn-egg
+    content_rev: 1
     display_name: Salmon Spawn Egg
     category: food
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Salmon Spawn Egg is a Creative-mode-only item used to instantly spawn a salmon
+            mob when used on a block surface. It is not obtainable in Survival and exists purely
+            as a world-building and testing tool for players and map makers.
+        lore: |
+            A pink-and-white speckled egg that hatches a school-loving fish the moment it touches solid ground.
+    faq:
+        - question: How do I get a Salmon Spawn Egg in Survival mode?
+          answer: |
+              You cannot obtain it in Survival. Spawn eggs are only available through the
+              Creative inventory or by using commands such as /give.
+        - question: What happens if I use the egg underwater?
+          answer: |
+              The salmon spawns normally in the water and behaves like any naturally generated
+              salmon, swimming in small schools.
+        - question: Can I spawn a baby salmon with this egg?
+          answer: |
+              Yes, using the egg on an existing salmon spawns a baby salmon instead of an adult.
+        - question: Does renaming the egg do anything special?
+          answer: |
+              No known special naming effects apply to the salmon spawn egg, unlike the rabbit or
+              sheep spawn eggs which have easter-egg names like "Toast" or "jeb_".
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

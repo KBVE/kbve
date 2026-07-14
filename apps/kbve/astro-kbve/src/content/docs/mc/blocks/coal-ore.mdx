@@ -1,5 +1,6 @@
 ---
 title: Coal Ore
+template: splash
 description: |
     Minecraft Coal Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 46
     ref: coal_ore
     slug: coal-ore
+    content_rev: 1
     display_name: Coal Ore
     material: stone
     hardness: 3
     blast_resistance: 3
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,65 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: coal
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: coal_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - ore
+    about:
+        description: |
+            Coal Ore is the most common ore in the Overworld, generating in
+            large veins from the surface down to bedrock. It requires at
+            least a wooden pickaxe and yields one coal per block, boosted by
+            Fortune.
+        lore: |
+            Coal Ore has existed since Minecraft's earliest playable
+            versions, serving as an entry-level fuel and torch resource for
+            new players.
+    uses:
+        - title: Torches
+          ref: torch
+          detail: |
+              Coal combines with a stick to craft torches, the primary
+              light source for early exploration and mob-proofing bases.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Each coal smelts up to 8 items, making coal ore a reliable
+              early-game fuel source.
+    found_in:
+        - location: Overworld caves and mountains
+          detail: Spawns from Y=136 down to bedrock, peaking around Y=96, in two vein batches per chunk.
+        - location: Deepslate coal ore
+          detail: Rarely replaces coal ore below Y=8 within the deepslate layer.
+        - location: Fossils and abandoned camps
+          detail: Appears in small quantities embedded in fossil and abandoned camp structures.
+    faq:
+        - question: What is the minimum tool to mine Coal Ore?
+          answer: |
+              A wooden pickaxe. Mining with anything weaker, such as bare
+              hands, yields no drop.
+        - question: Does Fortune increase Coal Ore drops?
+          answer: |
+              Yes. Fortune I-III can raise the coal drop up to 2, 3, or 4
+              per block respectively.
+        - question: What does Silk Touch give when mining Coal Ore?
+          answer: |
+              The Coal Ore block itself, instead of raw coal.
+        - question: Can Coal Ore be smelted?
+          answer: |
+              Yes. Smelting Coal Ore in a furnace produces one coal, plus a
+              small amount of experience.
     data_version: "1.21.5"
 ---
 

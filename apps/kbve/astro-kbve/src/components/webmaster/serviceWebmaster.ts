@@ -21,11 +21,21 @@ export type { CategoryMeta, ToolCategory, WebmasterTool } from './toolsCatalog';
 const HISTORY_KEY = 'kbve:webmaster:history';
 const HISTORY_LIMIT = 5;
 
+function decodeHistory(raw: string): string[] {
+	try {
+		const parsed = JSON.parse(raw);
+		if (!Array.isArray(parsed)) return [];
+		return parsed.filter((x): x is string => typeof x === 'string');
+	} catch {
+		return [];
+	}
+}
+
 class WebmasterService {
 	public readonly $domain = atom<string>('');
 	public readonly $history = persistentAtom<string[]>(HISTORY_KEY, [], {
 		encode: JSON.stringify,
-		decode: JSON.parse,
+		decode: decodeHistory,
 	});
 
 	public readonly $normalized = computed([this.$domain], (raw) =>

@@ -1,5 +1,6 @@
 ---
 title: Cracked Deepslate Tiles
+template: splash
 description: |
     Minecraft Cracked Deepslate Tiles — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1078
     ref: cracked_deepslate_tiles
     slug: cracked-deepslate-tiles
+    content_rev: 1
     display_name: Cracked Deepslate Tiles
     material: stone
     hardness: 3.5
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cracked_deepslate_tiles
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - deep_dark
+        - blast_resistant
+    about:
+        description: |
+            Cracked Deepslate Tiles are the weathered variant of Deepslate
+            Tiles, produced by smelting them or found naturally as a
+            signature decorative block of ancient cities.
+        lore: |
+            First introduced in Java Edition 1.17 (snapshot 21w10a), it
+            became a defining texture of ancient cities added with the Deep
+            Dark in 1.19.
+    uses:
+        - title: Deepslate Tiles
+          ref: deepslate_tiles
+          detail: |
+              Smelt Deepslate Tiles in a furnace or blast furnace with any
+              fuel to produce the cracked variant for weathered detailing.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally throughout ancient city structures underground.
+        - location: Furnace smelting
+          detail: Obtainable by smelting regular Deepslate Tiles.
+    faq:
+        - question: What tool do I need to mine Cracked Deepslate Tiles?
+          answer: |
+              Any pickaxe, including wooden. Mining without a pickaxe yields
+              no drop.
+        - question: How do I get Cracked Deepslate Tiles?
+          answer: |
+              Smelt Deepslate Tiles in a furnace with any fuel, or find them
+              naturally generated in ancient cities.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops itself as a single block regardless of
+              enchantments.
+        - question: Where do ancient cities generate?
+          answer: |
+              Deep underground in the deep dark biome, typically below
+              Y=-30.
     data_version: "1.21.5"
 ---
 

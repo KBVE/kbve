@@ -1,6 +1,6 @@
 ---
 title: Eldritch orb | OSRS Price Data
-description: "Eldritch orb: An ancient magical orb, corrupted by darkness.. High alch: 2,400,000 GP, GE limit: 8."
+description: "Eldritch orb is a Nightmare-only drop combined with the Nightmare staff to forge the prayer-sustain Eldritch nightmare staff. High alch: 2,400,000 GP, GE limit: 8."
 osrs:
   id: 24517
   name: Eldritch orb
@@ -12,62 +12,95 @@ osrs:
   lowalch: 1600000
   highalch: 2400000
   limit: 8
-  item:
-    type: upgrade material
-    tradeable: true
-    weight: 0.1
-  obtaining:
-    - source: The Nightmare
-      drop_rate: 1/960 to 1/548.7
-    - source: Phosani's Nightmare
-      drop_rate: 1/1,600
+  material:
+    type: upgrade-component
+    tier: high
+  drop_table:
+    primary_source: The Nightmare
+    best_drop_rate: 1/548.7
+    sources:
+      - source: The Nightmare
+        combat_level: 814
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/960 to 1/548.7
+        members_only: true
+      - source: Phosani's Nightmare
+        combat_level: 1024
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/1,600
+        members_only: true
   recipes:
-    - skill: crafting
+    - skill: magic
       level: 1
+      xp: 0
       materials:
-        - item_id: 24517
-          item_name: Eldritch orb
-          quantity: 1
         - item_id: 24422
           item_name: Nightmare staff
           quantity: 1
+        - item_id: 24517
+          item_name: Eldritch orb
+          quantity: 1
       product: Eldritch nightmare staff
       product_id: 24505
-  effect:
-    description: Special attack drains prayer from target and restores user's prayer
-    notes: Useful for prayer-based content
+      output_quantity: 1
+      members_only: true
   related_items:
     - item_id: 24422
       item_name: Nightmare staff
       slug: nightmare-staff
       relationship: component
-      description: Base weapon for upgrade
+      description: Base weapon upgraded with the eldritch orb.
     - item_id: 24505
       item_name: Eldritch nightmare staff
       slug: eldritch-nightmare-staff
       relationship: product
-      description: Created prayer sustain weapon
+      description: Prayer-sustain magic staff created from the orb upgrade.
+    - item_id: 24511
+      item_name: Harmonised orb
+      slug: harmonised-orb
+      relationship: alternative
+      description: Alternative orb that produces the Harmonised nightmare staff.
+    - item_id: 24514
+      item_name: Volatile orb
+      slug: volatile-orb
+      relationship: alternative
+      description: Alternative orb that produces the Volatile nightmare staff.
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Upgrade Material |
-    | Tradeable | Yes |
-    | Weight | 0.1 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Eldritch nightmare staff | Nightmare staff + Eldritch orb |
-
-    Special attack drains prayer from target and restores user's prayer.
-
-    Useful for prayer-based content.
+    The eldritch orb is one of three orb drops from The Nightmare and Phosani's Nightmare. Combined with
+    the Nightmare staff it forges the Eldritch nightmare staff, whose special attack drains an enemy's
+    prayer and restores the wielder's own. It is the niche prayer-sustain pick of the three orbs and
+    commands a high price thanks to drop rarity and constrained buy limit.
   market_strategy:
+    title: Boss Drop Investment
     notes:
-      - Farm Nightmare/Phosani's
-      - Prayer sustain weapon
-      - Niche uses
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Supply is gated by Nightmare and Phosani's Nightmare uniques tables
+      - High alch value (2.4M) provides a soft floor against extreme dips
+      - Buy limit of 8 favours sustained holders over volume flippers
+      - Track Magic spec-weapon meta and prayer-drain content for demand signals
+  trading_tips:
+    - Watch all three nightmare orbs together — supply shifts move them in lockstep
+    - Enter on confirmed PvM meta shifts that reward prayer drain
+    - Avoid revenge-buys after sharp pumps; thin order book amplifies whipsaws
+  history:
+    - date: "2020-02-06"
+      description: Released with The Nightmare of Ashihama as one of three boss orb drops.
+  properties:
+    release_date: "2020-02-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

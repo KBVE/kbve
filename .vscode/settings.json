@@ -60,7 +60,29 @@
 		"plpgsql"
 	],
 	"godotTools.editorPath.godot4": "/Applications/Godot.app",
+	"C_Cpp.intelliSenseEngine": "disabled",
+	"C_Cpp.autocomplete": "disabled",
+	"C_Cpp.errorSquiggles": "disabled",
+	"C_Cpp.codeAnalysis.runAutomatically": false,
 	"rust-analyzer.initializeStopped": true,
 	"git.autoRepositoryDetection": false,
-	"git.ignoreLimitWarning": true
+	"git.ignoreLimitWarning": true,
+	"files.watcherExclude": {
+		"**/.claude/worktrees/**": true,
+		"**/node_modules/**": true,
+		"**/target/**": true,
+		"**/dist/**": true,
+		"**/.nx/**": true,
+		"**/.astro/**": true
+	},
+	"search.exclude": {
+		"**/.claude/worktrees": true,
+		"**/node_modules": true,
+		"**/target": true,
+		"**/dist": true,
+		"**/.nx": true
+	},
+	"files.exclude": {
+		"**/.claude/worktrees": true
+	}
 }

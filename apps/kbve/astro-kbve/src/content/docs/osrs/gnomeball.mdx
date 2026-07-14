@@ -1,6 +1,6 @@
 ---
 title: Gnomeball | OSRS Price Data
-description: "Gnomeball: A ball used in Gnomeball.. High alch: 1 GP, GE limit: 150."
+description: "Gnomeball: A ball used in Gnomeball. High alch: 1 GP, GE limit: 150."
 osrs:
   id: 751
   name: Gnomeball
@@ -12,13 +12,71 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 150
+  properties:
+    release_date: "2003-01-28"
+    quest_item: false
+    destroy: Drop
+  material:
+    type: misc
+    tier: minigame
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 1
+    weight: 0.5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 1
+    degradable: false
+  drop_table:
+    primary_source: Gnomeball minigame
+    sources:
+      - source: Gnome Ball minigame reward
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Dolphin
+        quantity: "1"
+        rarity: "1/50"
+        members_only: true
+  special_attack:
+    name: Thrown Ball
+    description: Can be thrown to other players; catches into their weapon slot.
   related_items: []
   about: |-
     > _"It's a gnomeball."_
 
     The gnomeball is used in the Gnomeball minigame north of the Gnome Stronghold. Players pass the ball between gnomes to score goals. Can be thrown at other players for fun.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - "Effectively a novelty item with cap value of 1 gp"
+      - "GE flips rarely worthwhile due to free supply"
+      - "Demand limited to collectors and minigame players"
+  trading_tips:
+    - Pick up from the Gnome Ball minigame directly
+    - Ironman accounts cannot receive gnomeballs from others
+    - Ball returns to the ref if dropped during the minigame
+  history:
+    - date: "2003-01-28"
+      description: "Released alongside the Gnome Ball minigame."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

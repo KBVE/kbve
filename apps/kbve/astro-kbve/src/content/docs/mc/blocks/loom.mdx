@@ -1,5 +1,6 @@
 ---
 title: Loom
+template: splash
 description: |
     Minecraft Loom — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 805
     ref: loom
     slug: loom
+    content_rev: 1
     display_name: Loom
     material: wood
     hardness: 2.5
@@ -24,10 +26,60 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: loom
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            A Loom is a functional block used to apply patterns to banners
+            using dyes and banner pattern items. It also serves as a
+            shepherd villager's job site block.
+        lore: |
+            Added in the Village & Pillage update (1.14), the Loom gave
+            banner customization its own dedicated crafting interface instead
+            of relying solely on the crafting table.
+    uses:
+        - title: Banner Patterns
+          ref: white_banner
+          detail: |
+              Place a banner and a dye in the Loom, optionally with a banner
+              pattern item, to add a layered design to the banner.
+        - title: Shepherd Job Site
+          ref: villager
+          detail: |
+              An unemployed villager near a Loom becomes a shepherd, trading
+              wool and dyed items.
+    found_in:
+        - location: Village Shepherd Houses
+          detail: Generates as furniture inside shepherd houses in villages.
+        - location: Trail Ruins
+          detail: Also found generating within trail ruins structures.
+        - location: Crafting Table
+          detail: Crafted from 2 String and 2 Planks of any wood type.
+    faq:
+        - question: What tool do I need to mine a Loom?
+          answer: |
+              Any tool works, but an axe is fastest.
+        - question: What is a Loom used for?
+          answer: |
+              Applying customizable, layerable patterns to banners using
+              dyes and banner pattern items.
+        - question: Can a Loom be used as fuel?
+          answer: |
+              Yes, a Loom can be smelted as furnace fuel, worth 1.5 items.
+        - question: Does a Loom affect villager professions?
+          answer: |
+              Yes, placing one near an unemployed villager turns them into a
+              shepherd.
     data_version: "1.21.5"
 ---
 

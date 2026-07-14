@@ -12,34 +12,65 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  item:
-    type: material
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: runecraft talisman
+    tier: low
+  properties:
+    release_date: "2004-03-29"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.015
+    options:
+      - Locate
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Abyssal demon
+        quantity: "1"
+        rarity: 1/128
+      - source: Dagannoth
+        quantity: "1"
+        rarity: 1/128
+      - source: Rick Turpentine (random event)
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - item_id: 5539
-      item_name: Cosmic tiara
+    - item_name: Cosmic tiara
       slug: cosmic-tiara
       relationship: product
-      description: Combined with tiara
-    - item_id: 564
-      item_name: Cosmic rune
+      description: Combined with a tiara at the Cosmic Altar
+    - item_name: Cosmic rune
       slug: cosmic-rune
-      relationship: alternative
-      description: Crafted product at Cosmic Altar
+      relationship: product
+      description: Crafted at the Cosmic Altar using pure essence
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Runecraft Talisman |
-    | Tradeable | Yes |
-    | Weight | 0.015 kg |
-    | Requirements | None |
+    The cosmic talisman grants access to the Cosmic Altar in Zanaris, where players can craft cosmic runes at 27 Runecraft. The talisman can also be combined with a tiara to create a cosmic tiara for 40 Runecraft XP, freeing up an inventory slot for runecrafting trips.
 
-    Grants access to Cosmic Altar for runecrafting.
-
-    Can create cosmic tiara for headslot access.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    A common drop from abyssal demons and dagannoths, and occasionally rewarded from random events.
+  market_strategy:
+    notes:
+      - "Common drop, high supply"
+      - "Demand from F2P upgrading to cosmic tiara crafting"
+      - "Low margin per item but high buy limit"
+      - "Price tied to cosmic rune demand cycles"
+  trading_tips:
+    - Bulk flip - 11,000 limit is generous
+    - Watch for cosmic rune price spikes which lift talisman demand
+    - Drop rate makes the floor very stable
+  history:
+    - date: "2004-03-29"
+      description: "Item released with the RS2 launch."
+    - date: "2003-12-01"
+      description: "Item previously available in the RS2 Beta."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

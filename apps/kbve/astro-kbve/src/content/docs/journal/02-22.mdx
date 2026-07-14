@@ -8,15 +8,52 @@ img: https://images.unsplash.com/photo-1454496522488-7a8e488e8606?crop=entropy&c
 description: Daily Log for February 22nd for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 22,'
+    accent: every year.
+    lede: 'The February 22nd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 21'
+          href: /journal/02-21/
+        - label: 'Feb 23 →'
+          href: /journal/02-23/
+    related:
+        - title: 'Previous · Feb 21'
+          copy: 'Step back a day to the February 21st log.'
+          href: /journal/02-21/
+          icon: calendar
+        - title: 'Next · Feb 23'
+          copy: 'Jump ahead to the February 23rd log.'
+          href: /journal/02-23/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### URF
 
@@ -41,8 +78,15 @@ import { Adsense } from '@/components/astropad';
     We are running the clock down for this submission!
     Got about less than 9 hours until submission is closed, hopefully we can get some of the core gameplay loop out of the way.
 
-## 2024
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 ### ClockWork
 
@@ -84,3 +128,7 @@ To get a bit better at understanding and using the grid system, I decided it wou
 Thankfully GPT and Google were filled with examples and concepts, of which, I decided to translate them from the generic CSS and into a tailwindcss style.
 
 There are some other plans that I have with the comics but I will keep them in the back burner for now.
+
+</BentoProse>
+
+</BentoDoc>

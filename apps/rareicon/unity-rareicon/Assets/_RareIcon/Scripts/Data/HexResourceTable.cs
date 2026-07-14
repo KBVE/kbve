@@ -24,22 +24,20 @@ namespace RareIcon
         /// </summary>
         public static (HexResources res, int mask) Roll(byte biome, int q, int r)
         {
-            // 5 independent uniform draws from per-hex hashes.
+
             uint h = (uint)q * 0x9E3779B1u ^ (uint)r * 0x85EBCA77u;
             h ^= h >> 13;
             h *= 0xC2B2AE3Du;
             h ^= h >> 16;
             uint h2 = h * 0x27D4EB2Fu;
-            float r0 = ((h       ) & 0xFF) / 255f;  // wood
-            float r1 = ((h >>  8 ) & 0xFF) / 255f;  // stone
-            float r2 = ((h >> 16 ) & 0xFF) / 255f;  // mushrooms
-            float r3 = ((h >> 24 ) & 0xFF) / 255f;  // herbs
-            float r4 = ((h2 >> 16) & 0xFF) / 255f;  // berries
-            float r5 = ((h2 >>  8) & 0xFF) / 255f;  // cactus presence
-            float r6 = ((h2      ) & 0xFF) / 255f;  // cactus variant
+            float r0 = ((h       ) & 0xFF) / 255f;
+            float r1 = ((h >>  8 ) & 0xFF) / 255f;
+            float r2 = ((h >> 16 ) & 0xFF) / 255f;
+            float r3 = ((h >> 24 ) & 0xFF) / 255f;
+            float r4 = ((h2 >> 16) & 0xFF) / 255f;
+            float r5 = ((h2 >>  8) & 0xFF) / 255f;
+            float r6 = ((h2      ) & 0xFF) / 255f;
 
-            // Yield amounts derived from the same draws so a "lucky" hex is
-            // both more likely to have the resource AND has more of it.
             byte AmountFrom(float roll, float chance)
                 => roll < chance ? (byte)(20 + (1f - roll / chance) * 80f) : (byte)0;
 
@@ -47,17 +45,12 @@ namespace RareIcon
             switch (biome)
             {
                 case BiomeGenerator.BIOME_FOREST:
-                    res.Wood      = AmountFrom(r0, 1.00f);   // every forest hex has wood
+                    res.Wood      = AmountFrom(r0, 1.00f);
                     res.Mushrooms = AmountFrom(r2, 0.35f);
                     res.Berries   = AmountFrom(r4, 0.30f);
                     res.Stone     = AmountFrom(r1, 0.15f);
                     res.Herbs     = AmountFrom(r3, 0.20f);
-                    // Tree byproducts — every forest hex carries leaves and
-                    // branches alongside its wood. Re-uses the wood roll so
-                    // a heavily-forested hex (high Wood) also has plenty of
-                    // leaves/branches; reads as one tree-yield bundle. No
-                    // shader visual — these are "hidden" pickup amounts the
-                    // goblin AI grabs on harvest, surfaced via Treasury.
+
                     res.Leaves    = AmountFrom(r0, 1.00f);
                     res.Branches  = (byte)(AmountFrom(r0, 1.00f) / 2);
                     break;
@@ -80,11 +73,10 @@ namespace RareIcon
                         res.CactusVariant = r6 < 0.20f
                             ? CactusVariantType.Dragonfruit
                             : CactusVariantType.PricklyPear;
-                    // Sand is the desert's defining yield — every sand hex
-                    // carries it. Drives the Furnace+Sand → Glass recipe.
+
                     res.Sand = AmountFrom(r0, 1.00f);
                     break;
-                // Snow / River / Ocean: nothing.
+
             }
 
             return (res, ComputeVisualMask(in res));

@@ -12,41 +12,87 @@ osrs:
   lowalch: 112
   highalch: 168
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: 2h
-    type: two-handed sword
-    tradeable: true
+    weapon_type: two-handed sword
+    attack_speed: 7
     weight: 3.628
     requirements:
       attack: 1
-    stats:
-      attack_stab: -4
-      attack_slash: 13
-      attack_crush: 10
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: -4
+      slash: 13
+      crush: 10
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
       strength: 14
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - skill: smithing
+      level: 29
+      xp: 75
+      materials:
+        - item_name: Iron bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
-    - item_id: 1311
-      item_name: Steel 2h sword
+    - item_name: Steel 2h sword
       slug: steel-2h-sword
       relationship: upgrade
-      description: Higher tier 2h sword
-    - item_id: 1293
-      item_name: Iron longsword
+      description: Higher tier two-handed sword
+    - item_name: Bronze 2h sword
+      slug: bronze-2h-sword
+      relationship: downgrade
+      description: Lower tier two-handed sword
+    - item_name: Iron longsword
       slug: iron-longsword
       relationship: alternative
-      description: One-handed alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: One-handed iron alternative
+  about: "Iron 2h sword is a free-to-play two-handed slash weapon forged at level 29 Smithing from three iron bars. With +13 slash attack and +14 strength it is a budget upgrade over bronze 2h equivalents for low-level F2P training, but is quickly outclassed by steel and beyond. The 7-tick attack speed and lack of any defensive bonuses keep it strictly an entry-level option. Vendors stock it across multiple weapon shops and the Smithing recipe is cheap enough for steady volume."
+  market_strategy:
+    notes:
+      - "Low-level smiths flip iron 2h swords through GE as Smithing XP byproducts"
+      - "F2P PKers occasionally buy the cheapest 2h available for special-attack ledger filler"
+      - "High alch barely beats market price - nature rune cost usually erases the margin"
+      - "GE buy limit of 125 keeps the market thin and easy to manipulate short term"
+  trading_tips:
+    - Smith iron 2h swords at 29 Smithing for cheap Smithing XP, sell stacks at GE
+    - Buy lows during weekday off-hours and resell on weekends when F2P PKing spikes
+    - Avoid stockpiling - F2P weapon prices rarely appreciate long term
+  history:
+    - date: "2001-01-04"
+      description: Added at launch as part of the original F2P weapon roster.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&c
 description: October 10th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 10,'
+    accent: every year.
+    lede: 'The October 10th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 9'
+          href: /journal/10-09/
+        - label: 'Oct 11 →'
+          href: /journal/10-11/
+    related:
+        - title: 'Previous · Oct 9'
+          copy: 'Step back a day to the October 9th log.'
+          href: /journal/10-09/
+          icon: calendar
+        - title: 'Next · Oct 11'
+          copy: 'Jump ahead to the October 11th log.'
+          href: /journal/10-11/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693298661836-1206649639ef?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Addy Bolts
 
@@ -32,8 +73,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     I really thought it would have dropped further, I made an interesting last second call but we shall see until the next week how it will play out.
     I should have just stayed the course but damn that last roll was too tempting, but hey $190 is not bad at all.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **KiloNet**
 
@@ -78,3 +126,7 @@ One of the larger problems that I need to address was the broken itch io for Fis
 We updated the astro component and added our own custom phaser component inside of the `kbve.com`, avoiding the `ve` import from astro-ve.
 This was an issue with over engineering and this method will help resolve that problem, with the game playable now without any major issues, I believe.
 Let us solve the 404 error first and then we can wrap back around with better CSS fix, which will be easier once we can see the game load on itch.
+
+</BentoProse>
+
+</BentoDoc>

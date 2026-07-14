@@ -1,5 +1,6 @@
 ---
 title: Coal Ore
+template: splash
 description: |
     Minecraft Coal Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 64
     ref: coal_ore
     slug: coal-ore
+    content_rev: 1
     display_name: Coal Ore
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Coal ore is an underground mineral block that serves as the primary source of coal, one of Minecraft's most abundant fuel resources. It generates in two distinct depth ranges throughout the Overworld, with a rarer deepslate variant appearing in the deep caves below Y=8.
+            Mining it without enchantments yields one coal, while a Fortune pickaxe can boost that to as many as four per block, and Silk Touch lets a player collect the ore block itself.
+        lore: |
+            Coal ore has been part of Minecraft since the earliest days, first added in version 0.0.14a.
+    faq:
+        - question: Can I get the coal ore block itself without Silk Touch?
+          answer: |
+              No, mining without Silk Touch will only drop coal items. You need a pickaxe enchanted with Silk Touch to obtain the block itself.
+        - question: Where should I look for coal ore most efficiently?
+          answer: |
+              Coal ore is most commonly found around Y=96 in the second generation batch, though the first batch between Y=136-320 generates evenly throughout that range.
+        - question: What's the difference between coal ore and deepslate coal ore?
+          answer: |
+              Deepslate coal ore is a variant that generates at lower depths (below Y=8) and has higher hardness (4.5 vs 3), making it slower to mine but yielding the same coal drops.
+        - question: How much coal can I get with Fortune III?
+          answer: |
+              Fortune III allows coal ore to drop 1-4 coal, compared to a single coal from unenchanted mining.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

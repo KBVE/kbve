@@ -12,9 +12,64 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: 4
-  about: "Fancy tiara is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  equipment:
+    slot: head
+    weight: 0.05
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Tiara
+      slug: tiara
+      relationship: alternative
+      description: Standard runecrafting tiara
+  about: "Fancy tiara is a purely cosmetic head slot reward obtained from master clue caskets at a 1/851 rarity. It carries no Runecrafting or combat bonuses and exists solely for the wearable Call me princess. fashionscape line."
+  market_strategy:
+    notes:
+      - "Master clue exclusive keeps supply thin; flips hinge on clue scroll completion volume"
+      - "Buy limit of 4 per 4 hours discourages bulk hoarding and protects spread"
+      - "Cosmetic-only demand makes price sensitive to fashionscape trends and event hype"
+  trading_tips:
+    - Track master clue completion rates after new clue updates to anticipate supply waves
+    - Stack offers across multiple accounts because the GE buy limit is only 4 per 4 hours
+    - List slightly under the daily high during weekday off-peak hours to clear inventory faster
+  history:
+    - date: "2016-07-06"
+      description: "Added to the game as a master clue scroll reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

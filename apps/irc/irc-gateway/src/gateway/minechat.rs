@@ -51,7 +51,6 @@ use futures_util::{SinkExt, StreamExt};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tokio::time::{interval, timeout};
 use tracing::{debug, error, info, warn};
@@ -60,6 +59,7 @@ const WS_PING_INTERVAL: Duration = Duration::from_secs(30);
 const WS_READ_DEADLINE: Duration = Duration::from_secs(90);
 
 use crate::auth::jwt;
+use crate::gateway::ergo;
 
 /// Handle to the ergo writer, shared between the two session tasks so
 /// either one can emit a line (PONG replies, publishes, etc.) without
@@ -89,30 +89,95 @@ pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse
         Err(status) => return status.into_response(),
     };
 
-    // Derive the game nick from the JWT subject. We keep it short and
-    // prefixed so it's obvious in channel activity which identities are
-    // game clients vs. browser-IRC clients.
-    let nick = format!("mc-{}", sanitize_sub(&claims.sub, 8));
+    // Prefer the real KBVE username (same as /gamechat); fall back to a
+    // stable sub-derived handle so the player is never anonymous-but-spoofable.
+    let nick = claims
+        .irc_nick()
+        .unwrap_or_else(|| format!("mc-{}", sanitize_sub(&claims.sub, 8)));
 
     info!(user = %nick, "minechat upgrade accepted");
     ws.max_frame_size(16 * 1024)
         .max_message_size(64 * 1024)
-        .on_upgrade(move |socket| session(socket, nick))
+        .on_upgrade(move |socket| {
+            session(
+                socket,
+                nick,
+                ALLOWED_CHANNELS.iter().map(|c| c.to_string()).collect(),
+                PLATFORM.to_string(),
+            )
+        })
+        .into_response()
+}
+
+/// Game-chat profiles keyed by the `?game=` query param. Each game gets one
+/// dedicated channel and a platform tag; the set is static so clients can't
+/// negotiate their way into arbitrary channels.
+const GAME_PROFILES: &[(&str, &str, &str)] = &[
+    // (game key, channel, platform)
+    ("cryptothrone", "#general", "cryptothrone"),
+    ("arpg", "#general", "arpg"),
+];
+
+fn game_profile(game: &str) -> Option<(&'static str, &'static str)> {
+    GAME_PROFILES
+        .iter()
+        .find(|(k, _, _)| *k == game)
+        .map(|(_, ch, plat)| (*ch, *plat))
+}
+
+fn query_param(req: &Request, key: &str) -> Option<String> {
+    req.uri().query().and_then(|q| {
+        q.split('&').find_map(|pair| {
+            let (k, v) = pair.split_once('=')?;
+            (k == key).then(|| v.to_string())
+        })
+    })
+}
+
+/// `/gamechat` — JSON-framed game chat that reuses the minechat session loop
+/// but identifies players by their real KBVE username and routes each game to
+/// its own channel. Pick the game with `?game=<key>`; auth with `?token=`.
+pub async fn game_ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse {
+    let token = match jwt::extract_token(&req) {
+        Some(t) => t,
+        None => return StatusCode::UNAUTHORIZED.into_response(),
+    };
+    let claims = match jwt::validate_token(&token) {
+        Ok(c) => c,
+        Err(status) => return status.into_response(),
+    };
+
+    let game = query_param(&req, "game").unwrap_or_default();
+    let Some((channel, platform)) = game_profile(&game) else {
+        warn!(game = %game, "gamechat: unknown game");
+        return StatusCode::BAD_REQUEST.into_response();
+    };
+
+    // Real username when present, otherwise a stable game-prefixed fallback
+    // so the player is never anonymous-but-spoofable.
+    let nick = claims
+        .irc_nick()
+        .unwrap_or_else(|| format!("{game}-{}", sanitize_sub(&claims.sub, 8)));
+
+    info!(user = %nick, game = %game, channel = %channel, "gamechat upgrade accepted");
+    ws.max_frame_size(16 * 1024)
+        .max_message_size(64 * 1024)
+        .on_upgrade(move |socket| {
+            session(
+                socket,
+                nick,
+                vec![channel.to_string()],
+                platform.to_string(),
+            )
+        })
         .into_response()
 }
 
 /// Per-connection state machine. Runs until the WebSocket closes or ergo
 /// drops the IRC connection. Two independent futures fan JSON↔IRC in each
 /// direction; either one returning ends the session via `tokio::select!`.
-async fn session(client_ws: WebSocket, nick: String) {
-    let ergo_host = std::env::var("ERGO_IRC_HOST")
-        .unwrap_or_else(|_| "ergo-irc-service.irc.svc.cluster.local".into());
-    let ergo_port: u16 = std::env::var("ERGO_IRC_PORT")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(6667);
-
-    let ergo = match TcpStream::connect(format!("{ergo_host}:{ergo_port}")).await {
+async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, platform: String) {
+    let ergo = match ergo::connect_irc().await {
         Ok(s) => s,
         Err(e) => {
             error!(user = %nick, "failed to connect to ergo: {e}");
@@ -135,18 +200,31 @@ async fn session(client_ws: WebSocket, nick: String) {
         error!(user = %nick, "USER write failed: {e}");
         return;
     }
-    for ch in ALLOWED_CHANNELS {
+    for ch in &channels {
         if let Err(e) = write_irc_line(&ergo_w, &format!("JOIN {ch}")).await {
             warn!(user = %nick, channel = ch, "JOIN write failed: {e}");
         }
     }
 
     let (mut client_tx, mut client_rx) = client_ws.split();
+
+    // Replay recent channel history so a fresh client lands in a room with
+    // context instead of an empty log.
+    for ch in &channels {
+        for msg in crate::gateway::history::recent(ch).await {
+            if send_json(&mut client_tx, &msg).await.is_err() {
+                return;
+            }
+        }
+    }
+
     let (pulse_tx, mut pulse_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
+    let (notice_tx, mut notice_rx) = tokio::sync::mpsc::unbounded_channel::<ChatMessage>();
 
     let nick_c2i = nick.clone();
     let ergo_w_c2i = Arc::clone(&ergo_w);
     let pulse_tx_c2i = pulse_tx.clone();
+    let notice_tx_c2i = notice_tx.clone();
     let c2i = async move {
         loop {
             let msg = match timeout(WS_READ_DEADLINE, client_rx.next()).await {
@@ -177,9 +255,45 @@ async fn session(client_ws: WebSocket, nick: String) {
             };
 
             // Channel whitelist — silently drop anything unexpected.
-            if !ALLOWED_CHANNELS.iter().any(|c| *c == parsed.channel) {
+            if !channels.contains(&parsed.channel) {
                 debug!(user = %nick_c2i, channel = %parsed.channel, "channel not allowed");
                 continue;
+            }
+
+            // Anti-spam — keyed by the authenticated nick. Over-limit messages
+            // are dropped before they reach ergo (so the relay never floods and
+            // gets banned); a sustained flood disconnects the session.
+            match crate::gateway::ratelimit::verdict(&nick_c2i).await {
+                crate::gateway::ratelimit::Verdict::Allow => {}
+                crate::gateway::ratelimit::Verdict::Throttle => {
+                    debug!(user = %nick_c2i, "rate-limited; dropping message");
+                    continue;
+                }
+                crate::gateway::ratelimit::Verdict::Kick => {
+                    warn!(user = %nick_c2i, "flood detected; disconnecting session");
+                    break;
+                }
+            }
+
+            // Content filter — drop links/blocked words/repeat-floods before
+            // they reach ergo (so they never broadcast or land in history) and
+            // tell the sender why.
+            if matches!(parsed.kind, MessageKind::Chat) {
+                if let crate::gateway::filter::Decision::Block(reason) =
+                    crate::gateway::filter::check(&nick_c2i, &parsed.content)
+                {
+                    debug!(user = %nick_c2i, reason, "message blocked by content filter");
+                    let notice = ChatMessage::event(
+                        MessageKind::Notice,
+                        "system",
+                        "gateway",
+                        &parsed.channel,
+                        &format!("message blocked: {reason}"),
+                        None,
+                    );
+                    let _ = notice_tx_c2i.send(notice);
+                    continue;
+                }
             }
 
             // Keep the Custom kind tag tight so it can't smuggle control
@@ -196,9 +310,18 @@ async fn session(client_ws: WebSocket, nick: String) {
 
             // Pin sender + platform server-side so clients can't spoof.
             parsed.sender = nick_c2i.clone();
-            parsed.platform = PLATFORM.to_string();
+            parsed.platform = platform.clone();
 
-            let line = parsed.to_irc_privmsg();
+            // Plain chat goes out as a bare PRIVMSG — the same wire format the
+            // chat.kbve.com web client (/ws) uses — so game + IRC clients share
+            // a channel cleanly (sender is carried by the IRC prefix). Only
+            // structured game events keep the [KIND] sender@platform wrapper.
+            let line = if matches!(parsed.kind, MessageKind::Chat) {
+                let content = parsed.content.replace(['\r', '\n'], " ");
+                format!("PRIVMSG {} :{content}", parsed.channel)
+            } else {
+                parsed.to_irc_privmsg()
+            };
             if let Err(e) = write_irc_line(&ergo_w_c2i, &line).await {
                 warn!(user = %nick_c2i, "ergo write failed: {e}");
                 break;
@@ -233,14 +356,16 @@ async fn session(client_ws: WebSocket, nick: String) {
                         }
                         continue;
                     }
-                    if let Some((channel, payload)) = parse_privmsg(&raw) {
-                        if let Some(mut msg) = ChatMessage::from_irc_privmsg(&channel, &payload) {
-                            if msg.platform.is_empty() {
-                                msg.platform = "irc".into();
-                            }
-                            if send_json(&mut client_tx, &msg).await.is_err() {
-                                break;
-                            }
+                    if let Some((sender, channel, payload)) =
+                        ergo::parse_privmsg(&raw)
+                    {
+                        let mut msg =
+                            ChatMessage::from_irc_or_plain(&channel, &sender, &payload);
+                        if msg.platform.is_empty() {
+                            msg.platform = "irc".into();
+                        }
+                        if send_json(&mut client_tx, &msg).await.is_err() {
+                            break;
                         }
                     }
                 }
@@ -251,6 +376,16 @@ async fn session(client_ws: WebSocket, nick: String) {
                 }
                 _ = pulse_rx.recv() => {
                     ping_timer.reset();
+                }
+                notice = notice_rx.recv() => {
+                    match notice {
+                        Some(msg) => {
+                            if send_json(&mut client_tx, &msg).await.is_err() {
+                                break;
+                            }
+                        }
+                        None => break,
+                    }
                 }
             }
         }
@@ -283,26 +418,6 @@ async fn send_json(
     tx.send(Message::Text(text.into())).await.map_err(|_| ())
 }
 
-/// Parse `:nick!user@host PRIVMSG #channel :payload` → `(channel, payload)`.
-/// Returns `None` for any other IRC line (JOIN, PING, numerics, etc.).
-fn parse_privmsg(line: &str) -> Option<(String, String)> {
-    // Strip leading `:prefix ` if present.
-    let rest = if let Some(rest) = line.strip_prefix(':') {
-        rest.split_once(' ').map(|(_p, r)| r)?
-    } else {
-        line
-    };
-    let mut parts = rest.splitn(3, ' ');
-    let cmd = parts.next()?;
-    if cmd != "PRIVMSG" {
-        return None;
-    }
-    let channel = parts.next()?.to_string();
-    let trailing = parts.next()?;
-    let payload = trailing.strip_prefix(':').unwrap_or(trailing).to_string();
-    Some((channel, payload))
-}
-
 /// Keep only ASCII alphanumerics from a JWT sub and truncate.
 fn sanitize_sub(sub: &str, max_len: usize) -> String {
     sub.chars()
@@ -315,20 +430,6 @@ fn sanitize_sub(sub: &str, max_len: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn parses_simple_privmsg() {
-        let line = ":alice!a@host PRIVMSG #world-events :[CHAT] alice@minecraft: hello";
-        let (ch, payload) = parse_privmsg(line).unwrap();
-        assert_eq!(ch, "#world-events");
-        assert_eq!(payload, "[CHAT] alice@minecraft: hello");
-    }
-
-    #[test]
-    fn ignores_non_privmsg() {
-        assert!(parse_privmsg("PING :server").is_none());
-        assert!(parse_privmsg(":bob JOIN #foo").is_none());
-    }
 
     #[test]
     fn sanitizes_sub() {

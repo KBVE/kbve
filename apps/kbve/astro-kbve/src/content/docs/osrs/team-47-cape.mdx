@@ -12,9 +12,80 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-47 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options: ["Wear"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Neil
+      location: Bandit Camp (Wilderness)
+      price: 50
+      currency: Coins
+      stock: 50
+  passive_effects:
+    - name: Team identification
+      description: Players wearing matching team capes appear as blue dots on the minimap rather than white, and attack options behave as if the opponent has a higher combat level.
+  related_items:
+    - item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: Lowest-numbered cape from the same team cape series
+    - item_name: Team-50 cape
+      slug: team-50-cape
+      relationship: variant
+      description: Final variant of the 50-cape team series
+  about: |-
+    Team-47 cape is one of the 50 team-colour capes sold by Neil at the Bandit Camp in the Wilderness for 50 coins. F2P cosmetic gear used to coordinate Wilderness teams — matching team cape wearers show as blue minimap dots and gain a softer attack-option threshold against each other.
+
+    Stats are token (+1 slash, +1 crush, +2 ranged defence) — the value is the coordination, not the bonuses.
+  market_strategy:
+    notes:
+      - "Floor anchored at 50 gp by Neil's shop"
+      - "Demand spikes during PvP events and Wilderness PK clan organisation"
+      - "High-supply, low-margin flip"
+  trading_tips:
+    - "Buy direct from Neil at floor price; flip on the GE in clan-event windows"
+    - "Bulk-stock matching numbers ahead of organised PvP weekends"
+  history:
+    - date: "2005-02-22"
+      description: "Released as part of the team cape series for Wilderness coordination"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

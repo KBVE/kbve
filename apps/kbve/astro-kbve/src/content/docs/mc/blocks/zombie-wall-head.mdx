@@ -1,5 +1,6 @@
 ---
 title: Zombie Head
+template: splash
 description: |
     Minecraft Zombie Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,73 @@ mc_block:
     id: 426
     ref: zombie_wall_head
     slug: zombie-wall-head
+    content_rev: 1
     display_name: Zombie Head
     material: stone
     hardness: 1
     blast_resistance: 1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: zombie_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+    about:
+        description: |
+            Zombie Wall Head is the wall-mounted placement state of the
+            Zombie Head block, automatically used when the head is attached
+            to the side of a block instead of the top. It shares the same
+            item and rarity as its floor counterpart.
+        lore: |
+            Added alongside charged creeper explosions, it turned an already
+            rare event — a lightning-struck creeper killing a zombie — into
+            a collectible trophy block.
+    uses:
+        - title: Wearable Disguise
+          ref: zombie_head
+          detail: |
+              Worn in the helmet slot, it halves the detection range of
+              nearby zombies, letting a player sneak past them more easily.
+        - title: Wall Decoration
+          ref: zombie_head
+          detail: |
+              Placing a Zombie Head against the side of a block automatically
+              creates this wall-mounted variant, orientable in 4 directions.
+    found_in:
+        - location: Charged Creeper Explosions
+          detail: |
+              Dropped as a Zombie Head item when a zombie is killed by the
+              explosion of a charged (lightning-struck) creeper, then placed
+              on a wall to create this block state.
+    faq:
+        - question: How is Zombie Wall Head different from Zombie Head?
+          answer: |
+              They are the same item; Zombie Wall Head is simply the block
+              state used automatically when the head is placed against the
+              side of a block rather than on top of one.
+        - question: What tool do I need to mine it?
+          answer: |
+              None. It breaks with any tool, or by hand, and always drops
+              itself as a Zombie Head item.
+        - question: How do I get the item to place on a wall?
+          answer: |
+              A creeper must be struck by lightning to become charged, then
+              its explosion must kill a zombie, which always drops its head.
+        - question: Does Looting affect the drop?
+          answer: |
+              No. The head always drops when a charged creeper's blast kills
+              a zombie; Looting has no effect on this mechanic.
     data_version: "1.21.5"
 ---
 

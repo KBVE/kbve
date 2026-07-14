@@ -2,6 +2,12 @@
 title: v01d
 description: |
    Virtualized Object Intelligence Daemon, or VOID, is an operator application that manages servers, nested machines and clustered instances within an eco-system.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: V01D
     order: 10000
@@ -9,20 +15,119 @@ unsplash: 1537158345907-c4fb34477bd6
 img: https://images.unsplash.com/photo-1537158345907-c4fb34477bd6?fit=crop&w=1400&h=700&q=75
 tags:
     - software
+    - virtualization
+    - automation
+sem: 1
+ogTitle: v01d (VOID) — Virtualization & Automation Operator Daemon
+ogDescription: v01d is the Virtualized Object Intelligence Daemon (VOID), an operator that manages servers, nested machines, and clustered instances with soft-scripting automation and RBAC across the KBVE ecosystem.
+jsonld:
+    type: Article
+    keywords:
+        - v01d
+        - void
+        - virtualization
+        - automation
+        - orchestration
+        - operator daemon
+    faq:
+        - question: What is v01d?
+          answer: v01d (VOID — Virtualized Object Intelligence Daemon) is an operator application that manages servers, nested machines, and clustered instances across the KBVE ecosystem. It focuses on soft-scripting automation with fine-grained RBAC over virtual environments and containers, from small-scale testing to production.
+        - question: What is an environ in v01d?
+          answer: An environ is an entity that helps balance and regulate the digital environment managed by VOID. Examples include tr33 (a collection of timers for micro tasks), s33d (data seeding), bl0ck (micro storage), and r00t (an OS-level embed, currently disabled).
+        - question: What is tr33 in v01d?
+          answer: tr33 is an environ — a collection of timers that handle micro tasks on the host machine. The stable branch, tr33._04, targets Ubuntu 22 LTS, Debian 9, and Windows 10/11, while the YAML- and JSON-based v5 and v6 lines are unstable and slated for deprecation.
+        - question: Which platforms does v01d install on?
+          answer: VOID ships install scripts for Linux (Ubuntu 24+ and Debian 11+, which self-delete after running) and a Windows 11 installer that needs admin privileges. On Apple Silicon Macs (M1/M2), the ARM architecture may require isolation from Intel Macs, with Homebrew as a likely path.
+bento:
+    badge: application · virtualization · automation
+    title: 'The operator in the dark,'
+    accent: v01d.
+    lede: >-
+        VOID — the Virtualized Object Intelligence Daemon — is an internal
+        operator that manages servers, nested machines, and clustered instances
+        across the KBVE ecosystem. It leans on soft-scripting automation with
+        fine-grained RBAC, orchestrating virtual environments and containers
+        through regulating entities called environs.
+    ctas:
+        - label: How VOID works
+          href: '#void'
+          primary: true
+        - label: tr33 timers
+          href: '#tr33'
+        - label: s33d seeding
+          href: '#s33d'
+    aside:
+        icon: gears
+        title: Environs regulate the void
+        body: >-
+            VOID organizes its behavior into environs — entities that balance
+            and regulate the digital environment, from host-machine timers to
+            micro storage blocks and torrent-style data seeding.
+        points:
+            - <strong>tr33</strong> — timers handling micro tasks on the host.
+            - <strong>s33d</strong> — torrent-style data seeding and DNA commands.
+            - <strong>bl0ck</strong> — micro storage with AES-compressed blocks.
+    stats:
+        - { label: Stable branch, value: tr33._04, icon: branch }
+        - { label: Access control, value: RBAC, icon: lock }
+        - { label: Linux targets, value: Ubuntu 24+ / Debian 11+, icon: server }
+        - { label: NFC seed size, value: 64 bytes, icon: database }
+    features:
+        - title: VOID installers
+          icon: package
+          href: '#void'
+          body: Self-deleting install scripts for Ubuntu and Debian, a Windows 11 installer, and notes on Apple Silicon isolation.
+        - title: tr33 timers
+          icon: clock
+          href: '#tr33'
+          body: The timer environ — stable v4 for Ubuntu 22 LTS, Debian 9, and Windows 10/11, plus the deprecated lineage.
+        - title: s33d seeding
+          icon: route
+          href: '#s33d'
+          body: Torrent-style data seeding, DNA commands that enable future applications, and 64-byte NFC-compressed seeds.
+        - title: bl0ck & r00t
+          icon: shield
+          href: '#bl0ck'
+          body: Micro storage with Base64-AES blocks and a micro blockchain — plus the disabled OS-level r00t embed.
+    related:
+        - title: Docker
+          href: /application/docker/
+          copy: Containers and images that VOID orchestrates across instances.
+          icon: package
+        - title: Proxmox
+          href: /application/proxmox/
+          copy: The virtualization platform hosting nested machines.
+          icon: server
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Clustered instance orchestration at ecosystem scale.
+          icon: deploy
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1537158345907-c4fb34477bd6?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Information.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
+
+**v01d** (VOID — *Virtualized Object Intelligence Daemon*) is an internal operator that manages servers, nested machines, and clustered instances across the KBVE ecosystem. It leans on **soft-scripting automation** with fine-grained RBAC, orchestrating virtual environments and containers without heavy configuration.
+
+Its behavior is organized into **environs** — regulating entities such as [tr33](#tr33) (timers), [s33d](#s33d) (data seeding), [bl0ck](#bl0ck) (micro storage), and [r00t](#r00t) (OS-level embed).
+
+</BentoProse>
+
+<BentoProse id="information" eyebrow="Soft scripting" heading="Information">
 
 Virtualization soft scripting for automation.
 
@@ -32,10 +137,15 @@ With support for various hypervisors and cloud platforms, v01d simplifies the de
 The software's scripting capabilities offer fine grained control (RBAC) over automation workflows, making it ideal for both small scale testing and large scale production setups.
 By leveraging **v01d**, teams can reduce overhead and enhance operational efficiency across their virtualized infrastructure.
 
+</BentoProse>
 
-<Adsense />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## VOID
+<BentoProse id="void" eyebrow="The daemon" heading="VOID">
 
 -   Virtualized Object Intelligence Daemon, or VOID, is an operator application that manages servers, nested machines and clustered instances within an eco-system.
 
@@ -54,7 +164,9 @@ By leveraging **v01d**, teams can reduce overhead and enhance operational effici
 
 -   Environs are entities that help balance and regulate the digital environmental.
 
-## TR33
+</BentoProse>
+
+<BentoProse id="tr33" eyebrow="Timer environ" heading="TR33">
 
 -   `tr33` - (environ) - a collection of timers that handle micro tasks on the host machine.
     -   `tr33._04` - v4 is stable for Ubuntu 22 LTS, Debian 9, Windows 10/11.
@@ -66,7 +178,9 @@ By leveraging **v01d**, teams can reduce overhead and enhance operational effici
     -   `tr33._02` - Deprecated.
     -   `tr33._03` - Deprecated.
 
-## S33D
+</BentoProse>
+
+<BentoProse id="s33d" eyebrow="Seeding environ" heading="S33D">
 
 -   `s33d` - (environ) - an application or library that expands upon torrent data seeding.
     -   `s33d._dna.` - commands that the host computer must run to enable specific future applications.
@@ -74,13 +188,21 @@ By leveraging **v01d**, teams can reduce overhead and enhance operational effici
     -   `s33d._nfc.` - Compressed information that can be stored inside NFC. The format will take about 64 bytes.
         -   `68 74 74 70 73 3a 2f 2f 6e 2e 6b 62 76 65 2e 63 6f 6d 2f 64 6e 61 2f` - 23 bytes for the generic/default location of the seed, with 40 bytes left over for additional information regarding the application(s).
 
-## BL0CK
+</BentoProse>
+
+<BentoProse id="bl0ck" eyebrow="Micro storage" heading="BL0CK">
 
 -   `bl0ck` - micro storage for host.
     -   `bl0ck.B64AES.` - Based 64 - AES compressed data block.
     -   `bl0ck.chain._` - Micro blockchain for the void system(s).
 
-## R00T
+</BentoProse>
+
+<BentoProse id="r00t" eyebrow="Disabled embed" heading="R00T">
 
 -   `r00t` - (environ) - an embed that sits on-top of the operating system.
     -   `r00t` - Disabled as of `tr33._02` because the design induced significant flaws and exploits; uncle ben does not approve of such power for any man.
+
+</BentoProse>
+
+</BentoDoc>

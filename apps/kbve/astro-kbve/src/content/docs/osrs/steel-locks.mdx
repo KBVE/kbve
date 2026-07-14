@@ -12,9 +12,72 @@ osrs:
   lowalch: 640
   highalch: 960
   limit: 8
-  about: "Steel locks is a members-only item in Old School RuneScape. High alchemy value: 960 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2021-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Steel chest (red)
+        quantity: "1"
+        rarity: 1/63
+      - source: Steel chest (brown)
+        quantity: "1"
+        rarity: 1/62
+      - source: Steel chest (crimson)
+        quantity: "1"
+        rarity: 1/61
+      - source: Steel chest (black)
+        quantity: "1"
+        rarity: 1/60
+      - source: Steel chest (purple)
+        quantity: "1"
+        rarity: 1/59
+  related_items:
+    - item_name: Broken coffin
+      slug: broken-coffin
+      relationship: component
+      description: Base coffin Dampe needs alongside steel locks to assemble a steel coffin.
+    - item_name: Steel coffin
+      slug: steel-coffin
+      relationship: product
+      description: Result of bringing the steel locks and broken coffin to NPC Dampe.
+    - item_name: Bronze locks
+      slug: bronze-locks
+      relationship: downgrade
+      description: Lower-tier lock from the same Shades of Mort'ton chest reward pool.
+    - item_name: Black locks
+      slug: black-locks
+      relationship: upgrade
+      description: Next-tier lock used to assemble a black coffin.
+  about: "Steel locks are a Shades of Mort'ton chest reward obtained from steel-tier chests during the minigame. Players take the locks and a broken coffin to Dampe, who attaches them to forge a steel coffin used in the minigame's burning loop."
+  market_strategy:
+    notes:
+      - "Supply is gated by the steel-tier chest rotation, so listing volume is low."
+      - "GE buy limit of 8 per 4 hours keeps the spread wide; ironmen are the largest buyer pool."
+      - "Demand spikes during Shades of Mort'ton skilling events and Pyromancer pet hunts."
+  trading_tips:
+    - Stockpile during minigame community events to capture peak demand.
+    - Compare lock tier prices before deciding which coffin to assemble.
+    - List slightly under high alch to ensure consistent flips.
+  history:
+    - date: "2021-01-27"
+      description: "Added with the Shades of Mort'ton rework which expanded the minigame's reward chests."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,4 +1,3 @@
-// Hooks
 export { useDroid } from './hooks/useDroid';
 export type { DroidState } from './hooks/useDroid';
 export { useDroidEvents } from './hooks/useDroidEvents';
@@ -6,7 +5,6 @@ export { useToast } from './hooks/useToast';
 export { useTooltip } from './hooks/useTooltip';
 export { useModal } from './hooks/useModal';
 
-// React components
 export { DroidProvider, useDroidContext } from './react/DroidProvider';
 export { DroidStatus } from './react/DroidStatus';
 export { ToastContainer } from './react/ToastContainer';
@@ -15,8 +13,28 @@ export { ModalOverlay } from './react/ModalOverlay';
 export type { ModalOverlayProps } from './react/ModalOverlay';
 export { TooltipOverlay } from './react/TooltipOverlay';
 export type { TooltipOverlayProps } from './react/TooltipOverlay';
+export { NotContent } from './react/NotContent';
+export type { NotContentProps } from './react/NotContent';
+export { Drawer } from './react/Drawer';
+export type { DrawerProps, DrawerSide } from './react/Drawer';
+export { Popover } from './react/Popover';
+export type { PopoverProps, PopoverPlacement } from './react/Popover';
+export { FloatingWindow } from './react/FloatingWindow';
+export type { FloatingWindowProps, WindowLayer } from './react/FloatingWindow';
 
-// Ruffle
+export { useDraggable } from './hooks/useDraggable';
+export type {
+	Position,
+	UseDraggableOptions,
+	UseDraggableResult,
+} from './hooks/useDraggable';
+export { useResizable } from './hooks/useResizable';
+export type {
+	Size,
+	UseResizableOptions,
+	UseResizableResult,
+} from './hooks/useResizable';
+
 export { ReactRuffle } from './components/ruffle/ReactRuffle';
 export type { ReactRuffleProps } from './components/ruffle/ReactRuffle';
 export {
@@ -38,7 +56,6 @@ export type {
 	RuffleSourceOptions,
 } from './components/ruffle/ruffle';
 
-// Auth
 export {
 	AuthBridge,
 	useAuthBridge,
@@ -55,7 +72,6 @@ export {
 } from './auth';
 export type { OAuthProvider, SessionView } from './auth';
 
-// Icons
 export { DiscordIcon, GitHubIcon, TwitchIcon } from './icons';
 
 // State stores (pass-through from @kbve/droid)
@@ -97,7 +113,6 @@ export {
 	ModalPayloadSchema,
 } from '@kbve/droid';
 
-// Canvas overlay
 export { CanvasOverlay } from './react/CanvasOverlay';
 export type { CanvasOverlayProps } from './react/CanvasOverlay';
 
@@ -108,10 +123,8 @@ export type { RenderPath } from '@kbve/droid';
 // Gateway (pass-through from @kbve/droid)
 export { SupabaseGateway } from '@kbve/droid';
 
-// Utilities
 export { cn } from './utils/cn';
 
-// Sitegraph
 export type {
 	SiteGraphData,
 	SiteGraphNode,
@@ -143,3 +156,33 @@ export {
 	SITE_GRAPH_WORKER_SOURCE,
 	SiteGraphLoader,
 } from './sitegraph';
+
+// Agents dashboard (logic via @kbve/droid, render here)
+export * from './agents';
+export * from './dashboard';
+
+// Agents core pass-through from @kbve/droid
+export { createAgents } from '@kbve/droid';
+export type {
+	AgentsApi,
+	AgentsConfig,
+	AgentsNotice,
+	AgentsSession,
+	AgentTokenRow,
+	BotConfigFormDraft,
+	DiscordChannel,
+	DiscordGuild,
+	DiscordshConfig,
+	GuildChannels,
+} from '@kbve/droid';
+export {
+	emptyBotConfigFormDraft,
+	botConfigToFormDraft,
+	botConfigFromFormDraft,
+} from '@kbve/droid';
+
+export {
+	KbveUsernameSetup,
+	type KbveUsernameSetupProps,
+	validateUsername,
+} from './components/user/KbveUsernameSetup';

@@ -1,6 +1,6 @@
 ---
 title: White kiteshield | OSRS Price Data
-description: "White kiteshield is a members shield slot item requiring 25 Defence. High alch: 979 GP, GE limit: 125."
+description: "White kiteshield is a White Knight members shield requiring 10 Defence and Wanted! quest, offering +1 prayer plus kite-tier defence. High alch: 979 GP, GE limit: 125."
 osrs:
   id: 6633
   name: White kiteshield
@@ -12,69 +12,93 @@ osrs:
   lowalch: 652
   highalch: 979
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: white
+    tier: low
+  properties:
+    release_date: "2005-10-17"
+    update: "Wanted!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    type: armour
-    prayer_bonus: 1
+    weight: 5.443
     requirements:
-      defence: 25
-      quest: Wanted!
-    combat_stats:
-      stab_defence: 21
-      slash_defence: 25
-      crush_defence: 23
-      magic_defence: -1
-      ranged_defence: 23
+      defence: 10
+      quest: "Wanted!"
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -1
+      ranged: -3
+    defence_bonus:
+      stab: 17
+      slash: 19
+      crush: 18
+      magic: -1
+      ranged: 18
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
   related_items:
-    - item_id: 6617
-      item_name: White platebody
-      slug: white-platebody
-      relationship: set-piece
-      description: Body (+1 Prayer)
-    - item_id: 6625
-      item_name: White platelegs
-      slug: white-platelegs
-      relationship: set-piece
-      description: Legs (+1 Prayer)
     - item_id: 6623
       item_name: White full helm
       slug: white-full-helm
       relationship: set-piece
-      description: Helm (+1 Prayer)
+      description: "Matching White Knight helm with +1 prayer bonus."
+    - item_id: 6617
+      item_name: White platebody
+      slug: white-platebody
+      relationship: set-piece
+      description: "Matching White Knight body with +1 prayer bonus."
+    - item_id: 6625
+      item_name: White platelegs
+      slug: white-platelegs
+      relationship: set-piece
+      description: "Matching White Knight legs with +1 prayer bonus."
+    - item_id: 1195
+      item_name: Black kiteshield
+      slug: black-kiteshield
+      relationship: alternative
+      description: "F2P counterpart with identical defence but no prayer bonus."
     - item_id: 12817
       item_name: Blessed spirit shield
       slug: blessed-spirit-shield
       relationship: upgrade
-      description: Higher prayer (+3)
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Shield |
-    | Prayer Bonus | +1 |
-    | Defence Req | 25 |
-    | Quest Req | Wanted! |
-
-    - Low prayer bonus shield
-    - White Knight themed gear
-    - Budget prayer shield option
-
-    | Piece | Prayer Bonus |
-    |-------|--------------|
-    | White full helm | +1 |
-    | White platebody | +1 |
-    | White platelegs | +1 |
-    | White kiteshield | +1 |
-    | Total | +4 |
+      description: "Higher-tier prayer shield with +3 prayer bonus."
+  about: "White kiteshield is the shield slot piece of the White Knight equipment set, sold by Sir Vyvin in Falador Castle after completing the Wanted! quest and earning the Adept rank by killing 800 Black Knights. It requires 10 Defence to wield, cannot be smithed, and grants identical defensive bonuses to its black-tier counterpart with the addition of a +1 prayer bonus shared across every White Knight piece."
   market_strategy:
     notes:
-      - Requires Wanted! quest
-      - Shop purchase only
-      - Not tradeable on GE
-      - Inferior to spirit shields
-      - Cosmetic/collection value
-      - Low practical use
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply is entirely Sir Vyvin shop-bought - White Knight rank grinders drip-feed the GE."
+      - "GE buy limit of 125 per 4 hours caps any single merchant's exposure."
+      - "High alch of 979 gp sits below GE price - not a viable alching target."
+      - "Demand comes from prayer-set completionists, not combat training."
+  trading_tips:
+    - "Stock up on dips driven by ironman White Knight rank pushes for resale to set collectors."
+    - "Cross-reference Blessed spirit shield demand - some prayer-shield buyers will substitute on price spikes."
+    - "Stable, low-volume item - treat as long-tail flip, not active merchant target."
+  history:
+    - date: "2005-10-17"
+      description: "Released as part of the Wanted! quest update, distributed via Sir Vyvin's White Knight rank shop."
+    - date: "2021-04-21"
+      description: "Ranged attack bonus reduced from -2 to -3 alongside the broader kiteshield rebalance."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

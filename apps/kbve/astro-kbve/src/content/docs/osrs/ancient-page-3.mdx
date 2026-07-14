@@ -1,6 +1,6 @@
 ---
 title: Ancient page 3 | OSRS Price Data
-description: "Ancient page 3: This seems to have been torn from a book.... High alch: 240 GP, GE limit: 5."
+description: "Ancient page 3: This seems to have been torn from a book... One of four pages used to repair the damaged Ancient god book. High alch: 240 GP, GE limit: 5."
 osrs:
   id: 12623
   name: Ancient page 3
@@ -12,43 +12,71 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 5
-  item:
-    type: god_page
-    god: Ancient
-    page_number: 3
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2014-07-03"
     tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite
-        drop_rate: Varies by tier
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: "1/650"
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: Common
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - item_id: 12621
-      item_name: Ancient page 1
+    - item_name: Ancient page 1
       slug: ancient-page-1
       relationship: set-piece
-      description: Page 1 of 4
-    - item_id: 12622
-      item_name: Ancient page 2
+      description: Page 1 of 4 needed for the Ancient god book.
+    - item_name: Ancient page 2
       slug: ancient-page-2
       relationship: set-piece
-      description: Page 2 of 4
-    - item_id: 12624
-      item_name: Ancient page 4
+      description: Page 2 of 4 needed for the Ancient god book.
+    - item_name: Ancient page 4
       slug: ancient-page-4
       relationship: set-piece
-      description: Page 4 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Ancient (Zaros) |
-    | Page | 3 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Book of darkness (Ancient god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Page 4 of 4 needed for the Ancient god book.
+    - item_name: Book of darkness
+      slug: book-of-darkness
+      relationship: product
+      description: Completed Ancient (Zaros) god book when all four pages are added.
+  about: "Ancient page 3 is one of four loose pages used to complete the Book of darkness, the Ancient (Zaros) god book. Players must first buy a damaged Ancient god book from Jossik for 5,000 coins after completing Horror from the Deep, then add all four pages to restore it."
+  market_strategy:
+    notes:
+      - "Demand is bursty whenever a new God Book unlock route is popular."
+      - "Hard and Elite clue droppers control supply; check clue scroll meta before flipping."
+  trading_tips:
+    - Buy at 5/4h limit; flip alongside the other three pages as a set.
+    - Players assembling the Book of darkness usually want all four pages at once.
+  history:
+    - date: "2014-07-03"
+      description: "Ancient pages added with the Zaros god book content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

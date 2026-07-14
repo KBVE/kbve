@@ -1,5 +1,6 @@
 ---
 title: Turtle Egg
+template: splash
 description: |
     Minecraft Turtle Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 617
     ref: turtle_egg
     slug: turtle-egg
+    content_rev: 1
     display_name: Turtle Egg
     category: misc
     rarity: common
@@ -20,6 +22,25 @@ mc_item:
     tier: turtle
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Turtle Eggs are laid in clusters of 1-4 when two turtles are bred with seagrass, one of them returning to its home beach to lay the eggs on sand. They pass through three cracking stages before hatching, which happens almost exclusively on sand, red sand, or suspicious sand and speeds up dramatically between 3:03 and 3:54 AM in-game.
+            Players can collect unhatched eggs with a Silk Touch tool; without it, breaking an egg destroys it. Hatchlings always face south, and the eggs are also useful as zombie bait for mob farms since zombies actively seek out and trample them.
+        lore: |
+            Introduced alongside turtles to give beach biomes their own breedable mob and a fragile decorative block tied to the day-night cycle.
+    faq:
+        - question: How do you get a Turtle Egg?
+          answer: |
+            Breed two turtles with seagrass; one turtle returns to its home beach and lays a cluster of 1-4 eggs on sand. You can also collect existing eggs with a Silk Touch tool.
+        - question: When do Turtle Eggs hatch?
+          answer: |
+            Eggs usually hatch within 4-5 nights, with about 95% of hatches happening between 3:03 AM and 3:54 AM in-game, when cracking is far more likely.
+        - question: Can Turtle Eggs be destroyed by walking on them?
+          answer: |
+            Yes, jumping on them breaks the eggs, but sneaking (crouch-walking) over them lets you cross safely without destroying them.
+        - question: What are Turtle Eggs used for besides hatching turtles?
+          answer: |
+            They can be placed as bait to lure and trap zombies and their variants, which is handy for gold farms built around zombified piglins.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

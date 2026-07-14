@@ -1,6 +1,6 @@
 ---
 title: Demonic tallow | OSRS Price Data
-description: "Demonic tallow: Somebody's been avoiding their cardio.... High alch: 300 GP, GE limit: 11,000."
+description: "Demonic tallow: Somebody's been avoiding their cardio. High alch: 300 GP, GE limit: 11,000."
 osrs:
   id: 30800
   name: Demonic tallow
@@ -12,9 +12,65 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 11000
-  about: "Demonic tallow is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: demonic
+    tier: mid-high
+  drop_table:
+    sources:
+      - source: Yama
+        combat_level: 1400
+        quantity: "100"
+        rarity: common
+  recipes:
+    - skill: Herblore
+      level: 81
+      xp: 185
+      materials:
+        - item_name: Unfinished torstol potion
+          quantity: 1
+        - item_name: Demonic tallow
+          quantity: 1
+      tools:
+        - Vial
+      output_quantity: 1
+  related_items:
+    - item_id: 30802
+      item_name: Surge potion(4)
+      slug: surge-potion-4
+      relationship: product
+      description: Crafted by combining demonic tallow with an unfinished torstol potion
+  about: "Demonic tallow is a members-only Herblore secondary dropped by Yama in 100-unit barrels and combined with unfinished torstol potions at level 81 Herblore for 185 XP to create surge potions."
+  market_strategy:
+    notes:
+      - Supply scales with Yama kill rate and barrel drop frequency
+      - Demand follows surge potion meta usage in PvM and PvP
+      - Buy limit 11,000 supports surge potion mass brewing
+      - Price tracks torstol potion and surge potion spreads
+      - High alch of 300 is below GE so alching is unviable
+  trading_tips:
+    - Watch Yama group kill efficiency for supply shocks
+    - Stock when surge potion ProfitCalc dips signal arbitrage
+    - Track unfinished torstol potion price alongside this item
+  history:
+    - date: "2025-05-14"
+      update: "Yama, the Master of Pacts"
+      description: Demonic tallow added as a Yama drop for surge potion brewing.
+  properties:
+    release_date: "2025-05-14"
+    update: "Yama, the Master of Pacts"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

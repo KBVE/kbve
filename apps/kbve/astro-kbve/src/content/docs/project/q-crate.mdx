@@ -1,7 +1,7 @@
 ---
-title: Q
-description: |
-    Q utility crate for KBVE.
+title: q — Godot GDExtension Game Crate with Server Flavor
+description: Q is a Rust crate powering KBVE games — a Godot GDExtension client with a tokio game manager, plus a bevy + axum + rapier2d server flavor.
+sem: 1
 sidebar:
     label: Q Crate
     order: 70
@@ -17,8 +17,85 @@ version_toml: packages/rust/q/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the q crate?
+          answer: Q is a Rust crate powering KBVE games. Its default build is a Godot GDExtension (cdylib) with a tokio-backed game manager, and feature flags expose a parallel server flavor built on bevy, axum, and rapier2d.
+        - question: Can q be built as both a client and a server?
+          answer: Yes, but not at once. The client and server features are mutually exclusive — enforced by a compile_error in lib.rs — so a build is either the Godot GDExtension client or the headless server flavor.
+        - question: What game bundles does the q crate provide?
+          answer: Feature rollups such as nexus-defense and nexus-defense-server bundle protocol, physics, networking, and (server-side) bevy ECS plus Supabase JWT auth and shared mapdb/npc registries, so build pipelines can select a whole game flavor with one feature.
+bento:
+    badge: crates · rust
+    title: Godot game client and server
+    accent: q
+    lede: >-
+        A Rust crate powering KBVE games — a Godot GDExtension client with a
+        tokio game manager, plus a bevy + axum + rapier2d server flavor.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/q
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: expand
+        title: One crate, two flavors
+        body: >-
+            The default build is a Godot GDExtension (cdylib) with a tokio-backed
+            game manager; feature flags expose a parallel server flavor built on
+            bevy, axum, and rapier2d, along with per-game bundles.
+        points:
+            - <strong>Mutually exclusive</strong> — client and server gated by a compile_error in lib.rs.
+            - <strong>Game bundles</strong> — rollups like nexus-defense select a whole flavor.
+    stats:
+        - { label: Package, value: q, icon: package }
+        - { label: Edition, value: "2024", icon: rust }
+        - { label: Crate types, value: cdylib + rlib, icon: box }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Client flavor
+          icon: box
+          body: Godot GDExtension with dashmap, crossbeam, bitflags, and a tokio runtime; the default build.
+        - title: Server flavor
+          icon: server
+          body: Headless Bevy ECS driven from a tokio task, mutually exclusive with client.
+        - title: Protocol
+          icon: network
+          body: postcard wire format plus bincode snapshot framing (proto-shared, proto-client, proto-server).
+        - title: Physics
+          icon: gears
+          body: rapier2d for spatial queries (client) and authoritative sim step (server).
+        - title: Networking
+          icon: network
+          body: WS client for the Godot extension, Axum for the server (net-client / net-server).
+        - title: Supabase auth
+          icon: key
+          body: Server-side HS256 JWT verification to admit players.
+        - title: Game bundles
+          icon: package
+          body: nexus-defense / nexus-defense-server roll up the features per game.
+    related:
+        - title: KBVE Crate
+          href: /project/kbve-crate/
+          copy: The core Axum + Diesel backend crate.
+          icon: rust
+        - title: Unity RareIcon
+          href: /project/unity-rareicon/
+          copy: A KBVE game project in the same ecosystem.
+          icon: box
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-Q utility crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

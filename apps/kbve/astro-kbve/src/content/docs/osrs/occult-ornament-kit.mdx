@@ -1,6 +1,6 @@
 ---
 title: Occult ornament kit | OSRS Price Data
-description: "Occult ornament kit: Use on an occult necklace to make it look fancier!. High alch: 3,000 GP, GE limit: 4."
+description: "Occult ornament kit: Use on an occult necklace to make it look fancier! High alch: 3,000 GP, GE limit: 4."
 osrs:
   id: 20065
   name: Occult ornament kit
@@ -12,9 +12,56 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Occult ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ornament-kit
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  drop_table:
+    sources:
+      - source: Master Treasure Trails
+        quantity: "1"
+        rarity: 1/851
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Occult necklace
+      slug: occult-necklace
+      relationship: component
+      description: Base amulet the kit attaches to.
+    - item_name: Occult necklace (or)
+      slug: occult-necklace-or
+      relationship: product
+      description: Cosmetic ornamented result; becomes untradeable when combined.
+  about: "The occult ornament kit is a cosmetic master Treasure Trail reward (drop rate 1/851) used on an occult necklace to create the ornamented occult necklace (or). The combined item becomes untradeable, but the kit itself can be removed and resold, which keeps the secondary market liquid despite the tiny buy limit of 4."
+  market_strategy:
+    notes:
+      - "Strict supply from master clues only; price is sticky."
+      - "GE limit of 4 makes accumulation slow but spreads stay reasonable."
+      - "Reversible attach means the kit retains long-term value as a fashion item."
+      - "Demand tracks magic gear updates - new BiS magic items shift attention to occult cosmetics."
+  trading_tips:
+    - Track master clue completion rates; supply rises during clue-focused events.
+    - Hold during quiet market periods; flipping benefits from patience.
+  history:
+    - date: "2016-07-06"
+      description: "Added to the master Treasure Trails reward pool."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,20 +1,69 @@
 ---
 title: Stew | OSRS Price Data
-description: "Stew: It's a meat and potato stew.. High alch: 12 GP, GE limit: 10,000."
+description: "Stew: It's a meat and potato stew. High alch: 12 GP, GE limit: 10,000."
 osrs:
   id: 2003
   name: Stew
   slug: stew
-  examine: It's a meat and potato stew.
+  examine: "It's a meat and potato stew."
   members: false
   icon: Stew.png
   value: 20
   lowalch: 8
   highalch: 12
   limit: 10000
-  about: "Stew is a free-to-play item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 11
+    edible: true
+  recipes:
+    - skill: Cooking
+      level: 25
+      xp: 117
+      materials:
+        - item_name: Uncooked stew
+          quantity: 1
+      tools:
+        - Range
+      output_item: Stew
+      output_quantity: 1
+      notes: Stops burning at level 58 (or 54 on the Lumbridge range).
+  related_items:
+    - item_name: Uncooked stew
+      relationship: component
+      description: Raw input cooked into stew.
+    - item_name: Burnt stew
+      relationship: alternative
+      description: Failure product when cooking stew.
+    - item_name: Spicy stew
+      relationship: upgrade
+      description: Enhanced variant brewed from stew and spice.
+  about: "Stew is a free-to-play meal that heals 11 hitpoints, cooked from an uncooked stew at 25 Cooking for 117 XP and used in Recipe for Disaster (Evil Dave) and The Queen of Thieves."
+  market_strategy:
+    notes:
+      - Driven by Recipe for Disaster and Queen of Thieves prep
+      - Easy 117 XP per cook for low-level Cooking training
+      - Inputs and outputs frequently flip due to quest demand
+  history:
+    - date: "2001-06-11"
+      description: Released with the Fishing skill and additional Cooking content.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-06-11"
+    update: New fishing skill and more cooking
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 1.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

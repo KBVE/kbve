@@ -1,6 +1,6 @@
 ---
 title: Enhanced crystal weapon seed | OSRS Price Data
-description: "Enhanced crystal weapon seed is a members weapon slot item requiring 75 Attack. High alch: 300,000 GP, GE limit: 70."
+description: "Enhanced crystal weapon seed: A seed to be sung into the most powerful crystal weaponry. High alch: 300,000 GP, GE limit: 70."
 osrs:
   id: 25859
   name: Enhanced crystal weapon seed
@@ -12,94 +12,85 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 70
-  equipment:
-    slot: weapon
-    type: sword
-    attack_style: slash
-    attack_speed: 4
-    requirements:
-      attack: 75
-      agility: 75
-    stats:
-      attack_slash: 94
-      strength: 89
-  effect:
-    corrupted: true
-    never_degrades: true
-    untradeable: true
-    cannot_revert: true
-  creation:
-    base_item_id: 23995
-    base_item_name: Blade of saeldor
-    material_id: 23962
-    material_name: Crystal shard
-    material_quantity: 1000
+  about: "Enhanced crystal weapon seed is a members-only item in Old School RuneScape. High alchemy value: 300,000 coins. Grand Exchange buy limit: 70 per 4 hours. Sung into Blade of Saeldor or Bow of Faerdhinen at a singing bowl."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-06-30"
+    weight: 0.018
+    tradeable: true
+    equipable: false
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+  material:
+    type: seed
+    tier: crystal
   drop_table:
-    sources:
-      - source: The Gauntlet
-        source_id: 9021
-        combat_level: 0
-        quantity: 1 (Enhanced crystal weapon seed)
-        rarity: Rare
-        members_only: true
-      - source: The Corrupted Gauntlet
-        source_id: 9035
-        combat_level: 0
-        quantity: 1 (Enhanced crystal weapon seed)
-        rarity: Rare
-        members_only: true
-  related_items:
-    - item_id: 23995
-      item_name: Blade of saeldor
-      slug: blade-of-saeldor
-      relationship: downgrade
-      description: Uncharged version
-    - item_id: 22324
-      item_name: Ghrazi rapier
-      slug: ghrazi-rapier
-      relationship: alternative
-      description: Stab equivalent
-    - item_id: 25862
-      item_name: Bow of faerdhinen (c)
-      slug: bow-of-faerdhinen-c
-      relationship: alternative
-      description: Ranged crystal weapon
-    - item_id: 23962
-      item_name: Crystal shard
-      slug: crystal-shard
+    - source: "The Gauntlet"
+      quantity: "1"
+      rarity: "1/2000"
+      notes: "Rare drop from completing The Gauntlet."
+    - source: "The Corrupted Gauntlet"
+      quantity: "1"
+      rarity: "1/400"
+      notes: "Rare drop from completing The Corrupted Gauntlet."
+  recipes:
+    - item_name: "Blade of saeldor"
+      skill: "Smithing"
+      level_required: 82
+      xp: 0
+      tools:
+        - "Singing bowl"
+      materials:
+        - item_name: "Enhanced crystal weapon seed"
+          quantity: 1
+        - item_name: "Crystal shard"
+          quantity: 100
+      output_quantity: 1
+      notes: "Also requires 82 Crafting (boostable). Conwenna/Reese will sing it for an extra 50 shards."
+    - item_name: "Bow of faerdhinen"
+      skill: "Smithing"
+      level_required: 82
+      xp: 0
+      tools:
+        - "Singing bowl"
+      materials:
+        - item_name: "Enhanced crystal weapon seed"
+          quantity: 1
+        - item_name: "Crystal shard"
+          quantity: 100
+      output_quantity: 1
+      notes: "Also requires 82 Crafting (boostable). Both require Song of the Elves completion."
+  relationships:
+    - item_name: "Blade of saeldor"
       relationship: component
-      description: Corruption material
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Slash attack | +94 |
-    | Strength | +89 |
-    | Requirements | 75 Attack, Agility |
-
-    Highest slash accuracy in-game.
-
-    Corrupted version:
-    - Never degrades
-    - Cannot be reverted
-    - Untradeable
-
-    Charged version (uncorrupted):
-    - Requires crystal shards to charge
-    - 20,000 charges per 100 shards
-
-    BiS for slash-weak enemies:
-    - Graardor
-    - Cerberus
-    - General melee combat
-
-    Tied with Ghrazi rapier for general DPS.
+      notes: "Sung into the blade at a singing bowl."
+    - item_name: "Bow of faerdhinen"
+      relationship: component
+      notes: "Sung into the bow at a singing bowl."
+    - item_name: "Crystal shard"
+      relationship: component
+      notes: "Required to sing the seed into a weapon; exchangeable to Amrod for 1,500 shards."
+    - item_name: "Ghrazi rapier"
+      relationship: alternative
+      notes: "Stab DPS equivalent to charged Blade of Saeldor."
+  history:
+    - date: "2021-06-30"
+      description: "Released with the Song of the Elves expansion content."
+    - date: "2021-08-12"
+      description: "Amrod added as an exchange option granting 1,500 crystal shards for the seed."
   market_strategy:
     notes:
-      - Enhanced crystal weapon seed from CG
-      - Corrupt to save long-term costs
-      - Song of the Elves required
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "buy_strategy: \"Buy when CG drop rates have flooded supply; corrupt the seed to skip degradation costs long-term.\""
+      - "sell_strategy: \"Sell raw seed to PvMers building Blade of Saeldor or Bow of Faerdhinen.\""
+      - "profit_potential: \"High-value PvM item; price is sensitive to Gauntlet popularity and crystal shard cost.\""
+      - "risk_level: \"high\""
+  trading_tips:
+    - "Song of the Elves required to use the seed."
+    - "Corrupted variant is untradeable and never degrades."
+    - "Charged variant costs ~100 shards per 20,000 hits; corruption avoids ongoing shard upkeep."
+    - "BiS slash weapon tied with Ghrazi rapier for general DPS."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

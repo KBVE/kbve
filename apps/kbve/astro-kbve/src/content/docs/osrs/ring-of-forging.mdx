@@ -1,6 +1,6 @@
 ---
 title: Ring of forging | OSRS Price Data
-description: "Ring of forging is a F2P ring slot item. High alch: 1,215 GP, GE limit: 10,000."
+description: "Ring of forging: An enchanted ring. High alch: 1,215 GP, GE limit: 10,000."
 osrs:
   id: 2568
   name: Ring of forging
@@ -12,8 +12,33 @@ osrs:
   lowalch: 810
   highalch: 1215
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ruby
+    tier: mid
+  properties:
+    release_date: "2002-05-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.006
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ring
+    weapon_type: null
+    attack_speed: null
+    weight: 0.006
+    requirements: {}
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,60 +56,55 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements: {}
-    weight: 0.006
   recipes:
     - skill: magic
       level: 49
       xp: 59
-      inputs:
+      materials:
         - item_name: Ruby ring
           quantity: 1
         - item_name: Cosmic rune
           quantity: 1
         - item_name: Fire rune
           quantity: 5
+      tools: []
       output_quantity: 1
+  passive_effects:
+    - name: Guaranteed iron smelt
+      description: Forces a 100% success rate when smelting iron ore at a regular furnace; lasts 140 successful smelts before the ring crumbles to dust.
   related_items:
-    - item_id: 2570
-      item_name: Ring of life
+    - item_name: Ruby ring
+      slug: ruby-ring
+      relationship: component
+      description: Base ring required to cast Lvl-4 Enchant.
+    - item_name: Ring of life
       slug: ring-of-life
       relationship: alternative
-      description: Emergency teleport ring
-    - item_id: 2550
-      item_name: Ring of recoil
+      description: Emergency teleport ring at low HP.
+    - item_name: Ring of recoil
       slug: ring-of-recoil
       relationship: alternative
-      description: Damage reflection ring
+      description: Reflects a percentage of damage back at attackers.
   about: |-
-    No combat bonuses. The ring's value is entirely in its skilling effect.
+    The ring of forging grants a 100% iron-smelting success rate at standard furnaces, replacing the usual 50% chance per ore. It carries 140 charges - each successful iron smelt consumes one - before crumbling to dust.
 
-    Requirements: None to wear | Weight: 0.006 kg
+    Charges are tracked per player, not per ring, so swapping rings does not refresh the counter. The ring is created by casting Lvl-4 Enchant on a ruby ring (49 Magic).
 
-    Guarantees 100% success rate when smelting iron ore into iron bars. Without the ring, iron ore normally has only a 50% success rate (each ore has a 50% chance of failing).
-
-    Charges: 140 uses before the ring crumbles to dust. Each iron ore smelted consumes one charge.
-
-    Important: Charges are tracked per player, not per ring — swapping to a new ring does not reset the counter.
-
-    | Method | Iron Bars per Ring | Cost per Ring |
-    |--------|-------------------|---------------|
-    | Without ring | ~70 bars (50% rate) | Free |
-    | With ring | 140 bars (100%) | ~800 GP |
-
-    The ring effectively doubles your iron bar output, saving ~70 iron ores worth of value per ring.
-
-    At the Blast Furnace, iron ore already smelts at 100% — making the ring of forging unnecessary there. The ring is primarily useful at regular furnaces.
-
-    Essential for Ironman accounts producing iron bars at regular furnaces, where the 50% failure rate would waste hard-earned ores. Most ironmen transition to Blast Furnace eventually, but the ring is valuable during early-mid game.
+    Without ring: ~70 iron bars per 140 ore | With ring: 140 iron bars per 140 ore. At the Blast Furnace iron already smelts at 100%, so the ring is unnecessary there - it shines at regular furnaces, especially for ironmen during early- to mid-game iron grinds.
   market_strategy:
     notes:
-      - Cheap to enchant (ruby ring + cosmic + fire runes)
-      - Consumed on use — steady recurring demand
-      - F2P accessible via Murky Matt (250 coins)
-      - Less useful once Blast Furnace is unlocked
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheap to enchant (ruby ring + cosmic + fire runes)."
+      - "Consumed on use - steady recurring demand."
+      - "F2P accessible via Murky Matt for 250 coins."
+      - "Less useful once Blast Furnace is unlocked."
+  trading_tips:
+    - Stock up when ruby ring price dips; arbitrage via enchant.
+    - Bulk-supply ironman markets ahead of Blast Furnace minigame downtime.
+  history:
+    - date: "2013-02-22"
+      description: "Item carried over to Old School RuneScape at launch."
+    - date: "2002-05-28"
+      description: "Originally released in RuneScape Classic."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

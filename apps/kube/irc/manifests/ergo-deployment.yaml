@@ -5,6 +5,9 @@ metadata:
     namespace: irc
     labels:
         app: ergo-irc
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
         fluentd.alpha.kubernetes.io/exclude: 'false'
 spec:
@@ -43,14 +46,14 @@ spec:
                         readOnly: true
                   env:
                       - name: ERGO_CONFIG
-                        value: '/ircd/ircd.yaml'
+                        value: /ircd/ircd.yaml
                   resources:
                       requests:
-                          memory: '128Mi'
-                          cpu: '100m'
+                          memory: 128Mi
+                          cpu: 100m
                       limits:
-                          memory: '512Mi'
-                          cpu: '500m'
+                          memory: 512Mi
+                          cpu: 500m
                   livenessProbe:
                       tcpSocket:
                           port: 6667

@@ -13,7 +13,7 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS ast
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
     pnpm install --frozen-lockfile
@@ -21,14 +21,42 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
 COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
 COPY packages/npm/laser/ packages/npm/laser/
+COPY packages/npm/chat/ packages/npm/chat/
+COPY packages/npm/core/ packages/npm/core/
+COPY packages/npm/rn/ packages/npm/rn/
+COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
+COPY packages/data/codegen/*.ts packages/data/codegen/
 
 COPY apps/cryptothrone/astro-cryptothrone/ apps/cryptothrone/astro-cryptothrone/
 
+# Public Discord Activity client id, baked into the discord.js bundle at build
+# time. This is a public value (visible client-side); the OAuth secret stays
+# server-side as a sealed secret. Override via --build-arg if it ever changes.
+ARG PUBLIC_DISCORD_CLIENT_ID="1515611992172531712"
+ENV PUBLIC_DISCORD_CLIENT_ID=$PUBLIC_DISCORD_CLIENT_ID
+
 WORKDIR /app/apps/cryptothrone/astro-cryptothrone
-RUN rm -rf .astro && npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+# Build the standalone embed.js + Discord Activity discord.js into public/
+# first, so `astro build` copies them into dist (served by the rust binary at
+# /embed/embed.js and /discord/{index.html,discord.js}).
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-cryptothrone-cache,sharing=locked \
+    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    npx astro sync && \
+    NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.embed.config.mts && \
+    NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.discord.config.mts && \
+    # Cache-bust the fixed-name discord.js: stamp its content hash as a query so
+    # Discord's asset proxy can't serve last deploy's bytes. Done before astro
+    # build so the rewritten index.html is what gets copied into dist.
+    DJS_V=$(sha1sum public/discord/discord.js | cut -c1-8) && \
+    sed -i "s#src=\"discord.js\"#src=\"discord.js?v=$DJS_V\"#" public/discord/index.html && \
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
+    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true && \
+    # Fail loud if the embed/discord bundles didn't make it into dist (a stale
+    # cached astro-builder layer once shipped without them -> silent 404s).
+    test -f ../../../dist/apps/astro-cryptothrone/embed/embed.js && \
+    test -f ../../../dist/apps/astro-cryptothrone/discord/discord.js
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets
@@ -50,7 +78,7 @@ RUN find . -type f \( \
         -name "*.xml" -o \
         -name "*.txt" -o \
         -name "*.html" \
-    \) ! -path "*/askama/*" -print0 | \
+    \) -print0 | \
     xargs -0 -P "$(nproc)" -n 1 sh -c ' \
         gzip -9 -f -k "$1" && \
         brotli -q 9 -f --keep "$1" \
@@ -144,8 +172,6 @@ COPY packages/rust/holy packages/rust/holy
 
 COPY apps/cryptothrone/axum-cryptothrone apps/cryptothrone/axum-cryptothrone
 
-COPY apps/cryptothrone/axum-cryptothrone/templates/askama /app/apps/cryptothrone/axum-cryptothrone/templates/askama
-
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
@@ -160,7 +186,6 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-cryptothrone /app/axum-cryptothrone
 
 COPY --from=builder --chown=10001:10001 /app/apps/cryptothrone/axum-cryptothrone/templates/dist /app/templates/dist
-COPY --from=builder --chown=10001:10001 /app/apps/cryptothrone/axum-cryptothrone/templates/askama /app/templates/askama
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321

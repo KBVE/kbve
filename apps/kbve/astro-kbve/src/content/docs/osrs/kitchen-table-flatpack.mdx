@@ -12,9 +12,68 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Kitchen table (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: low
+  recipes:
+    - name: Build Kitchen table flatpack
+      skill: Construction
+      level: 12
+      experience: 87
+      materials:
+        - item_name: Plank
+          quantity: 3
+        - item_name: Steel nails
+          quantity: 3
+      tools:
+        - Hammer
+        - Saw
+      facility: Workbench
+      output_quantity: 1
+  construction:
+    level: 12
+    experience: 87
+    hotspot: Table space
+    room: Kitchen
+  related_items:
+    - name: Plank
+      relationship: component
+    - name: Steel nails
+      relationship: component
+    - name: Oak kitchen table (flatpack)
+      relationship: upgrade
+    - name: Teak kitchen table (flatpack)
+      relationship: upgrade
+  about: "Kitchen table (flatpack) is a Construction-level 12 furniture pack built at a workbench from 3 planks and 3 steel nails, then placed in a player-owned house Kitchen Table space hotspot for 87 Construction experience."
+  market_strategy:
+    notes:
+      - Low alch and GE price make this useful only as a cheap Construction XP product.
+      - Common bulk-buy item for low-level Construction trainers.
+      - Buy limit of 500 supports moderate flipping volume but tight per-unit margin.
+  trading_tips:
+    - Stockpile via workbench when planks and nails are cheap, then resell or use for housing.
+    - Useful early-level Construction XP path for ironmen avoiding Plank Make magic.
+    - Check GE spread vs material cost before flipping.
+  history:
+    - date: "2006-05-31"
+      description: Introduced with the Construction skill update.
+  properties:
+    release_date: "2006-05-31"
+    update: Construction skill
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

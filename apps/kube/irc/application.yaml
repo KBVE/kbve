@@ -3,6 +3,15 @@ kind: Application
 metadata:
     name: irc
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/irc
+        kbve.com/manifest-path: apps/kube/irc/manifests
+        kbve.com/application-file: kube/irc/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
     project: default
     source:

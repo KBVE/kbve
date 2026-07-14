@@ -12,9 +12,62 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Anguish ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ornament-kit
+    tier: high
+  properties:
+    release_date: "2018-01-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/851
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Necklace of anguish
+      slug: necklace-of-anguish
+      relationship: component
+      description: Base necklace required to apply this kit
+    - item_name: Necklace of anguish (or)
+      slug: necklace-of-anguish-or
+      relationship: product
+      description: Ornamented result of combining the kit with the necklace
+    - item_name: Tormented ornament kit
+      slug: tormented-ornament-kit
+      relationship: alternative
+      description: Equivalent master-clue ornament kit for the tormented bracelet
+  about: "Anguish ornament kit is a master-tier Treasure Trail reward. Combining it with a necklace of anguish creates an ornamented Necklace of anguish (or), which is untradeable until the kit is detached again."
+  market_strategy:
+    notes:
+      - "Highly valuable cosmetic kit tied to master clue completion supply"
+      - "Buy limit of 4 caps short-term flips and bulk arbitrage"
+      - "Price strongly correlates with master clue volume and meta interest"
+      - "Detachable kit retains long-term value relative to one-way ornaments"
+  trading_tips:
+    - "Track master clue scroll completion rates and update content for supply shifts"
+    - "Hold during BiS jewellery meta swings to capture demand spikes"
+  history:
+    - date: "2018-01-25"
+      description: "Anguish ornament kit released as a master clue scroll reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

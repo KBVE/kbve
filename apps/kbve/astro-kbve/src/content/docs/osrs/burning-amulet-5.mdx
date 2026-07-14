@@ -12,9 +12,76 @@ osrs:
   lowalch: 500
   highalch: 750
   limit: 10000
-  about: "Burning amulet(5) is a members-only item in Old School RuneScape. High alchemy value: 750 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: neck
+    weight: 0.007
+    requirements:
+      magic: 1
+  charges:
+    max_charges: 5
+    note: Disintegrates when all charges are spent.
+  teleport:
+    destinations:
+      - name: Chaos Temple
+        wilderness_level: 15
+      - name: Bandit Camp
+        wilderness_level: 17
+      - name: Lava Maze
+        wilderness_level: 41
+  recipes:
+    - materials:
+        - item_name: Topaz amulet
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 5
+      tools: []
+      skill: Magic
+      level: 49
+      output_quantity: 1
+  related_items:
+    - name: Burning amulet(1)
+      relationship: variant
+    - name: Burning amulet(2)
+      relationship: variant
+    - name: Burning amulet(3)
+      relationship: variant
+    - name: Burning amulet(4)
+      relationship: variant
+    - name: Topaz amulet
+      relationship: component
+  about: "Burning amulet(5) is a members-only enchanted topaz amulet in Old School RuneScape with five Wilderness teleport charges. High alchemy value: 750 coins. Grand Exchange buy limit: 10,000 per 4 hours."
+  market_strategy:
+    notes:
+      - Demand is driven by Wilderness PvM/Slayer activity (Lava Maze, Chaos Temple).
+      - Charged amulets trade at a premium over the per-cast Lvl-3 Enchant material cost.
+  trading_tips:
+    - Compare the GE price to the combined cost of a topaz amulet + cosmic + 5 fire runes.
+    - Burning amulets cannot be stored in jewellery boxes, so usage skews to inventory carry only.
+  history:
+    - date: "2017-02-02"
+      description: Burning amulet teleports were reworked into chargeable 1/2/3/4/5 charge variants.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-02-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Rub
+      - Drop
+    worn_options:
+      - Remove
+      - Rub
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

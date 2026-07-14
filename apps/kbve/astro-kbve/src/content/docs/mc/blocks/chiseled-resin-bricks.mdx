@@ -1,5 +1,6 @@
 ---
 title: Chiseled Resin Bricks
+template: splash
 description: |
     Minecraft Chiseled Resin Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 349
     ref: chiseled_resin_bricks
     slug: chiseled-resin-bricks
+    content_rev: 1
     display_name: Chiseled Resin Bricks
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_resin_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Chiseled Resin Bricks are a decorative variant of Resin Bricks
+            carved with the stylized face of a Creaking, the guardian mob of
+            the pale garden. They are crafted, not mined naturally, and add
+            architectural detail to resin-themed builds.
+        lore: |
+            Added alongside Resin Bricks and the pale garden biome in the
+            Garden Awakens update (1.21.4), they let builders decorate the
+            hardened tree resin material with a carved motif.
+    uses:
+        - title: Decorative Trim
+          ref: chiseled_resin_bricks
+          detail: |
+              Used purely for decoration on walls, floors, and accents in
+              builds themed around the pale garden or resin brick palette.
+    found_in:
+        - location: Crafting table
+          detail: Craft from 2 Resin Brick Slabs stacked vertically.
+        - location: Stonecutter
+          detail: Cut directly from a Resin Bricks block, 1 in 1 out.
+    faq:
+        - question: Can I find Chiseled Resin Bricks naturally generated?
+          answer: |
+              No. Unlike plain Resin Bricks (found in pale garden creaking
+              hearts and swamp/pale-garden vegetation drops), the chiseled
+              variant must be crafted or stonecut.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without a pickaxe
+              drops nothing.
+        - question: Does it burn?
+          answer: |
+              No. It is non-flammable and safe to use near fire or lava.
+        - question: What's with the face carved into it?
+          answer: |
+              It depicts a Creaking, the hostile mob tied to the pale garden
+              biome and Creaking Hearts introduced in the same update.
     data_version: "1.21.5"
 ---
 

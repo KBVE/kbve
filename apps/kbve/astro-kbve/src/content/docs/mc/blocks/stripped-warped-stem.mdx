@@ -1,5 +1,6 @@
 ---
 title: Stripped Warped Stem
+template: splash
 description: |
     Minecraft Stripped Warped Stem — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 822
     ref: stripped_warped_stem
     slug: stripped-warped-stem
+    content_rev: 1
     display_name: Stripped Warped Stem
     material: nether
     hardness: 2
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_warped_stem
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Stripped Warped Stem is the bark-free version of Warped Stem,
+            produced by using an axe on the stem. It keeps the log-style
+            ring pattern on its top and bottom faces while showing the
+            teal, fungal-textured interior on its sides.
+        lore: |
+            Warped Stem debuted with the Nether Update (Java Edition 1.16)
+            as the "trunk" block of warped fungi in the Warped Forest.
+    uses:
+        - title: Stripped Warped Hyphae
+          ref: stripped_warped_hyphae
+          detail: |
+              Combine four stripped warped stems to craft Stripped Warped
+              Hyphae, the all-sides-stripped variant used for cladding.
+        - title: Warped Planks
+          ref: warped_planks
+          detail: |
+              Crafts into 4 Warped Planks per block for building, though it
+              cannot be used as furnace fuel.
+    found_in:
+        - location: Warped Forest biome
+          detail: Player-made by stripping naturally generating Warped Stem with an axe.
+        - location: Crafting table
+          detail: Also obtainable by crafting four matching stripped warped logs.
+    faq:
+        - question: Does Stripped Warped Stem burn?
+          answer: |
+              No. Like all Nether stems and hyphae, it is immune to fire
+              and lava.
+        - question: Can I use it as furnace fuel?
+          answer: |
+              No, Nether stems and hyphae cannot be burned for fuel unlike
+              overworld logs.
+        - question: What does mining it drop?
+          answer: |
+              Always exactly one Stripped Warped Stem, unaffected by Silk
+              Touch or Fortune.
+        - question: Do I need a special tool to mine it?
+          answer: |
+              No, any tool or bare hands work; an axe is simply the
+              fastest option.
     data_version: "1.21.5"
 ---
 

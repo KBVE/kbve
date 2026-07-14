@@ -7,6 +7,10 @@ import {
 } from "./_shared.ts";
 import { SubmitServerRequestSchema } from "./validate.ts";
 import { safeRpcError } from "../_shared/validators.ts";
+import {
+  claimIdempotencyKey,
+  readIdempotencyKey,
+} from "../_shared/idempotency.ts";
 
 // ---------------------------------------------------------------------------
 // Discordsh Server Module
@@ -18,9 +22,14 @@ import { safeRpcError } from "../_shared/validators.ts";
 type Handler = (req: DiscordshRequest) => Promise<Response>;
 
 const handlers: Record<string, Handler> = {
-  async submit({ claims, token, body }) {
+  async submit({ claims, token, body, req }) {
     const denied = requireUserToken(claims);
     if (denied) return denied;
+
+    const idkey = readIdempotencyKey(req, body);
+    if (idkey && !claimIdempotencyKey("discordsh.server", idkey)) {
+      return jsonResponse({ success: false, error: "duplicate request" }, 409);
+    }
 
     // --- Zod validation (mirrors client-side SubmitServerRequestSchema) ---
     const parsed = SubmitServerRequestSchema.omit({

@@ -12,9 +12,101 @@ osrs:
   lowalch: 153
   highalch: 230
   limit: null
-  about: "Black felling axe is a members-only item in Old School RuneScape. High alchemy value: 230 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2023-10-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: 2h_axe
+    attack_speed: 7
+    weight: 1.814
+    requirements:
+      attack: 10
+      woodcutting: 11
+    attack_bonus:
+      stab: 0
+      slash: 10
+      crush: 8
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 11
+      xp: 0
+      materials:
+        - item_name: Black axe
+          quantity: 1
+        - item_name: Felling axe handle
+          quantity: 1
+      tools:
+        - Anvil
+        - Hammer
+      output_quantity: 1
+  passive_effects:
+    - name: "Forester's ration synergy"
+      description: "While carrying forester's rations, grants 10% bonus Woodcutting XP and 20% chance to skip log collection per swing"
+  related_items:
+    - item_name: Black axe
+      slug: black-axe
+      relationship: component
+      description: "Combined with a felling axe handle at an anvil"
+    - item_name: Felling axe handle
+      slug: felling-axe-handle
+      relationship: component
+      description: "Forestry handle required for every felling axe upgrade"
+    - item_name: Steel felling axe
+      slug: steel-felling-axe
+      relationship: upgrade
+      description: "Next tier in the felling axe ladder"
+    - item_name: Iron felling axe
+      slug: iron-felling-axe
+      relationship: downgrade
+      description: "Lower tier in the felling axe ladder"
+  about: |-
+    > *"A woodcutter's axe."*
+
+    The black felling axe sits in the entry-mid bracket of the Forestry: Part Two woodcutting weapons, combining a black axe and a felling axe handle at an anvil with a hammer. The forge step is irreversible, but the finished axe remains tradeable.
+
+    It chops at the same speed as a standard black axe and unlocks Forestry passives: while carrying forester's rations, players gain 10% more Woodcutting XP and a 20% chance to skip log collection per swing — useful when training for XP rather than logs.
+  market_strategy:
+    notes:
+      - "Demand follows Forestry XP meta and event spawn rates"
+      - "Steel/mithril felling axes overshadow it once 30 Attack is hit"
+  trading_tips:
+    - "Buy black axes during Smithing training dips, fuse for resale"
+    - "Felling axe handle is the bottleneck — track it alongside the axe"
+  history:
+    - date: "2023-10-25"
+      description: "Released with Forestry: Part Two"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

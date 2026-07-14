@@ -1,6 +1,6 @@
 ---
 title: Barley | OSRS Price Data
-description: "Barley: A handful of Barley.. High alch: 2 GP, GE limit: 11,000."
+description: "Barley: A handful of Barley. High alch: 2 GP, GE limit: 11,000."
 osrs:
   id: 6006
   name: Barley
@@ -12,9 +12,88 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Barley is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: crop
+    tier: low
+  properties:
+    tradeable: true
+    stackable: false
+    equipable: false
+    noteable: true
+    weight: 0.028
+    release_date: "2005-07-11"
+    quest_item: false
+    options:
+      - Drop
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Barley
+          quantity: 1
+      output_quantity: 1
+      notes: "Use barley on a range to produce barley malt for brewing"
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Water
+          quantity: 2
+      output_quantity: 1
+      notes: "Two barley (as malt) are used per batch when brewing ales in fermenting vats"
+  shops:
+    - shop_name: Olivia's Seed Store (Draynor Village)
+      location: Draynor Village
+      price: 4
+      stock: 0
+      restock_time: "Slow"
+      currency: Coins
+    - shop_name: Heskel's Farming Store (Falador)
+      location: Falador
+      price: 4
+      stock: 0
+      restock_time: "Slow"
+      currency: Coins
+  related_items:
+    - item_id: 5305
+      item_name: Barley seed
+      slug: barley-seed
+      relationship: component
+      description: "Hops seed planted in hops patches to grow barley at Farming 3"
+    - item_id: 6008
+      item_name: Barley malt
+      slug: barley-malt
+      relationship: product
+      description: "Cooked barley used as brewing ingredient for ales"
+  about: |-
+    > _"A handful of Barley."_
+
+    Barley is a low-tier members hops crop introduced with the 2005 Farming update. Players grow it from barley seeds in hops patches starting at Farming level 3, with each crop yielding several handfuls when fully grown. Two barley (typically turned to barley malt first) are used per ale brew, making the crop a cornerstone ingredient for the Cooking and Brewing pipeline.
+
+    Beyond brewing, barley is one of the cheapest ways to fill a compost bin: a full bin of barley produces regular compost with no farming risk and minimal capital. Adventurers also use barley malt as payment to nearby farmers for jute patch protection, with a typical request of six malt per patch.
+
+    Although the Grand Exchange price floats well above high alch, barley remains a niche profitable hops crop for players who scale up brewery operations or who farm jute at scale. Daily volume is modest, so large flips need to be staged across several four-hour windows to avoid suppressing the price.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Demand is driven by Cooking brewers and ironmen running Farming bin loops"
+      - "Buy limit of 11,000 per 4 hours leaves enormous headroom for bulk plays"
+      - "Price tends to drift up during Brewing-themed events and ale-focused promotions"
+      - "High alch is trivial (2 GP) so flips rely entirely on the live GE spread"
+      - "Bin-and-flip pattern: harvest, note, list slightly under buy price to clear daily"
+      - "Watch jute seed and jute fibre prices: jute farmers buy barley malt for patch payment"
+      - "Stack purchases in the morning reset window for cleanest fill rates"
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill update alongside the hops patch line"
+    - date: "2015-02-26"
+      description: "Tradeable on the Grand Exchange after the GE rework added farm crops"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

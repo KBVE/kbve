@@ -36,9 +36,24 @@ use types::{AuthJob, AuthResponse};
 /// Global runtime instance — initialized once via JNI `init()`.
 static RUNTIME: OnceLock<AuthRuntime> = OnceLock::new();
 
+/// Install a stdout tracing subscriber so agones/supabase/wallet logs land
+/// in the server log instead of vanishing. Without this every `tracing`
+/// event in the cdylib is dropped — a failed Agones `Ready()` was invisible
+/// during the 2026-07-08 fleet recycle outage. `RUST_LOG` overrides the
+/// default `info` filter. `try_init` keeps repeat calls harmless.
+fn init_tracing() {
+    let filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
+    let _ = tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_target(true)
+        .try_init();
+}
+
 /// Initialize the Tokio auth runtime. Call once from Fabric mod startup.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_init(mut _env: JNIEnv, _class: JClass) {
+    init_tracing();
     let _ = RUNTIME.set(AuthRuntime::start());
 }
 
@@ -94,10 +109,7 @@ pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_verifyLink<'local>(
     };
 
     let response = match RUNTIME.get() {
-        Some(rt) => rt.submit(AuthJob::VerifyLink {
-            player_uuid,
-            code: code as i32,
-        }),
+        Some(rt) => rt.submit(AuthJob::VerifyLink { player_uuid, code }),
         None => AuthResponse::error("runtime not initialized"),
     };
 

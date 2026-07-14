@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&c
 description: October 6th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'October 6,'
+    accent: every year.
+    lede: 'The October 6th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Oct 5'
+          href: /journal/10-05/
+        - label: 'Oct 7 →'
+          href: /journal/10-07/
+    related:
+        - title: 'Previous · Oct 5'
+          copy: 'Step back a day to the October 5th log.'
+          href: /journal/10-05/
+          icon: calendar
+        - title: 'Next · Oct 7'
+          copy: 'Jump ahead to the October 7th log.'
+          href: /journal/10-07/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693298661836-1206649639ef?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### KBVE Credits
 
@@ -44,7 +85,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     The hang is coming from the SSL cert generation and the cert manager, both of these can be addressed in our current unity pipeline.
     Let me push this fix up and then handle some of the click house issues!
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **NewEntry**
 
@@ -84,3 +133,7 @@ All of this is like a trip back to memory lane, its been such a long time since 
 I am going to go through all the example assets that are included with the Corgi engine and see what we can use as a base for our game.
 Once we get the base of the game setup, I am going to setup the pipeline for building the unity 6 and the general steam flow.
 If everything goes as planned, we can ship to Steam without any major problems.
+
+</BentoProse>
+
+</BentoDoc>

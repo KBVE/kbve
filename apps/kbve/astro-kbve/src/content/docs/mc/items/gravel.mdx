@@ -1,5 +1,6 @@
 ---
 title: Gravel
+template: splash
 description: |
     Minecraft Gravel — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 63
     ref: gravel
     slug: gravel
+    content_rev: 1
     display_name: Gravel
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Gravel is a gravity-affected block found throughout the Overworld and Nether that falls when the block beneath it is removed. Mining it with a shovel has a 10% chance to drop flint instead of gravel, a chance that improves with the Fortune enchantment up to a guaranteed drop at Fortune III. It can also be crafted into coarse dirt or combined with sand and dye to make concrete powder.
+        lore: |
+            Gravel often falls into caves, forming a mock dead end that may reveal additional passageways once removed.
+    faq:
+        - question: How do I get more flint from gravel?
+          answer: |
+              Use a shovel enchanted with Fortune. Fortune I raises the drop chance to 14.29%, Fortune II to 25%, and Fortune III guarantees a flint drop.
+        - question: What happens when gravel falls on a non-solid block?
+          answer: |
+              If falling gravel lands on a non-solid block such as a torch, rail, or redstone dust, it breaks and drops itself instead of falling further, and it never drops flint in this case.
+        - question: Can gravel float in midair?
+          answer: |
+              Yes. Gravel only falls when the block directly supporting it is removed, and it will not fall through non-solid blocks like torches or rails sitting beneath it.
+        - question: What can I craft with gravel?
+          answer: |
+              Gravel combines with dirt to make coarse dirt, and with sand plus a dye to make concrete powder of that color.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

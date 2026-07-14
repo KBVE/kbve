@@ -1,5 +1,6 @@
 ---
 title: Polished Blackstone Slab
+template: splash
 description: |
     Minecraft Polished Blackstone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 896
     ref: polished_blackstone_slab
     slug: polished-blackstone-slab
+    content_rev: 1
     display_name: Polished Blackstone Slab
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_blackstone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Polished Blackstone Slab is a half-height building block cut
+            from polished blackstone. Two slabs placed in the same space
+            combine into a full, fully opaque block, and single slabs can
+            sit on either the bottom or top half of a block space.
+        lore: |
+            Added with the rest of the polished blackstone family in the
+            Nether Update (Java Edition 1.16).
+    uses:
+        - title: Chiseled Polished Blackstone
+          ref: chiseled_polished_blackstone
+          detail: |
+              Stacking two polished blackstone slabs in a crafting grid
+              produces chiseled polished blackstone, a decorative variant.
+    found_in:
+        - location: Ruined Portals
+          detail: Generates naturally as part of ruined portal structures in the Nether.
+        - location: Crafted or Stonecut
+          detail: |
+              Three polished blackstone blocks craft six slabs, or cut two
+              slabs per block with a stonecutter from blackstone or
+              polished blackstone.
+    faq:
+        - question: What tool do I need to mine a Polished Blackstone Slab?
+          answer: |
+              A wooden pickaxe or better. Mining it without a pickaxe
+              destroys the block without dropping anything.
+        - question: Do two slabs make a full block?
+          answer: |
+              Yes. Placing a second slab in the same position combines them
+              into a full, solid, fully opaque polished blackstone double
+              slab.
+        - question: Can I waterlog a slab?
+          answer: |
+              Yes, a single slab can be waterlogged, letting it hold a
+              source block of water while placed.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a slab regardless of
+              enchantments, as long as a pickaxe is used.
     data_version: "1.21.5"
 ---
 

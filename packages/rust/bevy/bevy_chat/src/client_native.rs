@@ -1,10 +1,13 @@
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 use tokio::sync::{Mutex, broadcast, mpsc};
 
 use crate::config::{IrcConfig, IrcTransport};
 use crate::message::ChatMessage;
+
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Async IRC client that connects to a server, joins channels, and
 /// sends/receives structured game messages.
@@ -65,8 +68,9 @@ impl ChatClient {
         let addr = format!("{}:{}", self.config.host, self.config.port);
         tracing::info!("IRC connecting to {} (tcp)", addr);
 
-        let stream = TcpStream::connect(&addr)
+        let stream = tokio::time::timeout(CONNECT_TIMEOUT, TcpStream::connect(&addr))
             .await
+            .map_err(|_| format!("IRC connect timed out after {:?}: {}", CONNECT_TIMEOUT, addr))?
             .map_err(|e| format!("IRC connect failed: {}", e))?;
 
         let (reader, writer) = tokio::io::split(stream);
@@ -133,9 +137,11 @@ impl ChatClient {
         };
         tracing::info!("IRC connecting to {} (websocket)", url);
 
-        let (ws, _resp) = tokio_tungstenite::connect_async(&url)
-            .await
-            .map_err(|e| format!("IRC-WS connect failed: {}", e))?;
+        let (ws, _resp) =
+            tokio::time::timeout(CONNECT_TIMEOUT, tokio_tungstenite::connect_async(&url))
+                .await
+                .map_err(|_| format!("IRC-WS connect timed out after {:?}: {}", CONNECT_TIMEOUT, url))?
+                .map_err(|e| format!("IRC-WS connect failed: {}", e))?;
         let (mut sink, mut stream) = ws.split();
 
         let (out_tx, mut out_rx) = mpsc::unbounded_channel::<String>();

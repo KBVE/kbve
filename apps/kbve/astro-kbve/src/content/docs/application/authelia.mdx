@@ -1,6 +1,12 @@
 ---
 title: Authelia
-description: Open-source auth software as a middleware. Authelia handles the authentication and authorization of the user/entity, allowing to secure access outside the scope of the application and provides a unique firewall-like access terminal.
+description: Authelia is an open-source authentication and authorization server that adds two-factor authentication (2FA) and single sign-on (SSO) to your applications through a reverse proxy. It acts as a firewall-like access portal, securing services outside the scope of the application itself.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Authelia
     order: 5
@@ -9,43 +15,161 @@ img: https://images.unsplash.com/photo-1549605659-32d82da3a059?fit=crop&w=1400&h
 tags:
   - security
   - auth
-  - firewall
+  - sso
+sem: 1
+ogTitle: Authelia Guide — 2FA & Single Sign-On via Reverse Proxy
+ogDescription: Secure your web apps with Authelia, an open-source authentication and authorization server. Learn how forward auth works with Nginx and Traefik, prerequisites, Docker deployment, and 2FA/SSO setup.
+jsonld:
+    type: Article
+    keywords:
+        - authelia
+        - two-factor authentication
+        - single sign-on
+        - sso
+        - forward auth
+        - reverse proxy authentication
+    faq:
+        - question: What is Authelia?
+          answer: Authelia is an open-source authentication and authorization server that provides two-factor authentication (2FA) and single sign-on (SSO) for your web applications. It sits behind a reverse proxy like Nginx or Traefik and validates every request before it reaches the protected service, acting like an application-layer firewall.
+        - question: How does Authelia integrate with a reverse proxy?
+          answer: Authelia uses forward auth (also called external or auth_request). The reverse proxy intercepts each request and asks Authelia whether the user is authenticated and authorized. If yes, the request passes through; if not, the user is redirected to Authelia's login portal. Nginx uses auth_request, and Traefik uses a forwardAuth middleware.
+        - question: What port does Authelia run on?
+          answer: Authelia listens on port 9091 by default, but this is configurable. It must operate under SSL/TLS, so in practice you terminate HTTPS at your reverse proxy and forward authenticated traffic to Authelia and your backend services.
+        - question: Does Authelia support single sign-on across multiple domains?
+          answer: Yes. Once a user authenticates through Authelia's portal, a session cookie scoped to your root domain grants access to every protected subdomain and service without logging in again, delivering true single sign-on across your ecosystem.
+        - question: What do I need before deploying Authelia?
+          answer: A working reverse proxy (Nginx, Traefik, or HAProxy), a domain with valid SSL certificates, and a session/storage backend. If Cloudflare sits in front of your domain, verify your forwarded headers configuration so Authelia receives the correct original request details.
+bento:
+    badge: application · security · sso
+    title: 'One login for everything,'
+    accent: Authelia.
+    lede: >-
+        An open-source authentication and authorization server that adds
+        two-factor authentication and single sign-on to any app through your
+        reverse proxy. Authelia validates every request before it reaches the
+        protected service — an application-layer firewall with a friendly
+        login portal.
+    ctas:
+        - label: How it works
+          href: '#how-it-works'
+          primary: true
+        - label: Install
+          href: '#install'
+        - label: Information
+          href: '#information'
+    aside:
+        icon: shield
+        title: Auth without touching your apps
+        body: >-
+            Authelia never modifies your applications. It plugs into Nginx,
+            Traefik, or HAProxy via forward auth — the proxy asks Authelia
+            whether each request is authenticated and authorized before
+            letting it through.
+        points:
+            - <strong>2FA</strong> — a second factor in front of every service.
+            - <strong>SSO</strong> — one root-domain cookie unlocks all subdomains.
+            - <strong>Forward auth</strong> — the proxy delegates the decision.
+    stats:
+        - { label: Default port, value: '9091', icon: server }
+        - { label: Auth pattern, value: Forward auth, icon: route }
+        - { label: Session scope, value: Root domain, icon: key }
+        - { label: TLS, value: Required, icon: lock }
+    features:
+        - title: How it works
+          icon: route
+          href: '#how-it-works'
+          body: The forward-auth flow step by step — proxy pauses, Authelia decides, the session cookie delivers SSO.
+        - title: Install
+          icon: deploy
+          href: '#install'
+          body: Deployment options for Docker, Kubernetes, and bare metal, plus prerequisites and a minimal compose file.
+        - title: Traefik integration
+          icon: network
+          href: '#install'
+          body: Wire Authelia into Traefik with a forwardAuth middleware and attach it to any protected router.
+        - title: TLS first
+          icon: lock
+          body: Authelia must operate under SSL/TLS — terminate HTTPS at the proxy and never expose port 9091 directly to the internet.
+    related:
+        - title: Traefik
+          href: /application/traefik/
+          copy: The reverse proxy our ecosystem pairs with Authelia's forwardAuth.
+          icon: route
+        - title: Nginx
+          href: /application/nginx/
+          copy: Forward auth via auth_request on the classic reverse proxy.
+          icon: server
+        - title: Docker
+          href: /application/docker/
+          copy: Deploy Authelia as a container alongside your services.
+          icon: package
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1549605659-32d82da3a059?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 <Aside title="TLDR">
 
-Tldr; Authelia is an authentication and authorization application that provides a backend server and frontend portal through various core features and plugins.
+Tldr; Authelia is an authentication and authorization application that provides a backend server and frontend portal, adding 2FA and SSO to any app through your reverse proxy.
 
 </Aside>
 
+Have you ever wondered how to secure your web applications with a simple, secure, and elegant solution?
+Do you want to offer your users a seamless login experience across multiple domains and services?
+If so, you might be interested in **Authelia**, an open-source authentication and authorization server that provides two-factor authentication (2FA) and single sign-on (SSO) for your applications via a web portal.
+In this document, KBVE introduces you and your dev team to the features and benefits of Authelia, and shows you how to set it up with common reverse proxies like [Nginx](/application/nginx/), [Traefik](/application/traefik/), or HAProxy.
+By the end of this reference, you will be able to protect your web applications with Authelia and enjoy a secure, hassle-free authentication process.
 
-## Information
+</BentoProse>
 
-Have you ever wondered how to secure your web applications with a simple, secure and elegant solution?
-Do you want to offer your users a seamless and convenient login experience across multiple domains and services?
-If so, you might be interested in Autheila, an open-source authentication and authorization server that provides two-factor authentication and single sign-on (SSO) for your applications via a web portal.
-In this document, KBVE will introduce you and your dev team to the features and benefits of Autheila, and show you how to set it up with some common reverse proxies like [Nginx](/application/nginx/), [Traefik](/application/traefik/), or HAProxy.
-By the end of this reference document, you will be able to protect your web applications with Autheila and enjoy a secure and hassle-free authentication process.
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
----
+<BentoProse id="how-it-works" eyebrow="Forward auth" heading="How It Works">
 
-<Adsense />
+Authelia does not modify your applications. Instead, it plugs into your **reverse proxy** using a pattern called **forward auth** (also called external auth or `auth_request`):
 
-## Install
+<Steps>
 
-There are a couple ways we can install Autheila, here are the official deployment notes for each:
+1. A user requests a protected service, e.g. `https://app.kbve.com`.
+2. The reverse proxy pauses and asks Authelia: *is this session authenticated and authorized?*
+3. If **yes**, the proxy forwards the request to the backend as normal.
+4. If **no**, the user is redirected to Authelia's login portal, completes 2FA, and is sent back — now with a valid session cookie.
+
+</Steps>
+
+Because the session cookie is scoped to your **root domain**, one login unlocks every protected subdomain — that is the single sign-on (SSO) experience.
+
+| Concept | Meaning |
+| ------- | ------- |
+| **Authentication** | Proving *who* the user is (password + 2FA) |
+| **Authorization** | Deciding *what* the user may access (access control rules) |
+| **Forward auth** | Reverse proxy delegates the auth decision to Authelia |
+| **SSO** | One authenticated session grants access across services |
+
+</BentoProse>
+
+<BentoProse id="install" eyebrow="Deploy it" heading="Install">
+
+There are a couple of ways to install Authelia. Here are the official deployment notes for each:
 
 - [Docker](https://www.authelia.com/integration/deployment/docker/)
 - [Kubernetes](https://www.authelia.com/integration/kubernetes/introduction/)
@@ -55,23 +179,54 @@ There are a couple ways we can install Autheila, here are the official deploymen
 
 ### Prerequisites
 
-Having a decent understanding of the operating system, networking and containerization will be extremely helpful!
+A decent understanding of your operating system, networking, and containerization will be extremely helpful.
 
-One of the fundamental situations that you have to account for is that Autheila has to operate under SSL!
-The default port that Autheila runs on is 9091, but this can be changed as well.
+One fundamental requirement: **Authelia has to operate under SSL/TLS**.
+The default port that Authelia runs on is `9091`, but this can be changed.
 
-Finally, if you have Cloudflare sitting infront of your domain, then we recommend double checking your forwarded headers, Autheila provides a guide on that [here](https://www.authelia.com/integration/proxies/fowarded-headers/).
+Finally, if you have Cloudflare sitting in front of your domain, double-check your forwarded headers — Authelia provides a guide on that [here](https://www.authelia.com/integration/proxies/fowarded-headers/).
 
 ---
 
 ### Docker
 
-This section will cover the deployment of Autheila via Docker!
+This section covers deploying Authelia via Docker.
 
-We are currently using the DockerHub image, `authelia/authelia` but you can also opt to use their Github image as well.
+We use the DockerHub image `authelia/authelia`, but you can opt for their GitHub image as well.
 
-Since our eco-system currently uses `Traefik` to manage, we recommend that you follow the documentation related to its [integration](https://www.authelia.com/integration/proxies/traefik/).
+Since our ecosystem uses **Traefik**, we recommend following the documentation for its [integration](https://www.authelia.com/integration/proxies/traefik/).
 
----
+A minimal `docker-compose.yml` service:
 
-## Videos
+```yaml
+services:
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    volumes:
+      - ./authelia:/config
+    ports:
+      - "9091:9091"
+    environment:
+      - TZ=America/New_York
+    restart: unless-stopped
+```
+
+<Aside type="caution">
+Authelia must sit behind HTTPS. Terminate TLS at your reverse proxy and never expose port `9091` directly to the internet — it is meant to be reached only by the proxy's forward-auth request.
+</Aside>
+
+### Traefik forwardAuth
+
+Wire Authelia into Traefik with a `forwardAuth` middleware, then attach it to any protected router:
+
+```yaml
+labels:
+  - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://auth.kbve.com"
+  - "traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true"
+  - "traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
+```
+
+</BentoProse>
+
+</BentoDoc>

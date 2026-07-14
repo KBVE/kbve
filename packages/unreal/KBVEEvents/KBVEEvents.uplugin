@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE Events",
+	"Description": "Lightweight typed publish/subscribe bus for KBVE Unreal games. Compile-time-typed channels (FKBVEChannel<TPayload>), pooled payloads, lock-free SPSC handoff for Mass worker -> game thread events. Companion to UE's GameplayMessageRouter -- use GMR for BP-friendly tag-based messaging, use KBVEEvents when perf or compile-time typing matters.",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVEEvents",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

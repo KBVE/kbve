@@ -1,6 +1,6 @@
 ---
 title: Fremennik teal cloak | OSRS Price Data
-description: "Fremennik teal cloak: The latest fashion in Rellekka.. High alch: 150 GP, GE limit: 150."
+description: "Fremennik teal cloak: The latest fashion in Rellekka. High alch: 150 GP, GE limit: 150."
 osrs:
   id: 3783
   name: Fremennik teal cloak
@@ -12,9 +12,89 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik teal cloak is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2 November 2004"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Skulgrimen's Battle Gear
+      location: Rellekka
+      price: 325
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Fremennik cloak
+      slug: fremennik-cloak
+      relationship: variant
+      description: Standard brown colourway
+    - item_name: Fremennik blue cloak
+      slug: fremennik-blue-cloak
+      relationship: variant
+      description: Blue colour variant
+    - item_name: Fremennik yellow cloak
+      slug: fremennik-yellow-cloak
+      relationship: variant
+      description: Yellow colour variant
+    - item_name: Fremennik green cloak
+      slug: fremennik-green-cloak
+      relationship: variant
+      description: Green colour variant
+    - item_name: Fremennik gold cloak
+      slug: fremennik-gold-cloak
+      relationship: variant
+      description: Gold colour variant
+  about: |-
+    > _"The latest fashion in Rellekka."_
+
+    The Fremennik teal cloak is a coloured cosmetic cape sold by Skulgrimen's Battle Gear in Rellekka. Wearing it requires completion of The Fremennik Trials to access Rellekka and use Fremennik gear.
+  market_strategy:
+    notes:
+      - "Shop respawns keep the floor near 175 gp; flipping ceiling is whatever fashionscape will pay."
+      - "The Fremennik Trials gate naturally limits casual demand."
+  trading_tips:
+    - "Buy out the Skulgrimen shop when restock cycles dip stock to zero."
+    - "List slightly above the shop's sell price to clear quickly without the GE sit-time."
+  history:
+    - date: "2 November 2004"
+      description: "Released with The Fremennik Trials quest and Rellekka."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

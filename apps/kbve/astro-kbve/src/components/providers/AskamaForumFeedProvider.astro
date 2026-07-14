@@ -179,7 +179,7 @@ const topTags = await getForumTopTags(8);
 					Posting requires a KBVE username. Set yours from your
 					profile page.
 				</p>
-				<a class="forum-card__cta" href="/dashboard/profile/">
+				<a class="forum-card__cta" href="/dashboard/account/">
 					Manage profile →
 				</a>
 			</section>
@@ -214,10 +214,6 @@ const topTags = await getForumTopTags(8);
 	}
 
 	/* Override Starlight splash content wrapper so we own width + spacing. */
-	:global(.sl-markdown-content):has(.forum-shell) {
-		max-width: none;
-		margin: 0;
-	}
 	:global(.sl-markdown-content) .forum-shell :is(p, h1, h2, h3, h4) {
 		margin-top: 0;
 	}
@@ -580,5 +576,12 @@ const topTags = await getForumTopTags(8);
 		padding: 0.05em 0.3em;
 		border-radius: 4px;
 		font-size: 0.85em;
+	}
+</style>
+
+<style is:global>
+	.sl-markdown-content:has(.forum-shell) {
+		max-width: none;
+		margin: 0;
 	}
 </style>

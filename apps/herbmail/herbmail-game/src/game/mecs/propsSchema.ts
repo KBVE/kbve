@@ -1,0 +1,54 @@
+import type { Schema } from '@kbve/laser/mecs';
+
+// The dungeon world's component layout, pure (no singleton side-effect) so both the
+// main thread (mecs/props.ts, the authoritative writer) and the sim worker (a
+// read-only attacher over the same SharedArrayBuffer) can build a matching world.
+export const PROPS_SCHEMA = {
+	Transform3: {
+		px: 'f32',
+		py: 'f32',
+		pz: 'f32',
+		dx: 'f32',
+		dy: 'f32',
+		dz: 'f32',
+	},
+	Prop: { kind: 'u8', ownerEid: 'i32' },
+	MeshRef: { modelId: 'u8' },
+	Collider: { hx: 'f32', hz: 'f32' },
+	LightEmitter: {
+		r: 'f32',
+		g: 'f32',
+		b: 'f32',
+		baseIntensity: 'f32',
+		range: 'f32',
+		flickerPhase: 'f32',
+		flickerAmp: 'f32',
+	},
+	Health: { hp: 'f32', maxHp: 'f32', regen: 'f32' },
+	Burn: { dps: 'f32', remaining: 'f32', acc: 'f32', flameEid: 'i32' },
+	Stone: { seed: 'f32', size: 'f32', hardness: 'f32', ore: 'u8' },
+	FlameFx: { seed: 'f32' },
+	FireflyFx: {
+		homeX: 'f32',
+		homeY: 'f32',
+		homeZ: 'f32',
+		seed: 'f32',
+		vx: 'f32',
+		vy: 'f32',
+		vz: 'f32',
+	},
+	RoomCell: { cx: 'i32', cy: 'i32' },
+	RoomDoors: { bits: 'u8' },
+	RoomPhase: { value: 'u8' },
+	RoomTag: {},
+	Door: {
+		locked: 'u8',
+		open: 'f32',
+		lc: 'u8',
+		lr: 'u8',
+		variant: 'u8',
+		axis: 'u8',
+	},
+} satisfies Schema;
+
+export const PROPS_CAP = 8192;

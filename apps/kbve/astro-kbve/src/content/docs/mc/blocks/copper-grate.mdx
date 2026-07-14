@@ -1,5 +1,6 @@
 ---
 title: Copper Grate
+template: splash
 description: |
     Minecraft Copper Grate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1024
     ref: copper_grate
     slug: copper-grate
+    content_rev: 1
     display_name: Copper Grate
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: copper_grate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            The copper grate is a transparent, waterloggable decorative
+            block inspired by chain-link fences. It blocks mob spawning,
+            does not conduct redstone, and weathers through copper's usual
+            oxidation stages.
+        lore: |
+            Added in the Trial Chambers update, the copper grate was
+            designed to distinguish itself visually from the earlier copper
+            spleaves concept while giving builders an industrial-looking
+            see-through block.
+    uses:
+        - title: Mob-Proof Flooring
+          ref: copper_grate
+          detail: |
+              Placed as flooring or catwalks, it prevents hostile mob
+              spawning while remaining see-through, and can be waterlogged
+              for underwater builds.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally at various oxidation stages in trial chamber structures.
+        - location: Crafted
+          detail: Made from 4 copper blocks arranged in a 2x2 pattern, yielding 4 grates.
+    faq:
+        - question: What tool do I need to mine a Copper Grate?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks it with no
+              drop.
+        - question: Does a Copper Grate conduct redstone?
+          answer: |
+              No. It does not transmit redstone power like solid copper
+              blocks can in some contexts.
+        - question: Can Copper Grates be waterlogged?
+          answer: |
+              Yes, they can hold water like other waterloggable blocks,
+              which is useful for underwater builds.
+        - question: What happens when two matching grates are adjacent?
+          answer: |
+              Grates sharing the same oxidation stage become invisible
+              through each other, creating a seamless see-through look.
     data_version: "1.21.5"
 ---
 

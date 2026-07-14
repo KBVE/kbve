@@ -9,14 +9,16 @@ resources:
     - clickhouse-externalsecret.yaml
     - rows-customer-guid-externalsecret.yaml
     - forgejo-externalsecret.yaml
+    - arpg-discord-externalsecret.yaml
     - argocd-auth-sealedsecret.yaml
+    - vibeshine-sealedsecret.yaml
     - kbve-internal-ca-cert.yaml
     - kbve-wt-cert.yaml
+    - direct-git-cert.yaml
     - kubevirt-rbac.yaml
     - kbve-deployment.yaml
     - kbve-gateway.yaml
-    - kbve-ingress.yaml
-    - kbve-mc-redirect-ingress.yaml
+    - kbve-mc-redirect-httproute.yaml
     - kbve-wt-selfsigned-cronjob.yaml
     - cf-cache-purge-externalsecret.yaml
     - cf-cache-purge-postsync.yaml

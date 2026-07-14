@@ -12,9 +12,76 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 5
-  about: "Trailblazer top (t2) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2021-01-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Leagues IV - Trailblazer Reloaded
+      price: 3000
+      currency: League points
+      stock: 1
+  related_items:
+    - item_name: Trailblazer hood (t2)
+      slug: trailblazer-hood-t2
+      relationship: set-piece
+      description: Matching hood for the T2 set
+    - item_name: Trailblazer trousers (t2)
+      slug: trailblazer-trousers-t2
+      relationship: set-piece
+      description: Matching trousers for the T2 set
+    - item_name: Trailblazer boots (t2)
+      slug: trailblazer-boots-t2
+      relationship: set-piece
+      description: Matching boots for the T2 set
+  about: "Trailblazer top (t2) is a cosmetic body slot item from the Trailblazer Relic Hunter (T2) outfit, purchased for 3,000 League points from the Leagues Reward Shop. It provides no combat bonuses and is purely cosmetic. Can be stored in an armour case within a costume room as part of the full set; Ultimate Ironmen cannot retrieve individual pieces until the complete outfit is stored."
+  market_strategy:
+    notes:
+      - "Limited supply from Leagues IV reward shop"
+      - "Low buy limit of 5 per 4 hours"
+      - "Cosmetic demand drives price"
+  history:
+    - date: "2021-01-06"
+      description: Released with the Trailblazer League rewards.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

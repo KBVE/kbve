@@ -12,9 +12,60 @@ osrs:
   lowalch: 6250
   highalch: 9375
   limit: 100
-  about: "Large adamant keel parts is a members-only item in Old School RuneScape. High alchemy value: 9,375 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: adamant
+    tier: mid
+  recipes:
+    - product: Large adamant keel parts
+      skill: Smithing
+      level: 74
+      xp: 5
+      tools:
+        - Hammer
+        - Anvil
+      materials:
+        - item_name: Adamant keel parts
+          quantity: 5
+  related_items:
+    - item_id: 32030
+      item_name: Adamant keel parts
+      slug: adamant-keel-parts
+      relationship: component
+      description: Five combine to make large adamant keel parts
+    - item_id: 32034
+      item_name: Large adamant keel
+      slug: large-adamant-keel
+      relationship: product
+      description: Built from sixteen large keel parts for Sloop construction
+  about: "Large adamant keel parts are a Smithing 74 Sailing component crafted from five adamant keel parts, required for building a Sloop's adamant keel."
+  market_strategy:
+    notes:
+      - Sailing-update bottleneck for adamant keels
+      - Recipe consumes 5 adamant keel parts each
+      - Margins follow adamant bar prices
+  trading_tips:
+    - Profitable when adamant keel parts spread is thin
+    - 16 required per large adamant keel
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Pandemonium
+    weight: 4.0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

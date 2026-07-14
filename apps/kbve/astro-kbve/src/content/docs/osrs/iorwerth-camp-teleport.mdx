@@ -12,9 +12,72 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  about: "Iorwerth camp teleport is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Iorwerth Camp
+    type: scroll
+    requirements:
+      quest: Regicide
+  drop_table:
+    sources:
+      - source: Easy Treasure Trail reward casket
+        quantity: "1"
+        rarity: Uncommon
+      - source: Medium Treasure Trail reward casket
+        quantity: "1"
+        rarity: Uncommon
+      - source: Hard Treasure Trail reward casket
+        quantity: "1"
+        rarity: Uncommon
+      - source: Elite Treasure Trail reward casket
+        quantity: "1"
+        rarity: Uncommon
+      - source: Master Treasure Trail reward casket
+        quantity: "1"
+        rarity: Uncommon
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  related_items:
+    - name: Lletya teleport
+      relationship: alternative
+    - name: Prifddinas teleport
+      relationship: alternative
+  about: "Iorwerth camp teleport is a one-click scroll obtained from clue caskets that warps the user to Iorwerth Camp in Tirannwn, used primarily to reach Lord Iorwerth for hard clue steps."
+  market_strategy:
+    notes:
+      - Supply is gated to clue scroll reward casket loot, keeping volume thin.
+      - Demand spikes when hard/elite clue popularity surges or for hard clue completion routes.
+  trading_tips:
+    - Hoard during slow clue weeks and resell when DMM/league events drive clue activity.
+    - Watch master clue meta - Lord Iorwerth steps push price up.
+  history:
+    - date: "2014-06-12"
+      description: Added with the Treasure Trail Expansion.
+    - date: "2019-07-25"
+      description: Renamed from "Elf camp teleport" to "Iorwerth camp teleport".
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Teleport
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

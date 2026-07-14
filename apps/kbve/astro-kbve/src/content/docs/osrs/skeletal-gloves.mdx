@@ -12,9 +12,93 @@ osrs:
   lowalch: 260
   highalch: 390
   limit: 125
-  about: "Skeletal gloves is a members-only item in Old School RuneScape. High alchemy value: 390 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magic gloves
+    tier: mid
+  properties:
+    release_date: "1 August 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 3.175
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Wallasalki
+        quantity: "1"
+        rarity: uncommon
+  related_items:
+    - item_name: Skeletal helm
+      slug: skeletal-helm
+      relationship: set-piece
+      description: Helm piece in the Skeletal armour set
+    - item_name: Skeletal top
+      slug: skeletal-top
+      relationship: set-piece
+      description: Body piece in the Skeletal armour set
+    - item_name: Skeletal bottoms
+      slug: skeletal-bottoms
+      relationship: set-piece
+      description: Legs piece in the Skeletal armour set
+    - item_name: Skeletal boots
+      slug: skeletal-boots
+      relationship: set-piece
+      description: Boots piece in the Skeletal armour set
+  about: |-
+    Skeletal gloves are part of the Fremennik Skeletal armour set, dropped exclusively by Wallasalki on Waterbirth Island. Unlike the body and legs pieces, gloves and boots do not require wearing the full set for Fremennik name honor.
+
+    | Stat | Defence |
+    |------|---------|
+    | Slash | +1 |
+    | Crush | +2 |
+
+    Storable in the costume room magic wardrobe.
+  market_strategy:
+    notes:
+      - "Limited supply from a single mid-tier drop source"
+      - "Demand driven by Skeletal set completion"
+      - "Cheap entry-level Fremennik-themed gloves"
+      - "GE limit of 125 keeps flips small but consistent"
+  trading_tips:
+    - Buy during Waterbirth content lulls
+    - Pair purchases with other skeletal pieces for set listings
+  history:
+    - date: "1 August 2005"
+      description: "Released as a Wallasalki drop on Waterbirth Island."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

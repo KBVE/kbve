@@ -1,5 +1,6 @@
 ---
 title: Pink Terracotta
+template: splash
 description: |
     Minecraft Pink Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,65 @@ mc_block:
     id: 458
     ref: pink_terracotta
     slug: pink-terracotta
+    content_rev: 1
     display_name: Pink Terracotta
     material: stone
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Pink Terracotta is a dyed variant of terracotta, made by
+            crafting plain terracotta with pink dye. It keeps terracotta's
+            higher blast resistance and shows up on maps in a distinct
+            color.
+        lore: |
+            Originally called "stained clay" when added in 1.6.1, the block
+            was renamed "terracotta" in 1.12 to match its real-world
+            counterpart.
+    uses:
+        - title: Pink Glazed Terracotta
+          ref: pink_glazed_terracotta
+          detail: |
+              Smelting Pink Terracotta in a furnace with any fuel produces
+              Pink Glazed Terracotta, a glossier decorative block.
+    found_in:
+        - location: Crafting table
+          detail: Craft from 8 Terracotta blocks surrounding 1 Pink Dye.
+        - location: Mason villager trades
+          detail: Expert-level mason villagers sell all 16 terracotta colors, including pink, for emeralds.
+    faq:
+        - question: What tool do I need to mine Pink Terracotta?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Can the color be removed later?
+          answer: |
+              No, once terracotta is dyed the color is permanent; there is
+              no way to undye it.
+        - question: Is Pink Terracotta renewable?
+          answer: |
+              Yes. Since Pink Dye and plain Terracotta are both renewable
+              (dye from pink petals, terracotta from mason trades), the
+              dyed block is renewable too.
     data_version: "1.21.5"
 ---
 

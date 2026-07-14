@@ -12,9 +12,45 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Karidian disguise is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-04-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.1
+    options:
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Desert disguise
+      slug: desert-disguise
+      relationship: alternative
+      description: Replacement item used in The Feud quest
+    - item_name: Kharidian headpiece
+      slug: kharidian-headpiece
+      relationship: set-piece
+      description: Companion disguise piece
+    - item_name: Fake beard
+      slug: fake-beard
+      relationship: set-piece
+      description: Companion disguise piece
+  about: "Karidian disguise is an unobtainable members-only item in Old School RuneScape that exists only in the game cache. It was presumably intended for use during The Feud quest in Pollnivneach but was replaced by the desert disguise during development for unknown reasons. Despite carrying a Grand Exchange buy limit of 15, no legitimate method of obtaining it exists in-game."
+  market_strategy:
+    notes:
+      - "Unobtainable cache-only item with no live drop source"
+      - "Listed Grand Exchange buy limit of 15 per 4 hours is theoretical"
+      - "Replaced during The Feud quest development by desert disguise"
+      - "High alchemy yields only 1 coin so alching is a net loss"
+      - "Of interest mainly to data miners and item collectors"
+  history:
+    - date: "2005-04-04"
+      description: "Added to the game cache alongside The Feud quest release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

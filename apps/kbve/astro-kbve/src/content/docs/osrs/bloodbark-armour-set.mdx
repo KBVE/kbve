@@ -12,9 +12,54 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: 2
-  about: "Bloodbark armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins. Grand Exchange buy limit: 2 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bloodbark
+    tier: high
+  properties:
+    release_date: "2025-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  related_items:
+    - item_name: Bloodbark helm
+      slug: bloodbark-helm
+      relationship: set-piece
+      description: Head slot piece
+    - item_name: Bloodbark body
+      slug: bloodbark-body
+      relationship: set-piece
+      description: Torso slot piece
+    - item_name: Bloodbark legs
+      slug: bloodbark-legs
+      relationship: set-piece
+      description: Legs slot piece
+    - item_name: Bloodbark gauntlets
+      slug: bloodbark-gauntlets
+      relationship: set-piece
+      description: Hands slot piece
+    - item_name: Bloodbark boots
+      slug: bloodbark-boots
+      relationship: set-piece
+      description: Feet slot piece
+  about: "The Bloodbark armour set is a Grand Exchange convenience bundle containing the Bloodbark helm, body, legs, gauntlets and boots. The full set provides +50 Magic attack, +112 Stab defence, +92 Slash defence, +131 Crush defence, +57 Magic defence, and a 3% magic damage boost. The set is available to members for purchase or sale as a single unit on the GE."
+  market_strategy:
+    notes:
+      - "Buying the set vs individual pieces can offer arbitrage opportunities"
+      - "Set premium fluctuates around ~44k coins"
+      - "Buy limit of 2 per 4 hours restricts flipping volume"
+  history:
+    - date: "2025-08-20"
+      description: Added to the game.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,11 +1,12 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Refreshes a small <see cref="MoraleBuff"/> on every Player-faction unit standing within <see cref="LandmarkAura"/>.Radius hexes of any aura-emitting landmark (hearths, alcoves, halls). Turn-gated cadence so the buff trickles in but never stacks. Companion to <see cref="ShrineProductionSystem"/> — shrines pay the player ledger, auras pay the units in earshot.</summary>
+    /// <summary>Refreshes a small <see cref="MoraleBuff"/> on every Player-faction unit standing within <see cref="LandmarkAura"/>.Radius hexes of any aura-emitting landmark (hearths, alcoves, halls). Turn-gated cadence so the buff trickles in but never stacks. Companion to <see cref="ShrineProductionSystem"/> — shrines pay the player ledger, auras pay the units in earshot. Player-unit scan runs as a parallel [BurstCompile] IJobEntity into EntityCommandBuffer.ParallelWriter; the small aura-array build stays main-thread since it iterates a handful of buildings at most.</summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(EconomySystemGroup))]
@@ -43,19 +44,17 @@ namespace RareIcon
             int auraCount = _auraQuery.CalculateEntityCount();
             if (auraCount == 0) return;
 
-            var centers = new NativeArray<int2>(auraCount, Allocator.Temp);
-            var radii   = new NativeArray<byte>(auraCount, Allocator.Temp);
-            int idx = 0;
+            var centers = new NativeList<int2>(auraCount, Allocator.TempJob);
+            var radii   = new NativeList<byte>(auraCount, Allocator.TempJob);
             foreach (var (aura, building) in
                      SystemAPI.Query<RefRO<LandmarkAura>, RefRO<Building>>())
             {
                 if (aura.ValueRO.Radius == 0) continue;
-                centers[idx] = building.ValueRO.RootHex;
-                radii[idx]   = aura.ValueRO.Radius;
-                idx++;
+                centers.Add(building.ValueRO.RootHex);
+                radii.Add(aura.ValueRO.Radius);
             }
 
-            if (idx == 0)
+            if (centers.Length == 0)
             {
                 centers.Dispose();
                 radii.Dispose();
@@ -66,41 +65,65 @@ namespace RareIcon
                                .CreateCommandBuffer(state.WorldUnmanaged);
             var buffLookup = SystemAPI.GetComponentLookup<MoraleBuff>(true);
 
-            foreach (var (faction, movement, entity) in
-                     SystemAPI.Query<RefRO<Faction>, RefRO<UnitMovement>>().WithEntityAccess())
+            state.Dependency = new ApplyAuraBuffJob
             {
-                if (faction.ValueRO.Value != FactionType.Player) continue;
-                int2 here = movement.ValueRO.CurrentHex;
+                Centers       = centers.AsArray(),
+                Radii         = radii.AsArray(),
+                Turn          = turn,
+                BuffLookup    = buffLookup,
+                Ecb           = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
 
-                bool inAura = false;
-                for (int i = 0; i < idx; i++)
-                {
-                    if (HexDistance(here, centers[i]) <= radii[i]) { inAura = true; break; }
-                }
-                if (!inAura) continue;
-
-                var refreshed = new MoraleBuff
-                {
-                    ExpiresAtTurn  = turn + BuffDurationTurns,
-                    WorkBonusPct   = WorkBonusPct,
-                    CombatBonusPct = CombatBonusPct,
-                };
-                if (buffLookup.HasComponent(entity))
-                    ecb.SetComponent(entity, refreshed);
-                else
-                    ecb.AddComponent(entity, refreshed);
-            }
-
-            centers.Dispose();
-            radii.Dispose();
+            state.Dependency = centers.Dispose(state.Dependency);
+            state.Dependency = radii.Dispose(state.Dependency);
         }
 
-        static int HexDistance(int2 a, int2 b)
+        public static int HexDistance(int2 a, int2 b)
         {
             int dx = b.x - a.x;
             int dy = b.y - a.y;
             int dz = -dx - dy;
             return (math.abs(dx) + math.abs(dy) + math.abs(dz)) / 2;
+        }
+    }
+
+    [BurstCompile]
+    public partial struct ApplyAuraBuffJob : IJobEntity
+    {
+        const uint  BuffDurationTurns   = 6u;
+        const sbyte WorkBonusPct        = 3;
+        const sbyte CombatBonusPct      = 0;
+
+        [ReadOnly] public NativeArray<int2>            Centers;
+        [ReadOnly] public NativeArray<byte>            Radii;
+        [ReadOnly] public ComponentLookup<MoraleBuff>  BuffLookup;
+        public            EntityCommandBuffer.ParallelWriter Ecb;
+        public            uint                              Turn;
+
+        void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in Faction faction, in UnitMovement movement)
+        {
+            if (faction.Value != FactionType.Player) return;
+            int2 here = movement.CurrentHex;
+
+            bool inAura = false;
+            for (int i = 0; i < Centers.Length; i++)
+            {
+                int2 d = Centers[i] - here;
+                int dist = (math.abs(d.x) + math.abs(d.y) + math.abs(-d.x - d.y)) / 2;
+                if (dist <= Radii[i]) { inAura = true; break; }
+            }
+            if (!inAura) return;
+
+            var refreshed = new MoraleBuff
+            {
+                ExpiresAtTurn  = Turn + BuffDurationTurns,
+                WorkBonusPct   = WorkBonusPct,
+                CombatBonusPct = CombatBonusPct,
+            };
+            if (BuffLookup.HasComponent(entity))
+                Ecb.SetComponent(chunkIndex, entity, refreshed);
+            else
+                Ecb.AddComponent(chunkIndex, entity, refreshed);
         }
     }
 }

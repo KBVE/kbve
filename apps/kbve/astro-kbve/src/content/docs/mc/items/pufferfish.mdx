@@ -1,5 +1,6 @@
 ---
 title: Pufferfish
+template: splash
 description: |
     Minecraft Pufferfish — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 998
     ref: pufferfish
     slug: pufferfish
+    content_rev: 1
     display_name: Pufferfish
     category: brewing
     rarity: common
@@ -22,6 +24,24 @@ mc_item:
         saturation: 0.4
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Pufferfish are neutral aquatic mobs found in warm ocean biomes that inflate through three stages when threatened, dealing damage and inflicting Poison on nearby players and mobs. When killed, they drop the pufferfish item, which is used as a brewing ingredient for the Potion of Water Breathing and is edible but highly toxic, causing severe poison, nausea, and hunger if eaten.
+        lore: |
+            In real life pufferfish rely on their spikes only for intimidation, but in this world their toxin is very real.
+    faq:
+        - question: How do you get a Pufferfish?
+          answer: |
+              Pufferfish drop as an item when the pufferfish mob is killed, or can be scooped up alive using a water bucket.
+        - question: Is it safe to eat a Pufferfish?
+          answer: |
+              No, eating a raw Pufferfish inflicts severe Poison, Hunger, and Nausea, making it dangerous rather than a practical food source.
+        - question: What is Pufferfish used for in brewing?
+          answer: |
+              It is a key ingredient for brewing the Potion of Water Breathing.
+        - question: Where do Pufferfish spawn?
+          answer: |
+              Pufferfish spawn naturally in warm ocean biomes and inflate defensively when players or non-aquatic mobs get too close.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

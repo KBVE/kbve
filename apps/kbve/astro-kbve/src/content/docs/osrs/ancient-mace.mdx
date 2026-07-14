@@ -13,8 +13,27 @@ osrs:
   highalch: 600
   limit: 8
   about: "Ancient mace is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ancient
+    tier: mid
+  properties:
+    release_date: "2005-08-01"
+    options:
+      - Wield
+      - Examine
+    worn_options:
+      - Remove
+  equipment:
+    slot: weapon
+    type: mace
+    tradeable: true
+    weight: 1.36
+    attack_speed: 5
+    requirements:
+      attack: 40
+      prayer: 30
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,82 +12,66 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 25000
-  rune:
-    type: catalytic
-    element: astral
-  runecraft:
-    level: 40
-    xp: 8.7
-    multiple_at: 82
-    altar: Astral Altar
-    altar_location: Lunar Isle
-    essence_type: pure
-    quest_required: Lunar Diplomacy
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid
+  properties:
+    release_date: "2006-07-24"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: runecraft
       level: 40
       xp: 8.7
       materials:
         - item_name: Pure essence
-          item_id: 7936
           quantity: 1
-      product: Astral rune
-      product_id: 9075
-      product_quantity: 1
-      facility: Astral altar
-      members_only: true
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Baba Yaga's Magic Shop
+      location: Lunar Isle
+      price: 50
+      currency: Coins
+      stock: 250
   related_items:
-    - item_id: 561
-      item_name: Nature rune
+    - item_name: Nature rune
       slug: nature-rune
       relationship: component
-      description: Lunar spell combo
-    - item_id: 557
-      item_name: Earth rune
+      description: Combined with astrals for Plank Make
+    - item_name: Earth rune
       slug: earth-rune
       relationship: component
-      description: Plank Make combo
-    - item_id: 560
-      item_name: Death rune
+      description: Lunar Plank Make ingredient
+    - item_name: Death rune
       slug: death-rune
       relationship: component
-      description: Vengeance combo
-    - item_id: 563
-      item_name: Law rune
+      description: Used alongside astrals for Vengeance
+    - item_name: Law rune
       slug: law-rune
       relationship: component
-      description: Teleport spells
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecraft Level | 40 |
-    | XP per rune | 8.7 |
-    | Quest | Lunar Diplomacy |
-    | Altar location | Lunar Isle |
-
-    | Spell | Astral Runes | Magic Level |
-    |-------|--------------|-------------|
-    | Plank Make | 2 | 86 |
-    | Vengeance | 4 | 94 |
-    | String Jewellery | 2 | 80 |
-    | Superglass Make | 2 | 77 |
-    | Tan Leather | 2 | 78 |
-    | Fertile Soil | 3 | 83 |
-    | NPC Contact | 1 | 67 |
+      description: Required by Lunar teleport spells
+  about: "Astral runes are the catalytic runes of the Lunar spellbook, crafted at the Astral Altar on Lunar Isle after completing Lunar Diplomacy. Required for every Lunar spell, with Plank Make and Vengeance driving the bulk of consumption. At 82 Runecraft, players receive two astral runes per pure essence."
   market_strategy:
     notes:
-      - All Lunar spells use astral
-      - Plank Make drives demand
-      - Vengeance for PvP
-      - Plank Make (Construction)
-      - Vengeance (PvP/PvM)
-      - String Jewellery (Crafting)
-      - Tan Leather (Crafting)
-      - Lunar Diplomacy required to craft
-      - Plank Make most common use
-      - Vengeance always in demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Plank Make absorbs astrals during Construction grinds"
+      - "Vengeance keeps a steady PvP-driven floor"
+      - "Crafting profit is decent at 40+ Runecraft"
+  history:
+    - date: "2006-07-24"
+      description: "Released with the Lunar Diplomacy quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

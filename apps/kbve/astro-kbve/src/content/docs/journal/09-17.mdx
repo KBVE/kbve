@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692095296815-943c0e214cd0?crop=entropy&c
 description: September 17th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 17,'
+    accent: every year.
+    lede: 'The September 17th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 16'
+          href: /journal/09-16/
+        - label: 'Sep 18 →'
+          href: /journal/09-18/
+    related:
+        - title: 'Previous · Sep 16'
+          copy: 'Step back a day to the September 16th log.'
+          href: /journal/09-16/
+          icon: calendar
+        - title: 'Next · Sep 18'
+          copy: 'Jump ahead to the September 18th log.'
+          href: /journal/09-18/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692095296815-943c0e214cd0?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity DOTS
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     There are some issues with the render pipeline, which was currently at the standard version but I was able to upgrade it to URP.
     In order to do the upgrade, I had to remove the top down engine and upgrade the version from v4.2 to v4.4, thus making it easier.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Deadlock**
 
@@ -99,20 +148,31 @@ Okay now to add the function charts to the stack.
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 10:32am - Lunch with the family, I know it will make me feel old because I am watching all my younger niece and nephews grow up to almost become adults, which is wild to me.
 - 2:11pm - Spent the Sunday morning hanging out with the family! Now I am back on the computer and going to start the micro function migration.
 - 4:45pm - The first function will be the register, which has been somewhat of an issue for a while because I have to make it create the user, profile and the various other components within the structure.
 - 8:21pm - Everything is working to a certain extent, so I am glad that it is moving along! I am getting a better understanding with how Appwrite and Docker are working, its really making things a ton easier as I am getting to understand it.
 - 2:00am - Halo and One Piece?! I am all into this mixture! Best combination, because its really a throw back, I remember playing halo 2 and watching one piece at the same time a decade ago.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > A good decision is based on knowledge and not on numbers.
 > — <cite>Plato</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

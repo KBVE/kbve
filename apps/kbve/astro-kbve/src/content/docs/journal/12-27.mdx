@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 27th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 27,'
+    accent: every year.
+    lede: 'The December 27th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Dec 26'
+          href: /journal/12-26/
+        - label: 'Dec 28 →'
+          href: /journal/12-28/
+    related:
+        - title: 'Previous · Dec 26'
+          copy: 'Step back a day to the December 26th log.'
+          href: /journal/12-26/
+          icon: calendar
+        - title: 'Next · Dec 28'
+          copy: 'Jump ahead to the December 28th log.'
+          href: /journal/12-28/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### AWS Barman
 
@@ -21,7 +62,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     Resolved the massive space usage that our postgres backup was holding.
     The AWS bill has dropped back down to under $1 for what we have, but there is still some room for improvements.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   03:15PM
 
@@ -39,3 +88,7 @@ import { Adsense, Tasks } from '@/components/astropad';
     I got a bunch of peter and bald playing in the background, while I am taking a quick mental break.
 
     <Adsense />
+
+</BentoProse>
+
+</BentoDoc>

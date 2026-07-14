@@ -1,5 +1,6 @@
 ---
 title: Target
+template: splash
 description: |
     Minecraft Target — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 869
     ref: target
     slug: target
+    content_rev: 1
     display_name: Target
     material: redstone
     hardness: 0.5
@@ -24,10 +26,63 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: target
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - flammable
+        - redstone_component
+        - overworld
+    about:
+        description: |
+            A target is a redstone component that emits a temporary
+            redstone signal when struck by a projectile, with signal
+            strength depending on how close the hit lands to its center.
+            It is built from a hay bale wrapped in redstone dust.
+        lore: |
+            Introduced at MINECON Live 2019 and added to Java Edition in
+            1.16 (20w09a).
+    uses:
+        - title: Redstone Signal Source
+          ref: redstone
+          detail: |
+              Generates a signal strength of 1 to 15 when hit by an arrow,
+              trident, snowball, or other projectile, useful for archery
+              ranges and projectile-triggered contraptions.
+        - title: Crafting
+          ref: hay_bale
+          detail: |
+              Crafted from 4 redstone dust and 1 hay bale, with the hay
+              bale in the center of the crafting grid.
+    found_in:
+        - location: Crafted
+          detail: Made from 1 hay bale and 4 redstone dust at a crafting table.
+        - location: Ancient City vaults
+          detail: A single target generates in the secret rooms of ancient cities.
+    faq:
+        - question: What tool should I use to mine a Target block?
+          answer: |
+              A hoe mines it fastest, though any tool or bare hands will
+              break it and it always drops itself.
+        - question: What triggers a Target block?
+          answer: |
+              Any projectile — arrows, tridents, snowballs, and more — hit
+              its face, producing a redstone pulse whose strength depends
+              on proximity to the bullseye.
+        - question: How long does the redstone signal last?
+          answer: |
+              Most projectiles activate it for 8 game ticks, while arrows
+              and tridents extend the activation to 20 ticks.
+        - question: Is the Target block flammable?
+          answer: |
+              Yes, in Java Edition it can catch fire and burn since it is
+              built around a hay bale.
     data_version: "1.21.5"
 ---
 

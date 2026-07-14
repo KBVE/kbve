@@ -5,16 +5,12 @@ metadata:
     namespace: kbve
     labels:
         app: kbve
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        # Restart on cluster CA rotation so the axum-kbve KubeVirt client
-        # picks up the new kube-apiserver cert. Without this, a rotation
-        # silently 502s the /dashboard/vm/* paths until manual restart.
-        configmap.reloader.stakater.com/reload: 'kube-root-ca.crt'
-        # Restart on supabase-shared rotation so the wallet diesel pool
-        # picks up the new Postgres password. Without this the pool holds
-        # stale creds and `/api/v1/wallet/*` starts 5xx-ing until manual
-        # restart on every CNPG password rotation.
-        secret.reloader.stakater.com/reload: 'supabase-shared'
+        configmap.reloader.stakater.com/reload: kube-root-ca.crt
+        secret.reloader.stakater.com/reload: supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord,clickhouse-credentials,vibeshine-config
 spec:
     replicas: 1
     strategy:
@@ -28,10 +24,10 @@ spec:
     template:
         metadata:
             annotations:
-                rollout-restart: '2026-05-13T23:30:00Z'
+                rollout-restart: '2026-06-13T16:30:00Z'
             labels:
                 app: kbve
-                version: '1.0.22'
+                version: 1.0.209
         spec:
             serviceAccountName: kbve-app
             affinity:
@@ -45,7 +41,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.180
+                  image: ghcr.io/kbve/kbve:1.0.233
                   imagePullPolicy: Always
                   ports:
                       - name: http
@@ -77,7 +73,9 @@ spec:
                       - name: PORT
                         value: '4321'
                       - name: SUPABASE_URL
-                        value: 'http://kong.kilobase.svc.cluster.local:8000'
+                        value: http://kong.kilobase.svc.cluster.local:8000
+                      - name: GOTRUE_INTERNAL_URL
+                        value: http://auth.kilobase.svc.cluster.local:9999
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
                             secretKeyRef:
@@ -99,57 +97,55 @@ spec:
                                 name: supabase-shared
                                 key: twitch-client-secret
                       - name: GRAFANA_UPSTREAM_URL
-                        value: 'http://monitoring-grafana.monitoring.svc.cluster.local:80'
+                        value: http://monitoring-grafana.monitoring.svc.cluster.local:80
                       - name: ARGOCD_UPSTREAM_URL
-                        value: 'https://argocd-server.argocd.svc.cluster.local:443'
+                        value: https://argocd-server.argocd.svc.cluster.local:443
                       - name: ARGOCD_AUTH_TOKEN
                         valueFrom:
                             secretKeyRef:
                                 name: argocd-auth
                                 key: argocd-auth-token
                       - name: ARGOCD_CA_CERT_PATH
-                        value: '/etc/ssl/argocd/ca.crt'
+                        value: /etc/ssl/argocd/ca.crt
                       - name: FORGEJO_UPSTREAM_URL
-                        value: 'http://forgejo-http.forgejo.svc.cluster.local:3000'
+                        value: http://forgejo-http.forgejo.svc.cluster.local:3000
                       - name: FORGEJO_AUTH_TOKEN
                         valueFrom:
                             secretKeyRef:
                                 name: forgejo-deploy-keys
                                 key: api-token
                       - name: KUBEVIRT_API_URL
-                        value: 'https://kubernetes.default.svc'
+                        value: https://kubernetes.default.svc
                       - name: KUBEVIRT_CA_CERT_PATH
-                        value: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+                        value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
                       - name: GAME_WS_PLAIN
                         value: '1'
                       - name: GAME_SERVER_HOST
-                        value: 'wt.kbve.com'
+                        value: wt.kbve.com
                       - name: GAME_WT_CERT
-                        value: '/etc/ssl/webtransport/tls.crt'
+                        value: /etc/ssl/webtransport/tls.crt
                       - name: GAME_WT_KEY
-                        value: '/etc/ssl/webtransport/tls.key'
+                        value: /etc/ssl/webtransport/tls.key
                       - name: GAME_WT_SELFSIGNED_CERT
-                        value: '/etc/ssl/webtransport-selfsigned/tls.crt'
+                        value: /etc/ssl/webtransport-selfsigned/tls.crt
                       - name: GAME_WT_SELFSIGNED_KEY
-                        value: '/etc/ssl/webtransport-selfsigned/tls.key'
-                      - name: CHUCKRPG_UPSTREAM_URL
-                        value: 'http://rows.rows.svc.cluster.local:4322'
-                      - name: CHUCKRPG_DOCS_URL
-                        value: 'http://rows.rows.svc.cluster.local:4323'
-                      - name: CHUCKRPG_CUSTOMER_GUID
+                        value: /etc/ssl/webtransport-selfsigned/tls.key
+                      - name: CHUCKRPG_TENANTS
+                        value:
+                            '[{"id":"chuckrpg-dev","label":"ChuckRPG Dev","upstream":"http://rows.rows-chuckrpg-dev.svc.cluster.local:4322","docs":"http://rows.rows-chuckrpg-dev.svc.cluster.local:4323","guid_env":"CHUCKRPG_GUID_DEV"},{"id":"chuckrpg-beta","label":"ChuckRPG
+                            Beta","upstream":"http://rows.rows-chuckrpg-beta.svc.cluster.local:4322","docs":"http://rows.rows-chuckrpg-beta.svc.cluster.local:4323","guid_env":"CHUCKRPG_GUID_BETA"}]'
+                      - name: CHUCKRPG_GUID_DEV
                         valueFrom:
                             secretKeyRef:
-                                name: chuckrpg-customer-guid
+                                name: chuckrpg-guid-dev
                                 key: customer-guid
-                      # MC RCON (multi-server) — drives /api/v1/mc/players.
-                      # axum-kbve polls both backends in parallel, tags each
-                      # player with the server they're on, and writes
-                      # snapshots to ClickHouse below for other consumers.
-                      # Password synced from the mc namespace via the
-                      # mc-rcon-credentials ExternalSecret — single source
-                      # of truth in mc/mc-rcon-password SealedSecret.
+                      - name: CHUCKRPG_GUID_BETA
+                        valueFrom:
+                            secretKeyRef:
+                                name: chuckrpg-guid-beta
+                                key: customer-guid
                       - name: MC_RCON_LOBBY_HOST
-                        value: 'mc-lobby-backend.arc-runners.svc.cluster.local'
+                        value: mc-lobby-backend.arc-runners.svc.cluster.local
                       - name: MC_RCON_LOBBY_PORT
                         value: '25575'
                       - name: MC_RCON_LOBBY_PASSWORD
@@ -158,7 +154,7 @@ spec:
                                 name: mc-rcon-credentials
                                 key: rcon-password
                       - name: MC_RCON_SURVIVAL_HOST
-                        value: 'mc-fabric-backend.arc-runners.svc.cluster.local'
+                        value: mc-fabric-backend.arc-runners.svc.cluster.local
                       - name: MC_RCON_SURVIVAL_PORT
                         value: '25575'
                       - name: MC_RCON_SURVIVAL_PASSWORD
@@ -166,10 +162,6 @@ spec:
                             secretKeyRef:
                                 name: mc-rcon-credentials
                                 key: rcon-password
-                      # ClickHouse — axum-kbve writes one snapshot row per
-                      # player per poll to mc.player_snapshots_distributed.
-                      # Credentials synced from the vector namespace via
-                      # the clickhouse-credentials ExternalSecret.
                       - name: CLICKHOUSE_ENDPOINT
                         valueFrom:
                             secretKeyRef:
@@ -186,45 +178,88 @@ spec:
                                 name: clickhouse-credentials
                                 key: password
                       - name: CLICKHOUSE_DATABASE
-                        value: 'observability'
-                      # Wallet diesel pool — points at the Supabase Postgres
-                      # primary as the `postgres` superuser so SECURITY
-                      # DEFINER chains in the `wallet` schema resolve
-                      # cleanly. Required for /api/v1/wallet/* routes; if
-                      # unset, init_wallet_client warn-logs and the routes
-                      # return 503. db-url comes from the existing
-                      # supabase-shared ExternalSecret (see
-                      # kbve-externalsecret.yaml).
+                        value: observability
                       - name: WALLET_DATABASE_URL
                         valueFrom:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: db-url
-                      # Optional RO pool — routes pure-read wallet handlers
-                      # (e.g. service/verify-balance) through the CNPG ro
-                      # pooler in session mode. Same `postgres` creds; only
-                      # the host differs. If unset, WalletClient falls back
-                      # to using the rw pool for reads, so deploys without
-                      # this key still work.
                       - name: WALLET_DATABASE_URL_RO
                         valueFrom:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: db-url-ro
-                      # HMAC-SHA256 key for the referral handler's IP +
-                      # subnet hashing. Sourced from referral-config in
-                      # this namespace (built by kbve-externalsecret.yaml
-                      # from the kilobase `referral-hash` remote). When
-                      # unset, /api/v1/referral/* and /referral/*
-                      # routes 503 with a warn-log instead of fabricating
-                      # a predictable key.
+                      - name: KBVE_PG_RW_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url
+                      - name: KBVE_PG_RO_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url-ro
+                      - name: KBVE_PG_ANY_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url-any
+                      - name: KBVE_PG_CA_PEM_FILE
+                        value: /etc/ssl/pgca/ca.crt
+                      - name: VALKEY_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: valkey-auth
+                                key: valkey-password
+                      - name: KBVE_KV_URL
+                        value: redis://default:$(VALKEY_PASSWORD)@valkey.valkey.svc.cluster.local:6379/3
                       - name: REFERRAL_HASH_SECRET
                         valueFrom:
                             secretKeyRef:
                                 name: referral-config
                                 key: hash-secret
                                 optional: true
+                      - name: VIBESHINE_UPSTREAM_URL
+                        value: https://10.10.0.3:47990
+                      - name: VIBESHINE_API_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: vibeshine-config
+                                key: api-token
+                                optional: true
+                      - name: VIBESHINE_WEBRTC_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: vibeshine-config
+                                key: webrtc-token
+                                optional: true
+                      - name: DISCORD_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: arpg-discord
+                                key: DISCORD_CLIENT_ID
+                                optional: true
+                      - name: DISCORD_CLIENT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: arpg-discord
+                                key: DISCORD_CLIENT_SECRET
+                                optional: true
+                      # Discord Activity token exchange must send the redirect_uri
+                      # the OAuth code was bound to (a redirect IS registered on the
+                      # app), else Discord rejects with invalid_grant. Must match the
+                      # portal's registered redirect for the arpg Activity.
+                      - name: DISCORD_REDIRECT_URI
+                        value: https://arpg.kbve.com
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: jwt-secret
                   volumeMounts:
+                      - name: pg-ca
+                        mountPath: /etc/ssl/pgca
+                        readOnly: true
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd
                         readOnly: true
@@ -236,12 +271,18 @@ spec:
                         readOnly: true
                   resources:
                       requests:
-                          memory: '512Mi'
-                          cpu: '250m'
+                          memory: 512Mi
+                          cpu: 250m
                       limits:
-                          memory: '1024Mi'
-                          cpu: '2000m'
+                          memory: 1024Mi
+                          cpu: 2000m
             volumes:
+                - name: pg-ca
+                  secret:
+                      secretName: supabase-shared
+                      items:
+                          - key: db-ca-crt
+                            path: ca.crt
                 - name: argocd-ca
                   secret:
                       secretName: kbve-internal-ca-tls
@@ -263,6 +304,9 @@ metadata:
     namespace: kbve
     labels:
         app: kbve
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

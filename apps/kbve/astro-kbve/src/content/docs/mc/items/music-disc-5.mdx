@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1247
     ref: music_disc_5
     slug: music-disc-5
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc 5 plays "5," a melancholic, introspective piece composed by Samuel Åberg rather than C418, setting
+            it apart from most of the original disc lineup. Unlike other discs, it cannot be found whole in loot chests;
+            instead, players collect nine Disc Fragment 5 pieces from ancient city chests and combine them at a crafting
+            table to assemble the finished disc, making it the only music disc obtainable through crafting.
+        lore: |
+            Introduced alongside the deep dark and ancient cities, it is the sole vanilla music disc tied to a crafting
+            recipe rather than a direct mob or chest drop.
+    faq:
+        - question: How do I get Music Disc 5?
+          answer: |
+              Collect nine Disc Fragment 5 items from ancient city chests, then combine all nine at a crafting table to
+              assemble the complete disc.
+        - question: Who composed Music Disc 5?
+          answer: |
+              It was composed by Samuel Åberg, unlike most vanilla discs which were composed by C418.
+        - question: Can I find Music Disc 5 already complete in a chest?
+          answer: |
+              No, only its fragments spawn in ancient city loot chests; the whole disc must be crafted from nine
+              fragments.
+        - question: Where do ancient cities generate?
+          answer: |
+              Ancient cities generate deep underground within the deep dark biome, well below sea level.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

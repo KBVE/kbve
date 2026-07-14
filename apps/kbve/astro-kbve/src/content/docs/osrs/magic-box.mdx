@@ -1,6 +1,6 @@
 ---
 title: Magic box | OSRS Price Data
-description: "Magic box: A magical catching box.. High alch: 360 GP, GE limit: 250."
+description: "Magic box: A magical catching box used in Hunter for tracking imps. High alch: 360 GP, GE limit: 250."
 osrs:
   id: 10025
   name: Magic box
@@ -12,9 +12,67 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 250
-  about: "Magic box is a members-only item in Old School RuneScape. High alchemy value: 360 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: Magic box is a members-only Hunter trap used at the Imp Catcher minigame and around Puro-Puro to catch imps and impling jars. It is consumed on a failed catch, making it an ongoing cost for low-level Hunters chasing Magic, Ranging, or Eclectic implings.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Lay
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  material:
+    type: hunter_tool
+    tier: mid
+  shops:
+    - shop_name: Hickton's Archery Emporium
+      location: Catherby
+      price: 600
+      stock: 5
+      currency: Coins
+    - shop_name: Aleck's Hunter Emporium
+      location: Yanille
+      price: 600
+      stock: 5
+      currency: Coins
+  related_items:
+    - item_name: Impling jar
+      slug: impling-jar
+      relationship: alternative
+      description: Captured imp container produced when boxing succeeds
+    - item_name: Hunter potion
+      slug: hunter-potion
+      relationship: alternative
+      description: Boosts Hunter level for tougher imps
+    - item_name: Magic butterfly net
+      slug: magic-butterfly-net
+      relationship: alternative
+      description: Alternative imp-catching tool used at Puro-Puro
+  market_strategy:
+    notes:
+      - "Hunter Supply Notes"
+      - "Limited GE volume due to low buy limit"
+      - "Resupplied by NPC shops in Catherby and Yanille"
+      - "Demand spikes with impling jar minigame patches"
+      - "Profitable when shop-bought during low GE supply windows"
+  trading_tips:
+    - "Hop Catherby world for fast NPC restocks"
+    - "Hold during league events for impling demand"
+    - "Buy near alch value for safe long-term holds"
+  history:
+    - date: "2006-11-21"
+      update: Hunter
+      description: "Magic box released with the Hunter skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

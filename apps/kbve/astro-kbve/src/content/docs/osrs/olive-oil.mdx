@@ -1,0 +1,109 @@
+---
+title: Olive oil | OSRS Price Data
+description: "Olive oil(4): 4 doses of olive oil. High alch: 13 GP, GE limit: 10,000."
+osrs:
+  id: 3422
+  name: Olive oil
+  slug: olive-oil
+  examine: 4 doses of olive oil.
+  members: true
+  icon: Olive oil(4).png
+  value: 22
+  lowalch: 8
+  highalch: 13
+  limit: 10000
+  about: "Olive oil(4) holds 4 doses of olive oil, used to brew sacred oil for Shades of Mort'ton funeral pyres. Members-only. High alch 13 gp; GE limit 10,000."
+  family_ref:
+    family_slug: olive-oil
+    role: base
+  family:
+    slug: olive-oil
+    name: Olive oil
+    type: dose
+    canonical_id: 3422
+    members:
+    - id: 3422
+      slug: olive-oil
+      name: Olive oil
+      icon: Olive oil(4).png
+      role: base
+      dose: null
+      value: 22
+      lowalch: 8
+      highalch: 13
+    - id: 3428
+      slug: olive-oil-1
+      name: Olive oil(1)
+      icon: Olive oil(1).png
+      role: dose
+      dose: 1
+      value: 14
+      lowalch: 5
+      highalch: 8
+    - id: 3426
+      slug: olive-oil-2
+      name: Olive oil(2)
+      icon: Olive oil(2).png
+      role: dose
+      dose: 2
+      value: 17
+      lowalch: 6
+      highalch: 10
+    - id: 3424
+      slug: olive-oil-3
+      name: Olive oil(3)
+      icon: Olive oil(3).png
+      role: dose
+      dose: 3
+      value: 20
+      lowalch: 8
+      highalch: 12
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  potion:
+    doses: 4
+    effect: "Used at the Temple of Mort'ton altar to create sacred oil for funeral pyre logs."
+    duration: "Persistent (until consumed)"
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: true
+    weight: 0.08
+  material:
+    type: misc
+    tier: standard
+  shops:
+    - shop_name: "Razmire's general store"
+      location: "Mort'ton"
+      price: 112
+      currency: "Coins"
+      stock: 10
+    - shop_name: "Rasolo the Wandering Merchant"
+      location: "Fremennik Province"
+      price: 160
+      currency: "Coins"
+      stock: 5
+  history:
+    - date: "2004-10-18"
+      description: "Released with the Shades of Mort'ton minigame."
+    - date: "2005-03-01"
+      description: "An 'Empty' option was added to the inventory interaction."
+  trading_tips:
+    - "Bulk buy from Razmire when stocked; Shades of Mort'ton runners absorb supply for sacred oil."
+    - "GE limit of 10,000 makes flipping with general-store restocks viable for free GP."
+  market_strategy:
+    notes:
+      - "relationship: \"component\""
+      - "Demand is tied to Shades of Mort'ton activity and the sacred oil pipeline for redwood/magic pyre logs."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

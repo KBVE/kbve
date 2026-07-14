@@ -12,22 +12,72 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "22 February 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weight: 0.907
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: H.A.M. Member
+        quantity: "1"
+        rarity: 1/102
+      - source: H.A.M. Guard
+        quantity: "1"
+        rarity: 1/83
+      - source: Chest (Dorgesh-Kaan Average)
+        quantity: "1"
+        rarity: 1/23
+      - source: Guard (H.A.M. Storerooms)
+        quantity: "1"
+        rarity: 3/500
   related_items:
-    - item_id: 4302
-      item_name: Ham hood
+    - item_name: Ham hood
       slug: ham-hood
       relationship: set-piece
       description: H.A.M. head piece
-    - item_id: 4300
-      item_name: Ham robe
+    - item_name: Ham robe
       slug: ham-robe
       relationship: set-piece
       description: H.A.M. legs piece
-    - item_id: 4304
-      item_name: Ham cloak
+    - item_name: Ham cloak
       slug: ham-cloak
       relationship: set-piece
       description: H.A.M. cape piece
@@ -35,8 +85,16 @@ osrs:
     > *"The label says 'Vivid Crimson', but it looks pink to me!"*
 
     The ham shirt is part of the H.A.M. (Humans Against Monsters) robes set. Wearing more pieces reduces the chance of being ejected from the H.A.M. Hideout when caught pickpocketing. A members-only item with no combat stats.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - "Cheap pickpocketing drop from H.A.M. members; supply scales with Ardougne/Edgeville hideout activity."
+      - "Demand is mostly cosmetic plus the hideout protection synergy when worn as part of a set."
+  trading_tips:
+    - "Stock up after major H.A.M.-adjacent Thieving events when supply spikes lower the GE price."
+    - "Sell during Wintertodt or Falador Hard diary pushes that funnel low-Defence accounts toward pickpocketing routes."
+  history:
+    - date: "22 February 2005"
+      description: "Added to the game alongside the H.A.M. Hideout."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

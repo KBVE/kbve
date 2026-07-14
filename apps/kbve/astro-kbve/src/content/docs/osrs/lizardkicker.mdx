@@ -12,9 +12,43 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: null
-  about: "Lizardkicker is a members-only item in Old School RuneScape. High alchemy value: 3 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Lizardkicker is a members-only consumable ale in Old School RuneScape. Sold by The Cloak and Stagger in Shayzien, it boosts Ranged by 4 levels while draining Strength and Magic. High alchemy value: 3 coins."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-06-16"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.55
+  potion:
+    doses: 1
+    effect: "Boosts Ranged by 4 levels; drains Strength and Magic by 2 + 4%."
+    duration: "Instant"
+  shops:
+    - shop_name: "The Cloak and Stagger"
+      location: "Shayzien"
+      price: 6
+      stock: 10
+      restock_time: "30 seconds"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Purchase directly from The Cloak and Stagger in Shayzien at 6 coins for a guaranteed supply.\""
+      - "sell_strategy: \"Flip on the Grand Exchange where it trades near 296 coins for a steady margin over shop price.\""
+      - "price_trend: \"stable\""
+      - "investment_potential: \"low\""
+  trading_tips:
+    - "Stock refills every 30 seconds, allowing efficient bulk buying."
+    - "Note the ales for easier transport from Shayzien to a bank."
+    - "Compare GE volume before flipping; daily volume is low."
+  history:
+    - date: "2021-06-16"
+      description: "Added to the game with the A Kingdom Divided quest update."
+    - date: "2024-03-20"
+      description: "Shop price reduced from 20 to 6 coins during the Varlamore Part One update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

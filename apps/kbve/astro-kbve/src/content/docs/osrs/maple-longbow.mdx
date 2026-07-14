@@ -12,50 +12,93 @@ osrs:
   lowalch: 256
   highalch: 384
   limit: 18000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: maple
+    tier: mid
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: 2h
-    type: longbow
-    attack_style: ranged
+    weapon_type: bow
     attack_speed: 6
-  requirements:
-    ranged: 30
-  stats:
-    attack:
+    weight: 1.814
+    requirements:
+      ranged: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 29
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 0
-    range: 9
-  fletching:
-    level: 55
-    xp: 58.3
-    method: Maple longbow (u) + bowstring
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 55
+      xp: 58.3
+      materials:
+        - item_name: Maple longbow (u)
+          quantity: 1
+        - item_name: Bow string
+          quantity: 1
+      tools: []
+      output_quantity: 1
   shops:
     - shop_name: Lowe's Archery Emporium
       location: Varrock
       price: 640
+      currency: Coins
+      stock: 5
   related_items:
-    - item_id: 855
-      item_name: Yew longbow
+    - item_name: Yew longbow
       slug: yew-longbow
       relationship: upgrade
       description: Higher tier longbow
-    - item_id: 853
-      item_name: Maple shortbow
+    - item_name: Maple shortbow
       slug: maple-shortbow
       relationship: alternative
-      description: Faster attack speed
-    - item_id: 62
-      item_name: Maple longbow (u)
+      description: Faster attack speed alternative
+    - item_name: Maple longbow (u)
       slug: maple-longbow-u
       relationship: component
       description: Unstrung version
-    - item_id: 1777
-      item_name: Bow string
+    - item_name: Bow string
       slug: bow-string
       relationship: component
-      description: Stringing material
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Required stringing material
+  about: "The maple longbow is a free-to-play two-handed bow requiring 30 Ranged to wield. It can fire arrows up to adamant and trades attack speed for greater range compared to the maple shortbow. Fletchable at 55 Fletching for 58.3 XP by stringing a maple longbow (u), and is also a reward from the Observatory Quest."
+  market_strategy:
+    notes:
+      - "Fletchers flip large volume daily"
+      - "High alch leaves stable margin against nature runes"
+      - "Maple shortbow competition caps PvM demand"
+  history:
+    - date: "2002-03-25"
+      description: "Released with the Ranged skill rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,34 @@ osrs:
   lowalch: 420
   highalch: 630
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: jewellery
+    tier: low
+  properties:
+    release_date: "2004-11-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Rub
+      - Drop
+    worn_options:
+      - Rub
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
-    type: teleport_jewelry
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
+    requirements: {}
     attack_bonus:
       stab: 0
       slash: 0
@@ -28,76 +53,50 @@ osrs:
       magic: 0
       ranged: 0
     other_bonus:
-      melee_strength: 0
+      strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    weight: 0.01
+  charges:
+    type: teleport
+    description: "Holds 8 teleport charges; after the final use the necklace crumbles to dust with the message 'Your games necklace crumbles to dust.'"
   recipes:
     - skill: magic
       level: 7
       xp: 17.5
       materials:
         - item_name: Sapphire necklace
-          item_id: 1656
           quantity: 1
         - item_name: Cosmic rune
-          item_id: 564
           quantity: 1
         - item_name: Water rune
-          item_id: 555
           quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 2552
-      item_name: Ring of dueling(8)
+    - item_name: Ring of dueling(8)
       slug: ring-of-dueling-8
       relationship: alternative
-      description: Alternative teleport jewelry
-    - item_id: 1656
-      item_name: Sapphire necklace
+      description: "Alternative charged teleport jewellery covering Castle Wars and Duel Arena destinations."
+    - item_name: Sapphire necklace
       slug: sapphire-necklace
       relationship: component
-      description: Base item for enchantment
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Neck |
-    | Type | Teleport Jewelry |
-    | Tradeable | Yes |
-    | Weight | 0.01 kg |
-
-    Enchant Sapphire necklace with Lvl-1 Enchant.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 7 |
-    | Cosmic rune | 1 |
-    | Water rune | 1 |
-
-    - Burthorpe Games Room
-    - Barbarian Outpost
-    - Corporeal Beast
-    - Tears of Guthix (quest required)
-    - Wintertodt Camp (visited Zeah)
-
-    Charges: 8 (crumbles when depleted)
-
-    Essential for:
-    - Corp teleport
-    - Wintertodt access
-    - Barbarian Assault
-
-    Very useful utility teleport.
+      description: "Base necklace enchanted with Lvl-1 Enchant to create the Games necklace(8)."
+  about: "Games necklace(8) is a members-only enchanted teleport necklace released on 24 November 2004 with the Burthorpe Games Room update. It is created by casting Lvl-1 Enchant on a Sapphire necklace and provides eight rub-to-teleport charges to Burthorpe (Games Room), Barbarian Outpost, Corporeal Beast, Tears of Guthix and the Wintertodt Camp. The necklace crumbles to dust on the final charge and offers no combat stats. High alchemy value: 630 coins. Grand Exchange buy limit: 10,000 per 4 hours."
   market_strategy:
     notes:
-      - Best Corp teleport
-      - Good for Wintertodt
-      - Very cheap
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand is steady from Wintertodt and Corporeal Beast trips; supply tracks low-level enchanters."
+      - "Margins are razor-thin per necklace but the 10,000 buy limit enables flip-stacking."
+      - "Watch for Wintertodt update cycles which spike consumption."
+  trading_tips:
+    - "Flip in 10k batches across the buy limit window; small per-unit margin compounds at scale."
+    - "Craft your own from sapphire necklaces when GE price exceeds materials + small profit."
+    - "Stockpile before community Wintertodt events for short-term price bumps."
+  history:
+    - date: "2004-11-24"
+      description: "Released with the Burthorpe Games Room update."
+    - date: "2025-05-29"
+      description: "Exempted from the Grand Exchange convenience fee."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,12 +12,58 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 10000
-  about: "Cooked wild kebbit is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 23
+      xp: 73
+      materials:
+        - item_name: Raw wild kebbit
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Raw wild kebbit
+      slug: raw-wild-kebbit
+      relationship: component
+      description: Uncooked source of this food
+  about: "Cooked wild kebbit is a low-tier food introduced in the Varlamore: Part One update. Cooking a raw wild kebbit at level 23 Cooking grants 73 XP, and the food heals 8 Hitpoints split into two 4-HP ticks separated by roughly 4.2 seconds. The item stops burning entirely at Cooking level 50 on both fires and ranges."
+  market_strategy:
+    notes:
+      - "Cheap filler food, primarily moved as a byproduct of Hunter training"
+      - "Volume traders rely on the 10,000 buy limit for bulk flips"
+      - "High alch is unprofitable; raw component is more liquid"
+  trading_tips:
+    - "Bulk lots clear faster than singles at this alch tier"
+    - "Pair with raw wild kebbit margins to spot mispriced sides"
+  history:
+    - date: "2024-03-20"
+      description: "Added to the game with Varlamore: Part One."
+    - date: "2026-05-13"
+      description: "The item was graphically updated to be more vibrant."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

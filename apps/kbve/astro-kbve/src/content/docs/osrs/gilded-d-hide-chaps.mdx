@@ -12,93 +12,85 @@ osrs:
   lowalch: 16000
   highalch: 24000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: ranged_armour
+    tier: mid
+  properties:
+    release_date: "11 April 2019"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: ranged_armour
+    weapon_type: null
+    attack_speed: null
+    weight: 5
     requirements:
       ranged: 40
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -10
-      attack_ranged: 8
-      defence_stab: 22
-      defence_slash: 16
-      defence_crush: 24
-      defence_magic: 8
-      defence_ranged: 22
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 8
+    defence_bonus:
+      stab: 22
+      slash: 16
+      crush: 24
+      magic: 8
+      ranged: 22
+    other_bonus:
       melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    weight: 5
-  obtaining:
-    methods:
+  drop_table:
+    sources:
       - source: Reward casket (elite)
-        drop_rate: 1/14,662.5
+        quantity: "1"
+        rarity: 1/14662.5
       - source: Reward casket (master)
-        drop_rate: 1/13,616
+        quantity: "1"
+        rarity: 1/13616
   related_items:
-    - item_id: 2497
-      item_name: Black d'hide chaps
+    - item_name: Black d'hide chaps
       slug: black-dhide-chaps
       relationship: alternative
-      description: Same stats, non-gilded
-    - item_id: 23264
-      item_name: Gilded d'hide body
+      description: "Same stats, non-cosmetic crafted version"
+    - item_name: Gilded d'hide body
       slug: gilded-dhide-body
-      relationship: alternative
-      description: Matching gilded body
-    - item_id: 23261
-      item_name: Gilded d'hide vambraces
+      relationship: set-piece
+      description: "Matching gilded chestplate"
+    - item_name: Gilded d'hide vambraces
       slug: gilded-dhide-vambraces
-      relationship: alternative
-      description: Matching gilded gloves
-    - item_id: 23258
-      item_name: Gilded coif
+      relationship: set-piece
+      description: "Matching gilded vambraces"
+    - item_name: Gilded coif
       slug: gilded-coif
-      relationship: alternative
-      description: Matching gilded helm
-  about: |-
-    "Made with 100% golden dragonhide."
-
-    | Stat | Value |
-    |------|-------|
-    | Stab Attack | +0 |
-    | Slash Attack | +0 |
-    | Crush Attack | +0 |
-    | Magic Attack | -10 |
-    | Ranged Attack | +8 |
-    | Stab Defence | +22 |
-    | Slash Defence | +16 |
-    | Crush Defence | +24 |
-    | Magic Defence | +8 |
-    | Ranged Defence | +22 |
-    | Melee Strength | +0 |
-    | Ranged Strength | +0 |
-    | Magic Damage | +0% |
-    | Prayer | +0 |
-
-    Requirements: 40 Ranged
-
-    | Item | Ranged Atk | Ranged Def | Magic Def | Source |
-    |------|-----------|-----------|----------|--------|
-    | Gilded d'hide chaps | +8 | +22 | +8 | Elite/Master clues |
-    | Black d'hide chaps | +8 | +22 | +8 | Crafting (82) |
-
-    Stats are identical to the black d'hide chaps. The gilded version is purely cosmetic and significantly more expensive due to its rarity from Treasure Trails.
+      relationship: set-piece
+      description: "Matching gilded helm"
+  about: "Gilded d'hide chaps are a cosmetic ranged legs slot reward from Elite and Master clue scroll caskets, requiring 40 Ranged to wear. Stats are identical to black d'hide chaps; the gilded version exists purely for fashionscape rarity and collection log completion."
   market_strategy:
     notes:
-      - Fashionscape / cosmetic flex
-      - Elite clue reward rarity
-      - Collection log completionists
-      - Identical stats to black d'hide chaps
-      - Value is purely cosmetic rarity
-      - Price fluctuates with clue scroll activity
-      - Low trade volume, watch for manipulation
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Identical stats to black d'hide chaps; price is pure cosmetic rarity"
+      - "Low trade volume from Elite and Master clue completion rates"
+      - "Watch for short-term manipulation given thin order book"
+  trading_tips:
+    - "Track clue scroll activity events; supply tightens after big PvM updates"
+    - "Compare against full gilded ranged set price for completion arbitrage"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

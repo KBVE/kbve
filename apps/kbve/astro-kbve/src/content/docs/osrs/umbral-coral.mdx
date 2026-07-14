@@ -1,6 +1,6 @@
 ---
 title: Umbral coral | OSRS Price Data
-description: "Umbral coral: Seems to absorb light from all around it.. High alch: 93 GP, GE limit: 11,000."
+description: "Umbral coral: Seems to absorb light from all around it. High alch: 93 GP, GE limit: 11,000."
 osrs:
   id: 31487
   name: Umbral coral
@@ -12,9 +12,64 @@ osrs:
   lowalch: 62
   highalch: 93
   limit: 11000
-  about: "Umbral coral is a members-only item in Old School RuneScape. High alchemy value: 93 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: herb-secondary
+    tier: mid-high
+  farming:
+    level: 77
+  recipes:
+    - materials:
+        - item_name: Umbral coral
+          quantity: 1
+        - item_name: Vial of water
+          quantity: 1
+      tools: []
+      skill: Herblore
+      level: 89
+      output_item: Umbral potion (unf)
+      output_quantity: 1
+      notes: First step in brewing Armadyl brews.
+  related_items:
+    - item_name: Umbral frag
+      slug: umbral-frag
+      relationship: component
+      description: Planted at coral nurseries to grow umbral coral.
+    - item_name: Umbral potion (unf)
+      slug: umbral-potion-unf
+      relationship: product
+      description: Unfinished potion combining umbral coral and a vial of water.
+    - item_name: Armadyl brew (4)
+      slug: armadyl-brew-4
+      relationship: product
+      description: Final Herblore output using umbral coral as a secondary.
+  about: "Umbral coral is a Sailing-era farming secondary harvested from coral nurseries at 77 Farming and combined with a vial of water at 89 Herblore to start the Armadyl brew chain."
+  market_strategy:
+    notes:
+      - Supply scales with coral nursery rotations.
+      - Demand tracks Armadyl brew pricing for raid restocks.
+      - High daily GE volume keeps spreads tight.
+  trading_tips:
+    - Buy in dips when raid teams are inactive.
+    - Sell during raid weekends or DT2/ToA prep cycles.
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing update.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

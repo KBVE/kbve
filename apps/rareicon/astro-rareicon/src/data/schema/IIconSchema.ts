@@ -26,7 +26,7 @@ import {
 	IconFormats,
 	IconLicenses,
 	IconOfferings,
-} from '../../../../../../packages/data/codegen/generated/icons-schema';
+} from '@kbve/proto/icons-schema';
 
 // Re-export generated schemas + const arrays for downstream consumers
 export {
@@ -66,7 +66,7 @@ export type {
 	IconFormatValue,
 	IconLicenseValue,
 	IconOfferingValue,
-} from '../../../../../../packages/data/codegen/generated/icons-schema';
+} from '@kbve/proto/icons-schema';
 
 // ---------------------------------------------------------------------------
 // Astro MDX frontmatter schema — one term per MDX. Proto IconTerm + site-only

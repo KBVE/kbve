@@ -1,5 +1,6 @@
 ---
 title: Bamboo Fence
+template: splash
 description: |
     Minecraft Bamboo Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 613
     ref: bamboo_fence
     slug: bamboo-fence
+    content_rev: 1
     display_name: Bamboo Fence
     material: wood
     hardness: 2
@@ -21,13 +23,63 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Bamboo Fence is a 1.5-block-tall barrier crafted from Bamboo
+            Planks and sticks. It connects visually to adjacent fences and
+            fence gates, forming continuous pens without gaps mobs can slip
+            through.
+        lore: |
+            Fences are one of Minecraft's oldest building mechanics; the
+            bamboo variant joined the wood-type roster in Java Edition 1.20.
+    uses:
+        - title: Bamboo Fence Gate
+          ref: bamboo_fence_gate
+          detail: |
+              Pairs with Bamboo Fence Gate to create controllable openings
+              in fence lines.
+        - title: Lead Attachment
+          ref: lead
+          detail: |
+              Serves as an anchor point for leads tied to nearby mobs.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Smelts 1.5 items per fence when used as furnace fuel.
+    found_in:
+        - location: Crafting Table
+          detail: 4 sticks and 2 Bamboo Planks craft 3 Bamboo Fences.
+    faq:
+        - question: What tool mines Bamboo Fence fastest?
+          answer: |
+              An axe. It also breaks by hand, just more slowly.
+        - question: Can mobs jump over Bamboo Fence?
+          answer: |
+              No. Its 1.5-block effective height blocks most mobs from
+              jumping over it, unlike a solid full-height block.
+        - question: Can Bamboo Fence be waterlogged?
+          answer: |
+              Yes. It can hold water when placed in a water source block.
+        - question: Is Bamboo Fence flammable?
+          answer: |
+              Yes. As an Overworld wood variant it can catch fire and burn
+              away.
     data_version: "1.21.5"
 ---
 

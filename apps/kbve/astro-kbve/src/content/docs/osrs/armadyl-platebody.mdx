@@ -12,9 +12,94 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: 8
-  about: "Armadyl platebody is a free-to-play item in Old School RuneScape. High alchemy value: 39,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options: ["Wear"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 9.979
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -25
+    defence_bonus:
+      stab: 82
+      slash: 80
+      crush: 72
+      magic: -6
+      ranged: 80
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: Rare
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers: ["hard"]
+  passive_effects:
+    - name: Armadyl alignment
+      description: Counts as an Armadyl-aligned item in the God Wars Dungeon, allowing the wearer to bypass Armadyl bodyguards aggression.
+  related_items:
+    - item_name: Armadyl full helm
+      slug: armadyl-full-helm
+      relationship: set-piece
+      description: Matching head slot piece of the Armadyl rune armour set
+    - item_name: Armadyl platelegs
+      slug: armadyl-platelegs
+      relationship: set-piece
+      description: Matching legs slot piece of the Armadyl rune armour set
+    - item_name: Armadyl rune armour set (lg)
+      slug: armadyl-rune-armour-set-lg
+      relationship: product
+      description: GE-bundled set of all Armadyl rune armour pieces
+    - item_name: Rune platebody
+      slug: rune-platebody
+      relationship: alternative
+      description: Vanilla rune platebody with identical melee defence
+  about: |-
+    Armadyl platebody is a hard clue Treasure Trail reward styled as a god-themed recolour of the rune platebody. Requires 40 Defence and Dragon Slayer I to equip. Identical melee defence to the standard rune platebody plus a +1 prayer bonus and Armadyl GWD alignment.
+
+    Mostly a prestige and GWD-bodyguard-bypass piece — combat advantage over rune armour is minimal outside the alignment use case.
+  market_strategy:
+    notes:
+      - "Supply tied to hard clue completion rates"
+      - "Spikes when GWD Armadyl loot tables get rebalanced or league rewards reference clue cosmetics"
+      - "F2P-accessible since 2016 but the piece itself stays a members-only trail reward"
+  trading_tips:
+    - "Stockpile during DMM or league dry spells when hard clue traffic dries up"
+    - "Sell paired with Armadyl helm/legs for set-buy premiums"
+  history:
+    - date: "2014-06-12"
+      description: "Released as part of the god-themed rune armour Treasure Trail rewards"
+    - date: "2016"
+      description: "Made tradeable to free-to-play markets for cosmetic flexing"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

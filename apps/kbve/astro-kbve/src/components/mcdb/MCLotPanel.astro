@@ -1,0 +1,343 @@
+---
+import { MCLotFrontmatterSchema } from '@/data/schema';
+import { getLotEntries } from './mc-collections';
+
+const { data } = Astro.props;
+const lot = MCLotFrontmatterSchema.parse(data);
+
+const chunkW = lot.chunk_x_max - lot.chunk_x_min + 1;
+const chunkD = lot.chunk_z_max - lot.chunk_z_min + 1;
+const blockXMin = lot.chunk_x_min * 16;
+const blockZMin = lot.chunk_z_min * 16;
+const blockXMax = (lot.chunk_x_max + 1) * 16 - 1;
+const blockZMax = (lot.chunk_z_max + 1) * 16 - 1;
+const blockW = blockXMax - blockXMin + 1;
+const blockD = blockZMax - blockZMin + 1;
+const area = chunkW * chunkD;
+
+const stateAccent: Record<string, string> = {
+	vacant: '#86efac',
+	owned: '#7dd3fc',
+	built: '#a5b4fc',
+	under_build: '#fcd34d',
+	demolishing: '#fca5a5',
+};
+const accent = stateAccent[lot.state] ?? '#cbd5e1';
+
+const peers = await getLotEntries(lot.world);
+const minX = Math.min(...peers.map((p) => p.chunk_x_min), lot.chunk_x_min) - 1;
+const maxX = Math.max(...peers.map((p) => p.chunk_x_max), lot.chunk_x_max) + 1;
+const minZ = Math.min(...peers.map((p) => p.chunk_z_min), lot.chunk_z_min) - 1;
+const maxZ = Math.max(...peers.map((p) => p.chunk_z_max), lot.chunk_z_max) + 1;
+
+const spanX = maxX - minX + 1;
+const spanZ = maxZ - minZ + 1;
+const MAP_PX = 360;
+const cellSize = Math.min(MAP_PX / spanX, MAP_PX / spanZ);
+const mapW = spanX * cellSize;
+const mapD = spanZ * cellSize;
+---
+
+<section class="mclot-panel not-content kbve-dashboard-page">
+	<header class="mclot-panel__head">
+		<div>
+			<h2>{Astro.props.title ?? lot.lot_id}</h2>
+			<p class="mclot-panel__sub">
+				<code>{lot.lot_id}</code> · <code>{lot.world}</code>
+			</p>
+			<div class="mclot-panel__pills">
+				<span class="mclot-pill" style={`--accent:${accent}`}>
+					{lot.state}
+				</span>
+				{
+					lot.current_schematic_id && (
+						<span class="mclot-pill mclot-pill--schem">
+							<code>{lot.current_schematic_id}</code>
+						</span>
+					)
+				}
+			</div>
+		</div>
+		<div class="mclot-panel__price">
+			{
+				lot.price_credits > 0 && (
+					<span>
+						<strong>{lot.price_credits.toLocaleString()}</strong>{' '}
+						credits
+					</span>
+				)
+			}
+			{
+				lot.price_khash > 0 && (
+					<span>
+						<strong>{lot.price_khash.toLocaleString()}</strong>{' '}
+						khash
+					</span>
+				)
+			}
+			{
+				lot.price_credits === 0 && lot.price_khash === 0 && (
+					<span>free</span>
+				)
+			}
+		</div>
+	</header>
+
+	<div class="mclot-panel__grid">
+		<dl class="mclot-stats">
+			<div>
+				<dt>Chunks</dt>
+				<dd>
+					({lot.chunk_x_min}..{lot.chunk_x_max}, {lot.chunk_z_min}..
+					{lot.chunk_z_max})
+				</dd>
+			</div>
+			<div>
+				<dt>Blocks</dt>
+				<dd>
+					({blockXMin}..{blockXMax}, {blockZMin}..{blockZMax})
+				</dd>
+			</div>
+			<div>
+				<dt>Footprint</dt>
+				<dd>
+					{chunkW}×{chunkD} chunks · {blockW}×{blockD} blocks · area {
+						area
+					}
+				</dd>
+			</div>
+			<div>
+				<dt>Anchor Y</dt>
+				<dd>{lot.anchor_y}</dd>
+			</div>
+		</dl>
+
+		<figure class="mclot-figure">
+			<figcaption>Position in {lot.world}</figcaption>
+			<svg
+				viewBox={`0 0 ${mapW} ${mapD}`}
+				width={mapW}
+				height={mapD}
+				role="img"
+				aria-label={`Plaza overview, highlighting ${lot.lot_id}`}>
+				<rect x={0} y={0} width={mapW} height={mapD} fill="#0c0f14">
+				</rect>
+				{
+					Array.from({ length: spanX + 1 }, (_, i) => i).map((i) => (
+						<line
+							x1={i * cellSize}
+							y1={0}
+							x2={i * cellSize}
+							y2={mapD}
+							stroke="#1c2230"
+							stroke-width="0.5"
+						/>
+					))
+				}
+				{
+					Array.from({ length: spanZ + 1 }, (_, i) => i).map((i) => (
+						<line
+							x1={0}
+							y1={i * cellSize}
+							x2={mapW}
+							y2={i * cellSize}
+							stroke="#1c2230"
+							stroke-width="0.5"
+						/>
+					))
+				}
+				{
+					peers.map((p) => {
+						const isMe = p.lot_id === lot.lot_id;
+						const x = (p.chunk_x_min - minX) * cellSize;
+						const y = (p.chunk_z_min - minZ) * cellSize;
+						const w =
+							(p.chunk_x_max - p.chunk_x_min + 1) * cellSize;
+						const h =
+							(p.chunk_z_max - p.chunk_z_min + 1) * cellSize;
+						return (
+							<g>
+								<rect
+									x={x}
+									y={y}
+									width={w}
+									height={h}
+									fill={
+										isMe
+											? accent
+											: 'rgba(120, 200, 120, 0.4)'
+									}
+									stroke={isMe ? '#ffffff' : '#101218'}
+									stroke-width={isMe ? 2 : 1}
+									opacity={isMe ? 0.95 : 0.55}>
+									<title>{p.lot_id}</title>
+								</rect>
+								{isMe && (
+									<text
+										x={x + w / 2}
+										y={y + h / 2 + 4}
+										text-anchor="middle"
+										font-size="11"
+										fill="#0c0f14"
+										font-weight="bold">
+										HERE
+									</text>
+								)}
+							</g>
+						);
+					})
+				}
+			</svg>
+			<p class="mclot-figure__hint">
+				Coordinates in chunks. 1 chunk = 16 blocks. This lot is marked
+				in {lot.state} colors.
+			</p>
+		</figure>
+	</div>
+
+	{
+		(lot.about.summary || lot.about.notes) && (
+			<section class="mclot-about">
+				{lot.about.summary && (
+					<p class="mclot-about__summary">{lot.about.summary}</p>
+				)}
+				{lot.about.notes && (
+					<p class="mclot-about__notes">
+						<em>{lot.about.notes}</em>
+					</p>
+				)}
+			</section>
+		)
+	}
+</section>
+
+<style>
+	.mclot-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: 1rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.6rem;
+		background: var(--sl-color-bg-nav);
+	}
+
+	.mclot-panel__head {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		align-items: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.mclot-panel__head h2 {
+		margin: 0;
+	}
+
+	.mclot-panel__sub {
+		margin: 0.2rem 0 0.4rem;
+		color: var(--sl-color-gray-3);
+		font-size: 0.85em;
+	}
+
+	.mclot-panel__pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.mclot-pill {
+		display: inline-block;
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		font-size: 0.78em;
+		background: color-mix(in srgb, var(--accent, #cbd5e1) 25%, transparent);
+		color: var(--accent, #cbd5e1);
+		border: 1px solid var(--accent, #cbd5e1);
+		text-transform: capitalize;
+	}
+
+	.mclot-pill--schem {
+		--accent: #94a3b8;
+	}
+
+	.mclot-panel__price {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.15rem;
+	}
+
+	.mclot-panel__price strong {
+		color: var(--sl-color-white);
+	}
+
+	.mclot-panel__grid {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: start;
+	}
+
+	@media (max-width: 720px) {
+		.mclot-panel__grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.mclot-stats {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		row-gap: 0.4rem;
+		column-gap: 0.75rem;
+		margin: 0;
+	}
+
+	.mclot-stats > div {
+		display: contents;
+	}
+
+	.mclot-stats dt {
+		color: var(--sl-color-gray-3);
+		font-size: 0.85em;
+	}
+
+	.mclot-stats dd {
+		margin: 0;
+	}
+
+	.mclot-figure {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		align-items: flex-start;
+	}
+
+	.mclot-figure figcaption {
+		font-size: 0.85em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.mclot-figure svg {
+		max-width: 100%;
+		height: auto;
+		border-radius: 0.3rem;
+	}
+
+	.mclot-figure__hint {
+		margin: 0;
+		font-size: 0.75em;
+		color: var(--sl-color-gray-4);
+	}
+
+	.mclot-about {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+
+	.mclot-about__notes {
+		color: var(--sl-color-gray-3);
+		font-size: 0.92em;
+	}
+</style>

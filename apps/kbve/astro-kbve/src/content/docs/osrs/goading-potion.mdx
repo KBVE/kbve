@@ -1,0 +1,75 @@
+---
+title: Goading potion | OSRS Price Data
+description: "Goading potion(4): 4 doses of Goading potion.. High alch: 180 GP, GE limit: 2,000."
+osrs:
+  id: 30137
+  name: Goading potion
+  slug: goading-potion
+  examine: 4 doses of Goading potion.
+  members: true
+  icon: Goading potion(4).png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 2000
+  material:
+    type: consumable
+    tier: potion
+  potion:
+    doses: 4
+  about: "Goading potion(4) is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  family_ref:
+    family_slug: goading-potion
+    role: base
+  family:
+    slug: goading-potion
+    name: Goading potion
+    type: dose
+    canonical_id: 30137
+    members:
+    - id: 30137
+      slug: goading-potion
+      name: Goading potion
+      icon: Goading potion(4).png
+      role: base
+      dose: null
+      value: 300
+      lowalch: 120
+      highalch: 180
+    - id: 30146
+      slug: goading-potion-1
+      name: Goading potion(1)
+      icon: Goading potion(1).png
+      role: dose
+      dose: 1
+      value: 150
+      lowalch: 60
+      highalch: 90
+    - id: 30143
+      slug: goading-potion-2
+      name: Goading potion(2)
+      icon: Goading potion(2).png
+      role: dose
+      dose: 2
+      value: 200
+      lowalch: 80
+      highalch: 120
+    - id: 30140
+      slug: goading-potion-3
+      name: Goading potion(3)
+      icon: Goading potion(3).png
+      role: dose
+      dose: 3
+      value: 250
+      lowalch: 100
+      highalch: 150
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

@@ -1,24 +1,32 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: herbmail
-  namespace: argocd
+    name: herbmail
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/herbmail
+        kbve.com/manifest-path: apps/kube/herbmail/manifest
+        kbve.com/application-file: kube/herbmail/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/KBVE/kbve
-    targetRevision: HEAD
-    path: apps/kube/herbmail/manifest
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: herbmail
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - RespectIgnoreDifferences=true
-    - Replace=false
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: HEAD
+        path: apps/kube/herbmail/manifest
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: herbmail
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - PrunePropagationPolicy=foreground
+            - PruneLast=true
+            - RespectIgnoreDifferences=true
+            - Replace=false

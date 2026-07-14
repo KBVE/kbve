@@ -66,7 +66,7 @@ pub(crate) fn sun_params(hour: f32) -> SunParams {
 
     // sun_height: 0.0 at horizon/night, 1.0 at zenith.
     // This is the natural blend factor — everything follows the sun's position.
-    let sun_height = if hour >= 5.0 && hour <= 19.0 {
+    let sun_height = if (5.0..=19.0).contains(&hour) {
         elevation / (std::f32::consts::FRAC_PI_2 - 0.05)
     } else {
         0.0
@@ -268,7 +268,7 @@ fn spawn_lighting(mut commands: Commands, day: Res<DayCycle>) {
         DirectionalLight {
             illuminance: params.illuminance,
             color: params.color,
-            shadows_enabled: true,
+            shadow_maps_enabled: true,
             ..default()
         },
         Transform::from_translation(sun_pos).looking_at(Vec3::ZERO, Vec3::Y),
@@ -475,7 +475,7 @@ fn tint_trees_for_daynight(
     let r = 0.18 + h * 0.92;
     let g = 0.20 + h * 0.90;
     let b = 0.28 + h * 0.75;
-    if let Some(mat) = materials.get_mut(&tile_mats.tree_body_mat) {
+    if let Some(mut mat) = materials.get_mut(&tile_mats.tree_body_mat) {
         mat.base_color = Color::srgb(r, g, b);
     }
 }
@@ -681,7 +681,7 @@ fn animate_wind_streaks(
 
         if alpha < 0.003 {
             *vis = Visibility::Hidden;
-            if let Some(mat) = materials.get_mut(&streak.mat_handle) {
+            if let Some(mut mat) = materials.get_mut(&streak.mat_handle) {
                 mat.base_color = Color::srgba(1.0, 1.0, 1.0, 0.0);
             }
             continue;
@@ -689,7 +689,7 @@ fn animate_wind_streaks(
         *vis = Visibility::Visible;
 
         // Set per-streak alpha
-        if let Some(mat) = materials.get_mut(&streak.mat_handle) {
+        if let Some(mut mat) = materials.get_mut(&streak.mat_handle) {
             mat.base_color = Color::srgba(1.0, 1.0, 1.0, alpha);
         }
 

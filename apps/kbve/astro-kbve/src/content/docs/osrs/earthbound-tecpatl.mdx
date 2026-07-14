@@ -1,6 +1,6 @@
 ---
 title: Earthbound tecpatl | OSRS Price Data
-description: "Earthbound tecpatl: Shaped from rock that was sharpened by time.. High alch: 18,000 GP."
+description: "Earthbound tecpatl: Shaped from rock that was sharpened by time. High alch: 18,000 GP."
 osrs:
   id: 30957
   name: Earthbound tecpatl
@@ -12,9 +12,64 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: null
-  about: "Earthbound tecpatl is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Earthbound tecpatl is a members-only two-handed stab sword in Old School RuneScape that performs two independently rolled hits per attack, dropped by Earthen Naguas in Tonali Cavern. High alchemy value: 18,000 coins."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-07-23"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+    weight: 1.814
+  material:
+    type: misc
+    tier: standard
+  equipment:
+    slot: weapon
+    weapon_type: 2h_sword
+    attack_speed: 4
+    requirements:
+      attack: 55
+    attack_bonus:
+      stab: 72
+      slash: 11
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 64
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 2
+  special_attack:
+    has_special: false
+  drop_table:
+    - source: "Earthen Nagua"
+      level: "128"
+      quantity: "1"
+      rarity: "1/400"
+      notes: "Dropped in Tonali Cavern within Varlamore."
+  market_strategy:
+    notes:
+      - "summary: \"Mid-tier multi-hit stab weapon dropped exclusively by Earthen Naguas; price tracks demand from Varlamore Slayer rotations.\""
+      - "buy_strategy: \"Stock during low traffic at the Earthen Nagua content; pick up dips after Varlamore content lulls.\""
+      - "sell_strategy: \"Move during Slayer task spikes or when new stab-weak content lands.\""
+  trading_tips:
+    - "Multi-hit mechanic gives strong DPS per slot for the requirement bracket."
+    - "Supply is gated to one monster, making it volatile after content drops."
+    - "Worth tracking alongside other Varlamore tecpatl variants for sentiment shifts."
+  history:
+    - date: "2025-07-23"
+      description: "Released alongside Tonali Cavern in Varlamore."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Pearl bolt tips | OSRS Price Data
-description: "Pearl bolt tips: Pearl bolt tips.. High alch: 7 GP, GE limit: 11,000."
+description: "Pearl bolt tips: Pearl bolt tips. High alch: 7 GP, GE limit: 11,000."
 osrs:
   id: 46
   name: Pearl bolt tips
@@ -12,23 +12,85 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 11000
+  material:
+    type: pearl
+    tier: low
+  recipes:
+    - skill: Fletching
+      level: 41
+      xp: 3.2
+      tools:
+        - Chisel
+      materials:
+        - item_name: Oyster pearl
+          quantity: 1
+      product: Pearl bolt tips
+    - skill: Fletching
+      level: 41
+      xp: 3.2
+      tools:
+        - Chisel
+      materials:
+        - item_name: Oyster pearls
+          quantity: 1
+      product: Pearl bolt tips
+    - skill: Fletching
+      level: 41
+      xp: 3.2
+      tools: []
+      materials:
+        - item_name: Iron bolts
+          quantity: 10
+        - item_name: Pearl bolt tips
+          quantity: 10
+      product: Pearl bolts
   related_items:
     - item_id: 45
       item_name: Opal bolt tips
       slug: opal-bolt-tips
-      relationship: variant
-      description: Lower tier bolt tips
+      relationship: downgrade
+      description: Lower tier gem bolt tip.
     - item_id: 47
-      item_name: Barb bolttips
-      slug: barb-bolttips
-      relationship: variant
-      description: Barbed bolt tips
-  about: |-
-    > _"Pearl bolt tips."_
-
-    Pearl bolt tips are members-only Fletching supplies. Attach to iron bolts at 41 Fletching to create pearl bolts. Pearl bolts can be enchanted to create pearl bolts (e) which have a special effect against fiery creatures.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      item_name: Red topaz bolt tips
+      slug: red-topaz-bolt-tips
+      relationship: upgrade
+      description: Higher tier gem bolt tip.
+    - item_id: 880
+      item_name: Pearl bolts
+      slug: pearl-bolts
+      relationship: product
+      description: Iron bolts tipped with these pearl bolt tips.
+  about: "Pearl bolt tips are members Fletching supplies cut from oyster pearls; attached to iron bolts at 41 Fletching to create pearl bolts."
+  market_strategy:
+    notes:
+      - High daily volume; flips rely on tight margins.
+      - Profit is generally better when crafted from single oyster pearls than oyster pearls (multi).
+  trading_tips:
+    - Bulk orders fill quickly given the 11,000 GE limit.
+    - Monitor pearl bolts (e) demand to predict tip pricing.
+  history:
+    - date: "2002-09-09"
+      description: Released as part of the Sea Slug quest update.
+    - date: "2006-07-31"
+      description: Graphically updated, renamed from Pearl bolttips, value reduced from 56 to 40, appearance varies by stack size.
+    - date: "2007-01-29"
+      description: Value decreased from 40 to 12 coins.
+  properties:
+    release_date: "2002-09-09"
+    update: Sea Slug
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

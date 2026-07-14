@@ -12,9 +12,80 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 5
-  about: "Twisted boots (t3) is a members-only item in Old School RuneScape. High alchemy value: 60,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2020-01-16"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options: ["Wear", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: cosmetic
+    attack_speed: null
+    weight: 0.34
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Twisted hat (t3)
+      slug: twisted-hat-t3
+      relationship: set-piece
+      description: Tier 3 head slot piece of the Twisted relic hunter outfit.
+    - item_name: Twisted coat (t3)
+      slug: twisted-coat-t3
+      relationship: set-piece
+      description: Tier 3 body slot piece of the Twisted relic hunter outfit.
+    - item_name: Twisted trousers (t3)
+      slug: twisted-trousers-t3
+      relationship: set-piece
+      description: Tier 3 legs slot piece of the Twisted relic hunter outfit.
+    - item_name: Twisted boots (t2)
+      slug: twisted-boots-t2
+      relationship: downgrade
+      description: Tier 2 colour variant of the same cosmetic boots.
+    - item_name: Twisted boots (t1)
+      slug: twisted-boots-t1
+      relationship: downgrade
+      description: Tier 1 colour variant of the same cosmetic boots.
+  about: "Twisted boots (t3) are the highest-tier colour variant of the Twisted relic hunter outfit, originally redeemed from the Twisted League reward shop. They are purely cosmetic and grant no combat bonuses, but they remain a popular trophy for players who completed the league and a fashionscape staple in costume rooms and outfit stands."
+  market_strategy:
+    notes:
+      - "Supply is fixed - no new boots are minted outside of original Twisted League participants - so price drifts up over time."
+      - "Buy limit of 5 keeps daily flips small; treat this as a long-hold collector item."
+      - "Demand spikes around new league or Leagues V hype as nostalgia kicks in."
+  trading_tips:
+    - "Hold through new league announcements and list during the hype cycle."
+    - "Buy-out lowballs immediately after big PvM updates when collectors quietly liquidate."
+  history:
+    - date: "2020-01-16"
+      description: "Released as a Twisted League Reward Shop cosmetic for the inaugural Leagues event."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

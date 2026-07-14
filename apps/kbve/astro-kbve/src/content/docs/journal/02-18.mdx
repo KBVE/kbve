@@ -8,15 +8,52 @@ img: https://images.unsplash.com/photo-1739911013843-0380d6504480?crop=entropy&c
 description: Daily Log for February 18th for each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 18,'
+    accent: every year.
+    lede: 'The February 18th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#quote'
+          primary: true
+        - label: '← Feb 17'
+          href: /journal/02-17/
+        - label: 'Feb 19 →'
+          href: /journal/02-19/
+    related:
+        - title: 'Previous · Feb 17'
+          copy: 'Step back a day to the February 17th log.'
+          href: /journal/02-17/
+          icon: calendar
+        - title: 'Next · Feb 19'
+          copy: 'Jump ahead to the February 19th log.'
+          href: /journal/02-19/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1739911013843-0380d6504480?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## Quote
+<BentoProse id="quote" heading="Quote">
 
 ```
 
@@ -27,7 +64,15 @@ imaginary world problem - Damn, these reusable workflows on the cloud vm are so 
 
 ```
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Markets
 
@@ -80,7 +125,9 @@ jobs:
     Under the `scenes` folder, we will try to build the game around just a single scene and rotate out the canvas and ui between the different game modes.
     Next, we want to link the `game` to the `project.godot`.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 ### Style
 
@@ -181,3 +228,7 @@ Since we finished up the base style manager, I want to extend it out for the asi
 Well besides adding the `aside`, I am thinking of adding an additional `SWIPE` menu that we would call on the bottom.
 
 The current issue with the aside menu is the color scheme is not yet matching what we are aiming for, hopefully we can resolve that by tonight.
+
+</BentoProse>
+
+</BentoDoc>

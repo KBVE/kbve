@@ -6,15 +6,70 @@ osrs:
   name: Uncut jade
   slug: uncut-jade
   examine: This would be worth more cut.
-  members: true
+  members: false
   icon: Uncut jade.png
   value: 30
   lowalch: 12
   highalch: 18
   limit: 10000
-  about: "Uncut jade is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: gem
+    tier: low
+  properties:
+    release_date: "2003-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.003
+    options:
+      - Drop
+    alchable: true
+    destroy: "This would be worth more cut."
+  drop_table:
+    sources:
+      - source: Gem rocks
+        quantity: "1"
+        rarity: 30/128
+      - source: H.A.M. Members
+        quantity: "1"
+        rarity: 2/102
+      - source: Gemstone Crab
+        quantity: "1"
+        rarity: 3/32
+  recipes:
+    - skill: crafting
+      level: 13
+      xp: 20
+      materials:
+        - item_name: Uncut jade
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Jade
+      slug: jade
+      relationship: product
+      description: Cut form used in jewellery crafting.
+    - item_name: Chisel
+      slug: chisel
+      relationship: component
+      description: Required to cut the gem.
+  about: "Uncut jade is a semi-precious gem used in the Crafting skill. Players cut uncut jade with a chisel at level 13 Crafting for 20 experience to make a jade gem. Uncut jades drop from gem rocks (40 Mining), the Gemstone Crab, H.A.M. members, and various mid-tier monsters. Released 27 January 2003."
+  market_strategy:
+    notes:
+      - "Stable Crafting-skiller demand from jade bolt tips and lunar dragonstone jewellery prep."
+      - "Gem rock mining bots push supply; price tends to compress with Shilo Village popularity."
+  trading_tips:
+    - Compare uncut vs cut margins to decide whether to cut at level 13 for free Crafting XP.
+  history:
+    - date: "2003-01-27"
+      description: Introduced with the Shilo Village gem rocks update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

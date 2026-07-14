@@ -12,9 +12,57 @@ osrs:
   lowalch: null
   highalch: null
   limit: 5
-  about: "Annihilation weapon scroll is a members-only item in Old School RuneScape. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cosmetic scroll
+    tier: high
+  properties:
+    release_date: "2026-02-25"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Toxic staff of the dead
+      slug: toxic-staff-of-the-dead
+      relationship: alternative
+      description: Eligible weapon for the Annihilation cosmetic theme.
+    - item_name: Bow of faerdhinen (c)
+      slug: bow-of-faerdhinen-c
+      relationship: alternative
+      description: Eligible weapon for the Annihilation cosmetic theme.
+    - item_name: Crystal helm
+      slug: crystal-helm
+      relationship: alternative
+      description: Eligible armour piece for the Annihilation cosmetic theme.
+    - item_name: Crystal body
+      slug: crystal-body
+      relationship: alternative
+      description: Eligible armour piece for the Annihilation cosmetic theme.
+    - item_name: Crystal legs
+      slug: crystal-legs
+      relationship: alternative
+      description: Eligible armour piece for the Annihilation cosmetic theme.
+  about: "Annihilation weapon scroll is a Deadman: Apocalypse reward purchased from the Deadman Reward Store for 12,000 Deadman Points. When handed to Nigel it permanently unlocks the Deadman: Annihilation cosmetic theme for the Toxic Staff of the Dead, Bow of Faerdhinen (c) and Crystal armour, and the player can freely toggle between standard and themed appearances afterward."
+  market_strategy:
+    notes:
+      - "Supply is fixed by tournament participation each Apocalypse season."
+      - "Demand is anchored to whales and cosmetic completionists; price compresses between seasons."
+      - "GE limit of 5 per four hours caps any flip strategy."
+  trading_tips:
+    - Buy during the post-season reward dump if cosmetic demand looks weak.
+    - Avoid panic selling; supply is permanently capped.
+  history:
+    - date: "2026-02-25"
+      description: "Added as a Deadman Reward Store cosmetic during the Deadman: Apocalypse season."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

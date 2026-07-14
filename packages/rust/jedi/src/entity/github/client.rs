@@ -458,6 +458,72 @@ impl GitHubClient {
         self.parse_response(resp).await
     }
 
+    /// Edit an existing issue/PR comment by its comment id.
+    pub async fn update_comment(
+        &self,
+        owner: &str,
+        repo: &str,
+        comment_id: u64,
+        body: &str,
+    ) -> Result<GitHubComment, JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/comments/{}",
+            self.base_url, owner, repo, comment_id
+        );
+
+        let payload = serde_json::json!({ "body": body });
+        let resp = self
+            .client
+            .patch(&url)
+            .bearer_auth(&self.token)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        self.parse_response(resp).await
+    }
+
+    /// Delete an issue/PR comment by its comment id.
+    pub async fn delete_comment(
+        &self,
+        owner: &str,
+        repo: &str,
+        comment_id: u64,
+    ) -> Result<(), JediError> {
+        self.policy.check(owner, repo)?;
+        let url = format!(
+            "{}/repos/{}/{}/issues/comments/{}",
+            self.base_url, owner, repo, comment_id
+        );
+
+        let resp = self
+            .client
+            .delete(&url)
+            .bearer_auth(&self.token)
+            .send()
+            .await
+            .map_err(|e| JediError::Internal(Cow::Owned(format!("GitHub request failed: {e}"))))?;
+
+        let resp = self.check_rate_limit(resp);
+        let status = resp.status();
+        if status == StatusCode::NO_CONTENT || status.is_success() {
+            Ok(())
+        } else {
+            let body = resp.text().await.unwrap_or_default();
+            match status {
+                StatusCode::UNAUTHORIZED => Err(JediError::Unauthorized),
+                StatusCode::FORBIDDEN => Err(JediError::Forbidden),
+                StatusCode::NOT_FOUND => Err(JediError::NotFound),
+                _ => Err(JediError::Internal(Cow::Owned(format!(
+                    "GitHub API error {status}: {body}"
+                )))),
+            }
+        }
+    }
+
     // ── Assignees ────────────────────────────────────────────────────
 
     /// Add assignees to an issue.
@@ -745,15 +811,14 @@ impl GitHubClient {
             .get("x-ratelimit-remaining")
             .and_then(|v| v.to_str().ok())
             .and_then(|v| v.parse::<u32>().ok())
+            && remaining < 10
         {
-            if remaining < 10 {
-                let reset = resp
-                    .headers()
-                    .get("x-ratelimit-reset")
-                    .and_then(|v| v.to_str().ok())
-                    .unwrap_or("unknown");
-                warn!(remaining, reset, "GitHub API rate limit low");
-            }
+            let reset = resp
+                .headers()
+                .get("x-ratelimit-reset")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("unknown");
+            warn!(remaining, reset, "GitHub API rate limit low");
         }
         resp
     }

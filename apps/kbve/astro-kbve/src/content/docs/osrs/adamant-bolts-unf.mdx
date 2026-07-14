@@ -12,9 +12,67 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: Adamant bolts(unf) is a members-only item in Old School RuneScape.
-  mdx_version: 3
-  mdx_updated: "2026-04-10"
+  about:
+    text: "Adamant bolts(unf) are unfeathered adamantite crossbow bolts smithed from an adamantite bar on an anvil. Hammering one bar at 73 Smithing yields 10 bolts for 62.5 Smithing experience, and attaching a feather at 61 Fletching turns each into a finished adamant bolt for 7 Fletching XP."
+    sections:
+      - heading: How to make adamant bolts(unf)
+        anchor: smithing
+        body: "Smith adamant bolts(unf) by using an adamantite bar on an anvil with a hammer in your inventory, requiring 73 Smithing. Each bar produces 10 bolts and grants 62.5 Smithing experience. The action takes 3 game ticks (the first hit is 3 ticks, then 5 ticks thereafter). Because a single bar of adamantite costs more than the 10 bolts sell for, smithing them is a slight loss at Grand Exchange prices, so players generally make them for the Smithing and Fletching experience and the steady demand for finished adamant bolts rather than for profit."
+      - heading: Fletching them into adamant bolts
+        anchor: fletching
+        body: "Use a feather on adamant bolts(unf) to make finished adamant bolts, requiring 61 Fletching and granting 7 Fletching experience per bolt. The unfinished bolts are tradeable and stackable, so fletchers often buy them in bulk to train Fletching toward higher tiers. Adamant bolts(unf) are commonly produced for the high demand of adamant bolts as well as ruby bolts and diamond bolts, which are crafted from the finished adamant bolt by adding gem tips. This makes the unfinished bolt a core intermediate in the bolt-crafting chain."
+  related_items:
+    - item_name: Adamantite bar
+      slug: adamantite-bar
+      relationship: component
+      description: Smithed on an anvil to produce 10 adamant bolts(unf) at 73 Smithing
+    - item_name: Adamant bolt
+      slug: adamant-bolt
+      relationship: product
+      description: Made by adding a feather to adamant bolts(unf) at 61 Fletching
+    - item_name: Feather
+      slug: feather
+      relationship: component
+      description: Attached to the unfinished bolt to create a finished adamant bolt
+  recipes:
+    - skill: smithing
+      level: 73
+      xp: 62.5
+      facility: Anvil
+      ticks: 3
+      product: Adamant bolts(unf)
+      materials:
+        - { item_name: Adamantite bar, quantity: 1 }
+    - skill: fletching
+      level: 61
+      xp: 7
+      product: Adamant bolt
+      materials:
+        - { item_name: Adamant bolts(unf), quantity: 1 }
+        - { item_name: Feather, quantity: 1 }
+  drop_table:
+    sources:
+      - { source: Adamant dragon, combat_level: 338, quantity: "20-40", rarity: "11/110", drop_rate: "11/110" }
+      - { source: The Hueycoatl, combat_level: 642, quantity: "15-300", rarity: "3/68", drop_rate: "3/68" }
+      - { source: Martial salvage, quantity: "1-3", rarity: "100/2440", drop_rate: "100/2440" }
+  trivia:
+    - "Unlike other unfinished bolts, adamant bolts(unf) does not have a space before the opening parenthesis."
+    - "They were added on 31 July 2006 as part of the Crossbows update that introduced unfinished bolts to the game."
+  faq:
+    - question: Are adamant bolts(unf) members-only?
+      answer: "Yes. Adamant bolts(unf) are a members-only item and can only be made, traded, and used on members worlds. Free-to-play players cannot smith or fletch them."
+    - question: What level do you need to make adamant bolts(unf)?
+      answer: "You need 73 Smithing to make adamant bolts(unf). Using an adamantite bar on an anvil with a hammer yields 10 unfinished bolts and 62.5 Smithing experience per bar."
+    - question: How do you turn adamant bolts(unf) into adamant bolts?
+      answer: "Use a feather on the adamant bolts(unf), which requires 61 Fletching and grants 7 Fletching experience per bolt. The finished adamant bolts can then have ruby or diamond tips added for enchanted bolts."
+    - question: Is it worth smithing adamant bolts(unf) for profit?
+      answer: "No. One adamantite bar costs around 1,901 coins but produces only 10 bolts worth roughly 1,600, a loss of about 301 coins before tax. Players make them for Smithing and Fletching experience rather than profit."
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Adamant_bolts(unf)"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
   properties:
     tradeable: true
     equipable: false

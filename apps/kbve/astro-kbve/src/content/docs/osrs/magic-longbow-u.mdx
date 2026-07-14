@@ -1,6 +1,6 @@
 ---
 title: Magic longbow (u) | OSRS Price Data
-description: "Magic longbow (u): An unstrung magic longbow; I need a bowstring for this.. High alch: 768 GP, GE limit: 10,000."
+description: "Magic longbow (u): An unstrung magic longbow; I need a bowstring for this. High alch: 768 GP, GE limit: 10,000."
 osrs:
   id: 70
   name: Magic longbow (u)
@@ -12,23 +12,72 @@ osrs:
   lowalch: 512
   highalch: 768
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: fletching
+    tier: high
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.332
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 85
+      xp: 91.5
+      materials:
+        - item_name: Magic logs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+    - skill: fletching
+      level: 85
+      xp: 91.5
+      materials:
+        - item_name: Magic longbow (u)
+          quantity: 1
+        - item_name: Bow string
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 66
-      item_name: Yew longbow (u)
+    - item_name: Magic longbow
+      slug: magic-longbow
+      relationship: product
+      description: "Strung result after adding a bow string."
+    - item_name: Yew longbow (u)
       slug: yew-longbow-u
-      relationship: variant
-      description: Lower tier unstrung longbow
-    - item_id: 72
-      item_name: Magic shortbow (u)
+      relationship: downgrade
+      description: "Lower tier unstrung longbow."
+    - item_name: Magic shortbow (u)
       slug: magic-shortbow-u
       relationship: variant
-      description: Matching unstrung magic shortbow
+      description: "Matching unstrung magic shortbow."
   about: |-
     > _"An unstrung magic longbow; I need a bowstring for this."_
 
-    The magic longbow (u) is an unstrung longbow made from magic logs. String with a bowstring at 85 Fletching to create a magic longbow. Members only. The highest tier of standard unstrung longbows.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Magic longbow (u) is crafted by using a knife on magic logs at 85 Fletching for 91.5 experience. Adding a bow string yields a finished magic longbow for another 91.5 experience. The highest tier of standard unstrung longbows; members only.
+  market_strategy:
+    notes:
+      - "Standard bots-and-buy-limit Fletching margin; spreads tighten near reset."
+      - "Tracks magic logs and bow string spot prices closely."
+  trading_tips:
+    - "Compare magic logs + bow string vs. finished longbow when planning Fletching XP."
+    - "Use the 10k limit to scale bulk Fletching for steady XP and modest profit."
+  history:
+    - date: "2002-03-25"
+      description: "Released with the Fletching expansion to include magic logs."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

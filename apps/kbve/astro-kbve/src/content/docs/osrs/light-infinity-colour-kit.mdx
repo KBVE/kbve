@@ -12,9 +12,67 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Light infinity colour kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ornament-kit
+    tier: high
+  treasure_trail:
+    tier: elite
+    drop_rate: 1/1275
+    source: Reward casket (elite)
+  related_items:
+    - item_id: 12526
+      item_name: Dark infinity colour kit
+      slug: dark-infinity-colour-kit
+      relationship: alternative
+      description: Alternative recolour kit
+    - item_id: 6918
+      item_name: Infinity hat
+      slug: infinity-hat
+      relationship: component
+      description: Recolour target
+    - item_id: 6916
+      item_name: Infinity top
+      slug: infinity-top
+      relationship: component
+      description: Recolour target
+    - item_id: 6924
+      item_name: Infinity bottoms
+      slug: infinity-bottoms
+      relationship: component
+      description: Recolour target
+  about: |-
+    Light infinity colour kit is an elite Treasure Trails cosmetic reward that recolours three infinity robe pieces — the hat, top, and bottoms. Boots and gloves are not affected. Once applied, the recoloured pieces become untradeable, but the kit can be detached at any time to recover both the recolour kit and the original item.
+
+    | Property | Value |
+    |----------|-------|
+    | Slot | Cosmetic kit |
+    | Tradeable | Yes |
+    | Stackable | No |
+    | Weight | 0.5 kg |
+
+    | Targets | Result |
+    |---------|--------|
+    | Infinity hat | Light recolour |
+    | Infinity top | Light recolour |
+    | Infinity bottoms | Light recolour |
+  market_strategy:
+    notes:
+      - Pure cosmetic — value driven by fashionscape demand
+      - Elite clue exclusive (1/1275 from elite caskets)
+      - Buy limit of 4 per 4 hours throttles flips
+      - Dark infinity colour kit is the only direct cosmetic alternative
+      - Detachable, so recolour does not destroy the kit
+  trading_tips:
+    - Watch elite clue completion rates for supply spikes
+    - Cosmetic kits tend to swing on community fashion trends
+    - Low limit means bulk flipping requires multiple accounts
+  history:
+    - date: "2014-06-12"
+      description: Released with the Treasure Trail Expansion.
+    - date: "2018-01-25"
+      description: Received a graphical update alongside new ornament kit releases.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

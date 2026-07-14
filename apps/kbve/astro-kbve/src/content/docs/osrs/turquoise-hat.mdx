@@ -1,6 +1,6 @@
 ---
 title: Turquoise hat | OSRS Price Data
-description: "Turquoise hat is a members head slot item. High alch: 96 GP, GE limit: 150."
+description: "Turquoise hat is a members head slot cosmetic from Rometti's Fine Fashions in the Grand Tree. High alch: 96 GP, GE limit: 150."
 osrs:
   id: 664
   name: Turquoise hat
@@ -12,20 +12,99 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 150
+  material:
+    type: cloth
+    tier: low
   equipment:
     slot: head
+    weapon_type: not_applicable
+    weight: 0.226
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Fine Fashions
+      location: Tree Gnome Stronghold (Grand Tree upper floor)
+      stock: 5
+      price: 160
+      restock_time: 1 minute
   related_items:
     - item_id: 644
       item_name: Turquoise robe top
       slug: turquoise-robe-top
       relationship: set-piece
-      description: Matching top
-  about: |-
-    > _"A turquoise hat."_
-
-    The turquoise hat is part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching body piece in the turquoise gnome outfit.
+    - item_id: 654
+      item_name: Turquoise robe bottoms
+      slug: turquoise-robe-bottoms
+      relationship: set-piece
+      description: Matching legs piece in the turquoise gnome outfit.
+    - item_id: 634
+      item_name: Turquoise boots
+      slug: turquoise-boots
+      relationship: set-piece
+      description: Matching feet piece in the turquoise gnome outfit.
+    - item_id: 662
+      item_name: Pink hat
+      slug: pink-hat
+      relationship: variant
+      description: Alternate Fine Fashions hat colour.
+    - item_id: 663
+      item_name: Purple hat
+      slug: purple-hat
+      relationship: variant
+      description: Alternate Fine Fashions hat colour.
+  about: "Turquoise hat is a members-only cosmetic head slot item sold by Rometti at Fine Fashions on the upper floor of the Grand Tree. It is part of the gnome wardrobe set used for the Yawn emote Treasure Trails step at Civitas illa Fortis Grand Museum and for fashionscape collectors completing the full turquoise outfit. The hat provides no combat bonuses and weighs effectively nothing; its value lies in cosmetic demand and clue scroll convenience. The Grand Exchange buy limit is 150 every 4 hours, and Rometti restocks 5 every minute, keeping the floor price tied closely to the 160 gp shop price."
+  market_strategy:
+    notes:
+      - "Demand peaks when easy emote clues call for the gnome wardrobe at the Grand Museum."
+      - "Supply is effectively unlimited from Rometti at 160 gp every minute."
+      - "GE price often exceeds shop price due to convenience for clue completers without gnome travel access."
+      - "Buy limit 150 per 4 hours allows modest stacked flips."
+  trading_tips:
+    - "Buy from Rometti at 160 gp and flip on the GE when easy clue demand surges."
+    - "Bundle with turquoise robe top, robe bottoms and boots — clue scroll players often buy the full set at once."
+    - "Stock during fashionscape trend cycles featuring gnome-themed loadouts."
+  history:
+    - date: "2002-12-12"
+      description: "Released alongside the Tree Gnome Stronghold tailor's wardrobe and Agility skill update."
+    - date: "2014-12-10"
+      description: "Renamed from generic 'Hat' to 'Turquoise hat' to disambiguate Fine Fashions colours."
+  properties:
+    release_date: "2002-12-12"
+    update: "Tree Gnome Stronghold Fine Fashions"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

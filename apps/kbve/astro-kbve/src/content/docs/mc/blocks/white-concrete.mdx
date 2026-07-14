@@ -1,5 +1,6 @@
 ---
 title: White Concrete
+template: splash
 description: |
     Minecraft White Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 678
     ref: white_concrete
     slug: white-concrete
+    content_rev: 1
     display_name: White Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            White Concrete is a solid, brightly colored building block made
+            by hardening White Concrete Powder with water. Unlike wool, it
+            does not burn, and it holds a more saturated color than stained
+            terracotta.
+        lore: |
+            Concrete was added in Java Edition 1.12 as a durable, colorful
+            alternative to wool and terracotta for large-scale builds.
+    uses:
+        - title: Building material
+          ref: white_concrete
+          detail: |
+              Used purely as a decorative, non-flammable building block in
+              all 16 dye colors.
+    found_in:
+        - location: Water contact with White Concrete Powder
+          detail: Forms instantly when White Concrete Powder touches any water source or waterlogged block.
+    faq:
+        - question: What is the minimum tool tier to mine White Concrete?
+          answer: |
+              A wooden pickaxe or better. Mining it without any pickaxe
+              yields no drop.
+        - question: Does White Concrete drop itself when mined?
+          answer: |
+              Yes, with a correct-tier pickaxe it always drops itself as a
+              block item.
+        - question: Is White Concrete flammable?
+          answer: |
+              No. Unlike wool, concrete does not catch fire, making it
+              popular for builds near lava or fire hazards.
+        - question: How is White Concrete obtained?
+          answer: |
+              By letting White Concrete Powder touch water, which instantly
+              hardens it into solid concrete.
     data_version: "1.21.5"
 ---
 

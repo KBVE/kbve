@@ -12,9 +12,90 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 40
-  about: "Cosmic tiara is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 1
+  material:
+    type: runecrafting
+    tier: tiara
+  properties:
+    release_date: "2005-06-13"
+    quest_item: false
+    destroy: "Drop"
+  equipment:
+    slot: head
+    requirements:
+      runecraft: 1
+    bonuses:
+      attack:
+        stab: 0
+        slash: 0
+        crush: 0
+        magic: 0
+        ranged: 0
+      defence:
+        stab: 0
+        slash: 0
+        crush: 0
+        magic: 0
+        ranged: 0
+      other:
+        strength: 0
+        ranged_strength: 0
+        magic_damage: 0
+        prayer: 0
+  runecrafting:
+    level: 1
+    xp: 40
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 40
+      materials:
+        - item_name: Tiara
+          item_id: 5525
+          quantity: 1
+        - item_name: Cosmic talisman
+          item_id: 1454
+          quantity: 1
+      tools:
+        - Cosmic Altar
+      product: Cosmic tiara
+      product_id: 5539
+      output_quantity: 1
+      facility: Cosmic Altar
+  related_items:
+    - item_id: 5525
+      item_name: Tiara
+      slug: tiara
+      relationship: component
+      description: Base tiara before infusion
+    - item_id: 1454
+      item_name: Cosmic talisman
+      slug: cosmic-talisman
+      relationship: component
+      description: Talisman consumed in creation
+    - item_id: 564
+      item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: alternative
+      description: Crafted at the Cosmic Altar
+  about: |-
+    The cosmic tiara is a head slot item used as an alternative to the cosmic talisman for accessing the Cosmic Altar. It is created at the altar by using a tiara on the altar with a cosmic talisman in inventory.
+
+    When worn, the tiara allows left-click entry to the mysterious ruins housing the Cosmic Altar without needing to carry the talisman.
+  market_strategy:
+    notes:
+      - "Runecrafting utility"
+      - "Replaces talisman in inventory"
+      - "Loss-leader to craft (139 GP loss after tax)"
+      - "One-time crafting cost"
+      - "Buy rather than craft for profit"
+      - "Useful for cosmic rune runners"
+      - "Frees inventory slot vs talisman"
+  history:
+    - date: "2005-06-13"
+      description: "Released alongside other rune-specific tiaras."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

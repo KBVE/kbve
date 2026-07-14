@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Sapling
+template: splash
 description: |
     Minecraft Pale Oak Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 32
     ref: pale_oak_sapling
     slug: pale-oak-sapling
+    content_rev: 1
     display_name: Pale Oak Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Pale Oak Sapling is the planted seedling that grows into a
+            pale oak tree. Like dark oak, it must be planted in a 2x2
+            arrangement to grow, and breaks instantly regardless of tool.
+        lore: |
+            Pale oak saplings share the dark oak tree's 2x2 growth
+            requirement, tying the biome's ghostly trees to the same
+            mechanic as the Dark Forest's giant trees.
+    uses:
+        - title: Pale oak tree
+          ref: pale_oak_log
+          detail: |
+              Plant four saplings in a 2x2 square on dirt or grass with
+              enough overhead space, then apply bone meal (or wait) to
+              grow a full pale oak tree.
+    found_in:
+        - location: Pale Oak Leaves
+          detail: Obtained as a rare drop when breaking pale oak leaves without Silk Touch.
+    faq:
+        - question: How do I plant a Pale Oak Sapling?
+          answer: |
+              Pale oak saplings only grow when planted in a 2x2 group,
+              same as dark oak, and need about 7 blocks of open space
+              above.
+        - question: What tool breaks a Pale Oak Sapling?
+          answer: |
+              Any tool, or bare hands — it breaks instantly and always
+              drops itself.
+        - question: Can bone meal speed up growth?
+          answer: |
+              Yes, applying bone meal to a full 2x2 planting can instantly
+              grow it into a pale oak tree.
+        - question: Where do Pale Oak Saplings come from?
+          answer: |
+              Almost exclusively from breaking Pale Oak Leaves, since pale
+              oak trees only generate in the Pale Garden biome.
     data_version: "1.21.5"
 ---
 

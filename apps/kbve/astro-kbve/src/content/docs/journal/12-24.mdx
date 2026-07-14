@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&c
 description: Decemeber 24th.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'December 24,'
+    accent: every year.
+    lede: 'The December 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Dec 23'
+          href: /journal/12-23/
+        - label: 'Dec 25 →'
+          href: /journal/12-25/
+    related:
+        - title: 'Previous · Dec 23'
+          copy: 'Step back a day to the December 23rd log.'
+          href: /journal/12-23/
+          icon: calendar
+        - title: 'Next · Dec 25'
+          copy: 'Jump ahead to the December 25th log.'
+          href: /journal/12-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 #### Unity Mac Shader Problems
 
@@ -32,7 +73,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     The terrain shaders are still a black void within the DOTS instance.
     Honestly, we got the trees resolved but damn terrain is such a pain, ugh.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 -   06:57AM
 
@@ -48,3 +97,7 @@ import { Adsense, Tasks } from '@/components/astropad';
 
     The deployment went well and we got the configurations through without any issues!
     Now we can switch back to the react code and figure out how to talk to the main api.
+
+</BentoProse>
+
+</BentoDoc>

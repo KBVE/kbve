@@ -12,9 +12,86 @@ osrs:
   lowalch: 120000
   highalch: 180000
   limit: 10
-  about: "Zuriel's staff is a members-only item in Old School RuneScape. High alchemy value: 180,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: staff
+    tier: high
+  properties:
+    release_date: "2023-05-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Uncharge
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      magic: 75
+      attack: 30
+    attack_bonus:
+      stab: 13
+      slash: -1
+      crush: 65
+      magic: 18
+      ranged: 0
+    defence_bonus:
+      stab: 5
+      slash: 7
+      crush: 4
+      magic: 18
+      ranged: 0
+    other_bonus:
+      melee_strength: 72
+      ranged_strength: 0
+      magic_damage: 10
+      prayer: 0
+  charges:
+    type: coins
+    description: Requires 5,000,000 coins to activate; activation transfers to the killer on PvP death.
+  passive_effects:
+    - name: Ancient Magicks boost
+      description: Increases attack speed of standard and Ancient Magicks; Ice spells gain +10% accuracy, Blood spells restore 50% more health, Smoke spells deal +100% poison damage, Shadow spells double attack drain.
+  shops:
+    - shop_name: Bounty Hunter Store
+      location: Daimon's Crater
+      price: 300
+      currency: Bounty Hunter points
+      stock: 0
+  related_items:
+    - item_name: Zuriel's hood
+      slug: zuriel-s-hood
+      relationship: set-piece
+      description: Matching Ancient Magicks set headwear
+    - item_name: Zuriel's robe top
+      slug: zuriel-s-robe-top
+      relationship: set-piece
+      description: Matching Ancient Magicks set top
+    - item_name: Zuriel's robe bottom
+      slug: zuriel-s-robe-bottom
+      relationship: set-piece
+      description: Matching Ancient Magicks set bottom
+  about: "Zuriel's staff is a powerful Ancient Magicks staff purchased from the Bounty Hunter Store for 300 points. It is restricted to PvP-enabled minigames such as Castle Wars, Soul Wars, and Clan Wars, requires 5,000,000 coins to activate, and boosts both standard and Ancient Magicks spells with significant accuracy, damage, and utility bonuses."
+  market_strategy:
+    notes:
+      - "Niche PvP staff with limited usability outside minigames"
+      - "Bounty Hunter points are the primary supply gate"
+  history:
+    - date: "2023-05-24"
+      description: Zuriel's staff reintroduced via the Bounty Hunter rework.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

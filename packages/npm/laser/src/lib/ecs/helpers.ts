@@ -1,9 +1,22 @@
 import { query } from 'bitecs';
 import type { QueryTerm, World } from 'bitecs';
 
+/**
+ * Pack two signed tile coordinates into one non-negative 32-bit integer key for
+ * use as a Map/Set key — avoids the per-lookup `${x},${y}` string allocation in
+ * hot paths (spatial lookups, walkability checks). Unique for each (x, y) with
+ * both in the signed 16-bit range [-32768, 32767]; the low 16 bits hold y, the
+ * next 16 hold x (masked, so negatives wrap cleanly and still collide-free).
+ */
+export function packTile(x: number, y: number): number {
+	return (x & 0xffff) * 0x10000 + (y & 0xffff);
+}
+
+// Read-only indexed access — satisfied by both plain number[] and the typed
+// arrays (Int32Array/Float32Array) bitECS components use as SoA storage.
 export interface PositionLike {
-	x: number[];
-	y: number[];
+	x: ArrayLike<number>;
+	y: ArrayLike<number>;
 }
 
 export function* queryInRange(

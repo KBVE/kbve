@@ -21,6 +21,8 @@ namespace RareIcon
         public const byte Blacksmith = 10;
         public const byte Craftsman  = 11;
         public const byte Medic      = 12;
+
+        public const int  Count      = 13;
     }
 
     /// <summary>Per-unit profession priorities (0 = disabled, 1..5 = weighted preference). Fixed-layout struct so it's Burst-readable without a buffer walk.</summary>

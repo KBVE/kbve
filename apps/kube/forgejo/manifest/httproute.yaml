@@ -16,8 +16,12 @@ spec:
         # at forgejo.kbve.com keeps working while new pushes can target
         # git.kbve.com directly.
         - git.kbve.com
+        # direct.git.kbve.com is DNS-only (grey-cloud, straight to the Cilium
+        # gateway) so large Git LFS pushes bypass Cloudflare's request-body cap.
+        # Same backend rules as git.kbve.com; git/LFS paths still bypass the gate.
+        - direct.git.kbve.com
     rules:
-        # Forgejo REST API (token auth, CI, deploy keys)
+        # Forgejo REST API (token auth, CI, deploy keys) - bypass gate for API token auth
         - matches:
               - path:
                     type: PathPrefix
@@ -25,7 +29,7 @@ spec:
           backendRefs:
               - name: forgejo-http
                 port: 3000
-        # Container registry API
+        # Container registry API - bypass gate for token auth
         - matches:
               - path:
                     type: PathPrefix
@@ -33,7 +37,7 @@ spec:
           backendRefs:
               - name: forgejo-http
                 port: 3000
-        # Internal Forgejo routes (avatars, assets, webhooks)
+        # Internal Forgejo routes (avatars, assets, webhooks) - bypass gate
         - matches:
               - path:
                     type: PathPrefix
@@ -41,7 +45,7 @@ spec:
           backendRefs:
               - name: forgejo-http
                 port: 3000
-        # Git HTTP traffic for KBVE org repos (clone, push, fetch, LFS)
+        # Git HTTP traffic for KBVE org repos (clone, push, fetch, LFS) - bypass gate for git operations
         - matches:
               - path:
                     type: PathPrefix
@@ -49,16 +53,26 @@ spec:
           backendRefs:
               - name: forgejo-http
                 port: 3000
-        # Redirect everything else to kbve.com/dashboard
+        # Forgejo's own auth handshake must bypass the SSO gate — you can't pass
+        # the gate to reach the login that gets you past the gate. /user/login +
+        # /user/oauth2/* (OAuth init + callback) go straight to forgejo so the
+        # "Sign in with KBVE" flow can complete and set the forgejo session.
+        # Gated content (repos, dashboard) still routes through the gate below.
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /user/login
+              - path:
+                    type: PathPrefix
+                    value: /user/oauth2/
+          backendRefs:
+              - name: forgejo-http
+                port: 3000
+        # Web UI - route through gate for SSO authentication
         - matches:
               - path:
                     type: PathPrefix
                     value: /
-          filters:
-              - type: RequestRedirect
-                requestRedirect:
-                    hostname: kbve.com
-                    path:
-                        type: ReplaceFullPath
-                        replaceFullPath: /dashboard
-                    statusCode: 302
+          backendRefs:
+              - name: forgejo-gate
+                port: 5678

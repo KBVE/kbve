@@ -1,20 +1,64 @@
 ---
 title: Trailblazer graceful ornament kit | OSRS Price Data
-description: "Trailblazer graceful ornament kit: A dye which can be used to recolour a piece of graceful clothing.. High alch: 15,000 GP, GE limit: 6."
+description: "Trailblazer graceful ornament kit: A dye which can be used to recolour a piece of graceful clothing. High alch: 15,000 GP, GE limit: 6."
 osrs:
   id: 25099
   name: Trailblazer graceful ornament kit
   slug: trailblazer-graceful-ornament-kit
-  examine: A dye which can be used to recolour a piece of graceful clothing.
+  examine: "A dye which can be used to recolour a piece of graceful clothing."
   members: true
   icon: Trailblazer graceful ornament kit.png
   value: 25000
   lowalch: 10000
   highalch: 15000
   limit: 6
-  about: "Trailblazer graceful ornament kit is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 6 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ornament_kit
+    tier: mid-high
+  properties:
+    release_date: "2020-10-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Graceful hood
+      slug: graceful-hood
+      relationship: component
+      description: "Base graceful piece dyed with the kit."
+    - item_name: Trailblazer relic hunter (t1) armour set
+      slug: trailblazer-relic-hunter-t1-armour-set
+      relationship: variant
+      description: "Sibling Trailblazer cosmetic from the same league."
+    - item_name: Trailblazer graceful hood
+      slug: trailblazer-graceful-hood
+      relationship: product
+      description: "Resulting recoloured graceful hood after applying the kit."
+  about: "The Trailblazer graceful ornament kit is a cosmetic dye rewarded from the 2020 Trailblazer League that recolours any piece of graceful into the Trailblazer variant. The recolour is permanent on that piece but the kit itself is tradeable, making it a long-term flipping target for fashionscape collectors."
+  market_strategy:
+    notes:
+      - "Buy limit of 6 keeps daily turnover low, so price moves in jumps."
+      - "Trailblazer nostalgia spikes price around league anniversaries."
+      - "Each applied kit permanently removes supply, creating a slow sink."
+  trading_tips:
+    - "Sit on stock during league reveal weeks; demand peaks fast."
+    - "High alch profit is rarely worth it - flip cosmetics instead."
+  history:
+    - date: "2020-10-28"
+      description: "Released as a Trailblazer League reward shop cosmetic."
+    - date: "2021-04-14"
+      description: "Made tradeable on the Grand Exchange after the league ended."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

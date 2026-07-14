@@ -1,0 +1,10 @@
+---
+import type { ComponentProps } from 'react';
+import { NewsletterCapture } from '@kbve/rn-astro';
+type Props = ComponentProps<typeof NewsletterCapture>;
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<NewsletterCapture client:only="react" {...props} />
+</div>

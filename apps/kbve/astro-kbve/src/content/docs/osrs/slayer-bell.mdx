@@ -1,6 +1,6 @@
 ---
 title: Slayer bell | OSRS Price Data
-description: "Slayer bell: Don't make anyone jump when you ring this!. High alch: 90 GP, GE limit: 40."
+description: "Slayer bell: Don't make anyone jump when you ring this! High alch: 90 GP, GE limit: 40."
 osrs:
   id: 10952
   name: Slayer bell
@@ -12,9 +12,76 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 40
-  about: "Slayer bell is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: slayer equipment
+    tier: low
+  properties:
+    release_date: "2007-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options: ["Ring", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Slayer Equipment
+      location: Burthorpe
+      price: 150
+      currency: coins
+      stock: 50
+    - shop_name: Slayer Equipment
+      location: Draynor Village
+      price: 150
+      currency: coins
+      stock: 50
+    - shop_name: Slayer Equipment
+      location: Edgeville
+      price: 150
+      currency: coins
+      stock: 50
+    - shop_name: Slayer Equipment
+      location: Canifis
+      price: 150
+      currency: coins
+      stock: 50
+    - shop_name: Slayer Equipment
+      location: Mount Karuulm
+      price: 150
+      currency: coins
+      stock: 50
+  related_items:
+    - item_name: Slayer staff
+      slug: slayer-staff
+      relationship: alternative
+      description: "Another piece of slayer equipment sold at the same shops"
+    - item_name: Spiny helmet
+      slug: spiny-helmet
+      relationship: alternative
+      description: "Slayer-shop accessory used against certain task targets"
+  about: "The Slayer bell is a piece of Slayer equipment used to lure molanisks off walls during Slayer tasks at level 39+ Slayer. It is sold at 150 coins by every Slayer Master's equipment shop across Gielinor."
+  market_strategy:
+    notes:
+      - "Sold in unlimited supply by every Slayer equipment shop at 150 coins"
+      - "Buy limit of 40 per 4 hours keeps Grand Exchange supply tight"
+      - "Niche demand from Molanisk Slayer task hunters"
+  trading_tips:
+    - "Cheapest source is buying directly from any Slayer Master shop"
+    - "Grand Exchange resellers typically markup against the shop price"
+    - "Stack with other Slayer equipment purchases to save trips"
+  history:
+    - date: "2007-03-20"
+      description: "Slayer bell added with the Slayer equipment expansion."
+    - date: "2013-04-25"
+      description: "Animation conflicts in the Duel Arena resolved."
+    - date: "2019-04-25"
+      description: "Chat filtering added for the bell's sound effect message."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

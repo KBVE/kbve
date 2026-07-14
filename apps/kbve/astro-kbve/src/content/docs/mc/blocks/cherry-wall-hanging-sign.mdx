@@ -1,5 +1,6 @@
 ---
 title: Cherry Hanging Sign
+template: splash
 description: |
     Minecraft Cherry Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 237
     ref: cherry_wall_hanging_sign
     slug: cherry-wall-hanging-sign
+    content_rev: 1
     display_name: Cherry Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,48 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Cherry Hanging Sign is the wall-mounted placement state of
+            the cherry hanging sign, suspended beneath a block or bracket
+            using its iron chain fittings. It displays up to four lines of
+            customizable text and can be dyed, made to glow, or waxed.
+        lore: |
+            Hanging signs were added in the Trails & Tales update (1.20)
+            as a decorative companion to the existing standing and wall
+            sign types, with cherry wood variants included from launch.
+    uses:
+        - title: Cherry Hanging Sign
+          ref: cherry_hanging_sign
+          detail: |
+              Craft from 2 chains and 6 stripped cherry logs to produce 6
+              hanging signs; place against a wall or under a ledge to get
+              this wall-mounted form.
+    found_in:
+        - location: Crafting only
+          detail: Cherry hanging signs do not generate naturally; they must be crafted and then hung by the player.
+    faq:
+        - question: What tool do I need to mine a Cherry Hanging Sign?
+          answer: |
+              Any tool works. An axe breaks it fastest, but it always
+              drops the hanging sign item regardless of tool.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, right-click with an empty hand to reopen the text
+              editor, unless the sign has been waxed with a honeycomb.
+        - question: Does it burn in fire?
+          answer: |
+              No. Cherry wood blocks, including hanging signs, are not
+              flammable by default.
     data_version: "1.21.5"
 ---
 

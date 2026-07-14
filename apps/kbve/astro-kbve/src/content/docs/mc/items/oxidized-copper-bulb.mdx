@@ -1,5 +1,6 @@
 ---
 title: Oxidized Copper Bulb
+template: splash
 description: |
     Minecraft Oxidized Copper Bulb — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1386
     ref: oxidized_copper_bulb
     slug: oxidized-copper-bulb
+    content_rev: 1
     display_name: Oxidized Copper Bulb
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Oxidized Copper Bulb is the fully weathered stage of the copper bulb, a redstone-powered
+            light source that toggles on or off when it receives a pulse rather than needing continuous
+            power. At this final oxidation stage it emits a light level of 4, the dimmest of the four
+            copper bulb variants, and its teal, patina-covered surface reflects the copper's long exposure
+            to the elements.
+        lore: |
+            A fully weathered copper lamp whose dulled teal glow hints at years left unwaxed and exposed.
+    faq:
+        - question: How bright is an Oxidized Copper Bulb compared to other stages?
+          answer: |
+              It emits a light level of 4, the lowest of the four oxidation stages (normal is 15, exposed
+              is 12, and weathered is 8).
+        - question: Does the Oxidized Copper Bulb need constant redstone power to stay lit?
+          answer: |
+              No. It toggles its lit state when it receives a redstone pulse and remains in that state
+              without continuous power, making it efficient for flip-flop style lighting circuits.
+        - question: Can I stop an Oxidized Copper Bulb from changing further or reverse its oxidation?
+          answer: |
+              Applying honeycomb waxes it to halt further weathering, and using an axe on it removes wax
+              or scrapes back one oxidation stage toward the unoxidized copper bulb.
+        - question: Where can Oxidized Copper Bulbs be found naturally?
+          answer: |
+              They generate already lit in trial chambers, appearing across various oxidation stages
+              including the fully oxidized variant.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -4,6 +4,12 @@ description: |
     Unreal Engine is a powerful real-time 3D creation platform developed by Epic Games, widely used for building high-fidelity games, simulations, and interactive experiences.
     The engine offers advanced rendering capabilities, including Nanite virtualized geometry and Lumen global illumination, alongside robust tools for animation, physics, and AI.
     With support for C++ and Blueprints visual scripting, Unreal Engine provides flexibility for both programmers and designers across industries including gaming, film, architecture, and automotive.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Unreal Engine
     order: 1302
@@ -12,20 +18,92 @@ img: https://images.unsplash.com/photo-1542751371-adc38448a05e?fit=crop&w=1400&h
 tags:
     - game-engine
     - software
+bento:
+    badge: application · game-engine · software
+    title: 'Real-time worlds,'
+    accent: Unreal Engine.
+    lede: >-
+        Epic Games' real-time 3D platform behind high-fidelity games,
+        simulations, and interactive experiences. This guide covers the engine
+        from Blueprints and C++ through Nanite, Lumen, and multiplayer — plus
+        the KBVE plugin collection and the CI/CD pipeline that builds and
+        ships Unreal projects from the monorepo.
+    ctas:
+        - label: Getting started
+          href: '#getting-started'
+          primary: true
+        - label: C++ development
+          href: '#cpp-development'
+        - label: Rendering
+          href: '#rendering'
+        - label: KBVE plugins
+          href: '#kbve-plugins'
+    aside:
+        icon: render
+        title: One engine, every platform
+        body: >-
+            From Nanite virtualized geometry to Lumen global illumination,
+            Unreal Engine 5 pairs film-quality rendering with tools for
+            animation, physics, AI, and networking — deployable to desktop,
+            console, mobile, and XR from a single project.
+        points:
+            - <strong>Scripting</strong> — C++ for depth, Blueprints for speed.
+            - <strong>Rendering</strong> — Nanite, Lumen, and Virtual Shadow Maps.
+            - <strong>Pipeline</strong> — RunUAT builds shipped via KBVE CI/CD.
+    stats:
+        - { label: Developer, value: Epic Games, icon: crown }
+        - { label: First release, value: '1998', icon: clock }
+        - { label: Languages, value: 'C++ / Blueprints', icon: code }
+        - { label: Royalty, value: '5% after $1M', icon: license }
+    features:
+        - title: Blueprints
+          icon: route
+          href: '#blueprints'
+          body: Visual scripting for gameplay logic — Blueprint types, communication patterns, and hybrid C++ workflows.
+        - title: C++ framework
+          icon: code
+          href: '#cpp-development'
+          body: The Gameplay Framework, reflection macros, and the module-based build system behind every Unreal project.
+        - title: Nanite & Lumen
+          icon: render
+          href: '#rendering'
+          body: Virtualized geometry, dynamic global illumination, Virtual Shadow Maps, and the render pipeline options.
+        - title: KBVE CI/CD & plugins
+          icon: deploy
+          href: '#cicd'
+          body: RunUAT automation, Agones server builds, and the open-source KBVE plugin collection at packages/unreal.
+    related:
+        - title: Unity
+          href: /application/unity/
+          copy: The DOTS-based engine powering Rareicon.
+          icon: box
+        - title: Godot
+          href: /application/godot/
+          copy: The open-source engine alternative with Rust bindings.
+          icon: sword
+        - title: Blender
+          href: /application/blender/
+          copy: Asset creation and sprite baking for game pipelines.
+          icon: camera
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
-
+import { Aside, Steps } from '@astrojs/starlight/components';
 import { Giscus, Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Information
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Unreal Engine is a leading real-time 3D creation platform developed by Epic Games, powering some of the most visually stunning games and interactive experiences in the industry.
 Originally launched in 1998, the engine has evolved through multiple generations, with Unreal Engine 5 introducing groundbreaking features like Nanite virtualized geometry for film-quality assets and Lumen for fully dynamic global illumination and reflections.
@@ -35,11 +113,15 @@ Unreal Engine uses C++ as its primary programming language, offering direct acce
 For rapid prototyping and designer-friendly workflows, the Blueprints visual scripting system allows logic creation without writing code.
 The engine also includes a comprehensive suite of tools for animation (Sequencer, Control Rig), audio (MetaSounds), world building (World Partition, PCG), and multiplayer networking.
 
-<Adsense />
+</BentoProse>
 
----
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## Getting Started
+<BentoProse id="getting-started" eyebrow="First steps" heading="Getting Started">
 
 To begin developing with Unreal Engine, download the Epic Games Launcher and install the desired engine version.
 Projects can be created from templates covering common game genres and application types.
@@ -49,9 +131,9 @@ The editor provides a viewport for scene composition, a content browser for asse
 Unreal Engine is free to use with a 5% royalty on gross revenue after the first $1 million USD per product. Review the EULA for full licensing terms.
 </Aside>
 
----
+</BentoProse>
 
-## Blueprints
+<BentoProse id="blueprints" eyebrow="Visual scripting" heading="Blueprints">
 
 Blueprints is Unreal Engine's visual scripting system that allows designers and developers to create gameplay logic, UI interactions, and procedural content without writing C++ code.
 Blueprint graphs use nodes connected by wires to define execution flow and data relationships.
@@ -74,9 +156,9 @@ Blueprints communicate through several patterns depending on the relationship be
 - **Interfaces** - Sending messages to actors without knowing their concrete type, enabling loose coupling.
 - **Casting** - Converting a reference to a specific type to access its unique variables and functions.
 
----
+</BentoProse>
 
-## C++ Development
+<BentoProse id="cpp-development" eyebrow="Native code" heading="C++ Development">
 
 Unreal Engine's C++ framework uses a custom build system (Unreal Build Tool) and a reflection system powered by macros like `UCLASS`, `UPROPERTY`, and `UFUNCTION`.
 These macros expose C++ types to the editor, Blueprints, and the garbage collector.
@@ -108,9 +190,9 @@ The Unreal Header Tool (UHT) runs before compilation to parse reflection macros 
 - `USTRUCT()` - Marks a struct for reflection, enabling serialization and Blueprint access.
 - `UENUM()` - Marks an enum for reflection, making it usable in Blueprints and the editor.
 
----
+</BentoProse>
 
-## Rendering
+<BentoProse id="rendering" eyebrow="Nanite & Lumen" heading="Rendering">
 
 Unreal Engine 5 introduced Nanite and Lumen as core rendering technologies.
 Nanite enables the use of film-quality source art with millions of polygons directly in scenes, automatically handling LOD and streaming.
@@ -143,9 +225,9 @@ VSMs are cached and updated incrementally, reducing the performance cost of comp
 - **Forward Rendering** - Optional pipeline with MSAA support, useful for VR and mobile targets where anti-aliasing quality is critical.
 - **Path Tracer** - A reference ray tracer for offline-quality rendering, useful for architectural visualization and film production.
 
----
+</BentoProse>
 
-## World Building
+<BentoProse id="world-building" eyebrow="Large worlds" heading="World Building">
 
 Unreal Engine provides several systems for creating and managing large game worlds.
 
@@ -166,9 +248,9 @@ Results can be generated at edit time or at runtime for dynamic environments.
 The Landscape system handles large-scale outdoor terrain with heightmap-based geometry, multi-layer material painting, and foliage placement.
 Landscapes support LOD streaming and can span kilometers while maintaining reasonable memory and draw call budgets.
 
----
+</BentoProse>
 
-## Animation
+<BentoProse id="animation" eyebrow="Motion tools" heading="Animation">
 
 Unreal Engine's animation system supports skeletal meshes, blend spaces, state machines, and procedural animation through several tools.
 
@@ -192,9 +274,9 @@ It is used for procedural adjustments like IK solvers, look-at constraints, and 
 MetaHuman is a framework for creating photorealistic digital humans with high-fidelity facial animation, hair simulation, and body rigs.
 MetaHumans are created via the MetaHuman Creator web tool and imported into Unreal projects as ready-to-animate assets.
 
----
+</BentoProse>
 
-## Audio
+<BentoProse id="audio" eyebrow="Sound systems" heading="Audio">
 
 ### MetaSounds
 
@@ -206,9 +288,9 @@ It provides a programmable DSP graph for designing procedural audio, interactive
 Sound Classes group audio sources by category (dialogue, music, SFX) for volume control and ducking.
 Sound Mixes define cross-class blending rules, such as lowering music volume when dialogue plays.
 
----
+</BentoProse>
 
-## Physics
+<BentoProse id="physics" eyebrow="Chaos engine" heading="Physics">
 
 Unreal Engine uses Chaos Physics as its default physics engine, providing rigid body simulation, cloth, destruction, and vehicle dynamics.
 
@@ -221,9 +303,9 @@ Meshes are pre-fractured in the editor using Voronoi patterns or custom fracture
 
 Chaos Vehicles provide a physics-driven vehicle simulation with suspension, tire friction curves, engine torque, and transmission modeling.
 
----
+</BentoProse>
 
-## AI
+<BentoProse id="ai" eyebrow="Behavior systems" heading="AI">
 
 Unreal Engine includes several systems for building artificial intelligence in games.
 
@@ -246,9 +328,9 @@ Queries define a set of test points, apply scoring functions (distance, line of 
 The NavMesh system generates walkable surfaces for AI pathfinding.
 Nav Mesh Bounds Volumes define the area to generate navigation, and Nav Modifiers can adjust costs, exclude regions, or create custom area types.
 
----
+</BentoProse>
 
-## Multiplayer
+<BentoProse id="multiplayer" eyebrow="Networking" heading="Multiplayer">
 
 Unreal Engine includes a built-in networking framework with server-authoritative replication, RPCs (Remote Procedure Calls), and relevancy management.
 The engine supports dedicated servers, listen servers, and peer-to-peer topologies.
@@ -273,9 +355,9 @@ Remote Procedure Calls allow functions to execute across the network boundary:
 Unreal supports headless dedicated server builds that run the authoritative game simulation without rendering.
 Server builds exclude client-only content and rendering code, reducing binary size and resource usage.
 
----
+</BentoProse>
 
-## Platform
+<BentoProse id="platform" eyebrow="Deploy anywhere" heading="Platform">
 
 Unreal Engine supports deployment to a wide range of platforms from a single project.
 
@@ -291,9 +373,9 @@ Unreal Engine supports deployment to a wide range of platforms from a single pro
 Projects are packaged through the editor or command line using `UnrealBuildTool` and `RunUAT`.
 Packaging produces a standalone build with cooked content optimized for the target platform.
 
----
+</BentoProse>
 
-## CICD
+<BentoProse id="cicd" eyebrow="Automated builds" heading="CICD">
 
 For continuous integration with Unreal Engine, builds are typically automated using `RunUAT` (Unreal Automation Tool) scripts.
 Common CI tasks include compiling the project, cooking content, running automated tests, and packaging for distribution.
@@ -302,9 +384,91 @@ Common CI tasks include compiling the project, cooking content, running automate
 Unreal builds require significant disk space and memory. Plan CI runner specs accordingly — expect 50+ GB disk and 16+ GB RAM for non-trivial projects.
 </Aside>
 
----
+### KBVE Unreal CI/CD Pipeline
 
-## Plugins
+The KBVE monorepo runs two Unreal Engine workflows:
+
+- **`.github/workflows/ci-unreal.yml`** — Dispatch router (receives workflow_dispatch calls)
+- **`.github/workflows/ci-unreal-build.yml`** — Worker (game, server, win-setup, mac-setup modes)
+
+#### Server Build Flow
+
+Server builds produce dedicated server binaries for deployment to Agones fleets.
+
+<Steps>
+
+1. **Extract version** from `version.toml` and `manifest_version` input
+2. **Clone external repo** (if `external_repo_url` set) or use monorepo path
+3. **Build server target** via UBT (`-Server -TargetType=Server -Configuration=Shipping`)
+4. **Package to `/tmp/ue5-build-output/LinuxServer/`**
+5. **Deploy to PVC** at `/mnt/longhorn/ows-server/${TARGET}/${VERSION}/`
+6. **Symlink latest** (`ln -sfn ${VERSION} /mnt/longhorn/ows-server/${TARGET}/latest`)
+7. **Prune old versions** — keep 3 newest by semver, protect `latest` target
+
+</Steps>
+
+**Prune Strategy:**
+
+The prune step uses `sort -V -r` (semver descending) to keep the 3 newest versions for rollback.
+It protects the `latest` symlink target and skips versions with `.nfs*` files (active servers).
+
+```bash
+# Example: versions 0.3.24, 0.3.25, 0.3.26, 0.3.27, 0.3.28
+# Keep: 0.3.28, 0.3.27, 0.3.26
+# Prune: 0.3.25, 0.3.24 (unless in use)
+```
+
+**Fleet Integration:**
+
+Agones gameserver pods mount the PVC at `/server` with `subPath: ${TARGET}` (e.g., `chuckServer`).
+The pod looks for `/server/latest/LinuxServer/${TARGET}.sh` to start the server.
+
+#### Game Build Flow
+
+Game builds produce packaged client binaries for Windows, macOS, Linux, and mobile platforms.
+
+<Steps>
+
+1. **Extract version** from `version.toml`
+2. **Clone external repo** or use monorepo path
+3. **Build client target** for each platform in `build_targets` (Win64, Linux, Mac)
+4. **Cook content** for each target configuration
+5. **Package to artifacts** (zip per platform)
+6. **Upload to itch.io** (if `deploy_to_itch` enabled)
+7. **Create GitHub release** with platform zips
+
+</Steps>
+
+**Version Sync:**
+
+Client and server versions are kept in sync via `ci-dispatch-manifest.json`.
+Each Unreal game entry has a single `version` field used for both client and server builds.
+
+```json
+{
+  "key": "unreal_chuck_beta",
+  "version": "0.3.28",
+  "engine": {
+    "server_target": "chuckServer",
+    "server_config": "Shipping",
+    "client_config": "Shipping"
+  }
+}
+```
+
+**LFS Routing:**
+
+Projects using external repos (e.g., `chuck` at `github.com/kbve/chuck`) store LFS blobs on Forgejo (`git.kbve.com/KBVE/chuck.git`).
+The `kbve.sh -lfs` router injects `-c lfs.url=...` to override `.lfsconfig` per project.
+
+```bash
+./kbve.sh -lfs chuck pull
+./kbve.sh -lfs chuck push origin dev
+```
+
+</BentoProse>
+
+<BentoProse id="plugins" eyebrow="Extend the engine" heading="Plugins">
 
 Unreal Engine supports a plugin architecture for extending editor and runtime functionality.
 Plugins can be written in C++ or Blueprints and distributed via the Unreal Marketplace or as source.
@@ -323,9 +487,9 @@ A typical plugin contains:
 Plugins can be scaffolded from the editor via Edit > Plugins > Add, or created manually by setting up the directory structure and `.uplugin` descriptor.
 The engine supports several module types: `Runtime`, `Editor`, `DeveloperTool`, and `Program`, each loaded at different stages of the engine lifecycle.
 
----
+</BentoProse>
 
-## KBVE Plugins
+<BentoProse id="kbve-plugins" eyebrow="In-house tooling" heading="KBVE Plugins">
 
 KBVE maintains a collection of open-source Unreal Engine plugins at `packages/unreal/` in the monorepo.
 All plugins follow a consistent structure: `.uplugin` descriptor, `version.toml` for versioning, `Source/` with `Public/` and `Private/` directories, and `ThirdParty/` for vendored libraries with their licenses.
@@ -461,6 +625,49 @@ The following methods are registered but return `NOT_IMPLEMENTED`. Each is track
 
 **License:** Part of the KBVE monorepo (MIT)
 
+### Custom Editor Extensions
+
+Third-party plugins extending the Unreal Editor with specialized workflows:
+
+#### SelShader
+
+**[envieous/UnrealEngine-SelShader](https://github.com/envieous/UnrealEngine-SelShader)** — Editor shader selection and inspection toolkit.
+
+Provides advanced shader debugging and visualization tools for material artists and rendering engineers.
+Allows selecting shaders directly in the viewport, inspecting compiled shader bytecode, and visualizing pipeline state objects (PSOs).
+
+**Features:**
+- Viewport shader picker (click to select active shader stage)
+- PSO inspector with draw call metadata
+- HLSL bytecode viewer and disassembler integration
+- Material instance parameter override visualization
+- Shader complexity heatmaps per pass
+
+**Use Case:** Debugging performance hotspots, validating shader permutations, and profiling material complexity in large scenes.
+
+**License:** Check repository for licensing terms.
+
+#### Angelscript
+
+**[Hazelight/UnrealEngine-Angelscript](https://github.com/Hazelight/UnrealEngine-Angelscript)** — AngelScript scripting language integration for Unreal Engine.
+
+Alternative to Blueprints and C++ with text-based scripting, hot reload, and editor integration.
+Used in production by Hazelight Studios (*It Takes Two*, *A Way Out*) for rapid gameplay iteration without full C++ recompilation.
+
+**Features:**
+- Text-based scripting with syntax similar to C++/C#
+- Instant hot reload of script changes in PIE (Play In Editor)
+- Full access to UE reflection system (UCLASS, UPROPERTY, UFUNCTION)
+- Editor integration with syntax highlighting and autocomplete
+- Debugging support with breakpoints and watches
+- Lower compile times than C++ for iteration-heavy workflows
+
+**Use Case:** Gameplay scripting for teams needing faster iteration than C++ without Blueprint's visual overhead. Ideal for narrative-heavy or systems-driven games where designers write code.
+
+**Supported Versions:** UE5.1+ (check repo for latest compatibility)
+
+**License:** MIT
+
 ### Other KBVE Plugins
 
 | Plugin | Description | Third-Party License |
@@ -473,9 +680,9 @@ The following methods are registered but return `NOT_IMPLEMENTED`. Each is track
 | **KBVEWASM** | WebAssembly runtime integration | Various |
 | **UEDevOps** | DevOps toolkit: telemetry, error reporting, GitHub integration | KBVE (MIT) |
 
----
+</BentoProse>
 
-## Windows VM Tooling (KubeVirt)
+<BentoProse id="windows-vm-tooling" eyebrow="Headless Windows" heading="Windows VM Tooling (KubeVirt)">
 
 <Aside type="caution" title="KubeVirt VMs">
     These instructions are for headless Windows Server VMs running inside KubeVirt
@@ -577,9 +784,9 @@ winget install --id Microsoft.VisualStudio.2022.BuildTools -e --source winget
     See [issue #9328](https://github.com/KBVE/kbve/issues/9328).
 </Aside>
 
----
+</BentoProse>
 
-## macOS VM Tooling (KubeVirt)
+<BentoProse id="macos-vm-tooling" eyebrow="Headless macOS" heading="macOS VM Tooling (KubeVirt)">
 
 <Aside type="caution" title="Apple EULA">
     macOS VMs must run on genuine Apple hardware (Mac Pro, Mac Mini, etc.)
@@ -623,7 +830,7 @@ xcodebuild -license accept
 
 ### CI Workflow
 
-The `ci-ue-mac-setup.yml` workflow (stub) follows the same two-job pattern as Windows:
+The `ci-unreal.yml` workflow (`task: mac-setup`, routes to `ci-unreal-build.yml` mode `mac-setup`) follows the same two-job pattern as Windows:
 1. **Linux runner**: stages downloads via download-proxy (aria2c)
 2. **macOS VM runner**: installs from staged files on the shared PVC
 
@@ -634,4 +841,12 @@ The `ci-ue-mac-setup.yml` workflow (stub) follows the same two-job pattern as Wi
 - Same masquerade NAT issue as Windows — use download-proxy
 - OSX-KVM requires specific CPU feature flags (`invtsc`, `vmx`, `avx2` — already configured)
 
-<Giscus />
+</BentoProse>
+
+</BentoDoc>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

@@ -1,49 +1,54 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: arc-controller
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    name: arc-controller
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '0'
+        kbve.com/source-path: kube/github/controller
+        kbve.com/manifest-path: kube/github/controller
+        kbve.com/application-file: kube/github/controller/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
-  project: default
-  sources:
-    # Helm chart for the ARC controller
-    - repoURL: ghcr.io/actions/actions-runner-controller-charts
-      targetRevision: 0.9.3
-      chart: gha-runner-scale-set-controller
-      helm:
-        releaseName: arc-controller
-        valueFiles:
-          - $values/apps/kube/github/controller/manifests/values.yaml
-    # Values file reference
-    - repoURL: https://github.com/kbve/kbve
-      targetRevision: main
-      ref: values
-    # Additional manifests (sealed secret, RBAC for external-secrets)
-    - repoURL: https://github.com/kbve/kbve
-      targetRevision: main
-      path: apps/kube/github/controller/manifests
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: arc-systems
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
-    retry:
-      limit: 3
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m
-  ignoreDifferences:
-    - group: apiextensions.k8s.io
-      kind: CustomResourceDefinition
-      jsonPointers:
-        - /metadata/annotations
-        - /metadata/labels
-        - /spec/conversion
+    project: default
+    sources:
+        - repoURL: ghcr.io/actions/actions-runner-controller-charts
+          targetRevision: 0.9.3
+          chart: gha-runner-scale-set-controller
+          helm:
+              releaseName: arc-controller
+              valueFiles:
+                  - $values/apps/kube/github/controller/manifests/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          path: apps/kube/github/controller/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: arc-systems
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
+    ignoreDifferences:
+        - group: apiextensions.k8s.io
+          kind: CustomResourceDefinition
+          jsonPointers:
+              - /metadata/annotations
+              - /metadata/labels
+              - /spec/conversion

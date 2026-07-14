@@ -1,0 +1,38 @@
+{
+	"name": "axum-discordsh-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/discordsh/axum-discordsh-e2e",
+	"projectType": "application",
+	"implicitDependencies": ["axum-discordsh"],
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["axum-discordsh"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f axum-discordsh-e2e 2>/dev/null || true",
+					"docker run -d --name axum-discordsh-e2e -p 4321:4321 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/axum-discordsh:latest",
+					"sleep 3",
+					"npx vitest run; EC=$?; docker rm -f axum-discordsh-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/discordsh/axum-discordsh-e2e"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		}
+	},
+	"tags": []
+}

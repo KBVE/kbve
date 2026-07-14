@@ -12,59 +12,119 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: amulet
+    tier: low
+  properties:
+    release_date: "2003-03-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
-    type: symbol
-    prayer_bonus: 8
+    weight: 0.007
     requirements:
       prayer: 31
-  crafting:
-    skill: crafting
-    level: 31
-    xp: 50
-    materials:
-      - item_name: Unstrung symbol (Zamorak)
-        item_id: 1720
-        quantity: "1"
-      - item_name: Ball of wool
-        item_id: 1759
-        quantity: "1"
+    attack_bonus:
+      stab: 2
+      slash: 2
+      crush: 2
+      magic: 2
+      ranged: 2
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 8
+  recipes:
+    - skill: crafting
+      level: 16
+      xp: 50
+      tools:
+        - Furnace
+        - Unholy mould
+      materials:
+        - item_name: Silver bar
+          quantity: 1
+      output_quantity: 1
+      notes: "Cast silver bar at a furnace with the unholy mould to create an unstrung symbol (Zamorak)."
+    - skill: crafting
+      level: 16
+      xp: 4
+      tools: []
+      materials:
+        - item_name: Unstrung symbol (Zamorak)
+          quantity: 1
+        - item_name: Ball of wool
+          quantity: 1
+      output_quantity: 1
+      notes: "Use ball of wool on the unstrung symbol to make an unpowered unholy symbol."
+    - skill: prayer
+      level: 50
+      xp: 0
+      tools:
+        - Unholy book
+      materials:
+        - item_name: Unpowered unholy symbol
+          quantity: 1
+      output_quantity: 1
+      notes: "Use the unholy book (or book of balance) to bless the symbol into the equippable Unholy symbol."
   related_items:
     - item_id: 1718
       item_name: Holy symbol
       slug: holy-symbol
       relationship: alternative
-      description: Saradomin counterpart (+8 Prayer)
+      description: Saradomin counterpart with the same +8 Prayer bonus.
     - item_id: 1704
       item_name: Amulet of glory
       slug: amulet-of-glory
       relationship: alternative
-      description: Better combat stats, no prayer bonus
+      description: Stronger combat amulet without the Prayer bonus.
     - item_id: 19492
       item_name: Amulet of the damned
       slug: amulet-of-the-damned
       relationship: upgrade
-      description: For Barrows sets
+      description: Barrows-set upgrade amulet with set bonus effects.
+    - item_name: Unstrung symbol (Zamorak)
+      slug: unstrung-symbol-zamorak
+      relationship: component
+      description: Mould-cast intermediate before stringing.
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Neck |
-    | Prayer Bonus | +8 |
-    | Prayer Req | 31 |
+    Unholy symbol is the Zamorakian counterpart to the holy symbol, providing the same +8 Prayer bonus but with offensive bonuses (+2 across all attack styles) instead of defensive ones. It occupies the neck slot, weighs 0.007 kg and requires 31 Prayer to equip.
 
-    - Prayer bonus for protection prayers
-    - Zamorak-themed gear
-    - Budget prayer gear option
+    Players craft the symbol in three steps: cast a silver bar with the unholy mould at a furnace (16 Crafting, 50 XP), string the unstrung symbol with a ball of wool (4 XP), then bless the unpowered symbol with an unholy book or book of balance after reaching 50 Prayer. The blessing step requires the player to have completed appropriate book-of-balance content; budget prayer trainers usually go with the holy symbol instead.
   market_strategy:
     notes:
-      - Lower demand than holy symbol
-      - Zamorak aesthetic appeal
-      - Limited practical use
-      - Less popular than holy symbol
-      - Very low trading volume
-      - Crafting usually cheaper
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Lower demand than holy symbol — most prayer gear users pick Saradomin."
+      - "Zamorak aesthetic and PvP gear setups drive niche demand."
+      - "Very low trading volume; crafting from silver bar is usually cheaper than GE."
+      - "Buy limit 125 per 4 hours makes meaningful flipping slow."
+  trading_tips:
+    - "Compare GE price to silver bar + ball of wool + blessing cost before buying."
+    - "Stock for Zamorak-themed PvP loadouts and fashionscape buyers."
+    - "Avoid during major prayer rework discussions — sentiment moves price."
+  history:
+    - date: "2003-03-17"
+      description: "Released alongside the original Prayer/Crafting content for Zamorak followers."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

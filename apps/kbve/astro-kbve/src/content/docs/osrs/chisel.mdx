@@ -1,55 +1,71 @@
 ---
 title: Chisel | OSRS Price Data
-description: "Chisel is a F2P weapon slot item. High alch: 1 GP, GE limit: 40."
+description: "Chisel is a F2P tool used in Crafting and Fletching. High alch: 0 GP, GE limit: 40."
 osrs:
   id: 1755
   name: Chisel
   slug: chisel
-  examine: Good for detailed Crafting.
+  examine: Good for detailed crafting.
   members: false
   icon: Chisel.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: 0
+  highalch: 0
   limit: 40
-  equipment:
-    slot: weapon
-    type: tool
+  weight: 0.453
+  properties:
+    release_date: "2001-01-04"
     tradeable: true
-  tool:
-    skill: crafting
-    uses:
-      - gem_cutting
-      - amethyst_processing
-      - dense_essence
-      - limestone_bricks
-  shop:
-    price: 1
-    locations:
-      - Dommik's Crafting Store (Al Kharid)
-      - Rommik's Crafty Supplies (Rimmington)
-      - General stores
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: misc
+    tier: bronze
+    category: tool
+  shops:
+    - shop_name: "General Store"
+      price: 1
+      currency: "Coins"
+      location: "Various"
+      notes: "Sold at most general stores for 1 coin"
   related_items:
     - item_id: 2347
       item_name: Hammer
       slug: hammer
       relationship: alternative
-      description: Smithing tool
+      description: "Smithing and Construction tool"
     - item_id: 1733
       item_name: Needle
       slug: needle
       relationship: alternative
-      description: Leather crafting
+      description: "Leather crafting tool"
     - item_id: 1785
       item_name: Glassblowing pipe
       slug: glassblowing-pipe
       relationship: alternative
-      description: Glass crafting
+      description: "Glass crafting tool"
     - item_id: 21347
       item_name: Amethyst
       slug: amethyst
       relationship: component
-      description: High-level cutting
+      description: "High-level cutting material"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Cheap from general stores; rarely worth GE flipping.\""
+      - "sell_strategy: \"Players typically keep one in inventory; low resale value.\""
+      - "price_trend: \"Stable at base shop value.\""
+      - "profit_margin: \"Negligible.\""
+  trading_tips:
+    - "Buy from any general store for 1 coin if you need a backup."
+    - "Free spawn available at the Crafting Guild for F2P."
+    - "Members can craft unlimited via Tool Store 1 (15 Construction)."
+  history:
+    - date: "2001-01-04"
+      update: "Release"
+      description: "Chisel added to the game as a core Crafting tool."
   about: |-
     Essential tool for Crafting skill:
 
@@ -70,8 +86,8 @@ osrs:
     | Dragonstone | 55 | 137.5 |
     | Onyx | 67 | 167.5 |
     | Zenyte | 89 | 200 |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

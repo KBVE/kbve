@@ -1,5 +1,6 @@
 ---
 title: Cake with Light Blue Candle
+template: splash
 description: |
     Minecraft Cake with Light Blue Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 924
     ref: light_blue_candle_cake
     slug: light-blue-candle-cake
+    content_rev: 1
     display_name: Cake with Light Blue Candle
     material: stone
     hardness: 0.5
     blast_resistance: 0.5
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - renewable
+    about:
+        description: |
+            Cake with Light Blue Candle is formed by placing a Light Blue
+            Candle on an uneaten cake, combining a food block with a
+            lightable decoration. When lit, it glows at light level 3 while
+            the cake itself cannot be eaten until the candle is removed.
+        lore: |
+            Candle cakes were added in Java Edition 1.17 (2021) alongside
+            candles themselves, letting players merge two existing blocks.
+    uses:
+        - title: Light Source
+          ref: light_blue_candle
+          detail: |
+              Light it with flint and steel, a fire charge, or a flaming
+              projectile for a dim light level of 3, useful for birthday-
+              cake style builds.
+        - title: Slice Removal Trigger
+          ref: cake
+          detail: |
+              Eating a slice from the cake (only possible once the candle is
+              removed by breaking or replacing) causes the candle to drop.
+    found_in:
+        - location: Crafted
+          detail: Use a Light Blue Candle on an uneaten Cake block to combine them.
+    faq:
+        - question: What does breaking a Cake with Light Blue Candle drop?
+          answer: |
+              It drops the Light Blue Candle; the cake portion is
+              consumed and not recovered.
+        - question: What tool do I need to break it?
+          answer: |
+              None. Any tool or bare hands break it instantly since it
+              requires no minimum tool tier.
+        - question: Can I eat the cake while the candle is on it?
+          answer: |
+              No, the candle must be removed first before the cake can be
+              eaten slice by slice.
+        - question: How much light does the lit candle cake give off?
+          answer: |
+              It emits a light level of 3 once ignited, dimmer than a
+              regular candle's level 3 per single candle.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Tuff Brick Wall
+template: splash
 description: |
     Minecraft Tuff Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 955
     ref: tuff_brick_wall
     slug: tuff-brick-wall
+    content_rev: 1
     display_name: Tuff Brick Wall
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tuff_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+    about:
+        description: |
+            Tuff Brick Wall is a fence-height variant of Tuff Bricks that
+            connects to neighboring walls and posts, useful for fortified
+            borders and decorative fencing in tuff-themed builds.
+        lore: |
+            Introduced in the Tricky Trials update as part of the tuff brick
+            building set that debuted with trial chambers.
+    uses:
+        - title: Decorative fortifications
+          ref: tuff_bricks
+          detail: |
+              Placed as borders, fences, or bridge railings that match Tuff
+              Brick architecture while blocking most mob and player movement.
+    found_in:
+        - location: Crafting table
+          detail: 6 Tuff Bricks in the standard wall pattern yield 6 Tuff Brick Walls.
+        - location: Stonecutter
+          detail: Cut from Tuff, Polished Tuff, or Tuff Bricks, one wall per input block.
+    faq:
+        - question: Does Tuff Brick Wall generate naturally?
+          answer: |
+              No. It is only obtained by crafting or stonecutting; it does
+              not spawn during world generation.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting from wooden. Mining without a pickaxe
+              drops nothing.
+        - question: Does it block arrows and mob pathing like other walls?
+          answer: |
+              Yes. It behaves like other brick and stone walls, connecting
+              to adjacent walls and posts and blocking most movement.
+        - question: What is it used for?
+          answer: |
+              Purely decorative — fences, borders, and bridge railings that
+              match tuff brick architecture.
     data_version: "1.21.5"
 ---
 

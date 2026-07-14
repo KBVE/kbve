@@ -1,5 +1,6 @@
 ---
 title: Cake with Purple Candle
+template: splash
 description: |
     Minecraft Cake with Purple Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 931
     ref: purple_candle_cake
     slug: purple-candle-cake
+    content_rev: 1
     display_name: Cake with Purple Candle
     material: stone
     hardness: 0.5
     blast_resistance: 0.5
     best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Purple Candle is formed by placing a purple candle on
+            an uneaten cake. It can be lit for a light level of 3, but
+            eating any slice of the cake causes the candle to pop off and
+            drop as an item.
+        lore: |
+            Candle cakes let players combine a birthday-cake aesthetic with
+            functional lighting, a decorative combo added alongside candles
+            in the Caves & Cliffs update.
+    uses:
+        - title: Decorative Light Source
+          ref: purple_candle
+          detail: |
+              Light the candle with flint and steel or a fire charge for a
+              light level of 3 while keeping the cake's appearance intact.
+    found_in:
+        - location: Crafted
+          detail: Place a purple candle on top of an unslicked, uneaten cake block.
+    faq:
+        - question: What does mining a Cake with Purple Candle drop?
+          answer: |
+              Only the purple candle drops; the cake portion itself yields
+              nothing when broken.
+        - question: Can I still eat the cake once a candle is on it?
+          answer: |
+              Yes, but eating any slice knocks the candle off and drops it
+              as an item, leaving a plain cake behind.
+        - question: Does the candle cake emit light when unlit?
+          answer: |
+              No. It only emits light level 3 while the candle is actively
+              lit.
+        - question: Can candle cakes stack in my inventory?
+          answer: |
+              In Java Edition they do not stack; in Bedrock Edition they
+              stack up to 64.
     data_version: "1.21.5"
 ---
 

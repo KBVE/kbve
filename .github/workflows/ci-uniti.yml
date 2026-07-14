@@ -23,6 +23,16 @@ concurrency:
 permissions:
     contents: read
 
+# Belt: make every cargo/rustup registry fetch in this workflow retry transient
+# network failures (e.g. "Could not resolve host: index.crates.io" on a runner
+# with a DNS blip). Suspenders: the cross-compile build steps below also wrap
+# their build command in a shell retry loop, since a hard DNS failure can abort
+# cargo before net.retry engages.
+env:
+    CARGO_NET_RETRY: '10'
+    CARGO_NET_TIMEOUT: '60'
+    RUSTUP_MAX_RETRIES: '10'
+
 jobs:
     verify:
         name: Verify (fmt + clippy + tests)
@@ -34,12 +44,21 @@ jobs:
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/verify
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Install build prerequisites
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
 
             - name: Setup Rust stable
               uses: dtolnay/rust-toolchain@stable
@@ -65,11 +84,20 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/asan
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/asan
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - name: Install build prerequisites
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
             - name: Setup Rust nightly (asan)
               uses: dtolnay/rust-toolchain@nightly
               with:
@@ -96,11 +124,20 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/miri
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/miri
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - name: Install build prerequisites
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
             - name: Setup Rust nightly + miri
               uses: dtolnay/rust-toolchain@nightly
               with:
@@ -123,11 +160,20 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/fuzz
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/fuzz
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - name: Install build prerequisites
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
             - name: Setup Rust nightly (fuzz)
               uses: dtolnay/rust-toolchain@nightly
             - name: Install cargo-fuzz
@@ -148,12 +194,21 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/build_linux
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/build_linux
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install build prerequisites
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
 
             - name: Setup Rust stable
               uses: dtolnay/rust-toolchain@stable
@@ -161,7 +216,14 @@ jobs:
                   targets: x86_64-unknown-linux-gnu
 
             - name: cargo build (release)
-              run: cargo build -p uniti --release --target x86_64-unknown-linux-gnu
+              run: |
+                  n=0
+                  until cargo build -p uniti --release --target x86_64-unknown-linux-gnu; do
+                      n=$((n + 1))
+                      [ "$n" -ge 4 ] && { echo "::error::cargo build failed after $n attempts"; exit 1; }
+                      echo "::warning::cargo build attempt $n failed (transient network?); retrying in 20s"
+                      sleep 20
+                  done
 
             - name: Upload Linux libuniti.so
               uses: actions/upload-artifact@v7
@@ -180,12 +242,21 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/build_android
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/build_android
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install build prerequisites
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
 
             - name: Setup Rust stable
               uses: dtolnay/rust-toolchain@stable
@@ -200,7 +271,9 @@ jobs:
                   add-to-path: true
 
             - name: Install cargo-ndk
-              run: cargo install cargo-ndk --locked
+              env:
+                  CARGO_NET_RETRY: '10'
+              run: command -v cargo-ndk >/dev/null || cargo install cargo-ndk --locked
 
             - name: cargo ndk build
               env:
@@ -208,8 +281,14 @@ jobs:
                   ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
               run: |
                   cd packages/rust/bevy/uniti
-                  cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 \
-                      -o ./android-out build -p uniti --release
+                  n=0
+                  until cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 \
+                      -o ./android-out build -p uniti --release; do
+                      n=$((n + 1))
+                      [ "$n" -ge 4 ] && { echo "::error::cargo ndk build failed after $n attempts"; exit 1; }
+                      echo "::warning::cargo ndk build attempt $n failed (transient network?); retrying in 20s"
+                      sleep 20
+                  done
 
             - name: Upload Android per-ABI .so
               uses: actions/upload-artifact@v7
@@ -224,7 +303,7 @@ jobs:
         runs-on: macos-latest
         timeout-minutes: 45
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install protoc (macOS)
               run: brew install protobuf
@@ -244,8 +323,14 @@ jobs:
             - name: cargo build (device + sim)
               run: |
                   cd packages/rust/bevy/uniti
-                  cargo build -p uniti --release --target aarch64-apple-ios
-                  cargo build -p uniti --release --target aarch64-apple-ios-sim
+                  n=0
+                  until cargo build -p uniti --release --target aarch64-apple-ios \
+                      && cargo build -p uniti --release --target aarch64-apple-ios-sim; do
+                      n=$((n + 1))
+                      [ "$n" -ge 4 ] && { echo "::error::cargo build (ios) failed after $n attempts"; exit 1; }
+                      echo "::warning::cargo build (ios) attempt $n failed (transient network?); retrying in 20s"
+                      sleep 20
+                  done
 
             - name: Build XCFramework
               run: |

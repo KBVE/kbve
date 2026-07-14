@@ -1,0 +1,4 @@
+module KbveWgpuFFI {
+    header "kbve_wgpu.h"
+    export *
+}

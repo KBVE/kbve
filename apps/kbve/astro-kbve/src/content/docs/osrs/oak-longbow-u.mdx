@@ -12,23 +12,80 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: unstrung_bow
+    tier: low
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.332
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 25
+      xp: 25
+      materials:
+        - item_name: Oak logs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+    - skill: fletching
+      level: 25
+      xp: 25
+      materials:
+        - item_name: Oak longbow (u)
+          quantity: 1
+        - item_name: Bow string
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 48
-      item_name: Longbow (u)
+    - item_name: Longbow (u)
       slug: longbow-u
       relationship: variant
-      description: Lower tier unstrung longbow
-    - item_id: 54
-      item_name: Oak shortbow (u)
+      description: Lower-tier unstrung longbow
+    - item_name: Oak shortbow (u)
       slug: oak-shortbow-u
       relationship: variant
       description: Matching unstrung oak shortbow
+    - item_name: Oak longbow
+      slug: oak-longbow
+      relationship: product
+      description: Strung version made with a bowstring
+    - item_name: Oak logs
+      slug: oak-logs
+      relationship: component
+      description: Raw material cut into the bow shape
+    - item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: Added to string the bow
   about: |-
-    > _"An unstrung oak longbow; I need a bowstring for this."_
-
-    The oak longbow (u) is an unstrung longbow made from oak logs. String with a bowstring at 25 Fletching to create an oak longbow. Members only.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Oak longbow (u) is the unstrung form of the Oak longbow. Cut from oak logs with a knife at 25 Fletching for 25 XP. String with a bowstring (also at 25 Fletching, 25 XP) to create an Oak longbow. Members only.
+  market_strategy:
+    notes:
+      - "Buy oak logs, fletch, sell unstrung longbows"
+      - "Compare against strung Oak longbow margin"
+      - "Buy limit of 10,000 per 4 hours"
+      - "Common low-level Fletching training output"
+  history:
+    - date: "2002-03-25"
+      description: "Released alongside the Fletching skill."
+    - date: "2005-05-17"
+      description: "Renamed from Oak longbow to Oak longbow (u)."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

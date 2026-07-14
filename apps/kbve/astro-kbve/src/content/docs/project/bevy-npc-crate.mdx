@@ -1,13 +1,15 @@
 ---
-title: uevy npc
-description: |
-    uevy npc — Bevy game crate for the KBVE isometric engine.
+title: Bevy NPC — Proto-Driven NPC Registry Crate
+description: Bevy NPC crate that compiles npcdb.proto into typed Rust structs with a searchable NpcDb registry queryable by slug, ULID, type, rarity, or family.
+sem: 1
 sidebar:
-    label: uevy npc
+    label: Bevy NPC
 tags:
     - crates
     - rust
     - bevy
+    - npc
+    - gamedev
 key: bevy_npc_crate
 pipeline: crates
 package_name: bevy_npc
@@ -19,8 +21,92 @@ version_toml: packages/rust/bevy/bevy_npc/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the bevy_npc crate do?
+          answer: It compiles the shared npcdb.proto into typed Rust structs via prost and wraps them in a searchable NpcDb Bevy resource, so any game can load one proto NPC registry and query it by slug, ULID, type flags, rarity, or creature family.
+        - question: How do you load NPC data into bevy_npc?
+          answer: Add BevyNpcPlugin to register an empty NpcDb resource, then populate it at startup from JSON with NpcDb::from_json, from a proto binary with NpcDb::from_bytes, or from a decoded proto with NpcDb::from_proto, and insert it via commands.
+        - question: What is the optional creature feature?
+          answer: The creature feature enables game-agnostic ECS components for creature pooling, capture, and interaction — CreaturePoolIndex, CreatureState, CapturedCreatures, CreatureCaptureEvent, and CreaturePlugin.
+bento:
+    badge: crates · rust · bevy
+    title: Proto-driven NPCs for
+    accent: bevy_npc
+    lede: >-
+        A game-agnostic NPC registry for Bevy — the shared npcdb.proto compiled
+        into typed Rust structs and wrapped in a searchable NpcDb resource
+        queryable by slug, ULID, type, rarity, or creature family.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_npc
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: package
+        title: One proto, every game
+        body: >-
+            The crate is game-agnostic: any title can load the same proto NPC
+            registry and query it by slug, ULID, type flags, rarity, or creature
+            family.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Engine, value: "Bevy 0.18", icon: gears }
+        - { label: Registry, value: NpcDb, icon: database }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Proto-driven types
+          icon: gears
+          body: >-
+            npcdb.proto is compiled to typed Rust structs at build time with
+            prost, keeping the NPC schema in sync across games.
+        - title: Searchable registry
+          icon: database
+          body: The NpcDb resource is queryable by slug, ULID, type flags, rarity, or creature family.
+        - title: Multiple load paths
+          icon: expand
+          body: Hydrate from JSON (from_json), a proto binary (from_bytes), or a decoded proto (from_proto).
+        - title: Optional creature feature
+          icon: box
+          body: >-
+            Adds ECS components for creature pooling, capture, and interaction
+            (CreaturePoolIndex, CreatureState, CapturedCreatures,
+            CreatureCaptureEvent, CreaturePlugin).
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy::prelude::*;
+            use bevy_npc::{BevyNpcPlugin, NpcDb};
+
+            fn load_npcs(mut commands: Commands) {
+                let json = include_str!("path/to/npcdb.json");
+                let db = NpcDb::from_json(json).expect("Failed to parse NPC JSON");
+                commands.insert_resource(db);
+            }
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Isometric camera plugin for the same engine.
+          icon: video
+        - title: KBVE NPC Database
+          href: /project/kbvenpcdb
+          copy: The NPC data source behind the proto registry.
+          icon: database
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-uevy npc Bevy crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

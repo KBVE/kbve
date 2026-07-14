@@ -1,5 +1,6 @@
 ---
 title: Horn Coral Fan
+template: splash
 description: |
     Minecraft Horn Coral Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 744
     ref: horn_coral_fan
     slug: horn-coral-fan
+    content_rev: 1
     display_name: Horn Coral Fan
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: horn_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - ocean
+        - coral
+        - waterloggable
+    about:
+        description: |
+            Horn Coral Fan is the yellow coral fan variant that generates in
+            coral reef structures and can be placed on the sides or top of
+            blocks. Without adjacent water it dies and becomes Dead Horn
+            Coral Fan.
+        lore: |
+            Added in Java Edition 1.13 alongside the Update Aquatic's coral
+            reef generation.
+    uses:
+        - title: Building & decoration
+          ref: horn_coral_fan
+          detail: |
+              Placed for decorative underwater scenery; only survives long
+              term with an adjacent water or waterlogged block.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally in coral reef structures in warm ocean biomes.
+        - location: Bone meal on water
+          detail: Applying bone meal to water in warm oceans has a chance to grow a coral fan.
+    faq:
+        - question: Does it drop anything without Silk Touch?
+          answer: |
+              No. Mining a coral fan without Silk Touch destroys it with no
+              drop at all.
+        - question: What happens if it's not touching water?
+          answer: |
+              It dies within a few seconds and permanently turns into Dead
+              Horn Coral Fan.
+        - question: Can it be pushed by pistons?
+          answer: |
+              No. Coral fans break instead of moving when a piston tries to
+              push them.
+        - question: Where can I place a Horn Coral Fan?
+          answer: |
+              On the four sides and the top surface of a block, but never on
+              the underside.
     data_version: "1.21.5"
 ---
 

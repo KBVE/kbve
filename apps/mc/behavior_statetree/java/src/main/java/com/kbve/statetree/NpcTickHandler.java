@@ -26,7 +26,7 @@ import java.util.List;
  * </ol>
  *
  * <p>The authority split ensures cheap entity intents (movement, combat)
- * never compete with expensive world mutations (spawns, ship ops) for
+ * never compete with expensive world mutations (spawns) for
  * queue space or budget.
  */
 public class NpcTickHandler implements ServerTickEvents.EndTick {
@@ -41,7 +41,7 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
 
     /**
      * World channel drain cadence. Every N ticks, world intents are
-     * applied. Spreads expensive mutations (spawns, ship ops) across
+     * applied. Spreads expensive mutations (spawns) across
      * ticks so they don't cluster into a single spike.
      */
     private static final int WORLD_DRAIN_INTERVAL = 2;
@@ -58,7 +58,6 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
     private final WorldCommandApplier worldApplier = new WorldCommandApplier();
     private final IntentExecutor executor;
 
-    private com.kbve.statetree.ship.ShipManager shipManager;
     private int tickCounter = 0;
 
     public NpcTickHandler() {
@@ -71,11 +70,6 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
 
     public AiCreatureManager getCreatureManager() {
         return creatureManager;
-    }
-
-    /** Inject the ship manager (called once during mod init). */
-    public void setShipManager(com.kbve.statetree.ship.ShipManager manager) {
-        this.shipManager = manager;
     }
 
     @Override
@@ -109,7 +103,7 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
         // 4a. Entity channel — drain every tick (cheap, high-frequency)
         if (!entityInbox.isEmpty() && overworld != null) {
             CommandContext ctx = CommandContext.forWorld(
-                    overworld, creatureManager, scaffoldTracker, shipManager);
+                    overworld, creatureManager, scaffoldTracker);
             executor.applyEntityChannel(ctx);
         }
 
@@ -117,7 +111,7 @@ public class NpcTickHandler implements ServerTickEvents.EndTick {
         if (tickCounter % WORLD_DRAIN_INTERVAL == 0
                 && !worldInbox.isEmpty() && overworld != null) {
             CommandContext ctx = CommandContext.forWorld(
-                    overworld, creatureManager, scaffoldTracker, shipManager);
+                    overworld, creatureManager, scaffoldTracker);
             executor.applyWorldChannel(ctx);
         }
 

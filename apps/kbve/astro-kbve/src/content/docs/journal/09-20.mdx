@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1691335799851-ea2799a51ff0?crop=entropy&c
 description: September 20th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 20,'
+    accent: every year.
+    lede: 'The September 20th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 19'
+          href: /journal/09-19/
+        - label: 'Sep 21 →'
+          href: /journal/09-21/
+    related:
+        - title: 'Previous · Sep 19'
+          copy: 'Step back a day to the September 19th log.'
+          href: /journal/09-19/
+          icon: calendar
+        - title: 'Next · Sep 21'
+          copy: 'Jump ahead to the September 21st log.'
+          href: /journal/09-21/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1691335799851-ea2799a51ff0?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Unity Sunday Session - Weapon Aim
 
@@ -30,7 +71,15 @@ import { Adsense, Tasks } from '@/components/astropad';
 	My plan is to have the minions be within the ECS eco-system and have the main boss be a gameobject itself.
 	I believe we can achieve this through a strong centralized event system, which the MMEvents is already becoming.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Kilobase**
 
@@ -121,20 +170,31 @@ To rule out if its a sealed secerts issue or a general fleet issue, I will try t
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 9:34am - The next move would be to test case the appwrite connection on multiple widgets and concepts outside of the general structure. This will be an interesting way to see if the CORS issue is specific to the `kbve.com` domain or if its Traefik or if its Cloudflare, ect.. There are a couple different areas where we might be having this CORS issue but this might be the best way to guess and check.
 - 1:26pm - I am thinking of cloning out the YoRHa UI to be a bit like the Aura Idle but I am on the fence because of too many abstract libraries. I might use a 3rd party engine but at the same time, I might just stick with the basic vanilla Javascript as much as I can before I really add more weight to the components.
 - 3:00pm - Taking a side break from the YoRHa UI and now adding Toasts into the KBVE repo. There are two main libraries that I am looking into, Toastify and Svelte-Toast, yet it seems that both get the job done, but I am on the fence on which one that I would use.
 - 4:03pm - Was really hoping the feds would not increase the rates again but I will take a small hike on the table for the remaining year, I guess. Those calls all expired in profit!
 - 5:14pm - Toast looks like its fine for now, needs to be a bit refined but I will have to figure out the best way to do so. I am thinking maybe outside the scope of the current templating system and has it operate as its own component.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Once you choose hope, anything's possible.
 > — <cite>Christopher Reeve</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

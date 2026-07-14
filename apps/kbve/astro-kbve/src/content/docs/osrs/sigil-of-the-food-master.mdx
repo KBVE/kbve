@@ -12,9 +12,43 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of the food master is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  special_attack:
+    description: "Provides a 5% chance not to consume food when eaten (6 second cooldown). Boosted to 40% in Armageddon and 20% in Apocalypse Deadman events."
+  related_items:
+    - name: Sigil of the Last Recall
+      relationship: alternative
+    - name: Sigil of the Devout
+      relationship: alternative
+  about: "Sigil of the food master is a members-only Deadman Mode sigil in Old School RuneScape. Currently unobtainable outside of seasonal Deadman events."
+  market_strategy:
+    notes:
+      - Exclusive to temporary Deadman Mode events (Annihilation, Apocalypse, Armageddon).
+      - In Deadman Annihilation it could be purchased from the Skull shop.
+      - Previously the un-attuned version was tradeable on the Grand Exchange.
+  trading_tips:
+    - Not obtainable in the live game; appears only during Deadman seasonal events.
+    - Can be sold back via Deadman's skull in Annihilation to recover skull value.
+  history:
+    - date: "2023-08-23"
+      description: Sigil released as part of the Deadman Apocalypse event.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-08-23"
+    update: "Deadman: Apocalypse"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?crop=entropy&c
 description: September 23rd. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 23,'
+    accent: every year.
+    lede: 'The September 23rd daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 22'
+          href: /journal/09-22/
+        - label: 'Sep 24 →'
+          href: /journal/09-24/
+    related:
+        - title: 'Previous · Sep 22'
+          copy: 'Step back a day to the September 22nd log.'
+          href: /journal/09-22/
+          icon: calendar
+        - title: 'Next · Sep 24'
+          copy: 'Jump ahead to the September 24th log.'
+          href: /journal/09-24/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Intel NUCS Talos
 
@@ -22,7 +63,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     I am thinking of making them all steady worker nodes that our main cloud can call and have it perform tasks on our behalf.
     With the minor cpu power and okayish ram, I am thinking they would be great throw-away micronodes, perfect for one-off python scripts.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **KILO**
 
@@ -79,20 +128,30 @@ Looks like the current major failure is in our minio template, there seems to be
 After resolving those errors, we got some more errors in the `executing "supabase/templates/cnpg-kilobase-postgres.yaml"`, going to see what this nil error is from.
 I should create a new journal entry to keep track of the changes.
 
+</BentoProse>
 
-## 2023
+<BentoProse id="2023" heading="2023">
+
 - 6:35am - The mornings are getting cold, yes! No more ac and I can finally blast some of my PCs to max! Using my computers as a source of heat will always be OP.
 - 7:00pm - I forgot to convert over my written notes to digital! I been trying to figure out the phaser engine for a bit and getting some luck in resolving some of the basic issues.
 - 8:35pm - I am super excited for the next season of one piece, which will most definitely be a couple years from now with all the strikes and what not, but it gives me time to catch up on the general one piece series. 
 - 11:40pm - The new john wick series looks amazing! I enjoyed the first episode a lot and can not wait to see the next episode, it is a bit of a shame that they did not release all of them at once.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > A prudent question is one half of wisdom.
 > — <cite>Francis Bacon</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

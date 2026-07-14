@@ -1,5 +1,6 @@
 ---
 title: Cake with Green Candle
+template: splash
 description: |
     Minecraft Cake with Green Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 934
     ref: green_candle_cake
     slug: green-candle-cake
+    content_rev: 1
     display_name: Cake with Green Candle
     material: stone
     hardness: 0.5
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            A decorative variant of cake with a green candle placed on top.
+            It breaks instantly with any tool and drops only the candle;
+            the cake portion itself drops nothing.
+        lore: |
+            Candle cakes were added alongside dyeable candles in Java
+            Edition 1.17, combining the beta-era cake block with a
+            placeable light source.
+    uses:
+        - title: Green Candle
+          ref: green_candle
+          detail: |
+              Breaking a candle cake always returns the green candle that
+              was placed on it, letting it be reused elsewhere.
+        - title: Ambient Lighting
+          ref: green_candle
+          detail: |
+              Lighting the candle with flint and steel or a fire charge
+              produces light level 3, useful as a decorative table
+              centerpiece.
+    found_in:
+        - location: Crafting interaction
+          detail: Right-click an uneaten cake block with a green candle in hand to place it on top.
+    faq:
+        - question: Can I eat a cake that has a candle on it?
+          answer: |
+              No. The candle blocks the eating interaction; it must be
+              removed first by breaking it off or via other means.
+        - question: What tool do I need to mine a green candle cake?
+          answer: |
+              None. It breaks instantly by hand or with any tool.
+        - question: Does the cake portion drop anything when broken?
+          answer: |
+              No. Only the green candle drops; the cake itself never
+              drops as an item, even with Silk Touch.
+        - question: Can more than one candle be placed on a cake?
+          answer: |
+              No. Only a single candle can occupy a cake block, unlike
+              plain candle blocks which stack up to four.
     data_version: "1.21.5"
 ---
 

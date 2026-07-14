@@ -12,29 +12,47 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 125
-  item_id: 1279
-  item_type: equipment
-  slot: weapon
-  type: sword
-  attack_style: stab
-  attack_speed: 4
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 1
-  stats:
-    stab_attack: 6
-    slash_attack: 4
-    crush_attack: -2
-    strength: 7
+  material:
+    type: weapon
+    tier: low
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+  equipment:
+    slot: weapon
+    type: sword
+    attack_style: stab
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 1
+    stats:
+      stab_attack: 6
+      slash_attack: 4
+      crush_attack: -2
+      strength: 7
   related_items:
-    - slug: steel-sword
-    - slug: iron-scimitar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Steel sword
+      slug: steel-sword
+      relationship: upgrade
+      description: Next tier sword
+    - item_name: Iron scimitar
+      slug: iron-scimitar
+      relationship: alternative
+      description: Same tier slash weapon
+  about: "Iron sword is a free-to-play item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 125 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

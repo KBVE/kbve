@@ -1,6 +1,6 @@
 ---
 title: Magic cape rack (flatpack) | OSRS Price Data
-description: "Magic cape rack (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Magic cape rack (flatpack): a pre-built Construction flatpack for a top-tier costume room cape rack. High alch: 6 GP, GE limit: 500."
 osrs:
   id: 9848
   name: Magic cape rack (flatpack)
@@ -12,9 +12,78 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Magic cape rack (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wood
+    tier: high
+  properties:
+    release_date: "2007-05-22"
+    update: "Player-Owned Houses (Costume Room)"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  construction:
+    construction_level: 80
+    xp: 1000
+    materials:
+      - item_name: Magic logs
+        quantity: "4"
+      - item_name: Gold leaf
+        quantity: "2"
+    hotspot: Cape rack space
+    room: Costume Room
+    tools:
+      - Hammer
+      - Saw
+    notes: "Built at a Wooden workbench in a player-owned house workshop; stores all rare and skill capes."
+  recipes:
+    - skill: construction
+      level: 80
+      xp: 1000
+      materials:
+        - item_name: Magic logs
+          quantity: 4
+        - item_name: Gold leaf
+          quantity: 2
+      output_quantity: 1
+      notes: "Assembled at a Wooden workbench."
+  related_items:
+    - item_name: Magic logs
+      slug: magic-logs
+      relationship: component
+      description: Primary material consumed during assembly.
+    - item_name: Gold leaf
+      slug: gold-leaf
+      relationship: component
+      description: Decorative material applied to finish the rack.
+    - item_name: Yew cape rack (flatpack)
+      slug: yew-cape-rack-flatpack
+      relationship: alternative
+      description: Lower-tier cape rack flatpack.
+  about: |-
+    Magic cape rack (flatpack) is a pre-built version of the top-tier Costume Room cape rack, assembled at a player-owned house Wooden workbench from 4 magic logs and 2 gold leaves. It requires 80 Construction to build and grants 1,000 Construction experience.
+
+    Once placed, the magic cape rack stores all rare and skill capes for retrieval, occupying a Costume Room cape rack hotspot.
+  market_strategy:
+    notes:
+      - "Used by Construction trainers as a high-XP-per-action option."
+      - "Demand spikes during Construction bonus events."
+      - "Margins driven by magic log and gold leaf prices."
+  trading_tips:
+    - "Buy magic logs and gold leaves at GE lows before building flatpacks for resale."
+    - "GE limit 500 supports bulk flipping during Construction events."
+  history:
+    - date: "2007-05-22"
+      description: "Released alongside the Costume Room update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

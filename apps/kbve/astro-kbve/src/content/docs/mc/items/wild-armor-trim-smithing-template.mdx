@@ -1,5 +1,6 @@
 ---
 title: Wild Armor Trim
+template: splash
 description: |
     Minecraft Wild Armor Trim — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1337
     ref: wild_armor_trim_smithing_template
     slug: wild-armor-trim-smithing-template
+    content_rev: 1
     display_name: Wild Armor Trim
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Wild Armor Trim is a smithing template that applies a decorative pattern to armor at a smithing
+            table when combined with a trim material such as diamond or copper. It is found exclusively in jungle
+            pyramid chests and is consumed on use, though it can be duplicated.
+        lore: |
+            Its overgrown, vine-like pattern echoes the jungle pyramids where it is discovered, tying its
+            appearance directly to its place of origin.
+    faq:
+        - question: Where can you find the Wild Armor Trim?
+          answer: |
+              It generates in jungle pyramid chests, appearing in pairs with a 33.3% chance per chest.
+        - question: How do you use a smithing template?
+          answer: |
+              Place the template, a piece of armor, and a trim material (like a diamond or copper ingot) into a
+              smithing table to apply the trim's pattern and color to that armor piece.
+        - question: Can the Wild Armor Trim be duplicated?
+          answer: |
+              Yes, combining one Wild Armor Trim with one diamond and one mossy cobblestone at a smithing table
+              produces two templates, a net gain of one.
+        - question: When was the Wild Armor Trim added to the game?
+          answer: |
+              It was introduced experimentally in Java Edition 1.19.4 and became a standard feature in Java Edition
+              1.20, with its rarity later changed from Common to Uncommon in 1.21.2.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

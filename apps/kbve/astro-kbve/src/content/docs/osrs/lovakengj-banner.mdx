@@ -1,20 +1,109 @@
 ---
 title: Lovakengj banner | OSRS Price Data
-description: "Lovakengj banner: A lovakite banner baring the sigil of house Lovakengj.. High alch: 42 GP, GE limit: 4."
+description: "Lovakengj banner: A lovakite banner bearing the sigil of house Lovakengj. High alch: 42 GP, GE limit: 4."
 osrs:
   id: 20257
   name: Lovakengj banner
   slug: lovakengj-banner
-  examine: A lovakite banner baring the sigil of house Lovakengj.
+  examine: A lovakite banner bearing the sigil of house Lovakengj.
   members: true
   icon: Lovakengj banner.png
   value: 70
   lowalch: 28
   highalch: 42
   limit: 4
-  about: "Lovakengj banner is a members-only item in Old School RuneScape. High alchemy value: 42 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: lovakite
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: polestaff
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/1133
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_id: 20253
+      item_name: Arceuus banner
+      slug: arceuus-banner
+      relationship: alternative
+      description: Matching House banner from Arceuus.
+    - item_id: 20255
+      item_name: Hosidius banner
+      slug: hosidius-banner
+      relationship: alternative
+      description: Matching House banner from Hosidius.
+    - item_id: 20259
+      item_name: Piscarilius banner
+      slug: piscarilius-banner
+      relationship: alternative
+      description: Matching House banner from Piscarilius.
+    - item_id: 20261
+      item_name: Shayzien banner
+      slug: shayzien-banner
+      relationship: alternative
+      description: Matching House banner from Shayzien.
+  about: "Lovakengj banner is a cosmetic polestaff bearing the Lovakengj sigil, obtained as a medium clue reward; it offers no combat bonuses and is stored in the costume room treasure chest."
+  market_strategy:
+    notes:
+      - Strict 4-per-4h GE limit caps flipping throughput.
+      - Supply comes only from medium clue caskets (1/1133).
+      - Cosmetic demand bumps when Kourend content updates ship.
+  trading_tips:
+    - Buy in singletons to respect the tight buy limit.
+    - Compare price across all five House banners for collector flips.
+    - Watch Kourend favour reworks for potential cosmetic demand spikes.
+  history:
+    - date: "2016-07-06"
+      description: Lovakengj banner released with the Kingdom of Kourend update.
+    - date: "2019-01-01"
+      description: Examine text corrected from "baring" to "bearing".
+  properties:
+    release_date: "2016-07-06"
+    update: Kingdom of Kourend
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

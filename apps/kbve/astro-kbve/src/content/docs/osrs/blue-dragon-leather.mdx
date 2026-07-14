@@ -5,7 +5,7 @@ osrs:
   id: 2505
   name: Blue dragon leather
   slug: blue-dragon-leather
-  examine: It's a piece of prepared blue dragonhide.
+  examine: "It's a piece of prepared blue dragonhide."
   members: true
   icon: Blue dragon leather.png
   value: 70
@@ -15,31 +15,43 @@ osrs:
   material:
     type: leather
     tier: mid
-  tanning:
-    cost: 20
-    source_id: 1751
-    source_name: Blue dragonhide
-  crafting_products:
-    - product: Blue d'hide vambraces
-      product_id: 2487
+  recipes:
+    - skill: Crafting
       level: 66
       xp: 70
-      leather: 1
-    - product: Blue d'hide chaps
-      product_id: 2493
+      materials:
+        - item_name: Blue dragon leather
+          quantity: 1
+      tools:
+        - Needle
+        - Thread
+    - skill: Crafting
       level: 68
       xp: 140
-      leather: 2
-    - product: Blue d'hide shield
-      product_id: 24373
+      materials:
+        - item_name: Blue dragon leather
+          quantity: 2
+      tools:
+        - Needle
+        - Thread
+    - skill: Crafting
       level: 69
       xp: 140
-      leather: 2
-    - product: Blue d'hide body
-      product_id: 2499
+      materials:
+        - item_name: Blue dragon leather
+          quantity: 2
+      tools:
+        - Needle
+        - Thread
+    - skill: Crafting
       level: 71
       xp: 210
-      leather: 3
+      materials:
+        - item_name: Blue dragon leather
+          quantity: 3
+      tools:
+        - Needle
+        - Thread
   related_items:
     - item_id: 1751
       item_name: Blue dragonhide
@@ -61,21 +73,34 @@ osrs:
       slug: green-dragon-leather
       relationship: alternative
       description: Lower tier
+  about: "Blue dragon leather is mid-tier dragonhide tanned for 20 coins and used in Crafting to make vambraces, chaps, shields, and bodies between levels 66 and 71."
   market_strategy:
     notes:
-      - Mid-tier dragonhide
-      - F2P armor accessible
-      - High volume trading
-      - Crafting training
-      - Blue d'hide production
-      - Tan Leather profit
-      - F2P ranged gear
-      - Tan Leather spell efficient
-      - Blue dragons very common
-      - Popular training leather
-      - F2P bodies usable
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Tan at 20 coins (45 in Canifis)
+      - Mid-tier crafting feedstock
+      - High volume turnover
+      - Buy limit 13,000 per 4 hours
+  history:
+    - date: "2004-03-29"
+      description: Released with the RS2 launch.
+    - date: "2015-01-01"
+      description: Renamed to Blue dragon leather (from Blue d-leather).
+  properties:
+    release_date: "2004-03-29"
+    update: RS2 Launched
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

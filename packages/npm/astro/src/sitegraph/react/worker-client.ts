@@ -109,15 +109,36 @@ function resolveEndpoint(endpoint: string): string {
  * Returns `null` when no worker is wired so callers can fall back to a
  * direct fetch.
  */
+const WORKER_TIMEOUT_MS = 10_000;
+
 export function fetchViaWorker(
 	endpoint: string,
+	timeoutMs = WORKER_TIMEOUT_MS,
 ): Promise<SiteGraphData> | null {
 	const port = activePort;
 	if (!port) return null;
 	const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 	const absoluteEndpoint = resolveEndpoint(endpoint);
 	return new Promise<SiteGraphData>((resolve, reject) => {
-		pending.set(requestId, { resolve, reject });
+		// A worker that never replies (killed, blob URL revoked, clone failure)
+		// would otherwise leave this entry in `pending` forever and hang the
+		// cache promise in "loading". On timeout the caller falls back to a
+		// direct fetch.
+		const timer = setTimeout(() => {
+			if (pending.delete(requestId)) {
+				reject(new Error('SiteGraph worker timed out'));
+			}
+		}, timeoutMs);
+		pending.set(requestId, {
+			resolve: (data) => {
+				clearTimeout(timer);
+				resolve(data);
+			},
+			reject: (err) => {
+				clearTimeout(timer);
+				reject(err);
+			},
+		});
 		try {
 			port.postMessage({
 				type: 'get',
@@ -125,6 +146,7 @@ export function fetchViaWorker(
 				requestId,
 			});
 		} catch (err) {
+			clearTimeout(timer);
 			pending.delete(requestId);
 			reject(err instanceof Error ? err : new Error(String(err)));
 		}

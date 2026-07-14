@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KBVE Metrics</title>
+    <meta name="description" content="KBVE in-house observability — error telemetry ingest and query, backed by ClickHouse." />
+    <link rel="icon" href="https://kbve.com/favicon.ico" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { darkMode: "class" };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+    <div class="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-16">
+      <header class="flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+            <path d="M3 3v18h18" />
+            <path d="m7 14 4-4 3 3 5-6" />
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-lg font-semibold tracking-tight">KBVE Metrics</h1>
+          <p class="text-xs text-slate-400">metrics.kbve.com</p>
+        </div>
+        <span id="status" class="ml-auto inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1 text-xs font-medium text-slate-300 ring-1 ring-slate-700">
+          <span class="h-2 w-2 rounded-full bg-slate-500"></span>
+          checking…
+        </span>
+      </header>
+
+      <main class="mt-14 flex-1">
+        <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">
+          In-house observability.
+        </h2>
+        <p class="mt-4 max-w-xl text-slate-400">
+          This is KBVE's error telemetry service — ingesting and querying application
+          errors, backed by <span class="text-slate-200">ClickHouse</span>. If you
+          landed here, you found the right place.
+        </p>
+
+        <div class="mt-10 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+            <h3 class="text-sm font-semibold text-slate-200">Ingest</h3>
+            <p class="mt-1 text-sm text-slate-400">Batched error events land here from apps across the fleet.</p>
+            <code class="mt-3 block rounded bg-slate-950 px-2 py-1 text-xs text-emerald-400">POST /api/v1/ingest/errors</code>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+            <h3 class="text-sm font-semibold text-slate-200">Query</h3>
+            <p class="mt-1 text-sm text-slate-400">Grouped errors and raw events (staff auth required).</p>
+            <code class="mt-3 block rounded bg-slate-950 px-2 py-1 text-xs text-emerald-400">GET /api/v1/groups</code>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-3 text-sm">
+          <a href="/dashboard" class="rounded-lg bg-emerald-500/15 px-4 py-2 font-medium text-emerald-300 ring-1 ring-emerald-500/30 transition hover:bg-emerald-500/25">Dashboard</a>
+          <a href="/health" class="rounded-lg bg-slate-800 px-4 py-2 font-medium text-slate-200 ring-1 ring-slate-700 transition hover:bg-slate-700">Health</a>
+          <a href="/readiness" class="rounded-lg bg-slate-800 px-4 py-2 font-medium text-slate-200 ring-1 ring-slate-700 transition hover:bg-slate-700">Readiness</a>
+          <a href="https://kbve.com" class="rounded-lg px-4 py-2 font-medium text-slate-400 transition hover:text-slate-200">kbve.com →</a>
+        </div>
+      </main>
+
+      <footer class="mt-14 border-t border-slate-800 pt-6 text-xs text-slate-500">
+        © KBVE · powered by axum + ClickHouse
+      </footer>
+    </div>
+
+    <script>
+      fetch("/health")
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d) => {
+          const el = document.getElementById("status");
+          el.innerHTML =
+            '<span class="h-2 w-2 rounded-full bg-emerald-400"></span> healthy · v' +
+            (d.version || "?");
+          el.className =
+            "ml-auto inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 ring-1 ring-emerald-500/30";
+        })
+        .catch(() => {
+          const el = document.getElementById("status");
+          el.innerHTML =
+            '<span class="h-2 w-2 rounded-full bg-rose-400"></span> unavailable';
+          el.className =
+            "ml-auto inline-flex items-center gap-2 rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-300 ring-1 ring-rose-500/30";
+        });
+    </script>
+  </body>
+</html>

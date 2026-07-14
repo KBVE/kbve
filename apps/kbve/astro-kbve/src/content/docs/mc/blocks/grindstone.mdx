@@ -1,5 +1,6 @@
 ---
 title: Grindstone
+template: splash
 description: |
     Minecraft Grindstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,79 @@ mc_block:
     id: 811
     ref: grindstone
     slug: grindstone
+    content_rev: 1
     display_name: Grindstone
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: grindstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+    about:
+        description: |
+            The Grindstone repairs and combines damaged tools and armor
+            while removing their enchantments, refunding some of the
+            experience spent enchanting them. It also serves as a
+            weaponsmith's job site block.
+        lore: |
+            Added in Java Edition 1.14, grindstones initially had no
+            function until a later snapshot gave them their repair and
+            disenchant behavior.
+    uses:
+        - title: Item Repair
+          ref: grindstone
+          detail: |
+              Place two damaged items of the same type in the input slots
+              to combine their durability plus a 5% bonus into one item.
+        - title: Disenchanting
+          ref: grindstone
+          detail: |
+              Placing a single enchanted item removes all non-curse
+              enchantments and outputs experience orbs.
+        - title: Weaponsmith Workstation
+          ref: weaponsmith
+          detail: |
+              Placing a grindstone near an unemployed villager assigns
+              them the weaponsmith profession.
+    found_in:
+        - location: Crafted
+          detail: |
+              Crafted from 2 sticks, 1 stone slab, and 2 planks of any
+              wood type.
+        - location: Villages
+          detail: Generates as part of weaponsmith houses in villages.
+    faq:
+        - question: What tool do I need to mine a Grindstone?
+          answer: |
+              A wooden pickaxe or better; mining it without a pickaxe
+              yields no drop.
+        - question: Does Silk Touch change what a Grindstone drops?
+          answer: |
+              No. A grindstone always drops itself when mined with a
+              pickaxe, regardless of enchantments.
+        - question: Can a Grindstone remove curse enchantments?
+          answer: |
+              No. Curses such as Curse of Binding and Curse of Vanishing
+              cannot be removed by a grindstone.
+        - question: Does using a Grindstone always refund full experience?
+          answer: |
+              No. It refunds a random amount between 50% and 100% of the
+              experience originally spent on the removed enchantments.
     data_version: "1.21.5"
 ---
 

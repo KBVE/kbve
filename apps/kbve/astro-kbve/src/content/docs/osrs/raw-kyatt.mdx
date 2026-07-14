@@ -1,6 +1,6 @@
 ---
 title: Raw kyatt | OSRS Price Data
-description: "Raw kyatt: I should probably cook this first.. High alch: 1 GP, GE limit: 13,000."
+description: "Raw kyatt: I should probably cook this first. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 29125
   name: Raw kyatt
@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw kyatt is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 0
+    edible: false
+  recipes:
+    - skill: Cooking
+      level: 51
+      xp: 143
+      materials:
+        - item_name: Raw kyatt
+          quantity: 1
+      tools:
+        - Fire or range
+      output_item: Cooked kyatt
+      output_quantity: 1
+      notes: "Requires 25 Hunters' Rumours completion. Burns into Burnt large beast on failure."
+  drop_table:
+    sources:
+      - source: Sabre-toothed kyatt
+        quantity: "1"
+        rarity: Always
+      - source: Hunters' loot sack (basic)
+        quantity: "1"
+        rarity: Common
+      - source: Hunters' loot sack (adept)
+        quantity: "1"
+        rarity: Common
+      - source: Hunters' loot sack (expert)
+        quantity: "1"
+        rarity: Common
+      - source: Hunters' loot sack (master)
+        quantity: "1"
+        rarity: Common
+      - source: Hunters' loot sack (supplies)
+        quantity: "1"
+        rarity: Common
+  related_items:
+    - item_name: Cooked kyatt
+      relationship: product
+      description: Cooked version produced at 51 Cooking.
+    - item_name: Burnt large beast
+      relationship: alternative
+      description: Failure product when cooking raw kyatt.
+  about: "Raw kyatt is hunted from sabre-toothed kyatts in Varlamore and cooked at level 51 Cooking for 143 XP. Used as a herblore ingredient and to recharge quetzal whistle charges via Soar Leader Pitri."
+  market_strategy:
+    notes:
+      - Steady supply from Hunter training in Varlamore
+      - Ingredient for six Herblore potion mixes
+      - Used as currency for quetzal whistle charges
+  history:
+    - date: "2024-03-20"
+      description: Released with the Varlamore Part One update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

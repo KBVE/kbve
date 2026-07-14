@@ -54,6 +54,14 @@ impl Claims {
             .map(sanitize_nick)
             .find(|n| !n.is_empty())
     }
+
+    /// Staff/elevated identities allowed to run moderation actions.
+    pub fn is_staff(&self) -> bool {
+        matches!(
+            self.role.as_deref(),
+            Some("service_role") | Some("supabase_admin")
+        )
+    }
 }
 
 fn sanitize_nick(raw: &str) -> String {
@@ -133,6 +141,27 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     const TEST_SECRET: &str = "kbve-jwt-secret-for-tests";
+
+    fn claims_with_role(role: Option<&str>) -> Claims {
+        Claims {
+            sub: "user-1".into(),
+            email: None,
+            role: role.map(str::to_string),
+            aud: None,
+            kbve_username: None,
+            user_metadata: UserMetadata::default(),
+            exp: 0,
+            iat: 0,
+        }
+    }
+
+    #[test]
+    fn is_staff_only_for_elevated_roles() {
+        assert!(claims_with_role(Some("service_role")).is_staff());
+        assert!(claims_with_role(Some("supabase_admin")).is_staff());
+        assert!(!claims_with_role(Some("authenticated")).is_staff());
+        assert!(!claims_with_role(None).is_staff());
+    }
 
     fn now_secs() -> u64 {
         SystemTime::now()

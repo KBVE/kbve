@@ -7,7 +7,11 @@ import {
 	$activePlayers,
 	$instanceLog,
 	$deploymentInfo,
+	$tenants,
+	$selectedTenant,
 	fetchAll,
+	fetchTenants,
+	setTenant,
 	statusColor,
 	formatUptime,
 	type HealthCheck,
@@ -486,11 +490,38 @@ function TimelineCard() {
 // Main Dashboard Component
 // ---------------------------------------------------------------------------
 
+function TenantSelector() {
+	const tenants = useStore($tenants);
+	const selected = useStore($selectedTenant);
+	if (tenants.length < 2) return null;
+	return (
+		<select
+			value={selected ?? ''}
+			onChange={(e) => void setTenant(e.target.value)}
+			style={{
+				background: 'var(--sl-color-bg-nav, #161b22)',
+				color: 'var(--sl-color-text, #e6edf3)',
+				border: '1px solid var(--sl-color-hairline, #30363d)',
+				borderRadius: 8,
+				padding: '0.4rem 0.6rem',
+				fontSize: '0.85rem',
+			}}>
+			{tenants.map((t) => (
+				<option key={t.id} value={t.id}>
+					{t.label}
+				</option>
+			))}
+		</select>
+	);
+}
+
 export default function ReactRowsDashboard() {
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		fetchAll().finally(() => setLoading(false));
+		fetchTenants()
+			.then(() => fetchAll())
+			.finally(() => setLoading(false));
 		const interval = setInterval(fetchAll, 30_000);
 		return () => clearInterval(interval);
 	}, []);
@@ -514,6 +545,15 @@ export default function ReactRowsDashboard() {
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'flex-end',
+				}}>
+				<TenantSelector />
+			</div>
+
 			{/* Row 1: Deployment + Health */}
 			<div
 				style={{

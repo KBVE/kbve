@@ -1,5 +1,6 @@
 ---
 title: Chorus Fruit
+template: splash
 description: |
     Minecraft Chorus Fruit — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1213
     ref: chorus_fruit
     slug: chorus-fruit
+    content_rev: 1
     display_name: Chorus Fruit
     category: misc
     rarity: common
@@ -22,6 +24,25 @@ mc_item:
         saturation: 19.2
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Chorus fruit is a consumable food item native to the End dimension, obtained by breaking chorus plant blocks with roughly a 50% drop chance per block. Eating it restores 4 hunger points and 2.4 saturation, and unlike most foods it can be eaten even with a full hunger bar.
+            Its signature effect is a random teleport within about 8 blocks on each axis when consumed, mirroring enderman teleportation, and it also clears any pending fall damage.
+        lore: |
+            First added in Java Edition 1.9, chorus fruit remains the only food that reliably teleports the player who eats it.
+    faq:
+        - question: What does eating chorus fruit do?
+          answer: |
+              It restores 4 hunger and 2.4 saturation, then teleports the player randomly within about 8 blocks on each axis, similar to how an enderman teleports.
+        - question: Can I eat chorus fruit with a full hunger bar?
+          answer: |
+              Yes. Chorus fruit is one of the few foods that can be consumed even when hunger is already full, since its main purpose is the teleport rather than nutrition.
+        - question: Where do I get chorus fruit?
+          answer: |
+              Break chorus plant blocks found growing on the outer islands of the End; each block has roughly a 50% chance to drop one chorus fruit.
+        - question: What is chorus fruit used for besides eating?
+          answer: |
+              It can be smelted into popped chorus fruit, which is the crafting ingredient for purpur blocks used in End-city-style building.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

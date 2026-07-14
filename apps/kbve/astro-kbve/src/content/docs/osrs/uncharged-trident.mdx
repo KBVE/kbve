@@ -12,30 +12,81 @@ osrs:
   lowalch: 27200
   highalch: 40800
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: powered_staff
+    tier: high
+  properties:
+    release_date: "2014-01-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Are you sure you want to drop this?"
   equipment:
     slot: weapon
-    type: powered staff
-    tradeable: true
+    weapon_type: powered_staff
+    attack_speed: 4
     weight: 1.814
     requirements:
       magic: 75
-    stats:
-      attack_magic: 15
-      defence_magic: 15
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 15
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Cave kraken
+        quantity: "1"
+        rarity: 1/200
   related_items:
-    - item_id: 12899
-      item_name: Trident of the swamp
+    - item_name: Trident of the seas
+      slug: trident-of-the-seas
+      relationship: upgrade
+      description: Charged form of the uncharged trident
+    - item_name: Trident of the swamp
       slug: trident-of-the-swamp
       relationship: upgrade
-      description: Upgraded version with venom effect
-    - item_id: 12004
-      item_name: Kraken tentacle
+      description: Magic Fang upgrade granting venom
+    - item_name: Kraken tentacle
       slug: kraken-tentacle
       relationship: alternative
-      description: Upgrade component for swamp trident
-  about: Built-in spell. Charges with runes and coins (212 gp per cast).
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Used to attach to abyssal whip for slash weapon
+  about: "Uncharged trident is a powered staff dropped by cave krakens at 1/200. Charging costs 1 death rune, 1 chaos rune, 5 fire runes, and 10 coins per shot, up to 2,500 charges."
+  market_strategy:
+    notes:
+      - "Tradeable only when fully uncharged or fully charged"
+      - "Cave kraken drop powers supply"
+      - "Charge cost is roughly 321 coins per cast"
+  trading_tips:
+    - Compare uncharged vs charged spread to choose the cheaper buy
+    - Bulk Magic training drives demand spikes
+  history:
+    - date: "2014-01-30"
+      description: "Released with Cave krakens and the Trident of the seas."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

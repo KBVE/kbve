@@ -1,5 +1,6 @@
 ---
 title: Waxed Chiseled Copper
+template: splash
 description: |
     Minecraft Waxed Chiseled Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 983
     ref: waxed_chiseled_copper
     slug: waxed-chiseled-copper
+    content_rev: 1
     display_name: Waxed Chiseled Copper
-    material: stone
+    material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_chiseled_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Chiseled Copper is a decorative building block with an
+            engraved pattern that has been treated with honeycomb, locking
+            it permanently at its current oxidation stage so it never
+            weathers further.
+        lore: |
+            Chiseled Copper was revealed at Minecraft Live 2023 as part of
+            the Trial Chambers update and shipped with Java Edition 1.21.
+    uses:
+        - title: Decorative Building
+          ref: waxed_chiseled_copper
+          detail: |
+              Used purely as an ornamental block for builds that want a
+              fixed, non-weathering engraved copper look in any of the four
+              oxidation colors.
+        - title: Note Block Instrument
+          ref: note_block
+          detail: |
+              Placed beneath a note block, it produces a trumpet sound,
+              matching all copper family blocks.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed variants generate naturally in trial chamber vaults and decoration.
+        - location: Crafted from Cut Copper Slabs
+          detail: Two matching Cut Copper Slabs craft into one Chiseled Copper, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Mining with only a wooden pickaxe
+              or by hand drops nothing.
+        - question: Will Waxed Chiseled Copper oxidize further?
+          answer: |
+              No. The wax coating from the honeycomb permanently locks its
+              current oxidation stage, unlike unwaxed copper blocks.
+        - question: Can I remove the wax later?
+          answer: |
+              Yes, using an axe on the block removes the wax coating,
+              letting it resume oxidizing over time.
+        - question: Does Silk Touch matter for this block?
+          answer: |
+              No. A pickaxe of sufficient tier always drops the block
+              itself, with or without Silk Touch.
     data_version: "1.21.5"
 ---
 

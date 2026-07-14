@@ -12,9 +12,48 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 600
-  about: "Potatoes(10) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4.989
+    options:
+      - Fill
+      - Empty
+      - Drop
+    alchable: true
+  related_items:
+    - item_name: Potato
+      slug: potato
+      relationship: component
+      description: Single potato that fills the sack one at a time.
+    - item_name: Empty sack
+      slug: empty-sack
+      relationship: component
+      description: Container used to gather and carry potatoes in bulk.
+    - item_name: Potato seed
+      slug: potato-seed
+      relationship: variant
+      description: Allotment seed that grows into harvestable potatoes.
+  about: "Potatoes(10) is a filled sack containing ten potatoes, gathered from allotments around Lumbridge, Draynor, and Ardougne. The full sack is required for the Enlightened Journey and Mourning's End Part II quests, and is a popular Grand Exchange supply for ironmen completing those quests or stocking a player-owned house larder."
+  market_strategy:
+    notes:
+      - "Demand is driven almost entirely by quest requirements, not consumables."
+      - "Prices stay low because farmers can fill sacks for free at potato fields."
+      - "Volume spikes on weekends when new accounts grind early quests."
+  trading_tips:
+    - Stockpile a few sacks ahead of league or HCIM relaunches.
+    - Buy slightly above GE mid when stocking for a quest cape sprint.
+    - Sell empties separately if you have spare empty sacks listed.
+  history:
+    - date: "2005-07-11"
+      description: "Added with the original Farming skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

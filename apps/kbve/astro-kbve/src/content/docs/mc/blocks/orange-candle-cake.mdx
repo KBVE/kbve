@@ -1,5 +1,6 @@
 ---
 title: Cake with Orange Candle
+template: splash
 description: |
     Minecraft Cake with Orange Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,61 @@ mc_block:
     id: 922
     ref: orange_candle_cake
     slug: orange-candle-cake
+    content_rev: 1
     display_name: Cake with Orange Candle
     material: stone
     hardness: 0.5
     blast_resistance: 0.5
     best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Orange Candle is a novelty variant created by placing
+            an orange candle on top of an uneaten cake, turning it into a
+            lightable birthday-cake decoration.
+        lore: |
+            Candles were added in the Caves & Cliffs update (1.17), letting
+            players combine any dyed candle with a cake for a celebratory look.
+    uses:
+        - title: Decorative Light Source
+          ref: orange_candle
+          detail: |
+              Light with flint and steel or a fire charge for a light
+              level of 3, matching a single placed candle.
+    found_in:
+        - location: Player-made only
+          detail: Not naturally generated; created by right-clicking an orange candle onto an uneaten cake.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              None — any tool or bare hands work, and it always drops the
+              orange candle, not the cake.
+        - question: Can I still eat the cake underneath?
+          answer: |
+              No, once a candle is placed the cake can no longer be eaten
+              until the candle is removed by breaking it off.
+        - question: What happens if a player eats a slice?
+          answer: |
+              Any player eating from the cake causes the candle to pop off
+              and drop as an item.
+        - question: How much light does the lit candle give off?
+          answer: |
+              Light level 3, the same as a single unstacked candle block.
     data_version: "1.21.5"
 ---
 

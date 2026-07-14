@@ -196,6 +196,58 @@ pub fn validate_token(token: &str, jwt_secret: &str) -> Result<TokenData<Claims>
     })
 }
 
+/// Process-wide accept-both verifier (HS256 + ES256/JWKS) for the asymmetric
+/// signing transition. Lazily built on first use from `SUPABASE_JWKS_URI` (or
+/// derived from `SUPABASE_URL`) + `SUPABASE_JWT_SECRET`, with a background JWKS
+/// refresh. `None` when no JWKS URI is configured (→ pure HS256 fallback).
+fn shared_verifier() -> Option<&'static jedi::jwks::JwtVerifier> {
+    static VERIFIER: std::sync::OnceLock<Option<jedi::jwks::JwtVerifier>> =
+        std::sync::OnceLock::new();
+    VERIFIER
+        .get_or_init(|| {
+            let jwks_uri = std::env::var("SUPABASE_JWKS_URI")
+                .ok()
+                .filter(|s| !s.trim().is_empty())
+                .or_else(|| {
+                    std::env::var("SUPABASE_URL").ok().and_then(|u| {
+                        let u = u.trim().trim_end_matches('/');
+                        (!u.is_empty()).then(|| format!("{u}/auth/v1/.well-known/jwks.json"))
+                    })
+                })?;
+            let secret = std::env::var("SUPABASE_JWT_SECRET")
+                .ok()
+                .filter(|s| !s.is_empty());
+            let issuer = std::env::var("SUPABASE_JWT_ISSUER")
+                .ok()
+                .filter(|s| !s.trim().is_empty());
+            let verifier = jedi::jwks::JwtVerifier::new(
+                jwks_uri,
+                secret.as_deref().map(str::as_bytes),
+                issuer,
+                None,
+            );
+            let bg = verifier.clone();
+            tokio::spawn(async move {
+                bg.start(std::time::Duration::from_secs(300)).await;
+            });
+            Some(verifier)
+        })
+        .as_ref()
+}
+
+/// Verify a Supabase JWT accepting BOTH HS256 (shared secret) and ES256 (GoTrue
+/// JWKS). Falls back to HS256-only when no JWKS URI is configured. Returns the
+/// claims directly.
+pub fn verify_token(token: &str, jwt_secret: &str) -> Result<Claims, AuthError> {
+    if let Some(verifier) = shared_verifier() {
+        return verifier.verify::<Claims>(token).map_err(|e| match e {
+            jedi::jwks::VerifyError::Expired => AuthError::TokenExpired,
+            other => AuthError::InvalidToken(other.to_string()),
+        });
+    }
+    validate_token(token, jwt_secret).map(|d| d.claims)
+}
+
 pub fn extract_bearer_token(auth_header: &str) -> Option<&str> {
     auth_header
         .strip_prefix("Bearer ")

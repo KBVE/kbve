@@ -12,9 +12,65 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 10000
-  about: "Tatty larupia fur is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: fur
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Spined Larupia
+        quantity: "1"
+        rarity: Always (low quality)
+  shops:
+    - shop_name: Fancy Clothes Store
+      location: Varrock
+      price: 100
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Larupia fur
+      slug: larupia-fur
+      relationship: upgrade
+      description: Higher quality larupia fur usable for the hat
+    - item_name: Larupia top
+      slug: larupia-top
+      relationship: product
+      description: Crafted from a tatty larupia fur plus 100 coins
+    - item_name: Larupia legs
+      slug: larupia-legs
+      relationship: product
+      description: Crafted from a tatty larupia fur plus 100 coins
+    - item_name: Tatty graahk fur
+      slug: tatty-graahk-fur
+      relationship: alternative
+      description: Equivalent tatty fur from graahks
+  about: "Tatty larupia fur is the lower-quality fur obtained from trapping spined larupias at 31 Hunter in Feldip Hills. It can be exchanged with a fur vendor along with 100 coins for either larupia legs or a larupia top, but cannot be used for the larupia hat which requires regular larupia fur."
+  market_strategy:
+    notes:
+      - "Supply tied to early-Hunter trainers around level 31; volume is moderate but not huge."
+      - "Demand is mostly from new hunters chasing larupia outfits and ironmen who can't self-supply."
+      - "Sits close to high alch (36 gp) so price is well anchored."
+  trading_tips:
+    - Buy when below high alch + nature rune cost for a low-risk alch floor.
+    - Watch for hunter task popularity in slayer routes for short-term spikes.
+    - 10,000 buy limit is rarely tested due to thin volume.
+  history:
+    - date: "2006-11-21"
+      description: "Released with the Hunter skill"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

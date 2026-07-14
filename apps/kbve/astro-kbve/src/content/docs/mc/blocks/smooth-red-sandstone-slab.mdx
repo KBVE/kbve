@@ -1,5 +1,6 @@
 ---
 title: Smooth Red Sandstone Slab
+template: splash
 description: |
     Minecraft Smooth Red Sandstone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 779
     ref: smooth_red_sandstone_slab
     slug: smooth-red-sandstone-slab
+    content_rev: 1
     display_name: Smooth Red Sandstone Slab
     material: stone
     hardness: 2
@@ -26,8 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_red_sandstone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Smooth Red Sandstone Slab is a half-height decorative block cut
+            from Smooth Red Sandstone. It can be placed as a bottom, top, or
+            waterlogged slab and is mined fastest with a pickaxe, though any
+            pickaxe tier will do.
+        lore: |
+            Added alongside the rest of the smooth sandstone family in Java
+            Edition 1.14, giving red sandstone builds slab-height detailing.
+    found_in:
+        - location: Crafted from Smooth Red Sandstone
+          detail: Three Smooth Red Sandstone blocks craft into six slabs, or one block yields two slabs via a stonecutter.
+        - location: Not found naturally
+          detail: The slab does not generate in any structure; it must be crafted or stonecut from smelted red sandstone.
+    faq:
+        - question: What tool do I need to mine Smooth Red Sandstone Slab?
+          answer: |
+              Any pickaxe works — there is no minimum tier, though a
+              higher-tier pickaxe breaks it faster.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one slab per half-slab broken,
+              regardless of enchantments.
+        - question: How do I get Smooth Red Sandstone Slab?
+          answer: |
+              Craft three Smooth Red Sandstone into six slabs, or cut one
+              block into two slabs with a stonecutter. It cannot be mined
+              directly from the world.
+        - question: Does it burn or explode easily?
+          answer: |
+              No. It is not flammable and has a modest blast resistance of 6,
+              inherited from its full-block form.
     data_version: "1.21.5"
 ---
 

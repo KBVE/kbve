@@ -1,5 +1,6 @@
 ---
 title: Redstone Ore
+template: splash
 description: |
     Minecraft Redstone Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 258
     ref: redstone_ore
     slug: redstone-ore
+    content_rev: 1
     display_name: Redstone Ore
     material: stone
     hardness: 3
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: redstone
+          qty_min: 4
+          qty_max: 5
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: redstone_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - overworld
+        - ore
+    about:
+        description: |
+            Redstone Ore is the primary source of redstone dust, generating
+            deep underground in the Overworld. It briefly lights up and
+            emits particles when stepped on or struck, revealing its glowing
+            "lit" state before fading back to its dormant texture.
+        lore: |
+            Added during Alpha as part of a "Seecret Friday" update,
+            redstone ore introduced the resource that powers all of
+            Minecraft's circuitry and automation.
+    uses:
+        - title: Redstone Dust
+          ref: redstone
+          detail: |
+              Mining without Silk Touch yields 4-5 redstone dust per block,
+              boosted to as much as 8 with Fortune III — the primary way
+              players stock up on dust for wiring, repeaters, and pistons.
+    found_in:
+        - location: The Overworld (deep underground)
+          detail: |
+              Generates most commonly around Y=-64, with a second smaller
+              distribution reaching up to Y=15; found in all Overworld
+              biomes, including a deepslate variant near the bottom of the
+              world.
+    faq:
+        - question: What tool do I need to mine Redstone Ore?
+          answer: |
+              An iron pickaxe or better. Mining with wood, stone, or gold
+              tools breaks the block without dropping anything.
+        - question: Does Fortune affect Redstone Ore drops?
+          answer: |
+              Yes. Fortune I-III increases the dust yield, up to about 8
+              dust per block at Fortune III.
+        - question: Why does the ore glow sometimes?
+          answer: |
+              Walking on it or hitting it triggers its lit state, emitting
+              light level 9 and particles for a few seconds before it
+              returns to its normal, unlit texture.
+        - question: What does Silk Touch do to Redstone Ore?
+          answer: |
+              It drops the ore block itself instead of dust, letting you
+              relocate or display the block intact.
     data_version: "1.21.5"
 ---
 

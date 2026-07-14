@@ -3,12 +3,8 @@
 	"minVersion": "0.8",
 	"package": "com.kbve.statetree.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": ["BowAttackGoalMixin"],
-	"client": [
-		"client.CameraMixin",
-		"client.GameRendererMixin",
-		"client.InventoryScreenMixin"
-	],
+	"mixins": ["BowAttackGoalMixin", "VehicleEntityPetMixin"],
+	"client": ["client.InventoryScreenMixin"],
 	"injectors": {
 		"defaultRequire": 1
 	}

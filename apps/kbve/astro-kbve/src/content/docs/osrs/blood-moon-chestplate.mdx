@@ -12,9 +12,13 @@ osrs:
   lowalch: 116004
   highalch: 174006
   limit: 15
+  material:
+    type: blood-moon
+    tier: high
   equipment:
     slot: body
     weight: 5.443
+    attack_speed: 4
     attack_bonus:
       stab: 0
       slash: 0
@@ -62,6 +66,9 @@ osrs:
       slug: blood-moon-tassets
       relationship: set-piece
       description: Leg armour in set
+  passive_effects:
+    - name: Bloodrager
+      description: "When wearing the full Blood moon set with the Dual macuahuitl: 33% chance on a successful hit to attack one tick earlier."
   about: |-
     When wearing the full Blood moon armour set with the Dual macuahuitl:
     - Bloodrager: 33% chance upon successful hit to attack one tick earlier
@@ -80,11 +87,35 @@ osrs:
     - High ranged defence (+79)
   market_strategy:
     notes:
-      - Core piece for Blood moon builds
-      - Good standalone defensive option
-      - Factor in repair costs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "Core piece for Blood moon builds."
+      - "Good standalone defensive body slot option."
+      - "Factor in 1.5M NPC repair cost when costing per-trip."
+  trading_tips:
+    - "Lunar Chest supply: drop rate 1/224 from Neypotzli."
+    - "Hold across content droughts; demand spikes on new melee boss releases."
+  history:
+    - date: "2024-07-24"
+      description: "Blood moon chestplate added with Varlamore: The Final Dawn (Neypotzli)."
+  properties:
+    release_date: "2024-07-24"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

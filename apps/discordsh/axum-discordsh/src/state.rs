@@ -18,6 +18,10 @@ pub struct AppState {
 
     /// Rate limiter for server submission endpoint (5 req / 60s per IP).
     pub submit_limiter: RateLimiter,
+
+    /// Direct Postgres pool (bypasses Postgrest/edge).
+    /// TODO: Make this required (not Option) once PgCluster is stable.
+    pub pg_cluster: Option<Arc<jedi::state::pg::PgCluster>>,
 }
 
 impl AppState {
@@ -33,6 +37,12 @@ impl AppState {
             start_time: Instant::now(),
             http_client,
             submit_limiter: RateLimiter::new(5, 60),
+            pg_cluster: None,
         }
+    }
+
+    pub fn with_pg_cluster(mut self, cluster: Arc<jedi::state::pg::PgCluster>) -> Self {
+        self.pg_cluster = Some(cluster);
+        self
     }
 }

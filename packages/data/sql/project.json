@@ -5,24 +5,24 @@
 	"sourceRoot": "packages/data/sql",
 	"tags": ["scope:data", "type:sql"],
 	"targets": {
-		"dev-up": {
+		"kilobase-up": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "docker compose -f dev-docker-compose.yml up -d postgres",
+				"command": "docker compose -f kilobase-docker-compose.yml up -d",
 				"cwd": "{projectRoot}/dbmate"
 			}
 		},
-		"dev-down": {
+		"kilobase-down": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "docker compose -f dev-docker-compose.yml down",
+				"command": "docker compose -f kilobase-docker-compose.yml down",
 				"cwd": "{projectRoot}/dbmate"
 			}
 		},
-		"dev-reset": {
+		"kilobase-reset": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "docker compose -f dev-docker-compose.yml down -v && docker compose -f dev-docker-compose.yml up -d postgres",
+				"command": "docker compose -f kilobase-docker-compose.yml down -v && docker compose -f kilobase-docker-compose.yml up -d",
 				"cwd": "{projectRoot}/dbmate"
 			}
 		},
@@ -45,6 +45,55 @@
 			"options": {
 				"command": "./test-migration.sh",
 				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"smoke-kilobase": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./smoke.sh kilobase",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"smoke-kilobase-keep": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./smoke.sh kilobase --keep",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"smoke-kilobase-rollback": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./smoke.sh kilobase --rollback",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"smoke": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./smoke.sh kilobase --rollback",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"smoke-seed": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./seed-smoke.sh",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"smoke-seed-keep": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./seed-smoke.sh --keep",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"verify-seed-sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "diff -u schema/ows/seed/tenants_init.sql ../../../apps/kube/rows/tenants/base/tenants_init.sql",
+				"cwd": "{projectRoot}"
 			}
 		}
 	}

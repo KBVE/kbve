@@ -12,9 +12,30 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 15
-  about: "Pile of salt is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2005-04-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+  related_items:
+    - item_name: Bucket of saltwater
+      slug: bucket-of-saltwater
+      relationship: component
+      description: Saltwater is dried on a suntrap to produce piles of salt during Icthlarin's Little Helper.
+    - item_name: Bag of salt
+      slug: bag-of-salt
+      relationship: alternative
+      description: Slayer item used to finish off rockslugs; pile of salt cannot substitute for it.
+  about: "Pile of salt is a quest item created during Icthlarin's Little Helper by drying a bucket of saltwater on the suntrap in Sophanem. Although the item can be traded on the Grand Exchange with a strict limit of 15 per four hours, it has no use outside the quest sequence and cannot substitute for a bag of salt when fighting rockslugs. The Spice Is Right in Sophanem will also sell piles of salt at 30 coins each."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

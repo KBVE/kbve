@@ -1,0 +1,33 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: arpg-agones-allocator
+    namespace: arpg
+    labels:
+        app.kubernetes.io/part-of: arpg
+rules:
+    - apiGroups: ['allocation.agones.dev']
+      resources: ['gameserverallocations']
+      verbs: ['create']
+    - apiGroups: ['agones.dev']
+      resources: ['gameservers']
+      verbs: ['get', 'list']
+    - apiGroups: ['agones.dev']
+      resources: ['fleets']
+      verbs: ['get', 'list']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: arpg-sa-agones-allocator
+    namespace: arpg
+    labels:
+        app.kubernetes.io/part-of: arpg
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: arpg-agones-allocator
+subjects:
+    - kind: ServiceAccount
+      name: arpg-sa
+      namespace: arpg

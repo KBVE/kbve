@@ -1,0 +1,107 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: forgejo-oauth-config
+    namespace: forgejo
+    labels:
+        app: forgejo-oauth-config
+        kbve.com/category: development
+        kbve.com/stack: core
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+    backoffLimit: 5
+    template:
+        metadata:
+            labels:
+                app: forgejo-oauth-config
+        spec:
+            restartPolicy: Never
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                fsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
+            initContainers:
+                - name: wait-for-forgejo
+                  image: curlimages/curl:8.11.1
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                      readOnlyRootFilesystem: true
+                  command:
+                      - /bin/sh
+                      - -c
+                      - |
+                          echo "Waiting for Forgejo to be ready..."
+                          until curl -sf http://forgejo-http.forgejo.svc.cluster.local:3000/api/healthz; do
+                              echo "Forgejo not ready yet, waiting..."
+                              sleep 5
+                          done
+                          echo "Forgejo is ready!"
+            containers:
+                - name: configure-oauth
+                  image: codeberg.org/forgejo/forgejo:12
+                  imagePullPolicy: IfNotPresent
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                  env:
+                      - name: FORGEJO__database__DB_TYPE
+                        value: postgres
+                      - name: FORGEJO__database__HOST
+                        value: kilobase-rw.kilobase.svc.cluster.local:5432
+                      - name: FORGEJO__database__NAME
+                        value: supabase
+                      - name: FORGEJO__database__USER
+                        value: forgejo
+                      - name: FORGEJO__database__SCHEMA
+                        value: forgejo
+                      - name: FORGEJO__database__SSL_MODE
+                        value: require
+                      - name: FORGEJO__database__PASSWD
+                        valueFrom:
+                            secretKeyRef:
+                                name: forgejo-db
+                                key: password
+                      - name: OAUTH_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: forgejo-oauth-credentials
+                                key: client-id
+                      - name: OAUTH_CLIENT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: forgejo-oauth-credentials
+                                key: client-secret
+                  command:
+                      - /bin/sh
+                      - -c
+                      - |
+                          set -e
+
+                          echo "==> Checking if OAuth source 'kbve' already exists..."
+
+                          # Try to list auth sources and check if 'kbve' exists
+                          if /usr/local/bin/forgejo admin auth list 2>/dev/null | grep -q "kbve"; then
+                              echo "OAuth authentication source 'kbve' already exists. Skipping configuration."
+                              exit 0
+                          fi
+
+                          echo "==> Adding OAuth authentication source..."
+                          /usr/local/bin/forgejo admin auth add-oauth \
+                              --name kbve \
+                              --provider openidConnect \
+                              --key "${OAUTH_CLIENT_ID}" \
+                              --secret "${OAUTH_CLIENT_SECRET}" \
+                              --auto-discover-url "https://supabase.kbve.com/auth/v1/.well-known/openid-configuration" \
+                              --scopes "openid email profile"
+
+                          echo "==> OAuth authentication source 'kbve' configured successfully!"
+                          echo "==> Users can now sign in with KBVE credentials"

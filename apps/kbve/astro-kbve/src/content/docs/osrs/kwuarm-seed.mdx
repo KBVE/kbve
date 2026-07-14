@@ -12,65 +12,62 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 200
-  seed:
-    type: herb
+  about: "Kwuarm seed is planted in a herb patch to grow Grimy kwuarm, the primary ingredient for Super strength potions."
+  material:
+    type: seed
     tier: mid-high
   farming:
     level: 56
-    xp_plant: 69
-    xp_harvest: 78
-    growth_time: 80
-    patches: 9
-    product_id: 213
-    product_name: Grimy kwuarm
+    experience_plant: 69
+    experience_harvest: 78
+    growth_time_minutes: 80
+    growth_cycles: 4
+    patch: Herb
+    yield: "3+ herbs (up to ~6 with ultracompost and gear bonuses)"
+    payment_required: false
   related_items:
-    - item_id: 213
-      item_name: Grimy kwuarm
-      slug: grimy-kwuarm
+    - item_name: Grimy kwuarm
       relationship: product
-      description: Harvested product
-    - item_id: 263
-      item_name: Kwuarm
-      slug: kwuarm
+    - item_name: Kwuarm
       relationship: product
-      description: Cleaned herb
-    - item_id: 2458
-      item_name: Super strength(4)
-      slug: super-strength-4
+    - item_name: Super strength(4)
       relationship: product
-      description: Made from kwuarm
-    - item_id: 5298
-      item_name: Avantoe seed
-      slug: avantoe-seed
+    - item_name: Avantoe seed
       relationship: alternative
-      description: Lower tier herb seed
-    - item_id: 5300
-      item_name: Snapdragon seed
-      slug: snapdragon-seed
+    - item_name: Snapdragon seed
       relationship: upgrade
-      description: Next tier herb seed
-  about: |-
-    Plant in a herb patch to grow Grimy kwuarm.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 56 |
-    | Growth time | 80 minutes |
-    | XP (plant) | 69 |
-    | XP (harvest) | 78 per herb |
   market_strategy:
     notes:
-      - Mid-high tier herb seed
-      - Used for super strength potions
-      - Good profit potential
-      - Ultracompost (essential)
-      - Magic secateurs (10% more yield)
-      - Farming cape (5% more yield)
-      - 9 herb patches available
-      - ~10 minute runs, 80 minute regrowth
-      - Super strength essential for combat
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Mid-high tier herb seed feeding Super strength demand from Slayer and PvM."
+      - "Run profit scales with ultracompost, magic secateurs, and farming cape yield bonuses."
+      - "9 active herb patches plus disease-free patches make runs viable every 80 minutes."
+  trading_tips:
+    - "Compare seed cost vs grimy kwuarm GE price to gauge per-patch profit."
+    - "Stock ultracompost first — yield boost more than pays for itself at this tier."
+    - "Limit of 200 caps daily seed sourcing — bulk buyers should split across accounts or wait windows."
+  history:
+    - date: "2005-06-06"
+      description: "Kwuarm seed added with the Seeds, Bankspace and Advisors update."
+    - date: "2018-01-01"
+      description: "Item value adjusted from 64 to 11 coins so ground item sorting matched other herb seeds."
+    - date: "2025-01-01"
+      description: "Fixed rare bug where kwuarm patches would harvest as Avantoe."
+  properties:
+    release_date: "2005-06-06"
+    update: "Seeds, Bankspace and Advisors"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

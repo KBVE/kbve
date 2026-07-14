@@ -12,8 +12,30 @@ osrs:
   lowalch: 16000
   highalch: 24000
   limit: 70
+  about: "Skeletal bottoms are the legs piece of the Fremennik skeletal armour set, offering near-splitbark magic and defence stats for hybrid mage builds."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: misc
+    tier: rare
+    category: armour
+  properties:
+    release_date: "2005-08-01"
+    weight: 4.082
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: armour
+    attack_speed: 1
+    requirements:
+      defence: 40
+      magic: 40
+      quest: "The Fremennik Trials"
     attack_bonus:
       stab: 0
       slash: 0
@@ -27,78 +49,43 @@ osrs:
       magic: 10
       ranged: 0
     other_bonus:
-      melee_strength: 0
+      strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 40
-      magic: 40
-    weight: 4.082
   drop_table:
     sources:
       - source: Dagannoth Prime
-        combat_level: 303
         quantity: "1"
         rarity: uncommon
-        drop_rate: 1/128
-        members_only: true
-  related_items:
-    - item_id: 6137
-      item_name: Skeletal helm
-      slug: skeletal-helm
+        notes: "Drop rate 1/128 from level 303 Dagannoth Prime."
+  relationships:
+    - item_name: Skeletal helm
       relationship: set-piece
-      description: Matching helm piece
-    - item_id: 6139
-      item_name: Skeletal top
-      slug: skeletal-top
+    - item_name: Skeletal top
       relationship: set-piece
-      description: Matching body piece
-    - item_id: 3389
-      item_name: Splitbark legs
-      slug: splitbark-legs
+    - item_name: Splitbark legs
       relationship: alternative
-      description: Craftable alternative
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +6 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +22 |
-    | Slash | +20 |
-    | Crush | +24 |
-    | Magic | +10 |
-
-    Requirements: 40 Defence, 40 Magic
-
-    | Stat | Skeletal Bottoms | Splitbark Legs |
-    |------|-----------------|----------------|
-    | Magic Atk | +6 | +7 |
-    | Stab Def | +22 | +22 |
-    | Slash Def | +20 | +20 |
-    | Crush Def | +24 | +25 |
-    | Magic Def | +10 | +10 |
-
-    Nearly identical — splitbark has +1 magic attack and +1 crush defence. The difference is negligible.
-
-    | Stat | Total |
-    |------|-------|
-    | Magic Atk | +16 |
-    | Stab Def | +67 |
-    | Slash Def | +54 |
-    | Crush Def | +77 |
-    | Magic Def | +28 |
-
-    Compare to full splitbark: +20 magic attack, +68/+55/+78 melee def, +28 magic def. Splitbark is marginally better across the board.
+      note: "Craftable mage leg slot with marginally better stats."
+    - item_name: Peer the Seer
+      relationship: alternative
+      note: "Sells replacements in Rellekka for 2 dagannoth hides, 1 fibula piece, and 7,500 coins."
   market_strategy:
     notes:
-      - Dagannoth Prime drop (passive from DK farming)
-      - Low trade volume
-      - Collector's piece — splitbark preferred for stats
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "summary: \"Niche Dagannoth Prime drop with thin volume — collector and Fremennik completionist demand.\""
+      - "buy_strategy: \"Buy passively at GE mid-price; supply tracks Dagannoth Kings farming uptime.\""
+      - "sell_strategy: \"Sell at GE mid-price; splitbark legs cap the upper bound on price.\""
+      - "volatility: \"low\""
+  trading_tips:
+    - "Requires The Fremennik Trials quest plus 40 Defence and 40 Magic to wear."
+    - "Splitbark legs offer marginally better stats and no quest gate."
+    - "Storable in the magic wardrobe of a costume room as part of the skeletal set."
+  history:
+    - date: "2005-08-01"
+      description: "Skeletal bottoms released with the Fremennik skeletal armour set."
+  examine_variants:
+    - context: Inventory
+      text: "A superior set of strengthened slacks for any self respecting seer."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

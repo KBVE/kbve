@@ -12,9 +12,59 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: null
-  about: "Clothes pouch blueprint is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: paper
+    tier: mid
+  properties:
+    release_date: "2023-06-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Read
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Forestry Shop
+      location: Various woodcutting hotspots
+      price: 10000
+      currency: Anima-infused bark
+      stock: 1
+  related_items:
+    - item_name: Clothes pouch
+      slug: clothes-pouch
+      relationship: product
+      description: Forestry item crafted using this blueprint
+    - item_name: Anima-infused bark
+      slug: anima-infused-bark
+      relationship: component
+      description: Forestry currency used to purchase the blueprint
+    - item_name: Forestry kit
+      slug: forestry-kit
+      relationship: alternative
+      description: Other Forestry equipment from the same shop
+  about: "Clothes pouch blueprint is a Forestry reward purchased from the Forestry Shop for 10,000 anima-infused bark plus 300 willow and 300 maple logs. With 50 Woodcutting and 50 Crafting, players use it together with leather and thread to craft a clothes pouch, which stores Forestry rewards while training Woodcutting."
+  market_strategy:
+    notes:
+      - "Demand is driven by Forestry-focused woodcutters chasing the clothes pouch — popularity tracks Forestry meta updates."
+      - "Supply enters the GE only when players buy from the Forestry Shop and resell, so the spread between bark price and GE price drives flow."
+      - "No GE buy limit listed; volume is the main constraint rather than limits."
+  trading_tips:
+    - Compare GE price against the anima-infused bark and logs cost — if blueprint cheaper than materials, buy and craft.
+    - Watch for Forestry skilling event weekends; demand spikes when more woodcutters chase pouches.
+    - Low daily volume means orders may take hours to fill; use limit pricing.
+  history:
+    - date: "2023-06-28"
+      description: "Released with the Forestry update"
+    - date: "2025-01-22"
+      description: "Updated so the costume needle now correctly works with the clothes pouch blueprint"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

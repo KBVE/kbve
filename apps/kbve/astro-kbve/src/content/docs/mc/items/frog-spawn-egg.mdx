@@ -1,5 +1,6 @@
 ---
 title: Frog Spawn Egg
+template: splash
 description: |
     Minecraft Frog Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1092
     ref: frog_spawn_egg
     slug: frog-spawn-egg
+    content_rev: 1
     display_name: Frog Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The frog spawn egg is a Creative-mode-only item that instantly spawns a frog. The
+            frog produced will be temperate, warm, or cold in appearance depending on the biome
+            it is spawned into, mirroring the three real-world frog variants added in the Wild
+            Update.
+        lore: |
+            A tiny hop away from becoming three different frogs, depending on where it lands.
+    faq:
+        - question: How do I obtain a frog spawn egg?
+          answer: |
+              Like all spawn eggs, it is only available in Creative mode through the Creative
+              inventory or via commands, not through Survival gameplay.
+        - question: Does the biome affect the frog that spawns?
+          answer: |
+              Yes, the frog spawn egg produces a temperate, warm, or cold frog variant depending
+              on the biome it is used in.
+        - question: Is there a separate spawn egg for tadpoles?
+          answer: |
+              Yes, tadpoles have their own dedicated spawn egg since they are a distinct baby
+              mob that later matures into a frog.
+        - question: What happens if I use the egg on an existing frog?
+          answer: |
+              Using a frog spawn egg on an existing frog produces a baby frog, similar to how
+              spawn eggs interact with other breedable mobs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -12,9 +12,66 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Saradomin godsword ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/3404
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Saradomin godsword
+      slug: saradomin-godsword
+      relationship: component
+      description: Base weapon the kit is applied to
+    - item_name: Saradomin godsword (or)
+      slug: saradomin-godsword-or
+      relationship: product
+      description: Ornamented result after kit application
+    - item_name: Armadyl godsword ornament kit
+      slug: armadyl-godsword-ornament-kit
+      relationship: alternative
+      description: Ornament kit for the Armadyl godsword
+    - item_name: Bandos godsword ornament kit
+      slug: bandos-godsword-ornament-kit
+      relationship: alternative
+      description: Ornament kit for the Bandos godsword
+    - item_name: Zamorak godsword ornament kit
+      slug: zamorak-godsword-ornament-kit
+      relationship: alternative
+      description: Ornament kit for the Zamorak godsword
+  about: "The Saradomin godsword ornament kit is a cosmetic upgrade obtained exclusively as a rare reward from Master-tier Treasure Trails. Applied to a Saradomin godsword, it transforms the weapon into a fancier ornamented variant with no stat changes. The ornamented godsword becomes untradeable once attached, though the kit itself can be detached and resold on the Grand Exchange."
+  market_strategy:
+    notes:
+      - "Supply governed entirely by master clue completion volume"
+      - "Demand driven by godsword owners chasing cosmetic flex"
+      - "Buy limit of 4 keeps high-volume flips constrained"
+      - "Price tracks general master clue reward index"
+  trading_tips:
+    - Watch master clue popularity around new clue updates for supply spikes
+    - Compare relative pricing against other GWD ornament kits for arbitrage
+    - Owners of Saradomin godsword form the natural buy-side
+  history:
+    - date: "2016-07-06"
+      description: "Released with the Treasure Trail Expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

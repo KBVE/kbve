@@ -1,6 +1,6 @@
 ---
 title: Chocolate cake | OSRS Price Data
-description: "Chocolate cake: This looks very tasty.. High alch: 42 GP, GE limit: 6,000."
+description: "Chocolate cake: This looks very tasty. High alch: 42 GP, GE limit: 6,000."
 osrs:
   id: 1897
   name: Chocolate cake
@@ -12,9 +12,106 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 6000
-  about: "Chocolate cake is a free-to-play item in Old School RuneScape. High alchemy value: 42 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.3
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Ardougne Baker's Stall
+      location: East and West Ardougne markets
+      price: 84
+      currency: Coins
+      stock: 2
+    - shop_name: Keldagrim's Best Bread
+      location: Keldagrim
+      price: 84
+      currency: Coins
+      stock: 5
+    - shop_name: Nathifa's Bake Stall
+      location: Sophanem
+      price: 84
+      currency: Coins
+      stock: 2
+    - shop_name: Kourend Castle Baker's Stall
+      location: Kourend Castle
+      price: 84
+      currency: Coins
+      stock: 2
+    - shop_name: Fortis Baker's Stall
+      location: Civitas illa Fortis
+      price: 84
+      currency: Coins
+      stock: 2
+  recipes:
+    - skill: cooking
+      level: 50
+      xp: 30
+      materials:
+        - item_name: Cake
+          quantity: 1
+        - item_name: Chocolate bar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - skill: cooking
+      level: 50
+      xp: 30
+      materials:
+        - item_name: Cake
+          quantity: 1
+        - item_name: Chocolate dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Cake
+      slug: cake
+      relationship: component
+      description: Plain cake base
+    - item_name: Chocolate bar
+      slug: chocolate-bar
+      relationship: component
+      description: Chocolate topping ingredient
+    - item_name: Slice of chocolate cake
+      slug: slice-of-chocolate-cake
+      relationship: variant
+      description: Partially eaten chocolate cake
+    - item_name: Chocolate slice
+      slug: chocolate-slice
+      relationship: variant
+      description: Final bite of the chocolate cake
+  about: |
+    Chocolate cake is a three-bite food that heals 5 Hitpoints per slice, totaling 15 HP per cake. Make one by using a chocolate bar (or chocolate dust) on a plain cake at 50 Cooking for 30 XP. It's a popular cheap food for low-to-mid level training and quest prep, and bakery stalls across Gielinor stock slices.
+  market_strategy:
+    notes:
+      - "Profit cooking when chocolate bar prices are low"
+      - "Buy limit 6,000 supports steady bulk flips"
+      - "GE often pays more than the 84 gp stall buyback"
+  trading_tips:
+    - Steal from bakery stalls for early Thieving XP
+    - Slice variant carries 5 HP heals if you portion the cake
+    - Compare bar vs dust pricing before bulk cooking
+  history:
+    - date: "2001-06-11"
+      description: "Chocolate cake added as a craftable food."
+    - date: "2015-02-05"
+      description: "Partially eaten chocolate cake slices became untradeable on the Grand Exchange."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

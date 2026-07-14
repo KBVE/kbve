@@ -13,27 +13,49 @@ osrs:
   highalch: 112500
   limit: 70
   related_items:
-    - item_id: 6
-      item_name: Cannon base
-      slug: cannon-base
+    - name: Cannon base
       relationship: set-piece
-      description: Multicannon base component
-    - item_id: 8
-      item_name: Cannon stand
-      slug: cannon-stand
+    - name: Cannon stand
       relationship: set-piece
-      description: Multicannon stand component
-    - item_id: 10
-      item_name: Cannon barrels
-      slug: cannon-barrels
+    - name: Cannon barrels
       relationship: set-piece
-      description: Multicannon barrels component
-  about: |-
-    > _"This powers the multicannon."_
-
-    The cannon furnace is the fourth and final component placed when assembling a dwarf multicannon. Requires completion of the Dwarf Cannon quest to use. Once placed, the cannon can be loaded with cannonballs and fired. Tradeable on the Grand Exchange.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Dwarf multicannon
+      relationship: product
+  about: "Cannon furnace is the fourth and final component placed when assembling a dwarf multicannon, requiring completion of the Dwarf Cannon quest. Once the full set is placed, the cannon can be loaded with cannonballs and fired automatically at nearby enemies."
+  shops:
+    - shop_name: Multicannon parts for sale
+      location: Ice Mountain
+      price: 200625
+  market_strategy:
+    notes:
+      - Required component for the dwarf multicannon — demand tracks Slayer activity.
+      - Backed by the Nulodion shop at 200,625 gp; GE flips work only on dips below shop price.
+      - Quest-locked behind Dwarf Cannon, so buyer pool is filtered to mid/late-game members.
+  trading_tips:
+    - Use the shop price ceiling to set short bids.
+    - Watch demand spikes during double Slayer events when AFK ranged camping picks up.
+  history:
+    - date: "2003-05-27"
+      description: Released with the new Dwarf Cannon quest as the final component of the dwarf multicannon.
+    - date: "2004-09-14"
+      description: Examine text updated from "Used to make the cannon's ammo" to "This powers the multicannon." during the late-2004 polish pass.
+  properties:
+    release_date: "2003-05-27"
+    update: New Dwarf Cannon Quest
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    quest: Dwarf Cannon
+    weight: 5
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

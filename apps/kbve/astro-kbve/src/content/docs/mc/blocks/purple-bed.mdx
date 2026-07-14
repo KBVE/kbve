@@ -1,5 +1,6 @@
 ---
 title: Purple Bed
+template: splash
 description: |
     Minecraft Purple Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 120
     ref: purple_bed
     slug: purple-bed
+    content_rev: 1
     display_name: Purple Bed
     material: stone
     hardness: 0.2
@@ -24,10 +26,57 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Purple Bed is a purple-wool variant of the bed, crafted from
+            three purple wool and three planks of any wood type. Right-
+            clicking it at night sets the player's spawn point and allows
+            sleeping to skip to morning.
+        lore: |
+            Beds double as makeshift explosives in the Nether and the End,
+            where attempting to sleep detonates them with power-5 force.
+    uses:
+        - title: Spawn Point
+          ref: purple_bed
+          detail: |
+              Sleeping in or right-clicking a bed in the Overworld sets the
+              player's respawn point to that location.
+        - title: Nether/End Explosive
+          ref: purple_bed
+          detail: |
+              Using a bed outside the Overworld ignites it into an explosion
+              with power 5, cheaper than TNT for clearing terrain or damaging
+              the Ender Dragon.
+    found_in:
+        - location: Crafted
+          detail: Three matching-color wool plus three planks of any wood type craft one bed.
+    faq:
+        - question: What tool do I need to mine a Purple Bed?
+          answer: |
+              None — any tool or bare hands instantly breaks a bed and it
+              always drops itself.
+        - question: Can I sleep in a Purple Bed in the Nether?
+          answer: |
+              No. Attempting to sleep outside the Overworld causes the bed to
+              explode instead of setting a spawn point.
+        - question: Is the Purple Bed renewable?
+          answer: |
+              Yes — both wool (from sheep) and planks (from trees) are
+              renewable resources.
+        - question: Does fire destroy a Purple Bed?
+          answer: |
+              In Java Edition beds can catch fire from lava; in Bedrock
+              Edition they are not flammable.
     data_version: "1.21.5"
 ---
 

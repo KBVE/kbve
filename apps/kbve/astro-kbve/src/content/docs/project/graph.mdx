@@ -1,8 +1,7 @@
 ---
-title: Graph
-description: |
-    Explore our Graph Project, a dynamic 3D visual representation of interconnected MDX notes.
-    Navigate through a visually engaging graph of nodes, each representing unique notes within our extensive collection, making data exploration intuitive and insightful.
+title: Graph — 3D Visualization of Interconnected MDX Notes
+description: KBVE Graph is a 3D visualization of interconnected MDX notes, inspired by the Obsidian Graph View, for exploring relationships between notes.
+sem: 1
 sidebar:
     label: Graph
     order: 420
@@ -10,7 +9,54 @@ unsplash: 1477959858617-67f85cf4f1df
 img: https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?fit=crop&w=1400&h=700&q=75
 tags:
     - design
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the KBVE Graph?
+          answer: The KBVE Graph is a 3D visualization of interconnected MDX notes, inspired by the Obsidian Graph View, where each node represents a note and edges represent connections between related notes.
+        - question: What is the KBVE Graph inspired by?
+          answer: It is inspired by the Obsidian Graph View, extending the traditional 2D graph into a dynamic three-dimensional space for a more immersive way to explore note relationships.
+        - question: How will the KBVE Graph be built?
+          answer: The roadmap outlines selecting a 3D rendering library such as Three.js or Babylon.js, parsing MDX notes into a node-and-edge schema, adding interactivity like zoom, pan, rotation, search, and filtering, then optimizing performance for large graphs.
+bento:
+    badge: design
+    title: 3D visualization of notes
+    accent: Graph
+    lede: >-
+        A 3D visualization of interconnected MDX notes, inspired by the Obsidian
+        Graph View. Each node is a note, seamlessly connected to related notes,
+        for an immersive and intuitive way to navigate the web of information.
+    ctas:
+        - label: Roadmap
+          href: '#roadmap'
+    stats:
+        - { label: Type, value: 3D graph, icon: chart }
+        - { label: Inspiration, value: Obsidian Graph, icon: info }
+        - { label: Render, value: 'Three.js / Babylon.js', icon: render }
+    features:
+        - title: 3D node graph
+          icon: chart
+          body: Each MDX note is a node, connected by edges to related notes in three-dimensional space.
+        - title: Interactive navigation
+          icon: expand
+          body: Zoom, pan, rotate, plus node selection and tooltips for exploring relationships.
+        - title: Search & filter
+          icon: eye
+          body: Find and highlight nodes by keyword and attributes.
+        - title: Obsidian-inspired
+          icon: branch
+          body: Extends the familiar Obsidian Graph View into an immersive 3D space.
+    features_eyebrow: The concept
+    features_heading: Features
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
 import {
   Aside,
@@ -23,15 +69,9 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-## Graph
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-Introducing the KBVE Graph, a revolutionary upgrade to traditional graph views. 
-Inspired by the Obsidian Graph View, our 3D graph visualization brings your interconnected MDX notes to life in a dynamic three-dimensional space.
-Each node represents a unique note within our collection, seamlessly connected to related notes, providing an immersive and intuitive way to explore your data.
-Navigate through the intricate web of information with ease, gaining deeper insights and a clearer understanding of complex relationships within your notes.
-
-
-## Roadmap
+<BentoProse id="roadmap" eyebrow="Build plan" heading="Roadmap">
 
 The general roadmap outlining the key steps to create and deploy the KBVE 3D Graph:
 
@@ -123,8 +163,15 @@ The general roadmap outlining the key steps to create and deploy the KBVE 3D Gra
 
 </Steps>
 
+</BentoProse>
+
+<BentoProse id="community" eyebrow="Feedback" heading="Community">
 
 <Adsense />
 
 
 <Giscus />
+
+</BentoProse>
+
+</BentoDoc>

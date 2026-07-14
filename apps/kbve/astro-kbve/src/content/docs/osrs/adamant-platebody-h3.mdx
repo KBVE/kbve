@@ -1,6 +1,6 @@
 ---
 title: Adamant platebody (h3) | OSRS Price Data
-description: "Adamant platebody (h3): Adamant platebody with a heraldic design.. High alch: 9,984 GP, GE limit: 8."
+description: "Adamant platebody (h3) is a heraldic-trim free-to-play body slot item requiring 30 Defence. High alch: 9,984 GP, GE limit: 8."
 osrs:
   id: 23398
   name: Adamant platebody (h3)
@@ -12,9 +12,99 @@ osrs:
   lowalch: 6656
   highalch: 9984
   limit: 8
-  about: "Adamant platebody (h3) is a free-to-play item in Old School RuneScape. High alchemy value: 9,984 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 11.339
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 11.339
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -15
+    defence_bonus:
+      stab: 65
+      slash: 63
+      crush: 55
+      magic: -6
+      ranged: 63
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Medium Treasure Trails reward casket
+        quantity: "1"
+        rarity: "1/1,133"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_name: Adamant platebody
+      slug: adamant-platebody
+      relationship: variant
+      description: "Standard untrimmed adamant platebody"
+    - item_name: Adamant platebody (h1)
+      slug: adamant-platebody-h1
+      relationship: variant
+      description: "Heraldic adamant platebody with the Saradomin design"
+    - item_name: Adamant platebody (h2)
+      slug: adamant-platebody-h2
+      relationship: variant
+      description: "Heraldic adamant platebody with the Guthix design"
+    - item_name: Adamant platebody (h4)
+      slug: adamant-platebody-h4
+      relationship: variant
+      description: "Heraldic adamant platebody with the Zamorak design"
+    - item_name: Adamant platebody (h5)
+      slug: adamant-platebody-h5
+      relationship: variant
+      description: "Heraldic adamant platebody with the Bandos design"
+  about: |-
+    Adamant platebody (h3) is the heraldic Cooking Guild / Asgarnia variant of the standard adamant platebody, sharing the same stats but stamped with a tinted heraldic crest. It requires 30 Defence to wear and is a free-to-play item.
+
+    Heraldic platebodies enter the economy only as rare drops from medium Treasure Trails reward caskets at roughly 1/1,133 per casket, so trade volume is thin and the GE price often drifts far above standard adamant platebody.
+  market_strategy:
+    notes:
+      - "Heraldic variant — collector demand drives most of the premium"
+      - "Buy limit of 8 keeps daily flips small"
+      - "Identical stats to standard adamant platebody — pricing pure cosmetic"
+  trading_tips:
+    - "Watch medium clue drop rate tweaks — they reshape the floor price"
+    - "Compare against h1/h2/h4/h5 variants before deciding which heraldic to flip"
+  history:
+    - date: "2019-04-11"
+      description: "Released as part of the Treasure Trails Expansion."
+    - date: "2021-04-21"
+      description: "Ranged attack penalty adjusted in an equipment rebalance."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

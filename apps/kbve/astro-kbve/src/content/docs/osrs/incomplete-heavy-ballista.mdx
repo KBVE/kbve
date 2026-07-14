@@ -12,9 +12,68 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 8
-  about: "Incomplete heavy ballista is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid-high
+  properties:
+    release_date: "6 May 2016"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 5.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 72
+      xp: 30
+      materials:
+        - item_name: Heavy frame
+          quantity: 1
+        - item_name: Ballista limbs
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Heavy frame
+      slug: heavy-frame
+      relationship: component
+      description: Crafting base that the ballista limbs are attached to.
+    - item_name: Ballista limbs
+      slug: ballista-limbs
+      relationship: component
+      description: Limbs combined onto the heavy frame at Fletching 72.
+    - item_name: Unstrung heavy ballista
+      slug: unstrung-heavy-ballista
+      relationship: upgrade
+      description: Next stage in the build, made by adding a ballista spring.
+    - item_name: Heavy ballista
+      slug: heavy-ballista
+      relationship: upgrade
+      description: Finished two-handed crossbow following stringing.
+    - item_name: Light ballista
+      slug: light-ballista
+      relationship: alternative
+      description: Weaker variant in the same weapon family.
+  about: "Incomplete heavy ballista is an intermediate craft step from Monkey Madness II that bridges the frame and the unstrung ballista. It only exists in the production chain and is not equippable."
+  market_strategy:
+    notes:
+      - "Margins on the build chain mostly hinge on heavy frame supply; track that piece for cost forecasts."
+      - "Very low daily volume makes flipping risky; this is a process intermediate, not a market mainstay."
+  trading_tips:
+    - "Buy heavy frames first when prices dip; you can hold them long without risk of stale floors."
+    - "Resell as unstrung or finished ballista for better liquidity than this stage."
+  history:
+    - date: "6 May 2016"
+      description: "Introduced with the Monkey Madness II quest and the heavy ballista weapon line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

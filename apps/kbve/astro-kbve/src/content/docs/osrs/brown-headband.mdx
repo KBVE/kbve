@@ -12,9 +12,78 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 4
-  about: "Brown headband is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.04
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.04
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: false
+    reward_tiers:
+      - hard
+  related_items:
+    - item_name: Black headband
+      slug: black-headband
+      relationship: variant
+      description: Same cosmetic hat in a different colour
+    - item_name: Red headband
+      slug: red-headband
+      relationship: variant
+      description: Same cosmetic hat in red
+    - item_name: White headband
+      slug: white-headband
+      relationship: variant
+      description: Same cosmetic hat in white
+  about: "Brown headband is a purely cosmetic hat originally released as 'Headband' in 2004 and renamed in May 2005 once colour variants were added. It carries no combat bonuses, has no skill requirements, and is famously required for the hard Treasure Trail emote step at the Blighted Volcano south of the bridge, where players must perform the Panic emote while wearing it alongside a Guthix crozier."
+  market_strategy:
+    notes:
+      - "Demand is driven entirely by hard clue emote step completions"
+      - "The 4-per-4-hour buy limit pinches supply during clue events"
+      - "Margins are thin so most players list at GE mid-price rather than flip"
+  trading_tips:
+    - Keep one in your bank for the Blighted Volcano hard clue emote step
+    - Buy a few extras when hard clue rewards spike and double-clue events activate
+    - List offers across multiple worlds to clear the small per-cycle buy limit
+  history:
+    - date: "2004-05-05"
+      description: "Added to RuneScape as the base 'Headband' item."
+    - date: "2005-05-17"
+      description: "Renamed from 'Headband' to 'Brown headband' once colour variants launched."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

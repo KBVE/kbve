@@ -12,9 +12,73 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 150
-  about: "Pirate hat & patch is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.002
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Big pirate hat
+      slug: big-pirate-hat
+      relationship: component
+      description: One half of the combined cosmetic
+    - item_name: Right eye patch
+      slug: right-eye-patch
+      relationship: component
+      description: Second half of the combined cosmetic
+  about: "Pirate hat & patch is a cosmetic head slot item created by combining a big pirate hat with a right eye patch through Patchy on Mos Le'Harmless for 500 coins. Requires completion of Cabin Fever and offers no combat bonuses. High alchemy value: 1,800 coins. Grand Exchange buy limit: 150 per 4 hours."
+  market_strategy:
+    notes:
+      - "Cosmetic demand limited to fashionscape collectors"
+      - "Supply throttled by Cabin Fever requirement and 500 gp combine fee"
+      - "Storable in costume room treasure chest"
+  trading_tips:
+    - Cheaper to assemble from parts than buy outright when GE is thin
+    - Margin opportunities around pirate-themed holiday events
+  history:
+    - date: "2014-06-12"
+      description: "Item released as a combinable cosmetic via Patchy on Mos Le'Harmless."
+    - date: "2015-07-16"
+      description: "Female model adjusted so the hat now sits in place with a female character's head."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

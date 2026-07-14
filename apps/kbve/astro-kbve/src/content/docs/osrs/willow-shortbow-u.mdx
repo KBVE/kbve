@@ -1,6 +1,6 @@
 ---
 title: Willow shortbow (u) | OSRS Price Data
-description: "Willow shortbow (u): An unstrung willow shortbow; I need a bowstring for this.. High alch: 60 GP, GE limit: 10,000."
+description: "Willow shortbow (u): An unstrung willow shortbow; I need a bowstring for this. High alch: 60 GP, GE limit: 10,000."
 osrs:
   id: 60
   name: Willow shortbow (u)
@@ -12,23 +12,83 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: unstrung-bow
+    tier: low
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.992
+    options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 20
+      xp: 33.3
+      materials:
+        - item_name: "Willow logs"
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+    - skill: fletching
+      level: 35
+      xp: 33.2
+      materials:
+        - item_name: "Willow shortbow (u)"
+          quantity: 1
+        - item_name: "Bow string"
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 54
-      item_name: Oak shortbow (u)
-      slug: oak-shortbow-u
+    - item_name: "Willow logs"
+      slug: "willow-logs"
+      relationship: component
+      description: "Carved with a knife at 20 Fletching to produce the unstrung shortbow."
+    - item_name: "Bow string"
+      slug: "bow-string"
+      relationship: component
+      description: "Combine with the unstrung bow at 35 Fletching to make a willow shortbow."
+    - item_name: "Willow shortbow"
+      slug: "willow-shortbow"
+      relationship: product
+      description: "Strung result — equippable shortbow."
+    - item_name: "Oak shortbow (u)"
+      slug: "oak-shortbow-u"
+      relationship: downgrade
+      description: "Lower-tier unstrung shortbow."
+    - item_name: "Maple shortbow (u)"
+      slug: "maple-shortbow-u"
+      relationship: upgrade
+      description: "Higher-tier unstrung shortbow."
+    - item_name: "Willow longbow (u)"
+      slug: "willow-longbow-u"
       relationship: variant
-      description: Lower tier unstrung shortbow
-    - item_id: 58
-      item_name: Willow longbow (u)
-      slug: willow-longbow-u
-      relationship: variant
-      description: Matching unstrung willow longbow
-  about: |-
-    > _"An unstrung willow shortbow; I need a bowstring for this."_
-
-    The willow shortbow (u) is an unstrung shortbow made from willow logs. String with a bowstring at 35 Fletching to create a willow shortbow. Members only.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching unstrung longbow at the same Fletching tier."
+  about: "Willow shortbow (u) is an unstrung shortbow produced by carving willow logs with a knife at 20 Fletching (33.3 xp). Adding a bow string at 35 Fletching (33.2 xp) finishes it into a willow shortbow. The unstrung half of the Fletching loop is a staple of mid-level XP routes and is members-only."
+  market_strategy:
+    notes:
+      - "Price is anchored to willow logs and bow strings — supply tracks XP-route Fletching activity."
+      - "Tight margin to the strung product; arbitrage is limit-bound, not spread-bound."
+      - "10,000 GE buy limit makes this practical for medium-volume Fletching runs."
+  trading_tips:
+    - "Watch willow log supply on bond updates — log dumps move the unstrung price first."
+    - "Margins are tightest when bow strings spike; flip via the bow string side instead."
+    - "Bulk buyers tend to be XP grinders chasing levels 35-50 Fletching."
+  history:
+    - date: "2002-03-25"
+      description: "Released with the original Fletching skill."
+    - date: "2005-05-17"
+      description: "Renamed from Willow shortbow to Willow shortbow (u) to disambiguate from the strung version."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

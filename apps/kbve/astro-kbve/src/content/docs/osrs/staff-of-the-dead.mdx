@@ -12,76 +12,103 @@ osrs:
   lowalch: 400002
   highalch: 600003
   limit: 8
-  equipment:
-    slot: weapon
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
     type: staff
-    attack_style: magic
+    tier: high
+  properties:
+    release_date: "2011-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.5
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: 2h
+    weapon_type: staff
     attack_speed: 4
+    attack_range: 1
+    weight: 1.5
     requirements:
-      magic: 75
       attack: 75
-    stats:
-      attack_magic: 17
-      attack_stab: 55
-      attack_slash: 70
-      strength: 72
-      magic_damage_percent: 15
+      magic: 75
+    attack_bonus:
+      stab: 55
+      slash: 70
+      crush: 0
+      magic: 17
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 3
+      magic: 17
+      ranged: 0
+    other_bonus:
+      melee_strength: 72
+      ranged_strength: 0
+      magic_damage: 15
+      prayer: 0
   special_attack:
     name: Power of Death
-    energy: 100
-    effect: Halves melee damage received for 1 minute
-  drop_sources:
-    - name: K'ril Tsutsaroth
-      combat_level: 650
-      drop_rate: 1/508
-      members_only: true
+    energy_cost: 100
+    description: "Halves all melee damage taken for one minute; stacks with Protect from Melee."
+  drop_table:
+    sources:
+      - source: "K'ril Tsutsaroth"
+        combat_level: 650
+        quantity: "1"
+        rarity: 1/508
+        members_only: true
   related_items:
     - item_id: 12902
       item_name: Toxic staff of the dead
       slug: toxic-staff-of-the-dead
       relationship: upgrade
-      description: Venomed version
+      description: Venom-infused upgrade with Magic damage boost
+    - item_id: 22296
+      item_name: Staff of light
+      slug: staff-of-light
+      relationship: variant
+      description: Cosmetic upgrade using Saradomin's light
+    - item_id: 24144
+      item_name: Staff of balance
+      slug: staff-of-balance
+      relationship: variant
+      description: Guthixian icon variant from Song of the Elves
     - item_id: 21006
       item_name: Kodai wand
       slug: kodai-wand
       relationship: alternative
-      description: Higher magic attack
-    - item_id: 24423
-      item_name: Harmonised nightmare staff
-      slug: harmonised-nightmare-staff
-      relationship: alternative
-      description: Best magic DPS
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Magic attack | +17 |
-    | Magic damage | +15% |
-    | Stab attack | +55 |
-    | Slash attack | +70 |
-    | Strength bonus | +72 |
-    | Requirements | 75 Magic, 75 Attack |
-
-    Power of Death (100% energy):
-    - Halves melee damage received
-    - Lasts 1 minute
-    - Great for tanking
-
-    PvM:
-    - Hybrid magic/melee staff
-    - Good for Slayer
-    - Budget magic option
-
-    PvP:
-    - Melee defence spec
-    - Tribrid setups
-    - Staff bash damage
+      description: Higher tier magic weapon with stronger Magic attack
+  about: "Staff of the dead is a tier 75 staff dropped by K'ril Tsutsaroth in the God Wars Dungeon, granting +17 Magic attack, +15% Magic damage and a 1/7 chance to negate rune costs while equipped. Its Power of Death special attack halves incoming melee damage for one minute, making it a strong tribrid weapon for PvM and PvP setups; it is also the base component for the Staff of light, Staff of balance and Toxic staff of the dead upgrades."
   market_strategy:
     notes:
-      - K'ril drop drives supply
-      - Component for toxic version
-      - Budget magic weapon
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply driven entirely by K'ril Tsutsaroth GWD drops"
+      - "Buy limit of 8 every 4 hours throttles flips"
+      - "Component requirement for toxic, light and balance variants creates sticky demand"
+      - "Power of Death spec keeps PvP tribrid demand consistent"
+  trading_tips:
+    - "Track Bandos and Zamorak team scaling changes that shift K'ril attendance"
+    - "Buy ahead of new Saradomin or Guthix variant content for upgrade arbitrage"
+    - "Hold through DMM tournaments when tribrid weapons spike"
+  history:
+    - date: "2011-05-31"
+      description: "Released as a Zamorak Boss drop from K'ril Tsutsaroth in the God Wars Dungeon."
+    - date: "2013-02-22"
+      description: "Returned to Old School RuneScape at launch as part of the God Wars Dungeon content."
+    - date: "2017-01-05"
+      description: "Used as the base for the Toxic staff of the dead with the Zulrah update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

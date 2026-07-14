@@ -1,6 +1,6 @@
 ---
 title: Masori body | OSRS Price Data
-description: "Masori body is a members legs slot item requiring 30 Defence. High alch: 720,000 GP, GE limit: 8."
+description: "Masori body is a members body slot item requiring 80 Ranged and 30 Defence. High alch: 720,000 GP, GE limit: 8."
 osrs:
   id: 27229
   name: Masori body
@@ -12,91 +12,97 @@ osrs:
   lowalch: 480000
   highalch: 720000
   limit: 8
+  material:
+    type: masori
+    tier: high
   equipment:
-    slot: legs
-    type: masori_armor
-    attack_style: ranged
+    slot: body
+    weight: 8
     requirements:
       ranged: 80
       defence: 30
-    stats:
-      attack_ranged: 22
-      attack_magic: -4
-      defence_ranged: 6
-      ranged_strength: 2
-  set_bonus:
-    with_full_set: true
-    regular_damage: 10
-    fortified_damage: 12.5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 43
+    defence_bonus:
+      stab: 37
+      slash: 35
+      crush: 38
+      magic: 25
+      ranged: 33
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 4
+      magic_damage: 0
+      prayer: 0
   drop_table:
     sources:
       - source: Tombs of Amascut
-        source_id: 11751
-        combat_level: 0
         quantity: "1"
-        rarity: 1/48 at 150 invocation
-        members_only: true
+        rarity: 2/24
   recipes:
     - skill: crafting
       level: 90
       xp: 0
       materials:
-        - item_name: Masori chaps
-          item_id: 27229
+        - item_name: Masori body
           quantity: 1
-        - item_name: Armadyl chainskirt
-          item_id: 11828
-          quantity: 1
-      product: Masori chaps (f)
-      product_id: 27238
+        - item_name: Armadylean plate
+          quantity: 4
+      tools: []
+      product: Masori body (f)
       product_quantity: 1
-      facility: None
       members_only: true
   related_items:
-    - item_id: 27226
-      item_name: Masori body
-      slug: masori-body
-      relationship: alternative
-      description: Body armor
+    - item_id: 27238
+      item_name: Masori body (f)
+      slug: masori-body-f
+      relationship: upgrade
+      description: Fortified version crafted with Armadylean plates
     - item_id: 27232
       item_name: Masori mask
       slug: masori-mask
-      relationship: alternative
-      description: Helm slot
-    - item_id: 11828
-      item_name: Armadyl chainskirt
-      slug: armadyl-chainskirt
-      relationship: component
-      description: Used for fortifying
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Ranged attack | +22 |
-    | Magic attack | -4 |
-    | Ranged defence | +6 |
-    | Ranged strength | +2 |
-    | Requirements | 80 Ranged, 30 Defence |
-
-    With full Masori armor (fortified):
-    - +12.5% ranged damage bonus
-
-    With regular Masori:
-    - +10% ranged damage bonus
-
-    BiS ranged leg armor for:
-    - All ranged combat
-    - Raids
-    - Bossing
-    - Slayer
-
-    Fortified version requires Armadyl chainskirt.
+      relationship: set-piece
+      description: Helm slot set piece
+    - item_id: 27235
+      item_name: Masori chaps
+      slug: masori-chaps
+      relationship: set-piece
+      description: Legs slot set piece
+  about: "Masori body is best-in-slot ranged body armour obtained from the Tombs of Amascut, requiring 80 Ranged and 30 Defence to equip."
   market_strategy:
     notes:
-      - Regular from ToA
-      - Fortify with Armadyl piece
-      - Set bonus is massive DPS increase
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Obtained from Tombs of Amascut reward chest
+      - Fortify with 4 Armadylean plates for the (f) version
+      - High-end BiS ranged gear with significant capital requirement
+  trading_tips:
+    - Watch ToA invocation meta shifts that affect supply
+    - Track fortified premium versus raw piece price
+  history:
+    - date: "2022-08-24"
+      description: Released as part of the Tombs of Amascut raid update.
+  properties:
+    release_date: "2022-08-24"
+    update: Tombs of Amascut
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 8
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

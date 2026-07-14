@@ -9,12 +9,97 @@ osrs:
   members: true
   icon: Tarromin tar.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 7000
-  about: "Tarromin tar is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hunter bait
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 5
+    weight: 0
+    requirements:
+      hunter: 39
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 31
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 39
+      xp: 55
+      materials:
+        - item_name: Swamp tar
+          quantity: 15
+        - item_name: Tarromin
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 15
+  related_items:
+    - item_id: 1939
+      item_name: Swamp tar
+      slug: swamp-tar
+      relationship: component
+      description: Base ingredient combined with the herb
+    - item_id: 10142
+      item_name: Guam tar
+      slug: guam-tar
+      relationship: alternative
+      description: Low-level salamander bait variant
+    - item_id: 10146
+      item_name: Harralander tar
+      slug: harralander-tar
+      relationship: upgrade
+      description: Higher-tier salamander bait
+  about: Tarromin tar is ammunition and bait used with red salamanders, granting a small catch-rate boost while hunting and serving as their ranged fuel in combat.
+  market_strategy:
+    notes:
+      - Created from 15 swamp tar and 1 tarromin at 39 Herblore for 55 XP per batch
+      - Currently unprofitable to craft relative to GE prices on raw materials
+      - Demand tracks red salamander hunting and combat popularity
+  trading_tips:
+    - Buy in bulk before Hunter or Slayer task spikes
+    - Compare swamp tar cost to GE tar price before producing
+  history:
+    - date: "2006-11-21"
+      description: Item added with the Hunter skill launch.
+    - date: "2007-06-04"
+      description: Use and Wield options were swapped so Wield became the left-click action.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter skill
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

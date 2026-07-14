@@ -12,9 +12,54 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 5
-  about: "Shattered cannon ornament kit is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-03-16"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    alchable: true
+  related_items:
+    - item_name: Dwarf multicannon
+      slug: dwarf-multicannon
+      relationship: alternative
+      description: Cannon the kit reskins when applied
+    - item_name: Cannon barrels
+      slug: cannon-barrels
+      relationship: product
+      description: Becomes the ornamented Cannon barrels (or) variant
+    - item_name: Cannon base
+      slug: cannon-base
+      relationship: product
+      description: Becomes the ornamented Cannon base (or) variant
+    - item_name: Cannon furnace
+      slug: cannon-furnace
+      relationship: product
+      description: Becomes the ornamented Cannon furnace (or) variant
+    - item_name: Cannon stand
+      slug: cannon-stand
+      relationship: product
+      description: Becomes the ornamented Cannon stand (or) variant
+  about: "Shattered cannon ornament kit is a Leagues III Shattered Relics reward bought from the Leagues Reward Shop for 4,500 League Points and delivered in packs of four. Players apply the kits to each multicannon piece to convert them into the Shattered Relics themed ornamental variants, which can be reverted at any time."
+  market_strategy:
+    notes:
+      - "Fixed Leagues III payout supply; no new kits enter the game between Leagues iterations"
+      - "GE limit of 5 per 4 hours and pack-of-four distribution keep the float thin"
+      - "Fashionscape-only demand makes price track outfit and event hype"
+  trading_tips:
+    - Buy slowly during quiet weeks before major content drops that feature cannon usage
+    - List into Cannon-meta Slayer task spikes and clan boss events
+    - Monitor other Leagues III cosmetic kits for sentiment shifts across the set
+  history:
+    - date: "2022-03-16"
+      description: "Added to the Leagues Reward Shop alongside Leagues III - Shattered Relics."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

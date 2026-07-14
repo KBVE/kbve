@@ -1,6 +1,6 @@
 ---
 title: West ardougne teleport (tablet) | OSRS Price Data
-description: "West ardougne teleport (tablet): A teleport to West Ardougne.. High alch: 1 GP, GE limit: 10,000."
+description: "West Ardougne teleport tablet: instant teleport to West Ardougne, made at the Arceuus lectern (61 Magic). Requires Biohazard. High alch: 1 GP."
 osrs:
   id: 19623
   name: West ardougne teleport (tablet)
@@ -12,9 +12,51 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "West ardougne teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "The West Ardougne teleport tablet provides a one-click teleport to West Ardougne, breaking the tablet on use. It is made on the Arceuus lectern in the Ouditor's house from 2 law runes, 2 soul runes, and 1 dark essence block, requiring 61 Magic and granting 68 Magic experience per tablet. Using the tablet only requires completion of the Biohazard quest — not the Magic level — so low-level accounts can stock up on pre-made tablets for convenient access to West Ardougne, the Plague City area, and nearby Iorwerth Camp content."
+  teleport:
+    type: tablet
+    destinations:
+      - name: West Ardougne
+        requirements: Completion of Biohazard
+        members_only: true
+  recipes:
+    - skill: magic
+      level: 61
+      xp: 68
+      facility: Arceuus lectern
+      product: West ardougne teleport (tablet)
+      materials:
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Soul rune
+          quantity: 2
+        - item_name: Dark essence block
+          quantity: 1
+  related_items:
+    - item_name: Ardougne teleport (tablet)
+      slug: ardougne-teleport-tablet
+      relationship: alternative
+      description: Standard-spellbook tablet to East Ardougne
+  trading_tips:
+    - "Crafting requires 61 Magic, but using it does not — only Biohazard completion"
+    - "Bulk-craft when law and soul runes are cheap; each tablet gives 68 Magic XP"
+  trivia:
+    - "The tablet is made on the Arceuus spellbook at the lectern in the Ouditor's house."
+    - "Using the tablet gives no experience — Magic XP is only gained when it is created."
+  faq:
+    - question: Do you need 61 Magic to use the West Ardougne teleport tablet?
+      answer: "No. Crafting the tablet requires 61 Magic, but using it only requires completion of the Biohazard quest, so low-level accounts can break pre-made tablets."
+    - question: How do you make a West Ardougne teleport tablet?
+      answer: "On the Arceuus lectern in the Ouditor's house, combine 2 law runes, 2 soul runes, and 1 dark essence block at 61 Magic for 68 Magic experience."
+    - question: Where does the tablet teleport you?
+      answer: "It teleports directly to West Ardougne, near the Plague City area and the Arceuus region content."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/West_ardougne_teleport_(tablet)"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  url: https://kbve.com/osrs/west-ardougne-teleport-tablet/
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

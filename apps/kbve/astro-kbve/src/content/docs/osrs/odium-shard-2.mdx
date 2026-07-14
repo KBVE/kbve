@@ -12,9 +12,64 @@ osrs:
   lowalch: 12400
   highalch: 18600
   limit: 10000
-  about: "Odium shard 2 is a members-only item in Old School RuneScape. High alchemy value: 18,600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: shard
+    tier: mid-high
+  drop_table:
+    sources:
+      - source: Crazy archaeologist
+        quantity: "1"
+        rarity: "1/256"
+  recipes:
+    - materials:
+        - item_name: Odium shard 1
+          quantity: 1
+        - item_name: Odium shard 2
+          quantity: 1
+        - item_name: Odium shard 3
+          quantity: 1
+      tools:
+        - Blighted Altar
+      output_quantity: 1
+      notes: "Combined at the Blighted Altar in the Wilderness north of the Lava Maze to forge an Odium ward."
+  related_items:
+    - name: Odium shard 1
+      relationship: set-piece
+    - name: Odium shard 3
+      relationship: set-piece
+    - name: Odium ward
+      relationship: product
+    - name: Malediction shard 2
+      relationship: alternative
+  about: "Odium shard 2 is a Wilderness-exclusive drop from the Crazy archaeologist (1/256). Combined with Odium shard 1 and Odium shard 3 at the Blighted Altar to forge the Odium ward."
+  market_strategy:
+    notes:
+      - Single source - Crazy archaeologist at 1/256 - means supply is tightly tied to PvP/Wilderness activity.
+      - All three Odium shards trade similarly; flippers often spread across the set.
+      - Required component for the Odium ward (ranged-defence shield).
+  trading_tips:
+    - Compare all three shard prices before crafting an Odium ward vs. buying assembled.
+    - Buy limit 10,000 per 4 hours easily covers any retail purchase.
+  history:
+    - date: "2014-03-13"
+      description: "Released with the Rejuvenating the Wilderness: More risk, more reward update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-03-13"
+    update: "Rejuvenating the Wilderness: More risk, more reward"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Stairs
+template: splash
 description: |
     Minecraft Dark Oak Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 486
     ref: dark_oak_stairs
     slug: dark-oak-stairs
+    content_rev: 1
     display_name: Dark Oak Stairs
     material: wood
     hardness: 2
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Dark Oak Stairs are a shaped wooden building block that lets
+            players walk up or down a slope smoothly. They can face any
+            of four directions and be placed upside down to form
+            ceilings and inverted steps.
+        lore: |
+            Stairs were one of the earliest shaped building blocks added
+            to Minecraft, letting players build sloped rooftops.
+    uses:
+        - title: Building slopes and roofs
+          ref: dark_oak_planks
+          detail: |
+              Combined with dark oak planks and slabs to build detailed
+              staircases, roofs, and trim.
+    found_in:
+        - location: Crafted from Dark Oak Planks
+          detail: Six planks arranged in a staircase pattern craft four stairs.
+        - location: Villages and woodland mansions
+          detail: Generates as part of roofing and stairs in these structures.
+    faq:
+        - question: What tool do I need to mine Dark Oak Stairs?
+          answer: |
+              None. Any tool works, though an axe breaks it fastest.
+        - question: Do Dark Oak Stairs burn?
+          answer: |
+              Yes, like most wood stairs they are flammable, except for
+              Crimson and Warped stairs.
+        - question: Can Dark Oak Stairs be placed upside down?
+          answer: |
+              Yes, placing them while looking at the upper half of a
+              block face flips them into a ceiling-mounted orientation.
+        - question: Can Dark Oak Stairs be used as furnace fuel?
+          answer: |
+              Yes, they smelt 1.5 items each when used as fuel.
     data_version: "1.21.5"
 ---
 

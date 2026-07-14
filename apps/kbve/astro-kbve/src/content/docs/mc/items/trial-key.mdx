@@ -1,5 +1,6 @@
 ---
 title: Trial Key
+template: splash
 description: |
     Minecraft Trial Key — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1392
     ref: trial_key
     slug: trial-key
+    content_rev: 1
     display_name: Trial Key
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A trial key is a renewable item found in trial chambers that acts as the
+            currency for unlocking vaults. Using a trial key on a standard vault unlocks
+            it, ejecting its items and consuming the key in the process. Keys are mainly
+            obtained from trial spawners, entrance chests, and corridor pots.
+        lore: |
+            Trial keys were first teased in November 2023 during the Trial Chambers
+            reveal, later receiving a redesigned texture before shipping in the Tricky
+            Trials update.
+    faq:
+        - question: How do I get a trial key?
+          answer: |
+              Trial spawners have a 50% chance to drop one, entrance chests have a 6.8%
+              chance, and corridor pots have a 2.8% chance.
+        - question: Can multiple players open the same vault?
+          answer: |
+              Vaults can only be unlocked once per player, unless more than 128 players
+              open it, in which case the earliest opener is forgotten from the list.
+        - question: Is there a variant of the trial key?
+          answer: |
+              Yes, an ominous trial key variant exists for ominous vaults, though renamed
+              or non-standard trial keys cannot open standard vaults due to a known bug.
+        - question: What advancement is tied to the trial key?
+          answer: |
+              The "Under Lock and Key" advancement is earned by unlocking a vault with a
+              trial key.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

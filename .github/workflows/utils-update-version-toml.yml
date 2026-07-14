@@ -25,12 +25,14 @@ on:
                 type: string
                 default: ''
 
-# Shared with utils-post-publish.yml. Both workflows commit to
-# version.toml / Cargo.toml / Cargo.lock from per-release atom branches
-# based on the same dev HEAD; without this group two crate releases
-# firing in parallel race on Cargo.lock when their atom PRs auto-merge.
+# Crate releases share one group with utils-post-publish.yml's
+# `version-sync-crates`: they all commit Cargo.lock from per-release atom
+# branches off the same dev HEAD and would race when their atom PRs
+# auto-merge. Non-crate packages (npm/docker/python) touch only their own
+# version.toml + manifest, so each gets a per-package group to stop one
+# package's sync from evicting another's pending run.
 concurrency:
-    group: version-sync
+    group: ${{ inputs.package_type == 'crates' && 'version-sync-crates' || format('version-sync-{0}', inputs.package_name) }}
     cancel-in-progress: false
 
 jobs:
@@ -44,7 +46,7 @@ jobs:
             actions: write
         steps:
             - name: Checkout dev
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: dev
 
@@ -77,6 +79,9 @@ jobs:
                   case "$TARGET" in
                     *.toml)
                       sed -i "s/^version = .*/version = \"${VERSION}\"/" "$TARGET"
+                      ;;
+                    *.uplugin)
+                      jq --arg v "$VERSION" '.VersionName = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"
                       ;;
                     *.json)
                       jq --arg v "$VERSION" '.version = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"
@@ -137,7 +142,7 @@ jobs:
             - id: pnpm-store
               run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
 
-            - uses: actions/cache@v5
+            - uses: actions/cache@v6
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
@@ -147,9 +152,7 @@ jobs:
             - run: pnpm install --frozen-lockfile
 
             - name: Regenerate ci-dispatch-manifest
-              run: |
-                  npx nx run astro-kbve:build
-                  npx nx run astro-kbve:sync:ci-manifest
+              run: npx nx run astro-kbve:gen:ci-manifest
 
             - name: Create PR
               id: pr

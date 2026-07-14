@@ -1,0 +1,63 @@
+{
+	"enums": {
+		"spell.SpellSchool": {
+			"mode": "const_array",
+			"stripPrefix": "SPELL_SCHOOL_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		},
+		"spell.SpellTarget": {
+			"mode": "const_array",
+			"stripPrefix": "SPELL_TARGET_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		},
+		"spell.SpellEffect": {
+			"mode": "const_array",
+			"stripPrefix": "SPELL_EFFECT_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		},
+		"spell.SpellRarity": {
+			"mode": "const_array",
+			"stripPrefix": "SPELL_RARITY_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "SpellSchools",
+			"sourceEnum": "spell.SpellSchool",
+			"typeName": "SpellSchoolValue",
+			"zodSchemaName": "SpellSchoolSchema"
+		},
+		{
+			"name": "SpellTargets",
+			"sourceEnum": "spell.SpellTarget",
+			"typeName": "SpellTargetValue",
+			"zodSchemaName": "SpellTargetSchema"
+		},
+		{
+			"name": "SpellEffects",
+			"sourceEnum": "spell.SpellEffect",
+			"typeName": "SpellEffectValue",
+			"zodSchemaName": "SpellEffectSchema"
+		},
+		{
+			"name": "SpellRarities",
+			"sourceEnum": "spell.SpellRarity",
+			"typeName": "SpellRarityValue",
+			"zodSchemaName": "SpellRaritySchema"
+		}
+	],
+
+	"passthrough": [],
+
+	"nullable": [],
+
+	"refinements": {
+		"spell.Spell.level_req": ".min(0).max(999)"
+	}
+}

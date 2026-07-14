@@ -12,29 +12,91 @@ osrs:
   lowalch: 56
   highalch: 84
   limit: 125
-  item_id: 1293
-  item_type: equipment
-  slot: weapon
-  type: longsword
-  attack_style: slash
-  attack_speed: 5
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 1
-  stats:
-    stab_attack: 6
-    slash_attack: 8
-    crush_attack: -2
-    strength: 10
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: longsword
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 6
+      slash: 8
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 10
+      prayer: 0
+      ranged_strength: 0
+      magic_damage: 0
+  recipes:
+    - skill: smithing
+      level: 21
+      xp: 50
+      materials:
+        - item_name: Iron bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
-    - slug: steel-longsword
-    - slug: iron-sword
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Steel longsword
+      slug: steel-longsword
+      relationship: upgrade
+      description: Stronger longsword variant
+    - item_name: Iron sword
+      slug: iron-sword
+      relationship: variant
+      description: One-handed iron sword with lower bonuses
+    - item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: Smithing material used to forge the longsword
+  about: "Iron longsword is an entry-level slash weapon usable by any attack level. It hits faster than two-handed alternatives at speed 5 and gives a +10 strength bonus, making it a budget pick for early melee training in F2P."
+  market_strategy:
+    notes:
+      - "Cheap nature-rune-margin alch when bought near GE low"
+      - "Steady demand from new accounts skilling Smithing"
+      - "Often used as a smithed-then-alched flip for Smithing XP"
+  trading_tips:
+    - Smith from iron bars at 21 Smithing for XP plus a sellable item
+    - High alch margin only works when GE price stays well below 84 gp
+  history:
+    - date: "2001-01-04"
+      description: "Released with the launch of RuneScape."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

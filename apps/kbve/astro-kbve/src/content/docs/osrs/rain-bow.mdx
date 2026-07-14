@@ -1,6 +1,6 @@
 ---
 title: Rain bow | OSRS Price Data
-description: "Rain bow: Short but effective and very colourful.. High alch: 300 GP, GE limit: 18,000."
+description: "Rain bow: Short but effective and very colourful. High alch: 300 GP, GE limit: 18,000."
 osrs:
   id: 23357
   name: Rain bow
@@ -12,9 +12,75 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 18000
-  about: "Rain bow is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: bow
+    attack_speed: 4
+    weight: 1.36
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 8
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 841
+      item_name: Shortbow
+      slug: shortbow
+      relationship: alternative
+      description: Standard shortbow equivalent
+  about: Rain bow is a cosmetic two-handed shortbow rewarded from Easy clue caskets at 1/1,404. Requires no Ranged level, uses only bronze and iron arrows, and is popular among skillers because unequipping arrows prevents accidental combat retaliation.
+  market_strategy:
+    notes:
+      - Skiller-favored due to zero requirements
+      - "Easy clue supply keeps price moderate vs rarer cosmetics"
+      - Buy limit 18,000 supports bulk flipping
+  trading_tips:
+    - "Pairs with skiller pure setups: bronze/iron arrows only"
+    - Watch seasonal skiller content for demand spikes
+  history:
+    - date: "2019-04-11"
+      description: Added to the game as an Easy clue reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

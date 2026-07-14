@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Reset Discord
+Comment=Quit Discord and clear runtime cache so it relaunches cleanly
+Exec=/home/kasm-user/scripts/reset-discord.sh
+Icon=edit-clear
+Terminal=true
+Categories=System;
+StartupNotify=true

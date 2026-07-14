@@ -9,15 +9,64 @@ description: |
   July 4th. Fireworks!
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 4,'
+    accent: every year.
+    lede: 'The July 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#notes'
+          primary: true
+        - label: '← Jul 3'
+          href: /journal/07-03/
+        - label: 'Jul 5 →'
+          href: /journal/07-05/
+    related:
+        - title: 'Previous · Jul 3'
+          copy: 'Step back a day to the July 3rd log.'
+          href: /journal/07-03/
+          icon: calendar
+        - title: 'Next · Jul 5'
+          copy: 'Jump ahead to the July 5th log.'
+          href: /journal/07-05/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1720042710169-d56037e5489e?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Notes
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="notes" heading="Notes">
 
 Happy Independence day yall scrubs. Please do not blow up your hands when engaging with fireworks. Do not mix BAC with fire.
 
-## 2025
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2025" heading="2025">
 
 ### Google Search Box
 
@@ -27,7 +76,9 @@ Happy Independence day yall scrubs. Please do not blow up your hands when engagi
     I never felt so sad, a huge waste of my time.
     Honestly, I should have known better before going down that path.
 
-## 2024
+</BentoProse>
+
+<BentoProse id="2024" heading="2024">
 
 I was not able to convert the written notes for this date, but most of them are in the binders.
 I spent majority of the day working through the `CryptoThrone` and `@kbve/laser` library, slowly trying a couple different ways of handling the different problems.
@@ -36,18 +87,29 @@ There was just way too much to break down and throw into a journal entry.
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
+
 - 3:30pm - Looking over some of the issues on the main website, there are a couple locations that just do not work as intended. I suppose one of the reasons we are not getting Adsense approval is because of the deadlinks that are splattered across the whole website! 
 - 3:50pm - On the sidebar, I will add a media dropdown. The dropdown will be linking to manga, gaming, music and video for now. I went ahead and made it into a Git issue, which I will close out with the next pull request.
 - 8:00pm - Besides the sidebar update, I went ahead and started to update the Search a bit. I am trying to use it more personally but there are a couple things that I also wanted to address and add. One of the things that I might look into would be adding a custom search range that we can save via localStorage and have it insert in every search? This would be an interesting area to explore later down the line. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > Miracles come in moments. Be ready and willing.
 > — <cite>Wayne Dyer</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Repair Dead Links
+
+</BentoProse>
+
+</BentoDoc>

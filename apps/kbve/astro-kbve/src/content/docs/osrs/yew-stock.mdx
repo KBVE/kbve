@@ -12,9 +12,51 @@ osrs:
   lowalch: 66
   highalch: 100
   limit: 10000
-  about: "Yew stock is a members-only item in Old School RuneScape. High alchemy value: 100 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid-high
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    alchable: true
+  recipes:
+    - skill: fletching
+      level: 69
+      xp: 50
+      materials:
+        - item_name: Yew logs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Yew logs
+      slug: yew-logs
+      relationship: component
+      description: Carved into a yew stock with a knife at 69 Fletching.
+    - item_name: Runite crossbow (u)
+      slug: runite-crossbow-u
+      relationship: product
+      description: Attach runite limbs to a yew stock to produce the unstrung runite crossbow.
+    - item_name: Maple stock
+      slug: maple-stock
+      relationship: downgrade
+      description: Lower-tier crossbow stock requiring less Fletching.
+    - item_name: Magic stock
+      slug: magic-stock
+      relationship: upgrade
+      description: Higher-tier crossbow stock used for magic and dragon crossbows.
+  about: "Yew stock is the wooden stock used in the production of runite crossbows, requiring 69 Fletching to carve from a single yew log for 50 Fletching experience. The stock is then fitted with runite limbs and a crossbow string to produce a runite crossbow, making it a staple intermediate good for Fletchers working towards higher-tier ranged weapons. The Grand Exchange buy limit is 10,000 per four hours."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -19,7 +19,7 @@ controllerServiceAccount:
 
 # Scaling — Windows UE builds are heavy
 minRunners: 0
-maxRunners: 2
+maxRunners: 1
 
 template:
     metadata:
@@ -36,7 +36,7 @@ template:
         containers:
             - name: runner
               # Windows runner image — use the Windows variant
-              image: ghcr.io/actions/actions-runner:2.333.0
+              image: ghcr.io/actions/actions-runner:2.335.1
               env:
                   - name: RUNNER_ALLOW_RUNASROOT
                     value: '1'
@@ -50,14 +50,9 @@ template:
               volumeMounts:
                   - name: work
                     mountPath: /home/runner/_work
-                  - name: engine-cache
-                    mountPath: /mnt/longhorn/angelscript-engine
         volumes:
             - name: work
               emptyDir: {}
-            - name: engine-cache
-              persistentVolumeClaim:
-                  claimName: arc-engine-cache
 
 listenerTemplate:
     spec:

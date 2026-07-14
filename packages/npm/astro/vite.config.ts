@@ -10,6 +10,12 @@ export default defineConfig({
 	root: __dirname,
 	cacheDir: '../../../node_modules/.vite/npm/astro',
 
+	server: {
+		fs: {
+			allow: [path.resolve(__dirname, '../../..')],
+		},
+	},
+
 	plugins: [
 		react(),
 		nxViteTsPaths(),
@@ -40,6 +46,7 @@ export default defineConfig({
 				'd3-force',
 				'nanostores',
 				'@nanostores/react',
+				'lucide-react',
 			],
 			output: {
 				globals: {

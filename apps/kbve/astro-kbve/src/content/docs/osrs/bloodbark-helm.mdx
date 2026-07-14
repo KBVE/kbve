@@ -12,9 +12,95 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Bloodbark helm is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bloodbark
+    tier: mid-high
+  properties:
+    release_date: "2021-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options: ["Wear"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements:
+      magic: 60
+      defence: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 5
+      ranged: 0
+    defence_bonus:
+      stab: 16
+      slash: 14
+      crush: 17
+      magic: 6
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 1
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 79
+      xp: 0
+      materials:
+        - item_name: Splitbark helm
+          quantity: 1
+        - item_name: Blood rune
+          quantity: 250
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Blood spell healing boost
+      description: Each bloodbark piece worn increases the healing from blood spells by 2%, with the full set granting up to 35% healing from damage dealt.
+  related_items:
+    - item_name: Splitbark helm
+      slug: splitbark-helm
+      relationship: component
+      description: Base helm infused with blood runes to create bloodbark
+    - item_name: Bloodbark body
+      slug: bloodbark-body
+      relationship: set-piece
+      description: Body slot piece of the bloodbark set
+    - item_name: Bloodbark legs
+      slug: bloodbark-legs
+      relationship: set-piece
+      description: Legs slot piece of the bloodbark set
+    - item_name: Swampbark helm
+      slug: swampbark-helm
+      relationship: alternative
+      description: Lower-tier swampbark variant tied to nature spells
+  about: |-
+    Bloodbark helm is the head slot piece of the bloodbark armour set, created by infusing a splitbark helm with 250 blood runes at a blood altar after reading the Runescroll of bloodbark. The infusion requires 79 Runecraft and the helm requires 60 Magic and 60 Defence to wear.
+
+    Each bloodbark piece worn boosts the healing of blood spells, making the set the strongest dedicated lifesteal-magic armour for tank mages and PvP healers.
+  market_strategy:
+    notes:
+      - "Cost is dominated by blood runes; price moves with the blood altar runecraft market"
+      - "Demand spikes when blood spells are buffed or PvP arenas heat up"
+      - "Splitbark helm is the floor input — a healthy splitbark supply keeps margins thin"
+  trading_tips:
+    - "Build the set when blood runes dip below 300 gp each"
+    - "Sell the assembled piece, not the components, when GE volume favours wearers"
+  history:
+    - date: "2021-01-27"
+      description: "Released with the Shades of Mort'ton rework that added bloodbark and swampbark infusions"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

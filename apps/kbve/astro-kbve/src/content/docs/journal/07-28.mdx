@@ -8,10 +8,52 @@ img: https://images.unsplash.com/photo-1690221115995-8c80b43aac01?crop=entropy&c
 description: July 28th. Virtual Joystick.
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'July 28,'
+    accent: every year.
+    lede: 'The July 28th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jul 27'
+          href: /journal/07-27/
+        - label: 'Jul 29 →'
+          href: /journal/07-29/
+    related:
+        - title: 'Previous · Jul 27'
+          copy: 'Step back a day to the July 27th log.'
+          href: /journal/07-27/
+          icon: calendar
+        - title: 'Next · Jul 29'
+          copy: 'Jump ahead to the July 29th log.'
+          href: /journal/07-29/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1690221115995-8c80b43aac01?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
-import { Adsense } from '@/components/astropad';
 
-## 2025
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Github Actions + Thread Integration
 
@@ -21,7 +63,15 @@ import { Adsense } from '@/components/astropad';
     Since we have n8n, we could move it over to that call as well, so there are a couple ways that we can go about that.
     
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Deadpool**
 Was up all night watching deadpool 3!
@@ -49,7 +99,9 @@ Updated the lore for the Fudster character and now moving forward with a couple 
 
 <Adsense />
 
-## 2023
+</BentoProse>
+
+<BentoProse id="2023" heading="2023">
 
 - 10:00am - The VContainer and general injection seems to be too much of an issue right now within Unity 2021, so I am going to take a different approach and try to see if I can get Unity 2022 with DOTS to help resolve the issue? There are two ways we can go about this, one would be to build out the netcode and continue to use 3rd party integrations OR we could start a new project under the Unity 2022 and migrate 2021 assets over. There would be some drawbacks, as if Opsive might not work as well in 2022, but we can just let those go for the time being. I will continue to go through the C# codebase and see what I can do on that end.
 - 11:15am - I am still having some issues with dependency injections, so I might take a look at the 2nd option this weekend and see where I can get with it.  The injections were plan to be done via the VContainer but DOTS really seems to be production ready.
@@ -59,13 +111,21 @@ Updated the lore for the Fudster character and now moving forward with a couple 
 - 5:11pm - Damn I installed 2022.3.5 but the project seems to be on 2022.3.3, so I will have to install that editor again. I am not too sure if I want to do any updates besides what they have provided, i.e it might break things that I do not want to repair later down the line. One of the other things that I am going to do is keep this to a local play only, as I really do not want to enable their UGS, burn through $800 in idle credits, plus it would be fun to keep this game kinda like a classic, per say. The fact that the code-base could support upwards of 200+ players is interesting, 64 is what their readme says.... I want to see where I can go with pushing those limits. As the install is preparing, I am going to brush up on some of the tutorials and links, I figured reading through and consuming as much information as I can before taking on this complexity will be its own adventure. Getting the project to open and run will be the first step tonight, once I get that resolved, I will do the first test build and see how it performs on my laptop. After the test local build, I suppose I could plan out different paths to take. Two of the major ones that I would see are in the scope of the client and server builds, with the server build having some levels of complexity that I should look into. Going from an automated pipeline build of the game to a server-ready image, then having it automatically become hosted on a dedicated server would be really the bees knees.
 - 8:30pm - I believe that I might not have enough resources to handle the larger version of the game. Just loading the map takes forever, but there are a couple interesting things that I like about the newer version of unity. Furthermore this Megacity build has some interesting examples of UI components that extend out of the general TextMeshPro, but I did not get enough time to dive deeper into how they work. 
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > It is not in the stars to hold our destiny but in ourselves.
 > — <cite>William Shakespeare</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ] Tasks? Oh this might be a bit too much to say right now.
+
+</BentoProse>
+
+</BentoDoc>

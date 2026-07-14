@@ -1,5 +1,6 @@
 ---
 title: Spectral Arrow
+template: splash
 description: |
     Minecraft Spectral Arrow — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,44 @@ mc_item:
     id: 1222
     ref: spectral_arrow
     slug: spectral-arrow
+    content_rev: 1
     display_name: Spectral Arrow
     category: weapon
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Spectral Arrow is a Java Edition-exclusive projectile crafted from an arrow and
+            two glowstone dust that applies the Glowing status effect to whatever it strikes. The
+            Glowing effect outlines the target for 10 seconds, making it visible even through
+            walls, and the arrows can also be obtained from bastion remnant chests or piglin
+            bartering.
+        lore: |
+            Infused with glowstone's radiant dust, the arrow marks its target with an inescapable
+            spectral glow.
+    faq:
+        - question: |
+              How do I craft Spectral Arrows?
+          answer: |
+              Combine one Arrow with two Glowstone Dust in a crafting grid to produce two Spectral
+              Arrows.
+        - question: |
+              How long does the Glowing effect last after being hit?
+          answer: |
+              The target glows and remains outlined through blocks for 10 seconds after being
+              struck.
+        - question: |
+              Does an Infinity-enchanted bow save my Spectral Arrows?
+          answer: |
+              No, Spectral Arrows are always consumed when fired, even from a bow enchanted with
+              Infinity.
+        - question: |
+              Where can I get Spectral Arrows without crafting them?
+          answer: |
+              They can be found in bastion remnant chests or obtained by bartering with piglins,
+              in addition to picking up ones already fired.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

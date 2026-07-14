@@ -12,12 +12,66 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 8000
-  about: "Orange feather is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 8,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: feather
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Copper longtail
+        quantity: "1"
+        rarity: Common
+  related_items:
+    - item_name: Feather
+      slug: feather
+      relationship: alternative
+      description: Standard fletching feather
+    - item_name: Red feather
+      slug: red-feather
+      relationship: variant
+      description: Coloured hunter feather
+    - item_name: Yellow feather
+      slug: yellow-feather
+      relationship: variant
+      description: Coloured hunter feather
+    - item_name: Blue feather
+      slug: blue-feather
+      relationship: variant
+      description: Coloured hunter feather
+  about: |-
+    Orange feathers are obtained by catching Copper longtails with bird snares (Hunter level 9 required). They can be used as a substitute for regular feathers in Fletching but always produce arrows with white fletching.
+
+    Caught alongside copper longtails in the Piscatoris Hunter area, with 5–10 feathers per successful trap.
+  market_strategy:
+    notes:
+      - "Sold to Fancy Dress Shop in Varrock as a coin sink"
+      - "Demand is cosmetic — driven by collection log hunters"
+      - "Buy limit 8,000 supports bulk flips"
+  trading_tips:
+    - Snipe undercut listings from new hunters offloading bulk feathers
+    - Compare alch vs GE price; high alch covers the floor when GE dries up
+  history:
+    - date: "2006-11-21"
+      description: "Released as part of the Hunter skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

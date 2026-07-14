@@ -12,9 +12,57 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 10000
-  about: "Huasca potion (unf) is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: "Huasca"
+          quantity: 1
+        - item_name: "Vial of water"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: herblore
+      level: 58
+      experience: 0
+      notes: "Zahur can also process clean Huasca into the unfinished potion for a fee."
+  related_items:
+    - item_name: "Huasca"
+      relationship: component
+    - item_name: "Vial of water"
+      relationship: component
+    - item_name: "Prayer regeneration potion(3)"
+      relationship: product
+    - item_name: "Aga paste"
+      relationship: product
+  about: "Huasca potion (unf) is a members unfinished herblore potion used to brew prayer regeneration potions and Aga paste; 58 Herblore to create."
+  market_strategy:
+    notes:
+      - "Demand correlates with prayer regeneration potion usage at Inferno-tier PvM."
+      - "Floor anchored to Huasca herb supply; Zahur processing fee caps upside."
+  trading_tips:
+    - "Watch Huasca farming-patch yields and Aldarium supply for combined price moves."
+    - "Bulk buys reward patience; thin margins per unit but 10k limit enables flips."
+  history:
+    - date: "2024-09-25"
+      description: "Released with the Varlamore: The Rising Darkness update."
+    - date: "2025-01-08"
+      description: "Zahur granted the ability to process Huasca into unfinished potions."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-09-25"
+    update: "Varlamore: The Rising Darkness"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Warped Hanging Sign
+template: splash
 description: |
     Minecraft Warped Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 230
     ref: warped_hanging_sign
     slug: warped-hanging-sign
+    content_rev: 1
     display_name: Warped Hanging Sign
     material: nether
     hardness: 1
@@ -24,10 +26,56 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+    about:
+        description: |
+            The Warped Hanging Sign is a Nether-wood sign that mounts under
+            a block or on a wall using self-supporting chain brackets,
+            displaying customizable, dyeable text.
+        lore: |
+            Hanging signs arrived in the Trails & Tales Update (1.20),
+            adding a wall- and ceiling-mounted alternative to standard
+            signs, including this fire-immune warped variant.
+    uses:
+        - title: Stripped Warped Stem
+          ref: stripped_warped_stem
+          detail: |
+              Crafted from a Chain and six Stripped Warped Stems (or
+              Hyphae), yielding six Warped Hanging Signs for labeling
+              storage or marking builds.
+    found_in:
+        - location: Crafted
+          detail: Made at a crafting table from an iron Chain and stripped Warped Stems/Hyphae.
+        - location: Trial Chambers and Trail Ruins
+          detail: Occasionally found already placed as loot or decoration in generated structures.
+    faq:
+        - question: What tool mines a Warped Hanging Sign fastest?
+          answer: |
+              An axe, though it can be broken with any tool or bare hands
+              and always drops itself.
+        - question: Does the Warped Hanging Sign burn in lava?
+          answer: |
+              No. As a Nether wood block it never catches fire, unlike
+              Overworld wood hanging signs.
+        - question: Can I dye or make the text glow?
+          answer: |
+              Yes, dye changes the text color and an ink sac reverts glowing
+              text back to normal.
+        - question: Can I use it as furnace fuel?
+          answer: |
+              No. Nether wood signs, including the Warped Hanging Sign,
+              cannot be used as furnace fuel, unlike Overworld wood signs.
     data_version: "1.21.5"
 ---
 

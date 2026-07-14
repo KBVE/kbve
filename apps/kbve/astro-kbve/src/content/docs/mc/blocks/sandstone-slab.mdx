@@ -1,5 +1,6 @@
 ---
 title: Sandstone Slab
+template: splash
 description: |
     Minecraft Sandstone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 580
     ref: sandstone_slab
     slug: sandstone-slab
+    content_rev: 1
     display_name: Sandstone Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sandstone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Sandstone Slab is a half-height building block cut from
+            sandstone, used to create thinner steps, ledges, and
+            desert-themed detailing.
+        lore: |
+            Slabs were introduced early in Minecraft's history to let
+            builders fill half-height gaps; the sandstone variant followed
+            the original stone and wood slabs.
+    uses:
+        - title: Chiseled Sandstone
+          ref: chiseled_sandstone
+          detail: |
+              Combining two Sandstone Slabs in a crafting grid produces a
+              full Chiseled Sandstone block.
+    found_in:
+        - location: Desert Structures
+          detail: Generates in desert pyramids, desert villages, and desert wells.
+        - location: Crafted or Stonecut
+          detail: Crafted 3 Sandstone into 6 slabs, or cut 1 Sandstone into 2 slabs with a stonecutter.
+    faq:
+        - question: What tool do I need to mine a Sandstone Slab?
+          answer: |
+              A wooden pickaxe or better; mining without a pickaxe drops
+              nothing.
+        - question: How many Sandstone Slabs come from crafting?
+          answer: |
+              Three Sandstone or Chiseled Sandstone blocks craft into 6
+              slabs, or use a stonecutter for a 1:2 ratio.
+        - question: Can Sandstone Slabs be waterlogged?
+          answer: |
+              Yes, slabs placed in water become waterlogged and retain the
+              water source.
+        - question: What happens when two slabs are stacked?
+          answer: |
+              Two Sandstone Slabs placed in the same space form a full,
+              fully opaque Sandstone Slab (double slab) block.
     data_version: "1.21.5"
 ---
 

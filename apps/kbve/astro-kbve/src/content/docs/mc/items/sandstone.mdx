@@ -1,5 +1,6 @@
 ---
 title: Sandstone
+template: splash
 description: |
     Minecraft Sandstone — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 198
     ref: sandstone
     slug: sandstone
+    content_rev: 1
     display_name: Sandstone
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Sandstone is a solid, gravity-immune building block that generates naturally beneath
+            desert and beach sand, and inside desert temples, wells, and warm ocean ruins. It can
+            also be crafted from 4 sand blocks and refined into chiseled, cut, or smooth variants.
+        lore: |
+            Compressed layers of desert sand, the bedrock of pyramids, temples, and sun-baked villages.
+    faq:
+        - question: How do I craft sandstone?
+          answer: |
+              Combine 4 sand blocks in a crafting grid to produce 1 sandstone block.
+        - question: What tool do I need to mine sandstone?
+          answer: |
+              You need at least a wooden pickaxe; mining it without a pickaxe yields no drops.
+        - question: What are the different sandstone variants?
+          answer: |
+              Chiseled, cut, and smooth sandstone can be made through crafting, stonecutting, or
+              smelting, each with a distinct decorative texture.
+        - question: Is sandstone affected by gravity like sand?
+          answer: |
+              No, unlike sand, sandstone is never affected by gravity, making it a stable choice
+              for construction.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

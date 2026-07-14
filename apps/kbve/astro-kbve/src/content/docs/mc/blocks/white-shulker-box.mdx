@@ -1,5 +1,6 @@
 ---
 title: White Shulker Box
+template: splash
 description: |
     Minecraft White Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 646
     ref: white_shulker_box
     slug: white-shulker-box
+    content_rev: 1
     display_name: White Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            White Shulker Box is a portable storage container dyed with bone
+            meal. Unlike chests and barrels, a shulker box keeps its full
+            inventory intact when broken, letting players carry or ship 27
+            slots of items as a single block.
+        lore: |
+            Shulker boxes were added in Java Edition 1.11, giving players a
+            way to move shulker-guarded End City loot without losing it.
+    uses:
+        - title: Portable Storage
+          ref: chest
+          detail: |
+              Crafted from a chest and two shulker shells. Breaking a placed
+              shulker box drops the block with its contents preserved,
+              making it ideal for transporting large item stacks.
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: |
+              Undyed shulker boxes are crafted from a chest plus two shulker
+              shells harvested from End City shulkers; dyeing with bone meal
+              produces the white variant.
+    faq:
+        - question: Does mining a White Shulker Box destroy its contents?
+          answer: |
+              No. Breaking a placed shulker box drops it as an item with all
+              stored items still inside, unlike a chest which spills its
+              contents.
+        - question: Do I need Silk Touch to keep the items?
+          answer: |
+              No. Shulker boxes always retain their inventory when mined,
+              with any tool, no enchantment required.
+        - question: Can White Shulker Box burn in fire or lava?
+          answer: |
+              No. Shulker boxes are not flammable and will not be destroyed
+              by fire or lava exposure.
+        - question: Can I change a White Shulker Box to another color?
+          answer: |
+              Yes. Placing it in a crafting grid with a different dye
+              recolors it without harming its contents; washing it in a
+              cauldron removes the dye entirely.
     data_version: "1.21.5"
 ---
 

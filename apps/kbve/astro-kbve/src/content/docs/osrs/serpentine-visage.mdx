@@ -12,64 +12,64 @@ osrs:
   lowalch: 42000
   highalch: 63000
   limit: 5
-  item:
-    type: crafting_material
-    tradeable: true
-    weight: 1
-  obtaining:
-    methods:
+  material:
+    type: Serpentine
+    tier: high
+  recipes:
+    - skill: Crafting
+      level: 52
+      experience: 120
+      materials:
+        - item_name: Serpentine visage
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  drop_table:
+    sources:
       - source: Zulrah
-        drop_rate: 2 x 1/1,024
-  creation:
-    creates:
-      item_id: 12929
-      item_name: Serpentine helm (uncharged)
-      slug: serpentine-helm
-    method: Use chisel to create Serpentine helm
-    requirements:
-      crafting: 52
-    xp: 120
-    dismantle:
-      result_id: 12934
-      result_name: Zulrah's scales
-      quantity: "20000"
+        quantity: "1"
+        rarity: "2 x 1/1024"
   related_items:
-    - item_id: 0
-      item_name: Zulrah
-      slug: zulrah
+    - name: Zulrah
       relationship: component
-      description: Boss drop
-    - item_id: 12929
-      item_name: Serpentine helm
-      slug: serpentine-helm
+    - name: Serpentine helm (uncharged)
       relationship: product
-      description: Created helm
-    - item_id: 12934
-      item_name: Zulrah's scales
-      slug: zulrahs-scales
-      relationship: downgrade
-      description: Dismantle result
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 1 kg |
-
-    | Item Created | Materials | Requirements |
-    |--------------|-----------|--------------|
-    | Serpentine helm (uncharged) | Serpentine visage + chisel | 52 Crafting |
-
-    Grants 120 Crafting XP when crafted.
-
-    Can be dismantled for 20,000 Zulrah's scales.
+    - name: Zulrah's scales
+      relationship: alternative
+    - name: Tanzanite helm (uncharged)
+      relationship: alternative
+    - name: Magma helm (uncharged)
+      relationship: alternative
+  about: "Serpentine visage is a rare drop from Zulrah used to craft the uncharged Serpentine helm at 52 Crafting. It can alternatively be dismantled into 20,000 Zulrah's scales, the helm's charge currency."
   market_strategy:
     notes:
-      - Zulrah exclusive drop
-      - Creates venom-immune helm
-      - 52 Crafting to process
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Exclusive Zulrah drop at 2/1024 throttles supply
+      - Dismantle floor at 20k scales x scale price sets price floor
+      - Venom-immune helm drives steady ironman crafting demand
+  trading_tips:
+    - Compare GE price vs 20k Zulrah's scales for dismantle arbitrage
+    - Monitor Zulrah PvM popularity for supply waves
+  history:
+    - date: "2015-01-08"
+      description: Released with the Zulrah update.
+  properties:
+    release_date: "2015-01-08"
+    update: Zulrah
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Dismantle
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

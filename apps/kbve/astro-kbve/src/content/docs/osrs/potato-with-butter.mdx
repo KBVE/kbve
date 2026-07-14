@@ -1,6 +1,6 @@
 ---
 title: Potato with butter | OSRS Price Data
-description: "Potato with butter: A baked potato with butter.. High alch: 4 GP, GE limit: 13,000."
+description: "Potato with butter: A baked potato with butter. High alch: 4 GP, GE limit: 13,000."
 osrs:
   id: 6703
   name: Potato with butter
@@ -12,9 +12,70 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 13000
-  about: "Potato with butter is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 14
+    edible: true
+  recipes:
+    - skill: Cooking
+      level: 39
+      xp: 40
+      materials:
+        - item_name: Baked potato
+          quantity: 1
+        - item_name: Pat of butter
+          quantity: 1
+      tools: []
+      output_item: Potato with butter
+      output_quantity: 1
+      notes: Pat of not garlic butter can substitute for pat of butter.
+  related_items:
+    - item_name: Baked potato
+      relationship: component
+      description: Required base item.
+    - item_name: Chilli potato
+      relationship: alternative
+      description: Higher-level baked potato variant.
+    - item_name: Potato with cheese
+      relationship: alternative
+      description: Cheese-topped baked potato.
+    - item_name: Egg potato
+      relationship: alternative
+      description: Egg-topped baked potato.
+    - item_name: Mushroom potato
+      relationship: alternative
+      description: Mushroom-topped baked potato.
+    - item_name: Tuna potato
+      relationship: alternative
+      description: Top-tier baked potato variant.
+  about: "Potato with butter heals 14 hitpoints in one bite and is made by combining a baked potato with a pat of butter at 39 Cooking for 40 XP."
+  market_strategy:
+    notes:
+      - Cheap mid-tier healing food useful for Cooking training
+      - Inputs (baked potato and pat of butter) typically cost more than the output
+      - Demand spike when butter floods the GE
+  history:
+    - date: "2005-10-24"
+      description: Released alongside the Mogres, Lizards, Pet Fish, Potions and Potatoes update.
+    - date: "2006-01-30"
+      description: Shop value updated from 0 to 8 coins.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-10-24"
+    update: "Mogres, Lizards, Pet Fish, Potions and Potatoes!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

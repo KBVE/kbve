@@ -1,5 +1,6 @@
 ---
 title: Mud
+template: splash
 description: |
     Minecraft Mud — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1058
     ref: mud
     slug: mud
+    content_rev: 1
     display_name: Mud
     material: dirt
     hardness: 0.5
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mud
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Mud is a soft, dark soil block that generates in mangrove
+            swamps and can also be created by using a water bottle on dirt,
+            coarse dirt, or rooted dirt. Entities sink slightly into it, much
+            like soul sand.
+        lore: |
+            Added in Java Edition 1.19 as part of the Wild Update, mud
+            grounds the mangrove swamp biome's murky, waterlogged aesthetic.
+    uses:
+        - title: Muddy Mangrove Roots & Packed Mud
+          ref: muddy_mangrove_roots
+          detail: |
+              Combine mud with mangrove roots to make muddy mangrove roots,
+              or with wheat to make packed mud, a step toward mud bricks.
+    found_in:
+        - location: Mangrove Swamp
+          detail: Generates abundantly across the ground of mangrove swamp biomes.
+        - location: Trail Ruins & Trial Chambers
+          detail: Also appears in trail ruins and near trial chamber entrances.
+        - location: Water Bottle on Dirt
+          detail: Right-click dirt, coarse dirt, or rooted dirt with a water bottle to convert it to mud.
+    faq:
+        - question: What tool do I need to mine Mud?
+          answer: |
+              None required — mud can be mined by hand, but a shovel breaks
+              it fastest.
+        - question: Does Mud slow players down?
+          answer: |
+              No. Entities sink into it slightly like soul sand, but it does
+              not reduce movement speed the way soul sand does.
+        - question: How do I make Mud without a swamp?
+          answer: |
+              Use a water bottle on any dirt, coarse dirt, or rooted dirt
+              block; this can be automated with a dispenser.
+        - question: Does Mud turn into Clay?
+          answer: |
+              Yes, if placed directly above pointed dripstone (outside the
+              Nether), mud slowly converts into clay over time.
     data_version: "1.21.5"
 ---
 

@@ -6,7 +6,11 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 // `npm:` resolves through Deno's own npm cache, no third-party CDN in the
 // boot path.
 import { createClient } from "@clickhouse/client-web";
-import { corsHeaders } from "../_shared/cors.ts";
+import { preflight, withCors } from "../_shared/cors.ts";
+import { logError } from "../_shared/logging.ts";
+import { rateLimit, rateLimitKey } from "../_shared/ratelimit.ts";
+import { loadEnv } from "../_shared/env.ts";
+import { PAGINATION } from "../_shared/constants.ts";
 import {
   extractToken,
   jsonResponse,
@@ -25,15 +29,19 @@ import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validat
 //   stats   — namespace/service counts
 // ---------------------------------------------------------------------------
 
-const MAX_LIMIT = 500;
-const DEFAULT_LIMIT = 100;
 const MAX_MINUTES = 10080; // 7 days
 const MAX_SEARCH_LENGTH = 100;
 
+const env = loadEnv([
+  "CLICKHOUSE_ENDPOINT",
+  "CLICKHOUSE_USER",
+  "CLICKHOUSE_PASSWORD",
+]);
+
 const ch = createClient({
-  url: Deno.env.get("CLICKHOUSE_ENDPOINT") ?? "",
-  username: Deno.env.get("CLICKHOUSE_USER") ?? "",
-  password: Deno.env.get("CLICKHOUSE_PASSWORD") ?? "",
+  url: env.CLICKHOUSE_ENDPOINT,
+  username: env.CLICKHOUSE_USER,
+  password: env.CLICKHOUSE_PASSWORD,
   database: "observability",
 });
 
@@ -47,7 +55,7 @@ interface QueryParams {
   limit?: number;
 }
 
-async function handleQuery(params: QueryParams) {
+async function handleQuery(params: QueryParams): Promise<{ rows: unknown[]; count: number }> {
   const conditions: string[] = [];
   const queryParams: Record<string, unknown> = {};
 
@@ -83,8 +91,8 @@ async function handleQuery(params: QueryParams) {
   }
 
   const limit = Math.min(
-    Math.max(params.limit ?? DEFAULT_LIMIT, 1),
-    MAX_LIMIT,
+    Math.max(params.limit ?? PAGINATION.logs.defaultLimit, 1),
+    PAGINATION.logs.maxLimit,
   );
 
   const where =
@@ -107,7 +115,7 @@ async function handleQuery(params: QueryParams) {
   return { rows, count: rows.length };
 }
 
-async function handleStats(params: { minutes?: number }) {
+async function handleStats(params: { minutes?: number }): Promise<{ rows: unknown[]; count: number }> {
   const minutes = Math.min(Math.max(params.minutes ?? 60, 1), MAX_MINUTES);
 
   const resultSet = await ch.query({
@@ -127,11 +135,7 @@ async function handleStats(params: { minutes?: number }) {
   return { rows, count: rows.length };
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
+async function handle(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
   }
@@ -145,6 +149,12 @@ serve(async (req) => {
 
     const denied = requireServiceRole(claims);
     if (denied) return denied;
+
+    const rl = rateLimit(
+      rateLimitKey("logs", req, claims.sub as string | undefined),
+      { limit: 60, windowMs: 60_000 },
+    );
+    if (rl) return rl;
 
     const sizeErr = enforceBodySizeLimit(req);
     if (sizeErr) return sizeErr;
@@ -177,14 +187,21 @@ serve(async (req) => {
 
     return jsonResponse(result);
   } catch (err) {
-    console.error("logs error:", err);
+    logError("logs", err);
     const rawMessage =
       err instanceof Error ? err.message : "Internal server error";
     const isAuthError =
       rawMessage.includes("authorization") || rawMessage.includes("JWT");
     if (isAuthError) {
-      return jsonResponse({ error: rawMessage }, 401);
+      return jsonResponse({ error: "Unauthorized" }, 401);
     }
     return jsonResponse({ error: "Internal server error" }, 500);
   }
+}
+
+serve(async (req): Promise<Response> => {
+  if (req.method === "OPTIONS") {
+    return preflight(req);
+  }
+  return withCors(await handle(req), req);
 });

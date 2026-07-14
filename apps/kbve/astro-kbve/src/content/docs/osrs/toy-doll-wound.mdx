@@ -12,9 +12,63 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 150
-  about: "Toy doll (wound) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Crafting
+      level: 18
+      experience: 15
+      materials:
+        - item_name: Clockwork
+          quantity: 1
+        - item_name: Plank
+          quantity: 1
+      tools:
+        - Crafting table 3
+      output_quantity: 1
+      facility: Player-owned house workshop
+  related_items:
+    - name: Toy doll
+      relationship: variant
+    - name: Toy soldier
+      relationship: alternative
+    - name: Toy mouse
+      relationship: alternative
+    - name: Toy cat
+      relationship: alternative
+    - name: Clockwork
+      relationship: component
+    - name: Plank
+      relationship: component
+  about: "Toy doll (wound) is a members-only wound-up clockwork toy crafted at a Crafting table 3 in a player-owned house workshop from one clockwork and one plank at Crafting level 18 for 15 experience."
+  market_strategy:
+    notes:
+      - Niche flip — demand is largely from POH owners and clockwork toy collectors.
+      - Profit per unit depends on the spread between clockwork and the wound toy.
+      - Buy limit of 150 per 4 hours caps flipping volume.
+  trading_tips:
+    - Compare against unwound toy doll price to gauge crafting margin.
+    - Watch for spikes when clockwork supply tightens.
+  history:
+    - date: "2006-05-31"
+      description: Released as part of the Player-Owned Houses update; crafted via the workshop using a clockwork and a plank.
+    - date: "2014-08-04"
+      description: Update limited the number of clockwork toys that can be dropped in an area to curb pickup-blocking scams.
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wind
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

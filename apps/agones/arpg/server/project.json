@@ -1,0 +1,70 @@
+{
+	"name": "arpg-server",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/arpg/server/src",
+	"tags": ["rust", "game-server", "agones", "arpg"],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build -p arpg-server"
+			},
+			"outputs": ["{workspaceRoot}/dist/target/debug/arpg-server"]
+		},
+		"build-release": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build --release -p arpg-server"
+			},
+			"outputs": ["{workspaceRoot}/dist/target/release/arpg-server"]
+		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo run -p arpg-server"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo test -p arpg-server"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo clippy -p arpg-server --all-targets -- -D warnings"
+			}
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/arpg/server/Dockerfile",
+				"load": true,
+				"tags": ["kbve/arpg-server:latest"]
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/arpg-server:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/arpg-server:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/arpg-server:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/arpg-server:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	}
+}

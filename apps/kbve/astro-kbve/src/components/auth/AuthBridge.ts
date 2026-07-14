@@ -54,7 +54,7 @@ class AuthBridge {
 			auth: {
 				storage: this.storage, // Critical: same storage as worker!
 				persistSession: true,
-				autoRefreshToken: true,
+				autoRefreshToken: false,
 				detectSessionInUrl: true, // Important for OAuth redirects
 			},
 		});
@@ -65,13 +65,21 @@ class AuthBridge {
 	/**
 	 * Initiate OAuth sign-in with a provider
 	 */
-	async signInWithOAuth(provider: 'github' | 'twitch' | 'discord') {
+	async signInWithOAuth(
+		provider: 'github' | 'twitch' | 'discord',
+		gateRedirect?: string | null,
+	) {
 		const client = this.ensureClient();
+
+		let callback = `${window.location.origin}/auth/callback`;
+		if (gateRedirect) {
+			callback += `?redirect_to=${encodeURIComponent(gateRedirect)}`;
+		}
 
 		const { data, error } = await client.auth.signInWithOAuth({
 			provider,
 			options: {
-				redirectTo: `${window.location.origin}/auth/callback`,
+				redirectTo: callback,
 				skipBrowserRedirect: false,
 				scopes:
 					provider === 'discord' ? DISCORD_OAUTH_SCOPES : undefined,
@@ -154,6 +162,63 @@ class AuthBridge {
 		const { data, error } = await client.auth.getSession();
 		if (error) throw error;
 		return data.session;
+	}
+
+	/**
+	 * Force a refresh of the access token. Re-runs the GoTrue
+	 * custom_access_token_hook so claims like owned_guilds pick up
+	 * fresh values from profile.discord_bootstrap_cache.
+	 */
+	async refreshSession() {
+		const client = this.ensureClient();
+		const { data, error } = await client.auth.refreshSession();
+		if (error) throw error;
+		return data.session;
+	}
+
+	/**
+	 * Email + password sign-up. Requires an hCaptcha token (GoTrue enforces
+	 * captcha on password flows). `username` is stashed in user_metadata for
+	 * the profile hook to pick up after email confirmation.
+	 */
+	async signUpWithPassword(params: {
+		email: string;
+		password: string;
+		captchaToken: string;
+		username?: string;
+	}) {
+		const client = this.ensureClient();
+		const { data, error } = await client.auth.signUp({
+			email: params.email,
+			password: params.password,
+			options: {
+				captchaToken: params.captchaToken,
+				emailRedirectTo: `${window.location.origin}/auth/callback`,
+				data: params.username
+					? { username: params.username }
+					: undefined,
+			},
+		});
+		if (error) throw error;
+		return data;
+	}
+
+	/**
+	 * Email + password sign-in. Requires an hCaptcha token.
+	 */
+	async signInWithPassword(params: {
+		email: string;
+		password: string;
+		captchaToken: string;
+	}) {
+		const client = this.ensureClient();
+		const { data, error } = await client.auth.signInWithPassword({
+			email: params.email,
+			password: params.password,
+			options: { captchaToken: params.captchaToken },
+		});
+		if (error) throw error;
+		return data;
 	}
 }
 

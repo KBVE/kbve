@@ -12,83 +12,95 @@ osrs:
   lowalch: 56000
   highalch: 84000
   limit: null
+  material:
+    type: metal
+    tier: high
   equipment:
     slot: ring
-    type: melee
+    weight: 0.012
     requirements:
-      quest: Vardorvis kill
-    stats:
-      strength: 12
-  creation:
-    components:
-      - item_id: 28273
-        item_name: Berserker icon
-      - item_id: 28295
-        item_name: Ultor vestige
-      - item_id: 565
-        item_name: Blood rune
-        quantity: "500"
-    materials:
-      - item_name: Chromium ingot
-        quantity: "3"
-      - item_name: Ring mould
-        quantity: "1"
-    skill_requirements:
       magic: 90
       crafting: 80
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Berserker icon
+          quantity: 1
+        - item_name: Ultor vestige
+          quantity: 1
+        - item_name: Blood rune
+          quantity: 500
+        - item_name: Chromium ingot
+          quantity: 3
+        - item_name: Ring mould
+          quantity: 1
+      tools:
+        - Furnace
+      output_quantity: 1
+      skill: Crafting
+      level: 80
+      notes: "Step 1 combine icon + vestige + 500 blood runes into ultor icon (90 Magic). Step 2 forge with 3 chromium ingots + ring mould at a furnace (80 Crafting). Requires knowledge from Peer the Seer; Vardorvis must be killed at least once to equip."
   drop_table:
     sources:
       - source: Vardorvis
-        source_id: 12223
-        combat_level: 776
-        quantity: 1 (Ultor vestige)
-        rarity: Rare
-        members_only: true
+        quantity: "1"
+        rarity: "Rare (Ultor vestige drop)"
   related_items:
-    - item_id: 11773
-      item_name: Berserker ring (i)
-      slug: berserker-ring-i
+    - name: Berserker ring (i)
       relationship: alternative
-      description: Budget alternative
-    - item_id: 28316
-      item_name: Bellator ring
-      slug: bellator-ring
+    - name: Bellator ring
       relationship: alternative
-      description: Slash accuracy
-    - item_id: 28295
-      item_name: Ultor vestige
-      slug: ultor-vestige
+    - name: Ultor vestige
       relationship: component
-      description: From Vardorvis
-  about: |-
-    1. Combine Berserker icon + Ultor vestige + 500 blood runes
-    2. Craft at furnace with 3 chromium ingots + ring mould
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 90 (boostable) |
-    | Crafting | 80 (boostable) |
-    | Kill Vardorvis | 1 time |
-
-    | Offense | Value |
-    |---------|-------|
-    | Strength | +12 |
-
-    Requirements: Vardorvis kill
-
-    BiS for:
-    - All melee DPS
-    - Maximum hits
-    - Slayer
-
-    Highest strength bonus ring (+4 over berserker (i)).
+    - name: Berserker icon
+      relationship: component
+  about: "Ultor ring is the strength-bonus Desert Treasure II ring forged from an Ultor vestige (Vardorvis drop) plus a berserker icon, 500 blood runes, 3 chromium ingots, and a ring mould. +12 strength makes it BiS melee strength, +4 over Berserker (i). Cannot be imbued."
   market_strategy:
     notes:
-      - Vestige from Vardorvis
-      - Cannot be imbued
-      - DT2 content
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Ultor vestige supplied by Vardorvis kills — DT2 content gates the input.
+      - Ancient rings cannot be imbued, unlike Fremennik rings.
+      - BiS strength ring for melee DPS, slayer and max-hit setups.
+  trading_tips:
+    - Track vestige drop volume and Vardorvis kill rates — supply scales with PvM activity.
+    - Margin vs. building from vestige + icon yourself depends on rune and chromium prices.
+  history:
+    - date: "2023-07-26"
+      description: "Released with the Desert Treasure II - The Fallen Empire update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-07-26"
+    update: "Desert Treasure II - The Fallen Empire"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.012
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

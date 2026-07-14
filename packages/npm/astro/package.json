@@ -30,6 +30,7 @@
 		},
 		"./components/DroidProvider.astro": "./components/DroidProvider.astro",
 		"./components/DroidStatus.astro": "./components/DroidStatus.astro",
+		"./components/StepCard.astro": "./components/StepCard.astro",
 		"./components/AskamaFragment.astro": "./components/AskamaFragment.astro",
 		"./components/AskamaCard.astro": "./components/AskamaCard.astro",
 		"./components/AskamaHero.astro": "./components/AskamaHero.astro",
@@ -52,7 +53,73 @@
 		"./components/tooltip/social/sttService": "./components/tooltip/social/sttService.js",
 		"./components/hero/scroll/ScrollZoomHero.astro": "./components/hero/scroll/ScrollZoomHero.astro",
 		"./components/hero/observer/ObserverCollections.astro": "./components/hero/observer/ObserverCollections.astro",
-		"./components/hero/observer/ObserverSelection.astro": "./components/hero/observer/ObserverSelection.astro"
+		"./components/hero/observer/ObserverSelection.astro": "./components/hero/observer/ObserverSelection.astro",
+		"./components/social/bluesky/BlueskySocialComponent.astro": "./components/social/bluesky/BlueskySocialComponent.astro",
+		"./components/social/twitter/TwitterSocialComponent.astro": "./components/social/twitter/TwitterSocialComponent.astro",
+		"./components/social/youtube/YoutubeSocialComponent.astro": "./components/social/youtube/YoutubeSocialComponent.astro",
+		"./components/social/tiktok/TiktokSocialComponent.astro": "./components/social/tiktok/TiktokSocialComponent.astro",
+		"./components/social/steam/SteamSocialComponent.astro": "./components/social/steam/SteamSocialComponent.astro",
+		"./components/social/itch/ItchHero.astro": "./components/social/itch/ItchHero.astro",
+		"./components/social/itch/ItchGames.astro": "./components/social/itch/ItchGames.astro",
+		"./components/social/itch/itchGames": {
+			"import": "./components/social/itch/itchGames.js",
+			"types": "./components/social/itch/itchGames.d.ts"
+		},
+		"./components/social/twitch/TwitchEmbed.astro": "./components/social/twitch/TwitchEmbed.astro",
+		"./components/social/twitch/TwitchChat.astro": "./components/social/twitch/TwitchChat.astro",
+		"./components/social/twitch/ReactTwitchEmbed": {
+			"import": "./components/social/twitch/ReactTwitchEmbed.js",
+			"types": "./components/social/twitch/ReactTwitchEmbed.d.ts"
+		},
+		"./components/social/twitch/ReactTwitchChat": {
+			"import": "./components/social/twitch/ReactTwitchChat.js",
+			"types": "./components/social/twitch/ReactTwitchChat.d.ts"
+		},
+		"./components/social/twitch/ReactTwitchProfile": {
+			"import": "./components/social/twitch/ReactTwitchProfile.js",
+			"types": "./components/social/twitch/ReactTwitchProfile.d.ts"
+		},
+		"./components/social/twitch/ServiceTwitch": {
+			"import": "./components/social/twitch/ServiceTwitch.js",
+			"types": "./components/social/twitch/ServiceTwitch.d.ts"
+		},
+		"./components/social/discord/DiscordEmbed.astro": "./components/social/discord/DiscordEmbed.astro",
+		"./components/social/discord/ReactDiscordEmbed": {
+			"import": "./components/social/discord/ReactDiscordEmbed.js",
+			"types": "./components/social/discord/ReactDiscordEmbed.d.ts"
+		},
+		"./components/social/discord/ReactDiscordProfile": {
+			"import": "./components/social/discord/ReactDiscordProfile.js",
+			"types": "./components/social/discord/ReactDiscordProfile.d.ts"
+		},
+		"./components/social/discord/DiscordService": {
+			"import": "./components/social/discord/DiscordService.js",
+			"types": "./components/social/discord/DiscordService.d.ts"
+		},
+		"./components/social/github/GithubHero/DeferredAstroGithubHero.astro": "./components/social/github/GithubHero/DeferredAstroGithubHero.astro",
+		"./components/social/github/GithubHero/AstroGithubHero.astro": "./components/social/github/GithubHero/AstroGithubHero.astro",
+		"./components/social/github/Tabs/AstroGithubTabs.astro": "./components/social/github/Tabs/AstroGithubTabs.astro",
+		"./components/social/github/RepoCatalog/AstroGithubRepoCatalog.astro": "./components/social/github/RepoCatalog/AstroGithubRepoCatalog.astro",
+		"./components/social/github/Activity/AstroGithubActivity.astro": "./components/social/github/Activity/AstroGithubActivity.astro",
+		"./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro": "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro",
+		"./components/social/github/Contribute/AstroGithubContribute.astro": "./components/social/github/Contribute/AstroGithubContribute.astro",
+		"./components/social/github/Readme/AstroGithubReadme.astro": "./components/social/github/Readme/AstroGithubReadme.astro",
+		"./components/utility/DeferredSection.astro": "./components/utility/DeferredSection.astro",
+		"./components/social/icons/SocialIcon.astro": "./components/social/icons/SocialIcon.astro",
+		"./components/social/comic/KBVEComicSocials.astro": "./components/social/comic/KBVEComicSocials.astro",
+		"./components/social/comic/DeferredKBVEComicSocials.astro": "./components/social/comic/DeferredKBVEComicSocials.astro",
+		"./data/socials": {
+			"import": "./data/socials.js",
+			"types": "./data/socials.d.ts"
+		},
+		"./utils/clientRouter": {
+			"import": "./utils/clientRouter.js",
+			"types": "./utils/clientRouter.d.ts"
+		},
+		"./utils/cn": {
+			"import": "./utils/cn.js",
+			"types": "./utils/cn.d.ts"
+		}
 	},
 	"files": [
 		"astro.es.js",
@@ -60,6 +127,7 @@
 		"**/*.d.ts",
 		"components/**/*.astro",
 		"components/**/*.js",
+		"data/**/*.js",
 		"*.md"
 	],
 	"peerDependencies": {
@@ -69,7 +137,8 @@
 		"@kbve/droid": ">=0.1.0",
 		"@nanostores/react": ">=0.7.0",
 		"nanostores": ">=0.9.0",
-		"d3-force": ">=3.0.0"
+		"d3-force": ">=3.0.0",
+		"lucide-react": ">=0.400.0"
 	},
 	"peerDependenciesMeta": {
 		"astro": {

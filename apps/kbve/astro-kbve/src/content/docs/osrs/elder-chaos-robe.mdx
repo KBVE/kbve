@@ -12,9 +12,89 @@ osrs:
   lowalch: 280
   highalch: 420
   limit: 8
-  about: "Elder chaos robe is a members-only item in Old School RuneScape. High alchemy value: 420 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: high
+  equipment:
+    slot: legs
+    weapon_type: none
+    attack_speed: 1
+    weight: 0.18
+    requirements:
+      magic: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 6
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 6
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 1
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Elder Chaos druid
+        quantity: "1"
+        rarity: 1/1419
+  related_items:
+    - item_id: 20517
+      item_name: Elder chaos hood
+      slug: elder-chaos-hood
+      relationship: set-piece
+      description: Headpiece of the elder chaos druid robes set
+    - item_id: 20523
+      item_name: Elder chaos top
+      slug: elder-chaos-top
+      relationship: set-piece
+      description: Torso piece of the set
+    - item_id: 24297
+      item_name: Elder chaos robe (or)
+      slug: elder-chaos-robe-or
+      relationship: variant
+      description: Ornament kit variant
+    - item_id: 1099
+      item_name: Mystic robe bottom
+      slug: mystic-robe-bottom
+      relationship: alternative
+      description: Alternative magic legwear with defence requirements
+  about: "Elder chaos robe is best-in-slot magic legwear for one-defence pures, offering +6 magic attack and +1% magic damage with no Defence requirement."
+  market_strategy:
+    notes:
+      - Tiny 8-per-4h GE buy limit forces patient accumulation; flippers move volume slowly.
+      - One-defence pure demand makes the robe sticky in price even when general magic gear cools.
+      - Supply is gated entirely by Elder Chaos druid drops at 1/1419, so botted bursts directly drive dips.
+  trading_tips:
+    - Buy the full hood/top/robe set together when one piece sags relative to the others.
+    - Watch for PvP rejuvenation updates that revive interest in 1-defence builds.
+  history:
+    - date: "2016-07-21"
+      description: Added as a unique Elder Chaos druid drop.
+  properties:
+    release_date: "2016-07-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.18
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

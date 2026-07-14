@@ -6,8 +6,10 @@
  */
 import DeferredSection from '@/components/utility/DeferredSection.astro';
 import Feature from './Feature.astro';
+
+const props = Astro.props;
 ---
 
 <DeferredSection id="features" minHeight="500px" minHeightMobile="400px">
-	<Feature />
+	<Feature {...props} />
 </DeferredSection>

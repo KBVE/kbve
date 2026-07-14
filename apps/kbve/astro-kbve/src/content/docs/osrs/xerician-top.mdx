@@ -12,9 +12,81 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 125
-  about: "Xerician top is a members-only item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2016-01-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.2
+    requirements:
+      magic: 20
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 6
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 10
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 22
+      xp: 110
+      materials:
+        - item_name: Xerician fabric
+          quantity: 5
+        - item_name: Thread
+          quantity: 1
+      tools:
+        - Needle
+      output_quantity: 1
+  related_items:
+    - item_name: Xerician hat
+      slug: xerician-hat
+      relationship: set-piece
+      description: Matching headpiece in the Xerician robes set.
+    - item_name: Xerician robe
+      slug: xerician-robe
+      relationship: set-piece
+      description: Matching legs in the Xerician robes set.
+    - item_name: Xerician fabric
+      slug: xerician-fabric
+      relationship: component
+      description: Crafted from sandstone in Hosidius to make Xerician armour.
+    - item_name: Mystic robe top
+      slug: mystic-robe-top
+      relationship: upgrade
+      description: Higher-tier magic body that requires 40 Magic.
+  about: "Xerician top is the body piece of the Xerician robes set, the entry-level mage gear obtained by crafting Xerician fabric at level 22 Crafting. Requiring only 20 Magic and 10 Defence to wear, it offers +6 magic attack and +10 magic defence, making it a budget bridge between basic wizard robes and mystic gear. Each top consumes five Xerician fabric and a thread for 110 Crafting experience, and the Grand Exchange limit of 125 per four hours keeps it accessible to early Magic trainers."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

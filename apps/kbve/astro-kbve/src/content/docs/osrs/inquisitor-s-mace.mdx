@@ -12,112 +12,101 @@ osrs:
   lowalch: 2000000
   highalch: 3000000
   limit: 8
+  material:
+    type: mace
+    tier: high
+  properties:
+    release_date: "2020-02-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: mace
-    attack_style: crush
+    weapon_type: mace
     attack_speed: 4
-    tradeable: true
-    weight: 2.267
+    weight: 1.814
     requirements:
       attack: 75
-    stats:
-      attack_stab: 52
-      attack_crush: 95
+    attack_bonus:
+      stab: 52
+      slash: -4
+      crush: 95
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 89
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 2
-  set_bonus:
-    set_name: Inquisitor's
-    bonus_per_piece: 0.5
-    bonus_per_piece_with_mace: 2.5
-    full_set_bonus: 2.5
-    full_set_bonus_with_mace: 7.5
-    applies_to: crush accuracy and damage
+  passive_effects:
+    - name: Inquisitor's set synergy
+      description: "Each piece of Inquisitor's armour grants a 0.5% crush accuracy and damage bonus on its own, but wearing the mace alongside any piece scales each piece to 2.5% and the full four-piece set to 7.5%."
   drop_table:
     sources:
       - source: The Nightmare
-        source_id: 9425
-        combat_level: 814
         quantity: "1"
-        rarity: Very rare
-        drop_rate: 1/750 to 1/428
-        members_only: true
+        rarity: "1/750 to 1/428"
       - source: Phosani's Nightmare
-        source_id: 9416
-        combat_level: 814
         quantity: "1"
-        rarity: Very rare
-        drop_rate: 1/1,250
-        members_only: true
-  market:
-    buy_limit: 8
-    price_estimate: 550000000
+        rarity: "1/1,250"
   related_items:
-    - item_id: 24668
-      item_name: Inquisitor's great helm
+    - item_name: Inquisitor's great helm
       slug: inquisitors-great-helm
       relationship: set-piece
-      description: Set helm
-    - item_id: 24670
-      item_name: Inquisitor's hauberk
+      description: "Set helm contributing to the Inquisitor crush bonus"
+    - item_name: Inquisitor's hauberk
       slug: inquisitors-hauberk
       relationship: set-piece
-      description: Set body armor
-    - item_id: 24672
-      item_name: Inquisitor's plateskirt
+      description: "Set body contributing to the Inquisitor crush bonus"
+    - item_name: Inquisitor's plateskirt
       slug: inquisitors-plateskirt
       relationship: set-piece
-      description: Set leg armor
-    - item_id: 22324
-      item_name: Ghrazi rapier
+      description: "Set legs contributing to the Inquisitor crush bonus"
+    - item_name: Ghrazi rapier
       slug: ghrazi-rapier
       relationship: alternative
-      description: Stab equivalent
+      description: "Best-in-slot stab equivalent from Theatre of Blood"
+    - item_name: Blade of saeldor
+      slug: blade-of-saeldor
+      relationship: alternative
+      description: "Slash equivalent from the Gauntlet"
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +52 |
-    | Crush | +95 |
-    | Strength | +89 |
+    "A powerful mace once wielded by the turncloak Justiciar."
 
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +2 |
+    Inquisitor's mace is the crush-style counterpart to the Ghrazi rapier and blade of saeldor, dropped by The Nightmare and Phosani's Nightmare. It hits at a 4-tick speed with plus 95 crush, plus 52 stab and plus 89 strength, plus 2 prayer for sustainability at long boss trips.
 
-    Requirements: 75 Attack
-
-    With Inquisitor's Armour:
-
-    | Pieces | Bonus (without mace) | Bonus (with mace) |
-    |--------|---------------------|-------------------|
-    | Each piece | +0.5% | +2.5% |
-    | Full set | +2.5% | +7.5% |
-
-    Bonus applies to crush accuracy and damage.
-
-    The mace dramatically increases the set bonus from 2.5% to 7.5%.
-
-    BiS for crush-weak enemies:
-    - The Nightmare
-    - Kalphite Queen
-    - Cerberus
-    - Tekton (Chambers of Xeric)
-    - Corporeal Beast (spec switching)
-    - Sarachnis
-
-    | Weapon | Attack | Strength | Special |
-    |--------|--------|----------|---------|
-    | Inquisitor's mace | +95 crush | +89 | Set bonus |
-    | Ghrazi rapier | +94 stab | +89 | None |
-    | Blade of saeldor | +94 slash | +89 | None |
+    The mace's real value is the Inquisitor armour set synergy: each piece on its own grants 0.5% crush accuracy and damage, but combined with the mace each piece scales to 2.5% and the full four-piece set reaches 7.5%. That bonus makes the mace the best-in-slot crush option against crush-weak targets like The Nightmare itself, Tekton in Chambers of Xeric, Kalphite Queen and Cerberus.
   market_strategy:
     notes:
-      - Most expensive Nightmare unique
-      - Best with full Inquisitor set
-      - 7.5% set bonus is substantial
-      - Nightmare/Phosani grind
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Most expensive Nightmare unique with limited drop sources keeping supply tight"
+      - "Buy limit of 8 per 4 hours discourages whales from snapping the float fast"
+      - "Price is heavily tied to Inquisitor set demand because the mace shines with armour"
+      - "Watch for Tombs of Amascut and Tekton-meta shifts which spike crush gear demand"
+  trading_tips:
+    - Track Nightmare team kill rates; supply spikes after community events
+    - Pair-buy with armour pieces if the set bonus is what you actually want
+  history:
+    - date: "2020-02-06"
+      description: "Released alongside The Nightmare boss."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,18 +12,65 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 3000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bones
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.5
+    options:
+      - Bury
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Pyrefiend
+        quantity: "1"
+        rarity: Always
+      - source: Lava dragon
+        quantity: "1"
+        rarity: Always
+      - source: Fire giant
+        quantity: "1"
+        rarity: Common
   related_items:
-    - item_id: 530
-      item_name: Bat bones
+    - item_name: Bones
+      slug: bones
+      relationship: alternative
+      description: Standard bones (same prayer XP per bone)
+    - item_name: Bat bones
       slug: bat-bones
       relationship: variant
-      description: Another bone type
+      description: Higher Prayer XP variant
   about: |-
-    > _"A\"charred\" set of bones."_
+    > _"A charred set of bones."_
 
-    Burnt bones give 4.5 Prayer XP when buried, slightly more than regular bones (4.5). Primarily dropped by fiery creatures and found in Lava Dragon Isle.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Burnt bones grant 4.5 Prayer XP when buried, identical to regular bones. They can be offered at a gilded altar (15.7 XP), the Chaos Temple, or via the Sinister Offering spell (13.5 XP), and the Ectofuntus grants 18 XP.
+
+    Primarily dropped by fiery creatures such as pyrefiends, fire giants, and lava dragons. Several free-to-play spawn locations exist (Demonic Ruins has 8 F2P spawns) but they offer no advantage over regular bones for Prayer training.
+  market_strategy:
+    notes:
+      - "Identical Prayer XP to regular bones"
+      - "High supply from slayer/fiery monster drops"
+      - "Niche demand only from spawn-pickers"
+      - "Low absolute price ceiling"
+  trading_tips:
+    - Buy at GE floor and offer at altar for tiny XP margins
+    - Bulk volume play only - margins are pennies
+    - Not recommended for Prayer training over regular bones
+  history:
+    - date: "2004-03-29"
+      description: "Item released with the RS2 launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

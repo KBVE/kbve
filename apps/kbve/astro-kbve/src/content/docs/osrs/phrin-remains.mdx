@@ -1,6 +1,6 @@
 ---
 title: Phrin remains | OSRS Price Data
-description: "Phrin remains: The remains of a deadly shade.. High alch: 1 GP, GE limit: 7,500."
+description: "Phrin remains: The remains of a deadly shade. High alch: 1 GP, GE limit: 7,500."
 osrs:
   id: 3398
   name: Phrin remains
@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7500
-  about: "Phrin remains is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: shade remains
+    tier: low
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options: ["Drop"]
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Phrin Shade
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Loar remains
+      slug: loar-remains
+      relationship: alternative
+      description: "Tier 1 shade remains used in Shades of Mort'ton pyres"
+    - item_name: Riyl remains
+      slug: riyl-remains
+      relationship: alternative
+      description: "Tier 3 shade remains used in Shades of Mort'ton pyres"
+    - item_name: Asyn remains
+      slug: asyn-remains
+      relationship: upgrade
+      description: "Higher tier shade remains for Mort'ton pyres"
+    - item_name: Fiyr remains
+      slug: fiyr-remains
+      relationship: upgrade
+      description: "Higher tier shade remains for Mort'ton pyres"
+  about: "Phrin remains are the dropped remains of Phrin Shades (combat level 60) found in the Shade Catacombs behind a solid bronze door. They are burned on funeral pyres with various pyre logs (requiring Firemaking 5+ and Prayer 1+) during the Shades of Mort'ton minigame, yielding Firemaking and Prayer experience plus shade keys or coins."
+  market_strategy:
+    notes:
+      - "Always dropped by Phrin Shades in the Shade Catacombs"
+      - "Burned on pyre logs for Firemaking and Prayer XP plus shade key rewards"
+      - "Tier 2 shade remains in the Mort'ton funeral pyre sequence"
+  trading_tips:
+    - "Stockpile by farming Phrin Shades behind the bronze door in the Shade Catacombs"
+    - "Pair with pyre logs (regular, oak, willow, etc.) for the best XP per remain"
+    - "Higher tier pyre logs grant more XP per Phrin remain burned"
+  history:
+    - date: "2004-10-18"
+      description: "Phrin remains added with the Shades of Mort'ton minigame expansion."
+    - date: "2024-05-15"
+      description: "Shade key and coin despawn time extended to 5 minutes with player-protection mechanics."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

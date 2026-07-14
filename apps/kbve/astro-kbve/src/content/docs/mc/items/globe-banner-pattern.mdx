@@ -1,5 +1,6 @@
 ---
 title: Globe Banner Pattern
+template: splash
 description: |
     Minecraft Globe Banner Pattern — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1261
     ref: globe_banner_pattern
     slug: globe-banner-pattern
+    content_rev: 1
     display_name: Globe Banner Pattern
     category: banner
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Globe Banner Pattern is a decorative loom pattern that emblazons a
+            cube-shaped depiction of the earth onto a banner. It cannot be crafted
+            and is instead purchased from master-level cartographer villagers for
+            8 emeralds, making it a renewable but trade-locked cosmetic.
+        lore: |
+            A cartographer's stylized rendering of the world, folded into a
+            traveler's banner so mapmakers can mark their trade with a tiny globe.
+    faq:
+        - question: How do I get the Globe Banner Pattern?
+          answer: |
+              Trade with a master-level (fifth tier) cartographer villager, who
+              sells it for 8 emeralds. It cannot be crafted or found in loot chests.
+        - question: What does the Globe Banner Pattern do?
+          answer: |
+              When applied to a banner and dye in a loom, it adds a cube-shaped
+              globe design in the dye's color. The pattern item itself is not
+              consumed, so it can be reused on multiple banners in the loom.
+        - question: Can the Globe Banner Pattern be crafted?
+          answer: |
+              No. It has no crafting recipe and can only be obtained through
+              villager trading, though it is fully renewable since cartographers
+              can restock their trades.
+        - question: Does the globe design change color?
+          answer: |
+              Yes, the globe takes on the color of whatever dye is combined with
+              it in the loom, so the same pattern item can produce 16 different
+              colored banners.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

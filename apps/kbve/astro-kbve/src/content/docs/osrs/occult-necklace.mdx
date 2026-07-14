@@ -1,6 +1,6 @@
 ---
 title: Occult necklace | OSRS Price Data
-description: "Occult necklace is a members neck slot item requiring 70 Magic. High alch: 27,000 GP, GE limit: 8."
+description: "Occult necklace is the BiS magic damage amulet, dropped by smoke devils and the only neck slot with a magic damage bonus. High alch: 27,000 GP, GE limit: 8."
 osrs:
   id: 12002
   name: Occult necklace
@@ -12,71 +12,109 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: amulet
+    tier: high
+  properties:
+    release_date: "2014-04-10"
+    update: "Smoking Kills"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
-    type: amulet
+    weight: 0.005
+    attack_speed: 4
     requirements:
       magic: 70
-    stats:
-      attack_magic: 12
-      magic_damage_percent: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 12
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 5
       prayer: 2
   drop_table:
     sources:
-      - source: Smoke devil
-        source_id: 498
-        combat_level: 160
-        quantity: "1"
-        rarity: 1/512
-        members_only: true
-        notes: 93 Slayer required
       - source: Thermonuclear smoke devil
-        source_id: 499
         combat_level: 301
         quantity: "1"
-        rarity: 1/350
-        members_only: true
-        notes: 93 Slayer required
+        rarity: "1/350"
+        notes: "Requires 93 Slayer; located in the Smoke Devil Dungeon."
+      - source: Smoke devil
+        combat_level: 160
+        quantity: "1"
+        rarity: "1/512"
+        notes: "Requires 93 Slayer; located in the Smoke Devil Dungeon."
+      - source: Nuclear smoke devil
+        combat_level: 280
+        quantity: "1"
+        rarity: "3/512"
+        notes: "Kandarin Leagues encounter."
   related_items:
+    - item_name: Occult necklace (or)
+      slug: occult-necklace-or
+      relationship: variant
+      description: "Cosmetic recolour requiring the Occult Ornament Kit."
     - item_id: 19544
       item_name: Tormented bracelet
       slug: tormented-bracelet
       relationship: alternative
-      description: +5% magic damage (hands)
-    - item_id: 21018
-      item_name: Ancestral robe top
-      slug: ancestral-robe-top
-      relationship: alternative
-      description: +3% magic damage
+      description: "Hands slot magic damage bonus of +5%."
     - item_id: 21006
       item_name: Kodai wand
       slug: kodai-wand
       relationship: alternative
-      description: +15% magic damage
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Magic attack | +12 |
-    | Magic damage | +5% |
-    | Prayer | +2 |
-    | Requirements | 70 Magic |
-
-    Only amulet with magic damage bonus.
-
-    Essential for magic DPS:
-    - Stacks with other magic damage bonuses
-    - BiS neck slot for magic
-    - Used in all endgame magic content
+      description: "Weapon slot with +15% magic damage."
+    - item_id: 21018
+      item_name: Ancestral robe top
+      slug: ancestral-robe-top
+      relationship: alternative
+      description: "Body slot with +3% magic damage."
+  about: "Occult necklace is the only neck slot amulet in Old School RuneScape that grants a magic damage percentage, making it best-in-slot for magic DPS across every major piece of endgame content. Dropped by smoke devils and thermonuclear smoke devils inside the Smoke Devil Dungeon, it stacks with magic damage from other slots for compounded multiplicative gains."
   market_strategy:
     notes:
-      - High demand, consistent price
-      - Required for efficient magic setups
-      - Thermy task is faster source
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Persistent endgame demand keeps liquidity tight despite a buy limit of 8."
+      - "Price reacts strongly to magic gear rebalances: 2024 5% nerf compressed the premium."
+      - "Thermonuclear smoke devil tasks are the dominant supply source for resellers."
+  trading_tips:
+    - "Buy on raid-meta dips when ToA scaling discussions cool magic gear demand."
+    - "Compare against ornament kit pricing for an arbitrage on the (or) variant."
+  history:
+    - date: "2014-04-10"
+      update: "Smoking Kills"
+      description: "Occult necklace released as a drop from the new Smoke Devil Dungeon bosses."
+    - date: "2024-05-29"
+      update: "Magic rebalance"
+      description: "Magic damage bonus reduced from 10% to 5% as part of the magic gear rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

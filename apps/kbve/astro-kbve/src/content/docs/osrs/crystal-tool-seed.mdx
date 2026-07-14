@@ -12,113 +12,94 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 100
-  item:
-    type: crafting material
-    tradeable: true
-    weight: 0
-  obtaining:
-    - source: Zalcano
-      drop_rate: 39/8,000 (~1/205)
+  material:
+    type: crystal
+    tier: high
+  drop_table:
+    sources:
+      - source: Zalcano
+        quantity: "1"
+        rarity: 39/8000
   recipes:
-    - skill: smithing
+    - skill: Smithing
       level: 76
-      xp: 6000
+      experience: 6000
+      tools:
+        - Singing bowl
       materials:
-        - item_id: 23953
-          item_name: Crystal tool seed
+        - item_name: Crystal tool seed
           quantity: 1
-        - item_id: 6739
-          item_name: Dragon axe
+        - item_name: Dragon axe
           quantity: 1
-        - item_id: 23962
-          item_name: Crystal shard
+        - item_name: Crystal shard
           quantity: 120
-      facility: Singing bowl
-      product: Crystal axe
-      product_id: 23673
-    - skill: smithing
+      output_quantity: 1
+    - skill: Smithing
       level: 76
-      xp: 6000
+      experience: 6000
+      tools:
+        - Singing bowl
       materials:
-        - item_id: 23953
-          item_name: Crystal tool seed
+        - item_name: Crystal tool seed
           quantity: 1
-        - item_id: 11920
-          item_name: Dragon pickaxe
+        - item_name: Dragon pickaxe
           quantity: 1
-        - item_id: 23962
-          item_name: Crystal shard
+        - item_name: Crystal shard
           quantity: 120
-      facility: Singing bowl
-      product: Crystal pickaxe
-      product_id: 23680
-    - skill: smithing
+      output_quantity: 1
+    - skill: Smithing
       level: 76
-      xp: 6000
+      experience: 6000
+      tools:
+        - Singing bowl
       materials:
-        - item_id: 23953
-          item_name: Crystal tool seed
+        - item_name: Crystal tool seed
           quantity: 1
-        - item_id: 21028
-          item_name: Dragon harpoon
+        - item_name: Dragon harpoon
           quantity: 1
-        - item_id: 23962
-          item_name: Crystal shard
+        - item_name: Crystal shard
           quantity: 120
-      facility: Singing bowl
-      product: Crystal harpoon
-      product_id: 23762
+      output_quantity: 1
   related_items:
-    - item_id: 23962
-      item_name: Crystal shard
-      slug: crystal-shard
+    - name: Crystal shard
       relationship: component
-      description: Required material for crafting
-    - item_id: 6739
-      item_name: Dragon axe
-      slug: dragon-axe
+    - name: Dragon axe
       relationship: component
-      description: Required base for crystal axe
-    - item_id: 11920
-      item_name: Dragon pickaxe
-      slug: dragon-pickaxe
+    - name: Dragon pickaxe
       relationship: component
-      description: Required base for crystal pickaxe
-    - item_id: 23673
-      item_name: Crystal axe
-      slug: crystal-axe
+    - name: Dragon harpoon
+      relationship: component
+    - name: Crystal axe
       relationship: product
-      description: Created tool
-    - item_id: 23680
-      item_name: Crystal pickaxe
-      slug: crystal-pickaxe
+    - name: Crystal pickaxe
       relationship: product
-      description: Created tool
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-
-    Craft at singing bowl with 120 crystal shards + dragon tool:
-
-    | Tool Created | Requirements |
-    |--------------|--------------|
-    | Crystal axe | 76 Smithing, 76 Crafting |
-    | Crystal pickaxe | 76 Smithing, 76 Crafting |
-    | Crystal harpoon | 76 Smithing, 76 Crafting |
-    | Crystal felling axe | 76 Smithing, 76 Crafting |
-
-    Grants 6,000 Smithing and 6,000 Crafting XP per tool.
-
-    Alternatives:
-    - Exchange for 100 crystal shards (Amrod)
-    - Convert to crystal acorn
-
-    Note: Pay 60 extra shards for NPC crafting if lacking requirements.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Crystal harpoon
+      relationship: product
+    - name: Crystal acorn
+      relationship: alternative
+  about: "Crystal tool seed is sung at a Singing bowl with 120 crystal shards plus a dragon counterpart to create a crystal axe, pickaxe, harpoon, or felling axe. Each crafting attempt grants 6,000 Smithing and 6,000 Crafting XP. Players lacking the level 76 Smithing and Crafting requirements can pay Conwenna or Reese 60 extra shards. Sole drop source is Zalcano at 39/8,000."
+  market_strategy:
+    notes:
+      - Sole source is Zalcano boss drop
+      - Convertible to crystal acorn or exchanged for 100 crystal shards via Amrod
+      - High value due to crystal axe/pickaxe demand
+  history:
+    - date: "2019-07-25"
+      description: "Released during the Song of the Elves update."
+  properties:
+    release_date: "2019-07-25"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

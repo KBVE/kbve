@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: agones-cryptothrone
+    namespace: argocd
+    labels:
+        app.kubernetes.io/part-of: cryptothrone
+    annotations:
+        kbve.com/source-path: kube/agones/cryptothrone
+        kbve.com/manifest-path: apps/kube/agones/cryptothrone/manifests
+        kbve.com/application-file: kube/agones/cryptothrone/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/agones/cryptothrone/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: cryptothrone
+    ignoreDifferences:
+        - group: agones.dev
+          kind: Fleet
+          jsonPointers:
+              - /spec/replicas
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true

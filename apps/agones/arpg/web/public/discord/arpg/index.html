@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<title>KBVE ARPG</title>
+		<style>
+			html,
+			body {
+				margin: 0;
+				height: 100%;
+				background: #10131c;
+				color: #e6ebf5;
+				font-family: system-ui, sans-serif;
+				overflow: hidden;
+			}
+			#app {
+				width: 100vw;
+				height: 100vh;
+			}
+			.arpg-boot {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				height: 100%;
+				gap: 1rem;
+				padding: 1.5rem;
+				text-align: center;
+				box-sizing: border-box;
+			}
+			.arpg-brand {
+				width: clamp(120px, 40vw, 220px);
+				height: auto;
+				margin-bottom: 0.5rem;
+				user-select: none;
+				-webkit-user-drag: none;
+			}
+			.arpg-ver {
+				margin: 0.75rem 0 0;
+				font-size: 0.65rem;
+				letter-spacing: 0.04em;
+				color: #5a6478;
+			}
+			.arpg-spinner {
+				width: 2rem;
+				height: 2rem;
+				border-radius: 9999px;
+				border: 2px solid rgba(110, 168, 255, 0.2);
+				border-top-color: #6ea8ff;
+				animation: arpg-spin 0.8s linear infinite;
+			}
+			@keyframes arpg-spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+			.arpg-boot-status {
+				margin: 0;
+				font-size: 0.875rem;
+				font-weight: 600;
+				color: #c7d6ff;
+			}
+			.arpg-boot-sub {
+				margin: 0;
+				max-width: 22rem;
+				font-size: 0.75rem;
+				color: #8a93a6;
+			}
+			.arpg-error-title {
+				margin: 0;
+				font-size: 0.95rem;
+				font-weight: 700;
+				color: #f87171;
+			}
+			.arpg-error-msg {
+				margin: 0;
+				max-width: 24rem;
+				font-size: 0.8rem;
+				color: #a8a29e;
+			}
+			.arpg-retry,
+			.arpg-cta button {
+				margin-top: 0.5rem;
+				padding: 0.5rem 1rem;
+				font-size: 0.8rem;
+				font-weight: 700;
+				border: none;
+				border-radius: 0.375rem;
+				background: #6ea8ff;
+				color: #0b0e16;
+				cursor: pointer;
+			}
+			.arpg-cta {
+				display: flex;
+				gap: 0.5rem;
+				margin-top: 0.75rem;
+			}
+			.arpg-cta-feedback {
+				background: #2a3142 !important;
+				color: #e6ebf5 !important;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<div class="arpg-boot">
+				<img
+					class="arpg-brand"
+					src="./rentearthlogo.webp"
+					alt="Rent Earth"
+					onerror="this.style.display='none'" />
+				<span class="arpg-spinner" aria-hidden="true"></span>
+				<p class="arpg-boot-status">Entering the dungeon…</p>
+				<p class="arpg-boot-sub">Connecting to Discord.</p>
+			</div>
+		</div>
+		<script src="arpg.js" defer></script>
+	</body>
+</html>

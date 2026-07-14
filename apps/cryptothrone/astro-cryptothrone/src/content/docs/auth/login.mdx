@@ -1,0 +1,28 @@
+---
+title: Sign In
+description: Sign in to your CryptoThrone account. Cross-device sync for saves, settings, and updates.
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, nofollow
+sidebar:
+  label: Sign In
+  order: 1
+  attrs:
+    data-auth-visibility: anon
+---
+
+import AstroLogin from '../../../components/auth/AstroLogin.astro';
+
+<AstroLogin />
+
+## Why sign in
+
+- **Cloud saves** — progress and settings sync across every device you play on.
+- **Update notifications** — new builds and major updates surface in your account.
+- **Shared community** — one KBVE account covers CryptoThrone plus Discord / GitHub integrations across all KBVE properties.
+
+## Supported providers
+
+**GitHub** and **Discord** are supported today. We only pull the basics from OAuth — username, email, avatar — nothing else.

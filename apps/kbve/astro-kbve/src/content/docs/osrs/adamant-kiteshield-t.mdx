@@ -12,22 +12,63 @@ osrs:
   lowalch: 2176
   highalch: 3264
   limit: 8
+  about: "Adamant kiteshield (t) is a trimmed cosmetic variant of the standard adamant kiteshield. Identical stats, requiring 30 Defence. Clue scroll exclusive."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    weight: 5.896
+    destroy: "Drop"
+  material:
+    type: metal
+    tier: adamant
+    category: shield
   equipment:
     slot: shield
+    weapon_type: none
+    attack_speed: null
     requirements:
       defence: 30
-  related_items:
-    - item_id: 2599
-      item_name: Adamant platebody (t)
-      slug: adamant-platebody-t
-      relationship: set-piece
-      description: Matching trimmed platebody
-  about: |-
-    > *"Adamant kiteshield with trim."*
-
-    The adamant kiteshield (t) is a trimmed cosmetic variant of the standard adamant kiteshield. Identical stats, requiring 30 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -2
+    defence_bonus:
+      stab: 27
+      slash: 31
+      crush: 29
+      magic: -1
+      ranged: 29
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    type: reward
+    rarity: "1/1133"
+  market_strategy:
+    notes:
+      - "relationship: \"variant\""
+      - "Adamant kiteshield"
+      - "Adamant kiteshield (g)"
+      - "Adamant platebody (t)"
+      - "Adamant full helm (t)"
+      - "Adamant platelegs (t)"
+      - "Trimmed cosmetic version of adamant kiteshield with identical defensive bonuses."
+      - "Exclusively from medium clue scrolls; supply is throttled."
+      - "Often bought as a set with matching adamant trimmed pieces for fashionscape."
+  history:
+    - date: "2004-05-05"
+      description: "Adamant kiteshield (t) was released as part of the Bigger Banks & Treasure Trails update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

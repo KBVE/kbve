@@ -1,5 +1,6 @@
 ---
 title: Sand
+template: splash
 description: |
     Minecraft Sand — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 37
     ref: sand
     slug: sand
+    content_rev: 1
     display_name: Sand
     material: sand
     hardness: 0.5
@@ -24,10 +26,69 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sand
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+        - falling_block
+    about:
+        description: |
+            Sand is a gravity-affected block found abundantly in deserts,
+            beaches, and shallow oceans. It falls like gravel when
+            unsupported and forms the base for glass, sandstone, and
+            concrete recipes.
+        lore: |
+            Sand has been in Minecraft since its earliest versions,
+            originally serving mainly as a glass-smelting ingredient
+            before gaining TNT and concrete recipes.
+    uses:
+        - title: Glass
+          ref: glass
+          detail: |
+              Smelting Sand in a furnace produces Glass, used for windows
+              and many decorative and functional blocks.
+        - title: Sandstone
+          ref: sandstone
+          detail: |
+              Crafting 4 Sand blocks together produces Sandstone, a solid
+              building block used throughout desert-themed builds.
+        - title: TNT
+          ref: tnt
+          detail: |
+              Alternating Sand and Gunpowder in a crafting grid produces
+              TNT, an explosive block.
+    found_in:
+        - location: Deserts and Beaches
+          detail: Generates in thick deposits, typically 4 blocks deep, with sandstone forming beneath it.
+        - location: Warm and Lukewarm Oceans
+          detail: Covers ocean floors in a single layer in warm-climate biomes.
+        - location: Wandering Trader
+          detail: Purchasable from wandering traders at 8 Sand for 1 emerald.
+    faq:
+        - question: What tool should I use to mine Sand?
+          answer: |
+              A shovel is fastest, but Sand can be mined with any tool or
+              by hand and always drops itself.
+        - question: Does Sand fall like gravel?
+          answer: |
+              Yes, Sand is affected by gravity and falls as an entity when
+              the block beneath it is removed, potentially suffocating
+              entities caught underneath.
+        - question: What can Sand be smelted or crafted into?
+          answer: |
+              It smelts into Glass and crafts into Sandstone, TNT, and
+              Concrete Powder (when combined with dye and gravel).
+        - question: Do turtles need Sand to lay eggs?
+          answer: |
+              Yes, turtle eggs can only be placed on sand, red sand, or
+              suspicious sand blocks.
     data_version: "1.21.5"
 ---
 

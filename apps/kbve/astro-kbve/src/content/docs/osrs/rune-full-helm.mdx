@@ -1,6 +1,6 @@
 ---
 title: Rune full helm | OSRS Price Data
-description: "Rune full helm is a F2P head slot item. High alch: 21,120 GP, GE limit: 70."
+description: "Rune full helm is a F2P head slot item requiring 40 Defence. High alch: 21,120 GP, GE limit: 70."
 osrs:
   id: 1163
   name: Rune full helm
@@ -12,80 +12,113 @@ osrs:
   lowalch: 14080
   highalch: 21120
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: high
+  properties:
+    release_date: "2001-08-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    type: full_helm
-    attack_style: melee
-    tradeable: true
+    weapon_type: null
+    attack_speed: null
     weight: 2.721
-  requirements:
-    defence: 40
-  stats:
-    attack:
+    requirements:
+      defence: 40
+    attack_bonus:
       stab: 0
       slash: 0
       crush: 0
       magic: -6
       ranged: -3
-    defence:
+    defence_bonus:
       stab: 30
       slash: 32
       crush: 27
       magic: -1
       ranged: 30
-    other:
+    other_bonus:
       melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  smithing:
-    level: 92
-    xp: 150
-    bars_required: 2
-    bar_id: 2363
-    bar_name: Runite bar
+  recipes:
+    - skill: smithing
+      level: 92
+      xp: 150
+      materials:
+        - item_name: Runite bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   shops:
-    - shop_name: Blast Furnace
+    - shop_name: Blast Furnace Shop
+      location: Keldagrim
       price: 35200
+      currency: Coins
+      stock: 0
     - shop_name: Prifddinas armour shop
+      location: Prifddinas
       price: 35200
+      currency: Coins
+      stock: 0
   drop_table:
     sources:
       - source: Mithril dragon
-        source_id: 5363
-        combat_level: 304
         quantity: "1"
         rarity: rare
-        members_only: true
       - source: Jelly
-        source_id: 437
-        combat_level: 78
         quantity: "1"
         rarity: rare
-        members_only: true
   related_items:
-    - item_id: 1147
-      item_name: Rune med helm
+    - item_name: Rune med helm
       slug: rune-med-helm
       relationship: alternative
       description: Lighter alternative
-    - item_id: 2363
-      item_name: Runite bar
+    - item_name: Runite bar
       slug: runite-bar
       relationship: component
       description: Smithing material
-    - item_id: 1079
-      item_name: Rune platelegs
+    - item_name: Rune platelegs
       slug: rune-platelegs
-      relationship: alternative
-      description: Set piece
-    - item_id: 1127
-      item_name: Rune platebody
+      relationship: set-piece
+      description: Matching legs
+    - item_name: Rune platebody
       slug: rune-platebody
-      relationship: alternative
-      description: Set piece
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: set-piece
+      description: Matching body
+  about: |-
+    > _"A full face helmet."_
+
+    Rune full helm is the strongest free-to-play helmet, granting +30 stab, +32 slash, and +27 crush defence at 40 Defence. Smithable at 92 Smithing from 2 runite bars (150 XP), or obtained as a rare drop from monsters like mithril dragons.
+  market_strategy:
+    notes:
+      - "Top F2P helmet"
+      - "92 Smithing barrier limits supply"
+      - "Demand from mid-level mains"
+  trading_tips:
+    - Buy after rune bar dips for smithing margin
+    - Flip near high alch value on slow days
+  history:
+    - date: "2001-08-13"
+      description: "Released as part of the rune armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

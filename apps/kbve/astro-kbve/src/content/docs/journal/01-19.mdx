@@ -8,16 +8,52 @@ img: https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?crop=entropy&c
 description: Daily Log for January 19th of each year!
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'January 19,'
+    accent: every year.
+    lede: 'The January 19th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Jan 18'
+          href: /journal/01-18/
+        - label: 'Jan 20 →'
+          href: /journal/01-20/
+    related:
+        - title: 'Previous · Jan 18'
+          copy: 'Step back a day to the January 18th log.'
+          href: /journal/01-18/
+          icon: calendar
+        - title: 'Next · Jan 20'
+          copy: 'Jump ahead to the January 20th log.'
+          href: /journal/01-20/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
-
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-## Notes
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 -   **GoDot**
 
@@ -37,7 +73,15 @@ import { Adsense } from '@/components/astropad';
 
         Just came back into the house after doing a quick pre-shovel and my hands feel so frozen.
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
     - 8:00am - `BranchHell`
 
@@ -90,3 +134,7 @@ import { Adsense } from '@/components/astropad';
             Just did the BFD with a random 10
 
                 
+
+</BentoProse>
+
+</BentoDoc>

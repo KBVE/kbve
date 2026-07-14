@@ -1,0 +1,129 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: telemetry-ch-setup-script
+    namespace: kbve
+    labels:
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+data:
+    setup.sh:
+        "#!/bin/sh\nset -eu\n\necho \"Verifying ClickHouse connectivity...\"\n\
+        curl -sf --max-time 10 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"SELECT 1\" >/dev/null || {\n  echo \"ERROR: Cannot connect to ClickHouse\
+        \ at ${CLICKHOUSE_ENDPOINT}\"\n  exit 1\n}\necho \"ClickHouse connection OK.\"\
+        \n\necho \"Creating telemetry database...\"\ncurl -sf --max-time 10 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"CREATE DATABASE IF NOT EXISTS telemetry ON CLUSTER 'cluster'\" ||\
+        \ {\n  echo \"ERROR: Failed to create telemetry database\"\n  exit 1\n}\necho\
+        \ \"Database 'telemetry' ready.\"\n\necho \"Creating errors_raw table (ReplicatedMergeTree,\
+        \ 30d TTL)...\"\ncurl -sf --max-time 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"\nCREATE TABLE IF NOT EXISTS telemetry.errors_raw ON CLUSTER 'cluster'\n\
+        (\n    timestamp       DateTime64(3, 'UTC') DEFAULT now64(3),\n    project   \
+        \      LowCardinality(String),\n    platform        LowCardinality(String) DEFAULT\
+        \ 'web',\n    release         LowCardinality(String) DEFAULT '',\n    environment\
+        \     LowCardinality(String) DEFAULT 'production',\n    fingerprint     String,\n\
+        \    error_type      LowCardinality(String) DEFAULT '',\n    message         String,\n\
+        \    stack           String DEFAULT '',\n    url             String DEFAULT '',\n\
+        \    user_id         String DEFAULT '',\n    session_id      String DEFAULT '',\n\
+        \    user_agent      String DEFAULT '',\n    handled         UInt8 DEFAULT 0,\n\
+        \    extra           String DEFAULT '{}'\n)\nENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/telemetry/errors_raw',\
+        \ '{replica}')\nORDER BY (project, fingerprint, timestamp)\nPARTITION BY toYYYYMMDD(timestamp)\n\
+        TTL toDateTime(timestamp) + INTERVAL 30 DAY\n\" || {\n  echo \"ERROR: Failed to\
+        \ create errors_raw table\"\n  exit 1\n}\necho \"Table 'telemetry.errors_raw'\
+        \ ready.\"\n\necho \"Enforcing 30-day TTL on errors_raw...\"\ncurl -sf --max-time\
+        \ 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"ALTER TABLE telemetry.errors_raw ON CLUSTER 'cluster' MODIFY TTL\
+        \ toDateTime(timestamp) + INTERVAL 30 DAY\" || {\n  echo \"ERROR: Failed to apply\
+        \ TTL to errors_raw\"\n  exit 1\n}\necho \"TTL on 'telemetry.errors_raw' enforced\
+        \ at 30 days.\"\n\necho \"Creating errors_distributed table (Distributed)...\"\
+        \ncurl -sf --max-time 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"\nCREATE TABLE IF NOT EXISTS telemetry.errors_distributed ON CLUSTER\
+        \ 'cluster'\nAS telemetry.errors_raw\nENGINE = Distributed('cluster', 'telemetry',\
+        \ 'errors_raw', cityHash64(fingerprint))\n\" || {\n  echo \"ERROR: Failed to create\
+        \ errors_distributed table\"\n  exit 1\n}\necho \"Table 'telemetry.errors_distributed'\
+        \ ready.\"\n\n# Defense-in-depth tripwires on the raw table (canonical list:\n\
+        # packages/data/ch/schemas/telemetry.sql). Caps sit above the metrics\n# ingest\
+        \ clamps; ADD CONSTRAINT only checks future inserts (no backfill).\necho \"Applying\
+        \ sanitization constraints on errors_raw...\"\nfor c in \\\n  \"chk_project_len\
+        \ CHECK length(project) > 0 AND length(project) <= 256\" \\\n  \"chk_fingerprint_len\
+        \ CHECK length(fingerprint) <= 64\" \\\n  \"chk_message_len CHECK length(message)\
+        \ <= 8192\" \\\n  \"chk_stack_len CHECK length(stack) <= 32768\" \\\n  \"chk_url_len\
+        \ CHECK length(url) <= 2048\" \\\n  \"chk_handled_bit CHECK handled <= 1\"; do\n\
+        \  curl -sf --max-time 30 \\\n    \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n    -d \"ALTER TABLE telemetry.errors_raw ON CLUSTER 'cluster' ADD CONSTRAINT\
+        \ IF NOT EXISTS ${c}\" || {\n    echo \"ERROR: Failed to add constraint: ${c}\"\
+        \n    exit 1\n  }\ndone\necho \"Constraints on 'telemetry.errors_raw' applied.\"\
+        \n\necho \"Creating error_groups view (fingerprint rollup)...\"\ncurl -sf --max-time\
+        \ 30 \\\n  \"${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}\"\
+        \ \\\n  -d \"\nCREATE VIEW IF NOT EXISTS telemetry.error_groups ON CLUSTER 'cluster'\n\
+        AS SELECT\n    project,\n    fingerprint,\n    any(error_type)  AS error_type,\n\
+        \    any(message)     AS sample_message,\n    count()          AS events,\n  \
+        \  uniq(session_id) AS sessions,\n    min(timestamp)   AS first_seen,\n    max(timestamp)\
+        \   AS last_seen\nFROM telemetry.errors_distributed\nGROUP BY project, fingerprint\n\
+        \" || {\n  echo \"ERROR: Failed to create error_groups view\"\n  exit 1\n}\necho\
+        \ \"View 'telemetry.error_groups' ready.\"\n\necho \"\"\necho \"Telemetry schema\
+        \ setup complete.\"\n"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: telemetry-ch-setup
+    namespace: kbve
+    labels:
+        app: telemetry-ch-setup
+        component: vector
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+spec:
+    ttlSecondsAfterFinished: 86400
+    backoffLimit: 3
+    template:
+        metadata:
+            labels:
+                app: telemetry-ch-setup
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: setup
+                  image: curlimages/curl:8.12.1
+                  command:
+                      - /bin/sh
+                      - /scripts/setup.sh
+                  env:
+                      - name: CLICKHOUSE_ENDPOINT
+                        value: http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123
+                      - name: CLICKHOUSE_USER
+                        value: kbve_ingest
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: password
+                  volumeMounts:
+                      - name: setup-script
+                        mountPath: /scripts
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: 32Mi
+                          cpu: 50m
+                      limits:
+                          memory: 64Mi
+                          cpu: 100m
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: setup-script
+                  configMap:
+                      name: telemetry-ch-setup-script
+                      defaultMode: 365

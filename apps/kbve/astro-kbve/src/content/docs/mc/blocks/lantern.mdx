@@ -1,5 +1,6 @@
 ---
 title: Lantern
+template: splash
 description: |
     Minecraft Lantern — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 816
     ref: lantern
     slug: lantern
+    content_rev: 1
     display_name: Lantern
     material: stone
     hardness: 3.5
@@ -24,10 +26,68 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lantern
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - nether
+    about:
+        description: |
+            The Lantern is one of the brightest light sources in the
+            game, emitting a full light level of 15 while melting nearby
+            snow and ice. It can be placed on top of a block or hung from
+            the underside of one.
+        lore: |
+            Lanterns were planned as far back as 2010 but repeatedly
+            postponed over community concern that they would make torches
+            obsolete, before finally shipping in Java Edition 1.14.
+    uses:
+        - title: Ambient Lighting
+          ref: lantern
+          detail: |
+              Place on a solid block's top or bottom face for a bright,
+              hanging or standing light source that also melts snow
+              within 2 blocks and ice within 3 blocks.
+        - title: Soul Lantern
+          ref: soul_lantern
+          detail: |
+              Crafting a torch with soul soil or soul sand at the center
+              instead of coal produces a Soul Lantern, a blue-tinted,
+              dimmer variant found in Nether structures.
+    found_in:
+        - location: Snowy villages
+          detail: Generates on lamp posts and above farmland in snowy tundra villages.
+        - location: Bastion Remnants
+          detail: Found hanging throughout Nether bastion remnant structures.
+        - location: Crafted from Iron
+          detail: Crafted by surrounding a torch with 8 iron nuggets.
+    faq:
+        - question: What tool do I need to mine a Lantern?
+          answer: |
+              A pickaxe of any tier is fastest, though it drops itself
+              when mined regardless of tool since it has no minimum tool
+              tier.
+        - question: Do Lanterns need Silk Touch to drop?
+          answer: |
+              No. A Lantern always drops itself as an item when broken,
+              with or without Silk Touch.
+        - question: What is the difference between a Lantern and a Soul Lantern?
+          answer: |
+              They share the same hardness, blast resistance, and light
+              behavior, but the Soul Lantern emits a cooler blue-tinted
+              light and is crafted with soul soil or soul sand instead of
+              coal.
+        - question: Can Lanterns survive an explosion?
+          answer: |
+              No — pistons and most explosions destroy lanterns outright
+              rather than pushing or preserving them.
     data_version: "1.21.5"
 ---
 

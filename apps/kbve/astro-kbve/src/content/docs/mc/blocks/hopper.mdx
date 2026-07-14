@@ -1,5 +1,6 @@
 ---
 title: Hopper
+template: splash
 description: |
     Minecraft Hopper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 445
     ref: hopper
     slug: hopper
+    content_rev: 1
     display_name: Hopper
     material: redstone
     hardness: 3
     blast_resistance: 4.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: hopper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - redstone
+        - container
+        - automation
+    about:
+        description: |
+            A hopper is a redstone container that moves items automatically.
+            It pulls items from a container directly above it, collects loose
+            items floating in the space above, and pushes items from its own
+            five-slot inventory into the container its output tube faces.
+        lore: |
+            A cornerstone of item automation, hoppers are chained into
+            "hopper pipes" and placed beneath furnaces, chests, and dispensers
+            to build fully automatic sorting and processing systems.
+    uses:
+        - title: Item Transport
+          ref: hopper
+          detail: |
+              Chain hoppers together or point them into chests and furnaces to
+              move items automatically at roughly 2.5 items per second.
+        - title: Item Collection
+          ref: hopper
+          detail: |
+              Placed under a collection point, a hopper vacuums up loose
+              dropped items floating in the block above it.
+    found_in:
+        - location: Trial Chambers
+          detail: Generate above barrels within trial chamber structures.
+        - location: Crafting
+          detail: Crafted from a chest and 5 iron ingots.
+    faq:
+        - question: What tool do I need to mine a hopper?
+          answer: |
+              A wooden pickaxe or better. Mined with a pickaxe it drops itself
+              and its contents; without a pickaxe only the contents drop.
+        - question: Which way does a hopper move items?
+          answer: |
+              It pulls from a container above, collects loose items from the
+              space above, and pushes out of the tube at its bottom, which can
+              point down or sideways toward another container.
+        - question: What happens when a hopper is powered by redstone?
+          answer: |
+              A redstone signal locks the hopper — all three of its functions
+              (pushing, pulling, and collecting) stop until the power is
+              removed.
+        - question: Does a hopper prefer collecting or pulling?
+          answer: |
+              If a storage container sits directly above it, the hopper pulls
+              from that container instead of collecting loose floating items.
     data_version: "1.21.5"
 ---
 

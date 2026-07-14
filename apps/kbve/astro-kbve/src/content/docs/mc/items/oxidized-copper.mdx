@@ -1,5 +1,6 @@
 ---
 title: Oxidized Copper
+template: splash
 description: |
     Minecraft Oxidized Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 97
     ref: oxidized_copper
     slug: oxidized-copper
+    content_rev: 1
     display_name: Oxidized Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Oxidized Copper is the final weathering stage of the Block of Copper, a mineral storage block
+            equivalent to nine copper ingots that gains a teal, verdigris appearance after passing through
+            the exposed and weathered stages. Unlike the unoxidized block, it can no longer be crafted
+            back into copper ingots unless it was waxed before oxidizing.
+        lore: |
+            A block of copper left to the elements until its bright metal faded into a weathered teal patina.
+    faq:
+        - question: How does a Block of Copper become Oxidized Copper?
+          answer: |
+              Non-waxed copper blocks weather naturally over time through random ticks, progressing from
+              Block of Copper to Exposed, then Weathered, and finally Oxidized Copper.
+        - question: Can Oxidized Copper be turned back into copper ingots?
+          answer: |
+              Only if it was waxed with honeycomb before oxidizing; once fully oxidized and unwaxed, it
+              cannot be crafted back into ingots, though an axe can scrape off one oxidation stage at a time.
+        - question: What can Oxidized Copper be used for?
+          answer: |
+              It can be stonecut into oxidized cut copper, slabs, and stairs, used as a crafting ingredient
+              for copper bulbs and grates, and paired with a carved pumpkin to build a copper golem.
+        - question: Can lightning affect Oxidized Copper?
+          answer: |
+              Yes, a lightning strike fully deoxidizes the struck copper block and can partially deoxidize
+              nearby copper blocks as well.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

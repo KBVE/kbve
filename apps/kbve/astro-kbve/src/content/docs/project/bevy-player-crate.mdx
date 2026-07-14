@@ -1,13 +1,15 @@
 ---
-title: uevy player
-description: |
-    uevy player — Bevy game crate for the KBVE isometric engine.
+title: Bevy Player — Character Controller Crate
+description: Bevy kinematic character controller crate with Avian3D physics — gravity, jump, collision-aware movement, direction mapping, and fall-damage events.
+sem: 1
 sidebar:
-    label: uevy player
+    label: Bevy Player
 tags:
     - crates
     - rust
     - bevy
+    - physics
+    - gamedev
 key: bevy_player_crate
 pipeline: crates
 package_name: bevy_player
@@ -19,8 +21,95 @@ version_toml: packages/rust/bevy/bevy_player/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the bevy_player crate do?
+          answer: It is a kinematic character controller for Bevy 0.18 built on Avian3D physics, providing gravity, jumping, collision-aware movement, and fall damage.
+        - question: How do I configure movement speed and jump?
+          answer: Pass a PlayerConfig to PlayerPlugin::new — it tunes speed, gravity, and jump velocity, and spawn_player_entity spawns a fully configured player.
+        - question: How is fall damage handled?
+          answer: The controller emits a FallDamageEvent on hard landings so the game can apply damage or feedback in its own systems.
+bento:
+    badge: crates · rust · bevy
+    title: Character controller for
+    accent: bevy_player
+    lede: >-
+        A kinematic character controller for Bevy 0.18 built on Avian3D physics
+        — gravity, jumping, collision-aware movement, direction mapping, and
+        fall-damage events behind a single PlayerPlugin.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_player
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: gears
+        title: A working character out of the box
+        body: >-
+            A single PlayerPlugin, configured with a PlayerConfig, handles
+            gravity, jumping, collision-aware movement, input-to-direction
+            mapping, and fall-damage events.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Physics, value: Avian3D, icon: bolt }
+        - { label: Engine, value: "Bevy 0.18", icon: gears }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Avian3D physics
+          icon: bolt
+          body: 3D f32 kinematic body with collision-aware movement.
+        - title: Configurable tuning
+          icon: settings
+          body: PlayerConfig sets speed, gravity, and jump velocity.
+        - title: ECS components
+          icon: box
+          body: Player and PlayerPhysics mark and drive the controller.
+        - title: Direction mapping
+          icon: arrow
+          body: DirectionMap converts keyboard input into movement.
+        - title: Fall damage
+          icon: alert
+          body: FallDamageEvent fires on hard landings for the game to react.
+        - title: Spawn helper
+          icon: check
+          body: spawn_player_entity() spawns a fully configured player.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy::prelude::*;
+            use bevy_player::{PlayerPlugin, PlayerConfig};
+
+            App::new()
+                .add_plugins(PlayerPlugin::new(PlayerConfig::default()))
+                .run();
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Isometric camera that follows the player.
+          icon: video
+        - title: Bevy Battle Crate
+          href: /project/bevy-battle-crate
+          copy: Turn-based combat for the same engine.
+          icon: shield
+        - title: Bevy Pathfinder Crate
+          href: /project/bevy-pathfinder-crate
+          copy: Navigation for entities.
+          icon: arrow
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-uevy player Bevy crate.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

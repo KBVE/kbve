@@ -1,5 +1,6 @@
 ---
 title: Spruce Trapdoor
+template: splash
 description: |
     Minecraft Spruce Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 765
     ref: spruce_trapdoor
     slug: spruce-trapdoor
+    content_rev: 1
     display_name: Spruce Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Spruce Trapdoor is a hinged wooden panel crafted from six spruce planks
+            that can be placed on a block face and toggled open or closed by hand or
+            redstone signal. It doubles as a functional door, vent, or hidden entrance,
+            and can even be climbed like a ladder when open above one.
+        lore: |
+            A hatch of pale spruce timber, hinged to swing shut against wind, water, and
+            unwelcome visitors.
+    faq:
+        - question: How do you craft a Spruce Trapdoor?
+          answer: |
+              Arrange six spruce planks in the crafting grid in two rows of three to
+              produce spruce trapdoors.
+        - question: Does redstone open Spruce Trapdoors?
+          answer: |
+              Yes. A redstone signal immediately opens the trapdoor, and removing the
+              signal immediately closes it again.
+        - question: Can Spruce Trapdoors catch fire?
+          answer: |
+              No, wooden trapdoors including spruce are non-flammable and will not burn
+              even near lava.
+        - question: Can you climb through an open Spruce Trapdoor?
+          answer: |
+              Yes, an open trapdoor placed directly above a ladder can be climbed
+              through like part of the ladder itself.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

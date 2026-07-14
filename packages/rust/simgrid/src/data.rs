@@ -1,0 +1,325 @@
+use std::collections::HashMap;
+
+use bevy::prelude::Resource;
+use serde::Deserialize;
+
+use crate::proto::{KIND_CAT_ENV, KIND_CAT_ITEM, KIND_CAT_NPC, KIND_CAT_PLAYER, KindEntry};
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct NpcDb {
+    #[serde(default)]
+    pub npcs: Vec<NpcDef>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcDef {
+    #[serde(rename = "ref")]
+    pub ref_id: String,
+    pub name: String,
+    #[serde(default)]
+    pub level: i32,
+    #[serde(default)]
+    pub element: String,
+    #[serde(default)]
+    pub stats: NpcStats,
+    #[serde(default)]
+    pub equipment: Option<NpcEquipment>,
+    #[serde(default)]
+    pub faction: Option<NpcFaction>,
+    #[serde(default)]
+    pub shop_items: Vec<String>,
+    #[serde(default)]
+    pub abilities: Vec<NpcAbility>,
+    #[serde(default)]
+    pub pet: Option<NpcPet>,
+}
+
+/// One ability/move on a species. The JRPG fields (`power`, `pp`, `category`,
+/// `element`) feed the pet battle system; only the subset the server needs is
+/// deserialized — extra npcdb fields are ignored.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcAbility {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub power: i32,
+    #[serde(default)]
+    pub pp: i32,
+    #[serde(default)]
+    pub max_pp: i32,
+    #[serde(default)]
+    pub category: String,
+    #[serde(default)]
+    pub element: String,
+    #[serde(default)]
+    pub hit_chance: f32,
+    #[serde(default)]
+    pub priority: i32,
+    #[serde(default)]
+    pub status_effect: String,
+    #[serde(default)]
+    pub status_chance: f32,
+    #[serde(default)]
+    pub high_crit: bool,
+    #[serde(default)]
+    pub target: String,
+    #[serde(default)]
+    pub recoil_fraction: f32,
+    #[serde(default)]
+    pub drain_fraction: f32,
+    #[serde(default)]
+    pub stat_changes: Vec<NpcStatChange>,
+}
+
+/// One stat buff/debuff a move applies on hit.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcStatChange {
+    #[serde(default)]
+    pub stat: String,
+    #[serde(default)]
+    pub stages: i32,
+    #[serde(default)]
+    pub target: String,
+    #[serde(default)]
+    pub chance: f32,
+}
+
+/// One level-up move a pet learns naturally.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcMovepoolEntry {
+    #[serde(default)]
+    pub level: u32,
+    #[serde(default)]
+    pub ability_id: String,
+}
+
+/// Catchable-pet metadata on a species — present only on pets. Drives capture and the
+/// mint of a pet instance from this template.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcPet {
+    #[serde(default)]
+    pub catchable: bool,
+    #[serde(default)]
+    pub capture_rate: i32,
+    #[serde(default)]
+    pub growth_rate: String,
+    #[serde(default)]
+    pub base_xp_yield: i32,
+    #[serde(default)]
+    pub base_friendship: i32,
+    #[serde(default)]
+    pub base_stat_total: i32,
+    #[serde(default)]
+    pub movepool: Vec<NpcMovepoolEntry>,
+    #[serde(default)]
+    pub egg_groups: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcFaction {
+    #[serde(default)]
+    pub faction_id: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcStats {
+    #[serde(default)]
+    pub hp: i32,
+    #[serde(default)]
+    pub max_hp: i32,
+    #[serde(default)]
+    pub attack: i32,
+    #[serde(default)]
+    pub defense: i32,
+    #[serde(default)]
+    pub speed: i32,
+    #[serde(default)]
+    pub special_attack: i32,
+    #[serde(default)]
+    pub special_defense: i32,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct NpcEquipment {
+    #[serde(default)]
+    pub equipped: Vec<NpcEquipSlot>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcEquipSlot {
+    #[serde(default)]
+    pub item_ref: String,
+}
+
+impl NpcDef {
+    pub fn is_hostile(&self) -> bool {
+        self.faction
+            .as_ref()
+            .is_some_and(|f| f.faction_id == "hostile")
+    }
+
+    pub fn is_catchable(&self) -> bool {
+        self.pet.as_ref().is_some_and(|p| p.catchable)
+    }
+}
+
+impl NpcDb {
+    pub fn from_json(bytes: &[u8]) -> Result<Self, serde_json::Error> {
+        serde_json::from_slice(bytes)
+    }
+
+    pub fn get(&self, ref_id: &str) -> Option<&NpcDef> {
+        self.npcs.iter().find(|n| n.ref_id == ref_id)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ItemDb {
+    #[serde(default)]
+    pub items: Vec<ItemDef>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ItemDef {
+    #[serde(rename = "ref")]
+    pub ref_id: String,
+    pub name: String,
+    #[serde(default)]
+    pub stackable: bool,
+    #[serde(default)]
+    pub consumable: bool,
+    #[serde(default)]
+    pub buy_price: u32,
+    #[serde(default)]
+    pub sell_price: u32,
+}
+
+impl ItemDb {
+    pub fn from_json(bytes: &[u8]) -> Result<Self, serde_json::Error> {
+        serde_json::from_slice(bytes)
+    }
+
+    pub fn get(&self, ref_id: &str) -> Option<&ItemDef> {
+        self.items.iter().find(|i| i.ref_id == ref_id)
+    }
+}
+
+#[derive(Resource, Debug, Clone, Default)]
+pub struct KindRegistry {
+    entries: Vec<KindEntry>,
+    by_ref: HashMap<String, u16>,
+}
+
+impl KindRegistry {
+    pub fn new() -> Self {
+        let mut reg = Self::default();
+        reg.insert("player", KIND_CAT_PLAYER);
+        reg
+    }
+
+    fn insert(&mut self, ref_id: &str, cat: u8) -> u16 {
+        if let Some(kind) = self.by_ref.get(ref_id) {
+            return *kind;
+        }
+        let kind = self.entries.len() as u16;
+        self.entries.push(KindEntry {
+            kind,
+            ref_id: ref_id.to_string(),
+            cat,
+        });
+        self.by_ref.insert(ref_id.to_string(), kind);
+        kind
+    }
+
+    pub fn register_npc(&mut self, ref_id: &str) -> u16 {
+        self.insert(ref_id, KIND_CAT_NPC)
+    }
+
+    pub fn register_item(&mut self, ref_id: &str) -> u16 {
+        self.insert(ref_id, KIND_CAT_ITEM)
+    }
+
+    pub fn register_env(&mut self, ref_id: &str) -> u16 {
+        self.insert(ref_id, KIND_CAT_ENV)
+    }
+
+    pub fn kind_of(&self, ref_id: &str) -> Option<u16> {
+        self.by_ref.get(ref_id).copied()
+    }
+
+    pub fn ref_of(&self, kind: u16) -> Option<&str> {
+        self.entries.get(kind as usize).map(|e| e.ref_id.as_str())
+    }
+
+    pub fn entries(&self) -> Vec<KindEntry> {
+        self.entries.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn npcdb_parses_minimal() {
+        let json = r#"{"npcs":[{"ref":"cleric","name":"Cleric",
+            "stats":{"hp":40,"maxHp":40,"attack":3,"speed":4},
+            "equipment":{"equipped":[{"slot":"EQUIP_SLOT_CHEST","itemRef":"robe"}]}}]}"#;
+        let db = NpcDb::from_json(json.as_bytes()).expect("parse");
+        let npc = db.get("cleric").expect("cleric");
+        assert_eq!(npc.name, "Cleric");
+        assert_eq!(npc.stats.max_hp, 40);
+        assert_eq!(npc.equipment.as_ref().unwrap().equipped[0].item_ref, "robe");
+    }
+
+    #[test]
+    fn npcdb_parses_pet_block() {
+        let json = r#"{"npcs":[{"ref":"mechamutt","name":"Mechamutt","level":5,
+            "stats":{"hp":45,"maxHp":45,"attack":9,"defense":7,"speed":11,
+                "specialAttack":12,"specialDefense":8},
+            "abilities":[{"id":"tackle","maxPp":35,"category":"MOVE_CATEGORY_PHYSICAL"}],
+            "pet":{"catchable":true,"captureRate":120,"growthRate":"GROWTH_RATE_MEDIUM_FAST",
+                "movepool":[{"level":1,"abilityId":"tackle"}],"eggGroups":["mineral"]}}]}"#;
+        let db = NpcDb::from_json(json.as_bytes()).expect("parse");
+        let npc = db.get("mechamutt").expect("mechamutt");
+        assert!(npc.is_catchable());
+        assert_eq!(npc.stats.special_attack, 12);
+        let pet = npc.pet.as_ref().unwrap();
+        assert_eq!(pet.capture_rate, 120);
+        assert_eq!(pet.movepool[0].ability_id, "tackle");
+        assert_eq!(npc.abilities[0].max_pp, 35);
+    }
+
+    #[test]
+    fn itemdb_parses_minimal() {
+        let json = r#"{"items":[{"ref":"potion","name":"Potion","stackable":true,
+            "consumable":true,"weight":0.5,"unknown_field":1}]}"#;
+        let db = ItemDb::from_json(json.as_bytes()).expect("parse");
+        let item = db.get("potion").expect("potion");
+        assert!(item.stackable);
+    }
+
+    #[test]
+    fn registry_assigns_stable_kinds() {
+        let mut reg = KindRegistry::new();
+        let cleric = reg.register_npc("cleric");
+        let bat = reg.register_npc("crystal-bat");
+        let potion = reg.register_item("potion");
+        assert_eq!(reg.kind_of("player"), Some(0));
+        assert_eq!((cleric, bat, potion), (1, 2, 3));
+        assert_eq!(reg.register_npc("cleric"), 1);
+        assert_eq!(reg.ref_of(3), Some("potion"));
+        assert_eq!(reg.entries().len(), 4);
+    }
+}

@@ -157,6 +157,14 @@
 				"parallel": false
 			}
 		},
+		"image-e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": ["bash image_e2e.sh"],
+				"parallel": false
+			}
+		},
 		"debug": {
 			"executor": "nx:run-commands",
 			"options": {
@@ -174,27 +182,25 @@
 				"engine": "docker",
 				"context": "apps/kbve/kilobase",
 				"file": "apps/kbve/kilobase/Dockerfile",
-				"metadata": {
-					"images": ["kbve/kilobase"],
+				"load": true,
+				"tags": ["kbve/kilobase:latest"]
+			},
+			"configurations": {
+				"local": {
 					"load": true,
-					"tags": ["17.4.15", "17.4"]
+					"push": false,
+					"tags": ["kbve/kilobase:latest"]
 				},
-				"configurations": {
-					"local": {
-						"tags": ["17.4.15", "17.4"],
-						"push": false
-					},
-					"production": {
-						"tags": ["17.4.15", "17.4"],
-						"push": true,
-						"customBuildOptions": "--push",
-						"cache-from": [
-							"type=registry,ref=kbve/kilobase:buildcache"
-						],
-						"cache-to": [
-							"type=registry,ref=kbve/kilobase:buildcache,mode=max"
-						]
-					}
+				"production": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/kilobase:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/kilobase:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/kilobase:buildcache,mode=max"
+					]
 				}
 			}
 		}

@@ -1,0 +1,39 @@
+---
+id: "01KW1TG5WKB7VXY9F7X1NHA5TP"
+ref: "candelabrum"
+drafted: false
+name: "Candelabrum Stand"
+title: "Candelabrum Stand"
+template: splash
+sidebar:
+    label: "Candelabrum Stand"
+    hidden: true
+description: "A placed floor candelabrum — blocks its tile and steadies the mana of anyone in its candlelight ring."
+type: "prop"
+sub_kind: "candelabrum"
+img: "/assets/arcade/arpg/environment/lightsources/candelabrum-stand/Anim_Infernus_Lightsources_1.png"
+interactable: false
+destructible: false
+blocks_movement: true
+placed_effects:
+  - { status: "mana_regen", magnitude: 2, period_ticks: 20, range: 2 }
+credits: |
+    Candelabrum Stand artwork by Infernus PVGames
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+# Candelabrum Stand
+
+A deployed candelabrum. The cast base sits dead-center on its tile and nothing paths through it. Stand a step back in the candlelight and your reserves knit themselves back together.
+
+<MapDBPanel data={frontmatter} />
+
+<Adsense />
+
+## Behavior
+
+- **Blocks its tile** — pathfinding routes around the stand.
+- **Mana ring** — anything within 2 tiles (but not on the stand) regenerates 2 MP per second.
+- **Rotatable** — placed in one of 4 facings; press **R** while placing to rotate.

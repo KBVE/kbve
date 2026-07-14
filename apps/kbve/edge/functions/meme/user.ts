@@ -27,7 +27,7 @@ const handlers: Record<string, Handler> = {
     if (idsErr) return idsErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.schema("meme").rpc(
       "service_get_user_reactions",
       {
         p_user_id: userId,
@@ -52,7 +52,7 @@ const handlers: Record<string, Handler> = {
     if (idsErr) return idsErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.schema("meme").rpc(
       "service_get_user_saves",
       {
         p_user_id: userId,

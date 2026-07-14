@@ -12,12 +12,91 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Purple hat is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "29 June 2004"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      price: 650
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Grey hat
+      slug: grey-hat
+      relationship: variant
+      description: Alternative colour
+    - item_name: Red hat
+      slug: red-hat
+      relationship: variant
+      description: Alternative colour
+    - item_name: Yellow hat
+      slug: yellow-hat
+      relationship: variant
+      description: Alternative colour
+    - item_name: Teal hat
+      slug: teal-hat
+      relationship: variant
+      description: Alternative colour
+  about: "The purple hat is a fashionscape head slot item sold by Barkers' Haberdashery in Canifis. It provides minor magic bonuses (+3 attack, +3 defence) but no real combat use, primarily worn for cosmetic appeal. Available in five colour variants alongside other Canifis robe pieces."
+  market_strategy:
+    notes:
+      - "Shop-bought from Canifis at 650 coins"
+      - "Pure fashionscape demand"
+      - "Low daily volume around 220 trades"
+      - "Limited upside above shop price"
+  trading_tips:
+    - Buy in bulk from Canifis when stock available
+    - Resell to fashionscape buyers at GE premium
+    - Compare colour variant prices for arbitrage
+  history:
+    - date: "29 June 2004"
+      description: "Item was added to the game as part of the Canifis Haberdashery release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -53,7 +53,7 @@ jobs:
             app_name: ${{ steps.check.outputs.app_name }}
         steps:
             - name: Checkout manifest
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: dev
                   sparse-checkout: .github/ci-dispatch-manifest.json
@@ -205,7 +205,12 @@ jobs:
                           ...(manifest.crates || []),
                           ...(manifest.python || []),
                           ...(manifest.unreal || []),
+                          ...(manifest.ue5_server || []),
+                          ...(manifest.unreal_game || []),
                           ...(manifest.unity || []),
+                          ...(manifest.godot || []),
+                          ...(manifest.bevy_game || []),
+                          ...(manifest.vite_game || []),
                         ];
                         const entry = allEntries.find(
                           e => e.app_name === appName || e.package_name === appName

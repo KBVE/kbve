@@ -1,5 +1,6 @@
 ---
 title: Candle
+template: splash
 description: |
     Minecraft Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 903
     ref: candle
     slug: candle
+    content_rev: 1
     display_name: Candle
     material: stone
     hardness: 0.1
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Candle is a light source crafted from string and honeycomb.
+            Up to four of the same color can occupy one block space, and
+            lighting them with flint and steel raises the light level in
+            steps of three, up to twelve.
+        lore: |
+            Candles were added in the Caves & Cliffs update, giving
+            players a compact, dyeable alternative to torches and lanterns.
+    uses:
+        - title: Cake with Candle
+          ref: candle_cake
+          detail: |
+              Place a candle on an uneaten cake to create a decorative,
+              lightable candle cake.
+        - title: Dyed Candles
+          ref: candle
+          detail: |
+              Combine a candle with any dye to produce one of sixteen
+              color variants; dyed candles cannot be recolored afterward.
+    found_in:
+        - location: Ancient Cities
+          detail: Non-dyed and white candles generate in ancient city loot and structures.
+        - location: Trail Ruins
+          detail: Brown, green, purple, and red candles can be dug from suspicious gravel.
+        - location: Trial Chambers
+          detail: Non-dyed candles generate as part of trial chamber structures.
+    faq:
+        - question: What tool do I need to mine a candle?
+          answer: |
+              None. Any tool, or bare hands, breaks a candle instantly and
+              always drops the candle itself.
+        - question: Can candles be waterlogged?
+          answer: |
+              Yes, but a waterlogged candle cannot be lit until the water
+              is removed.
+        - question: How much light does a candle give off?
+          answer: |
+              Only when lit. One lit candle gives light level 3, and up
+              to four stacked candles of the same color give up to
+              light level 12.
+        - question: Are candles flammable?
+          answer: |
+              No, the candle block itself does not catch fire or burn,
+              even though its flame can ignite nearby flammable blocks.
     data_version: "1.21.5"
 ---
 

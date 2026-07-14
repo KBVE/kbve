@@ -12,9 +12,71 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 4
-  about: "Green dragon mask is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.267
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  about: "Green dragon mask is a cosmetic head slot reward from hard Treasure Trails. Storable in the costume room's treasure chest."
+  market_strategy:
+    notes:
+      - "Pure cosmetic with no combat bonuses"
+      - "Buy limit of 4 keeps Grand Exchange supply tight"
+  trading_tips:
+    - "Buy limit: 4 per 4 hours"
+    - Consider listing slightly above mid-price due to low limit
+  history:
+    - date: "2014-06-12"
+      description: Released as a hard clue scroll reward
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

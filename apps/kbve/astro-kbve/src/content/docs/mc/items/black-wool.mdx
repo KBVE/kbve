@@ -1,5 +1,6 @@
 ---
 title: Black Wool
+template: splash
 description: |
     Minecraft Black Wool — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 228
     ref: black_wool
     slug: black-wool
+    content_rev: 1
     display_name: Black Wool
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Black Wool is a soft decorative block obtained by shearing or dyeing black sheep, or by crafting plain wool with black dye. Beyond building, it is a key crafting ingredient for beds, banners, and carpets, and it blocks vibrations from reaching sculk sensors. Wool is flammable, so keep it away from lava and fire.
+        lore: |
+            The fleece of a midnight sheep, warm and muffling, swallowing sound as readily as it swallows the light.
+    faq:
+        - question: How do I get Black Wool?
+          answer: |
+            Shear a black sheep for 1 to 3 wool, dye a black sheep before shearing, or combine any wool block with black dye in a crafting grid.
+        - question: Does Black Wool block sculk sensors?
+          answer: |
+            Yes. Wool blocks vibrations from reaching nearby sculk sensors, which also helps prevent wardens from detecting your movement.
+        - question: Is Black Wool flammable?
+          answer: |
+            Yes. Wool has a flammability rating of 30 and catches fire from lava or nearby flames, so avoid building with it near fire sources.
+        - question: Can I re-dye Black Wool a different color?
+          answer: |
+            Yes. Any wool color, including black, can be re-dyed into another color by combining it with the matching dye in a crafting grid.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

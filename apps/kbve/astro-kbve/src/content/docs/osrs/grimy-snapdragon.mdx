@@ -12,68 +12,94 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 11000
-  herb:
-    type: grimy
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: grimy herb
     tier: high
-  herblore:
-    cleaning_level: 59
-    cleaning_xp: 11.8
-    clean_id: 3000
-    clean_name: Snapdragon
-  farming:
-    level: 62
-    seed_id: 5300
-    seed_name: Snapdragon seed
+  properties:
+    release_date: "11 July 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
-      - source: Aberrant spectre
-        source_id: 2927
-        combat_level: 96
+      - source: Kalphite Queen
         quantity: "1"
-        rarity: common
-        members_only: true
+        rarity: uncommon
+      - source: Callisto
+        quantity: "1"
+        rarity: uncommon
+      - source: Venenatis
+        quantity: "1"
+        rarity: uncommon
+      - source: Alchemical Hydra
+        quantity: "1"
+        rarity: rare
+  recipes:
+    - skill: herblore
+      level: 59
+      xp: 11.8
+      materials:
+        - item_name: Grimy snapdragon
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 3000
-      item_name: Snapdragon
+    - item_name: Snapdragon
       slug: snapdragon
       relationship: product
       description: Cleaned version
-    - item_id: 3026
-      item_name: Super restore(3)
+    - item_name: Super restore(3)
       slug: super-restore-3
       relationship: product
-      description: End product
-    - item_id: 223
-      item_name: Red spiders' eggs
+      description: End product after potion brewing
+    - item_name: Red spiders' eggs
       slug: red-spiders-eggs
       relationship: component
-      description: Secondary
-    - item_id: 5300
-      item_name: Snapdragon seed
+      description: Secondary used to make super restore
+    - item_name: Snapdragon seed
       slug: snapdragon-seed
       relationship: component
-      description: Farming seed
+      description: Farming seed source
   about: |-
+    Grimy snapdragon is the unidentified form of the snapdragon herb. Cleaning requires level 59 Herblore and grants 11.8 experience.
+
     | Requirement | Value |
     |-------------|-------|
     | Herblore Level | 59 |
     | XP | 11.8 |
     | Product | Snapdragon |
+
+    Snapdragons are mainly used as the primary ingredient for super restore potions, one of the most valuable utility potions in the game.
   market_strategy:
     notes:
-      - Buy grimy → Clean → Sell
-      - Calculate profit margin
-      - High value herb
-      - Herb cleaning profit
-      - Super restore production
-      - Ironman accounts
-      - Herblore training
-      - Often cheaper than clean
-      - Quick bank cleaning
-      - Check price spread
-      - Super restore demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy grimy, clean, sell for cleaning profit"
+      - "Often cheaper than clean variant due to herblore level gate"
+      - "High-demand herb due to super restore production"
+      - "Check price spread before bulk cleaning"
+      - "Strong choice for herblore training profit"
+  trading_tips:
+    - Cleaning is fast bank XP, batch-clean inventory loads
+    - Watch GE spread between grimy and clean
+    - Stockpile during weekend dips in herb prices
+  history:
+    - date: "12 August 2020"
+      description: "Composting now yields supercompost instead of regular compost."
+    - date: "9 March 2017"
+      description: "Item value increased from 1 to 21 coins."
+    - date: "26 February 2015"
+      description: "Graphics updated, item renamed and made tradeable; \"Identify\" option changed to \"Clean\"."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

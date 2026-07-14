@@ -38,6 +38,9 @@ impl GUIManagerExt for Gd<CanvasLayer> {
         {
             enable_mac_transparency(transparency_value);
         }
+
+        #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+        let _ = transparency_value;
     }
 
     fn with_windowflag(&mut self, flag: WindowFlags, flag_boolean: bool) {

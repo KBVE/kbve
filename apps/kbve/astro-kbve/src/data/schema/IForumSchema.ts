@@ -83,7 +83,7 @@ import {
 	AttachmentKindSchema,
 	LfgStatuses,
 	LfgStatusSchema,
-} from '../../../../../../packages/data/codegen/generated/forum-schema';
+} from '@kbve/proto/forum-schema';
 
 // ---------------------------------------------------------------------------
 // Re-exports — callers import everything through `@/data/schema`.
@@ -195,7 +195,7 @@ export type {
 	AttachmentParentKindValue,
 	AttachmentKindValue,
 	LfgStatusValue,
-} from '../../../../../../packages/data/codegen/generated/forum-schema';
+} from '@kbve/proto/forum-schema';
 
 // ---------------------------------------------------------------------------
 // Request / response shapes used by axum-kbve forum endpoints.

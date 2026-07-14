@@ -1,26 +1,61 @@
-import type { NPCData, DialogueNode } from '../types';
+import type { NPCData, DialogueNode, NPCAction } from '../types';
+import type { Npc } from './npcdb';
+import { getNpcEntry, isHostileRef, getGreetingLine } from './npcdb';
 
-const NPCS: NPCData[] = [
-	{
-		id: 'npc_barkeep',
-		name: 'Evee The BarKeep',
-		avatar: '/assets/npc/barkeep.webp',
-		slug: 'npc/barkeep',
-		actions: ['talk', 'trade', 'steal'],
-	},
-	{
-		id: 'npc_monk',
-		name: 'Elder Monk',
-		avatar: '/assets/entity/monks.png',
-		slug: 'npc/monk',
-		actions: ['talk', 'inspect'],
-	},
-];
+// Re-exported so existing scene code keeps importing it from `./npcs`.
+export { isHostileRef };
 
-const npcMap = new Map(NPCS.map((n) => [n.id, n]));
+// Per-ref avatar fallback for npcdb entries that ship without an `img`. Real
+// art lives on the npcdb entry; this only backfills.
+const REF_AVATARS: Record<string, string> = {
+	'crystal-bat': '/assets/entity/bird_original.png',
+};
+
+const DEFAULT_AVATAR = '/assets/entity/monks.png';
+
+// Built lazily from the npcdb pool — no hardcoded NPC list; every NPC the game
+// surfaces resolves through the shared npcdb barrel.
+const npcMap = new Map<string, NPCData>();
+
+export function npcIdForRef(ref: string): string {
+	return `npc_${ref}`;
+}
+
+export function getNpcDbEntry(ref: string): Npc | undefined {
+	return getNpcEntry(ref);
+}
+
+/** Derive the interaction verbs from npcdb faction + tags. */
+function deriveActions(entry: Npc): NPCAction[] {
+	if (entry.faction?.faction_id === 'hostile') return ['inspect'];
+	const actions: NPCAction[] = ['talk', 'inspect'];
+	if (entry.tags?.includes('merchant')) actions.push('trade', 'steal');
+	return actions;
+}
+
+function buildNpcFromDb(ref: string): NPCData | undefined {
+	const entry = getNpcEntry(ref);
+	if (!entry) return undefined;
+	const npc: NPCData = {
+		id: npcIdForRef(ref),
+		name: entry.name,
+		avatar: entry.img ?? REF_AVATARS[ref] ?? DEFAULT_AVATAR,
+		slug: `npc/${ref}`,
+		actions: deriveActions(entry),
+	};
+	npcMap.set(npc.id, npc);
+	return npc;
+}
 
 export function getNPCById(id: string): NPCData | undefined {
-	return npcMap.get(id);
+	const known = npcMap.get(id);
+	if (known) return known;
+	if (id.startsWith('npc_')) return buildNpcFromDb(id.slice(4));
+	return undefined;
+}
+
+export function getNPCByRef(ref: string): NPCData | undefined {
+	return getNPCById(npcIdForRef(ref));
 }
 
 const DIALOGUES: Record<string, DialogueNode> = {
@@ -80,6 +115,32 @@ const DIALOGUES: Record<string, DialogueNode> = {
 	},
 };
 
+function buildDialogueFromDb(ref: string): DialogueNode | undefined {
+	const entry = getNpcEntry(ref);
+	if (!entry) return undefined;
+	const id = `dlg_${ref}_greeting`;
+	const dialogue: DialogueNode = {
+		id,
+		title: entry.name,
+		message:
+			getGreetingLine(ref) ||
+			entry.description?.trim() ||
+			`${entry.name} has nothing to say right now.`,
+	};
+	DIALOGUES[id] = dialogue;
+	return dialogue;
+}
+
 export function getDialogueById(id: string): DialogueNode | undefined {
-	return DIALOGUES[id];
+	const known = DIALOGUES[id];
+	if (known) return known;
+	const match = id.match(/^dlg_(.+)_greeting$/);
+	if (match) return buildDialogueFromDb(match[1]);
+	return undefined;
+}
+
+export function getGreetingDialogueId(npcId: string): string {
+	if (npcId === 'npc_barkeep') return 'dlg_barkeep_greeting';
+	if (npcId === 'npc_monk') return 'dlg_monk_greeting';
+	return `dlg_${npcId.replace(/^npc_/, '')}_greeting`;
 }

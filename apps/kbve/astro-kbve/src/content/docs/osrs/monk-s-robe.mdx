@@ -12,59 +12,87 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2001-07-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: robes
-    prayer_bonus: 5
-    combat_stats:
-      stab_defence: 0
-      slash_defence: 0
-      crush_defence: 0
-      magic_defence: 0
-      ranged_defence: 0
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 5
+  drop_table:
+    sources:
+      - source: Edgeville Monastery spawn
+        quantity: "1"
+        rarity: Always
+      - source: Hallowed Sepulchre coffin
+        quantity: "1"
+        rarity: Common
+      - source: Hallowed sack
+        quantity: "1"
+        rarity: Common
   related_items:
-    - item_id: 544
-      item_name: Monk's robe top
+    - item_name: Monk's robe top
       slug: monks-robe-top
       relationship: set-piece
-      description: Body (+6 Prayer)
-    - item_id: 9676
-      item_name: Proselyte cuisse
+      description: Body slot piece, grants +6 Prayer bonus
+    - item_name: Proselyte cuisse
       slug: proselyte-cuisse
       relationship: upgrade
-      description: Better defence and prayer (+6)
-    - item_id: 5576
-      item_name: Initiate cuisse
+      description: Higher-tier prayer legwear with stronger defence
+    - item_name: Initiate cuisse
       slug: initiate-cuisse
       relationship: upgrade
-      description: Defence and prayer (+5)
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Legs |
-    | Prayer Bonus | +5 |
-    | Requirements | None |
-    | Members | No |
-
-    - F2P prayer training gear
-    - Budget prayer bonus equipment
-    - Clue scroll outfit
-
-    | Piece | Prayer Bonus |
-    |-------|--------------|
-    | Monk's robe top | +6 |
-    | Monk's robe (legs) | +5 |
-    | Total | +11 |
+      description: Mid-tier prayer legwear upgrade
+  about: "Monk's robe is a free-to-play prayer legs slot item granting +5 Prayer bonus. It is commonly used as cheap prayer training gear and is spawned upstairs at the Edgeville Monastery."
   market_strategy:
     notes:
-      - Essentially worthless
-      - Can pick up at Monastery
-      - No real market value
-      - Not worth flipping
-      - Free to obtain
-      - Used for fashion/clues only
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Essentially worthless on the Grand Exchange"
+      - "Can be picked up for free at the Monastery"
+      - "No real flipping margin"
+      - "Used mainly for fashion or clue scroll outfits"
+  trading_tips:
+    - "Skip the Grand Exchange and grab a free spawn at the Edgeville Monastery"
+    - "Stock multiple copies for prayer training or clue costumes"
+  history:
+    - date: "2001-07-12"
+      description: "Monk's robe added to the game alongside other early prayer gear."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,75 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 13000
-  about: "Stone seal is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: artefact
+    tier: low
+  properties:
+    release_date: "2006-07-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Are you sure you want to drop this?"
+  drop_table:
+    sources:
+      - source: Grand gold chest (Pyramid Plunder, room 1)
+        quantity: "1"
+        rarity: 1/4
+      - source: Sarcophagus (Pyramid Plunder, room 1)
+        quantity: "1"
+        rarity: 1/4
+      - source: Sarcophagus (Pyramid Plunder, room 2)
+        quantity: "1"
+        rarity: 1/2
+      - source: Sarcophagus (Pyramid Plunder, room 3)
+        quantity: "1"
+        rarity: 1/2
+      - source: Sarcophagus (Pyramid Plunder, room 4)
+        quantity: "1"
+        rarity: 1/2
+      - source: Sarcophagus (Pyramid Plunder, room 5)
+        quantity: "1"
+        rarity: 1/4
+      - source: Urn (Pyramid Plunder)
+        quantity: "1"
+        rarity: Unknown
+  related_items:
+    - item_name: Ivory comb
+      slug: ivory-comb
+      relationship: alternative
+      description: Another Pyramid Plunder artefact
+    - item_name: Pottery scarab
+      slug: pottery-scarab
+      relationship: alternative
+      description: Another Pyramid Plunder artefact
+    - item_name: Gold seal
+      slug: gold-seal
+      relationship: variant
+      description: Higher-tier seal artefact
+  about: "Stone seal is a low-tier Pyramid Plunder artefact looted from urns, chests, and sarcophagi in the Jalsavrah pyramid. It can be sold to Simon Templeton for coins."
+  market_strategy:
+    notes:
+      - "Looted from Pyramid Plunder containers"
+      - "Sold to Simon Templeton or on the Grand Exchange"
+      - "Generated in large volumes during thieving training"
+  trading_tips:
+    - Prices fluctuate with Pyramid Plunder popularity
+    - Bulk buyers often resell to Simon Templeton for coins
+  history:
+    - date: "2006-07-17"
+      description: "Released alongside Pyramid Plunder."
+    - date: "2015-02-26"
+      description: "Made tradeable on the Grand Exchange."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

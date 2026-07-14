@@ -12,9 +12,47 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Varlamorian kebab is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    effects:
+      - description: "Most common (~20/32 chance): heals 3 + 7% of max HP."
+      - description: "Common (~8/32 chance): heals 6 + 14% of max HP."
+      - description: "Rare (~3/32 chance): heals 7 + 24% of max HP and boosts Attack, Strength, and Defence by 2."
+      - description: "Rarest (~1/32 chance): no effect."
+      - description: "Average healing roughly 4 + 10% of the player's Hitpoints level."
+      - description: "Unlike a standard kebab, it never drains stats."
+  shops:
+    - shop_name: Emelio's Kebab Shop
+      location: Varlamore
+      stock: 20
+      buy_price: 2
+      notes: "Requires completion of the Meat and Greet quest; restocks every 12 seconds."
+  about: "Varlamorian kebab is a members-only food sold by Emelio after Meat and Greet; rarely boosts melee stats and never drains."
+  market_strategy:
+    notes:
+      - Shop-sourced at 2 gp with no GE buy limit; profit is driven entirely by sale margin over shop price.
+      - Demand spikes when PvM content rewards a stat-boost food meta; otherwise volume is thin.
+  trading_tips:
+    - Hoover Emelio's stock with hop-worlding then flip on the GE while the buy queue is empty.
+    - Track Meat and Greet completions and Varlamore content updates for demand swings.
+  history:
+    - date: "2024-09-25"
+      description: Varlamorian kebab released as part of the Meat and Greet quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-09-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

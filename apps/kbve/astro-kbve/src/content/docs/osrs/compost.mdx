@@ -1,6 +1,6 @@
 ---
 title: Compost | OSRS Price Data
-description: "Compost: Good for plants, helps them grow.. High alch: 12 GP, GE limit: 2,000."
+description: "Compost is a members farming material that prevents disease on most allotment, hops and bush patches when applied. High alch: 12 GP, GE limit: 2,000."
 osrs:
   id: 6032
   name: Compost
@@ -12,47 +12,112 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 2000
-  item_id: 6032
-  type: farming_material
-  tradeable: true
-  weight: 3
-  buy_limit: 2000
-  requirements:
-    skills: []
-  obtaining:
-    primary:
-      method: Compost Bin
-      details: Fill with 15 weeds or vegetables
-    shop:
-      name: Various farming shops
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: farming-material
+    tier: low
+  properties:
+    release_date: "2005-07-12"
+    quest_item: false
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    weight: 3
+    destroy: "Drop"
+    options:
+      - Empty
+      - Use
+      - Drop
+    examine_options:
+      - Examine
+  recipes:
+    - skill: farming
+      level: 1
+      xp: 18
+      tools:
+        - Compost bin
+      materials:
+        - item_id: 6055
+          item_name: Weeds
+          quantity: 15
+      output:
+        item_id: 6032
+        item_name: Compost
+        output_quantity: 15
+      members: true
+      notes: "Fill a compost bin with 15 organic items (weeds, vegetables, herbs) and wait for it to rot down"
+  shops:
+    - shop_name: "Farming Guild Shop"
+      location: Farming Guild
       price: 20
-    drops:
-      - Gangsters
-      - Earth implings
-  usage:
-    farming: Basic disease prevention for crops
-    upgrade: Can upgrade to supercompost with compost potion
+      sell_price: 8
+      stock: 100
+      restock_time: 100
+      currency: coins
+      notes: "Stocks compost for members in the Farming Guild"
+    - shop_name: "Head Farmer Jones' Trading Post"
+      location: Prifddinas
+      price: 20
+      sell_price: 8
+      stock: 100
+      restock_time: 100
+      currency: coins
+      notes: "Elven farming patch supply hub"
+  drop_table:
+    sources:
+      - source: Gangster (level 26)
+        combat_level: 26
+        quantity: "1"
+        rarity: Uncommon
+        notes: "Random event reward drop"
+      - source: Earth impling jar
+        combat_level: 0
+        quantity: "1"
+        rarity: Common
+        notes: "Earth impling loot pool"
+      - source: Master farmer
+        combat_level: 35
+        quantity: "1"
+        rarity: Common
+        notes: "Pickpocketing reward"
   related_items:
-    - slug: supercompost
-      name: Supercompost
-      relation: upgrade
-    - slug: compost-potion
-      name: Compost potion
-      relation: upgrade_method
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Farming Material |
-    | Tradeable | Yes |
-    | Weight | 3 kg |
-    | Requirements | None |
-
-    Basic disease prevention for crops.
-
-    Can upgrade to supercompost with compost potion.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 6034
+      item_name: Supercompost
+      slug: supercompost
+      relationship: upgrade
+      description: Improved compost with stronger disease protection
+    - item_id: 21483
+      item_name: Ultracompost
+      slug: ultracompost
+      relationship: upgrade
+      description: Top tier compost, eliminates disease
+    - item_id: 6036
+      item_name: Compost potion
+      slug: compost-potion
+      relationship: component
+      description: Upgrades compost to supercompost when used on a bin
+    - item_id: 6055
+      item_name: Weeds
+      slug: weeds
+      relationship: component
+      description: Baseline organic filler for the compost bin
+  about: "Compost is the entry-tier soil treatment in the Farming skill; applying it to a farming patch reduces the chance of crop disease and slightly increases the minimum harvest yield."
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Demand is driven by farm runs and bulk Hespori prep"
+      - "Often easier to buy than to make below mid-game"
+      - "Compost potion converts stockpiles into supercompost for a profit when potion prices dip"
+      - "Bulk Earth impling hunts can flood supply during events"
+  trading_tips:
+    - Buy limit of 2,000 every 4 hours
+    - "Compare against supercompost: 5 buckets + 1 compost potion = 15 supercompost"
+    - Stockpile during XP-event weeks when farm-run demand spikes
+  history:
+    - date: "2005-07-12"
+      description: "Compost introduced with the original Farming skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

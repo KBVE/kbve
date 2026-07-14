@@ -12,9 +12,67 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 11000
-  about: "Teak pyre logs is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: firemaking
+      level: 1
+      xp: 15
+      materials:
+        - item_name: Teak logs
+          quantity: 1
+        - item_name: Sacred oil(4)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Teak logs
+      slug: teak-logs
+      relationship: component
+      description: "Base log soaked in sacred oil to create pyre logs"
+    - item_name: Sacred oil(4)
+      slug: sacred-oil-4
+      relationship: component
+      description: "Blessed olive oil used to prepare the logs"
+    - item_name: Oak pyre logs
+      slug: oak-pyre-logs
+      relationship: downgrade
+      description: "Lower tier pyre log used at lower Firemaking requirements"
+    - item_name: Mahogany pyre logs
+      slug: mahogany-pyre-logs
+      relationship: upgrade
+      description: "Higher tier pyre log used at higher Firemaking requirements"
+  about: "Teak pyre logs are members-only logs used in the Shades of Mort'ton minigame to cremate shade remains. Building a pyre requires 40 Firemaking and a tinderbox, awarding 120 Firemaking XP and 33.7-61.2 Prayer XP based on the shade tier."
+  market_strategy:
+    notes:
+      - "Demand driven by Shades of Mort'ton runners chasing fang or amulet rewards"
+      - "Self-prep economics depend on teak logs and sacred oil spot prices"
+      - "Buy limit of 11,000 supports bulk supply for Shades grinders"
+  trading_tips:
+    - "Compare GE price versus teak logs plus sacred oil(4) to choose buying or making"
+    - "Track Shades of Mort'ton hype cycles for short-term demand spikes"
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Shades of Mort'ton minigame"
+    - date: "2024-07"
+      description: "Pyre log creation changed to a flat 5 XP per oil dose consumed"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,0 +1,48 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: arpg-game-route
+    namespace: arpg
+    labels:
+        app.kubernetes.io/part-of: arpg
+spec:
+    # parentRefs/backendRefs carry the API-server default group/kind (+ backendRef
+    # weight) EXPLICITLY — the Gateway API defaults them on the live object, so
+    # omitting them makes ArgoCD diff git-vs-live forever (perpetual OutOfSync).
+    # Mirrors the synced cryptothrone-game-route manifest.
+    parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: kbve-gateway
+          namespace: kbve
+    hostnames:
+        - arpg.kbve.com
+    rules:
+        # Game WebSocket -> authoritative server. More specific path wins, so the
+        # /ws upgrade routes to the game pods while everything else falls through
+        # to the static client below.
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /ws
+          timeouts:
+              # Long-lived WebSocket — override Envoy's ~15s default backend
+              # timeout so wss connections survive (matches kbve /ws rule).
+              backendRequest: 3600s
+          backendRefs:
+              - group: ''
+                kind: Service
+                name: arpg-game
+                port: 7979
+                weight: 1
+        # Everything else -> the standalone vite client (nginx static).
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /
+          backendRefs:
+              - group: ''
+                kind: Service
+                name: arpg-web
+                port: 5402
+                weight: 1

@@ -1,6 +1,6 @@
 ---
 title: Ham joint | OSRS Price Data
-description: "Ham joint is a F2P weapon slot item. High alch: 900 GP, GE limit: 100."
+description: "Ham joint: A delicious joint of ham. F2P 3-tick crush weapon. High alch: 900 GP, GE limit: 100."
 osrs:
   id: 23360
   name: Ham joint
@@ -12,9 +12,32 @@ osrs:
   lowalch: 600
   highalch: 900
   limit: 100
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cosmetic-weapon
+    tier: high
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
+    weapon_type: blunt
     attack_speed: 3
+    weight: 2
+    requirements: {}
     attack_bonus:
       stab: 0
       slash: 0
@@ -28,38 +51,37 @@ osrs:
       magic: 0
       ranged: 0
     other_bonus:
-      melee_strength: 0
+      strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements: {}
-    weight: 2
   drop_table:
     sources:
-      - source: Reward casket (easy)
+      - source: "Reward casket (easy)"
         quantity: "1"
-        rarity: very rare
-        drop_rate: 1/1404
-        members_only: false
-  about: |-
-    All bonuses are +0 — the ham joint has no combat stats whatsoever.
-
-    Requirements: None | Speed: 3 tick (1.8s) | Weight: 2 kg
-
-    At 3-tick attack speed (1.8 seconds), the ham joint is tied for the fastest melee weapon in the game. Despite having zero stats, the speed makes it theoretically interesting for niche uses.
-
-    The ham joint is primarily a fashionscape item and collectible:
-    - Rare easy clue reward (1/1,404)
-    - Tradeable and F2P accessible
-    - Can be stored in the costume room treasure chest
-    - One-handed crush weapon — three styles (Pound, Pummel, Block)
+        rarity: "1/1,404"
+  related_items:
+    - item_name: "Swift blade"
+      slug: "swift-blade"
+      relationship: alternative
+      description: "Another 3-tick attack speed melee novelty weapon."
+    - item_name: "Reward casket (easy)"
+      slug: "reward-casket-easy"
+      relationship: component
+      description: "Sole source — rare reward from easy Treasure Trails."
+  about: "Ham joint is a free-to-play one-handed crush weapon obtained as a rare reward from easy Treasure Trails (1/1,404 from a Reward casket (easy)). It has zero offensive and defensive bonuses, but its 3-tick attack speed (1.8 seconds) ties it with the swift blade as one of the fastest melee weapons in the game. Primarily a fashionscape and collector item; storable in the costume room treasure chest."
   market_strategy:
     notes:
-      - Rare cosmetic — price driven by collectors
-      - Easy clue farming is the only source
-      - F2P accessible, so broader market
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply is fully clue-bottlenecked — only enters circulation through easy clue completion."
+      - "Collector demand drives the price far above alch and base utility value."
+      - "F2P accessibility broadens the buyer pool versus members-only clue rares."
+  trading_tips:
+    - "Watch for easy-clue meta shifts (events, Twisted League echoes) that flood supply."
+    - "Buy limit of 100 / 4h makes bulk accumulation slow but predictable."
+    - "Trim margins are tight relative to price — flip on volume, not spread."
+  history:
+    - date: "2019-04-11"
+      description: "Added to the easy clue Reward casket loot table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

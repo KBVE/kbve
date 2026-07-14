@@ -8,9 +8,7 @@ namespace RareIcon
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class ActivityFeedBootstrapSystem : SystemBase
     {
-        // 1024 entries × 16 bytes = 16 KB — comfortably above any realistic
-        // single-tick churn (delta-only writer + max ~200 player units).
-        // Sized once; resizing a ring queue at runtime isn't supported.
+
         const int QueueCapacity = 1024;
 
         Entity _singletonEntity;
@@ -30,8 +28,7 @@ namespace RareIcon
 
         protected override void OnDestroy()
         {
-            // Defensive — if Bootstrap fired the singleton might still hold
-            // the live queue handle; pull it back and dispose.
+
             if (!_initialized) return;
             if (!EntityManager.Exists(_singletonEntity)) return;
 

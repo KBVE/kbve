@@ -12,9 +12,71 @@ osrs:
   lowalch: 7050
   highalch: 10575
   limit: 10000
-  about: "Dragonstone amulet (u) is a members-only item in Old School RuneScape. High alchemy value: 10,575 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: gold
+    tier: high
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.004
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 80
+      xp: 150
+      materials:
+        - item_name: Gold bar
+          quantity: 1
+        - item_name: Cut dragonstone
+          quantity: 1
+        - item_name: Amulet mould
+          quantity: 1
+      tools:
+        - Furnace
+      output_quantity: 1
+  related_items:
+    - item_name: Cut dragonstone
+      slug: cut-dragonstone
+      relationship: component
+      description: Gem cut from an uncut dragonstone, needed for crafting
+    - item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Smithed bar used as the amulet base
+    - item_name: Dragonstone amulet
+      slug: dragonstone-amulet
+      relationship: upgrade
+      description: Strung version wearable in the amulet slot
+    - item_name: Amulet of glory
+      slug: amulet-of-glory
+      relationship: upgrade
+      description: Enchanted via Lvl-5 Enchant for teleports and bonuses
+  about: "Dragonstone amulet (u) is the unstrung output of crafting a dragonstone gem onto a gold bar at any furnace (80 Crafting, 150 XP). String with a ball of wool (1 Crafting, 4 XP) to wear it, then enchant with Lvl-5 Enchant (68 Magic) to upgrade it into an amulet of glory. Required for a Sherlock master clue scroll skill challenge."
+  market_strategy:
+    notes:
+      - "Crafted at 80 Crafting from dragonstone, gold bar, amulet mould"
+      - "Net loss per craft when raw materials run above 11,000 gp"
+      - "Demand driven by amulet of glory production"
+      - "Master clue Sherlock challenge keeps niche demand"
+      - "High GE buy limit suits bulk flips"
+  trading_tips:
+    - Compare margin between unstrung, strung and enchanted glory
+    - Watch dragonstone prices — main input cost
+    - Strung amulet route is cheapest path to amulet of glory
+  history:
+    - date: "2002-02-27"
+      description: "Item added to the game as part of the gem and amulet system."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

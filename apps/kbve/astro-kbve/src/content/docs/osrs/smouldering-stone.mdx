@@ -1,6 +1,6 @@
 ---
 title: Smouldering stone | OSRS Price Data
-description: "Smouldering stone: A smouldering stone from the depths of Hell.. High alch: 27,000 GP, GE limit: 5."
+description: "Smouldering stone: A smouldering stone from the depths of Hell. High alch: 27,000 GP, GE limit: 5."
 osrs:
   id: 13233
   name: Smouldering stone
@@ -12,90 +12,97 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 5
-  item:
-    type: upgrade_material
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: upgrade-material
+    tier: high
+  properties:
+    release_date: "2015-08-27"
     tradeable: true
-  effect:
-    creates_infernal_tools: true
-    auto_process_chance: 33
-    secondary_xp_percent: 50
-    charges_per_tool: 5000
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
       - source: Cerberus
-        source_id: 5862
-        combat_level: 318
         quantity: "1"
         rarity: 1/520
-        members_only: true
-      - source: Hellhound (Wildy Slayer)
-        source_id: 0
-        combat_level: 0
+      - source: Hellhound (Wilderness Slayer Cave)
         quantity: "1"
-        rarity: 1/16,384
-        members_only: true
-      - source: Hellhound (regular)
-        source_id: 0
-        combat_level: 0
+        rarity: 1/16384
+      - source: Hellhound
         quantity: "1"
-        rarity: 1/32,768
-        members_only: true
-  recipes_creates:
-    - product_id: 13241
-      product_name: Infernal axe
-      requirements: 85 FM, 61 WC
-    - product_id: 13243
-      product_name: Infernal pickaxe
-      requirements: 85 Smith, 61 Mining
-    - product_id: 21031
-      product_name: Infernal harpoon
-      requirements: 85 Cook, 75 Fishing
+        rarity: 1/32768
+  recipes:
+    - skill: firemaking
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Dragon axe
+          quantity: 1
+        - item_name: Smouldering stone
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - skill: smithing
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Dragon pickaxe
+          quantity: 1
+        - item_name: Smouldering stone
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - skill: cooking
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Dragon harpoon
+          quantity: 1
+        - item_name: Smouldering stone
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 13241
-      item_name: Infernal axe
+    - item_name: Infernal axe
       slug: infernal-axe
       relationship: product
-      description: Created tool
-    - item_id: 13243
-      item_name: Infernal pickaxe
+      description: Created by combining a smouldering stone with a dragon axe at 85 Firemaking.
+    - item_name: Infernal pickaxe
       slug: infernal-pickaxe
       relationship: product
-      description: Created tool
+      description: Created by combining a smouldering stone with a dragon pickaxe at 85 Smithing.
+    - item_name: Infernal harpoon
+      slug: infernal-harpoon
+      relationship: product
+      description: Created by combining a smouldering stone with a dragon harpoon at 85 Cooking.
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Upgrade Material |
-    | Tradeable | Yes |
-    | Weight | 0.05 kg |
+    > *"A smouldering stone from the depths of Hell."*
 
-    Creates infernal tools:
+    The smouldering stone is the upgrade catalyst behind every infernal skilling tool. Combine it with a Dragon axe, pickaxe, or harpoon to forge the untradeable infernal variant, each granting a 33% auto-process chance with bonus secondary skill XP and 5,000 charges before reverting.
 
-    | Base Tool | Result | Requirements |
-    |-----------|--------|--------------|
-    | Dragon axe | Infernal axe | 85 FM, 61 WC |
-    | Dragon pickaxe | Infernal pickaxe | 85 Smith, 61 Mining |
-    | Dragon harpoon | Infernal harpoon | 85 Cook, 75 Fishing |
-
-    All infernal tools have 5,000 charges.
-
-    Auto-Process:
-    - 33% chance to instantly process resource
-    - Grants ~50% of secondary skill XP
-    - Destroys the resource
-
-    Essential for:
-    - Creating infernal tools
-    - Recharging infernal tools
-    - Ironman progression
-
-    Key drop from Cerberus.
+    Best obtained from Cerberus at 1/520, which requires 91 Slayer to access.
   market_strategy:
     notes:
-      - Cerberus is best source
-      - 91 Slayer required
-      - Used for all infernal tools
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cerberus is by far the most efficient source; hellhound rolls are negligible."
+      - "91 Slayer gate on Cerberus restricts supply, supporting price stability."
+      - "Demand is driven by Ironman progression and high-level skiller QoL upgrades."
+  trading_tips:
+    - Pair flips with dragon axe/pickaxe/harpoon margins to time set purchases.
+    - GE buy limit of 5 makes accumulating stock for long-term holds slow but reliable.
+  history:
+    - date: "2015-08-27"
+      description: "Added as a Cerberus drop with the Cerberus boss release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

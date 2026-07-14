@@ -1,5 +1,6 @@
 ---
 title: Silverfish Spawn Egg
+template: splash
 description: |
     Minecraft Silverfish Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1120
     ref: silverfish_spawn_egg
     slug: silverfish-spawn-egg
+    content_rev: 1
     display_name: Silverfish Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Silverfish Spawn Egg summons a small, hostile silverfish that in survival mode
+            normally emerges from infested stone and deepslate blocks found in mountain caves,
+            strongholds, igloo basements, woodland mansions, and trial chambers. Silverfish are
+            weak individually but call nearby silverfish out of infested blocks when struck, so
+            groups of them can swarm quickly.
+        lore: |
+            A speck of silver menace hides inside ordinary stone, ready to burst free and summon
+            its kin the moment it is disturbed.
+    faq:
+        - question: How do you use a Silverfish Spawn Egg?
+          answer: |
+              Right-click or interact with a block surface using the egg to spawn a silverfish at
+              that location.
+        - question: Where do silverfish normally spawn in survival?
+          answer: |
+              They emerge from infested stone and deepslate blocks in mountain caves and structures
+              such as strongholds, igloos, woodland mansions, and trial chambers.
+        - question: Why are silverfish considered dangerous in groups?
+          answer: |
+              When hit and not killed in one strike, a silverfish calls other nearby silverfish out
+              of infested blocks within a wide area, quickly turning one enemy into a swarm.
+        - question: How much health and damage do silverfish have?
+          answer: |
+              A silverfish has 8 health points and deals between 0.5 and 1.5 damage depending on
+              difficulty, moving at a relatively slow speed of 0.25.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

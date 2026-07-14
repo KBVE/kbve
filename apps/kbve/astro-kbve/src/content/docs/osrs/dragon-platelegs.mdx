@@ -12,8 +12,32 @@ osrs:
   lowalch: 108000
   highalch: 162000
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: metal
+    tier: dragon
+  properties:
+    release_date: "2005-01-25"
+    update: "Dragon Equipment"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
   equipment:
     slot: legs
+    requirements:
+      defence: 60
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,8 +55,6 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 60
   drop_table:
     primary_source: Bronze dragon
     best_drop_rate: 1/256
@@ -78,11 +100,18 @@ osrs:
     - Budget option before Bandos tassets
   market_strategy:
     notes:
-      - High supply from Slayer tasks
-      - Dragon plateskirt has identical stats
-      - Budget melee legs before tassets
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Trading Notes"
+      - "High supply from Slayer tasks"
+      - "Dragon plateskirt has identical stats"
+      - "Budget melee legs before tassets"
+  trading_tips:
+    - "Watch metal dragon Slayer task popularity for supply spikes."
+    - "GE limit 70 per 4 hours keeps flips moderate."
+    - "Demand stable from mid-game accounts gearing melee."
+  history:
+    - date: "2005-01-25"
+      update: "Dragon Equipment"
+      description: "Dragon platelegs added as a rare drop from metal dragons."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

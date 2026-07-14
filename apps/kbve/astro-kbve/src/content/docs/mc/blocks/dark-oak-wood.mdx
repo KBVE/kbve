@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Wood
+template: splash
 description: |
     Minecraft Dark Oak Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 77
     ref: dark_oak_wood
     slug: dark-oak-wood
+    content_rev: 1
     display_name: Dark Oak Wood
     material: wood
     hardness: 2
@@ -24,10 +26,63 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Dark Oak Wood is a bark-textured block showing dark oak
+            bark on all six faces, unlike a log which keeps ring
+            texture on its two ends. It is a purely decorative
+            building block crafted from logs.
+        lore: |
+            Wood blocks were added in the 1.14 "Village & Pillage"
+            update to give builders an all-bark alternative to logs
+            for construction.
+    uses:
+        - title: Building Material
+          ref: dark_oak_wood
+          detail: |
+              Used purely for decoration and construction where an
+              all-bark texture is preferred over log rings; can also be
+              stripped with an axe into Stripped Dark Oak Wood.
+        - title: Furnace Fuel
+          ref: dark_oak_wood
+          detail: |
+              Burns in a furnace for 15 seconds per block, the same as
+              a log, making it a viable fuel source.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 4 dark oak logs (or stripped logs) arranged in a 2x2 grid, yielding 3 wood blocks.
+        - location: Dark Oak Forests
+          detail: Not naturally generated as wood — obtained by harvesting and crafting dark oak logs from Dark Forest biomes.
+    faq:
+        - question: What tool do I need to mine Dark Oak Wood?
+          answer: |
+              None required — it can be broken by hand, though an axe
+              is fastest and always drops the block itself.
+        - question: Does Dark Oak Wood burn?
+          answer: |
+              Yes, like most wood-based blocks it is flammable and will
+              burn away if exposed to fire.
+        - question: What's the difference between Dark Oak Wood and Dark Oak Log?
+          answer: |
+              Wood shows bark texture on every face, while a log shows
+              ring texture on its two ends; both function identically
+              otherwise.
+        - question: Can I strip Dark Oak Wood?
+          answer: |
+              Yes, right-clicking with an axe converts it into Stripped
+              Dark Oak Wood, removing the bark pattern.
     data_version: "1.21.5"
 ---
 

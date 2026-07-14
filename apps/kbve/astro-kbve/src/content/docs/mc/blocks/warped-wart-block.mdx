@@ -1,5 +1,6 @@
 ---
 title: Warped Wart Block
+template: splash
 description: |
     Minecraft Warped Wart Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 827
     ref: warped_wart_block
     slug: warped-wart-block
+    content_rev: 1
     display_name: Warped Wart Block
     material: plant
     hardness: 1
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_wart_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - nether
+        - not_flammable
+    about:
+        description: |
+            Warped Wart Block is a solid, textured block that grows as
+            part of huge warped fungi in Warped Forest biomes. Its
+            teal-cyan bumps distinguish it from the reddish Nether Wart
+            Block found in Crimson Forests.
+        lore: |
+            Warped Wart Block arrived with the Nether Update (1.16), giving
+            the warped forest biome a distinct decorative texture to match
+            its fungal theme.
+    uses:
+        - title: Decorative Building
+          ref: warped_wart_block
+          detail: |
+              Used purely for its texture and color in builds evoking the
+              Nether's warped forest, and as a compostable item for
+              filling composters at an 85% chance per item.
+    found_in:
+        - location: Warped Forest biomes
+          detail: Generates as the cap of huge warped fungi, which grow naturally or from bone-mealing a warped fungus sapling.
+        - location: Huge Fungus Growth
+          detail: Bone meal applied to a warped fungus has a chance to grow it into a full huge warped fungus tree topped with wart blocks.
+    faq:
+        - question: What tool do I need to mine Warped Wart Block?
+          answer: |
+              A hoe is fastest, though any tool or bare hands will break
+              it since no minimum tool tier is required for the drop.
+        - question: Does Warped Wart Block burn in fire or lava?
+          answer: |
+              No. It is non-flammable and does not ignite from lava
+              contact, unlike some other Nether decoration blocks.
+        - question: Can I use it in a composter?
+          answer: |
+              Yes. Warped Wart Block has an 85% chance to raise a
+              composter's level by one when placed inside.
+        - question: How is it different from Nether Wart Block?
+          answer: |
+              They share identical mining and physical properties; only
+              the color and texture differ, matching their respective
+              warped and crimson forest biomes.
     data_version: "1.21.5"
 ---
 

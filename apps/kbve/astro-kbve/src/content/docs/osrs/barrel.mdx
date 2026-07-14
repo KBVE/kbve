@@ -1,6 +1,6 @@
 ---
 title: Barrel | OSRS Price Data
-description: "Barrel: An empty barrel.. High alch: 1 GP, GE limit: 15."
+description: "Barrel is a members quest item used in Regicide and Mourning's End Part I. High alch: 1 GP, GE limit: 15."
 osrs:
   id: 3216
   name: Barrel
@@ -12,9 +12,45 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Barrel is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: container
+    tier: low
+  related_items:
+    - item_name: Rotten apples
+      slug: rotten-apples
+      relationship: product
+      description: Collected from a Rotten Apple Pile using the barrel
+  about: Barrel is an empty wooden container used in quests, notably for crafting a bomb during Regicide and gathering rotten apples in Mourning's End Part I.
+  market_strategy:
+    notes:
+      - Tiny buy limit of 15 per 4 hours
+      - Primarily needed for quest progression
+      - Free spawns exist in Kandarin, Tyras Camp, and Iorwerth Camp
+  trading_tips:
+    - Pick up from spawn locations instead of buying when possible
+  history:
+    - date: "2004-09-20"
+      description: Released during Plague City Part 4.
+    - date: "2019-07-25"
+      description: Two barrel spawns added in an Iorwerth Camp tent with Song of the Elves.
+  properties:
+    release_date: "2004-09-20"
+    update: Plague City Part 4
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    quest: Regicide
+    weight: 10
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

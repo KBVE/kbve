@@ -1,6 +1,6 @@
 ---
 title: Mystic robe bottom (light) | OSRS Price Data
-description: "Mystic robe bottom (light): The lower half of a bright magical robe.. High alch: 48,000 GP, GE limit: 70."
+description: "Mystic robe bottom (light): legs-slot magic armour with +15 Magic attack and defence, needs 40 Magic and 20 Defence. High alch: 48,000 GP, GE limit: 70."
 osrs:
   id: 4113
   name: Mystic robe bottom (light)
@@ -12,9 +12,103 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 70
-  about: "Mystic robe bottom (light) is a members-only item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about:
+    text: "Mystic robe bottom (light) is the legs-slot piece of the light (white) Mystic set, giving +15 Magic attack and +15 Magic defence. It requires 40 Magic and 20 Defence to wear and is a staple mid-level magic legs option. The light colour is the rarer Turoth-and-Hydra drop variant; mechanically it is identical to the blue, dark, and dusk versions."
+    sections:
+      - heading: Stats and requirements
+        anchor: stats
+        body: "The robe bottom gives +15 Magic attack and +15 Magic defence with no other bonuses, and needs 40 Magic and 20 Defence to equip. It pairs with the matching mystic robe top, hat, gloves, and boots for a full mid-level magic setup used for training and lower-tier bossing before ahrim's or other upgrades."
+      - heading: How to obtain it
+        anchor: obtaining
+        body: "The light variant is not sold in the standard Mystic shop; it drops from Turoth at 1/512, Spiked Turoth at three separate 1/512 rolls, and the Alchemical Hydra at two 1/101 rolls. All Mystic colours share identical bonuses, so the light set is bought purely for its distinct white appearance."
+  equipment:
+    slot: legs
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 1.814
+  drop_table:
+    sources:
+      - source: Turoth
+        combat_level: 83
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/512"
+      - source: Spiked Turoth
+        combat_level: 244
+        quantity: "1"
+        rarity: rare
+        drop_rate: "3/512"
+      - source: Alchemical Hydra
+        combat_level: 426
+        quantity: "1"
+        rarity: rare
+        drop_rate: "2/101"
+  related_items:
+    - item_name: Mystic robe top (light)
+      slug: mystic-robe-top-light
+      relationship: set-piece
+      description: Matching body piece of the light Mystic set
+    - item_name: Mystic robe bottom
+      slug: mystic-robe-bottom
+      relationship: alternative
+      description: Blue variant with identical bonuses
+    - item_name: Mystic hat (light)
+      slug: mystic-hat-light
+      relationship: set-piece
+      description: Head piece of the light Mystic set
+  market_strategy:
+    notes:
+      - "Priced well above the blue version purely for the rare white cosmetic"
+      - "Supply is gated by Turoth and Alchemical Hydra drop rates"
+      - "Tight 70 buy limit thins liquidity on this collector piece"
+  trading_tips:
+    - "You pay a cosmetic premium — blue mystic gives identical stats for far less"
+    - "Watch Alchemical Hydra popularity; it is the main supply source"
+  trivia:
+    - "All Mystic colour variants — light, blue, dark, and dusk — share identical bonuses."
+    - "The light set is a drop-only cosmetic, not sold in the standard Mystic shop."
+    - "Released on 26 January 2005."
+  faq:
+    - question: What are the requirements for mystic robe bottom (light)?
+      answer: "40 Magic and 20 Defence to wear. It gives +15 Magic attack and +15 Magic defence."
+    - question: How do you get the light mystic robe bottom?
+      answer: "It drops from Turoth (1/512), Spiked Turoth (three 1/512 rolls), and the Alchemical Hydra (two 1/101 rolls) — it is not sold in the Mystic shop."
+    - question: Is light mystic better than blue mystic?
+      answer: "No. All Mystic colours have identical bonuses; the light (white) version only differs in appearance and price."
+    - question: Is the mystic robe bottom (light) members-only?
+      answer: "Yes. It is a members-only magic armour piece."
+  properties:
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    weight: 1.814
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Mystic_robe_bottom_(light)"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  url: https://kbve.com/osrs/mystic-robe-bottom-light/
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

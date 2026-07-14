@@ -12,100 +12,118 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: fletching
-    tier: basic
-  fletching:
-    level: 1
-    xp: 0.33
-    method: Knife on logs
+    tier: low
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: ["Drop", "Examine"]
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
   recipes:
     - skill: fletching
       level: 1
       xp: 5
       materials:
         - item_name: Logs
-          item_id: 1511
           quantity: 1
-      product: Arrow shaft
-      product_id: 52
-      product_quantity: 15
-      tool: Knife
+      tools: ["Knife"]
+      output_quantity: 15
     - skill: fletching
       level: 15
       xp: 10
       materials:
         - item_name: Oak logs
-          item_id: 1521
           quantity: 1
-      product: Arrow shaft
-      product_id: 52
-      product_quantity: 30
-      tool: Knife
+      tools: ["Knife"]
+      output_quantity: 30
     - skill: fletching
       level: 30
       xp: 15
       materials:
         - item_name: Willow logs
-          item_id: 1519
           quantity: 1
-      product: Arrow shaft
-      product_id: 52
-      product_quantity: 45
-      tool: Knife
+      tools: ["Knife"]
+      output_quantity: 45
+    - skill: fletching
+      level: 45
+      xp: 20
+      materials:
+        - item_name: Maple logs
+          quantity: 1
+      tools: ["Knife"]
+      output_quantity: 60
+    - skill: fletching
+      level: 60
+      xp: 25
+      materials:
+        - item_name: Yew logs
+          quantity: 1
+      tools: ["Knife"]
+      output_quantity: 75
+    - skill: fletching
+      level: 75
+      xp: 30
+      materials:
+        - item_name: Magic logs
+          quantity: 1
+      tools: ["Knife"]
+      output_quantity: 90
+    - skill: fletching
+      level: 90
+      xp: 35
+      materials:
+        - item_name: Redwood logs
+          quantity: 1
+      tools: ["Knife"]
+      output_quantity: 105
   related_items:
-    - item_id: 1511
-      item_name: Logs
+    - item_name: Logs
       slug: logs
       relationship: component
-      description: Basic source (15 shafts)
-    - item_id: 314
-      item_name: Feather
+      description: Basic source (15 shafts per log).
+    - item_name: Feather
       slug: feather
       relationship: component
-      description: For headless arrows
-    - item_id: 53
-      item_name: Headless arrow
+      description: Combined with shaft to make headless arrows.
+    - item_name: Headless arrow
       slug: headless-arrow
       relationship: product
-      description: Next step
-    - item_id: 39
-      item_name: Bronze arrowtips
+      description: Shaft + feather; next step toward finished arrows.
+    - item_name: Bronze arrowtips
       slug: bronze-arrowtips
       relationship: component
-      description: Basic tips
-    - item_id: 40
-      item_name: Iron arrowtips
+      description: Basic arrowtips for finishing arrows.
+    - item_name: Iron arrowtips
       slug: iron-arrowtips
       relationship: component
-      description: Common tips
-  about: |-
-    Use a Knife on any logs to create Arrow shafts.
-
-    | Log Type | Shafts per Log | Fletching Level |
-    |----------|----------------|-----------------|
-    | Logs | 15 | 1 |
-    | Oak logs | 30 | 15 |
-    | Willow logs | 45 | 30 |
-    | Maple logs | 60 | 45 |
-    | Yew logs | 75 | 60 |
-    | Magic logs | 90 | 75 |
-
-    Add feathers and arrowtips to create arrows:
-
-    1. Arrow shaft + Feather = Headless arrow
-    2. Headless arrow + Arrowtips = Finished arrows
+      description: Common arrowtips for finishing arrows.
+  about: "Arrow shafts are produced by using a Knife on any log type. Higher-tier logs yield more shafts at higher Fletching levels (15 from regular logs up to 105 from redwood logs). Combine with feathers for headless arrows, then attach arrowtips to finish."
   market_strategy:
-    title: Bulk Processing
     notes:
-      - High volume, low margin item
-      - "Compare:  vs"
-      - Best margins often with regular Logs
-      - Buy Arrow shafts + Feathers
-      - Fletch into Headless arrows
-      - Sell to fletchers making finished arrows
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "High-volume, thin-margin item; bulk only."
+      - "Best margins are usually regular logs into shafts at low Fletching levels."
+      - "Pair with feathers + arrowtips for end-to-end arrow production."
+  trading_tips:
+    - Buy in stacks of thousands within the 7,000 GE limit window.
+    - Note via banker for fast bank transfers while fletching.
+  history:
+    - date: "2002-03-25"
+      description: Released.
+    - date: "2005-08-15"
+      description: Inventory icon now reflects quantity held.
+    - date: "2016-08-25"
+      description: Higher-tier logs yield more arrow shafts per cut.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

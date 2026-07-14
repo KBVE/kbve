@@ -1,5 +1,6 @@
 ---
 title: Trial Spawner
+template: splash
 description: |
     Minecraft Trial Spawner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,12 @@ mc_block:
     id: 1093
     ref: trial_spawner
     slug: trial-spawner
+    content_rev: 1
     display_name: Trial Spawner
     material: stone
     hardness: 50
     blast_resistance: 50
-    best_tool: hand
+    best_tool: pickaxe
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
@@ -27,7 +29,48 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - pickaxe_mineable
+        - blast_resistant
+        - overworld
+        - nether
+    about:
+        description: |
+            The Trial Spawner is a stone-like block found only inside Trial
+            Chambers. When a player steps within range and line of sight, it
+            spawns waves of hostile mobs, then ejects trial keys and other
+            rewards once every mob is defeated before going dormant.
+        lore: |
+            Introduced in the Trial Chambers update (1.21), it scales
+            difficulty and rewards with the number of nearby players.
+    uses:
+        - title: Trial Key
+          ref: trial_key
+          detail: |
+              A 50% chance drop after clearing a spawner's waves; used to
+              unlock vaults found throughout the trial chamber.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates in every chamber and corridor of the structure except the entrance chamber.
+    faq:
+        - question: Can I mine and relocate a Trial Spawner?
+          answer: |
+              Not in Survival — it drops nothing when broken. It can only be
+              obtained via Creative mode, pick block, or commands.
+        - question: How does it activate?
+          answer: |
+              It requires a direct line of sight to a player within 14
+              blocks, seeing through transparent blocks like glass and
+              copper grates.
+        - question: What happens with the Bad Omen effect?
+          answer: |
+              A player carrying Bad Omen near an active spawner converts it
+              into its ominous variant, despawning existing mobs and
+              raising the stakes and rewards.
+        - question: Does more players mean more loot?
+          answer: |
+              Yes. The spawner scales simultaneous mob counts and total
+              waves upward with each additional nearby player.
     data_version: "1.21.5"
 ---
 

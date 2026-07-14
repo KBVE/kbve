@@ -1,5 +1,10 @@
+#![allow(dead_code)]
+
+mod agones;
 mod astro;
-mod game;
+mod auth;
+mod db;
+mod discord;
 mod transport;
 
 use tracing::info;
@@ -18,6 +23,8 @@ mod allocator {
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
 
+    let _ = rustls::crypto::ring::default_provider().install_default();
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
@@ -28,6 +35,15 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     info!("CryptoThrone v{}", env!("CARGO_PKG_VERSION"));
+
+    if db::init_pg_cluster().await {
+        info!("PgCluster initialized — pooled Postgres available");
+    } else {
+        info!("PgCluster not configured — DB-backed routes degrade");
+    }
+    if db::init_kv_cache().await {
+        info!("KvCache initialized — L1 LRU + L2 Valkey read-through enabled");
+    }
 
     let http = tokio::spawn(transport::https::serve());
 

@@ -12,12 +12,93 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 40
-  about: "Mind tiara is a free-to-play item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: silver
+    tier: low
+  properties:
+    release_date: "2005-06-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      prayer: 0
+      ranged_strength: 0
+      magic_damage: 0
+  passive_effects:
+    - name: Mind Altar access
+      description: Allows the wearer to enter the Mind Altar without a Mind talisman, saving inventory space while crafting Mind runes.
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 27.5
+      materials:
+        - item_name: Tiara
+          quantity: 1
+        - item_name: Mind talisman
+          quantity: 1
+      tools:
+        - Mind Altar
+      output_quantity: 1
+  related_items:
+    - item_name: Tiara
+      slug: tiara
+      relationship: component
+      description: Base tiara used in creation
+    - item_name: Mind talisman
+      slug: mind-talisman
+      relationship: component
+      description: Consumed at the Mind Altar during creation
+    - item_name: Mind rune
+      slug: mind-rune
+      relationship: product
+      description: Rune crafted at the Mind Altar
+  about: "Mind tiara is a head slot item made by using a Mind talisman on a tiara at the Mind Altar for 27.5 Runecraft XP. When worn it grants direct access to the Mind Altar, removing the need to carry the talisman."
+  market_strategy:
+    notes:
+      - "Buy limit of 40 keeps it suitable for diary completion shopping only"
+      - "Production cost massively exceeds GE price, supply is mostly Runecraft XP byproduct"
+  trading_tips:
+    - Most players buy rather than craft due to the talisman cost gap
+    - Useful as a cheap Falador Diary requirement purchase
+  history:
+    - date: "2005-06-13"
+      description: "Added to the game with the rework of the Runecrafting skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

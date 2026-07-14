@@ -1,0 +1,231 @@
+---
+import type { MCItem, MCItemRecipe } from '@/data/schema';
+import { mcTextureUrls } from './texture';
+
+interface Props {
+	data: MCItem;
+}
+
+const { data: item } = Astro.props;
+
+const SITE = 'https://kbve.com';
+const ITEM_URL = `${SITE}/mc/items/${item.slug}/`;
+const tex = mcTextureUrls(item.ref, item.category);
+const ICON_URL = `${SITE}${tex.primary}`;
+const WIKI_URL = `https://minecraft.wiki/w/${item.display_name.replace(/ /g, '_')}`;
+
+function descFor(mc: MCItem): string {
+	const parts: string[] = [];
+	if (mc.about?.description) parts.push(mc.about.description);
+	parts.push(`Minecraft ${mc.category} item (${mc.rarity} rarity).`);
+	if (mc.max_durability > 0) {
+		parts.push(`Durability: ${mc.max_durability.toLocaleString()}.`);
+	}
+	parts.push(`Stacks to ${mc.stack_size}.`);
+	return parts.join(' ');
+}
+
+const additionalProperty = [
+	{ '@type': 'PropertyValue', name: 'Item ID', value: item.id },
+	{ '@type': 'PropertyValue', name: 'Category', value: item.category },
+	{ '@type': 'PropertyValue', name: 'Rarity', value: item.rarity },
+	{ '@type': 'PropertyValue', name: 'Stack size', value: item.stack_size },
+	...(item.tier
+		? [{ '@type': 'PropertyValue', name: 'Tier', value: item.tier }]
+		: []),
+	...(item.max_durability > 0
+		? [
+				{
+					'@type': 'PropertyValue',
+					name: 'Durability',
+					value: item.max_durability,
+				},
+			]
+		: []),
+	...(item.damage
+		? [
+				{
+					'@type': 'PropertyValue',
+					name: 'Attack damage',
+					value: item.damage.attack_damage,
+				},
+				{
+					'@type': 'PropertyValue',
+					name: 'Attack speed',
+					value: item.damage.attack_speed,
+				},
+			]
+		: []),
+	...(item.equipment?.slot
+		? [
+				{
+					'@type': 'PropertyValue',
+					name: 'Equipment slot',
+					value: item.equipment.slot,
+				},
+				...(item.equipment.armor_points > 0
+					? [
+							{
+								'@type': 'PropertyValue',
+								name: 'Armor points',
+								value: item.equipment.armor_points,
+							},
+						]
+					: []),
+			]
+		: []),
+	...(item.food
+		? [
+				{
+					'@type': 'PropertyValue',
+					name: 'Nutrition',
+					value: item.food.nutrition,
+				},
+				{
+					'@type': 'PropertyValue',
+					name: 'Saturation',
+					value: item.food.saturation,
+				},
+			]
+		: []),
+	...(item.mining
+		? [
+				{
+					'@type': 'PropertyValue',
+					name: 'Tool type',
+					value: item.mining.tool_type,
+				},
+				{
+					'@type': 'PropertyValue',
+					name: 'Mining tier',
+					value: item.mining.tier,
+				},
+			]
+		: []),
+];
+
+const term = {
+	'@context': 'https://schema.org',
+	'@type': 'DefinedTerm',
+	'@id': `${ITEM_URL}#item`,
+	name: item.display_name,
+	description: descFor(item),
+	image: ICON_URL,
+	url: ITEM_URL,
+	identifier: String(item.id),
+	termCode: item.ref,
+	inDefinedTermSet: {
+		'@type': 'DefinedTermSet',
+		name: 'Minecraft Item Database',
+		url: `${SITE}/mc/items/`,
+	},
+	additionalProperty,
+	sameAs: [WIKI_URL],
+};
+
+const breadcrumbs = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	'@id': `${ITEM_URL}#breadcrumb`,
+	itemListElement: [
+		{ '@type': 'ListItem', position: 1, name: 'KBVE', item: SITE },
+		{
+			'@type': 'ListItem',
+			position: 2,
+			name: 'Minecraft Item Database',
+			item: `${SITE}/mc/items/`,
+		},
+		{
+			'@type': 'ListItem',
+			position: 3,
+			name: item.display_name,
+			item: ITEM_URL,
+		},
+	],
+};
+
+function refLabel(ref: string): string {
+	return ref.replace(/^[a-z]+:/, '').replace(/_/g, ' ');
+}
+
+function recipeToHowTo(r: MCItemRecipe, idx: number) {
+	const supplies = r.ingredients
+		.map((ing) => {
+			const ref = ing.ref || ing.tag_ref;
+			if (!ref) return null;
+			return {
+				'@type': 'HowToSupply',
+				name: refLabel(ref),
+				requiredQuantity: String(ing.qty),
+			};
+		})
+		.filter(Boolean);
+	if (supplies.length === 0) return null;
+	const station = r.station !== 'none' ? r.station : 'crafting table';
+	const descParts = [
+		`Craft ${item.display_name} using a ${r.kind} recipe at the ${station}.`,
+	];
+	if (r.experience > 0) descParts.push(`Grants ${r.experience} XP.`);
+	if (r.cook_time_ticks > 0)
+		descParts.push(`Takes ${(r.cook_time_ticks / 20).toFixed(1)}s.`);
+	const desc = descParts.join(' ');
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'HowTo',
+		'@id': `${ITEM_URL}#recipe-${idx}`,
+		name: `Make ${item.display_name}`,
+		description: desc,
+		supply: supplies,
+		tool: [{ '@type': 'HowToTool', name: station }],
+		step: [
+			{
+				'@type': 'HowToStep',
+				name: `Make ${item.display_name}`,
+				text: desc,
+			},
+		],
+		yield: `${r.yields}× ${item.display_name}`,
+	};
+}
+
+const howtoLd = item.recipes.map((r, i) => recipeToHowTo(r, i)).filter(Boolean);
+
+const faqLd =
+	item.faq && item.faq.length > 0
+		? {
+				'@context': 'https://schema.org',
+				'@type': 'FAQPage',
+				'@id': `${ITEM_URL}#faq`,
+				mainEntity: item.faq.map((f) => ({
+					'@type': 'Question',
+					name: f.question,
+					acceptedAnswer: { '@type': 'Answer', text: f.answer },
+				})),
+			}
+		: null;
+---
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(term)} />
+<script
+	type="application/ld+json"
+	is:inline
+	set:html={JSON.stringify(breadcrumbs)}
+/>
+{
+	howtoLd.map((ld) => (
+		<script
+			type="application/ld+json"
+			is:inline
+			set:html={JSON.stringify(ld)}
+		/>
+	))
+}
+{
+	faqLd && (
+		<script
+			type="application/ld+json"
+			is:inline
+			set:html={JSON.stringify(faqLd)}
+		/>
+	)
+}

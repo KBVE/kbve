@@ -1,5 +1,6 @@
 ---
 title: Deepslate Tile Slab
+template: splash
 description: |
     Minecraft Deepslate Tile Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -12,13 +13,14 @@ tags:
 mc_block:
     id: 1070
     ref: deepslate_tile_slab
+    content_rev: 1
     slug: deepslate-tile-slab
     display_name: Deepslate Tile Slab
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: deepslate_tile_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Tile Slab is a half-height decorative variant of
+            Deepslate Tiles, letting builders place thin stone layers such
+            as steps, floors, and trim. It generates naturally as part of
+            ancient city structures deep underground.
+        lore: |
+            Added alongside deepslate tiles during the Caves & Cliffs and
+            Wild Update era, first appearing under the placeholder name
+            "Grimstone Tile Slab" before Deep Dark experimental snapshots
+            renamed it and shipped it in Java 1.19.
+    uses:
+        - title: Ancient City Building
+          ref: deepslate_tile_slab
+          detail: |
+              Used as flooring, stair capping, and decorative trim within
+              ancient city structures and player-made deepslate builds.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as part of ancient city structures deep underground.
+        - location: Crafting/Stonecutting
+          detail: |
+              Crafted from 3 Deepslate Tiles into 6 slabs, or cut from
+              Deepslate, Cobbled Deepslate, Polished Deepslate, Deepslate
+              Bricks, or Deepslate Tiles using a stonecutter.
+    faq:
+        - question: What tool do I need to mine Deepslate Tile Slab?
+          answer: |
+              Any pickaxe, wood tier or better. Mining it without a pickaxe
+              destroys it with no drop.
+        - question: How do I craft Deepslate Tile Slab?
+          answer: |
+              Place 3 Deepslate Tiles across a crafting grid row to get 6
+              slabs, or cut Deepslate Tiles (or related deepslate blocks)
+              with a stonecutter for a 1:2 yield.
+        - question: Where does it generate naturally?
+          answer: |
+              In ancient cities, the deep dark structures found near the
+              bottom of the world.
+        - question: Can two slabs form a full block?
+          answer: |
+              Yes. Placing a slab against another slab of the same type
+              combines them into a full Deepslate Tiles block.
     data_version: "1.21.5"
 ---
 

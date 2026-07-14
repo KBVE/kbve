@@ -1,6 +1,6 @@
 ---
 title: Chilli con carne | OSRS Price Data
-description: "Chilli con carne: A bowl of meat in chilli-con-carne sauce.. High alch: 7 GP, GE limit: 13,000."
+description: "Chilli con carne: a bowl of meat in chilli-con-carne sauce. Cooking 11 to make, heals 5 HP. Used to top potatoes. High alch: 7 GP, GE limit: 13,000."
 osrs:
   id: 7062
   name: Chilli con carne
@@ -12,9 +12,85 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 13000
-  about: "Chilli con carne is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2006-01-30"
+    tradeable: true
+    stackable: false
+    equipable: false
+    noteable: true
+    weight: 0.4
+    quest_item: false
+    options:
+      - Eat
+      - Drop
+    destroy: "Are you sure you want to drop the Chilli con carne?"
+  consumable:
+    type: food
+    heals: 5
+  recipes:
+    - skill: cooking
+      level: 11
+      xp: 7
+      materials:
+        - item_name: Spicy sauce
+          quantity: 1
+        - item_name: Cooked meat
+          quantity: 1
+      output: Chilli con carne
+      output_id: 7062
+      output_quantity: 1
+      facility: None
+    - skill: cooking
+      level: 11
+      xp: 7
+      materials:
+        - item_name: Spicy sauce
+          quantity: 1
+        - item_name: Minced meat
+          quantity: 1
+        - item_name: Bowl
+          quantity: 1
+      output: Chilli con carne
+      output_id: 7062
+      output_quantity: 1
+      facility: None
+  related_items:
+    - item_id: 7054
+      item_name: Spicy sauce
+      slug: spicy-sauce
+      relationship: component
+      description: Sauce base
+    - item_id: 7064
+      item_name: Chilli potato
+      slug: chilli-potato
+      relationship: product
+      description: Topping a potato with butter at Cooking 41
+    - item_id: 2142
+      item_name: Cooked meat
+      slug: cooked-meat
+      relationship: component
+      description: Meat component
+  market_strategy:
+    notes:
+      - "Cooking 11 to make from spicy sauce + cooked meat"
+      - "Cooking 41 to combine with potato into chilli potato (165.5 XP)"
+      - "Heals only 5 HP — bowl filler use"
+      - "Large GE buy limit"
+      - "Buy limit: 13,000 per 4 hours"
+      - "Ingredient for chilli potato — chained Cooking XP"
+      - "Light demand outside of food-chain training"
+  history:
+    - date: "2006-01-30"
+      update: Release
+      description: "Added with Hot Foods cooking expansion."
+  trivia:
+    - Requires a knife to make from cooked meat.
+    - Used as a component in chilli potato.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -8,11 +8,52 @@ img: https://images.unsplash.com/photo-1693884642068-98443d05b78f?crop=entropy&c
 description: September 10th. 
 tags:
   - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'September 10,'
+    accent: every year.
+    lede: 'The September 10th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Sep 9'
+          href: /journal/09-09/
+        - label: 'Sep 11 →'
+          href: /journal/09-11/
+    related:
+        - title: 'Previous · Sep 9'
+          copy: 'Step back a day to the September 9th log.'
+          href: /journal/09-09/
+          icon: calendar
+        - title: 'Next · Sep 11'
+          copy: 'Jump ahead to the September 11th log.'
+          href: /journal/09-11/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1693884642068-98443d05b78f?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense, Tasks } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## 2025
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2025" heading="2025">
 
 ### Wheel and Deal
 
@@ -23,7 +64,15 @@ import { Adsense, Tasks } from '@/components/astropad';
     This could be a great way to not only build out the user base but provide a way to grow the whole company as a whole.
     A dating app that is also a card game would be crazy!
 
-## 2024
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="2024" heading="2024">
 
 **Kilobase**
 
@@ -66,9 +115,9 @@ sudo apt-get install build-essential libreadline-dev zlib1g-dev flex bison libxm
 This command should grab everything we would need within an Ubuntu 20/22/24 instance.
 Side note, on my macbook, I had to do `brew install git icu4c pkg-config`.
 
+</BentoProse>
 
-
-## 2023
+<BentoProse id="2023" heading="2023">
 
 - 10:30am - Minor updates to the current issue tickets that are open. I definitely want to integrate some of the GPT-style concepts into the issues and then get to the point where I can have it patch, pull and merge different edits to the main repo! Think of it like Sweep but a bit more geared towards content generation and general clean up.
 
@@ -76,13 +125,21 @@ Side note, on my macbook, I had to do `brew install git icu4c pkg-config`.
 
 - 9:37pm - The amount of memes that this is requiring. Ugh, I am diving deep into the caffeine binge. My basement has skyrocketed in temp, its actually super scary how hot it is getting in here.
 
-## Quote
+</BentoProse>
+
+<BentoProse id="quote" heading="Quote">
 
 > The journey of a thousand miles begins with one step.
 > — <cite>Laozi</cite>
 
 ---
 
-## Tasks
+</BentoProse>
+
+<BentoProse id="tasks" heading="Tasks">
 
 - [ ]
+
+</BentoProse>
+
+</BentoDoc>

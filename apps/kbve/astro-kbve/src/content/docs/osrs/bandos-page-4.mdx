@@ -12,43 +12,78 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 5
-  item:
-    type: god_page
-    god: Bandos
-    page_number: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: god-book-page
+    tier: mid
+  properties:
+    release_date: "2014-07-03"
     tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite
-        drop_rate: Varies by tier
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: "Hard Treasure Trail casket"
+        quantity: "1"
+        rarity: "1/650"
+      - source: "Medium Treasure Trail casket (Standard)"
+        quantity: "1"
+        rarity: "10/8184"
+      - source: "Elite Treasure Trail casket"
+        quantity: "1"
+        rarity: "1/775"
+      - source: "Master Treasure Trail casket"
+        quantity: "1"
+        rarity: "1/702"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - medium
+      - hard
+      - elite
+      - master
   related_items:
-    - item_id: 12613
-      item_name: Bandos page 1
+    - item_name: Bandos page 1
       slug: bandos-page-1
       relationship: set-piece
-      description: Page 1 of 4
-    - item_id: 12614
-      item_name: Bandos page 2
+      description: "Page 1 of 4 required to complete a Damaged book (Bandos)"
+    - item_name: Bandos page 2
       slug: bandos-page-2
       relationship: set-piece
-      description: Page 2 of 4
-    - item_id: 12615
-      item_name: Bandos page 3
+      description: "Page 2 of 4 required to complete a Damaged book (Bandos)"
+    - item_name: Bandos page 3
       slug: bandos-page-3
       relationship: set-piece
-      description: Page 3 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Bandos |
-    | Page | 4 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Book of war (Bandos god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Page 3 of 4 required to complete a Damaged book (Bandos)"
+    - item_name: Book of war
+      slug: book-of-war
+      relationship: product
+      description: "Completed Bandos god book — equipable shield slot once all four pages are added to a Damaged book"
+  about: "Bandos page 4 is one of four pages required to complete the Book of war (the Bandos god book). The Damaged book (Bandos) is purchased from Jossik for 5,000 coins after Horror from the Deep, and all four pages are added to assemble the completed book. Pages drop from medium, hard, elite, and master Treasure Trail caskets."
+  market_strategy:
+    notes:
+      - "Demand is bounded by the number of players assembling Bandos god books — niche compared to Saradomin/Zamorak books"
+      - "Supply comes from medium/hard/elite/master clue completions; clue activity drives short-term volatility"
+      - "Buy limit of 5 per 4 hours makes large positions impractical; this is a slow flip item"
+  trading_tips:
+    - "Bandos god book is mainly used for preaching emotes; demand spikes during clue scroll updates or god alignment changes for GWD setups"
+    - "Compare price of four pages individually vs a completed Book of war to spot crafting arbitrage"
+    - "Master clue rates are unfavourable; most page supply comes from elite clues"
+  history:
+    - date: "2014-07-03"
+      description: "Added with the original god books update to Old School RuneScape, obtainable from Treasure Trails as reward pages"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

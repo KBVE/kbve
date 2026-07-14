@@ -1,5 +1,6 @@
 ---
 title: Suspicious Sand
+template: splash
 description: |
     Minecraft Suspicious Sand — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 38
     ref: suspicious_sand
     slug: suspicious-sand
+    content_rev: 1
     display_name: Suspicious Sand
-    material: dirt
+    material: sand
     hardness: 0.25
     blast_resistance: 0.25
     best_tool: shovel
@@ -27,7 +29,47 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Suspicious Sand is a fragile, gravity-affected archaeology block
+            found in desert temples, desert wells, and warm ocean ruins.
+            Brushing it with a Brush slowly uncovers hidden loot before it
+            becomes ordinary sand.
+        lore: |
+            Announced in February 2023 and added in Java Edition 1.20's
+            Trails & Tales update alongside the archaeology system.
+    uses:
+        - title: Archaeology Loot
+          ref: brush
+          detail: |
+              Must be excavated with a Brush; breaking it conventionally or
+              letting it fall as gravity-affected sand destroys any loot.
+    found_in:
+        - location: Desert Temple Buried Rooms
+          detail: Generates in the hidden buried room beneath desert pyramids.
+        - location: Desert Wells
+          detail: Found at the bottom of desert well structures.
+        - location: Warm Ocean Ruins
+          detail: Also scattered through warm ocean ruin structures.
+    faq:
+        - question: What happens if I mine Suspicious Sand with a shovel?
+          answer: |
+              It breaks instantly and drops nothing; any hidden loot is lost
+              unless it is brushed out beforehand.
+        - question: What tool reveals the loot inside?
+          answer: |
+              A Brush, used by holding right-click on the block to slowly
+              expose and pop out the contained item.
+        - question: What does Suspicious Sand turn into after brushing?
+          answer: |
+              Once emptied of loot, it converts into regular Sand.
+        - question: Can Suspicious Sand fall like normal sand?
+          answer: |
+              Yes, it is gravity-affected and falls if unsupported, breaking
+              and destroying its contents in the process.
     data_version: "1.21.5"
 ---
 

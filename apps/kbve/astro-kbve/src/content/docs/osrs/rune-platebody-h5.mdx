@@ -12,22 +12,77 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options: []
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 9.979
     requirements:
       defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 82
+      slash: 80
+      crush: 72
+      magic: -6
+      ranged: 80
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 23209
-      item_name: Rune platebody (h1)
+    - item_name: Rune platebody (h1)
       slug: rune-platebody-h1
       relationship: variant
-      description: Heraldic variant 1
-  about: |-
-    > *"Provides excellent protection with a heraldic design."*
-
-    The rune platebody (h5) is a heraldic cosmetic variant of the rune platebody. Identical stats, requiring 40 Defence and Dragon Slayer I quest.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Heraldic lion variant of the rune platebody.
+    - item_name: Rune platebody
+      slug: rune-platebody
+      relationship: variant
+      description: Standard non-heraldic rune platebody with identical stats.
+  about: "The rune platebody (h5) is a heraldic cosmetic variant of the rune platebody awarded from hard treasure trail clue scrolls. It is identical in stats to the standard rune platebody, requiring 40 Defence and completion of Dragon Slayer I to equip."
+  market_strategy:
+    notes:
+      - "Cosmetic variant - demand driven by fashionscape rather than combat utility."
+      - "Hard clue reward at 1/8,125 from reward caskets - supply is steady but thin."
+      - "Low daily volume (~18) means thin order book; place limit orders patiently."
+  trading_tips:
+    - "Compare price to other heraldic variants (h1-h4) - they often cluster together."
+    - "Watch hard clue scroll meta changes which can swing demand."
+  history:
+    - date: "2019-04-11"
+      description: "Released as a hard clue scroll reward in the Treasure Trails Expansion."
+    - date: "2021-04-21"
+      description: "Ranged attack penalty adjusted from -10 to -15."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

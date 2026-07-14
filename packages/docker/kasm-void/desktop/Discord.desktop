@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Discord
+Comment=Launch Discord (host-update skipped)
+Exec=bash -c '/home/kasm-user/scripts/seed-discord-config.sh && exec /usr/share/discord/Discord "$@"' -- %U
+Icon=discord
+Terminal=false
+Categories=Network;InstantMessaging;
+StartupNotify=true

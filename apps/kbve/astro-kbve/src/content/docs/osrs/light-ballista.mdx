@@ -12,57 +12,94 @@ osrs:
   lowalch: 50000
   highalch: 75000
   limit: 8
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: misc
+    tier: dragon
+    primary_material: wood
   equipment:
     slot: weapon
-    type: ranged_weapon
+    weapon_type: ballista
+    attack_speed: 7
+    attack_range: 10
     two_handed: true
     tradeable: true
     weight: 3
     requirements:
       ranged: 65
     stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
       attack_ranged: 110
-  creation:
-    method: Combine unstrung light ballista with Monkey tail
-    requirements:
-      fletching: 47
-    xp: 300
-    materials:
-      - item_id: 19586
-        item_name: Unstrung light ballista
-        slug: unstrung-light-ballista
-      - item_id: 19610
-        item_name: Monkey tail
-        slug: monkey-tail
-  ammunition:
-    type: javelin
-    max_tier: dragon
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   special_attack:
     name: Concentrated Shot
     energy: 65
-    description: +25% accuracy, +25% damage
+    description: "Provides 25% increased accuracy and 25% increased damage."
+  recipes:
+    - item_name: Light ballista
+      skill: Fletching
+      level: 47
+      xp: 330
+      tools:
+        - Hammer
+      materials:
+        - item_id: 19586
+          item_name: Unstrung light ballista
+          slug: unstrung-light-ballista
+          quantity: 1
+        - item_id: 19610
+          item_name: Monkey tail
+          slug: monkey-tail
+          quantity: 1
+      output_quantity: 1
+  ammunition:
+    type: javelin
+    max_tier: dragon
   related_items:
     - item_id: 19481
       item_name: Heavy ballista
       slug: heavy-ballista
       relationship: upgrade
-      description: Stronger version
+      description: Stronger version requiring 75 Ranged.
     - item_id: 19484
       item_name: Dragon javelin
       slug: dragon-javelin
-      relationship: component
-      description: Best ammo
+      relationship: variant
+      description: Best javelin ammunition.
     - item_id: 19610
       item_name: Monkey tail
       slug: monkey-tail
       relationship: component
-      description: Creation material
+      description: Required to string the ballista.
+    - item_id: 19586
+      item_name: Unstrung light ballista
+      slug: unstrung-light-ballista
+      relationship: component
+      description: Unstrung base required for stringing.
   about: |-
     Combine unstrung light ballista with Monkey tail.
 
     | Requirement | Value |
     |-------------|-------|
-    | Fletching | 47 (300 XP) |
+    | Fletching | 47 (330 XP) |
 
     | Offence | Bonus |
     |---------|-------|
@@ -82,11 +119,20 @@ osrs:
     Budget alternative to heavy ballista.
   market_strategy:
     notes:
-      - Good for mid-level ranged
-      - Heavy ballista is stronger
-      - Uses same ammo as heavy
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Good for mid-level ranged"
+      - "Heavy ballista is stronger"
+      - "Uses same ammo as heavy"
+  trading_tips:
+    - Track unstrung light ballista and Monkey tail prices for stringing margins.
+    - GE buy limit of 8 every 4 hours throttles flips.
+    - Compare with Heavy ballista demand to gauge mid-tier ranged interest.
+  history:
+    - date: "2016-05-06"
+      description: "Released alongside Monkey Madness II."
+    - date: "2024-05-29"
+      description: "Ava's devices now retrieve javelins fired from this weapon."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

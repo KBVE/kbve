@@ -1,5 +1,6 @@
 ---
 title: Waxed Exposed Chiseled Copper
+template: splash
 description: |
     Minecraft Waxed Exposed Chiseled Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 982
     ref: waxed_exposed_chiseled_copper
     slug: waxed-exposed-chiseled-copper
+    content_rev: 1
     display_name: Waxed Exposed Chiseled Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_exposed_chiseled_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Exposed Chiseled Copper is the second oxidation stage of
+            Chiseled Copper, sealed with honeycomb so it stays permanently
+            in its lightly-weathered, orange-brown "exposed" appearance.
+        lore: |
+            Chiseled Copper arrived in the Trials Update (1.21) as a
+            decorative carved variant, each oxidation stage waxable
+            independently.
+    uses:
+        - title: Decorative Carved Block
+          ref: waxed_exposed_chiseled_copper
+          detail: |
+              Used as a decorative accent block for statues, trim, and
+              detailing that needs to stay locked at the exposed weathering
+              stage.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally in various oxidation stages as part of trial chamber vault decoration.
+        - location: Crafted
+          detail: 2 matching Exposed Cut Copper Slabs craft 1 Exposed Chiseled Copper, or stonecutting, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine Waxed Exposed Chiseled Copper?
+          answer: |
+              A stone pickaxe or better. Mining without one destroys the
+              block with no drop.
+        - question: Will it oxidize further into the weathered or oxidized stage?
+          answer: |
+              No. Waxing with honeycomb permanently freezes it at the
+              exposed stage until an axe removes the wax.
+        - question: How do I get an unwaxed exposed block back?
+          answer: |
+              Right-click with an axe to strip the wax coating, after which
+              natural weathering into weathered and oxidized stages resumes.
+        - question: Does Fortune affect the number of drops?
+          answer: |
+              No. It always drops exactly one block regardless of
+              enchantments, as long as a stone pickaxe or better is used.
     data_version: "1.21.5"
 ---
 

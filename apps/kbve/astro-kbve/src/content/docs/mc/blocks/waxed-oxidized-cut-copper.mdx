@@ -1,5 +1,6 @@
 ---
 title: Waxed Oxidized Cut Copper
+template: splash
 description: |
     Minecraft Waxed Oxidized Cut Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 996
     ref: waxed_oxidized_cut_copper
     slug: waxed-oxidized-cut-copper
+    content_rev: 1
     display_name: Waxed Oxidized Cut Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_oxidized_cut_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+    about:
+        description: |
+            Waxed Oxidized Cut Copper is a decorative, panel-cut copper
+            block at its final oxidation stage, sealed with honeycomb so
+            it never weathers further. Its teal, green-spotted surface
+            stays permanently fixed.
+        lore: |
+            Cut copper gives the oxidizing copper family a smoother,
+            paneled look distinct from the raw block texture, useful for
+            builders who want a cleaner facade.
+    uses:
+        - title: Slabs and stairs
+          ref: waxed_oxidized_cut_copper_slab
+          detail: |
+              Crafted into waxed oxidized cut copper slabs and stairs, or
+              stonecut into chiseled copper, giving a full matched
+              building set.
+    found_in:
+        - location: Crafting
+          detail: 4 Waxed Oxidized Copper blocks craft into 4 Waxed Oxidized Cut Copper, or apply honeycomb to Oxidized Cut Copper.
+        - location: Trial Chambers
+          detail: Generates naturally as part of trial chamber decoration.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks the block
+              without a drop.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops exactly one of itself regardless of
+              enchantments.
+        - question: How do I get this block?
+          answer: |
+              Apply honeycomb to Oxidized Cut Copper, or craft/stonecut
+              from Waxed Oxidized Copper blocks.
+        - question: Will it ever change color?
+          answer: |
+              No. Waxing permanently halts the oxidation cycle at this
+              fully weathered stage.
     data_version: "1.21.5"
 ---
 

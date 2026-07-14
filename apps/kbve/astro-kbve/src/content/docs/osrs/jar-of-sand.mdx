@@ -12,45 +12,58 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 5
-  item:
+  material:
     type: jar
+    tier: high
+  properties:
+    release_date: "2014-12-18"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.02
-  obtaining:
-    methods:
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Are you sure you want to destroy this jar?"
+  drop_table:
+    sources:
       - source: Kalphite Queen
-        drop_rate: 1/2,000
-  usage:
-    description: Decoration for Achievement Gallery boss lair display
-    requirements: Defeating Kalphite Queen at least once to place
-    cosmetic: true
+        quantity: "1"
+        rarity: 1/2000
   related_items:
-    - item_id: 12647
-      item_name: Kalphite princess
+    - item_name: Kalphite princess
       slug: kalphite-princess
       relationship: alternative
-      description: KQ pet
-    - item_id: 7158
-      item_name: Dragon 2h sword
+      description: Pet drop from the Kalphite Queen
+    - item_name: Dragon 2h sword
       slug: dragon-2h-sword
       relationship: alternative
-      description: KQ drop
+      description: Notable rare drop from the Kalphite Queen
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Jar |
-    | Tradeable | Yes |
-    | Weight | 0.02 kg |
-    | Requirements | None |
+    > *"It's just a jar of sand."*
 
-    Decoration for Achievement Gallery boss lair display.
+    The jar of sand is a members-only collectible dropped exclusively by the Kalphite Queen at a 1/2,000 rate. Players can place the jar on a boss lair display inside the Achievement Gallery of their player-owned house to commemorate defeating the Kalphite Queen.
 
-    Requires defeating Kalphite Queen at least once to place.
-
-    Cosmetic/collectible item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    An easter egg lets players use the jar of sand on a jar of dirt, swapping their contents while a bucket of sand sound effect plays. The item is highly sought after by collectors and ironmen pursuing the Achievement Gallery display.
+  market_strategy:
+    notes:
+      - "Driven entirely by Kalphite Queen kill volume and collection-log demand."
+      - "Supply is sparse with the 1/2,000 drop rate so prices spike quickly when demand rises."
+      - "Buy limit of 5 per 4 hours makes flipping low-volume but possible during dips."
+  trading_tips:
+    - Watch GE volume on weekly resets when collectors push prices.
+    - Consider stocking before Leagues or Deadman events that revive KQ activity.
+  history:
+    - date: "2014-12-18"
+      description: "Released alongside the Achievement Gallery boss lair displays."
+    - date: "2024-09"
+      description: "Inventory icon refreshed to match the modern jar art style."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: rows-chuckrpg-beta
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: 'apps/kube/rows/tenants/overlays/chuckrpg-beta'
+        kbve.com/manifest-path: 'apps/kube/rows/tenants/overlays/chuckrpg-beta'
+        kbve.com/application-file: 'apps/kube/rows/tenants/overlays/chuckrpg-beta/application.yaml'
+        kbve.com/managed-by: 'argocd'
+        kbve.com/schema-version: 'v1'
+        kbve.com/category: 'game-server'
+        kbve.com/stack: 'rows'
+        kbve.com/tenant: 'chuckrpg-beta'
+        kbve.com/deployment-model: 'multi-tenant-overlay'
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: main
+        path: apps/kube/rows/tenants/overlays/chuckrpg-beta
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: rows-chuckrpg-beta
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - PrunePropagationPolicy=foreground
+            - PruneLast=true
+        retry:
+            limit: 5
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
+    revisionHistoryLimit: 3

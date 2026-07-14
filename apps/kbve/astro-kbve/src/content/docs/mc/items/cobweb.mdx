@@ -1,5 +1,6 @@
 ---
 title: Cobweb
+template: splash
 description: |
     Minecraft Cobweb — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 201
     ref: cobweb
     slug: cobweb
+    content_rev: 1
     display_name: Cobweb
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cobwebs are delicate webbing blocks that dramatically reduce movement speed for most entities passing through them. Breaking them with shears drops the cobweb itself, while breaking with a sword yields string instead at the cost of two durability points.
+            They naturally generate in mineshafts, stronghold libraries, igloos, abandoned villages, woodland mansions, and trial chambers, and are prized both as traps and as redstone delay mechanisms.
+        lore: |
+            Spiders may spin their webs to trap prey, but players have learned to weaponize these sticky traps for their own purposes.
+    faq:
+        - question: How much do cobwebs slow down movement?
+          answer: |
+              Most mobs move at approximately 25% of their normal speed within cobwebs, and players are similarly restricted, while items fall roughly twice as slowly. Entities with the Weaving effect move at 50% normal speed instead.
+        - question: What's the fastest way to harvest cobwebs?
+          answer: |
+              Shears are the quickest tool, breaking cobwebs in 0.4 seconds and dropping the block itself. Swords also break them in 0.4 seconds but cost two durability points per block and drop string instead.
+        - question: How are cobwebs used in contraptions?
+          answer: |
+              Cobwebs can be used as a delaying mechanism in a redstone circuit, for example to delay an item falling on a pressure plate or into a hopper. They also cancel random momentum from dispensers and droppers.
+        - question: Can cobwebs prevent fall damage?
+          answer: |
+              Yes, cobwebs completely absorb fall damage for both players and mobs, making them valuable for creating safe landing zones in builds and traps.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

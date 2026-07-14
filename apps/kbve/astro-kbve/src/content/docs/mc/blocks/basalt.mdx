@@ -1,5 +1,6 @@
 ---
 title: Basalt
+template: splash
 description: |
     Minecraft Basalt — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 275
     ref: basalt
     slug: basalt
+    content_rev: 1
     display_name: Basalt
     material: nether
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: basalt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Basalt is a dark volcanic stone block that generates in tall
+            pillar formations throughout the Nether's basalt deltas. It
+            always orients so its columns run perpendicular to the surface
+            it was placed against.
+        lore: |
+            Revealed at MINECON Live 2019, basalt was added in Java Edition
+            1.16 (20w06a) to model real-world volcanic rock formations.
+    uses:
+        - title: Polished Basalt
+          ref: polished_basalt
+          detail: |
+              Stonecutting or crafting basalt yields polished basalt, a
+              smoother decorative variant.
+        - title: Smooth Basalt
+          ref: smooth_basalt
+          detail: |
+              Smelting basalt in a furnace produces smooth basalt, used
+              in respawn anchor recipes.
+    found_in:
+        - location: Basalt Deltas
+          detail: The dominant terrain block of this Nether biome, forming towering pillars.
+        - location: Soul sand valleys and bastion remnants
+          detail: Scattered as decoration and structural material in these areas.
+    faq:
+        - question: What tool is needed to mine Basalt?
+          answer: |
+              Any wooden pickaxe or better; mining with anything weaker
+              yields no drop.
+        - question: Is Basalt affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops exactly one basalt block regardless of
+              enchantments.
+        - question: Why does Basalt orientation change?
+          answer: |
+              Basalt always places with its columnar texture perpendicular
+              to the face it was placed on, mimicking real volcanic
+              columns.
+        - question: Can Basalt be crafted into other blocks?
+          answer: |
+              Yes, it can be turned into polished basalt via stonecutting
+              or crafting, and into smooth basalt by smelting.
     data_version: "1.21.5"
 ---
 

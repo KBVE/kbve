@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/discordsh.binpb
  * Config: ../discordsh-zod-config.json
- * Generated: 2026-06-01T06:12:05.357Z
+ * Generated: 2026-06-22T21:31:58.932Z
  */
 
 import { z } from 'zod';
@@ -26,6 +26,109 @@ export const ServerCategories = [
 export type ServerCategoryValue = (typeof ServerCategories)[number];
 
 export const ServerCategorySchema = z.enum(ServerCategories);
+
+// PendingEvent
+export const PendingEventSchema = z.object({
+	id: z.number(),
+	owner: z.string(),
+	repo: z.string(),
+	number: z.number(),
+	event_type: z.string(),
+	actor: z.string().optional(),
+	delivery_state: z.number(),
+	delivery_attempts: z.number(),
+	created_at: z.string(),
+	claimed_at: z.string().optional(),
+});
+
+export type PendingEvent = z.infer<typeof PendingEventSchema>;
+
+// FailedEvent
+export const FailedEventSchema = z.object({
+	id: z.number(),
+	owner: z.string(),
+	repo: z.string(),
+	number: z.number(),
+	event_type: z.string(),
+	actor: z.string().optional(),
+	delivery_attempts: z.number(),
+	last_error: z.string().optional(),
+	created_at: z.string(),
+	updated_at: z.string(),
+});
+
+export type FailedEvent = z.infer<typeof FailedEventSchema>;
+
+// EventQueueStats
+export const EventQueueStatsSchema = z.object({
+	last_delivered_at: z.string().optional(),
+	last_recorded_at: z.string().optional(),
+	pending_count: z.number(),
+	in_flight_count: z.number(),
+	delivered_count: z.number(),
+	failed_count: z.number(),
+	oldest_pending_at: z.string().optional(),
+});
+
+export type EventQueueStats = z.infer<typeof EventQueueStatsSchema>;
+
+// WebhookDelivery
+export const WebhookDeliverySchema = z.object({
+	id: z.number(),
+	guid: z.string(),
+	delivered_at: z.string(),
+	redelivery: z.boolean(),
+	duration: z.number(),
+	status: z.string(),
+	status_code: z.number(),
+	event: z.string(),
+	action: z.string().optional(),
+});
+
+export type WebhookDelivery = z.infer<typeof WebhookDeliverySchema>;
+
+// GithubRepoHook
+export const GithubRepoHookSchema = z.object({
+	id: z.number(),
+	name: z.string(),
+	active: z.boolean(),
+	events: z.array(z.string()).optional(),
+	url: z.string().optional(),
+	is_kbve: z.boolean(),
+	updated_at: z.string(),
+});
+
+export type GithubRepoHook = z.infer<typeof GithubRepoHookSchema>;
+
+// PatValidation
+export const PatValidationSchema = z.object({
+	login: z.string(),
+	scopes: z.array(z.string()).optional(),
+	token_type: z.string(),
+});
+
+export type PatValidation = z.infer<typeof PatValidationSchema>;
+
+// RepoAllowlist
+export const RepoAllowlistSchema = z.object({
+	repos: z.array(z.string()).optional(),
+});
+
+export type RepoAllowlist = z.infer<typeof RepoAllowlistSchema>;
+
+// DiscordshConfig
+export const DiscordshConfigSchema = z.object({
+	default_repo: z.string().optional(),
+	claim_channel_id: z.string().optional(),
+	forum_channel_id: z.string().optional(),
+	noticeboard_channel_id: z.string().optional(),
+	taskboard_channel_id: z.string().optional(),
+	max_assignees: z.number().optional(),
+	mirror_pr_events: z.boolean().optional(),
+	active: z.boolean().optional(),
+});
+
+export type DiscordshConfig = z.infer<typeof DiscordshConfigSchema>;
 
 // SubmitServerRequest
 export const SubmitServerRequestSchema = z.object({

@@ -12,9 +12,46 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Sunlight moth (item) is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hunter
+    tier: mid
+  related_items:
+    - item_name: Sunlight antelope fur
+      relationship: variant
+    - item_name: Moonlight moth (item)
+      slug: moonlight-moth-item
+      relationship: variant
+    - item_name: Butterfly jar
+      relationship: component
+  market_strategy:
+    notes:
+      - "Caught via Hunter at Civitas illa Fortis bushes; supply tracks Hunter training popularity."
+      - "Used in Herblore for prayer regeneration potions, so demand spikes around new boss releases."
+  trading_tips:
+    - "Watch for spikes when new prayer-restore content launches."
+    - "Stock when supply outpaces Hunter activity in the GE."
+  history:
+    - date: "2024-07-24"
+      description: "Sunlight moth introduced with the Varlamore: The Final Dawn expansion."
+  properties:
+    release_date: "2024-07-24"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Release
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: "Sunlight moth (item) is a members-only Hunter catch used in Herblore. High alchemy value: 1 coins."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

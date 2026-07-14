@@ -1,0 +1,10 @@
+.expo/
+dist/
+web-build/
+*.orig.*
+# Anchored to the app root so prebuild output is ignored but local Expo
+# modules under modules/*/ios and modules/*/android stay tracked.
+/ios/
+/android/
+.kotlin/
+expo-env.d.ts

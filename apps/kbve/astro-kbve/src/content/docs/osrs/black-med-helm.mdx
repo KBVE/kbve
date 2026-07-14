@@ -12,25 +12,85 @@ osrs:
   lowalch: 230
   highalch: 345
   limit: 125
-  item_id: 1151
-  item_type: armor
-  slot: head
-  type: med_helm
-  tradeable: true
-  weight: 1.814
-  requirements:
-    defence: 10
-  stats:
-    stab_defence: 9
-    slash_defence: 10
-    crush_defence: 8
-    magic_defence: -1
-    ranged_defence: 9
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1.814
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 9
+      slash: 10
+      crush: 8
+      magic: -1
+      ranged: 9
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Dark warrior
+        quantity: "1"
+        rarity: 1/128
+      - source: Mutated bloodveld
+        quantity: "1"
+        rarity: 5/128
+  shops:
+    - shop_name: Seddu's Adventurers' Store
+      location: Nardah
+      price: 576
+      currency: coins
+      stock: 1
   related_items:
-    - slug: mithril-med-helm
-    - slug: black-full-helm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Mithril med helm
+      slug: mithril-med-helm
+      relationship: upgrade
+      description: "Mithril tier medium helmet"
+    - item_name: Black full helm
+      slug: black-full-helm
+      relationship: upgrade
+      description: "Full helm version of the black helmet"
+  about: |-
+    The Black med helm is a free-to-play medium helmet made from black metal. It requires 10 Defence to wear and offers a slight upgrade over the Steel med helm with similar weight characteristics.
+
+    It can be purchased from Seddu's Adventurers' Store in Nardah, dropped by dark warriors and mutated bloodvelds, or obtained from various reward caskets and shade burning.
+  market_strategy:
+    notes:
+      - "Cheap free-to-play item with stable demand from low-level Defence pures"
+      - "Often farmed in bulk from shop runs to Seddu's Adventurers' Store"
+  history:
+    - date: "2002-02-27"
+      description: "Released with the original game"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -13,8 +13,55 @@ osrs:
   highalch: 18
   limit: 11000
   about: "Long kebbit bolts is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bone
+    tier: low
+  properties:
+    release_date: "2005-09-26"
+    quest_item: false
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    destroy_action: drop
+    options:
+      - wield
+      - drop
+    worn_options:
+      - remove
+  equipment:
+    slot: ammo
+    attack_speed: 4
+    weapon_type: bolts
+    requirements:
+      ranged: 1
+  related_items:
+    - item_id: 10158
+      item_name: Kebbit bolts
+      slug: kebbit-bolts
+      relationship: alternative
+      description: Standard kebbit bolts
+    - item_id: 10156
+      item_name: Hunters' crossbow
+      slug: hunters-crossbow
+      relationship: alternative
+      description: Crossbow that fires kebbit bolts
+    - item_id: 10115
+      item_name: Long kebbit spike
+      slug: long-kebbit-spike
+      relationship: component
+      description: Raw spike used to fletch the bolt
+  market_strategy:
+    notes:
+      - "Niche Hunter crossbow ammo"
+      - "Tiny demand outside hunters"
+      - "Cheap to source via Hunter activity"
+      - "Thin steady turnover"
+  trading_tips:
+    - "Buying tip: bulk cheap from Hunter trainers"
+    - "Selling tip: list during Hunter content updates"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,67 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Gilded magic wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: flatpack
+    tier: high
+  construction:
+    level: 87
+    xp: 860
+    hotspot: Magic wardrobe
+    room: Costume Room
+  recipes:
+    - materials:
+        - item_name: Mahogany plank
+          quantity: 4
+        - item_name: Gold leaf
+          quantity: 1
+      tools:
+        - Hammer
+        - Saw
+      facility: Bench with lathe
+      output_quantity: 1
+  related_items:
+    - item_id: 8784
+      item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Primary plank material
+    - item_id: 8784
+      item_name: Gold leaf
+      slug: gold-leaf
+      relationship: component
+      description: Gilding material required for high-tier wardrobes
+  about: "Gilded magic wardrobe (flatpack) is a high-end Construction flatpack made at a bench with lathe from 4 mahogany planks and 1 gold leaf. It requires 87 Construction, grants 860 experience, and is assembled into the Magic wardrobe hotspot in the Costume Room of a player-owned house."
+  market_strategy:
+    notes:
+      - Gold leaf cost dominates the unit economics, so margins follow leaf supply
+      - High Construction level requirement limits producer base
+      - Premium PoH builders pay above material cost to skip travel
+      - Buy limit of 500 supports steady volume flipping
+  trading_tips:
+    - Compare GE price net of 1% tax against 4x mahogany plank + 1 gold leaf cost
+    - Demand spikes during Construction bonus weekends and Costume Room content
+  history:
+    - date: "2006-10-18"
+      description: Released with the Player-Owned House Costume Room update.
+    - date: "2015-02-01"
+      description: Renamed from "Gilded mw" to "Gilded magic wardrobe" during a Grand Exchange item name update.
+  properties:
+    release_date: "2006-10-18"
+    update: Costume Room
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

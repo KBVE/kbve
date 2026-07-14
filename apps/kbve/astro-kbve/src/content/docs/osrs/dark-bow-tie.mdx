@@ -12,9 +12,82 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Dark bow tie is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: neck
+    weight: 0.1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/12750
+  related_items:
+    - item_name: Dark tuxedo jacket
+      slug: dark-tuxedo-jacket
+      relationship: set-piece
+      description: Body piece of the dark tuxedo outfit
+    - item_name: Dark trousers
+      slug: dark-trousers
+      relationship: set-piece
+      description: Leg piece of the dark tuxedo outfit
+    - item_name: Dark tuxedo cuffs
+      slug: dark-tuxedo-cuffs
+      relationship: set-piece
+      description: Hand piece of the dark tuxedo outfit
+    - item_name: Dark tuxedo shoes
+      slug: dark-tuxedo-shoes
+      relationship: set-piece
+      description: Foot piece of the dark tuxedo outfit
+  about: "The dark bow tie is a cosmetic neck item from the dark tuxedo outfit, obtainable as an elite Treasure Trail reward. The examine text references the Eleventh Doctor's catchphrase from Doctor Who. It can be stored in a costume room treasure chest."
+  market_strategy:
+    notes:
+      - "Elite clue reward — low and steady supply"
+      - "Cosmetic-only — demand tied to fashionscape trends"
+      - "4-item buy limit constrains flipping volume"
+  history:
+    - date: "2016-07-06"
+      description: Released as part of the dark tuxedo outfit from elite Treasure Trails.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

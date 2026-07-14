@@ -53,6 +53,11 @@ const DESCRIPTOR_PATH = resolve(__dirname, 'descriptors/itemdb.binpb');
 const GENERATED_DIR = resolve(__dirname, 'generated');
 const CENTRAL_JSON = resolve(GENERATED_DIR, 'itemdb-data.json');
 const CENTRAL_BINPB = resolve(GENERATED_DIR, 'itemdb-data.binpb');
+// Web bundle: snake_case + bare enums, shaped { items: [...] } to match the
+// generated zod ItemRegistry/Item types verbatim. Lets TS consumers (cryptothrone)
+// import the canonical `Item` type instead of hand-rolling a second shape. The
+// camelCase CENTRAL_JSON stays the proto-canonical artifact for Unreal/binpb.
+const WEB_JSON = resolve(GENERATED_DIR, 'itemdb.json');
 
 // Per-game sync targets — each Unity game mirrors both formats into its
 // StreamingAssets so the runtime loader finds them at boot, and gets
@@ -167,6 +172,9 @@ function stripAstroFields(raw) {
 	for (const [k, v] of Object.entries(raw)) {
 		if (ASTRO_ONLY.has(k)) continue;
 		game[k] = v;
+	}
+	if (typeof raw.img === 'string' && raw.img.trim().length > 0) {
+		game.has_img = true;
 	}
 	return game;
 }
@@ -309,6 +317,12 @@ function main() {
 	writeFileSync(CENTRAL_BINPB, wire);
 	console.log(`Wrote ${CENTRAL_JSON}`);
 	console.log(`Wrote ${CENTRAL_BINPB} (${wire.length} bytes)`);
+
+	writeFileSync(
+		WEB_JSON,
+		JSON.stringify({ items: unityEntries }, null, 2) + '\n',
+	);
+	console.log(`Wrote ${WEB_JSON}`);
 
 	// 5. Build ItemId enum + ref map from mdx + legacy holdouts.
 	const members = buildEnumMembers(records);

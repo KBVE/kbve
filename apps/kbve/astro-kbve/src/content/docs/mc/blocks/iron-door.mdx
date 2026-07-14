@@ -1,5 +1,6 @@
 ---
 title: Iron Door
+template: splash
 description: |
     Minecraft Iron Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 247
     ref: iron_door
     slug: iron-door
+    content_rev: 1
     display_name: Iron Door
     material: metal
     hardness: 5
     blast_resistance: 5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: iron_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - doors
+        - overworld
+    about:
+        description: |
+            The Iron Door is a two-tile-tall door that can only be opened
+            or closed with a redstone signal, since players cannot toggle
+            it by hand. This makes it far more secure than wooden doors,
+            which zombies can batter down.
+        lore: |
+            Iron doors have been in the game since the earliest Java
+            Edition Alpha versions, serving as one of the original
+            redstone-only security options.
+    uses:
+        - title: Base Security
+          ref: iron_door
+          detail: |
+              Wired to a lever, button, or pressure plate, an Iron Door
+              gives a base an entrance that hostile mobs cannot force
+              open, unlike wooden doors.
+    found_in:
+        - location: Strongholds
+          detail: Generates paired with a stone button to let players open it from outside.
+        - location: Woodland mansion prison rooms
+          detail: Secures captive-holding rooms found inside woodland mansions.
+        - location: Crafting table
+          detail: Craft 6 Iron Ingots stacked in two columns to get 3 Iron Doors.
+    faq:
+        - question: Can I open an iron door by right-clicking it?
+          answer: |
+              No. Iron doors ignore direct interaction and can only be
+              toggled by a redstone signal from a lever, button, or other
+              redstone component.
+        - question: Can zombies break through an iron door?
+          answer: |
+              No. Unlike wooden doors, zombies cannot batter down iron
+              doors, making them a reliable defense against mob raids.
+        - question: What happens if a piston tries to move an iron door?
+          answer: |
+              The door is destroyed instead of being pushed; pistons
+              cannot relocate iron doors.
+        - question: How many iron ingots does one Iron Door cost?
+          answer: |
+              Six iron ingots craft three doors at once, so each door
+              effectively costs two ingots.
     data_version: "1.21.5"
 ---
 

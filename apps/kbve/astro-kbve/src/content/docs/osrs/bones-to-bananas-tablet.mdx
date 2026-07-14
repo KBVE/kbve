@@ -12,9 +12,69 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Bones to bananas (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: clay
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 15
+      xp: 15
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Nature rune
+          quantity: 1
+        - item_name: Earth rune
+          quantity: 2
+        - item_name: Water rune
+          quantity: 2
+      tools:
+        - Demon lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Bones to peaches (tablet)
+      slug: bones-to-peaches-tablet
+      relationship: alternative
+      description: Higher level variant converting bones to peaches
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Required base material for tablet creation
+    - item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: Rune required for the spell
+  about: "Bones to bananas (tablet) is a Construction-made tablet that casts the Bones to Bananas spell when broken, converting all bones and big bones in the inventory into bananas regardless of the player's current spellbook. Created at a demon lectern requiring 15 Magic, 1 soft clay, 1 nature rune, 2 earth runes and 2 water runes. High alchemy value: 1 coin. Grand Exchange buy limit: 10,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Tablet bypasses spellbook requirement, useful on Ancient/Lunar/Arceuus"
+      - "Production cost around 242 coins vs ~460 coin GE price for steady margin"
+      - "Buy limit of 10,000 supports bulk flipping and bulk training stock"
+  trading_tips:
+    - Run tablets at a demon lectern for passive Magic experience and profit
+    - Track soft clay and nature rune prices to time bulk production
+  history:
+    - date: "2006-05-31"
+      description: "Bones to bananas tablet released alongside Construction tablet updates."
+    - date: "2013-05-31"
+      description: "Tablet versions of 'Bones to Bananas' and 'Bones to Peaches' updated to work on the same bone types as the spellbook versions."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

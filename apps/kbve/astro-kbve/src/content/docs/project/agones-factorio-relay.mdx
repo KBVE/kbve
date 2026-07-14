@@ -1,7 +1,7 @@
 ---
 title: Agones Factorio Relay
-description: |
-    Sidecar binary deployed alongside the Agones-managed Factorio dedicated server. Tails the Factorio console log, speaks RCON to the game container, bridges chat to the kbve IRC #general channel (which already relays to Discord), and writes telemetry into the gameops ClickHouse database.
+description: Rust sidecar for the Agones-managed Factorio server — tails the console log, speaks RCON, bridges chat to kbve IRC, and writes telemetry to ClickHouse.
+sem: 1
 sidebar:
     label: Agones Factorio Relay
     order: 461
@@ -25,9 +25,86 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: active
+kube:
+    stack: agones
+    environment: prod
+    tier: database
+    owner: h0lybyte
+    criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does the Agones Factorio relay do?
+          answer: It runs as a sidecar in the Factorio GameServer pod, tailing the console log, speaking RCON to the game container, bridging chat to the kbve IRC #general channel, and writing telemetry to the gameops ClickHouse database.
+        - question: Why is chat and telemetry logic in a sidecar instead of the Factorio image?
+          answer: Keeping it out-of-process lets the Factorio container stay vanilla and lets the relay be iterated and redeployed without rebuilding the 1+ GB Factorio image.
+        - question: How does chat reach Discord?
+          answer: The relay forwards chat and join/leave events to the kbve IRC network, and the existing irc-gateway service already relays IRC to Discord, so IRC is the single integration point the game needs.
+bento:
+    badge: agones · factorio · relay · rust · irc · clickhouse
+    title: Sidecar relay for
+    accent: Factorio
+    lede: >-
+        A Rust sidecar in the Factorio Agones GameServer pod — three roles in
+        one process. It tails the console log, speaks RCON to the game
+        container, bridges chat to the kbve IRC network, and writes telemetry
+        to ClickHouse, so the Factorio container itself can stay vanilla.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/agones/factorio/relay
+          primary: true
+          external: true
+        - label: Architecture
+          href: "#overview"
+        - label: Runtime knobs
+          href: "#runtime"
+        - label: sim_director
+          href: "#sim-director"
+    aside:
+        icon: box
+        title: Out-of-process by design
+        body: >-
+            Keeping chat, RCON, and telemetry <strong>out-of-process</strong>
+            lets the Factorio container stay vanilla — no Agones SDK plumbing —
+            and lets the relay be iterated and redeployed without rebuilding the
+            <code>1+ GB</code> Factorio image.
+        points:
+            - <strong>Log tail</strong> — reads <code>/shared/log/console.log</code> markers.
+            - <strong>IRC → Discord</strong> — irc-gateway is the single integration point.
+    stats:
+        - { label: App, value: agones-factorio-relay, icon: server }
+        - { label: Stack, value: Rust sidecar, icon: rust }
+        - { label: IRC channel, value: '#general', icon: message }
+        - { label: Telemetry, value: ClickHouse, icon: database }
+    features:
+        - title: Log tail
+          icon: activity
+          body: Reads /shared/log/console.log (written by the factorio container via --console-log) and emits typed GameEvents for [CHAT] / [JOIN] / [LEAVE] / [COMMAND] / [STATS] markers.
+        - title: IRC bridge
+          icon: message
+          body: Forwards [CHAT] plus join/leave events to the configured channel (default #general) on the existing kbve IRC network; IRC → Discord is already wired by irc-gateway.
+        - title: ClickHouse writer
+          icon: database
+          body: Inserts snapshots, player events, and rotation rows into gameops.factorio_* (14-day raw TTL, 90-day rotation history).
+    related:
+        - title: Factorio CTL
+          href: /project/factorio-ctl/
+          copy: REST control API that reads the telemetry this relay produces.
+          icon: route
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Sidecar" heading="Architecture & roles">
 
 Rust binary that runs as a sidecar container in the Factorio Agones GameServer pod (`apps/kube/agones/factorio/`, landing in Phase 1 / 3b). It exists so the factorio container itself can stay vanilla — no Agones SDK plumbing, no chat-bridge logic, no telemetry — and lifecycle work happens out-of-process where it can be iterated without rebuilding the 1+ GB Factorio image.
 
@@ -39,7 +116,7 @@ Three roles, one process:
 
 Phase 3a (this entry) ships the crate scaffold so the image builds and publishes. The IRC, RCON, and ClickHouse modules are stubbed and log only. Real impl lands in Phase 3c (IRC + RCON wiring) and Phase 4d (ClickHouse insert + scenario.lua `[STATS]` emitter).
 
-## Architecture (target — Phase 3c+)
+### Architecture (target — Phase 3c+)
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -63,7 +140,9 @@ Phase 3a (this entry) ships the crate scaffold so the image builds and publishes
 └──────────────────────────────────────────────────────────┘
 ```
 
-## Runtime knobs
+</BentoProse>
+
+<BentoProse id="runtime" eyebrow="Configuration" heading="Runtime knobs">
 
 | Env | Default | Notes |
 |---|---|---|
@@ -87,7 +166,9 @@ Phase 3a (this entry) ships the crate scaffold so the image builds and publishes
 | `AGONES_RCON_PROBE_TIMEOUT_SECS` | `2` | How long to wait for the TCP probe before treating RCON as down |
 | `AGONES_INITIAL_READY_DELAY_SECS` | `0` | Delay before the relay also POSTs `/ready` (single source-of-truth liveness; `60` in prod) |
 
-## Phase 5 — `sim_director` (design map)
+</BentoProse>
+
+<BentoProse id="sim-director" eyebrow="Design map" heading="Phase 5 — sim_director">
 
 Moves the simulation "brain" into the relay so the in-game Lua mod can stay thin (just per-tick sensors) while strategic decisions — evolution-driven raids, scheduled events, ClickHouse-driven economy gifts — run out-of-process. RCON commands still execute inside the Factorio tick loop, so this module saves nothing on the hot path; the win is _consolidation_: rules, schedules, and telemetry-driven logic live in one Rust crate that is unit-testable, hot-redeployable, and reusable across servers when a second one lands.
 
@@ -255,8 +336,12 @@ sim_actions (
 - Cron parser: `cron` crate vs. an ad-hoc interval struct. Probably `cron` once we have more than two time-based rules.
 - Lua-mod ↔ relay event contract: keep the current `[CHAT] / [JOIN] / [STATS]` console markers (relay tails them) or add a structured `[SIM]` channel for richer per-tick events the director wants. Lean toward extending the marker set rather than introducing a second transport.
 
-## Refs
+### Refs
 
 - Tracking issue #11138
 - Schema PR — `packages/data/ch/schemas/factorio.sql`
 - Sibling Phase 0 image — `kbve/agones-factorio`
+
+</BentoProse>
+
+</BentoDoc>

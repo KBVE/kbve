@@ -12,39 +12,74 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 5
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: amulet
+    tier: low
+  properties:
+    release_date: "2001-02-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: true
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
-    type: amulet
-    tradeable: true
+    weapon_type: null
+    attack_speed: null
     weight: 0.01
-    stats:
-      attack_stab: 4
-      attack_slash: 4
-      attack_crush: 4
-      attack_magic: 4
-      attack_ranged: 4
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    requirements: {}
+    attack_bonus:
+      stab: 4
+      slash: 4
+      crush: 4
+      magic: 4
+      ranged: 4
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
   related_items:
-    - item_id: 1731
-      item_name: Amulet of power
+    - item_name: Amulet of power
       slug: amulet-of-power
       relationship: upgrade
-      description: Better stats
-    - item_id: 1712
-      item_name: Amulet of glory
+      description: Stronger neck amulet with higher bonuses
+    - item_name: Amulet of glory
       slug: amulet-of-glory
       relationship: upgrade
-      description: P2P upgrade
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Members upgrade with teleports
+  about: |-
+    Amulet of accuracy is a free-to-play neck amulet introduced 16 February 2001 that grants a flat +4 to every attack style. It is awarded as part of the Imp Catcher quest and remains a low-cost option for newer players covering melee, magic, and ranged training.
+
+    Crafting requirements are modest, and the amulet trades in low volumes on the Grand Exchange thanks to its niche role as a stepping stone item.
+  market_strategy:
+    notes:
+      - "F2P accessible neck slot upgrade for early combat training"
+      - "Buy limit of 5 makes flips slow; rely on patient bids"
+      - "High alch value of 60 GP is below GE price, so do not alch"
+  trading_tips:
+    - Pair with cheap weapons when leveling on free worlds
+    - Replace with Amulet of power once 30 Hitpoints and basic gear is reached
+  history:
+    - date: "2001-02-16"
+      description: "Introduced with the Imp Catcher quest"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

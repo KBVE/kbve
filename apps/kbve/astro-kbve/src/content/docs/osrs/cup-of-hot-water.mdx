@@ -12,9 +12,64 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
-  about: "Cup of hot water is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: consumable_intermediate
+    tier: low
+  properties:
+    release_date: "28 February 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Cup of water
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  related_items:
+    - item_name: Cup of water
+      slug: cup-of-water
+      relationship: component
+      description: "Base item heated to make hot water"
+    - item_name: Bowl of hot water
+      slug: bowl-of-hot-water
+      relationship: alternative
+      description: "Bowl-based alternative ingredient"
+    - item_name: Guthix rest (4)
+      slug: guthix-rest-4
+      relationship: product
+      description: "Tea brewed using cup of hot water"
+  about: |-
+    > *"It's hot!"*
+
+    The cup of hot water is an intermediary item used to brew Guthix rest potions and various herb teas (Herblore 14-59). Created by heating a cup of water on a fire or range, or combining a bowl of hot water with an empty cup.
+  market_strategy:
+    notes:
+      - "Pure utility item for Herblore tea recipes"
+      - "High GE limit (13,000) suits bulk traders"
+      - "Low margin per unit; profit is volume-driven"
+  trading_tips:
+    - "Profitable to make at scale by heating cups of water"
+    - "Watch herb tea / Guthix rest demand for spikes"
+  history:
+    - date: "28 February 2005"
+      description: "Released as part of the One Small Favour update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

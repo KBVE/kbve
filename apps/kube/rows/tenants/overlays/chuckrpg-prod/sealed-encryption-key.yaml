@@ -1,0 +1,23 @@
+---
+# STUB — re-seal before deploy. SealedSecrets are scoped to namespace + name, so this
+# placeholder will NOT decrypt; the sealed-secrets controller leaves the target Secret
+# uncreated until you replace it. Generate a real value (run once, do NOT commit the key):
+#
+#   SLUG=chuckrpg-prod; NS=rows-chuckrpg-prod
+#   KEY=$(openssl rand -hex 32)
+#   kubectl create secret generic rows-encryption-key \
+#     --namespace "$NS" --from-literal=encryption-key="$KEY" --dry-run=client -o yaml \
+#   | kubeseal --format yaml --controller-namespace sealed-secrets --controller-name sealed-secrets \
+#   > apps/kube/rows/tenants/overlays/$SLUG/sealed-encryption-key.yaml
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: rows-encryption-key
+    namespace: rows-chuckrpg-prod
+spec:
+    encryptedData:
+        encryption-key: PLACEHOLDER_RESEAL_BEFORE_DEPLOY
+    template:
+        metadata:
+            name: rows-encryption-key
+            namespace: rows-chuckrpg-prod

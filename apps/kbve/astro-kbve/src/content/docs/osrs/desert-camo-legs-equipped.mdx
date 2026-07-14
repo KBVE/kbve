@@ -1,6 +1,6 @@
 ---
 title: Desert camo legs (equipped) | OSRS Price Data
-description: "Desert camo legs (equipped): These should make me harder to spot in desert areas.. High alch: 12 GP."
+description: "Desert camo legs (equipped) is a Hunter outfit leg piece for desert tracking. High alch: 12 GP."
 osrs:
   id: 28854
   name: Desert camo legs (equipped)
@@ -12,9 +12,97 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Desert camo legs (equipped) is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: hide
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.226
+    requirements:
+      hunter: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -7
+    defence_bonus:
+      stab: 11
+      slash: 10
+      crush: 10
+      magic: 0
+      ranged: 10
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: hunter
+      level: 10
+      xp: 0
+      materials:
+        - item_name: Desert devil fur
+          quantity: 2
+        - item_name: Coins
+          quantity: 20
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Desert camo top
+      slug: desert-camo-top
+      relationship: set-piece
+      description: Matching top half of the desert camouflage outfit
+    - item_name: Larupia legs
+      slug: larupia-legs
+      relationship: alternative
+      description: Jungle equivalent Hunter camouflage
+    - item_name: Polar camo legs
+      slug: polar-camo-legs
+      relationship: alternative
+      description: Snow biome equivalent Hunter camouflage
+  passive_effects:
+    - name: Desert camouflage
+      description: Improves Hunter success when tracking creatures in the desert biome when worn as part of the matching set.
+    - name: Weight reduction
+      description: Reduces the player's weight by 2 kg while equipped.
+  about: |-
+    The desert camo legs are part of the desert camouflage Hunter outfit, granting improved success when stalking and trapping desert-biome creatures such as desert devils. They can be crafted at the Fancy Clothes Store in Varrock, the Hunter Guild, or from the seamstress in Prifddinas using 2 desert devil furs and 20 coins.
+
+    The equipped form is what is rendered on the player model — the ground item is the unequipped variant. Since the March 2024 update, wearing the legs also reduces total carried weight by 2 kg.
+  market_strategy:
+    notes:
+      - "Low demand outside of ironmen building Hunter outfits"
+      - "Crafted on demand — GE spread tends to be wide"
+      - "Tied to desert devil fur supply"
+  trading_tips:
+    - Cheaper to craft from desert devil furs than to buy if you already hunt them
+    - Pair with the matching top to gain the camo bonus in the desert
+  history:
+    - date: "2024-03-20"
+      description: "Updated to reduce equipped weight by 2 kg."
+    - date: "2006-11-21"
+      description: "Released as part of the Hunter skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

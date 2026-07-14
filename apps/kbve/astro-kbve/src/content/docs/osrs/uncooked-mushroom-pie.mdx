@@ -12,9 +12,69 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 13000
-  about: "Uncooked mushroom pie is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: mid
+  recipes:
+    - name: Uncooked mushroom pie
+      materials:
+        - item_name: Sulliuscep cap
+          quantity: 1
+        - item_name: Pie shell
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: Cooking
+      level: 60
+      xp: 200
+    - name: Mushroom pie
+      materials:
+        - item_name: Uncooked mushroom pie
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+      skill: Cooking
+      level: 60
+      xp: 200
+  related_items:
+    - name: Sulliuscep cap
+      relationship: component
+    - name: Pie shell
+      relationship: component
+    - name: Mushroom pie
+      relationship: product
+    - name: Burnt pie
+      relationship: alternative
+  about: "Uncooked mushroom pie is a members-only Cooking ingredient created at level 60 by combining a sulliuscep cap with a pie shell. Baking it on a range yields a mushroom pie or a burnt pie on failure."
+  market_strategy:
+    notes:
+      - Made at 60 Cooking from a sulliuscep cap and pie shell
+      - Cooks into mushroom pie for 200 XP per bake
+      - GE limit of 13,000 supports bulk cooking flips
+  trading_tips:
+    - Watch sulliuscep cap and pie shell margins for profitability
+    - Burn rate at lower levels can devalue stock
+  history:
+    - date: "2017-09-07"
+      description: Released as part of the Fossil Island update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-09-07"
+    update: "Fossil Island"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

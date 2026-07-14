@@ -1,6 +1,6 @@
 ---
 title: Black dragonhide | OSRS Price Data
-description: "Black dragonhide: The scaly rough hide from a Black Dragon.. High alch: 90 GP, GE limit: 11,000."
+description: "Black dragonhide: The scaly rough hide from a Black Dragon. High alch: 90 GP, GE limit: 11,000."
 osrs:
   id: 1747
   name: Black dragonhide
@@ -12,78 +12,88 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
   material:
     type: hide
     tier: high
-  tanning:
-    cost: 20
-    product_id: 2509
-    product_name: Black dragon leather
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
       - source: Black dragon
-        source_id: 252
-        combat_level: 227
         quantity: "1"
-        rarity: always
-        members_only: true
+        rarity: Always
       - source: King Black Dragon
-        source_id: 239
-        combat_level: 276
         quantity: "2"
-        rarity: always
-        members_only: true
+        rarity: Always
       - source: Brutal black dragon
-        source_id: 7273
-        combat_level: 318
         quantity: "2"
-        rarity: always
-        members_only: true
+        rarity: Always
+      - source: Lava dragon
+        quantity: "1"
+        rarity: Always
+      - source: Vorkath
+        quantity: "1"
+        rarity: Common
+  recipes:
+    - skill: crafting
+      level: 84
+      xp: 0
+      materials:
+        - item_name: Black dragonhide
+          quantity: 1
+        - item_name: Coins
+          quantity: 20
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 2509
-      item_name: Black dragon leather
+    - item_name: Black dragon leather
       slug: black-dragon-leather
       relationship: product
-      description: Tanned version
-    - item_id: 2503
-      item_name: Black d'hide body
+      description: "Tanned version (20 GP per hide)"
+    - item_name: "Black d'hide body"
       slug: black-dhide-body
       relationship: product
-      description: Best ranged body (non-degradable)
-    - item_id: 1749
-      item_name: Red dragonhide
+      description: "Best non-degradable ranged body crafted from leather"
+    - item_name: Red dragonhide
       slug: red-dragonhide
-      relationship: alternative
-      description: Lower tier
-    - item_id: 1753
-      item_name: Green dragonhide
+      relationship: downgrade
+      description: "Lower tier hide"
+    - item_name: Green dragonhide
       slug: green-dragonhide
-      relationship: alternative
-      description: Entry level
+      relationship: downgrade
+      description: "Entry-level dragonhide"
   about: |-
-    Take to a tanner to convert into Black dragon leather.
-
-    | Cost | Location |
-    |------|----------|
-    | 20 GP | Most tanners |
-    | 45 GP | Canifis tanner |
-
-    Buy Limit: 11,000 per 4 hours
+    Black dragonhide is the highest tier non-special dragonhide, harvested from black, brutal black, and lava dragons as well as the King Black Dragon. Take to a tanner for 20 GP per hide (45 GP in Canifis) or use the Tan Leather lunar spell to convert five hides at once into Black dragon leather.
   market_strategy:
-    profit_formulas:
-      - Black dragon leather - Black dragonhide - 20 GP = Profit
     notes:
-      - Buy hide → Tan (20 GP) → Sell leather
-      - "Calculate:"
-      - Highest tier dragonhide = best margins
-      - Tans 5 hides per cast
-      - Faster than running to tanner
-      - Factor in rune costs
-      - Black dragons (Taverley Dungeon, Catacombs)
-      - King Black Dragon
-      - Brutal black dragons
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy hide, tan to leather, craft armour, sell"
+      - "Tan Leather lunar spell processes 5 hides per cast"
+      - "Highest tier dragonhide carries the best margins"
+      - "Buy limit 11,000 per 4 hours"
+  trading_tips:
+    - "Watch black dhide armour demand for crafting flips"
+    - "King Black Dragon trips average 2 hides per kill"
+  history:
+    - date: "2004-03-29"
+      description: "Released alongside black dragons"
+    - date: "2005-11-22"
+      description: "Renamed from Dragonhide to Black dragonhide to disambiguate colour variants"
+    - date: "2018-01-04"
+      description: "Grand Exchange shop value bumped from 80 to 150 GP"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

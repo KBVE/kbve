@@ -12,9 +12,46 @@ osrs:
   lowalch: 70
   highalch: 105
   limit: 100
-  about: "Large bronze keel parts is a members-only item in Old School RuneScape. High alchemy value: 105 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: low
+  recipes:
+    - materials:
+        - item_name: Bronze keel parts
+          quantity: 5
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      notes: "Smithing 10, 5 XP per piece; Pandemonium quest required."
+  related_items:
+    - item_id: 32018
+      item_name: Bronze keel parts
+      slug: bronze-keel-parts
+      relationship: component
+      description: Smaller keel piece smithed into large variants
+    - item_id: 32022
+      item_name: Bronze keel
+      slug: bronze-keel
+      relationship: product
+      description: Assembled keel used for sloop construction
+  about: "Large bronze keel parts are a Sailing/Smithing component used to assemble bronze keels for larger boats; requires Pandemonium quest completion and 10 Smithing. High alchemy value: 105 coins. Grand Exchange buy limit: 100 per 4 hours."
+  history:
+    - date: "2025-11-19"
+      description: Released alongside the Sailing skill and Pandemonium quest update.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

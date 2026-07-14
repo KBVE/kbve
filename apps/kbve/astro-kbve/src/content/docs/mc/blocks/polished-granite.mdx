@@ -1,5 +1,6 @@
 ---
 title: Polished Granite
+template: splash
 description: |
     Minecraft Polished Granite — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 3
     ref: polished_granite
     slug: polished-granite
+    content_rev: 1
     display_name: Polished Granite
     material: stone
     hardness: 1.5
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_granite
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Polished Granite is a smoothed, decorative version of raw
+            Granite, used purely as a building material with the same
+            blast resistance as regular stone.
+        lore: |
+            First shown by Jeb in December 2013 and officially added in Java
+            Edition 1.8.
+    uses:
+        - title: Polished Granite Slab
+          ref: polished_granite_slab
+          detail: |
+              Crafting 3 Polished Granite yields 6 slabs; stonecutting
+              converts granite or polished granite into slabs 1:2.
+        - title: Polished Granite Stairs
+          ref: polished_granite_stairs
+          detail: |
+              Crafting 6 Polished Granite yields 4 stairs, or cut 1:1 with a
+              stonecutter.
+    found_in:
+        - location: Warm ocean ruins
+          detail: Generates naturally as part of underwater ruin structures.
+        - location: Crafted from Granite
+          detail: 4 Granite blocks craft into 4 Polished Granite, or convert 1:1 via stonecutter.
+        - location: Mason villager trades
+          detail: Journeyman-level masons trade 4 blocks for 1 emerald.
+    faq:
+        - question: What tool do I need to mine Polished Granite?
+          answer: |
+              Any wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Does Polished Granite drop itself when mined?
+          answer: |
+              Yes, mining it with a pickaxe always drops one Polished
+              Granite block; Silk Touch and Fortune have no effect.
+        - question: How is Polished Granite obtained?
+          answer: |
+              Craft it from 4 Granite, cut Granite with a stonecutter, find
+              it in warm ocean ruins, or trade with a journeyman mason
+              villager.
+        - question: What can I craft from Polished Granite?
+          answer: |
+              Polished Granite Slabs and Polished Granite Stairs, both
+              purely decorative building blocks.
     data_version: "1.21.5"
 ---
 

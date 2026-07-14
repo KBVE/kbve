@@ -12,9 +12,46 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: null
-  about: "Ixcoztic white is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 16
+    type: drink
+  potion:
+    doses: 1
+    effects:
+      - description: "Restores 16 Hitpoints."
+      - description: "Boosts Farming by 1 level."
+      - description: "Drains Attack by 5 levels and Herblore by 1 level."
+  shops:
+    - shop_name: Moonrise Wines
+      location: Aldarin
+      price: 100
+      stock: 20
+  about: "Ixcoztic white is an Aldarin wine sold at Moonrise Wines for 100 coins. Drinking it restores 16 Hitpoints, boosts Farming by 1, and drains Attack by 5 and Herblore by 1."
+  market_strategy:
+    notes:
+      - Sold at Moonrise Wines in Aldarin, restock 20
+      - Niche Farming +1 boost
+      - Attack and Herblore drains limit combat use
+  history:
+    - date: "2024-09-25"
+      description: Released with Varlamore - The Rising Darkness.
+  properties:
+    release_date: "2024-09-25"
+    update: Varlamore - The Rising Darkness
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

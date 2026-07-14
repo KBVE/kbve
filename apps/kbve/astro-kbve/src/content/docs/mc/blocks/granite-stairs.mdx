@@ -1,5 +1,6 @@
 ---
 title: Granite Stairs
+template: splash
 description: |
     Minecraft Granite Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 773
     ref: granite_stairs
     slug: granite-stairs
+    content_rev: 1
     display_name: Granite Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: granite_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Granite Stairs are a decorative stairs variant of granite used
+            for stepped building details. Mining requires at least a
+            wooden pickaxe; without one, the block drops nothing.
+        lore: |
+            Announced in October 2018, Granite Stairs debuted in Java
+            Edition snapshot 18w43a (1.14), giving builders a matching
+            stair form for granite structures.
+    uses:
+        - title: Building decoration
+          ref: granite
+          detail: |
+              Six granite blocks craft into four granite stairs, useful
+              for steps, rooflines, and detailing on granite builds.
+    found_in:
+        - location: Desert villages
+          detail: Generates naturally as part of desert village architecture.
+        - location: Crafting / Stonecutter
+          detail: Craftable from six granite blocks, or one granite block cut per stair via stonecutter.
+    faq:
+        - question: What tool do I need to mine Granite Stairs?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: Where can I find Granite Stairs naturally?
+          answer: |
+              They generate as part of desert village buildings; otherwise
+              they must be crafted or stonecut from granite blocks.
+        - question: Are Granite Stairs flammable?
+          answer: |
+              No. As a stone-type block, they do not burn.
+        - question: Can I stonecut Granite Stairs?
+          answer: |
+              Yes. A stonecutter converts one granite block into one
+              granite stair with no leftover granite.
     data_version: "1.21.5"
 ---
 

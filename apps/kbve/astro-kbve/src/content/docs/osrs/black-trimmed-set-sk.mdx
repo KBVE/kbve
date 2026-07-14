@@ -12,9 +12,59 @@ osrs:
   lowalch: 1800
   highalch: 2700
   limit: 8
-  about: "Black trimmed set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 2,700 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Grand Exchange (Sets)
+      location: Grand Exchange clerk
+      price: 0
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Black full helm (t)
+      slug: black-full-helm-t
+      relationship: set-piece
+      description: Helm component of the trimmed set.
+    - item_name: Black platebody (t)
+      slug: black-platebody-t
+      relationship: set-piece
+      description: Platebody component of the trimmed set.
+    - item_name: Black plateskirt (t)
+      slug: black-plateskirt-t
+      relationship: set-piece
+      description: Skirt component of the trimmed set.
+    - item_name: Black kiteshield (t)
+      slug: black-kiteshield-t
+      relationship: set-piece
+      description: Kiteshield component of the trimmed set.
+  about: "Black trimmed set (sk) is a Grand Exchange placeholder bundling the trimmed black full helm, platebody, plateskirt and kiteshield into a single tradeable line. Exchanged with a GE clerk to consolidate the four pieces for bank space and quicker resale."
+  market_strategy:
+    notes:
+      - "Acts as an arbitrage between component pieces and the set"
+      - "Watch component vs set spread for risk-free flips via the GE clerk"
+      - "Limit of 8 caps daily flips, but spread can be wide"
+  trading_tips:
+    - Cross-check sum of trimmed black pieces before flipping
+    - Convert when set premium exceeds GE 1% tax round-trip
+  history:
+    - date: "2015-02-26"
+      description: "Added with the Grand Exchange sets expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Pillager Spawn Egg
+template: splash
 description: |
     Minecraft Pillager Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1112
     ref: pillager_spawn_egg
     slug: pillager-spawn-egg
+    content_rev: 1
     display_name: Pillager Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Pillager Spawn Egg instantly spawns a Pillager when used on a block surface. It is obtainable only in Creative mode or with commands, and it is consumed on use in Survival mode.
+            Pillagers have no baby form, but the egg still works in dispensers and on monster spawners to swap the mob type a spawner produces.
+        lore: |
+            Pillagers are crossbow-wielding illagers who lead raids on villages, making this egg a quick way to summon a raid participant for testing or building.
+    faq:
+        - question: |
+              How do I obtain a Pillager Spawn Egg?
+          answer: |
+              Spawn eggs are only available from the Creative inventory or by using commands such as /give; they cannot be crafted, found, or dropped by mobs.
+        - question: |
+              Will the spawned Pillager be part of a raid?
+          answer: |
+              No, a Pillager spawned directly from a spawn egg is an independent mob and does not automatically join or trigger a raid unless raid mechanics are separately activated.
+        - question: |
+              Can I rename the egg before using it?
+          answer: |
+              Yes, renaming the spawn egg on an anvil causes the spawned Pillager to display that name overhead, and a few special names can trigger unique spawn effects.
+        - question: |
+              Does the Pillager despawn over time?
+          answer: |
+              Yes, a Pillager spawned this way follows normal despawn rules just like any other spawn-egg-created mob unless it is leashed or named.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -12,8 +12,34 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: hybrid_boots
+    tier: mid-high
+  properties:
+    release_date: "10 January 2019"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: feet
+    weight: 3.175
+    requirements:
+      slayer: 44
+      magic: 70
+      ranged: 70
+      defence: 70
     attack_bonus:
       stab: 3
       slash: 0
@@ -31,106 +57,62 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      slayer: 44
-      magic: 70
-      ranged: 70
-      defence: 70
   recipes:
-    - name: Boots of brimstone
+    - skill: smithing
+      level: 1
+      xp: 0
       materials:
-        - item_id: 23037
-          item_name: Drake's claw
+        - item_name: Drake's claw
           quantity: 1
-        - item_id: 23049
-          item_name: Boots of stone
+        - item_name: Boots of stone
           quantity: 1
-      skill: none
-      description: Use Drake's claw on Boots of stone
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 23037
-      item_name: Drake's claw
+    - item_name: Drake's claw
       slug: drakes-claw
       relationship: component
-      description: Upgrade material from Drakes
-    - item_id: 23049
-      item_name: Boots of stone
+      description: "Upgrade material from Drakes"
+    - item_name: Boots of stone
       slug: boots-of-stone
       relationship: component
-      description: Base boots for creation
-    - item_id: 22443
-      item_name: Dragon boots
+      description: "Base boots for creation"
+    - item_name: Dragon boots
       slug: dragon-boots
       relationship: alternative
-      description: Melee-focused boots
-    - item_id: 2577
-      item_name: Ranger boots
+      description: "Melee-focused alternative boots"
+    - item_name: Ranger boots
       slug: ranger-boots
       relationship: alternative
-      description: Ranged-focused boots
-    - item_id: 6920
-      item_name: Infinity boots
+      description: "Ranged-focused alternative boots"
+    - item_name: Infinity boots
       slug: infinity-boots
       relationship: alternative
-      description: Magic-focused boots
+      description: "Magic-focused alternative boots"
   about: |-
     > *"A pair of heat resistant boots charged with the claw of the ferocious Drake."*
 
-    The boots of brimstone are created by using a Drake's claw on a pair of Boots of stone. This requires no skill levels to combine.
+    The boots of brimstone are created by using a Drake's claw on a pair of Boots of stone. They are a hybrid boot offering bonuses across all three combat styles, ideal for content requiring multiple combat styles without switching.
 
-    | Material | Source | Approx. Cost |
-    |----------|--------|-------------|
-    | Drake's claw | Drake (Slayer monster, 84 Slayer) | ~339,000 GP |
-    | Boots of stone | Volcanic Mine shop / GE | ~490 GP |
-    | Total | | ~339,500 GP |
+    Requirements: 44 Slayer, 70 Magic, 70 Ranged, 70 Defence.
 
-    | Attack | Value |
-    |--------|-------|
-    | Stab | +3 |
-    | Magic | +3 |
-    | Ranged | +5 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +10 |
-    | Crush | +10 |
-    | Magic | +5 |
-    | Ranged | +5 |
-
-    Requirements: 44 Slayer, 70 Magic, 70 Ranged, 70 Defence
-
-    Weight: 3.175 kg
-
-    | Stat | Brimstone | Dragon Boots | Ranger Boots | Infinity Boots | Devout Boots |
-    |------|-----------|-------------|--------------|----------------|-------------|
-    | Stab Atk | +3 | +0 | +0 | +0 | +0 |
-    | Magic Atk | +3 | -3 | -1 | +5 | +0 |
-    | Ranged Atk | +5 | -1 | +8 | +0 | +0 |
-    | Melee Def | +10/+10/+10 | +16/+16/+16 | +0/+0/+0 | +5/+5/+5 | +3/+3/+3 |
-    | Magic Def | +5 | -3 | +0 | +5 | +3 |
-    | Ranged Def | +5 | -1 | +0 | +0 | +3 |
-    | Str Bonus | +0 | +4 | +0 | +0 | +0 |
-    | Prayer | +0 | +0 | +0 | +0 | +5 |
-
-    The boots of brimstone are a hybrid boot offering bonuses across all three combat styles. They do not excel in any single style but provide solid all-around stats, making them ideal for content requiring multiple combat styles.
-
-    - Chambers of Xeric — popular hybrid boot choice
-    - Dagannoth Kings — switching between combat styles
-    - Gauntlet / Corrupted Gauntlet — hybrid combat
-    - Any content requiring multiple combat styles without switching boots
-    - Budget alternative to specialized boots when tribridding
-
-    Like their base (Boots of stone), boots of brimstone protect the wearer from the heat of the Karuulm Slayer Dungeon floor. This allows the player to walk on the heated floor without taking damage.
+    Like their base (Boots of stone), boots of brimstone protect the wearer from the heat of the Karuulm Slayer Dungeon floor.
   market_strategy:
     notes:
-      - Created from Drake's claw + Boots of stone
-      - Profit margin exists when claw price is low relative to finished boot price
-      - Popular with mid-game accounts doing hybrid PvM
-      - Drake's claw is the primary value driver (~99% of cost)
-      - Demand is steady from Chambers of Xeric and hybrid PvM players
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Created from Drake's claw + Boots of stone"
+      - "Profit margin exists when claw price is low relative to finished boot price"
+      - "Popular with mid-game accounts doing hybrid PvM"
+      - "Drake's claw is the primary value driver (~99% of cost)"
+      - "Demand is steady from Chambers of Xeric and hybrid PvM players"
+  trading_tips:
+    - "Watch Drake's claw GE price as the dominant cost driver"
+    - "Hybrid PvM demand keeps prices steady around CoX rotations"
+    - "Margins widen when claws dip post-Slayer task spikes"
+  history:
+    - date: "10 January 2019"
+      description: "Released as part of The Kebos Lowlands update."
+    - date: "17 January 2019"
+      description: "Received a graphical update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

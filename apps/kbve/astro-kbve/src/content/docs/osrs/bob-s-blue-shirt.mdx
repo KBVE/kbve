@@ -1,6 +1,6 @@
 ---
 title: Bob's blue shirt | OSRS Price Data
-description: "Bob's blue shirt: 'Bob says: Always check the second trade screen.'. High alch: 1 GP, GE limit: 4."
+description: "Bob's blue shirt is a members easy clue scroll cosmetic reward. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 10318
   name: Bob's blue shirt
@@ -12,9 +12,97 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Bob's blue shirt is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Bob's red shirt
+      slug: bob-s-red-shirt
+      relationship: alternative
+      description: Red variant from the same easy clue scroll table
+    - item_name: Bob's green shirt
+      slug: bob-s-green-shirt
+      relationship: alternative
+      description: Green variant from the same easy clue scroll table
+    - item_name: Bob's purple shirt
+      slug: bob-s-purple-shirt
+      relationship: alternative
+      description: Purple variant from the same easy clue scroll table
+    - item_name: Bob's black shirt
+      slug: bob-s-black-shirt
+      relationship: alternative
+      description: Black variant from the same easy clue scroll table
+  passive_effects:
+    - name: Costume storage
+      description: Can be stored in the costume room treasure chest of a player-owned house.
+  about: |-
+    Bob's blue shirt is one of five Bob shirt variants obtained as a rare reward from easy Treasure Trails. It offers no combat stats but is a popular cosmetic for completionists and a target for clue scroll hunters working through the easy reward table.
+
+    Each shirt rolls at roughly 1/1,404 from an easy reward casket and can be stored in the treasure chest of a player-owned house's costume room.
+  market_strategy:
+    notes:
+      - "Driven entirely by cosmetic demand"
+      - "Limited GE buy limit (4 per 4 hours) keeps spreads volatile"
+      - "Prices fluctuate with easy clue scroll farming popularity"
+  trading_tips:
+    - Compare all five Bob shirt prices when buying — the cheapest is interchangeable for collection log
+    - Demand spikes when clue scroll content is buffed
+  history:
+    - date: "2014-12-10"
+      description: "Item renamed from Bob shirt to Bob's blue shirt."
+    - date: "2006-12-05"
+      description: "Added with the easy Treasure Trails reward table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

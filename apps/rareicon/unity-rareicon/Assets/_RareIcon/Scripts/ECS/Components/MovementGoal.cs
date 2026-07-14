@@ -4,7 +4,7 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Intent layer: byte Kind + byte Priority + int2 TargetHex; blittable for Rust FFI.</summary>
-    // TODO(rust-ffi): mirror as #[repr(C)] MovementGoal in uniti so server-side behavior trees can read/write the same memory layout.
+
     public struct MovementGoal : IComponentData
     {
         public byte Kind;

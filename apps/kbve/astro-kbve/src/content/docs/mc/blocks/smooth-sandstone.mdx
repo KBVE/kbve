@@ -1,5 +1,6 @@
 ---
 title: Smooth Sandstone
+template: splash
 description: |
     Minecraft Smooth Sandstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 593
     ref: smooth_sandstone
     slug: smooth-sandstone
+    content_rev: 1
     display_name: Smooth Sandstone
     material: stone
     hardness: 2
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_sandstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Smooth Sandstone is a smelted variant of Sandstone with a
+            seamless, unpatterned texture. It generates naturally inside
+            desert villages and is the base ingredient for smooth sandstone
+            slabs and stairs.
+        lore: |
+            Given a proper block form and smelting recipe in Java Edition
+            1.14, rounding out the sandstone family started in Beta 1.3.
+    uses:
+        - title: Smooth Sandstone Slab
+          ref: smooth_sandstone_slab
+          detail: |
+              Craft three blocks into six slabs, or stonecut one block into
+              two slabs.
+        - title: Smooth Sandstone Stairs
+          ref: smooth_sandstone_stairs
+          detail: |
+              Craft six blocks into four stairs, or stonecut one block into
+              one stair.
+    found_in:
+        - location: Desert villages
+          detail: Generates naturally as part of desert village house construction.
+        - location: Furnace or blast furnace
+          detail: Smelt regular Sandstone with any fuel to produce Smooth Sandstone.
+    faq:
+        - question: What tool do I need to mine Smooth Sandstone?
+          answer: |
+              Any pickaxe works — there is no minimum tier requirement for
+              the drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one block, regardless of
+              enchantments.
+        - question: Where can I find Smooth Sandstone without smelting it?
+          answer: |
+              Desert villages generate it naturally as part of house
+              construction.
+        - question: Why is its hardness higher than plain Sandstone?
+          answer: |
+              Smooth Sandstone inherits hardness and blast resistance values
+              from a historical double-slab block, making it tougher than
+              regular Sandstone (hardness 0.8).
     data_version: "1.21.5"
 ---
 

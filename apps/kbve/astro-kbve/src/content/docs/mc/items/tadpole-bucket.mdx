@@ -1,5 +1,6 @@
 ---
 title: Bucket of Tadpole
+template: splash
 description: |
     Minecraft Bucket of Tadpole — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 962
     ref: tadpole_bucket
     slug: tadpole-bucket
+    content_rev: 1
     display_name: Bucket of Tadpole
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A bucket of tadpole is a water bucket that has captured a tadpole, letting players relocate
+            the young amphibian without it despawning. Emptying the bucket releases a water source block
+            along with the tadpole, which continues growing into a frog as normal.
+        lore: |
+            These buckets emerged during the Wild Update, letting adventurers rescue tadpoles from their natural habitats and bring them home.
+    faq:
+        - question: Will my captured tadpole grow into a frog?
+          answer: |
+              Yes, tadpoles caught in buckets and then released will still grow into frogs just like any
+              other tadpole.
+        - question: Can I name a tadpole in its bucket?
+          answer: |
+              In Java Edition, naming a tadpole with an anvil before capture transfers that name to the
+              bucket. In Bedrock Edition, the item becomes "Bucket of [Name]."
+        - question: What happens if I use this bucket in the Nether?
+          answer: |
+              It produces the same particles as a regular water bucket, spawning only the tadpole without
+              a water source.
+        - question: Can dispensers pick up tadpoles with water buckets?
+          answer: |
+              No, dispensers cannot pick up a tadpole when using a water bucket, since the bucket is
+              emptied instead.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

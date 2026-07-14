@@ -1,5 +1,6 @@
 ---
 title: Oxidized Chiseled Copper
+template: splash
 description: |
     Minecraft Oxidized Chiseled Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 101
     ref: oxidized_chiseled_copper
     slug: oxidized-chiseled-copper
+    content_rev: 1
     display_name: Oxidized Chiseled Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Oxidized Chiseled Copper is the fully weathered, teal-colored stage of chiseled copper,
+            crafted from two matching cut copper slabs or cut with a stonecutter from copper blocks. It
+            naturally generates in trial chambers and requires a stone pickaxe or better to mine.
+        lore: |
+            A patterned copper panel gone fully green with age, marking the final stage of natural
+            weathering unless waxed to halt it.
+    faq:
+        - question: How is Oxidized Chiseled Copper obtained?
+          answer: |
+              Craft it from two matching cut copper slabs, cut it with a stonecutter, or let unwaxed
+              chiseled copper weather naturally over time.
+        - question: Can Oxidized Chiseled Copper's oxidation be reversed?
+          answer: |
+              Yes, using an axe on it removes oxidation, reverting it to an earlier weathering stage.
+        - question: What tool is needed to mine Oxidized Chiseled Copper?
+          answer: |
+              A stone pickaxe or better is required; anything weaker fails to drop the block.
+        - question: Does Oxidized Chiseled Copper have any special sound behavior?
+          answer: |
+              Yes, placing a note block on top of it produces a trumpet sound.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

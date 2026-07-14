@@ -1,5 +1,6 @@
 ---
 title: Twisting Vines
+template: splash
 description: |
     Minecraft Twisting Vines — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 255
     ref: twisting_vines
     slug: twisting-vines
+    content_rev: 1
     display_name: Twisting Vines
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Twisting vines are climbable vegetation blocks found exclusively in the Nether's warped forests. Unlike weeping vines, they grow upward rather than downward, providing vertical climbing paths through the warped forest biome and preventing fall damage like a water bucket.
+            They grow at roughly 10% per random tick and can be harvested with shears for a guaranteed drop, or broken by hand for a 33% chance (boosted by Fortune).
+        lore: |
+            Ancient flora of the warped realm, these spiraling vines twist skyward through the alien landscape, offering adventurers a natural scaffold to ascend the mysterious terrain.
+    faq:
+        - question: Where exactly do I find twisting vines?
+          answer: |
+              They spawn naturally only in warped forest biomes within the Nether, appearing on the ground or attached to warped huge fungus structures.
+        - question: How do I climb them effectively?
+          answer: |
+              Stand inside the vines and hold the jump key. For faster climbing with less input, position yourself against a solid block behind the vines and use forward movement.
+        - question: Can I farm twisting vines?
+          answer: |
+              Yes. They grow upward on their own or with bone meal, and using shears on the tip stops natural growth, allowing controlled cultivation as a renewable resource.
+        - question: What's the best way to harvest them?
+          answer: |
+              Harvest from the top down. Unsupported segments break automatically with only a 33% drop chance, but using shears or Silk Touch guarantees a drop regardless of position.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

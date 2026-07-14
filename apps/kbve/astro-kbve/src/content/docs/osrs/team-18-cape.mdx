@@ -1,6 +1,6 @@
 ---
 title: Team-18 cape | OSRS Price Data
-description: "Team-18 cape: Ooohhh look at the pretty colours.... High alch: 30 GP, GE limit: 150."
+description: "Team-18 cape: Ooohhh look at the pretty colours. High alch: 30 GP, GE limit: 150."
 osrs:
   id: 4349
   name: Team-18 cape
@@ -12,9 +12,81 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-18 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: cape
+    weight: 0.4
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+  shops:
+    - shop_name: "Cape Shop"
+      location: Castle Wars
+      price: 50
+      currency: coins
+  related_items:
+    - item_id: 4315
+      item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: First team cape in the numbered Castle Wars series
+    - item_id: 4347
+      item_name: Team-17 cape
+      slug: team-17-cape
+      relationship: variant
+      description: Adjacent numbered team cape
+    - item_id: 4351
+      item_name: Team-19 cape
+      slug: team-19-cape
+      relationship: variant
+      description: Adjacent numbered team cape
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Free-to-play cosmetic with a tiny GE buy limit"
+      - "Cheap to flip in bulk for spread, but liquidity is thin"
+      - "Supply driven by Castle Wars buyers, not gameplay utility"
+  trading_tips:
+    - Place limit buys overnight for cheap fills
+    - Watch full team-cape set collectors who chase specific numbers
+    - Avoid overpaying — there are 50 numbered variants with identical stats
+  about: Team-18 cape is a free-to-play cosmetic cape sold at the Castle Wars Cape Shop, part of the numbered team-cape series used to identify clan or activity teammates.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2004-01-06"
+      description: "Numbered team capes added with the Castle Wars minigame release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

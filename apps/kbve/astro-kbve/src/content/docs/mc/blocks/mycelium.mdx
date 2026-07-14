@@ -1,5 +1,6 @@
 ---
 title: Mycelium
+template: splash
 description: |
     Minecraft Mycelium — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 342
     ref: mycelium
     slug: mycelium
+    content_rev: 1
     display_name: Mycelium
     material: dirt
     hardness: 0.6
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dirt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: mycelium
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Mycelium is the fungal-textured surface block unique to
+            mushroom fields biomes. It spreads to nearby dirt blocks when
+            lit and uniquely lets mushrooms and nether fungi persist in any
+            light level.
+        lore: |
+            Present since Beta 1.9 Prerelease, mycelium gives mushroom
+            fields their eerie, otherworldly ground cover.
+    uses:
+        - title: Mushroom & Fungus Farming
+          ref: brown_mushroom
+          detail: |
+              Mushrooms and nether fungi placed on mycelium survive at any
+              light level, unlike on grass or dirt, making it ideal for
+              indoor mushroom farms.
+    found_in:
+        - location: Mushroom Fields
+          detail: Generates as the ground cover across the entire mushroom fields biome.
+        - location: Enderman Drops
+          detail: Endermen occasionally pick up mycelium and drop it when killed.
+    faq:
+        - question: What tool do I need to mine Mycelium?
+          answer: |
+              None — it can be mined by hand, but a shovel is fastest.
+        - question: What does Mycelium drop when mined?
+          answer: |
+              Without Silk Touch it drops plain dirt; with Silk Touch it
+              drops itself, letting you relocate mushroom fields ground.
+        - question: Does Mycelium spread like grass?
+          answer: |
+              Yes, it spreads to adjacent dirt blocks within one block up,
+              sideways, or three down, given sufficient light (level 9+).
+        - question: Where do I find Mycelium naturally?
+          answer: |
+              Only in mushroom fields biomes, one of the rarest overworld
+              biomes to generate.
     data_version: "1.21.5"
 ---
 

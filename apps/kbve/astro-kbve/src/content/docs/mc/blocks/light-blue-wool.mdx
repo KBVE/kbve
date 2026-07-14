@@ -1,5 +1,6 @@
 ---
 title: Light Blue Wool
+template: splash
 description: |
     Minecraft Light Blue Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 143
     ref: light_blue_wool
     slug: light-blue-wool
+    content_rev: 1
     display_name: Light Blue Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+        - renewable
+    about:
+        description: |
+            Light Blue Wool is a dyed wool block sheared from sheep or
+            crafted from string. It is renewable since sheared sheep regrow
+            wool over time and can be re-dyed.
+        lore: |
+            Wool was one of Minecraft's earliest blocks, letting players
+            raise sheep and later dye the fleece into any of 16 colors.
+    uses:
+        - title: Light Blue Bed
+          ref: light_blue_bed
+          detail: |
+              3 Light Blue Wool plus any 3 planks craft a Light Blue Bed,
+              which sets a player's spawn point.
+        - title: Light Blue Carpet
+          ref: light_blue_carpet
+          detail: 2 Light Blue Wool craft 3 Light Blue Carpet.
+        - title: Light Blue Banner
+          ref: light_blue_banner
+          detail: 6 Light Blue Wool plus a stick craft a Light Blue Banner.
+    found_in:
+        - location: Sheep
+          detail: |
+              Shearing an adult sheep yields 1-3 wool without harming it;
+              killing a sheep drops 1 wool.
+        - location: Shepherd villager trades
+          detail: Shepherds trade emeralds for wool of various colors.
+    faq:
+        - question: Is wool flammable?
+          answer: |
+              Yes. Wool has a very high flammability rating and catches
+              fire quickly from lava or nearby flames.
+        - question: What is the fastest tool to mine wool?
+          answer: |
+              Shears, which break wool almost instantly. Any tool or bare
+              hands can still collect it since there is no tier requirement.
+        - question: Does sheared wool regrow?
+          answer: |
+              Yes, a sheared sheep regrows its wool over time by eating
+              grass blocks, making wool a renewable resource.
     data_version: "1.21.5"
 ---
 

@@ -59,9 +59,10 @@ agones:
 gameservers:
     # Namespaces for game servers
     namespaces:
-        - ows
         - arc-runners
         - factorio
+        - cryptothrone
+        - arpg
 
     # Port range for game server host ports.
     # Capped at 7900 to avoid MetalLB speaker memberlist port (7946).

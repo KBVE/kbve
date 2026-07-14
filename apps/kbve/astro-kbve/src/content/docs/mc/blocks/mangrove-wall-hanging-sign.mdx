@@ -1,5 +1,6 @@
 ---
 title: Mangrove Hanging Sign
+template: splash
 description: |
     Minecraft Mangrove Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 241
     ref: mangrove_wall_hanging_sign
     slug: mangrove-wall-hanging-sign
+    content_rev: 1
     display_name: Mangrove Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Mangrove Wall Hanging Sign is the wall-mounted placement state
+            of the Mangrove Hanging Sign, attached directly to the side of
+            a block instead of suspended from chains. It preserves any
+            text, dye, glow ink, or wax applied to it.
+        lore: |
+            Hanging signs, conceived by Agnes Larsson with input from her
+            daughter, arrived in snapshot 22w42a as part of the Trails &
+            Tales update (Java Edition 1.20).
+    uses:
+        - title: Wayfinding & Shop Signage
+          ref: mangrove_hanging_sign
+          detail: |
+              Mounted flush against walls to label rooms, shops, or
+              hallways without needing overhead support chains.
+    found_in:
+        - location: Crafting only
+          detail: |
+              Craft the Mangrove Hanging Sign item from 2 Chains and 6
+              Stripped Mangrove Logs, then place it against a wall to get
+              this orientation; not found naturally generated.
+    faq:
+        - question: What tool mines Mangrove Wall Hanging Sign fastest?
+          answer: |
+              An axe, though any tool or bare hands will break it since it
+              has no minimum tool tier requirement.
+        - question: What does it drop when broken?
+          answer: |
+              It drops a Mangrove Hanging Sign item, which can be
+              re-placed on a wall, ceiling, or post.
+        - question: Is this a different item from the hanging sign?
+          answer: |
+              No, it is the same Mangrove Hanging Sign item — this is just
+              its wall-attached placement state.
+        - question: Is it flammable?
+          answer: |
+              Yes, like all wooden blocks it can catch fire and burn away
+              if exposed to flames or lava.
     data_version: "1.21.5"
 ---
 

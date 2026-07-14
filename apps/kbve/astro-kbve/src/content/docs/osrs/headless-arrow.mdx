@@ -6,89 +6,72 @@ osrs:
   name: Headless arrow
   slug: headless-arrow
   examine: A wooden arrow shaft with flights attached.
-  members: true
+  members: false
   icon: Headless arrow.png
   value: 1
   lowalch: 1
   highalch: 1
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
-    type: fletching
-    tier: intermediate
-  fletching:
-    level: 1
-    xp: 1
-    method: Feathers on arrow shafts
+    type: fletching-component
+    tier: low
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
   recipes:
     - skill: fletching
       level: 1
       xp: 15
       materials:
         - item_name: Arrow shaft
-          item_id: 52
           quantity: 15
         - item_name: Feather
-          item_id: 314
           quantity: 15
-      product: Headless arrow
-      product_id: 53
-      product_quantity: 15
+      tools: []
+      output_quantity: 15
   related_items:
-    - item_id: 52
-      item_name: Arrow shaft
+    - item_name: Arrow shaft
       slug: arrow-shaft
       relationship: component
-      description: Base material
-    - item_id: 314
-      item_name: Feather
+      description: Base wooden component for the arrow.
+    - item_name: Feather
       slug: feather
       relationship: component
-      description: Required component
-    - item_id: 39
-      item_name: Bronze arrowtips
+      description: Flights attached to the shaft.
+    - item_name: Bronze arrowtips
       slug: bronze-arrowtips
-      relationship: component
-      description: For bronze arrows
-    - item_id: 44
-      item_name: Rune arrowtips
+      relationship: product
+      description: Combined with headless arrows for bronze arrows.
+    - item_name: Rune arrowtips
       slug: rune-arrowtips
-      relationship: component
-      description: For rune arrows
-    - item_id: 1511
-      item_name: Logs
+      relationship: product
+      description: Combined with headless arrows for rune arrows.
+    - item_name: Logs
       slug: logs
       relationship: component
-      description: Source of arrow shafts
-  about: |-
-    Use Feather on Arrow shaft.
-
-    | Action | Fletching Level | XP |
-    |--------|-----------------|-----|
-    | Add feathers | 1 | 1 per arrow |
-
-    Add arrowtips to create finished arrows:
-
-    | Arrow Type | Tips Needed | Fletching Level |
-    |------------|-------------|-----------------|
-    | Bronze arrow | Bronze arrowtips | 1 |
-    | Iron arrow | Iron arrowtips | 15 |
-    | Steel arrow | Steel arrowtips | 30 |
-    | Mithril arrow | Mithril arrowtips | 45 |
-    | Adamant arrow | Adamant arrowtips | 60 |
-    | Rune arrow | Rune arrowtips | 75 |
-    | Amethyst arrow | Amethyst arrowtips | 82 |
-    | Dragon arrow | Dragon arrowtips | 90 |
+      description: Source of arrow shafts via Fletching knife.
+  about: "Headless arrows are an intermediate Fletching component made by attaching 15 feathers to 15 arrow shafts at Fletching level 1 for 15 experience. They are then combined with arrowtips of any metal tier to finish arrows, from bronze (level 1) up through dragon (level 90). Released 25 March 2002, headless arrows remain a high-volume Grand Exchange staple thanks to the 11,000 hourly buy limit."
   market_strategy:
-    title: Bulk Processing
-    profit_formulas:
-      - Headless arrow price - Arrow shaft price - Feather price = Profit
     notes:
-      - Buy Arrow shaft + Feather
-      - Fletch into Headless arrows
-      - Sell to arrow finishers
-      - High volume, low margin flip
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Bulk flip play: buy arrow shafts plus feathers, fletch, sell finished headless arrows."
+      - "Margins are thin (low gp per arrow); profit comes from volume at the 11k buy limit."
+      - "Track feather price - it usually drives the floor of headless arrow profitability."
+  trading_tips:
+    - Watch the spread between arrow shaft+feather cost and headless arrow price; act when it widens.
+  history:
+    - date: "2002-03-25"
+      description: Introduced with the original Fletching skill release.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

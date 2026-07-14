@@ -1,5 +1,6 @@
 ---
 title: Cake with Magenta Candle
+template: splash
 description: |
     Minecraft Cake with Magenta Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 923
     ref: magenta_candle_cake
     slug: magenta-candle-cake
+    content_rev: 1
     display_name: Cake with Magenta Candle
     material: stone
     hardness: 0.5
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Magenta Candle is a decorative cake block topped with
+            a magenta candle, formed by using a magenta candle on an
+            uneaten cake. Lighting the candle turns the whole setup into
+            both a light source and a themed dessert display.
+        lore: |
+            Candle-topped cakes were added in Java Edition 1.17, letting
+            players combine the birthday-cake block with a matching
+            candle color for ambiance.
+    uses:
+        - title: Light Source
+          ref: magenta_candle
+          detail: |
+              Light the candle with flint and steel or a fire charge to
+              emit light level 3 for area illumination while the cake
+              remains uneaten.
+    found_in:
+        - location: Player-built structures
+          detail: Not naturally generated; only created by placing a magenta candle on an uneaten cake block.
+    faq:
+        - question: What drops when I break Cake with Magenta Candle?
+          answer: |
+              Only the magenta candle drops; the cake portion is destroyed
+              without dropping anything.
+        - question: Can I eat the cake without removing the candle?
+          answer: |
+              No. Eating a slice extinguishes and drops the candle
+              automatically, then removes a cake layer as normal.
+        - question: Does the candle stay lit if I eat a slice?
+          answer: |
+              No. Eating any slice always extinguishes the candle,
+              regardless of whether it was lit beforehand.
+        - question: Is Cake with Magenta Candle flammable?
+          answer: |
+              No. Neither the cake nor the candle catches fire from lava
+              or nearby flames.
     data_version: "1.21.5"
 ---
 

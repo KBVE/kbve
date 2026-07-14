@@ -1,5 +1,6 @@
 ---
 title: Polished Tuff Slab
+template: splash
 description: |
     Minecraft Polished Tuff Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 948
     ref: polished_tuff_slab
     slug: polished-tuff-slab
+    content_rev: 1
     display_name: Polished Tuff Slab
     material: stone
     hardness: 1.5
@@ -26,8 +28,48 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_tuff_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Polished Tuff Slab is a half-height decorative slab cut from
+            Polished Tuff, giving builders a terracotta-gray stone option
+            for steps, floors, and trim.
+        lore: |
+            Added in Java Edition 23w43a as part of the Update 1.21
+            experimental features, before releasing in the full 1.21 update.
+    found_in:
+        - location: Crafted from Polished Tuff
+          detail: 3 Polished Tuff blocks craft into 6 slabs.
+        - location: Stonecutter
+          detail: Cut 1 Tuff or Polished Tuff into 2 slabs.
+        - location: Trial Chambers
+          detail: Found naturally next to ominous vaults inside trial chamber structures.
+    faq:
+        - question: What tool do I need to mine Polished Tuff Slab?
+          answer: |
+              Any wooden pickaxe or better. Mining without one drops
+              nothing.
+        - question: Does Polished Tuff Slab generate naturally?
+          answer: |
+              Yes, in small amounts near ominous vaults inside trial
+              chambers; otherwise it must be crafted or stonecut.
+        - question: Can Polished Tuff Slabs be waterlogged?
+          answer: |
+              Yes, placing a slab in water lets it hold water, useful for
+              underwater or half-submerged builds.
+        - question: How many slabs come from one crafting operation?
+          answer: |
+              Crafting 3 Polished Tuff blocks yields 6 slabs; the
+              stonecutter converts Tuff or Polished Tuff at a 1:2 ratio.
     data_version: "1.21.5"
 ---
 

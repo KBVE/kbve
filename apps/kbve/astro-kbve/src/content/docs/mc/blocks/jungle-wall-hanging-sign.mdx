@@ -1,5 +1,6 @@
 ---
 title: Jungle Hanging Sign
+template: splash
 description: |
     Minecraft Jungle Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 238
     ref: jungle_wall_hanging_sign
     slug: jungle-wall-hanging-sign
+    content_rev: 1
     display_name: Jungle Hanging Sign
     material: wood
     hardness: 1
@@ -24,10 +26,54 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Jungle Hanging Sign is the wall-mounted form of the jungle
+            hanging sign, attached via self-supporting brackets instead
+            of chains, and used to display up to four lines of text.
+        lore: |
+            Hanging signs were added in the Trails & Tales Update
+            (Java Edition 1.20), crafted from stripped logs and chains.
+    uses:
+        - title: Jungle Hanging Sign (ceiling)
+          ref: jungle_hanging_sign
+          detail: |
+              The standalone variant hangs from chains beneath a ceiling
+              block, while this wall variant mounts directly to a wall
+              surface without visible chains.
+    found_in:
+        - location: Crafted from Stripped Jungle Logs
+          detail: Two chains and six stripped jungle logs or stems craft six jungle hanging signs.
+        - location: Trial Chambers and Trail Ruins
+          detail: Hanging signs of various wood types generate as loot or decoration in these structures.
+    faq:
+        - question: Is a jungle hanging sign flammable?
+          answer: |
+              No. Unlike most overworld wood blocks, hanging signs are
+              not flammable in Java Edition, though they can still catch
+              fire from adjacent lava under some conditions.
+        - question: What tool mines it fastest?
+          answer: |
+              An axe. A golden axe is the quickest at roughly 0.15 seconds.
+        - question: Can hanging sign text be edited after placement?
+          answer: |
+              Yes, unless the sign has been waxed with a honeycomb, which
+              permanently locks the text.
+        - question: Does this block need support to stay attached?
+          answer: |
+              No. The wall-mounted form uses self-supporting brackets and
+              does not require the wall block behind it to remain in place.
     data_version: "1.21.5"
 ---
 

@@ -3,6 +3,7 @@ name = "bevy_statemachine"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2021"
+rust-version.workspace = true
 license = "MIT"
 description = "Thread-safe state snapshot bridge for Bevy — exposes ECS resources to external consumers (Tauri IPC, WASM JS, lightyear networking) with JSON and bincode support."
 homepage = "https://kbve.com/"
@@ -17,7 +18,7 @@ serde = ["dep:serde", "dep:serde_json"]
 bincode = ["dep:serde", "dep:bincode"]
 
 [dependencies]
-bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
+bevy = { version = "0.19", default-features = false, features = ["bevy_state"] }
 serde = { version = "1", features = ["derive"], optional = true }
 serde_json = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }

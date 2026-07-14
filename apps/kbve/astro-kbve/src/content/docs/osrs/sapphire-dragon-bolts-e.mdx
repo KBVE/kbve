@@ -12,45 +12,77 @@ osrs:
   lowalch: 312
   highalch: 468
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-01-04"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
+    weight: 0
+    requirements: {}
     attack_bonus:
       stab: 0
       slash: 0
       crush: 0
       magic: 0
       ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      melee_strength: 0
       ranged_strength: 122
+      magic_damage: 0
       prayer: 0
-    requirements: {}
   recipes:
     - skill: magic
       level: 7
       xp: 17.5
-      inputs:
+      materials:
         - item_name: Sapphire dragon bolts
           quantity: 10
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Mind rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
+      tools: []
       output_quantity: 10
   related_items:
-    - item_id: 9240
-      item_name: Sapphire bolts (e)
+    - item_name: Sapphire dragon bolts
+      slug: sapphire-dragon-bolts
+      relationship: component
+      description: Unenchanted base bolts
+    - item_name: Sapphire bolts (e)
       slug: sapphire-bolts-e
       relationship: downgrade
-      description: Regular crossbow version
+      description: Mithril crossbow base with the same enchantment
+    - item_name: Dragon crossbow
+      slug: dragon-crossbow
+      relationship: alternative
+      description: Required crossbow tier for dragon bolts
   about: |-
     > *"Enchanted Dragon crossbow bolts, tipped with sapphire."*
 
-    Sapphire dragon bolts (e) carry the Clear Mind enchantment. On activation, a portion of the target's Prayer points are drained and transferred to the attacker. The drain amount and activation chance differ between NPCs and players. This is a unique utility effect among bolt enchantments, as it directly restores the attacker's Prayer while diminishing the target's.
+    Sapphire dragon bolts (e) carry the Clear Mind enchantment. On activation, a portion of the target's Prayer points are drained and transferred to the attacker. The drain amount and activation chance differ between NPCs and players, and the Hard Kandarin Diary boosts the activation rate by 10%. This is a unique utility effect among bolt enchantments, as it directly restores the attacker's Prayer while diminishing the target's.
 
-    Enchant Crossbow Bolt (Sapphire) requires Magic level 7 and grants 17.5 XP per cast. Each cast enchants 10 bolts at a time.
-
-    | Component | Quantity |
-    |-----------|----------|
-    | Sapphire dragon bolts | 10 |
-    | Cosmic rune | 1 |
-    | Mind rune | 1 |
-    | Water rune | 1 |
+    Enchant Crossbow Bolt (Sapphire) requires Magic level 7 and grants 17.5 XP per cast. Each cast enchants 10 bolts at a time using 1 cosmic, 1 mind, and 1 water rune.
 
     | Stat | Dragon (e) | Regular (e) |
     |------|-----------|-------------|
@@ -60,11 +92,16 @@ osrs:
     The dragon bolt base provides significantly higher ranged strength while retaining the same Prayer-draining enchantment.
   market_strategy:
     notes:
-      - Best used in PvP to drain opponent Prayer
-      - Low enchant requirement (Magic 7)
-      - Utility-focused rather than damage-focused
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Best used in PvP to drain opponent Prayer"
+      - "Low enchant requirement at Magic 7 makes self-supply easy"
+      - "Utility-focused rather than damage-focused enchantment"
+      - "Buy limit of 11,000 per 4 hours supports bulk enchanting flips"
+      - "Hard Kandarin Diary boosts proc rate by 10%"
+  history:
+    - date: "2018-01-04"
+      description: "Sapphire dragon bolts and the enchanted variant added to the game."
+    - date: "2023-01-25"
+      description: "Bolt special effect now only activates on attacks that pass the accuracy check."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

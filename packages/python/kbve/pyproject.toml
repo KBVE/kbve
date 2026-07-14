@@ -12,7 +12,41 @@ dependencies = [
     "uvicorn[standard]>=0.32,<1.0",
     "grpcio>=1.62,<2.0",
     "protobuf>=4.25,<6.0",
+    "pyyaml>=6.0,<7.0",
 ]
+
+[project.optional-dependencies]
+# ARPG sprite-baking toolchain (kbve.sprite.*). Kept off the core/server install
+# so API consumers don't pull numpy/Pillow. Enable with: uv sync --extra sprite
+sprite = [
+    "pillow>=10.0,<12.0",
+    "numpy>=1.26,<3.0",
+]
+# OSRS item-corpus analysis (kbve.osrs.*). Only needs PyYAML (already core),
+# but kept behind an extra so corpus tooling stays opt-in. Enable with:
+# uv sync --extra osrs
+osrs = [
+    "pyyaml>=6.0,<7.0",
+]
+# Whole-site SEO/SEM auditor (kbve.seo.*). Static frontmatter+MDX analysis;
+# only needs PyYAML. Enable with: uv sync --extra seo
+seo = [
+    "pyyaml>=6.0,<7.0",
+]
+
+[project.scripts]
+kbve-skin-variant = "kbve.sprite.skin_variant:main"
+kbve-sprite-postprocess = "kbve.sprite.sprite_postprocess:main"
+kbve-ship-footprint = "kbve.sprite.ship_footprint:main"
+kbve-model-sprites = "kbve.sprite.model_sprites_cli:main"
+kbve-osrs-survey = "kbve.osrs.survey:main"
+kbve-osrs-audit = "kbve.osrs.audit:main"
+kbve-osrs-families = "kbve.osrs.families:main"
+kbve-seo-audit = "kbve.seo.audit:main"
+kbve-seo-report = "kbve.seo.report:main"
+kbve-unreal-clangd = "kbve.unreal.clangd:main"
+kbve-unreal-check = "kbve.unreal.check:main"
+kbve-blender-retarget = "kbve.blender.cli:retarget_main"
 
 [dependency-groups]
 dev = [

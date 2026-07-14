@@ -6,15 +6,63 @@ osrs:
   name: Elven top (yellow)
   slug: elven-top-yellow
   examine: Clothing from the elven city of Prifddinas.
-  members: false
+  members: true
   icon: Elven top (yellow).png
   value: 5000
   lowalch: 2000
   highalch: 3000
   limit: null
-  about: "Elven top (yellow) is a free-to-play item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.907
+  shops:
+    - shop_name: "Lliann's Wares"
+      location: Prifddinas
+      price: 5000
+      stock: 100
+  related_items:
+    - item_name: Elven top (white)
+      slug: elven-top-white
+      relationship: variant
+      description: White colour variant
+    - item_name: Elven legwear (yellow)
+      slug: elven-legwear-yellow
+      relationship: set-piece
+      description: Matching legwear
+    - item_name: Elven gloves (yellow)
+      slug: elven-gloves-yellow
+      relationship: set-piece
+      description: Matching gloves
+    - item_name: Elven boots (yellow)
+      slug: elven-boots-yellow
+      relationship: set-piece
+      description: Matching boots
+  about: "Elven top (yellow) is a cosmetic body slot garment sold by Lliann's Wares in Prifddinas after Song of the Elves."
+  market_strategy:
+    notes:
+      - Cosmetic fashionscape demand only
+      - Easily restocked from Lliann's Wares at 5,000 gp
+      - Limited daily volume keeps spreads wide
+  history:
+    - date: "2019-07-25"
+      description: Added with the Song of the Elves quest and Prifddinas update.
+  properties:
+    release_date: "2019-07-25"
+    update: "Song of the Elves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

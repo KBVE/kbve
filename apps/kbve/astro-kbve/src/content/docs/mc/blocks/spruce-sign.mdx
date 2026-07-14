@@ -1,5 +1,6 @@
 ---
 title: Spruce Sign
+template: splash
 description: |
     Minecraft Spruce Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 198
     ref: spruce_sign
     slug: spruce-sign
+    content_rev: 1
     display_name: Spruce Sign
     material: wood
     hardness: 1
@@ -24,10 +26,57 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            A Spruce Sign is a free-standing post carved from spruce wood
+            that displays up to four lines of custom text. It can be placed
+            on the ground or attached to the top of a fence post, and both
+            sides of the sign can hold independent text.
+        lore: |
+            Signs let players leave notes, labels, and directions anywhere
+            in the world, long before books and maps offered similar tools.
+    uses:
+        - title: Spruce Sign
+          ref: spruce_sign
+          detail: |
+              Craft from spruce planks and a stick to produce three signs.
+              Right-click to write text, dye the text with any dye, add
+              glow with a glow ink sac, or lock it permanently with
+              honeycomb.
+    found_in:
+        - location: Crafting table
+          detail: Made from spruce planks and a stick; not found naturally as loot in most structures.
+        - location: Taiga village and igloo structures
+          detail: Occasionally generates as decoration in spruce-themed builds.
+    faq:
+        - question: What tool do I need to break a Spruce Sign?
+          answer: |
+              None. It breaks instantly by hand, though an axe is the
+              fastest tool.
+        - question: Does a Spruce Sign burn?
+          answer: |
+              No, signs are not flammable and will not catch fire from
+              nearby flames, though the Overworld variant can still ignite
+              if directly touched by lava in some versions.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, right-click with an empty hand to reopen the text editor,
+              unless the sign has been waxed with honeycomb, which locks it
+              permanently.
+        - question: How many signs come from one crafting recipe?
+          answer: |
+              One matching set of six planks and a stick yields three signs.
     data_version: "1.21.5"
 ---
 

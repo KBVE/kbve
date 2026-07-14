@@ -1,5 +1,6 @@
 ---
 title: Brown Carpet
+template: splash
 description: |
     Minecraft Brown Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 518
     ref: brown_carpet
     slug: brown-carpet
+    content_rev: 1
     display_name: Brown Carpet
     material: wool
     hardness: 0.1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Brown Carpet is a thin, one-sixteenth-block-thick wool variant
+            that can be placed on top of most solid surfaces. It prevents
+            mobs from spawning on the block beneath it and dampens sculk
+            sensor vibrations.
+        lore: |
+            Carpets were conceived by Notch as early as 2009 and finally
+            added to Java Edition in the 1.6.1 snapshot 13w16a.
+    uses:
+        - title: Llama Decoration
+          ref: llama
+          detail: |
+              Brown Carpet can be equipped on llamas and trader llamas as
+              a decorative covering, similar to a saddle blanket.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns for a short time in a furnace, smelting roughly a
+              third of an item per carpet.
+    found_in:
+        - location: Woodland Mansions
+          detail: Brown carpet generates as flooring and decoration in various mansion rooms.
+        - location: Crafting
+          detail: Craft 2 brown wool into 3 brown carpet at a crafting table.
+    faq:
+        - question: What tool do I need to mine Brown Carpet?
+          answer: |
+              None. It breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Does Brown Carpet stop mobs from spawning?
+          answer: |
+              Yes. Placing carpet on a block prevents most mobs from
+              spawning on that space.
+        - question: Can I dye Brown Carpet a different color?
+          answer: |
+              No, carpet colors cannot be re-dyed once crafted; you would
+              need to craft new carpet from wool of the desired color.
+        - question: Is Brown Carpet flammable?
+          answer: |
+              Yes. It can catch fire from lava or nearby flames like wool,
+              so avoid placing it near open flames.
     data_version: "1.21.5"
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Dragon axe | OSRS Price Data
-description: "Dragon axe is a members weapon slot item requiring 60 Attack. High alch: 33,000 GP, GE limit: 40."
+description: "Dragon axe is the dragon-tier woodcutting axe and one-handed melee weapon requiring 60 Attack and 61 Woodcutting, with the Lumber Up special attack. High alch: 33,000 GP, GE limit: 40."
 osrs:
   id: 6739
   name: Dragon axe
@@ -12,91 +12,124 @@ osrs:
   lowalch: 22000
   highalch: 33000
   limit: 40
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2005-01-05"
+    update: "Dagannoth Kings"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 6
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: axe
-    attack_style: melee
+    weapon_type: axe
+    weight: 6
+    attack_speed: 5
     requirements:
       attack: 60
       woodcutting: 61
-    stats:
-      attack_stab: -2
-      attack_slash: 38
-      attack_crush: 32
-      strength: 42
+    attack_bonus:
+      stab: -2
+      slash: 38
+      crush: 32
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 42
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   special_attack:
     name: Lumber Up
     energy: 100
-    effect: +3 Woodcutting levels for 60 seconds
+    description: "Boosts Woodcutting level by 3 for 3 minutes when activated."
   drop_table:
     sources:
       - source: Dagannoth Rex
-        source_id: 2267
+        source_id: 2882
         combat_level: 303
         quantity: "1"
-        rarity: 1/128
+        rarity: "1/128"
         members_only: true
       - source: Dagannoth Supreme
-        source_id: 2266
+        source_id: 2881
         combat_level: 303
         quantity: "1"
-        rarity: 1/128
+        rarity: "1/128"
         members_only: true
       - source: Dagannoth Prime
-        source_id: 2265
+        source_id: 2883
         combat_level: 303
         quantity: "1"
-        rarity: 1/128
+        rarity: "1/128"
         members_only: true
       - source: Wintertodt
         quantity: "1"
-        rarity: 1/10,000
+        rarity: "1/10000"
         members_only: true
-        note: Rare drop from Reward Cart
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: "1/1133"
+        members_only: true
   related_items:
     - item_id: 23673
       item_name: Crystal axe
       slug: crystal-axe
       relationship: upgrade
-      description: Speed upgrade
+      description: "Two-tick faster crystal axe upgrade requiring Song of the Elves."
     - item_id: 13241
       item_name: Infernal axe
       slug: infernal-axe
       relationship: upgrade
-      description: Auto-burn upgrade
+      description: "Dragon-axe upgrade that auto-burns logs for Firemaking XP using a smouldering stone."
     - item_id: 13245
       item_name: Smouldering stone
       slug: smouldering-stone
       relationship: component
-      description: Infernal component
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | -2 |
-    | Slash | +38 |
-    | Crush | +32 |
-    | Strength | +42 |
-
-    Requirements: 60 Attack, 61 Woodcutting
-
-    Lumber Up (100% energy):
-    - +3 Woodcutting levels
-    - Lasts 60 seconds
-    - Preserve extends by 50%
-
-    Essential for:
-    - All high-level woodcutting
-    - Upgrade to crystal/infernal
-    - Best base axe
-
-    Best axe (base) in the game.
+      description: "Wilderness drop combined with the dragon axe at 85 Firemaking to make the infernal axe."
+    - item_id: 1359
+      item_name: Rune axe
+      slug: rune-axe
+      relationship: downgrade
+      description: "Previous-tier axe most often used as a stepping stone to the dragon axe."
+  about: "Dragon axe is the dragon-tier axe in OSRS, doubling as both a 60 Attack one-handed slash weapon and the second-fastest Woodcutting axe (tied with crystal axe pre-Song of the Elves). Its signature Lumber Up special attack consumes 100% adrenaline to boost Woodcutting by 3 levels for 3 minutes, making it the standard axe for high-level woodcutters and a prerequisite for both the infernal axe (Firemaking auto-burn upgrade) and the crystal axe (Song of the Elves speed upgrade). The dragon axe is dropped at a 1/128 rate from each of the three Dagannoth Kings, with secondary supply from Wintertodt and elite clue rewards."
   market_strategy:
     notes:
-      - DKs are easy source
-      - Very affordable
-      - Upgrade to crystal or infernal
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy-limit of 40 per 4 hours caps merchanting upside."
+      - "Steady demand from mid-game woodcutters and infernal-axe / crystal-axe upgraders."
+      - "Supply concentrated at DKs, Wintertodt, and elite clue caskets."
+      - "Price holds a stable floor relative to high alch (33k), tracking long-term inflation."
+  trading_tips:
+    - "Watch for content that buffs Woodcutting XP rates - axe demand surges around skilling-meta updates."
+    - "Stockpile pre-leagues if Woodcutting is highlighted; dragon axe is a core unlock for many regions."
+    - "Cross-check smouldering stone price when scouting infernal-axe arbitrage routes."
+  history:
+    - date: "2005-01-05"
+      description: "Released as a 1/128 drop from the three Dagannoth Kings, introducing the dragon-tier axe to the game."
+    - date: "2016-11-24"
+      description: "Added to the Wintertodt rare reward table when the Firemaking minigame launched."
+    - date: "2019-06-06"
+      description: "Crystal axe added with Song of the Elves, giving the dragon axe a clear upgrade path."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

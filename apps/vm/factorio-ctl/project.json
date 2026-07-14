@@ -1,0 +1,90 @@
+{
+	"name": "factorio-ctl",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/vm/factorio-ctl/src",
+	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/factorio-ctl"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/factorio-ctl"
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/factorio-ctl"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx factorio-ctl:containerx",
+						"VERSION=$(grep '^version' apps/vm/factorio-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/factorio-ctl:latest kbve/factorio-ctl:$VERSION && echo \"Tagged kbve/factorio-ctl:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx factorio-ctl:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/vm/factorio-ctl/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/factorio-ctl:latest kbve/factorio-ctl:$VERSION && docker tag kbve/factorio-ctl:latest ghcr.io/kbve/factorio-ctl:latest && docker tag kbve/factorio-ctl:latest ghcr.io/kbve/factorio-ctl:$VERSION && echo \"Tagged ghcr.io/kbve/factorio-ctl:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/vm/factorio-ctl/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/factorio-ctl:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/factorio-ctl",
+							"kbve/factorio-ctl"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/factorio-ctl:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/factorio-ctl:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["scope:vm", "factorio", "infrastructure"]
+}

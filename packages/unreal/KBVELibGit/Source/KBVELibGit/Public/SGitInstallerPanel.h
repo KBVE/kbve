@@ -47,6 +47,12 @@ private:
 	/** Refresh button — clones/fetches the monorepo and reads remote versions */
 	FReply OnCheckForUpdatesClicked();
 
+	/** Write the lockfile from currently installed plugin versions */
+	FReply OnWriteLockClicked();
+
+	/** Pin a single plugin into the lockfile at the given version + ref, then save */
+	void PinToLock(const FString& Name, const FString& Version, const FString& Ref);
+
 	/** Install a specific plugin from the registry */
 	void OnInstallRegistryPlugin(TSharedPtr<FKBVEPluginEntry> Entry);
 

@@ -12,24 +12,102 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 125
-  item_id: 1077
-  item_type: armor
-  slot: legs
-  type: platelegs
-  tradeable: true
-  weight: 9.071
-  requirements:
-    defence: 10
-  stats:
-    stab_defence: 21
-    slash_defence: 20
-    crush_defence: 19
-    ranged_defence: 20
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2001-02-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 9.071
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 21
+      slash: 20
+      crush: 19
+      magic: -4
+      ranged: 20
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Animated Black Armour
+        quantity: "1"
+        rarity: Always
+      - source: Deviant spectre
+        quantity: "1"
+        rarity: 1/512
+      - source: Repugnant spectre
+        quantity: "1"
+        rarity: 1/512
+  shops:
+    - shop_name: Louie's Armoured Legs Bazaar
+      location: Al Kharid
+      price: 1920
+      currency: coins
+      stock: 1
+    - shop_name: Valaine's Shop of Champions
+      location: Champions' Guild
+      price: 2496
+      currency: coins
+      stock: 1
+  treasure_trail:
+    tier: easy
+    is_reward: false
+    reward_tiers:
+      - easy
   related_items:
-    - slug: mithril-platelegs
-    - slug: black-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Mithril platelegs
+      slug: mithril-platelegs
+      relationship: upgrade
+      description: Next melee armour tier above black with higher Defence requirement.
+    - item_name: Black platebody
+      slug: black-platebody
+      relationship: set-piece
+      description: Body piece of the matching black plate set.
+    - item_name: Black plateskirt
+      slug: black-plateskirt
+      relationship: alternative
+      description: Identical stats in a lighter skirt model.
+  about: "Black platelegs are a free-to-play melee leg slot armour requiring 10 Defence to wear. They share their stats with the black plateskirt but weigh substantially more, and they can be obtained from monster drops or purchased from Louie's Armoured Legs Bazaar in Al Kharid."
+  market_strategy:
+    notes:
+      - "GE price hovers near low alch; supply is anchored by NPC shops capping the upside."
+      - "Demand comes from low-level Defence training and easy clue completion grinds."
+      - "Buy limit of 125 makes bulk flipping inefficient."
+  trading_tips:
+    - Buy below high-alch when nature runes are cheap to lock in a small profit.
+    - Source directly from Louie's shop for a guaranteed 1,920 GP resale floor.
+    - Combine with black platebody listings to target full-set buyers.
+  history:
+    - date: "2001-02-28"
+      description: "Released alongside the original black armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

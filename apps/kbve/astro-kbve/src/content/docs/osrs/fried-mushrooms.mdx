@@ -12,12 +12,73 @@ osrs:
   lowalch: 16
   highalch: 25
   limit: 13000
-  about: "Fried mushrooms is a members-only item in Old School RuneScape. High alchemy value: 25 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2006-01-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 46
+      xp: 60
+      materials:
+        - item_name: Sliced mushrooms
+          quantity: 1
+        - item_name: Bowl
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  passive_effects:
+    - name: Heal
+      description: Restores 5 Hitpoints when eaten.
+  related_items:
+    - item_name: Bittercap mushroom
+      slug: bittercap-mushroom
+      relationship: component
+      description: Source mushroom sliced before frying.
+    - item_name: Sliced mushrooms
+      slug: sliced-mushrooms
+      relationship: component
+      description: Prepared mushroom slices used as cooking ingredient.
+    - item_name: Mushroom & onion
+      slug: mushroom-onion
+      relationship: product
+      description: Combines fried mushrooms with fried onions at level 57 Cooking.
+    - item_name: Mushroom potato
+      slug: mushroom-potato
+      relationship: product
+      description: Further dish requiring mushroom & onion plus potato with butter.
+  about: "Fried mushrooms are a Gnome Cookery dish created by frying sliced Bittercap mushrooms in a bowl on a cooking range at Cooking level 46. The recipe grants 60 Cooking experience and the resulting food restores 5 Hitpoints. It is an intermediate ingredient for higher tier Gnome dishes such as mushroom & onion and mushroom potatoes."
+  market_strategy:
+    notes:
+      - "Niche Cooking ingredient; volume is driven by Gnome Cookery recipe chains."
+      - "Burn rate stops at Cooking level 90, simplifying mass production."
+  trading_tips:
+    - Pair purchases with Bittercap mushroom prices to gauge true margin.
+    - High GE limit (13,000) lets cooks restock daily for Gnome Restaurant routes.
+  history:
+    - date: "2006-01-30"
+      description: Released as part of the Gnome Restaurant cookery expansion.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

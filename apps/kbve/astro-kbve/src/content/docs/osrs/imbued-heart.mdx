@@ -12,69 +12,71 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 8
-  item:
-    type: magic_boost
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magic-boost
+    tier: high
+  properties:
+    release_date: "2016-09-15"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.35
-  effect:
-    invigorate:
-      base_boost: 1
-      percent_boost: 10
-      max_boost_at_99: 10
-      cooldown_minutes: 7
-      resets_on_death: true
+    options:
+      - Invigorate
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
       - source: Nuclear smoke devil
-        rate: 1/200
-      - source: Other superiors
-        rate: 1/200 - 1/1,376
-  market:
-    buy_limit: 8
-    price_estimate: 29000000
+        quantity: "1"
+        rarity: 1/200
+      - source: Colossal Hydra
+        quantity: "1"
+        rarity: 1/160
+      - source: Guardian drake
+        quantity: "1"
+        rarity: 1/368
+      - source: Greater abyssal demon
+        quantity: "1"
+        rarity: 1/352
+  passive_effects:
+    - name: Invigorate
+      description: "Boosts Magic by 1 + 10% of the player's Magic level (rounded down); 7-minute cooldown shared across all hearts owned, resets on death."
   related_items:
-    - item_id: 27277
-      item_name: Saturated heart
+    - item_name: Saturated heart
       slug: saturated-heart
       relationship: upgrade
-      description: Upgraded version
-    - item_id: 3040
-      item_name: Magic potion
+      description: Upgraded heart with +3 stronger boost and 5-minute cooldown.
+    - item_name: Magic potion
       slug: magic-potion
       relationship: alternative
-      description: Alternative boost
-    - item_id: 27616
-      item_name: Ancient essence
+      description: Common alternative magic boost.
+    - item_name: Ancient essence
       slug: ancient-essence
       relationship: component
-      description: Upgrade material
+      description: 150,000 essence consumed to upgrade into a saturated heart.
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Magic Boost |
-    | Tradeable | Yes |
-    | Weight | 0.35 kg |
+    The imbued heart is a rare drop from superior slayer monsters, providing a reusable Invigorate option that boosts Magic by 1 + 10% of the player's Magic level (10 at level 99) on a 7-minute cooldown shared across all hearts.
 
-    Invigorate:
-    - Boosts Magic by 1 + 10% of level
-    - At 99 Magic: +10 levels
-    - Cooldown: 7 minutes
-    - Resets on death
-
-    Essential for:
-    - Magic bossing
-    - Raids
-    - Any high-level magic content
-    - Unlimited uses
-
-    Best magic boost item in the game.
+    With 150,000 ancient essence it can be upgraded irreversibly into a saturated heart for a stronger boost without gradual drain and a 5-minute cooldown.
   market_strategy:
     notes:
-      - Farm superiors for drop
-      - Unlimited uses
-      - Upgrade to saturated
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply tracks superior slayer popularity (Nuclear smoke devil, Colossal Hydra)."
+      - "Long-term demand from raids, ToA, and TzKal-Zuk attempts keeps a strong floor."
+      - "Saturated heart upgrade sinks supply over time."
+  trading_tips:
+    - Track ancient essence prices to gauge saturated heart upgrade pressure.
+    - Watch superior slayer balance changes; rare-drop tweaks shift supply quickly.
+  history:
+    - date: "2016-09-15"
+      description: "Released as a rare drop from superior variants of slayer monsters."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

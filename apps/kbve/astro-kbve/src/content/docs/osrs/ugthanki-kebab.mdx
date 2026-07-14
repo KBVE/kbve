@@ -1,6 +1,6 @@
 ---
 title: Ugthanki kebab | OSRS Price Data
-description: "Ugthanki kebab: A fresh kebab made from ugthanki meat.. High alch: 12 GP, GE limit: 10,000."
+description: "Ugthanki kebab: A fresh kebab made from ugthanki meat. High alch: 12 GP, GE limit: 10,000."
 osrs:
   id: 1885
   name: Ugthanki kebab
@@ -12,9 +12,70 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 10000
-  about: "Ugthanki kebab is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: mid
+  food:
+    heals: 19
+    effect: Restores 19 Hitpoints per bite.
+  recipes:
+    - name: Ugthanki kebab
+      skill: Cooking
+      level: 1
+      xp: 40
+      materials:
+        - item_name: Ugthanki kebab mix
+          quantity: 1
+        - item_name: Pitta bread
+          quantity: 1
+      tools: []
+      notes: Combine the mix with pitta bread; failure produces a kebab (bad).
+  related_items:
+    - item_id: 1881
+      item_name: Ugthanki kebab mix
+      slug: ugthanki-kebab-mix
+      relationship: component
+      description: Required ingredient mixed into pitta bread.
+    - item_id: 1865
+      item_name: Pitta bread
+      slug: pitta-bread
+      relationship: component
+      description: Bread base for the kebab recipe.
+    - item_id: 4608
+      item_name: Super kebab
+      slug: super-kebab
+      relationship: upgrade
+      description: Created by adding red hot sauce to an Ugthanki kebab.
+  about: Members food made during the Tourist Trap quest line; heals 19 Hitpoints and combines with red hot sauce to make a Super kebab.
+  market_strategy:
+    notes:
+      - Cooking creation profit floats around 100-200 GP per kebab
+      - Demand rises when food prices on standard food climb
+  trading_tips:
+    - Watch pitta bread and kebab mix margins for combo flips
+    - High volume - thin margins, scale carefully on bulk buys
+  history:
+    - date: "2003-04-14"
+      description: Released with the Tourist Trap quest update.
+  properties:
+    release_date: "2003-04-14"
+    update: Tourist Trap
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Tourist Trap
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -66,7 +66,7 @@ jobs:
         steps:
             - name: Checkout (for composite action)
               if: inputs.checkout != false
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   sparse-checkout: .github/actions/virustotal-scan
                   sparse-checkout-cone-mode: false

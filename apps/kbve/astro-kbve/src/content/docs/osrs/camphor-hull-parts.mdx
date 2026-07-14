@@ -12,9 +12,67 @@ osrs:
   lowalch: 2500
   highalch: 3750
   limit: 100
-  about: "Camphor hull parts is a members-only item in Old School RuneScape. High alchemy value: 3,750 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: shipwright
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 53
+      xp: 400
+      materials:
+        - item_name: Camphor plank
+          quantity: 5
+      tools:
+        - Saw
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Camphor plank
+      slug: camphor-plank
+      relationship: component
+      description: Source plank for the parts
+    - item_name: Camphor hull
+      slug: camphor-hull
+      relationship: product
+      description: Final boat hull built from parts
+    - item_name: Large camphor hull parts
+      slug: large-camphor-hull-parts
+      relationship: alternative
+      description: Larger variant for sloops
+  about: |-
+    "Parts for creating a camphor hull for a boat."
+
+    Camphor hull parts are crafted at a shipwrights' workbench from 5 camphor planks at level 53 Construction, granting 400 XP per part. Ten parts assemble a camphor hull for a skiff, while sloops use the larger variant. Released November 19, 2025 with the boat-building update.
+  market_strategy:
+    notes:
+      - "New Shipwright Construction loop"
+      - "Plank cost vs GE arbitrage"
+      - "Buy limit 100 caps speculation"
+      - "Crafting yields modest profit"
+      - "Demand tied to boat ownership rate"
+  trading_tips:
+    - Track camphor plank prices
+    - Bulk flipping for skiff builders
+    - Watch sloop large-part premium
+  history:
+    - date: "2025-11-19"
+      description: Released with Shipwright boat construction update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

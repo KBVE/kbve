@@ -1,6 +1,6 @@
 ---
 title: Raw rainbow fish | OSRS Price Data
-description: "Raw rainbow fish: A colourful fish, attracted to colourful flies.. High alch: 72 GP, GE limit: 13,000."
+description: "Raw rainbow fish is a members-only river fish caught with feather and fly fishing rod at 38 Fishing for Cooking and Fish Flingers content. High alch: 72 GP, GE limit: 13,000."
 osrs:
   id: 10138
   name: Raw rainbow fish
@@ -12,9 +12,74 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 13000
-  about: "Raw rainbow fish is a members-only item in Old School RuneScape. High alchemy value: 72 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2004-09-13"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    destroy: "Drop"
+    alchable: true
+  material:
+    type: fish
+    tier: mid
+  fishing:
+    level: 38
+    xp: 80
+    tool: Fly fishing rod
+    bait: Stripy feather
+    locations:
+      - Fish Flingers Distraction & Diversion
+  recipes:
+    - skill: cooking
+      level: 35
+      xp: 110
+      materials:
+        - item_name: Raw rainbow fish
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      product: Rainbow fish
+  related_items:
+    - item_name: Rainbow fish
+      slug: rainbow-fish
+      relationship: product
+      description: Cooked rainbow fish that heals 11 hitpoints.
+    - item_name: Burnt fish
+      slug: burnt-fish
+      relationship: alternative
+      description: Failed cook output below 35 Cooking.
+    - item_name: Stripy feather
+      slug: stripy-feather
+      relationship: component
+      description: Bait used at Fish Flingers to catch rainbow fish.
+    - item_name: Raw trout
+      slug: raw-trout
+      relationship: alternative
+      description: Lower-tier fly-fishing target before unlocking salmon.
+  about: |-
+    Raw rainbow fish is caught exclusively at the Fish Flingers Distraction & Diversion, requiring 38 Fishing and a fly fishing rod baited with stripy feathers. It cooks at 35 Cooking for 110 XP into a rainbow fish that heals 11 hitpoints, making it a niche but flavourful Cooking XP source.
+
+    Outside of Fish Flingers, the raw fish only exists on the Grand Exchange thanks to participants flipping their bulk catches, so prices are dictated by event participation.
+  market_strategy:
+    notes:
+      - "Supply gated to Fish Flingers minigame participation."
+      - "Cooking XP/gp value rivals raw salmon for ironmen alternatives."
+      - "Limit 13,000 means flippers can move sizeable positions per cycle."
+  trading_tips:
+    - "Stock during off-peak Fish Flingers windows: supply thins."
+    - "Pair with stripy feathers when buying bulk for solo Fishing days."
+    - "Watch Cooking XP-rate guides: shifts in meta drive demand."
+  history:
+    - date: "2004-09-13"
+      description: "Released as part of the Fishing Trawler and Fish Flingers content updates."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Bone Block
+template: splash
 description: |
     Minecraft Bone Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 642
     ref: bone_block
     slug: bone-block
+    content_rev: 1
     display_name: Bone Block
     material: stone
     hardness: 2
@@ -24,10 +26,63 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bone_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Bone Block is a compact storage form for bone meal, crafted
+            from nine bone meal or found naturally as part of underground
+            fossil structures. It has a directional texture depending on
+            its placement axis.
+        lore: |
+            Bone Block was added in Java Edition 1.10 (16w20a) alongside
+            the fossil structures it decorates, giving skeleton-themed
+            ruins a distinctive bone-white block.
+    uses:
+        - title: Bone Meal Storage
+          ref: bone_meal
+          detail: |
+              Crafting nine Bone Meal into a Bone Block compacts it for
+              storage, and breaking or crafting it back yields nine Bone
+              Meal again.
+        - title: Note Block Instrument
+          ref: note_block
+          detail: |
+              Placing a note block on top of a Bone Block makes it play a
+              xylophone sound.
+    found_in:
+        - location: Fossils
+          detail: Generates as part of fossil structures in deserts and swamps, and nether fossils in soul sand valleys.
+        - location: Trial Chambers
+          detail: Also appears as decoration within trial chamber structures.
+        - location: Crafting
+          detail: Craftable directly from nine bone meal.
+    faq:
+        - question: What tool do I need to mine Bone Block?
+          answer: |
+              Any pickaxe, even wooden, mines it and drops the block itself.
+        - question: Can I turn a Bone Block back into bone meal?
+          answer: |
+              Yes, crafting it in any crafting grid converts it back into
+              nine bone meal.
+        - question: Is Bone Block flammable?
+          answer: |
+              No, it does not burn or catch fire from lava.
+        - question: Where do Bone Blocks generate naturally?
+          answer: |
+              Inside fossil structures found underground in deserts and
+              swamps, in soul sand valley nether fossils, and in trial
+              chambers.
     data_version: "1.21.5"
 ---
 

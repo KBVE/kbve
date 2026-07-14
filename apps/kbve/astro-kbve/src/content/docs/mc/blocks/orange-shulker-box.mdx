@@ -1,5 +1,6 @@
 ---
 title: Orange Shulker Box
+template: splash
 description: |
     Minecraft Orange Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 647
     ref: orange_shulker_box
     slug: orange-shulker-box
+    content_rev: 1
     display_name: Orange Shulker Box
     material: stone
     hardness: 2
@@ -24,10 +26,57 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - storage
+        - dyeable
+        - overworld
+    about:
+        description: |
+            Orange Shulker Box is a portable storage block with 27 inventory
+            slots that keeps its contents intact when mined, unlike a chest.
+            It is crafted by dyeing a plain shulker box with orange dye.
+        lore: |
+            Introduced in 1.11 alongside the shulker mob, shulker boxes
+            revolutionized item logistics by letting players carry entire
+            inventories worth of items in a single stack.
+    uses:
+        - title: Portable inventory storage
+          ref: orange_shulker_box
+          detail: |
+              Holds 27 slots of items that travel with the box when broken
+              or moved, and can be read by redstone comparators without
+              opening it.
+    found_in:
+        - location: Crafting table
+          detail: 2 shulker shells + 1 chest crafts a plain shulker box, then dye it orange.
+        - location: Cauldron
+          detail: Water in a cauldron removes the dye, reverting it to a plain shulker box.
+    faq:
+        - question: What tool do I need to mine an Orange Shulker Box?
+          answer: |
+              A pickaxe is fastest, but any tool or bare hands works — no
+              specific tier is required.
+        - question: Do I lose the items inside when I mine it?
+          answer: |
+              No. The contents stay stored inside the dropped item, so you
+              can safely relocate a full shulker box.
+        - question: Can I change the color later?
+          answer: |
+              Yes, dye it again with a different color, or rinse it in a
+              water-filled cauldron to remove the color entirely.
+        - question: Are shulker boxes guarded?
+          answer: |
+              Nearby piglins become hostile if a player opens or mines a
+              shulker box in the Nether.
     data_version: "1.21.5"
 ---
 

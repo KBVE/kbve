@@ -1,6 +1,6 @@
 ---
 title: Bronze cannonball | OSRS Price Data
-description: "Bronze cannonball: Ammo suited for a boat's cannon.. High alch: 1 GP, GE limit: 11,000."
+description: "Bronze cannonball: Ammo suited for a boat's cannon. High alch: 1 GP, GE limit: 11,000."
 osrs:
   id: 31906
   name: Bronze cannonball
@@ -12,9 +12,78 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Bronze cannonball is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 5
+      xp: 9
+      materials:
+        - item_name: Bronze bar
+          quantity: 1
+      tools:
+        - Ammo mould
+        - Furnace
+      output_quantity: 4
+  shops:
+    - shop_name: Trader Stan's Trading Post
+      location: Various ports
+      price: 6
+      currency: Coins
+      stock: 0
+    - shop_name: Port Roberts Cannonball Stall
+      location: Port Roberts
+      price: 6
+      currency: Coins
+      stock: 0
+  drop_table:
+    sources:
+      - source: Dolphin
+        quantity: "1"
+        rarity: common
+      - source: Pirate
+        quantity: "1"
+        rarity: uncommon
+  related_items:
+    - item_name: Bronze bar
+      slug: bronze-bar
+      relationship: component
+      description: Smithing material
+    - item_name: Cannonball
+      slug: cannonball
+      relationship: alternative
+      description: Standard Dwarf Cannon ammo
+  about: |-
+    > _"Ammo suited for a boat's cannon."_
+
+    Bronze cannonball is the entry-tier boat cannon ammunition released with the Sailing skill update. Smith 4 at level 5 from a single bronze bar (9 XP) using an ammo mould at a furnace. Used in ship combat for bronze and stronger boat cannons.
+  market_strategy:
+    notes:
+      - "Stackable bulk ammo"
+      - "Demand tied to Sailing combat content"
+      - "Cheap entry-tier alternative to higher metals"
+  trading_tips:
+    - Bulk smith when bronze bars are below GE floor
+    - Stockpile ahead of Sailing event weekends
+  history:
+    - date: "2025-11-19"
+      description: "Added with the launch of the Sailing skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

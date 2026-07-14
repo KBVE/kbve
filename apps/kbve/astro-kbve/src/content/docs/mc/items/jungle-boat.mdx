@@ -1,5 +1,6 @@
 ---
 title: Jungle Boat
+template: splash
 description: |
     Minecraft Jungle Boat — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 816
     ref: jungle_boat
     slug: jungle-boat
+    content_rev: 1
     display_name: Jungle Boat
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The jungle boat is a drivable vehicle crafted from five jungle planks arranged in a U-shape. It carries up to two riders across water at roughly 8 blocks per second, and can travel far faster over ice, making frozen rivers and canals a popular fast-transit option.
+            Like other boats it fully protects its rider from fall damage while afloat, but it can be destroyed by explosions, fire, lava, cactus, or a strong enough mob attack.
+        lore: |
+            Non-oak boats such as the jungle variant weren't craftable until years after boats were first added to the game, giving builders a wood-matched ride for every biome.
+    faq:
+        - question: How fast does a jungle boat travel?
+          answer: |
+              On open water it moves at about 8 blocks per second, but on ice it can reach much higher speeds, making ice canals the fastest way to travel by boat.
+        - question: Can a jungle boat carry a chest?
+          answer: |
+              Yes. Combining a chest with a jungle boat creates a jungle boat with chest, trading the second passenger seat for 27 slots of mobile storage.
+        - question: How many players can ride in one jungle boat?
+          answer: |
+              Up to two entities can ride at once, one steering in the front seat and one passenger in the back.
+        - question: What can destroy a jungle boat?
+          answer: |
+              Explosions, fire, lava, cactus, and sufficiently strong mob or player attacks will break a jungle boat and drop it as an item.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

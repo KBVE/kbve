@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Vampyre dust is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: organic
+    tier: low
+  properties:
+    release_date: "2004-10-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Feral Vampyre
+        quantity: "1"
+        rarity: Always
+      - source: Vyrewatch
+        quantity: "1"
+        rarity: Always
+      - source: Vampyre Juvenile
+        quantity: "1"
+        rarity: Always
+      - source: Vampyre Juvinate
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Rod of ivandis
+      slug: rod-of-ivandis
+      relationship: alternative
+      description: Used together with vampyre dust in quests and Sepulchre prep
+    - item_name: Silver dust
+      slug: silver-dust
+      relationship: alternative
+      description: Similar dust reagent used in anti-vampyre crafting
+  about: "Vampyre dust is a members-only drop obtained from various vampyres around Morytania. It is used to bypass holy barriers on Saradomin Braziers in the Hallowed Sepulchre (54 Prayer, 200 XP per use) and is also a quest item in Forgettable Tale... where 20 dust enchant an ornate undead combat dummy."
+  market_strategy:
+    notes:
+      - "Reliable always-drop from Morytania vampyres makes supply steady"
+      - "Sepulchre prayer trainers create consistent buy-side demand"
+      - "Low unit price means flips need volume to be worthwhile"
+  trading_tips:
+    - Stack 4-hour limits across alts when supplying Sepulchre runners
+    - Monitor Sepulchre meta updates that change prayer XP rates
+  history:
+    - date: "2018-05-24"
+      description: "Renamed from Vampire dust to Vampyre dust to match the Morytania spelling convention."
+    - date: "2004-10-14"
+      description: "Item added to Old School RuneScape."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

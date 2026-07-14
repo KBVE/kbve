@@ -8,12 +8,19 @@ use utoipa::ToSchema;
 pub enum RowsError {
     #[error("not found: {0}")]
     NotFound(String),
-    #[error("unauthorized")]
-    Unauthorized,
+    #[error("unauthorized: {0}")]
+    Unauthorized(String),
+    #[error("forbidden: {0}")]
+    Forbidden(String),
     #[error("bad request: {0}")]
     BadRequest(String),
     #[error("conflict: {0}")]
     Conflict(String),
+    /// Retryable "try again shortly": maps to HTTP 503 (+ `Retry-After`) / gRPC `unavailable`. Used
+    /// by the admission gate to pause new joins — a retryable signal the client backs off on, NOT
+    /// `Conflict` (409 / `already_exists`), which clients treat as permanent (F2).
+    #[error("unavailable: {0}")]
+    Unavailable(String),
     #[error("database: {0}")]
     Database(#[from] sqlx::Error),
     #[error("internal: {0}")]
@@ -24,9 +31,11 @@ impl RowsError {
     pub fn status(&self) -> StatusCode {
         match self {
             Self::NotFound(_) => StatusCode::NOT_FOUND,
-            Self::Unauthorized => StatusCode::UNAUTHORIZED,
+            Self::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+            Self::Forbidden(_) => StatusCode::FORBIDDEN,
             Self::BadRequest(_) => StatusCode::BAD_REQUEST,
             Self::Conflict(_) => StatusCode::CONFLICT,
+            Self::Unavailable(_) => StatusCode::SERVICE_UNAVAILABLE,
             Self::Database(_) | Self::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -34,9 +43,11 @@ impl RowsError {
     pub fn code(&self) -> &'static str {
         match self {
             Self::NotFound(_) => "NOT_FOUND",
-            Self::Unauthorized => "UNAUTHORIZED",
+            Self::Unauthorized(_) => "UNAUTHORIZED",
+            Self::Forbidden(_) => "FORBIDDEN",
             Self::BadRequest(_) => "BAD_REQUEST",
             Self::Conflict(_) => "CONFLICT",
+            Self::Unavailable(_) => "UNAVAILABLE",
             Self::Database(_) => "DATABASE_ERROR",
             Self::Internal(_) => "INTERNAL_ERROR",
         }
@@ -45,11 +56,29 @@ impl RowsError {
     pub fn into_tonic(self) -> tonic::Status {
         match &self {
             Self::NotFound(m) => tonic::Status::not_found(m),
-            Self::Unauthorized => tonic::Status::unauthenticated("unauthorized"),
+            Self::Unauthorized(m) => tonic::Status::unauthenticated(m),
+            Self::Forbidden(m) => tonic::Status::permission_denied(m),
             Self::BadRequest(m) => tonic::Status::invalid_argument(m),
             Self::Conflict(m) => tonic::Status::already_exists(m),
-            Self::Database(e) => tonic::Status::internal(e.to_string()),
+            Self::Unavailable(m) => tonic::Status::unavailable(m),
+            Self::Database(e) => {
+                tracing::error!(error = %e, "database error");
+                tonic::Status::internal("database error")
+            }
             Self::Internal(m) => tonic::Status::internal(m),
+        }
+    }
+
+    /// Client-safe message. `sqlx::Error` strings carry SQL + schema detail (table and constraint
+    /// names, connection targets), so DB errors are logged server-side and collapsed to a generic
+    /// string before leaving the process. The other variants are application-authored.
+    fn client_message(&self) -> Cow<'static, str> {
+        match self {
+            Self::Database(e) => {
+                tracing::error!(error = %e, "database error");
+                Cow::Borrowed("database error")
+            }
+            other => Cow::Owned(other.to_string()),
         }
     }
 }
@@ -65,12 +94,22 @@ struct ApiErrorBody<'a> {
 impl IntoResponse for RowsError {
     fn into_response(self) -> Response {
         let status = self.status();
+        let code = self.code();
+        // Advertise a retry window on the retryable 503 so a compliant client backs off (F2).
+        let retry_after = matches!(self, Self::Unavailable(_));
         let body = ApiErrorBody {
             success: false,
-            code: self.code(),
-            error_message: Cow::Owned(self.to_string()),
+            code,
+            error_message: self.client_message(),
         };
-        (status, axum::Json(body)).into_response()
+        let mut response = (status, axum::Json(body)).into_response();
+        if retry_after {
+            response.headers_mut().insert(
+                axum::http::header::RETRY_AFTER,
+                axum::http::HeaderValue::from_static("5"),
+            );
+        }
+        response
     }
 }
 
@@ -99,3 +138,37 @@ impl SuccessResponse {
 }
 
 pub type ApiResult<T> = Result<axum::Json<T>, RowsError>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::header::RETRY_AFTER;
+
+    // The admission gate's paused-join error must be a *retryable* signal (F2): HTTP 503 /
+    // gRPC `unavailable` with code `UNAVAILABLE` — NOT 409/`already_exists`, which clients treat
+    // as permanent. Guards the F2 contract against a future edit to the error mapping.
+    #[test]
+    fn unavailable_maps_to_retryable_status_and_code() {
+        let err = RowsError::Unavailable("paused".into());
+        assert_eq!(err.status(), StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(err.code(), "UNAVAILABLE");
+        assert_eq!(err.into_tonic().code(), tonic::Code::Unavailable);
+    }
+
+    // The 503 must advertise a retry window so a compliant client backs off rather than failing hard.
+    #[test]
+    fn unavailable_response_sets_retry_after() {
+        let resp = RowsError::Unavailable("paused".into()).into_response();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+        let retry = resp.headers().get(RETRY_AFTER);
+        assert_eq!(retry.and_then(|v| v.to_str().ok()), Some("5"));
+    }
+
+    // Only `Unavailable` is retryable: other errors must not carry a Retry-After hint.
+    #[test]
+    fn non_unavailable_response_has_no_retry_after() {
+        let resp = RowsError::Conflict("dupe".into()).into_response();
+        assert_eq!(resp.status(), StatusCode::CONFLICT);
+        assert!(resp.headers().get(RETRY_AFTER).is_none());
+    }
+}

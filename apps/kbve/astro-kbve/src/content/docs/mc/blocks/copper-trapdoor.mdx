@@ -1,5 +1,6 @@
 ---
 title: Copper Trapdoor
+template: splash
 description: |
     Minecraft Copper Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1016
     ref: copper_trapdoor
     slug: copper-trapdoor
+    content_rev: 1
     display_name: Copper Trapdoor
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: copper_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Copper Trapdoor is a redstone-operable trapdoor crafted from
+            copper ingots. Like other copper blocks, it oxidizes over time
+            through four visual stages unless waxed with honeycomb.
+        lore: |
+            Copper Trapdoor was revealed at Minecraft Live 2023 and released
+            in Java Edition 1.21.
+    uses:
+        - title: Copper Door
+          ref: copper_door
+          detail: |
+              Pairs with the matching Copper Door as part of the oxidizable
+              copper building set, useful for redstone-controlled entrances.
+        - title: Honeycomb Waxing
+          ref: honeycomb
+          detail: |
+              Apply honeycomb to a copper trapdoor to wax it, halting further
+              oxidation at its current stage.
+    found_in:
+        - location: Crafted only
+          detail: Not found naturally generated; crafted from 4 copper ingots in a square pattern.
+    faq:
+        - question: What tool do I need to mine a Copper Trapdoor?
+          answer: |
+              A stone pickaxe or better; lower tools break it without a drop.
+        - question: Does a Copper Trapdoor oxidize like copper blocks?
+          answer: |
+              Yes. It progresses through normal, exposed, weathered, and
+              oxidized stages, changing color and appearance over time.
+        - question: Can I stop it from oxidizing?
+          answer: |
+              Yes. Apply honeycomb to wax it, which locks the trapdoor at
+              its current oxidation stage.
+        - question: How do I reverse oxidation?
+          answer: |
+              Right-click with an axe (while not waxed) to scrape off one
+              oxidation stage, or expose it to a lightning strike.
     data_version: "1.21.5"
 ---
 

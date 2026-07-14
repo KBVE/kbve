@@ -12,9 +12,82 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 8
-  about: "Elder chaos top is a members-only item in Old School RuneScape. High alchemy value: 480 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: magic_robe
+    tier: mid-high
+  properties:
+    release_date: "2016-07-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.2
+    options: ["Wear"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.2
+    requirements:
+      magic: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 8
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 1
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Elder Chaos druid"
+        quantity: "1"
+        rarity: "1/1,419"
+  related_items:
+    - item_name: "Elder chaos hood"
+      slug: "elder-chaos-hood"
+      relationship: "set-piece"
+      description: "Headpiece companion in the Elder Chaos druid robe set."
+    - item_name: "Elder chaos robe"
+      slug: "elder-chaos-robe"
+      relationship: "set-piece"
+      description: "Legs piece companion in the Elder Chaos druid robe set."
+    - item_name: "Ahrim's robetop"
+      slug: "ahrims-robetop"
+      relationship: "alternative"
+      description: "Higher-end magic body for accounts with Defence levels."
+  about: "The Elder chaos top is a magic body slot robe dropped by Elder Chaos druids in the Wilderness at 1/1,419. Released July 21, 2016, it requires only 40 Magic - no Defence - making it best-in-slot magic body for 1-Defence pures. On May 29, 2024, its magic damage bonus was buffed from 0% to +1%, sharply lifting demand."
+  market_strategy:
+    notes:
+      - "Pure account staple - demand is steady from PvPers and bossing pures."
+      - "May 2024 magic damage buff +1% is the modern price floor."
+      - "Daily volume (~750) is healthy for a niche pure-magic body."
+      - "Wilderness drop source means PK risk affects supply pulses."
+  trading_tips:
+    - "Watch PvP tournament announcements - pure-build demand spikes the set."
+    - "Buy when Elder Chaos druid trip guides trend - oversupply temporarily depresses price."
+    - "Pair with the hood and robe for set bundles - bulk buyers pay margin."
+  history:
+    - date: "2016-07-21"
+      description: "Released as a drop from Elder Chaos druids in the Wilderness."
+    - date: "2024-05-29"
+      description: "Magic damage bonus increased from 0% to +1%."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

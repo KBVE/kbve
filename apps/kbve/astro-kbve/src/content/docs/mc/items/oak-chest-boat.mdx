@@ -1,5 +1,6 @@
 ---
 title: Oak Boat with Chest
+template: splash
 description: |
     Minecraft Oak Boat with Chest — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 811
     ref: oak_chest_boat
     slug: oak-chest-boat
+    content_rev: 1
     display_name: Oak Boat with Chest
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The oak boat with chest is a variant of the oak boat that carries a built-in chest with the same storage capacity as a regular chest. Crafted by combining an oak boat with a chest, it trades one passenger seat for cargo space, making it ideal for hauling goods across water. The chest's inventory can be accessed while riding or by another player interacting with it.
+        lore: |
+            A merchant's answer to the open sea, a plank hull with a strongbox lashed inside.
+    faq:
+        - question: How do I craft an oak boat with chest?
+          answer: |
+              Combine an oak boat with a chest in a crafting table to produce the chest boat variant.
+        - question: How much storage does the oak boat with chest have?
+          answer: |
+              It has the same number of inventory slots as a single chest.
+        - question: Can it still carry a passenger?
+          answer: |
+              It can only carry one entity total, since the chest occupies the space a second passenger would use, unlike a regular boat which can carry two.
+        - question: How do I access the chest while riding?
+          answer: |
+              You can sneak and interact with the boat, have another player interact with the chest section while you ride inside, or open your own inventory while seated in the boat.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

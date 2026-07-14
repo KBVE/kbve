@@ -109,7 +109,6 @@ namespace RareIcon
             BindElements();
             MountIntoFrame();
 
-            // Toggle visibility on app state changes (Boot/InTile hide HUD).
             _appState.Current.Subscribe(state =>
             {
                 var visible = state == AppInterfaceState.World;
@@ -166,7 +165,6 @@ namespace RareIcon
             _settingsBtn.clicked += _settings.Toggle;
             _releaseBtn.clicked  += ReleaseControl;
 
-            // Highlight Build button while build mode is active.
             _buildMode.Target.Subscribe(target =>
             {
                 bool active = target != BuildTarget.None;
@@ -199,12 +197,7 @@ namespace RareIcon
             }
             if (_hoverPanel != null && _frame.BottomLeft != null)
             {
-                // Stays inside the footer for visual cohesion, but the
-                // panel's outer dimensions are pinned so swelling content
-                // (multi-resource hex, multi-slot pack) can't push
-                // BottomCenter sideways. Inner content wraps + scrolls
-                // within this fixed envelope instead of growing the
-                // outer footprint.
+
                 _hoverPanel.RemoveFromHierarchy();
                 _hoverPanel.RemoveFromClassList("tile-info");
                 _hoverPanel.AddToClassList("tile-info--inline");
@@ -217,8 +210,6 @@ namespace RareIcon
                 _frame.BottomLeft.Add(_hoverPanel);
             }
         }
-
-        // --- Clock ------------------------------------------------------------
 
         void RefreshClock()
         {
@@ -248,8 +239,6 @@ namespace RareIcon
                 _clockIcon.AddToClassList("hud-strip__icon--night");
             }
         }
-
-        // --- Controlled-unit indicator ---------------------------------------
 
         void RefreshControlIndicator()
         {
@@ -430,8 +419,6 @@ namespace RareIcon
             RefreshControlIndicator();
         }
 
-        // --- Hover tile-info -------------------------------------------------
-
         void OnHexHover(HexHoverMessage msg)
         {
             if (_hoverName == null) return;
@@ -558,8 +545,6 @@ namespace RareIcon
             sb.Append(label); sb.Append(' ');
             sb.Append((int)Mathf.Round(value)); sb.Append('/'); sb.Append((int)Mathf.Round(max));
         }
-
-        // --- Action: jump-to King -------------------------------------------
 
         void JumpToKing()
         {

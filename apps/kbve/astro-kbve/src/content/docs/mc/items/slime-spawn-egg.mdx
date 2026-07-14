@@ -1,5 +1,6 @@
 ---
 title: Slime Spawn Egg
+template: splash
 description: |
     Minecraft Slime Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 1123
     ref: slime_spawn_egg
     slug: slime-spawn-egg
+    content_rev: 1
     display_name: Slime Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Slime Spawn Egg is a Creative-mode item used to instantly spawn a
+            Slime, the bouncing, splitting cube mob most commonly found in swamp
+            biomes and deep underground slime chunks. It can only be obtained
+            through the Creative inventory or commands, since spawn eggs are not
+            craftable in Survival.
+        lore: |
+            Slimes were among the first hostile mobs added to Minecraft, and their
+            spawn egg lets creators and testers summon them on demand for builds,
+            farms, or combat testing.
+    faq:
+        - question: How do I get a Slime Spawn Egg?
+          answer: |
+              Slime Spawn Eggs can only be obtained from the Creative inventory
+              or by using a command such as /give; they cannot be crafted or
+              found in Survival mode.
+        - question: What happens when I use the Slime Spawn Egg?
+          answer: |
+              Using it on any block surface instantly spawns a Slime at that
+              location, playing the mob's ambient sound as it appears.
+        - question: Can I rename a Slime Spawn Egg for special effects?
+          answer: |
+              Yes, renaming it on an anvil can trigger easter-egg behaviors in
+              some spawn eggs, though Slime itself does not have a unique named
+              variant like some other mobs do.
+        - question: Do spawned slimes behave differently from natural ones?
+          answer: |
+              No, a slime spawned from the egg behaves exactly like a naturally
+              spawned slime, including splitting into smaller slimes when killed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Pegasian crystal | OSRS Price Data
-description: "Pegasian crystal: A powerful crystal of flight.. High alch: 27,000 GP, GE limit: 15."
+description: "Pegasian crystal is a members Cerberus drop used to craft Pegasian boots. High alch: 27,000 GP, GE limit: 15."
 osrs:
   id: 13229
   name: Pegasian crystal
@@ -12,66 +12,62 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 15
-  item:
-    type: crafting_material
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: upgrade-crystal
+    tier: high
+  properties:
+    release_date: "2015-08-27"
     tradeable: true
-  obtaining:
-    methods:
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
       - source: Cerberus
-        drop_rate: 1/520
-        requirements:
-          slayer: 91
-  creation:
-    creates:
-      item_id: 13237
-      item_name: Pegasian boots
-      slug: pegasian-boots
-    combine_with:
-      item_id: 2577
-      item_name: Ranger boots
-      slug: ranger-boots
-    requirements:
-      magic: 60
-      runecraft: 60
-    warning: Irreversible process
+        quantity: "1"
+        rarity: 1/520
   related_items:
-    - item_id: 0
-      item_name: Cerberus
-      slug: cerberus
-      relationship: component
-      description: Boss drop
-    - item_id: 13237
-      item_name: Pegasian boots
+    - item_name: Pegasian boots
       slug: pegasian-boots
       relationship: product
-      description: Created item
-    - item_id: 13231
-      item_name: Primordial crystal
+      description: Created by combining the crystal with ranger boots
+    - item_name: Ranger boots
+      slug: ranger-boots
+      relationship: component
+      description: Required base footwear for the upgrade
+    - item_name: Primordial crystal
       slug: primordial-crystal
       relationship: alternative
-      description: Melee version
+      description: Melee variant dropped by Cerberus
+    - item_name: Eternal crystal
+      slug: eternal-crystal
+      relationship: alternative
+      description: Magic variant dropped by Cerberus
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Stackable | No |
+    Pegasian crystal is the ranged-focused crystal dropped by Cerberus at a 1/520 rate. Released 27 August 2015, it requires 91 Slayer to encounter the boss and combines with ranger boots to create the Pegasian boots, the best-in-slot ranged footwear in OSRS.
 
-    Combine with Ranger boots to create Pegasian boots.
-
-    | Requirement | Level |
-    |-------------|-------|
-    | Magic | 60 |
-    | Runecraft | 60 |
-
-    Warning: Irreversible process.
+    The combining process requires 60 Magic and 60 Runecraft, grants 200 XP in both skills, and cannot be reversed. The crystal is the cheapest of the three Cerberus crystals due to ranger boots being the most accessible base item.
   market_strategy:
     notes:
-      - Cheapest Cerberus crystal
-      - Limited by ranger boots supply
-      - Farm Cerberus on task
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheapest Cerberus crystal of the three primordial/eternal options"
+      - "Price closely tracks Cerberus task popularity and ranger boots supply"
+      - "15 buy limit makes this a slow but high-value flip"
+  trading_tips:
+    - Stack Cerberus Slayer tasks to farm crystals while gaining points
+    - Pair flips with ranger boots to time the boot creation arbitrage
+  history:
+    - date: "2015-08-27"
+      description: "Released as a Cerberus boss drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

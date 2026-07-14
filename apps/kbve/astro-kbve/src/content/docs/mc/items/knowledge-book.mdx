@@ -1,5 +1,6 @@
 ---
 title: Knowledge Book
+template: splash
 description: |
     Minecraft Knowledge Book — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1229
     ref: knowledge_book
     slug: knowledge-book
+    content_rev: 1
     display_name: Knowledge Book
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Knowledge Book is a Java Edition-exclusive utility item that unlocks specific crafting
+            recipes for a player when used, and is consumed in the process. It is obtainable only through
+            commands and is primarily intended for custom maps and datapacks using restricted crafting.
+        lore: |
+            Despite not appearing in the Creative inventory, a Knowledge Book can still be stored inside a
+            chiseled bookshelf.
+    faq:
+        - question: Can I find a Knowledge Book in the Creative inventory?
+          answer: |
+              No, Knowledge Books are only obtainable through commands such as /give with a recipes tag.
+        - question: What happens when I use a Knowledge Book?
+          answer: |
+              The recipes specified in its data are unlocked in the player's recipe book, and the book is
+              consumed from the inventory.
+        - question: Are Knowledge Books useful in regular Survival gameplay?
+          answer: |
+              Not typically; they are designed for custom maps and datapacks that use the
+              doLimitedCrafting game rule to restrict crafting to unlocked recipes only.
+        - question: Can I store a Knowledge Book anywhere?
+          answer: |
+              Yes, it can be placed inside a chiseled bookshelf for storage and display.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

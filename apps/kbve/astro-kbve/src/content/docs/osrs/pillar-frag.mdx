@@ -12,9 +12,60 @@ osrs:
   lowalch: 20
   highalch: 31
   limit: 600
-  about: "Pillar frag is a members-only item in Old School RuneScape. High alchemy value: 31 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: coral fragment
+    tier: low
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+  drop_table:
+    sources:
+      - source: Aquanite
+        quantity: "1"
+        rarity: Common
+      - source: Stingray
+        quantity: "1"
+        rarity: Common
+      - source: Pygmy kraken
+        quantity: "1"
+        rarity: Uncommon
+  related_items:
+    - item_name: Pillar coral
+      slug: pillar-coral
+      relationship: product
+      description: Grown from pillar frags in a coral nursery patch
+    - item_name: Elkhorn coral
+      slug: elkhorn-coral
+      relationship: alternative
+      description: Alternative coral grown from frags
+    - item_name: Umbral coral
+      slug: umbral-coral
+      relationship: alternative
+      description: Alternative coral grown from frags
+  about: "Pillar frag is a Sailing-era coral nursery seed dropped by aquatic monsters and harvested during sailing content. Players propagate it at a coral nursery patch to grow pillar coral, which serves as the secondary ingredient for super fishing and super hunter potions added with the November 2025 Sailing release."
+  market_strategy:
+    notes:
+      - "Supply tracks Sailing activity and aquatic monster grinds; expect price dips during double XP events"
+      - "Limit of 600 per 4 hours allows decent flipping volume for new-content arbitrage"
+      - "Demand follows super fishing and super hunter potion consumption from herblore players"
+  trading_tips:
+    - Buy after major Sailing or potion-related updates when supply spikes from fresh grinders
+    - Sell into herblore prayer flick weeks when super hunter potions see usage spikes
+    - Watch coral nursery patch yield changes; a buff to nursery output crashes the frag price
+  history:
+    - date: "2025-11-19"
+      description: "Added to the game with the Sailing skill and coral nursery release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

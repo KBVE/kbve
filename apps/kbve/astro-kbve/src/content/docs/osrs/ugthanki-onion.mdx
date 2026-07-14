@@ -12,9 +12,75 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 11000
-  about: "Ugthanki & onion is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Chopped onion
+          quantity: 1
+        - item_name: Ugthanki meat
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Onion
+          quantity: 1
+        - item_name: Chopped ugthanki
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Kebab mix
+      slug: kebab-mix
+      relationship: product
+      description: "Combine with a tomato to make the kebab mix used for ugthanki kebabs"
+    - item_name: Ugthanki meat
+      slug: ugthanki-meat
+      relationship: component
+      description: "Camel meat needed alongside chopped onion to make this mixture"
+  about: Ugthanki & onion is an intermediate cooking ingredient for ugthanki kebabs. It is combined with a tomato to produce kebab mix, the base for the Gnome Restaurant minigame favourite.
+  market_strategy:
+    notes:
+      - "Niche cooking intermediate, low daily volume"
+      - "Used in the ugthanki kebab supply chain"
+      - "High GE limit but minimal price ceiling"
+  trading_tips:
+    - "Pair sourcing with chopped onion and ugthanki meat trades to maximize margins"
+    - "Watch for chef-quest spikes (e.g. Gertrude content events) that drive demand"
+  history:
+    - date: "2003-12-01"
+      description: "Added to the RS2 Beta cache"
+    - date: "2004-02-02"
+      description: "Became obtainable in the RS2 Beta"
+    - date: "2004-03-29"
+      description: "Made permanently available with the RS2 launch"
+    - date: "2006-01-30"
+      description: "Graphically updated"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

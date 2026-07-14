@@ -1,5 +1,6 @@
 ---
 title: Lodestone
+template: splash
 description: |
     Minecraft Lodestone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 882
     ref: lodestone
     slug: lodestone
+    content_rev: 1
     display_name: Lodestone
     material: stone
     hardness: 3.5
     blast_resistance: 3.5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lodestone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - navigation
+        - craftable
+        - decoration
+    about:
+        description: |
+            A lodestone is a crafted block that anchors a compass. Using a
+            compass on a lodestone binds the needle to point at that block
+            from anywhere in the same dimension, letting players build
+            reliable waypoints. It drops itself when mined with a pickaxe.
+        lore: |
+            Named after naturally magnetized magnetite, the lodestone lends
+            its pull to a compass so travelers never lose their way.
+    uses:
+        - title: Compass Anchor
+          detail: |
+              Right-click a compass on a lodestone to lock the compass to
+              that location, overriding its default world-spawn behavior.
+        - title: Waypoints
+          detail: |
+              Placed lodestones create a network of navigation points for
+              bases, portals, and remote outposts.
+    found_in:
+        - location: Crafting Table
+          detail: Craft with 8 chiseled stone bricks around 1 iron ingot (changed from netherite in 1.21.5, making it renewable).
+    faq:
+        - question: How do I make a compass point to a lodestone?
+          answer: |
+              Hold a compass and use it on the lodestone. The compass then
+              points to that block whenever you carry it in the same
+              dimension.
+        - question: Does a lodestone compass work in the Nether or End?
+          answer: |
+              A lodestone-bound compass points to the lodestone only while
+              you are in the same dimension as it; in other dimensions the
+              needle spins.
+        - question: Is a lodestone expensive to craft now?
+          answer: |
+              No longer — as of 1.21.5 it needs just one iron ingot instead
+              of a netherite ingot, making it fully renewable.
     data_version: "1.21.5"
 ---
 

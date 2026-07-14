@@ -12,9 +12,64 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Black toy horsey is a free-to-play item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2004-04-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.05
+    options: ["Play-with", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Diango's Toy Store
+      location: Draynor Village
+      price: 150
+      currency: coins
+      stock: 5
+    - shop_name: Rasolo the Wandering Merchant
+      location: South of Baxtorian Falls
+      price: 200
+      currency: coins
+      stock: 10
+  about: "Black toy horsey is a free-to-play novelty toy sold by Diango in Draynor Village. When played-with, the character announces \"Just say neigh to gambling!\" — a Jagex anti-real-world-trading message added in 2013. Originally released as a 2004 April Fool's joke (renamed from \"Toy horsey\" in 2014 when the color variants launched). High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
+  market_strategy:
+    notes:
+      - "Demand is purely collector / fashionscape — daily volume is low"
+      - "Diango's 150 gp shop price puts a soft floor under GE prices"
+      - "Rare during April Fool's anniversary content when promo demand spikes"
+  trading_tips:
+    - Buy from Diango at 150 gp when GE price climbs above shop spawn
+    - Stock the full toy horsey color set for collectors
+  related_items:
+    - item_name: White toy horsey
+      slug: white-toy-horsey
+      relationship: alternative
+      description: White color variant from Diango's Toy Store
+    - item_name: Brown toy horsey
+      slug: brown-toy-horsey
+      relationship: alternative
+      description: Brown color variant from Diango's Toy Store
+    - item_name: Grey toy horsey
+      slug: grey-toy-horsey
+      relationship: alternative
+      description: Grey color variant from Diango's Toy Store
+  history:
+    - date: "2004-04-01"
+      description: "Added to the game as an April Fool's novelty originally named \"Toy horsey\"."
+    - date: "2013-03-18"
+      description: "Play-with action changed to always say \"Just say neigh to gambling!\" replacing the previous random phrases."
+    - date: "2014-12-10"
+      description: "Renamed from \"Toy horsey\" to \"Black toy horsey\" when the white, brown and grey color variants were added."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

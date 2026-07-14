@@ -1,5 +1,6 @@
 ---
 title: Water Bucket
+template: splash
 description: |
     Minecraft Water Bucket — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 951
     ref: water_bucket
     slug: water-bucket
+    content_rev: 1
     display_name: Water Bucket
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Water Bucket is a filled bucket obtained by scooping up a water source block,
+            draining a cauldron, or trading with a wandering trader. It places an infinite water
+            source, extinguishes fire and lava, cancels fall damage when placed underfoot, and can
+            scoop up fish, axolotls, and tadpoles for transport. Like all filled buckets it does
+            not stack, occupying a single inventory slot.
+        lore: |
+            A humble tin container that turns any pond or ocean into a portable lifeline,
+            equally at home dousing flames as it is ferrying a fish to a new tank.
+    faq:
+        - question: Can I stack multiple Water Buckets together?
+          answer: |
+              No. Filled buckets, including the Water Bucket, are not stackable and each takes up
+              its own inventory slot.
+        - question: What happens if I empty a Water Bucket in the Nether?
+          answer: |
+              The water instantly evaporates with a hissing sound and smoke particles instead of
+              placing a source block, so it cannot be used to build in the Nether.
+        - question: Can a Water Bucket stop fall damage?
+          answer: |
+              Yes. Placing the water block an instant before landing negates fall damage, a
+              technique commonly called "water bucket clutching."
+        - question: Can I catch mobs with it?
+          answer: |
+              Yes. Using the bucket directly on a fish, axolotl, or tadpole scoops the creature up
+              into a corresponding mob bucket for transport and later release.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Diamond Shovel
+template: splash
 description: |
     Diamond Shovel — tier 5 dirt/sand/gravel/snow tool. 1561 durability.
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 824
     ref: diamond_shovel
     slug: diamond-shovel
+    content_rev: 1
     display_name: Diamond Shovel
     category: tool
     rarity: common
@@ -56,6 +58,31 @@ mc_item:
                 row: 2
                 col: 0
     data_version: "1.21.5"
+    about:
+        description: |
+            The diamond shovel is the second-highest tier of shovel, crafted from one
+            diamond and two sticks. It quickly digs dirt, sand, gravel, and snow, can
+            turn dirt into a path, extinguish campfires, and deals 5.5 hearts of attack
+            damage with 1,561 durability.
+        lore: |
+            Only the netherite shovel outclasses it, reachable by upgrading a diamond
+            shovel with a netherite ingot at a smithing table.
+    faq:
+        - question: How is a diamond shovel crafted?
+          answer: |
+              With one diamond and two sticks stacked vertically on a crafting table.
+        - question: What enchantments work best on a diamond shovel?
+          answer: |
+              Efficiency, Unbreaking, and Mending are popular; Fortune and Silk Touch are
+              mutually exclusive alternatives for drop control.
+        - question: Can I get an enchanted diamond shovel without an enchanting table?
+          answer: |
+              Yes — they appear in end city chests and bastion remnant chests, and
+              expert-level toolsmith villagers sell them.
+        - question: What blocks does a diamond shovel mine fastest?
+          answer: |
+              Dirt, sand, gravel, clay, mycelium, snow, and similar soft blocks; it can
+              also turn grass paths and put out campfires with a right-click.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

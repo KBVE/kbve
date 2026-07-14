@@ -12,9 +12,84 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Super kebab is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: mid
+  food:
+    heal_range: "Heals 3 HP + 7% of Hitpoints level on success"
+    effects:
+      - description: "20/32 chance to heal 3 HP plus 7% of player's Hitpoints level"
+      - description: "11/32 chance of no effect"
+      - description: "1/32 chance of draining a random non-Hitpoints stat by 3"
+  recipes:
+    - name: Super kebab (from normal kebab)
+      materials:
+        - item_name: Kebab
+          quantity: 1
+        - item_name: Red hot sauce
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - name: Super kebab (from ugthanki kebab)
+      materials:
+        - item_name: Ugthanki kebab
+          quantity: 1
+        - item_name: Red hot sauce
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - name: Super kebab (from bad ugthanki kebab)
+      materials:
+        - item_name: Bad ugthanki kebab
+          quantity: 1
+        - item_name: Red hot sauce
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Ali the Kebab seller
+      location: Pollnivneach
+      price: 5
+  related_items:
+    - name: Kebab
+      relationship: component
+    - name: Ugthanki kebab
+      relationship: component
+    - name: Bad ugthanki kebab
+      relationship: component
+    - name: Red hot sauce
+      relationship: component
+  about: "Super kebab is a members-only food made by adding red hot sauce to a kebab variant. It has a 20/32 chance of healing 3 plus 7% of the player's Hitpoints level, an 11/32 chance of nothing, and a 1/32 chance of draining a random non-HP stat by 3."
+  market_strategy:
+    notes:
+      - Bought from Ali the Kebab seller in Pollnivneach for 5 coins
+      - Random effect makes it unreliable for serious PvM
+      - GE limit of 15 keeps it a niche flip
+  trading_tips:
+    - Buy from NPC and resell on GE for steady margin
+    - Demand is tied to novelty rather than utility
+  history:
+    - date: "2005-04-04"
+      description: Released with the Ali Morrisane and Pollnivneach update.
+    - date: "2005-04-11"
+      description: Reclassified as a members-only item.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-04-04"
+    update: "Ali Morrisane and Pollnivneach"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

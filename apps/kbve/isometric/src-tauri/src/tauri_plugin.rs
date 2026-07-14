@@ -60,10 +60,10 @@ mod desktop {
                 .build(tauri::generate_context!())
                 .expect("error while building tauri application");
 
-            app.insert_non_send_resource(tauri_app.handle().clone());
-            app.insert_non_send_resource(TauriAppResource(Some(tauri_app)));
+            app.insert_non_send(tauri_app.handle().clone());
+            app.insert_non_send(TauriAppResource(Some(tauri_app)));
             if let Some(post_render) = self.post_render_fn.lock().unwrap().take() {
-                app.insert_non_send_resource(PostRenderSetup(Some(post_render)));
+                app.insert_non_send(PostRenderSetup(Some(post_render)));
             }
             app.add_systems(Startup, create_window_handle);
             app.set_runner(run_tauri_app);
@@ -142,7 +142,7 @@ mod desktop {
             let mut app_ref = app.borrow_mut();
             app_ref
                 .world_mut()
-                .remove_non_send_resource::<TauriAppResource>()
+                .remove_non_send::<TauriAppResource>()
                 .expect("TauriAppResource missing")
                 .0
                 .expect("Tauri app already consumed")
@@ -244,7 +244,7 @@ mod desktop {
 
         let post_render = app
             .world_mut()
-            .remove_non_send_resource::<PostRenderSetup>()
+            .remove_non_send::<PostRenderSetup>()
             .and_then(|mut h| h.0.take());
         if let Some(setup) = post_render {
             setup(app);

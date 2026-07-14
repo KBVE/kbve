@@ -12,21 +12,86 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bolt
+    tier: low
+  properties:
+    release_date: "9 September 2002"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    ranged_strength: 48
+    weapon_type: null
+    attack_speed: null
+    weight: 0
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 48
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 41
+      xp: 32
+      materials:
+        - item_name: Iron bolts
+          quantity: 10
+        - item_name: Pearl bolt tips
+          quantity: 10
+      tools: []
+      output_quantity: 10
   related_items:
-    - item_id: 879
-      item_name: Opal bolts
+    - item_name: Opal bolts
       slug: opal-bolts
       relationship: variant
-      description: Another gem bolt type
-  about: |-
-    > _"Pearl tipped Iron crossbow bolts."_
-
-    Pearl bolts provide +48 ranged strength. When enchanted, they become pearl bolts (e) with the Sea Curse effect — deals extra damage to fiery creatures.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Another gem-tipped bolt
+    - item_name: Pearl bolts (e)
+      slug: pearl-bolts-e
+      relationship: upgrade
+      description: Enchanted with Sea Curse effect
+    - item_name: Iron bolts
+      slug: iron-bolts
+      relationship: component
+      description: Base bolt before pearl tipping
+  about: "Pearl bolts are iron crossbow bolts tipped with pearls, providing +48 ranged strength. When enchanted via the Enchant Crossbow Bolt (Pearl) spell, they become pearl bolts (e) with the Sea Curse effect, dealing bonus damage to fiery creatures. Fletched at 41 Fletching by tipping iron bolts with pearl bolt tips."
+  market_strategy:
+    notes:
+      - "Common low-tier ranged ammo"
+      - "Enchanted variant for fire-based bosses"
+      - "Bulk Fletching XP at 41"
+  trading_tips:
+    - "Pearl bolt tips margin: source from Fossil Island Mycelium pool or GE"
+    - Iron bolt price floor sets the base cost
+  history:
+    - date: "9 September 2002"
+      description: "Released as part of the Sea Slug quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

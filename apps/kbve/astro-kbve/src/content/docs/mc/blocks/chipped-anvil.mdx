@@ -1,5 +1,6 @@
 ---
 title: Chipped Anvil
+template: splash
 description: |
     Minecraft Chipped Anvil — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 436
     ref: chipped_anvil
     slug: chipped-anvil
+    content_rev: 1
     display_name: Chipped Anvil
     material: metal
     hardness: 5
     blast_resistance: 1200
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chipped_anvil
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            The Chipped Anvil is the mid-damage stage of an anvil,
+            appearing after its first random degradation from repeated
+            use. It functions identically to an undamaged anvil, letting
+            players rename items, combine enchantments, and repair gear.
+        lore: |
+            Anvils, first mentioned by Notch in 2010, were added in Java
+            Edition 1.4.2 along with their damage-stage textures.
+    uses:
+        - title: Item Repair & Enchanting
+          ref: enchanted_book
+          detail: |
+              Use in an anvil interface to rename items, merge two
+              enchanted items, or combine an enchanted book with gear,
+              spending experience levels for each operation.
+    found_in:
+        - location: Woodland Mansion
+          detail: Damaged anvils generate in mansion forge rooms; chipped anvils also appear in trail ruins, or result from a base anvil degrading through use.
+    faq:
+        - question: What tool do I need to mine a Chipped Anvil?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining with anything less
+              (or no pickaxe at all) destroys it without a drop.
+        - question: How does an anvil become chipped?
+          answer: |
+              Each anvil use has a chance to degrade it one stage: normal
+              to chipped, then chipped to damaged, then damaged anvils can
+              break entirely on a failed roll.
+        - question: Does a Chipped Anvil work worse than a normal anvil?
+          answer: |
+              No. All anvil damage stages function identically for
+              repairing, renaming, and enchant merging; only the texture
+              differs.
+        - question: Can falling anvils hurt me?
+          answer: |
+              Yes. An anvil falling more than one block deals damage per
+              extra block fallen, up to a cap, and can also destroy items
+              or mobs beneath it.
     data_version: "1.21.5"
 ---
 

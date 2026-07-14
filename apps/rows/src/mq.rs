@@ -1,6 +1,6 @@
 use lapin::{
     Channel, Connection, ConnectionProperties, Consumer, ExchangeKind, options::*,
-    types::FieldTable,
+    types::{AMQPValue, FieldTable},
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -138,6 +138,57 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
     let spinup_queue = format!("rows.spinup.{world_server_id}");
     let shutdown_queue = format!("rows.shutdown.{world_server_id}");
 
+    // Dead-letter path for spin-up: `consume_spin_up` reject-no-requeues a twice-failed message;
+    // without a DLX that silently drops it (the player's join never gets a server). Declare a
+    // durable DLX + bounded durable DLQ so those failures are captured instead of lost. Best-effort:
+    // a failed declaration just logs and reverts to the prior drop-on-reject behavior. The spin-up
+    // queue is exclusive+auto_delete (recreated each connection), so adding `x-dead-letter-exchange`
+    // to it below can't conflict with immutable queue args.
+    const SPINUP_DLX: &str = "ows.serverspinup.dlx";
+    const SPINUP_DLQ: &str = "rows.spinup.dlq";
+    if let Err(e) = channel
+        .exchange_declare(
+            SPINUP_DLX.into(),
+            ExchangeKind::Fanout,
+            ExchangeDeclareOptions {
+                durable: true,
+                ..Default::default()
+            },
+            FieldTable::default(),
+        )
+        .await
+    {
+        warn!(error = %e, "Failed to declare spin-up DLX (continuing without dead-lettering)");
+    } else {
+        // Bounded so a sustained allocation outage can't grow the DLQ without limit.
+        let mut dlq_args = FieldTable::default();
+        dlq_args.insert("x-max-length".into(), AMQPValue::LongLongInt(10_000));
+        if let Err(e) = channel
+            .queue_declare(
+                SPINUP_DLQ.into(),
+                QueueDeclareOptions {
+                    durable: true,
+                    ..Default::default()
+                },
+                dlq_args,
+            )
+            .await
+        {
+            warn!(error = %e, "Failed to declare spin-up DLQ");
+        } else if let Err(e) = channel
+            .queue_bind(
+                SPINUP_DLQ.into(),
+                SPINUP_DLX.into(),
+                "".into(), // fanout: routing key ignored
+                QueueBindOptions::default(),
+                FieldTable::default(),
+            )
+            .await
+        {
+            warn!(error = %e, "Failed to bind spin-up DLQ to DLX");
+        }
+    }
+
     for (queue, exchange, routing_key) in [
         (
             &spinup_queue,
@@ -150,6 +201,14 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
             format!("ows.servershutdown.{world_server_id}"),
         ),
     ] {
+        // Only the spin-up queue dead-letters — its reject-no-requeue is the drop the audit flagged.
+        let mut queue_args = FieldTable::default();
+        if queue == &spinup_queue {
+            queue_args.insert(
+                "x-dead-letter-exchange".into(),
+                AMQPValue::LongString(SPINUP_DLX.into()),
+            );
+        }
         if let Err(e) = channel
             .queue_declare(
                 queue.as_str().into(),
@@ -158,7 +217,7 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
                     auto_delete: true,
                     ..Default::default()
                 },
-                FieldTable::default(),
+                queue_args,
             )
             .await
         {
@@ -211,6 +270,12 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
     }
 }
 
+fn tenant_matches(msg_guid: &str, tenant: uuid::Uuid) -> bool {
+    uuid::Uuid::parse_str(msg_guid)
+        .map(|g| g == tenant)
+        .unwrap_or(false)
+}
+
 async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
     use futures_lite::StreamExt;
 
@@ -232,17 +297,57 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
             }
         };
 
+        let guid = svc.state().config.customer_guid;
+        if !tenant_matches(&msg.customer_guid, guid) {
+            warn!(
+                msg_guid = %msg.customer_guid,
+                tenant_guid = %guid,
+                "Dropping spin-up message for a different tenant"
+            );
+            let _ = delivery.ack(BasicAckOptions::default()).await;
+            continue;
+        }
+
         info!(
             map = %msg.map_name,
             zone = msg.zone_instance_id,
             "Processing spin-up message"
         );
 
-        let guid = svc.state().config.customer_guid;
         if let Some(ref agones) = svc.state().agones {
             use crate::agones::AllocationPipeline;
+            use crate::repo::InstanceRepo;
 
-            let pipeline = AllocationPipeline::new(guid, &msg.map_name, &svc.state().db);
+            // When annotation stamping is on, read the per-map empty timeout to stamp
+            // `empty-shutdown-minutes`. When off (default) pass 0 — skips the DB read and omits the
+            // annotation. Read `maps` directly (not via `mapinstances`): the first server of a zone
+            // is allocated before its `mapinstances` row exists. A DB error falls back to a
+            // conservative value (not the 1-min not-found default) so a blip can't self-shutdown a server.
+            let empty_shutdown_minutes = if svc.state().config.reaper.stamp_empty_shutdown_annotation
+            {
+                let m = match InstanceRepo(&svc.state().db)
+                    .get_map_minutes_to_shutdown_after_empty(guid, &msg.map_name)
+                    .await
+                {
+                    Ok(m) => m,
+                    Err(e) => {
+                        tracing::warn!(
+                            error = %e,
+                            map = %msg.map_name,
+                            "Failed to read empty-shutdown-minutes; using conservative fallback to avoid premature UE self-shutdown"
+                        );
+                        crate::repo::FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR
+                    }
+                };
+                // Floor by `min_empty_secs` so a map's aggressive 1-min default can't self-shutdown
+                // a server under a still-loading player.
+                m.max(svc.state().config.reaper.empty_shutdown_minutes_floor())
+            } else {
+                0 // annotation stamping off: no DB read, no annotation (see allocate.rs)
+            };
+
+            let pipeline =
+                AllocationPipeline::new(guid, &msg.map_name, &svc.state().db, empty_shutdown_minutes);
 
             match async {
                 let p = pipeline.allocate_via_agones(agones).await?;
@@ -266,11 +371,14 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
                 Err(e) => {
                     error!(error = %e, zone = msg.zone_instance_id, "MQ spin-up: pipeline failed");
 
-                    if delivery.delivery_tag > 2 {
-                        warn!(
-                            zone = msg.zone_instance_id,
-                            "DLQ: rejecting after repeated failures"
-                        );
+                    // Retry-once policy keyed on `redelivered` (per-MESSAGE), not `delivery_tag`
+                    // (a per-CHANNEL counter — `> 2` would drop any failure once the channel warmed
+                    // up, and requeue forever on a cold channel). First failure → requeue; a message
+                    // that fails again (redelivered) → reject no-requeue, which dead-letters it to
+                    // `ows.serverspinup.dlx` → `rows.spinup.dlq` (declared in `spawn_consumer`, audit
+                    // L1) for inspection, instead of silently dropping it.
+                    if delivery.redelivered {
+                        warn!(zone = msg.zone_instance_id, "Dead-lettering spin-up after one retry (→ rows.spinup.dlq)");
                         let _ = delivery.reject(BasicRejectOptions { requeue: false }).await;
                         continue;
                     }
@@ -304,6 +412,17 @@ async fn consume_shut_down(mut consumer: Consumer, svc: Arc<OWSService>) {
                 continue;
             }
         };
+
+        let guid = svc.state().config.customer_guid;
+        if !tenant_matches(&msg.customer_guid, guid) {
+            warn!(
+                msg_guid = %msg.customer_guid,
+                tenant_guid = %guid,
+                "Dropping shutdown message for a different tenant"
+            );
+            let _ = delivery.ack(BasicAckOptions::default()).await;
+            continue;
+        }
 
         info!(zone = msg.zone_instance_id, "Processing shutdown message");
 

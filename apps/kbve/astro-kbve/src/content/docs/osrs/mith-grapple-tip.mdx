@@ -12,9 +12,65 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 11000
-  about: "Mith grapple tip is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: smithing_component
+    tier: mid
+  properties:
+    release_date: "31 July 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 59
+      xp: 50
+      action: Smith on an anvil
+      materials:
+        - item_name: Mithril bar
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Mithril bar
+      slug: mithril-bar
+      relationship: component
+      description: "Smithed into a mith grapple tip at level 59 Smithing"
+    - item_name: Mithril bolts
+      slug: mithril-bolts
+      relationship: component
+      description: "Fletched onto the grapple tip to form an unfinished grapple"
+    - item_name: Mith grapple
+      slug: mith-grapple
+      relationship: product
+      description: "Final grapple used with a crossbow for agility-based climbs"
+    - item_name: Rope
+      slug: rope
+      relationship: component
+      description: "Tied to the grapple to finish the assembly"
+  about: "Mith grapple tip is the smithed mithril component used to make mithril grapples. Forged at 59 Smithing from one mithril bar on an anvil with a hammer for 50 XP, it then receives mithril bolts via Fletching (59, 11 XP) before being tied to a rope to produce the finished mith grapple used with crossbows for grappling shortcuts."
+  market_strategy:
+    notes:
+      - "Demand tied to Agility shortcut grappling and Western Provinces achievements"
+      - "Mithril bar floor sets the production cost; profit margin usually negative without bonus XP"
+      - "Buy limit 11,000 per 4 hours allows mass purchases for grapple crafting"
+  trading_tips:
+    - "Compare against mithril bar plus 50 Smithing XP value to decide buy vs smith"
+    - "Watch mith grapple resale price for bottle-neck flips"
+  history:
+    - date: "31 July 2006"
+      description: "Released with the Regicide quest and grappling mechanic"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

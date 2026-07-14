@@ -1,6 +1,6 @@
 ---
 title: Ourg bones | OSRS Price Data
-description: "Ourg bones: Ancient ogre bones from the ogre burial tomb.. High alch: 1 GP, GE limit: 7,500."
+description: "Ourg bones grant 140 Prayer XP per bury (490 at gilded altar). Drops from Slash Bash and ogre coffins. High alch: 1 GP, GE limit: 7,500."
 osrs:
   id: 4834
   name: Ourg bones
@@ -15,25 +15,42 @@ osrs:
   material:
     type: bone
     tier: high
+  properties:
+    release_date: "2005-05-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    weight: 0.8
+    quest_item: false
+    options:
+      - Bury
+      - Drop
+    destroy: "Drop"
   prayer:
     xp_bury: 140
     xp_gilded_altar: 490
     xp_chaos_altar: 490
     xp_ectofuntus: 560
     xp_sinister_offering: 420
+    xp_libation_bowl: 575
   drop_table:
+    primary_source: Slash Bash
+    best_drop_rate: always (3x per kill)
     sources:
-      - source: General Graardor
-        source_id: 2215
-        combat_level: 624
-        quantity: "1"
+      - source: Slash Bash
+        source_id: 1543
+        combat_level: 111
+        quantity: "3"
         rarity: always
+        drop_rate: "1/1"
         members_only: true
-      - source: Zulrah
-        source_id: 2042
-        combat_level: 725
+      - source: Ogre coffin
+        source_id: 0
+        combat_level: 0
         quantity: "1"
-        rarity: common
+        rarity: uncommon
+        drop_rate: "5/128"
         members_only: true
   related_items:
     - item_id: 22124
@@ -56,18 +73,39 @@ osrs:
       slug: hydra-bones
       relationship: alternative
       description: Alternative (110 base XP)
+  history:
+    - date: "2005-05-17"
+      description: "Released as part of the Zogre Flesh Eaters quest update."
+    - date: "2010-03-04"
+      description: "Drop rate from Slash Bash adjusted to consistent 3 bones per kill."
+  about: |-
+    > _"Ancient ogre bones from the ogre burial tomb."_
+
+    Ourg bones are obtained from Slash Bash (always drops 3) and from looting ogre coffins (5/128 chance after completing Zogre Flesh Eaters). Notably, despite General Graardor being an ourg, he does not drop these bones.
+
+    Prayer training options:
+    - Bury: 140 XP per bone
+    - Gilded altar with 2 burners: 490 XP per bone
+    - Ectofuntus: 560 XP per bone
+    - Chaos Temple altar: 490 XP with 50% no-consume chance
+    - Sinister Offering: 420 XP per bone
+    - Libation bowl: 575 XP (requires Prayer 30)
+
+    Can be processed into blessed ourg bones or ourg bonemeal for additional training methods.
   market_strategy:
     notes:
-      - Supply from GWD and Zulrah
-      - Second highest XP bones after superior dragon
-      - Bandos and Zulrah activity
-      - Prayer training demand
-      - Often overlooked option
-      - Compare GP/XP to superior dragon bones
-      - Good value for high-XP training
-      - Lower supply than dragon bones
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply from Slash Bash and ogre coffins only"
+      - "Second highest XP bones after superior dragon"
+      - "Prayer training demand drives price"
+      - "Often overlooked vs dragon bones"
+      - "Compare GP/XP to superior dragon bones"
+      - "Good value for high-XP prayer training"
+      - "Lower supply than dragon bones"
+      - "Buy in bulk during Slash Bash mass events"
+      - "Demand spikes when prayer training methods are buffed"
+      - "Watch for arbitrage vs blessed bones price"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

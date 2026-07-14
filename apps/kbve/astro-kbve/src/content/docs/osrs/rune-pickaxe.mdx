@@ -1,6 +1,6 @@
 ---
 title: Rune pickaxe | OSRS Price Data
-description: "Rune pickaxe: Used for mining.. High alch: 19,200 GP, GE limit: 40."
+description: "Rune pickaxe: Used for mining. High alch: 19,200 GP, GE limit: 40."
 osrs:
   id: 1275
   name: Rune pickaxe
@@ -12,24 +12,110 @@ osrs:
   lowalch: 12800
   highalch: 19200
   limit: 40
-  item_id: 1275
-  item_type: equipment
-  slot: weapon
-  type: pickaxe
-  tradeable: true
-  weight: 2.267
-  requirements:
-    attack: 40
-    mining: 41
-  stats:
-    stab_attack: 38
-    crush_attack: 32
-    strength: 41
+  material:
+    type: rune
+    tier: mid-high
+  equipment:
+    slot: weapon
+    weapon_type: pickaxe
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 40
+      mining: 41
+    attack_bonus:
+      stab: 26
+      slash: 0
+      crush: 24
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 29
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    primary_source: Multiple monster drops
+    sources:
+      - source: Cave horror
+        quantity: "1"
+        rarity: uncommon
+      - source: Ice troll runt
+        quantity: "1"
+        rarity: uncommon
+      - source: Skeletal Wyvern
+        quantity: "1"
+        rarity: rare
+  shops:
+    - shop_name: Nurmof's Pickaxe Shop
+      location: Dwarven Mine
+      price: 32000
+      sells: true
+    - shop_name: Pickaxe-Is-Mine
+      location: Keldagrim
+      price: 32000
+      sells: true
+    - shop_name: Lovakengj Pickaxe Shop
+      location: Lovakengj
+      price: 32000
+      sells: true
+    - shop_name: Prifddinas pickaxe shop
+      location: Prifddinas
+      price: 32000
+      sells: true
   related_items:
-    - slug: dragon-pickaxe
-    - slug: runite-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 11920
+      item_name: Dragon pickaxe
+      slug: dragon-pickaxe
+      relationship: upgrade
+      description: Higher-tier mining pickaxe
+    - item_id: 1273
+      item_name: Adamant pickaxe
+      slug: adamant-pickaxe
+      relationship: downgrade
+      description: Lower-tier mining pickaxe
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smithing material related to rune tier
+  about: Rune pickaxe is the best free-to-play mining pickaxe, requiring 41 Mining to use and 40 Attack to equip, and sold by several dwarven and elven shops.
+  market_strategy:
+    notes:
+      - Stable F2P mining staple
+      - Tight buy limit limits flip volume
+      - Shop supply caps GE highs
+  trading_tips:
+    - Track F2P mining demand for steady flips
+    - Compare GE vs shop price for arbitrage
+  history:
+    - date: "2003-05-27"
+      description: Released alongside rune equipment.
+  properties:
+    release_date: "2003-05-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Mine
+    worn_options:
+      - Remove
+      - Mine
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

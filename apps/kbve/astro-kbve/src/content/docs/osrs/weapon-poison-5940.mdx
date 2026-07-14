@@ -12,104 +12,91 @@ osrs:
   lowalch: 172
   highalch: 259
   limit: 2000
-  potion:
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
     type: poison
     tier: high
-  herblore:
-    level: 82
-    xp: 190
-    method: Mix cave nightshade with weapon poison(+)
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: herblore
       level: 82
       xp: 190
       materials:
         - item_name: Weapon poison(+)
-          item_id: 5937
           quantity: 1
         - item_name: Cave nightshade
-          item_id: 2398
           quantity: 1
-      product: Weapon poison(++)
-      product_id: 5940
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
     - skill: herblore
       level: 82
       xp: 190
       materials:
         - item_name: Coconut milk
-          item_id: 5935
           quantity: 1
         - item_name: Cave nightshade
-          item_id: 2398
           quantity: 1
         - item_name: Poison ivy berries
-          item_id: 6018
           quantity: 1
-      product: Weapon poison(++)
-      product_id: 5940
-      product_quantity: 1
-      members_only: true
-  combat:
-    effect: Poisons target
-    damage: 6 starting poison
-    duration: Until cured
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Applies the strongest weapon poison, dealing 6 starting damage per tick on melee, 4 on ranged"
+        duration: 60
+      - description: "Melee attacks apply poison at 25% chance, ranged at 12.5% chance"
+        duration: 60
   related_items:
-    - item_id: 5937
-      item_name: Weapon poison(+)
+    - item_name: Weapon poison(+)
       slug: weapon-poison-plus
       relationship: component
-      description: Base poison
-    - item_id: 2398
-      item_name: Cave nightshade
+      description: "Base poison upgraded with cave nightshade"
+    - item_name: Cave nightshade
       slug: cave-nightshade
       relationship: component
-      description: Upgrade ingredient
-    - item_id: 187
-      item_name: Weapon poison
+      description: "Upgrade ingredient harvested from Skavid caves"
+    - item_name: Weapon poison
       slug: weapon-poison
       relationship: variant
-      description: Basic version
-    - item_id: 6018
-      item_name: Poison ivy berries
+      description: "Basic weapon poison variant"
+    - item_name: Poison ivy berries
       slug: poison-ivy-berries
       relationship: component
-      description: Alternative recipe
-    - item_id: 5935
-      item_name: Coconut milk
+      description: "Alternative recipe ingredient"
+    - item_name: Coconut milk
       slug: coconut-milk
       relationship: component
-      description: Alternative recipe base
+      description: "Alternative recipe base vial"
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Weapon Poison |
-    | Tradeable | Yes |
-    | Weight | 0.025 kg |
-    | Requirements | 82 Herblore |
-
-    Apply to weapons to add poison damage:
-    - Applies 6 starting poison damage (strongest)
-    - Works on melee weapons, arrows, bolts, darts, javelins, knives
-    - Best weapon poison available
-
-    | Version | Starting Damage | Herblore Level |
-    |---------|-----------------|----------------|
-    | Weapon poison | 4 | 60 |
-    | Weapon poison(+) | 5 | 73 |
-    | Weapon poison(++) | 6 | 82 |
+    Weapon poison(++) is the strongest weapon poison available, applied to melee weapons, arrows, bolts, darts, javelins, and knives. Each vial poisons 5 ammunition pieces, making bulk PvP ammo poisoning expensive. Brewed at 82 Herblore for 190 XP per dose.
   market_strategy:
     notes:
-      - PvP combat (best poison)
-      - Dragon darts poisoning
-      - High-level pking
-      - Strongest weapon poison available
-      - Popular for PvP
-      - Cave nightshade from Skavid caves
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Strongest weapon poison, used mainly for high-end PvP"
+      - "Coconut milk recipe avoids weapon poison(+) bottleneck"
+      - "Cave nightshade supply gates large-scale brewing"
+      - "Each vial only poisons 5 ammo pieces"
+  trading_tips:
+    - "Watch cave nightshade GE volume for brewing cost shifts"
+    - "Buy dips before PvP tournaments and DMM weekends"
+    - "Coconut milk recipe is often cheaper than weapon poison(+) route"
+  history:
+    - date: "2005-07-11"
+      description: "Weapon poison(++) added with the Herblore poison update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

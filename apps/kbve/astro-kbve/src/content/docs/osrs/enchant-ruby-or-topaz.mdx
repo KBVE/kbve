@@ -9,12 +9,65 @@ osrs:
   members: true
   icon: Enchant ruby or topaz.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: 0
+  highalch: 0
   limit: 10000
-  about: "Enchant ruby or topaz is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 5
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Teak demon lectern
+        - Mahogany demon lectern
+      output_quantity: 1
+      skills:
+        - skill: Magic
+          level: 49
+          xp: 44.3
+      notes: "Created at a demon lectern inside a Player-Owned House."
+  related_items:
+    - name: Ruby
+      relationship: alternative
+    - name: Red topaz
+      relationship: alternative
+  about: "Enchant ruby or topaz is a Magic tablet that casts the Level-3 Enchant spell on ruby or red topaz jewellery without needing runes or a Magic level. Created at a demon lectern with 49 Magic. High alchemy value: 0 coins. Grand Exchange buy limit: 10,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Tablet margin tracks soft clay and cosmic rune spot prices."
+      - "Useful for ironmen-adjacent Crafting routes where casting natively is inconvenient."
+  trading_tips:
+    - "Bulk-produce when cosmic runes dip below median."
+    - "Sell into the demand spike around ruby ring/topaz jewellery flips."
+  history:
+    - date: "2006-05-31"
+      description: "Enchantment tablets released with the Construction skill update."
+    - date: "2017-02-23"
+      description: "Renamed from 'Enchant ruby' to 'Enchant ruby or topaz'."
+    - date: "2018-03-22"
+      description: "'Break' replaced with an 'Info' right-click option."
+    - date: "2026-04-22"
+      description: "Wiki refresh confirmed alch and recipe details."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: "Construction"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Info
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

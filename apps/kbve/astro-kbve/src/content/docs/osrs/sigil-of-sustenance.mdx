@@ -12,9 +12,37 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of sustenance is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Sigil of sustenance is a tier 1 skilling sigil from Deadman Mode events: it grants a 50% chance not to consume secondary ingredients when creating potions while attuned."
+  market_strategy:
+    notes:
+      - "Only enters the economy during Deadman Mode events (Armageddon, Apocalypse); supply is bursty and tied to the event window."
+      - "Drops from the global monster loot table during events, so price tracks event participation and total kill output."
+      - "Un-attuned form is tradeable; once attuned it becomes untradeable, so flippers must keep stock un-attuned."
+  trading_tips:
+    - "Buy during the first days of a Deadman event when supply spikes from the global drop table."
+    - "Hold to off-season for potential price recovery, but be aware future events can re-flood supply."
+    - "Avoid attuning if you intend to resell; attuning locks the sigil to your account."
+  properties:
+    release_date: "2023-08-23"
+    update: "Deadman: Apocalypse"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Attune
+      - Inspect
+    worn_options: []
+    alchable: false
+    destroy: "An alternative is to sell it on the Grand Exchange."
+  history:
+    - date: "2023-08-23"
+      description: "Released alongside Deadman: Apocalypse as one of the tier 1 skilling sigils."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

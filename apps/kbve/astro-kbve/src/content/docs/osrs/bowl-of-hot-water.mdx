@@ -12,9 +12,54 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
-  about: "Bowl of hot water is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cooking-ingredient
+    tier: low
+  properties:
+    release_date: "2005-02-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Bowl of water
+          quantity: 1
+      tools:
+        - Range or fire
+      output_quantity: 1
+  related_items:
+    - item_name: Bowl of water
+      slug: bowl-of-water
+      relationship: component
+      description: Heated on a range or fire to produce the hot variant
+    - item_name: Cup of hot water
+      slug: cup-of-hot-water
+      relationship: variant
+      description: Smaller cup version created by pouring this bowl into an empty cup
+    - item_name: Guthix rest
+      slug: guthix-rest-4
+      relationship: product
+      description: Used as the base liquid for brewing Guthix rest tea
+  about: "Bowl of hot water is made by heating a bowl of water on a cooking range, stove, or fire. It serves as the base ingredient for Guthix rest tea and can be poured into empty cups to create cups of hot water for further recipes."
+  history:
+    - date: "2005-02-28"
+      description: Released alongside the One Small Favour quest.
+    - date: "2024-08-07"
+      description: Enabled the Make-All menu when pouring bowls of hot water into empty cups.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

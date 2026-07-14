@@ -1,5 +1,6 @@
 ---
 title: Charcoal
+template: splash
 description: |
     Minecraft Charcoal — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 844
     ref: charcoal
     slug: charcoal
+    content_rev: 1
     display_name: Charcoal
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Charcoal is a renewable fuel item obtained by smelting logs, stripped logs, wood,
+            or stripped wood in a furnace, or by breaking a campfire without Silk Touch. It
+            burns for 80 seconds, smelting up to 8 items, and can be combined with sticks to
+            craft torches.
+        lore: |
+            Charcoal exists so players can sustain a fuel supply from renewable wood alone,
+            without ever needing to mine coal ore.
+    faq:
+        - question: Can charcoal replace coal?
+          answer: |
+              Yes, charcoal burns for the same 80-second duration as coal, making it an
+              equally effective furnace fuel, though it cannot be traded to villagers or
+              crafted into a block of coal.
+        - question: Why make charcoal instead of mining coal?
+          answer: |
+              Charcoal is renewable since trees can be replanted and farmed indefinitely,
+              letting players sustain fuel without ever entering a mine.
+        - question: Do coal and charcoal stack together?
+          answer: |
+              No, coal and charcoal remain separate items in the inventory despite sharing
+              identical fuel value.
+        - question: What's the fastest way to get charcoal early game?
+          answer: |
+              Chop several logs, keep some as furnace fuel, and smelt the rest into charcoal
+              in a furnace, giving a self-sustaining fuel loop before mining any coal.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

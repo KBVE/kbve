@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = [
+    "apps/rentearth/axum-rentearth",
+    "packages/rust/jedi",
+    "packages/rust/kbve",
+    "packages/rust/bevy/bevy_kbve_net",
+    "packages/rust/bevy/bevy_npc",
+]
+
+[workspace.package]
+rust-version = "1.96"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"

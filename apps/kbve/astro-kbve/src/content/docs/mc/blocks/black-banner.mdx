@@ -1,5 +1,6 @@
 ---
 title: Black Banner
+template: splash
 description: |
     Minecraft Black Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 546
     ref: black_banner
     slug: black-banner
+    content_rev: 1
     display_name: Black Banner
     material: wood
     hardness: 1
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: black_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Black Banner is a tall decorative block crafted from black
+            wool and a stick. It can carry up to six loom-applied pattern
+            layers and gently sways as if in a breeze in any dimension.
+        lore: |
+            Banners were added in 1.8 and later gained loom-based custom
+            patterns in 1.14, letting players design emblems for builds and
+            shields.
+    uses:
+        - title: Shield Emblem
+          ref: shield
+          detail: |
+              Crafting a shield with a black banner applies its pattern to
+              the shield's face, though at a smaller, slightly offset
+              resolution.
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Combine with dye and a loom to stack up to six pattern
+              layers, or add special pattern items like the Creeper or
+              Skull charge.
+    found_in:
+        - location: Crafted from Black Wool + Stick
+          detail: 6 black wool and 1 stick craft 1 black banner.
+        - location: Woodland Mansions & Pillager Outposts
+          detail: Black-patterned banners occasionally decorate illager structures.
+    faq:
+        - question: What tool do I need to mine a black banner?
+          answer: |
+              None — any tool works, though an axe is fastest.
+        - question: Can I change a banner's base color after crafting?
+          answer: |
+              No, the base color is fixed at crafting; only loom patterns
+              layered on top can be added or removed.
+        - question: Is a banner solid?
+          answer: |
+              No, banners are completely non-solid, so players and mobs
+              pass through them.
+        - question: Can banners be used as furnace fuel?
+          answer: |
+              Yes, one banner smelts 1.5 items, same as wool or planks.
     data_version: "1.21.5"
 ---
 

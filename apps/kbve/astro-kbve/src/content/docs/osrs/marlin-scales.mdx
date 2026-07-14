@@ -1,6 +1,6 @@
 ---
 title: Marlin scales | OSRS Price Data
-description: "Marlin scales: Small shiny scales.. High alch: 30 GP, GE limit: 11,000."
+description: "Marlin scales is a members Herblore secondary obtained by cutting raw marlin. High alch: 30 GP, GE limit: 11,000."
 osrs:
   id: 32362
   name: Marlin scales
@@ -12,9 +12,97 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 11000
-  about: "Marlin scales is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: secondary
+    tier: mid
+  equipment:
+    slot: null
+    weight: null
+    attack_speed: null
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Raw marlin
+          quantity: 1
+        - item_name: Knife
+          quantity: 1
+      output_quantity: 3
+      notes: "Use knife on raw marlin; chum station multiplies yield."
+    - skill: herblore
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Stamina potion
+          quantity: 1
+        - item_name: Marlin scales
+          quantity: 1
+      output_quantity: 1
+      notes: "Each dose of extended stamina requires one marlin scale."
+  related_items:
+    - item_name: Raw marlin
+      slug: raw-marlin
+      relationship: component
+      description: Source fish cut to produce marlin scales.
+    - item_name: Extended stamina potion
+      slug: extended-stamina-potion
+      relationship: alternative
+      description: Primary Herblore product requiring marlin scales.
+    - item_name: Fine fish offcuts
+      slug: fine-fish-offcuts
+      relationship: alternative
+      description: Byproduct produced alongside scales when cutting marlin.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Demand driven by extended stamina potion crafting at 85 Herblore."
+      - "Supply tied to deep sea trawling and Sailing skill output."
+      - "High GE limit of 11,000 enables bulk Herblore stocking."
+  trading_tips:
+    - "Compare scale price vs raw marlin: cut yourself for margin."
+    - Stockpile during Sailing skill spotlight events.
+    - Watch extended stamina demand around bossing meta shifts.
+  about: Marlin scales is a members-only Herblore secondary obtained by cutting raw marlin, primarily used to brew extended stamina potions at 85 Herblore.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2025-11-19"
+      update: "Sailing"
+      description: Marlin scales released alongside the Sailing skill and deep sea trawling.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

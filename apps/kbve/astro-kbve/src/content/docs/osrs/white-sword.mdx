@@ -1,6 +1,6 @@
 ---
 title: White sword | OSRS Price Data
-description: "White sword: A razor sharp sword.. High alch: 374 GP, GE limit: 125."
+description: "White sword: A razor sharp sword. High alch: 374 GP, GE limit: 125."
 osrs:
   id: 6605
   name: White sword
@@ -12,9 +12,85 @@ osrs:
   lowalch: 249
   highalch: 374
   limit: 125
-  about: "White sword is a members-only item in Old School RuneScape. High alchemy value: 374 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: white
+    tier: mid
+  properties:
+    release_date: "2005-10-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 14
+      slash: 10
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  shops:
+    - shop_name: White Knight Armoury
+      location: Falador
+      price: 624
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Rune sword
+      slug: rune-sword
+      relationship: alternative
+      description: Stronger one-handed stab sword without quest gating.
+    - item_name: White longsword
+      slug: white-longsword
+      relationship: variant
+      description: Longsword counterpart from the White Knight armoury set.
+    - item_name: White scimitar
+      slug: white-scimitar
+      relationship: variant
+      description: Slash-focused White Knight sidearm.
+  about: |-
+    White sword is a stab-focused one-handed sword sold by the White Knight Armoury in Falador after completion of the Wanted! quest. It mirrors the mithril sword's stats while granting +1 prayer, giving it a niche use for low-level prayer-conscious players.
+
+    Most players move past it quickly toward rune or dragon weapons, but it remains a popular fashionscape weapon for white-themed outfits.
+  market_strategy:
+    notes:
+      - "Quest-locked supply caps casual flipping"
+      - "Falador shop price serves as a soft floor"
+      - "Demand driven by fashion and white-knight cosplay"
+  trading_tips:
+    - Stock during Wanted! quest popularity windows
+    - Lean on shop restock for guaranteed fill at floor price
+  history:
+    - date: "2005-10-17"
+      description: "Released alongside the Wanted! quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Sandstone (10kg) | OSRS Price Data
-description: "Sandstone (10kg): A large chunk of sandstone.. High alch: 1 GP, GE limit: 100."
+description: "Sandstone (10kg): A large chunk of sandstone. High alch: 1 GP, GE limit: 100."
 osrs:
   id: 6977
   name: Sandstone (10kg)
@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 100
-  about: "Sandstone (10kg) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: stone
+    tier: low
+  related_items:
+    - item_id: 6971
+      item_name: Sandstone (1kg)
+      slug: sandstone-1kg
+      relationship: variant
+      description: Smallest sandstone variant
+    - item_id: 6973
+      item_name: Sandstone (2kg)
+      slug: sandstone-2kg
+      relationship: variant
+      description: 2kg sandstone variant
+    - item_id: 6975
+      item_name: Sandstone (5kg)
+      slug: sandstone-5kg
+      relationship: variant
+      description: 5kg sandstone variant
+    - item_id: 1783
+      item_name: Bucket of sand
+      slug: bucket-of-sand
+      relationship: product
+      description: Yields 8 buckets when ground at Sandstorm grinder
+  about: Sandstone (10kg) is the largest sandstone variant mined at level 35 Mining from the Bandit Camp Quarry, Necropolis mine, or Cape Conch mine. Grants 60 Mining XP per ore and yields 8 buckets of sand when ground at the Sandstorm grinder for 50 coins each.
+  market_strategy:
+    notes:
+      - Bulk glassblowing input via molten glass pipeline
+      - "Low buy limit 100: not a flip target"
+      - Mining yields more XP per chunk than smaller variants
+  trading_tips:
+    - Mine personally for Crafting/Construction grinds (cheaper than bucket of sand)
+    - Bring waterskins or circlet of water for desert heat protection
+  history:
+    - date: "2006-01-23"
+      description: Added to the game with the Enakhra's Lament quest update.
+    - date: "2015-04-30"
+      description: Varrock armour mining benefits enabled on sandstone.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-01-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

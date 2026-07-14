@@ -12,26 +12,78 @@ osrs:
   lowalch: 176
   highalch: 264
   limit: 11000
+  material:
+    type: metal
+    tier: mid-high
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 5
+    weight: 0.453
     requirements:
       ranged: 40
     attack_bonus:
-      ranged: 17
-    ranged_strength: 36
+      ranged: 26
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 36
+  special_attack:
+    name: Chainhit
+    energy_cost: 10
+    description: "Chainhit ricochets off the primary target and strikes additional opponents within 3 tiles in multicombat areas, chaining up to 5 enemies based on accuracy rolls. Each cast costs 10% special attack energy and consumes one axe."
+  drop_table:
+    sources:
+      - source: Dagannoth Supreme
+        quantity: "5-10"
+        rarity: 5/128
+      - source: Brutal black dragon
+        quantity: "10"
+        rarity: Uncommon
+      - source: Ninja impling jar
+        quantity: "1"
+        rarity: Uncommon
+  shops:
+    - shop_name: Lowe's Archery Emporium (Ranging Guild)
+      location: Ranging Guild
+      price: 572
+      stock: 400
   related_items:
-    - item_id: 804
-      item_name: Adamant thrownaxe
+    - item_name: Adamant thrownaxe
       slug: adamant-thrownaxe
-      relationship: variant
-      description: Lower tier thrownaxe
-  about: |-
-    > _"A finely balanced throwing axe."_
-
-    The rune thrownaxe is the highest standard thrownaxe, requiring 40 Ranged. Has +36 ranged strength and the bouncing special attack that hits multiple adjacent targets — useful in multicombat areas.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: downgrade
+      description: Lower-tier thrownaxe with weaker ranged bonus and strength.
+    - item_name: Dragon thrownaxe
+      slug: dragon-thrownaxe
+      relationship: upgrade
+      description: Higher-tier thrownaxe variant with stronger special attack mechanics.
+  about: "Rune thrownaxe is the strongest standard thrownaxe in OSRS, requiring 40 Ranged to wield and delivering +26 ranged attack with +36 ranged strength. It is best known for its Chainhit special attack, which ricochets off the primary target to hit additional enemies within a 3-tile radius in multicombat - useful for slayer tasks and Wilderness encounters where multiple opponents stack."
+  market_strategy:
+    notes:
+      - Steady supply from Ranging Guild shop and slayer boss drops
+      - Special attack demand spikes during PvP and multicombat slayer events
+      - High GE buy limit (11k) supports bulk trading
+      - Daily volume exceeds 140k - liquid market
+  history:
+    - date: "2004-03-29"
+      description: Added with the RuneScape 2 launch alongside the full rune thrown weapon line.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    update: RuneScape 2 launch
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

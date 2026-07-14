@@ -10,17 +10,52 @@ description: |
     So much unity, that it united my sanity, insanity, insomnia to create sanitia; it can be described like inverse pokemon evolution but for your mind and soul.
 tags:
     - daily
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'journal · daily log'
+    title: 'February 24,'
+    accent: every year.
+    lede: 'The February 24th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
+    ctas:
+        - label: Read the log
+          href: '#2025'
+          primary: true
+        - label: '← Feb 23'
+          href: /journal/02-23/
+        - label: 'Feb 25 →'
+          href: /journal/02-25/
+    related:
+        - title: 'Previous · Feb 23'
+          copy: 'Step back a day to the February 23rd log.'
+          href: /journal/02-23/
+          icon: calendar
+        - title: 'Next · Feb 25'
+          copy: 'Jump ahead to the February 25th log.'
+          href: /journal/02-25/
+          icon: arrow
+        - title: 'Journal hub'
+          copy: 'Every daily log, grouped by month, plus the blog archive and RSS feed.'
+          href: /journal/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#f472b6'
+        btn_fg: '#1e1035'
 ---
 
 import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-<Adsense />
+<BentoDoc data={frontmatter.bento}>
 
-
-## Notes
-
-
-## 2025
+<BentoProse id="2025" heading="2025">
 
 ### Expo
 
@@ -52,9 +87,15 @@ npx expo-doctor
 
     Next we need run these commands over whenever there are might be issues.
 
+</BentoProse>
 
-## 2024
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
+<BentoProse id="2024" heading="2024">
 
 ### Camera
 
@@ -123,3 +164,7 @@ This means that I might just look into the Azure DevOps a bit further, ugh.
 
 Well it looksa like I might have to rethink my component library within the Astro VE!
 I was looking to build my own custom astro library, but after looking at aceternity ui, it would make sense for me to also just integrate the library directly!
+
+</BentoProse>
+
+</BentoDoc>

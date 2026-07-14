@@ -18,7 +18,7 @@ jobs:
 
         steps:
             - name: Checkout the monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
@@ -38,7 +38,7 @@ jobs:
               run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
-              uses: actions/cache@v5
+              uses: actions/cache@v6
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
@@ -51,17 +51,79 @@ jobs:
                   UV_THREADPOOL_SIZE: '16'
               run: pnpm install --frozen-lockfile --prefer-offline
 
-            # Every NPM package the dispatcher fans into this workflow
-            # (devops, droid, khashvault, laser) has a sibling `<pkg>-e2e`
-            # Playwright suite, so always install chromium up front. The
-            # `pnpm install` step's UV_THREADPOOL_SIZE bump carries over to
-            # avoid the chromium-extract libuv-threadpool deadlock seen in
-            # earlier runs.
+            - name: Resolve Playwright version
+              id: playwright-version
+              run: |
+                  VER=$(node -e "console.log(require('./node_modules/playwright/package.json').version)" 2>/dev/null || echo "unknown")
+                  echo "version=${VER}" >> "$GITHUB_OUTPUT"
+                  echo "Resolved Playwright version: ${VER}"
+
+            - name: Cache Playwright Browsers
+              id: playwright-cache
+              uses: actions/cache@v6
+              with:
+                  path: ~/.cache/ms-playwright
+                  key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-chromium
+                  restore-keys: |
+                      ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-
+                      ${{ runner.os }}-playwright-
+
+            # Every NPM package fanned into this workflow has a sibling e2e
+            # Playwright suite, so provision chromium up front. Only
+            # cdn.playwright.dev serves the Chrome-for-Testing artifacts (prss/
+            # npmmirror/azureedge do not mirror them), so retry the default host
+            # — UV_THREADPOOL_SIZE dodges the chromium-extract libuv deadlock,
+            # CONNECTION_TIMEOUT + `timeout` turn a silent 100% stall into a
+            # retryable error — then fall back to the bundled mcr docker image.
             - name: Install Playwright Browsers
-              timeout-minutes: 15
+              if: ${{ steps.playwright-cache.outputs.cache-hit != 'true' }}
+              timeout-minutes: 25
               env:
-                  UV_THREADPOOL_SIZE: '16'
-              run: pnpm exec playwright install --with-deps chromium
+                  UV_THREADPOOL_SIZE: '128'
+                  PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
+                  PW_VERSION: ${{ steps.playwright-version.outputs.version }}
+              run: |
+                  set -uo pipefail
+                  BROWSERS=chromium
+                  attempt() {
+                    echo "::group::playwright install ($1)"
+                    timeout 480 pnpm exec playwright install --with-deps ${BROWSERS}
+                    local rc=$?
+                    echo "::endgroup::"
+                    return $rc
+                  }
+                  attempt "try 1" && exit 0
+                  echo "::warning::try 1 failed/stalled; retrying"
+                  sleep 10
+                  attempt "try 2" && exit 0
+                  echo "::warning::try 2 failed/stalled; retrying"
+                  sleep 15
+                  attempt "try 3" && exit 0
+                  echo "::warning::cdn.playwright.dev exhausted; falling back to mcr playwright image"
+
+                  IMG="mcr.microsoft.com/playwright:v${PW_VERSION}-jammy"
+                  DEST="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
+                  mkdir -p "$DEST"
+                  echo "::group::pull ${IMG}"
+                  if ! docker pull "$IMG"; then
+                    echo "::error::docker pull ${IMG} failed"
+                    echo "::endgroup::"
+                    exit 1
+                  fi
+                  echo "::endgroup::"
+                  CID=$(docker create "$IMG")
+                  docker cp "$CID:/ms-playwright/." "$DEST/"
+                  docker rm "$CID" >/dev/null
+                  pnpm exec playwright install-deps ${BROWSERS}
+                  echo "playwright browsers restored from ${IMG} into ${DEST}"
+
+            - name: Install Playwright OS deps (cache hit)
+              if: ${{ steps.playwright-cache.outputs.cache-hit == 'true' }}
+              timeout-minutes: 10
+              run: |
+                  set -uo pipefail
+                  sudo apt-get update || true
+                  pnpm exec playwright install-deps chromium || pnpm exec playwright install --with-deps chromium
 
             - name: Nx e2e ${{ inputs.project }}
               run: pnpm nx e2e ${{ inputs.project }} --no-cloud

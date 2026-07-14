@@ -12,9 +12,67 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Dareeyak teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: teleport tablet
+    tier: low
+  properties:
+    release_date: "2014-09-18"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Configure
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 78
+      xp: 88
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Air rune
+          quantity: 2
+        - item_name: Fire rune
+          quantity: 3
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Tablet base material crafted at the Ancient lectern
+    - item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: Teleport rune required to imbue the tablet
+    - item_name: Ancient tablet
+      slug: ancient-tablet
+      relationship: alternative
+      description: Other Ancient Magicks teleport tablets in the same set
+  about: "Dareeyak teleport (tablet) is a members-only Ancient Magicks teleport tablet that breaks to relocate the user to the Dareeyak ruins west of the Bandit Camp in level 23 Wilderness. Created at the Ancient lectern in the player-owned house with 78 Magic after Desert Treasure I."
+  market_strategy:
+    notes:
+      - "Niche Wilderness convenience teleport with thin daily volume"
+      - "Demand spikes during Wilderness slayer or Crazy Archaeologist trips"
+      - "Tablet form lets non-Ancients users teleport without a spellbook swap"
+  trading_tips:
+    - Stock cheaply when bulk crafters dump after Magic XP sessions
+    - Resell during Wilderness boss meta shifts toward Crazy Archaeologist
+  history:
+    - date: "2014-09-18"
+      description: "Released alongside the Ancient teleport tablet rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

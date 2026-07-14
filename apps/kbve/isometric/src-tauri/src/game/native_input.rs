@@ -129,7 +129,7 @@ fn drain_native_input(
                     },
                     window: window_entity,
                 };
-                button_writer.write(mbi.clone());
+                button_writer.write(mbi);
                 window_event_writer.write(WindowEvent::MouseButtonInput(mbi));
                 if FIRST_BTN.swap(false, std::sync::atomic::Ordering::Relaxed) {
                     eprintln!(
@@ -167,8 +167,9 @@ fn drain_native_input(
                     x: dx as f32,
                     y: dy as f32,
                     window: window_entity,
+                    phase: bevy::input::touch::TouchPhase::Moved,
                 };
-                wheel_writer.write(mw.clone());
+                wheel_writer.write(mw);
                 window_event_writer.write(WindowEvent::MouseWheel(mw));
             }
             NativeInputEvent::Viewport { css_w, css_h, dpr } => {

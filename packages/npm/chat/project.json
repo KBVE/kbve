@@ -1,0 +1,25 @@
+{
+	"name": "chat",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/chat/src",
+	"projectType": "library",
+	"tags": ["scope:shared", "type:lib"],
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/npm/chat/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/npm/chat",
+				"command": "vitest run"
+			}
+		}
+	}
+}

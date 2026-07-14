@@ -12,9 +12,86 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Red hat is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-06-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      price: 650
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Grey hat
+      slug: grey-hat
+      relationship: variant
+      description: "Grey-colored variant of the Canifis pointed hat."
+    - item_name: Yellow hat
+      slug: yellow-hat
+      relationship: variant
+      description: "Yellow-colored variant of the Canifis pointed hat."
+    - item_name: Teal hat
+      slug: teal-hat
+      relationship: variant
+      description: "Teal-colored variant of the Canifis pointed hat."
+    - item_name: Purple hat
+      slug: purple-hat
+      relationship: variant
+      description: "Purple-colored variant of the Canifis pointed hat."
+  about: "The red hat is a cosmetic head slot item sold by Barkers' Haberdashery in Canifis after completing the Priest in Peril quest. Provides +3 Magic attack and +3 Magic defence. Part of a coordinated five-color Canifis robe set."
+  market_strategy:
+    notes:
+      - "Shop-stocked item with bottomless supply, so GE arbitrage requires buyer urgency."
+      - "Modest Magic bonuses make this a budget low-level mage hat."
+  trading_tips:
+    - "Restock from Canifis at 650 gp and flip to the GE when prices spike."
+    - "Watch event timing; cosmetic demand from new players keeps a steady floor."
+  history:
+    - date: "2004-06-29"
+      description: "Released with the Priest in Peril quest update."
+    - date: "2014-12-10"
+      description: "Renamed from \"Hat\" to \"Red hat\" to distinguish color variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

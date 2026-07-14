@@ -1,6 +1,6 @@
 ---
 title: Fishing rod | OSRS Price Data
-description: "Fishing rod: Useful for catching sardine or herring.. High alch: 3 GP, GE limit: 40."
+description: "Fishing rod: Useful for catching sardine or herring. High alch: 3 GP, GE limit: 40."
 osrs:
   id: 307
   name: Fishing rod
@@ -12,23 +12,86 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 40
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2001-06-11"
+    update: "Fishing skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Gerrant's Fishy Business
+      location: Port Sarim
+      price: 5
+      stock: 5
+      currency: coins
+      members_only: false
+    - shop_name: Fernahei's Fishing Hut
+      location: Shilo Village
+      price: 5
+      currency: coins
+      members_only: true
+    - shop_name: Fremennik Fish Monger
+      location: Rellekka
+      price: 6
+      currency: coins
+      members_only: true
+    - shop_name: Fishing Guild Shop
+      location: Fishing Guild
+      price: 5
+      currency: coins
+      members_only: true
+    - shop_name: Aubury's Rune Shop
+      location: Varrock
+      price: 5
+      currency: coins
+      members_only: false
   related_items:
     - item_id: 309
       item_name: Fly fishing rod
       slug: fly-fishing-rod
       relationship: variant
-      description: For trout and salmon
+      description: "Used with feathers for trout and salmon"
     - item_id: 313
       item_name: Fishing bait
       slug: fishing-bait
       relationship: component
-      description: Required bait
+      description: "Required bait consumed per catch"
+    - item_id: 311
+      item_name: Harpoon
+      slug: harpoon
+      relationship: alternative
+      description: "Tool for higher-tier tuna and swordfish"
   about: |-
     > _"Useful for catching sardine or herring."_
 
-    The fishing rod is used with fishing bait at net/bait fishing spots to catch sardines (5 Fishing) and herring (10 Fishing). One of the earliest fishing tools.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The fishing rod is the earliest fishing tool in Old School RuneScape, used at bait fishing spots together with fishing bait. With a rod equipped or carried, players can catch raw sardines at level 5 Fishing and raw herring at level 10 Fishing. It is stocked by multiple fishing shops across Gielinor and remains the standard recommendation for new accounts working toward 20 Fishing for fly fishing.
+  market_strategy:
+    notes:
+      - "Almost always cheaper to buy from Gerrant or Aubury than the Grand Exchange"
+      - "Strong demand from F2P new accounts during double XP weekends"
+      - "Buy limit of 40 makes large-scale flipping impractical — small steady margin only"
+  trading_tips:
+    - "Stock several rods before fishing trips; fishing spots can despawn with one in hand"
+    - "Note untradeable shop runs to convert to GE-tradeable singles"
+  history:
+    - date: "2001-06-11"
+      description: "Fishing rod added with the launch of the Fishing skill."
+    - date: "2021-07-07"
+      description: "Rod positioning adjusted for female player fishing animations."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

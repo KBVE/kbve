@@ -1,6 +1,6 @@
 ---
 title: Mind shield | OSRS Price Data
-description: "Mind shield: A magic shield.. High alch: 1,800 GP, GE limit: 70."
+description: "Mind shield is a members magic shield crafted via Elemental Workshop II. High alch: 1,800 GP, GE limit: 70."
 osrs:
   id: 9731
   name: Mind shield
@@ -12,9 +12,84 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 70
-  about: "Mind shield is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: shield
+    weight: 0.226
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 9
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Smithing
+      level: 30
+      xp: 30
+      output_quantity: 1
+      materials:
+        - item_name: Primed mind bar
+          quantity: 1
+        - item_name: Slashed book
+          quantity: 1
+      tools:
+        - Hammer
+      notes: "Use the workbench inside the Elemental Workshop II to forge the shield."
+  related_items:
+    - item_id: 2890
+      item_name: Elemental shield
+      slug: elemental-shield
+      relationship: downgrade
+      description: Base elemental shield from Elemental Workshop I.
+    - item_id: 9729
+      item_name: Mind helmet
+      slug: mind-helmet
+      relationship: set-piece
+      description: Matching Elemental Workshop II helm.
+  about: "Mind shield is crafted at the Elemental Workshop II workbench and reduces max damage from wyvern icy breath attacks to 10."
+  market_strategy:
+    notes:
+      - Demand follows skeletal and ancient wyvern slayer tasks
+      - GE price runs well above high alch
+      - Buy limit 70 keeps thin daily volume manageable
+  trading_tips:
+    - Watch wyvern task popularity and slayer streamer events
+    - Pairs with mind helmet for Elemental Workshop II fashionscape demand
+  history:
+    - date: "2006-10-02"
+      description: "Released with the Elemental Workshop II quest update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-10-02"
+    update: "Elemental Workshop II"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: "Elemental Workshop II"
+    weight: 0.226
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

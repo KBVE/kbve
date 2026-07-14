@@ -1,5 +1,6 @@
 ---
 title: Map
+template: splash
 description: |
     Minecraft Map — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1042
     ref: filled_map
     slug: filled-map
+    content_rev: 1
     display_name: Map
     category: map
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A map is an item that displays a top-down view of explored terrain. Holding an active map updates
+            it in real time, showing the player's position, and it can be cloned at a cartography table,
+            zoomed out up to four levels, locked to freeze its contents, or placed in an item frame for display.
+        lore: |
+            A cartographer's tool to chart the vast lands, revealing what lies beyond the horizon.
+    faq:
+        - question: How do I create a usable map?
+          answer: |
+              Craft 8 sheets of paper with a compass at a crafting table for an empty map that tracks position,
+              or buy one from a cartographer villager for 7 emeralds, then hold and use it to start mapping the
+              surrounding 128x128 block area.
+        - question: Can multiple players share the same map?
+          answer: |
+              Yes. Cloning a map at a cartography table copies everything explored so far, and newly explored
+              areas afterward appear automatically on all cloned copies.
+        - question: Do maps work properly in the Nether?
+          answer: |
+              No. Maps show only a red-and-gray pattern in the Nether, and the player pointer spins rapidly
+              instead of indicating direction, making them unreliable for navigation there.
+        - question: How do I stop a map from updating further?
+          answer: |
+              Combine the map with a glass pane at a cartography table to lock it, permanently preserving its
+              current explored terrain even as the world around it changes.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

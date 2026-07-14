@@ -1,20 +1,80 @@
 ---
 title: Chef's delight(m) | OSRS Price Data
-description: "Chef's delight(m): This looks a good deal stronger than normal Chef's Delight.. High alch: 1 GP, GE limit: 2,000."
+description: "Chef's delight(m): This looks a good deal stronger than normal Chef's Delight. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5757
   name: Chef's delight(m)
   slug: chef-s-delight-m
-  examine: This looks a good deal stronger than normal Chef's Delight.
+  examine: "This looks a good deal stronger than normal Chef's Delight."
   members: true
   icon: Chef's delight(m).png
   value: 2
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Chef's delight(m) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: beer
+    tier: low
+  potion:
+    effects:
+      - description: "Restores 2 Hitpoints per pint."
+      - description: "Boosts Cooking by 5% + 2 levels."
+      - description: "Drains Attack by 5% + 3 levels."
+      - description: "Drains Strength by 5% + 3 levels."
+  recipes:
+    - skill: Cooking
+      level: 54
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Chocolate dust
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools:
+        - Brewery vat
+        - Calquat keg
+      product: Chef's delight(m)
+      notes: "Matured variant of Chef's Delight from the Keldagrim brewery; takes multiple days to ferment."
+  related_items:
+    - item_name: Chef's delight
+      slug: chef-s-delight
+      relationship: alternative
+      description: Standard non-matured Cooking-boost beer.
+  about: "Chef's delight(m) is the matured Keldagrim brew that grants a stronger Cooking boost than its standard counterpart at the cost of melee stats."
+  market_strategy:
+    notes:
+      - Matured beers come from random brewery aging, supply is thin.
+      - Cooking trainers buy in bulk for level boosts on stews and gauntlets.
+      - High GE price relative to alch value is purely demand driven.
+  trading_tips:
+    - Drip-feed sells; market is shallow and shifts on small volume.
+    - Buy below 30k when supply spikes after brewery cycles.
+  history:
+    - date: "2005-07-11"
+      description: Released as part of the Farming update brewery content.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: "Farming"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

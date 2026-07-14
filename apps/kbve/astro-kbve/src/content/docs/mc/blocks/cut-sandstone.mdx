@@ -1,5 +1,6 @@
 ---
 title: Cut Sandstone
+template: splash
 description: |
     Minecraft Cut Sandstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 108
     ref: cut_sandstone
     slug: cut-sandstone
+    content_rev: 1
     display_name: Cut Sandstone
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cut_sandstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Cut Sandstone is a decorative variant of sandstone with clean,
+            carved edges instead of the standard block's eroded top texture.
+            It behaves like ordinary stone: it never falls like sand and
+            resists fire.
+        lore: |
+            Originally named Smooth Sandstone, it was renamed to Cut
+            Sandstone in Java Edition 1.13 to avoid confusion with the
+            smooth sandstone variant used for slabs and stairs.
+    uses:
+        - title: Cut Sandstone Slab
+          ref: cut_sandstone_slab
+          detail: |
+              Craft 3 cut sandstone into 6 slabs, or stonecut 1 block into
+              2 slabs.
+        - title: Sandstone Stairs
+          ref: sandstone_stairs
+          detail: |
+              Craft 6 cut sandstone into 4 sandstone stairs for decorative
+              builds.
+    found_in:
+        - location: Desert villages and pyramids
+          detail: Generates as a decorative accent block in desert structures.
+        - location: Warm ocean ruins
+          detail: Appears in underwater ruin structures in warm oceans.
+        - location: Crafted or stonecut
+          detail: 4 sandstone craft into 4 cut sandstone, or 1 sandstone stonecuts into 1.
+    faq:
+        - question: Does Cut Sandstone fall like sand?
+          answer: |
+              No. Unlike raw sand, cut sandstone is a fully solid stone-type
+              block and is never affected by gravity.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe works; at least a wooden pickaxe is required to
+              get a drop, otherwise it breaks with nothing.
+        - question: What can I craft from Cut Sandstone?
+          answer: |
+              Cut sandstone slabs and sandstone stairs, either through
+              crafting or a stonecutter.
     data_version: "1.21.5"
 ---
 

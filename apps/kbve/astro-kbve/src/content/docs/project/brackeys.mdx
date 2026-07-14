@@ -1,7 +1,7 @@
 ---
-title: Brackeys GameJam
-description: |
-    Brackeys Game Jam 13
+title: "Brackeys Game Jam — KBVE Godot + Rust Idle Space Shooter"
+description: KBVE's Brackeys Game Jam entry — an idle Asteroids-style space shooter built in Godot with Rust (GDExtension) around the theme Nothing Can Go Wrong.
+sem: 1
 sidebar:
     label: Barckeys Game Jam
     order: 1000
@@ -13,8 +13,68 @@ unsplash: 1604657843102-388d8541ef04
 img: https://images.unsplash.com/photo-1604657843102-388d8541ef04?fit=crop&w=1400&h=700&q=75
 tags:
     - gaming
+    - godot
+    - rust
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is KBVE's Brackeys Game Jam entry?
+          answer: It is KBVE's submission to Brackeys Game Jam 2025.1, built in Godot with Rust via GDExtension. The game is an idle Asteroids-style space shooter where you pilot a mining ship, harvest scraps from asteroids, and upgrade your ship — themed around Nothing Can Go Wrong.
+        - question: What is the game's theme and premise?
+          answer: The jam theme is Nothing Can Go Wrong. You wake alone on a mining spaceship as sparks appear across the ship, and you hope nothing goes wrong while piloting it. The ship is not automatically destroyed, so it plays as a low-pressure idle space game with optional challenges and bonuses.
+        - question: Which engine and assets does the entry use?
+          answer: The game uses Godot with Rust (GDExtension) and third-party assets including Kenney Space Shooter Redux (CC0), audioknobs from OpenGameArt (CC-BY-3.0), Foozlecc Void Fleet packs, Galaxy Pixel Art, and Norma 2D's Pixel Space background.
+bento:
+    badge: gaming · godot · rust
+    title: Idle space shooter
+    accent: Brackeys Game Jam
+    lede: >-
+        KBVE's entry for the Brackeys Game Jam 2025.1 — an idle Asteroids-style
+        space shooter built in Godot with Rust via GDExtension. Themed Nothing Can
+        Go Wrong, you pilot a lone mining ship, harvest resources from asteroids,
+        and upgrade your vessel while anomalies keep things interesting.
+    ctas:
+        - label: Design notes
+          href: '#design'
+    stats:
+        - { label: Event, value: 'Brackeys 2025.1', icon: calendar }
+        - { label: Engine, value: 'Godot + Rust', icon: gears }
+        - { label: Genre, value: Idle shooter, icon: sword }
+        - { label: Theme, value: Nothing Can Go Wrong, icon: info }
+    features:
+        - title: Mine & upgrade
+          icon: sword
+          body: Pilot a lone mining ship, harvest scraps from asteroids, and upgrade your vessel.
+        - title: Idle, low-pressure
+          icon: clock
+          body: The ship is never auto-destroyed — play anytime with optional challenges and bonuses.
+        - title: Godot + Rust
+          icon: gears
+          body: Built in Godot with the game logic in Rust via GDExtension.
+        - title: Layered space sim
+          icon: expand
+          body: Parallax background layers plus physics layers for planets, ships, NPCs, entities, and projectiles.
+    features_eyebrow: The game
+    features_heading: Gameplay
+    related:
+        - title: Godot
+          href: /application/godot/
+          copy: The engine powering this jam entry.
+          icon: gears
+        - title: Rust
+          href: /application/rust/
+          copy: The language used via GDExtension for the game logic.
+          icon: rust
+    related_heading: Related
 ---
 
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
 import {
 	Aside,
@@ -24,6 +84,11 @@ import {
 	Code,
 	FileTree,
 } from '@astrojs/starlight/components';
+import AdsterraAds from '@/components/kbve/AdsterraAds.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="design" eyebrow="Jam notes" heading="Design & build notes">
 
 ## Barckeys Game Jam 
 
@@ -40,6 +105,8 @@ The theme for the sister jam, hosted by Wild, is `ERASE` and the wild cards are:
 * Mimic - Something is not what it seems.
 * Style Shift - Visuals switch between two art styles.
 * Shopaholic - include some kind of shopping mechanism.
+
+<AdsterraAds label="Sponsored" />
 
 #### Submission
 
@@ -364,3 +431,7 @@ As for the heat release, we will have a couple keys to help the exhausting of th
 The Earth planet will be on layer 5 with collision mask being for layer 6 aka the spaceship.
 Once the player is within the collision circle of the planet, a display will come up that says "Press X to Interact with the Planet!".
 After the player presses the X, it should open up the shop UI and let the player purchase upgrades.
+
+</BentoProse>
+
+</BentoDoc>

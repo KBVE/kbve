@@ -1,7 +1,7 @@
 ---
-title: Unreal RareIcon
-description: |
-    RareIcon UE5 Linux dedicated server build — uses stock Epic Docker image for CI.
+title: Unreal RareIcon — UE5 Linux Dedicated Server Build
+description: RareIcon UE5 Linux dedicated server build — uses the stock Epic Games Unreal Engine Docker image on the arc-runner-ue Kubernetes runner for CI.
+sem: 1
 sidebar:
     label: Unreal RareIcon
     order: 97
@@ -20,11 +20,85 @@ runner: arc-runner-ue
 author: h0lybyte
 license: KBVE
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the Unreal RareIcon build?
+          answer: It is the RareIcon UE5 Linux dedicated server build, managed via the ci-unreal.yml workflow with task server and run on the arc-runner-ue Kubernetes runner.
+        - question: Which Unreal Engine image does RareIcon use?
+          answer: It uses the cached ghcr.io/epicgames/unreal-engine:dev-5.7.4 stock Epic Games Docker image, so no custom engine build is required for CI.
+        - question: How is a RareIcon server build triggered?
+          answer: Trigger the CI - Unreal Engine workflow in GitHub Actions, select the dedicated-server task, and set shell_path to apps/rareicon/unreal-rareicon. Build config lives in build.toml and version.toml under that path.
+bento:
+    badge: ue5 · server · gaming
+    title: UE5 Linux dedicated server build for
+    accent: RareIcon
+    lede: >-
+        The RareIcon UE5 Linux dedicated server build — uses the stock Epic Games
+        Unreal Engine Docker image on the arc-runner-ue Kubernetes runner for CI.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/rareicon/unreal-rareicon
+          primary: true
+          external: true
+        - label: Build
+          href: "#build"
+    aside:
+        icon: server
+        title: Stock engine, no custom build
+        body: >-
+            The server build runs off the cached
+            <code>ghcr.io/epicgames/unreal-engine:dev-5.7.4</code> stock Epic Games
+            Docker image on the arc-runner-ue Kubernetes runner, so no custom engine
+            build is required for CI.
+        points:
+            - <strong>Task</strong> — dedicated-server via ci-unreal.yml.
+            - <strong>Runner</strong> — arc-runner-ue Kubernetes runner.
+    stats:
+        - { label: Engine, value: UE 5.7.4, icon: box }
+        - { label: Pipeline, value: ue5_server, icon: gears }
+        - { label: Runner, value: arc-runner-ue, icon: server }
+        - { label: Status, value: active, icon: activity }
+    features:
+        - title: Stock Epic UE image
+          icon: box
+          body: Builds off the cached ghcr.io/epicgames/unreal-engine:dev-5.7.4 Docker image, so no custom engine build is required.
+        - title: Dedicated server target
+          icon: server
+          body: 'Managed via the ci-unreal.yml workflow with <code>task: server</code>.'
+        - title: Kubernetes runner
+          icon: deploy
+          body: Runs on the arc-runner-ue Kubernetes runner.
+        - title: Manifest dispatch
+          icon: gears
+          body: Triggered from the CI - Unreal Engine workflow by selecting the dedicated-server task and setting shell_path.
+    related:
+        - title: Unity RareIcon
+          href: /project/unity-rareicon/
+          copy: The RareIcon game's Unity DOTS project.
+          icon: box
+        - title: RareIcon
+          href: /project/rareicon/
+          copy: The RareIcon project overview.
+          icon: crown
+    related_heading: Related
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="build" eyebrow="CI" heading="Build & dispatch">
 
 ## Overview
 
-RareIcon dedicated server build managed via the `ci-ue5-rows.yml` workflow.
+RareIcon dedicated server build managed via the `ci-unreal.yml` workflow (`task: server`).
 
 Uses the cached `ghcr.io/epicgames/unreal-engine:dev-5.7.4` Docker image on the `arc-runner-ue` Kubernetes runner.
 
@@ -42,3 +116,7 @@ Trigger via GitHub Actions:
 1. Go to **CI - Unreal Engine** workflow
 2. Select task: `dedicated-server`
 3. Set `shell_path`: `apps/rareicon/unreal-rareicon`
+
+</BentoProse>
+
+</BentoDoc>

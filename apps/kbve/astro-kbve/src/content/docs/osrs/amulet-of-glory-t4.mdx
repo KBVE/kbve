@@ -12,9 +12,27 @@ osrs:
   lowalch: 7050
   highalch: 10575
   limit: 5
+  about: "Amulet of glory (t4) is the gold-trimmed cosmetic variant of the charged amulet of glory, obtained from hard Treasure Trails. Stats match the standard glory; the trim is fashionscape only. High alchemy value: 10,575 coins. Grand Exchange buy limit: 5 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    equipable: true
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.01
+  material:
+    type: jewelry
+    tier: dragonstone
   equipment:
     slot: neck
-    weight: 0.01
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      none: 1
     attack_bonus:
       stab: 10
       slash: 10
@@ -28,76 +46,47 @@ osrs:
       magic: 3
       ranged: 3
     other_bonus:
-      melee_strength: 6
+      strength: 6
       ranged_strength: 0
       magic_damage: 0
       prayer: 3
   charges:
     current: 4
     max: 6
-    recharge: Fountain of Rune
-  special_effect:
-    name: Glory Effect
-    description: Teleports to Edgeville, Karamja, Draynor, Al Kharid. Increases gem mining chance.
-    triggers: on_use
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard
-        drop_rate: 1/1,625
-        description: Rare reward from hard clue scrolls
-  related_items:
-    - item_id: 1704
-      item_name: Amulet of glory(4)
-      slug: amulet-of-glory-4
-      relationship: variant
-      description: Standard (untrimmed) version with 4 charges
-    - item_id: 10362
-      item_name: Amulet of glory (t)
-      slug: amulet-of-glory-t
-      relationship: variant
-      description: Uncharged trimmed version
-    - item_id: 11964
-      item_name: Amulet of glory (t6)
-      slug: amulet-of-glory-t6
-      relationship: variant
-      description: Fully charged trimmed version (6 charges)
-    - item_id: 6585
-      item_name: Amulet of fury
-      slug: amulet-of-fury
-      relationship: upgrade
-      description: Superior combat amulet
-  about: |-
-    > *"A very powerful dragonstone amulet."*
-
-    - Edgeville
-    - Karamja (Musa Point)
-    - Draynor Village
-    - Al Kharid
-
-    | Property | Glory (4) | Glory (t4) |
-    |----------|-----------|------------|
-    | All Attack | +10 | +10 |
-    | All Defence | +3 | +3 |
-    | Strength | +6 | +6 |
-    | Prayer | +3 | +3 |
-    | Teleports | Yes (4) | Yes (4) |
-    | Appearance | Standard | Gold trimmed |
-    | Source | Enchanting | Hard clue |
-
-    Stats are identical. The trimmed version is purely a cosmetic upgrade obtained through Treasure Trails.
+    recharge_method: "Fountain of Rune or Heroes' Guild fountain"
+  special_attack:
+    name: "Glory teleport"
+    description: "Right-click teleport to Edgeville, Karamja, Draynor Village, or Al Kharid; consumes one charge per teleport."
+    energy: 0
+  treasure_trail:
+    tier: hard
+    rarity: "1/1,625"
+  drop_table:
+    - source: "Hard Clue Casket"
+      quantity: "1"
+      rarity: "1/1,625"
   market_strategy:
-    title: Investment Notes
     notes:
-      - Hard clue exclusive cosmetic
-      - Functions identically to regular glory with 4 charges
-      - Fashionscape demand drives pricing
-      - Recharge at Fountain of Rune for 6 charges (becomes t6)
-      - Can be recharged just like a regular glory
-      - All charge variants (t1 through t6) maintain the trimmed appearance
-      - Popular among players who want a premium look for everyday teleporting
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "flip_potential: \"medium\""
+      - "Fashionscape premium over the standard glory; hard clue exclusive cosmetic with stable demand."
+  trading_tips:
+    - "Charge to 6 at Fountain of Rune to convert into glory (t6) for higher resale."
+    - "Track price against the standard charged glory to spot cosmetic premium swings."
+    - "Hard clue supply is the main pricing lever — watch clue event weeks."
+  history:
+    - date: "2006-12-05"
+      description: "Released as a hard Treasure Trail reward."
+    - date: "2017-01-01"
+      description: "Partial-charge variants gained bank placeholders for inventory management."
+  relationships:
+    - item_name: Amulet of glory(4)
+      relationship: variant
+    - item_name: Amulet of glory (t)
+      relationship: variant
+    - item_name: Amulet of glory (t6)
+      relationship: upgrade
+    - item_name: Amulet of fury
+      relationship: upgrade
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

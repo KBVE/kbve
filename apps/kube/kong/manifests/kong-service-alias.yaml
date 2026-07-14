@@ -1,19 +1,21 @@
----
 apiVersion: v1
 kind: Service
 metadata:
-  name: kong
-  namespace: kilobase
-  labels:
-    app: kong-alias
+    name: kong
+    namespace: kilobase
+    labels:
+        app: kong-alias
+        kbve.com/category: networking
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
-  type: ClusterIP
-  ports:
-  - port: 8000
-    targetPort: 8000
-    protocol: TCP
-    name: http
-  selector:
-    app.kubernetes.io/component: app
-    app.kubernetes.io/instance: kong
-    app.kubernetes.io/name: kong
+    type: ClusterIP
+    ports:
+        - port: 8000
+          targetPort: 8000
+          protocol: TCP
+          name: http
+    selector:
+        app.kubernetes.io/component: app
+        app.kubernetes.io/instance: kong
+        app.kubernetes.io/name: kong

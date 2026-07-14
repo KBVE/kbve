@@ -1,0 +1,220 @@
+---
+# ROWS tenant base — Deployment + Service + PDB.
+# Common across tenants; per-tenant OWS_TENANT_SLUG / OWS_ENV / AGONES_FLEET and the
+# namespace are added by each overlay. Never deployed directly — only via an overlay.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: rows
+    labels:
+        app: rows
+        app.kubernetes.io/part-of: ows
+    annotations:
+        reloader.stakater.com/auto: 'true'
+spec:
+    replicas: 1
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+    selector:
+        matchLabels:
+            app: rows
+    template:
+        metadata:
+            labels:
+                app: rows
+                app.kubernetes.io/part-of: ows
+        spec:
+            serviceAccountName: rows-instancelauncher
+            terminationGracePeriodSeconds: 30
+            containers:
+                - name: rows
+                  image: ghcr.io/kbve/rows:0.1.38
+                  imagePullPolicy: Always
+                  env:
+                      - name: HTTP_HOST
+                        value: '0.0.0.0'
+                      - name: HTTP_PORT
+                        value: '4322'
+                      - name: DOCS_PORT
+                        value: '4323'
+                      - name: METRICS_PORT
+                        value: '4324'
+                      - name: RUST_LOG
+                        value: 'info'
+                      - name: DB_MAX_CONNECTIONS
+                        value: '20'
+                      - name: OWS_API_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-customer-guid
+                                key: customer-guid
+                      - name: DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-db-credentials
+                                key: db-url
+                      - name: RABBITMQ_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-rabbitmq-credentials
+                                key: amqp-url
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-supabase-jwt
+                                key: jwt-secret
+                      - name: SUPABASE_SERVICE_KEY_HASH
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-supabase-service-key
+                                key: hash
+                                optional: true
+                      # Gateway-held bearer token gating POST /fleet-restart/trigger (and, once
+                      # set, the legacy RestartFleet). GameServers must NOT receive this value.
+                      # optional so a missing secret can't block rollout — the trigger just 401s.
+                      - name: ROWS_FLEET_RESTART_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-fleet-restart-token
+                                key: token
+                                optional: true
+                      - name: SUPABASE_URL
+                        value: 'https://supabase.kbve.com'
+                      - name: AGONES_NAMESPACE
+                        value: 'arc-runners'
+                      - name: AGONES_API_TIMEOUT_SECS
+                        value: '10'
+                      - name: AGONES_CIRCUIT_BREAKER_THRESHOLD
+                        value: '5'
+                      - name: AGONES_CIRCUIT_BREAKER_RESET_SECS
+                        value: '30'
+                      - name: ROWS_SPINUP_TIMEOUT_SECS
+                        value: '60'
+                      - name: ROWS_SPINUP_POLL_INTERVAL_MS
+                        value: '2000'
+                      - name: ROWS_SPINUP_INITIAL_DELAY_MS
+                        value: '3000'
+                      # --- Empty-server reaper (PR #13200) — ships INERT. ---
+                      # Backstops the UE server's own SDK.Shutdown(). UNSAFE to enable until UE
+                      # heartbeats are confirmed LIVE in this env: pre-heartbeat a full server is
+                      # indistinguishable from a dead one, so ROWS_REAP_NEVER_REPORTED would
+                      # deallocate populated servers ~boot-grace after spawn. Enabling the switches
+                      # below is a HARD-GATED runbook step — see Operational Runbook section 2 in
+                      # apps/rows/docs/2026-06-23-rows-empty-server-reaper.md. Leave the two
+                      # switches commented until that gate is satisfied; flipping them on is then a
+                      # deliberate, reviewable GitOps diff (no out-of-band env edits / Argo drift).
+                      # - name: ROWS_EMPTY_REAPER_ENABLED      # master switch (count-based reap)
+                      #   value: 'true'
+                      # - name: ROWS_REAP_NEVER_REPORTED       # DANGER: reaps pre-heartbeat servers
+                      #   value: 'true'
+                      # - name: ROWS_EMPTY_REAP_STALE_SECS     # crashed-while-populated; needs
+                      #   value: '120'                         # trusted heartbeat delivery (0 = off)
+                      # Safety auto-gate (default ON): never-reported reaping stays suppressed until
+                      # a heartbeat has ever been observed for the tenant, so enabling the reaper
+                      # before UE heartbeats are live can't evict populated servers. Leave 'true'.
+                      - name: ROWS_REAP_REQUIRE_HEARTBEAT
+                        value: 'true'
+                      # Tuning knobs (safe; inert while the switches above stay off). All knobs
+                      # (incl. the switches) are also overridable per tenant via the ows.reaperconfig
+                      # table — see Operational Runbook section 5; the DB value wins per field.
+                      - name: ROWS_EMPTY_REAP_BOOT_GRACE_SECS
+                        value: '14400'
+                      - name: ROWS_EMPTY_REAP_BUFFER_SECS
+                        value: '30'
+                      - name: ROWS_EMPTY_REAP_MIN_EMPTY_SECS
+                        value: '300'
+                      # Empty-reap freshness gate (default ON): the empty marker is only honored if
+                      # a heartbeat arrived within this window, so a wedged heartbeat (frozen 0)
+                      # can't hard-deallocate a populated-but-silent server. 0 disables the gate.
+                      # INVARIANT: this MUST exceed the UE heartbeat interval. If UE
+                      # heartbeats less often than FRESH_SECS, every empty server's last heartbeat is
+                      # always "stale" → the Empty reap can NEVER fire (it silently no-ops even when
+                      # ROWS_EMPTY_REAPER_ENABLED=true). Before enabling the reaper, confirm
+                      # heartbeat_interval < ROWS_EMPTY_REAP_FRESH_SECS; the reaper logs a per-cycle
+                      # "empty servers retained: heartbeat stale vs empty_fresh_secs" count to catch this.
+                      - name: ROWS_EMPTY_REAP_FRESH_SECS
+                        value: '180'
+                      # empty-shutdown-minutes annotation: tells the UE server when to self-shutdown
+                      # after going empty. Default ON (stamped even before a UE consumer reads it, so
+                      # it's already present when one lands). Set 'false' to skip the per-allocation
+                      # per-map-timeout DB read and omit it. Independent of ROWS_EMPTY_REAPER_ENABLED.
+                      # - name: ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION
+                      #   value: 'false'
+                  ports:
+                      - name: http
+                        containerPort: 4322
+                        protocol: TCP
+                      - name: docs
+                        containerPort: 4323
+                        protocol: TCP
+                      - name: metrics
+                        containerPort: 4324
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '1Gi'
+                          cpu: '500m'
+                      limits:
+                          memory: '4Gi'
+                          cpu: '2000m'
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /ready
+                          port: http
+                      initialDelaySeconds: 3
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: rows
+    labels:
+        app: rows
+        app.kubernetes.io/part-of: ows
+spec:
+    type: ClusterIP
+    selector:
+        app: rows
+    ports:
+        - name: http
+          port: 4322
+          targetPort: 4322
+          protocol: TCP
+        - name: docs
+          port: 4323
+          targetPort: 4323
+          protocol: TCP
+        - name: metrics
+          port: 4324
+          targetPort: 4324
+          protocol: TCP
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+    name: rows-pdb
+    labels:
+        app: rows
+        app.kubernetes.io/part-of: ows
+spec:
+    # maxUnavailable (not minAvailable): with a single replica, minAvailable:1 blocks every
+    # voluntary eviction and hangs node drains. maxUnavailable:1 always permits the drain; run
+    # replicas >= 2 before enabling the fleet-restart reconcile live so one pod is always serving
+    # (the per-tenant advisory lock makes multi-replica safe).
+    maxUnavailable: 1
+    selector:
+        matchLabels:
+            app: rows

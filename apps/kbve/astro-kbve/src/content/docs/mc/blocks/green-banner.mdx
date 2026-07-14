@@ -1,5 +1,6 @@
 ---
 title: Green Banner
+template: splash
 description: |
     Minecraft Green Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 544
     ref: green_banner
     slug: green-banner
+    content_rev: 1
     display_name: Green Banner
     material: wood
     hardness: 1
@@ -23,11 +25,59 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Green Banner is a standing decorative block crafted from green
+            wool, used to display custom patterns and mark locations with
+            a tall, freestanding flag.
+        lore: |
+            Banners were added in Java Edition 1.8, letting players craft
+            and pattern their own heraldic flags in 16 base colors.
+    uses:
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combine a green banner with a shield at a loom or crafting
+              grid to permanently apply its pattern and color to the shield.
+        - title: Map Marker
+          ref: map
+          detail: |
+              Placing a banner and naming it lets it appear as a custom
+              marker on any map that covers that area (Java Edition).
+    found_in:
+        - location: Crafted
+          detail: Six green wool and one stick craft one green banner.
+        - location: Villages and Illager Structures
+          detail: Green and other colored banners generate in village structures, mansions, and as ominous banners dropped by illager captains.
+    faq:
+        - question: What tool do I need to mine a Green Banner?
+          answer: |
+              None required — any tool breaks it, though an axe is fastest.
+              It always drops the banner item regardless of tool.
+        - question: Can I apply patterns to a Green Banner?
+          answer: |
+              Yes, use a loom with dye and a pattern, or combine it with
+              banner pattern items, to add up to six layered designs.
+        - question: Is a Green Banner solid?
+          answer: |
+              No, banners are non-solid; entities and projectiles can pass
+              through them freely.
+        - question: Can banners be used as furnace fuel?
+          answer: |
+              Yes, each banner smelts as fuel worth 1.5 items in a furnace.
     data_version: "1.21.5"
 ---
 

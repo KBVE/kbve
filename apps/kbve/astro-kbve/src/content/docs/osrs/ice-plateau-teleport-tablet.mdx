@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Ice plateau teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: teleport-tablet
+    tier: mid
+  properties:
+    release_date: "2020-09-30"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Configure
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 89
+      xp: 92
+      materials:
+        - item_name: Law rune
+          quantity: 3
+        - item_name: Water rune
+          quantity: 8
+        - item_name: Astral rune
+          quantity: 3
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Lunar lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: "Required to enchant the tablet"
+    - item_name: Astral rune
+      slug: astral-rune
+      relationship: component
+      description: "Lunar spellbook reagent for the tablet"
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: "Base material the tablet is enchanted onto"
+    - item_name: Ape atoll teleport (tablet)
+      slug: ape-atoll-teleport-tablet
+      relationship: alternative
+      description: "Another lunar teleport tablet"
+  about: |-
+    The Ice plateau teleport tablet lets any player without Magic level 89 reach the Ice Plateau in level 53 Wilderness. Breaking it triggers a warning dialog before teleporting since the destination is deep Wilderness. The Configure option toggles that warning prompt.
+  market_strategy:
+    notes:
+      - "Bulk teleport for Wilderness content and DDS pkers"
+      - "Made on Lunar spellbook for ~396 gp profit per tablet"
+      - "No Magic requirement to break, useful for low-level mules"
+  trading_tips:
+    - "Stockpile when soft clay or astral runes are cheap"
+    - "Spike in demand during Wilderness events and DMM"
+    - "Sell during Wilderness PvP weekends for best margins"
+  history:
+    - date: "2020-09-30"
+      description: "Tablet variant added with the lunar lectern update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
