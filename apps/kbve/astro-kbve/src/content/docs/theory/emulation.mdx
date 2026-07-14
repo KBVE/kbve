@@ -22,47 +22,47 @@ bento:
     accent: emulated.
     lede: >-
         A quick reference to the different types of emulators within our
-        eco-system — from Nintendo Switch emulation with Ryujinx to the Docker
-        containers that keep everything reproducible. Install, configure, and
-        play across platforms.
+        eco-system — from Nintendo Switch emulation with Ryubing, the community
+        continuation of Ryujinx, to the Docker containers that keep everything
+        reproducible. Install, configure, and play across platforms.
     ctas:
-        - label: Ryujinx guide
-          href: '#ryujinx'
+        - label: Ryubing guide
+          href: '#ryubing'
           primary: true
+        - label: Ryujinx history
+          href: '#ryujinx'
         - label: Install
           href: '#install'
-        - label: Setup
-          href: '#setup'
     aside:
         icon: box
         title: Emulate anywhere
         body: >-
             Emulators recreate the hardware of one platform on another, letting
             you run console software on a desktop. This guide collects the
-            install paths, package-manager shortcuts, and post-install tooling
-            we lean on.
+            install paths, release channels, and post-install tooling we lean
+            on.
         points:
-            - <strong>Ryujinx</strong> — open-source Nintendo Switch emulation.
-            - <strong>Choco</strong> — painless install and auto-updates.
-            - <strong>RyuSAK</strong> — post-install setup companion.
+            - <strong>Ryubing</strong> — active fork of the discontinued Ryujinx.
+            - <strong>Ryujinx</strong> — the original Switch emulator, shut down in 2024.
+            - <strong>Stable & Canary</strong> — Ryubing's two release channels.
     stats:
         - { label: Focus, value: Switch, icon: box }
-        - { label: Emulator, value: Ryujinx, icon: sensor }
-        - { label: Install, value: Choco, icon: package }
-        - { label: Platform, value: Windows, icon: settings }
+        - { label: Emulator, value: Ryubing, icon: sensor }
+        - { label: Channels, value: 'Stable · Canary', icon: package }
+        - { label: Platforms, value: 'Win · Linux · Mac', icon: settings }
     features:
-        - title: Ryujinx overview
+        - title: Ryujinx history
           icon: sensor
           href: '#ryujinx'
-          body: What Ryujinx is and how it lets you run Nintendo Switch games on Windows.
-        - title: Install via Choco
+          body: The original open-source Switch emulator and why development stopped in October 2024.
+        - title: Ryubing overview
+          icon: zap
+          href: '#ryubing'
+          body: The community fork that carries Ryujinx forward — channels, platforms, and features.
+        - title: Install & setup
           icon: package
           href: '#install'
-          body: The one-line Chocolatey command plus manual Windows and Mac install notes.
-        - title: Post-install setup
-          icon: gears
-          href: '#setup'
-          body: Configure Ryujinx with RyuSAK once the emulator is installed.
+          body: Where to download Ryubing, release channels, and firmware/key requirements.
         - title: Docker containers
           icon: box
           href: '#docker'
@@ -92,11 +92,13 @@ jsonld:
         - { name: Emulation, path: /theory/emulation/ }
     faq:
         - question: What is Ryujinx?
-          answer: Ryujinx is an open-source Nintendo Switch emulator that lets you play Switch games on Windows after downloading and extracting the emulator.
-        - question: What is the easiest way to install Ryujinx?
-          answer: Installing through Chocolatey is the best option — run choco install ryujinx --params "/DesktopShortcut" and it keeps the software up to date with a painless install and removal.
-        - question: How do I set up Ryujinx after installing?
-          answer: We recommend using RyuSAK, available from the RyuSAK repository, to handle the post-install configuration of Ryujinx.
+          answer: Ryujinx was an open-source Nintendo Switch emulator written in C#. Development ended on October 1, 2024, after Nintendo reached an agreement with its creator, gdkchan, to stop the project and remove its GitHub organization and downloads.
+        - question: What is Ryubing?
+          answer: Ryubing is the community fork that continues Ryujinx development. It started immediately after the October 2024 shutdown, ships Stable and Canary release channels, and supports Windows, Linux, and macOS, including ARM64 builds.
+        - question: Where do I download Ryubing?
+          answer: Downloads and setup guides live at ryujinx.app and docs.ryujinx.app. After a March 2025 DMCA takedown removed the code from GitHub, the source moved to the project's self-hosted Git at git.ryujinx.app.
+        - question: Does Ryubing include firmware or keys?
+          answer: No. Like the original Ryujinx, Ryubing does not distribute Switch firmware or prod.keys — you must dump them from your own console. Sites offering bundled keys or firmware are unofficial and best avoided.
 ---
 
 import { Adsense } from '@/components/astropad';
@@ -123,58 +125,80 @@ The Docker section would be located [here](/application/docker/)
 
 <BentoProse id="ryujinx" eyebrow="Switch emulation" heading="Ryujinx">
 
-Ryujinx is an open-source Nintendo Switch emulation software that can be used to play Switch games on Windows.
-To set up `Ryujinx`, you will need to download the emulator from the Ryujinx website.
-Once you have downloaded the emulator, you will need to extract the files to a location of your choice.
-After extracting the files, you can open Ryujinx and start playing your Switch games.
+Ryujinx was an open-source Nintendo Switch emulator written in C# on .NET, started in 2017 by the Brazilian developer gdkchan.
+It was the first Switch emulator to boot commercial games in 2018 and grew into one of the most accurate emulators for the platform, with roughly 3,550 of about 4,300 tested titles rated playable by mid-2024.
+Along the way it picked up a Vulkan graphics backend, a native macOS port for Apple Silicon (using the hypervisor for near-native ARMv8 execution), and a modern Avalonia-based interface.
+
+On October 1, 2024, development ended abruptly.
+Nintendo contacted gdkchan and offered an agreement to stop working on the project, and the GitHub organization, downloads, and Patreon were removed.
+Unlike the Yuzu case earlier that year, there was no lawsuit or public settlement — the project simply went dark, with 1.1.1403 as the final official release.
+
+The instructions that used to live on this page — the `choco install ryujinx` package, the official website downloads, and the RyuSAK setup companion — all target the discontinued original and are no longer maintained.
+The community picked up the torch instead, and the most complete continuation is Ryubing, covered below.
+
+</BentoProse>
+
+<BentoProse id="ryubing" eyebrow="The continuation" heading="Ryubing">
+
+[Ryubing](https://github.com/Ryubing) is the community fork that carries Ryujinx forward, described plainly on its GitHub organization as "a fork of the discontinued Switch emulator, Ryujinx."
+It was started right after the October 2024 shutdown by GreemDev, a member of the original Ryujinx team, initially as a quality-of-life fork before being rebranded to Ryubing around the start of 2025.
+
+Compared to where the original left off, Ryubing added:
+
+- **Built-in LDN multiplayer** — local-wireless multiplayer over the internet, previously a separate community build, now integrated with a project-hosted LDN server.
+- **Two release channels** — *Stable* for tested releases and *Canary* for automatic per-commit builds from the development branch, delivered through a built-in auto-updater.
+- **Broader platform coverage** — Windows x64 and ARM64, Linux x64 and ARM64, and a universal macOS build, with a community-maintained Metal backend for Apple Silicon alongside the Vulkan and OpenGL ones.
+- **Quality-of-life tooling** — an XCI trimmer, mod and cheat management inherited from Ryujinx, and ongoing performance and compatibility work (including partial SDK20 support so newer game updates like Tears of the Kingdom 1.4.x boot).
+
+The project has had a bumpy legal ride.
+In March 2025, Nintendo issued DMCA takedowns against Ryujinx forks on GitHub, which knocked Ryubing's main code repository offline; the source moved to a self-hosted Git at [git.ryujinx.app](https://git.ryujinx.app), while the issue tracker, compatibility list, and support repos stayed on GitHub.
+After another DMCA wave in February 2026, GreemDev stepped away and the project shifted into maintenance mode under contributor LotP and the remaining team — infrastructure, compatibility tracking, and bugfix releases continue, but major feature development has slowed.
+
+Related forks worth knowing about: **ryujinx-mirror** is a preservation-focused hard fork that only ships minor fixes, and **Kenji-NX** shares most of its changes with Ryubing while keeping closer to the original Ryujinx interface.
 
 </BentoProse>
 
 <BentoProse id="install" eyebrow="Get started" heading="Install">
 
-### Choco
+Ryubing's downloads and documentation live at [ryujinx.app](https://ryujinx.app), with the setup guide at [docs.ryujinx.app](https://docs.ryujinx.app/guides/setup-guide/).
+Pick a channel when you download:
 
-Installing RyuJinx through `choco` is the best option because it will keep the software up to date and make the install/removal very painless and easy!
-If you do not have `choco` installed, then head over to our [choco documentation file](/application/choco) for more information.
-The official package repo for Ryujinx is located [here at Chocolatey](https://community.chocolatey.org/packages/ryujinx) if you need to verify or see their documentation.
+- **Stable** — tested releases, the right default for most players.
+- **Canary** — bleeding-edge builds generated from every commit; more fixes and features, more churn.
 
-The best way to install it would be to include the Desktop shortcut parameters!
-Here is the quick command to get it installed and running:
+The general flow is the same on every platform:
 
-```shell
-choco install ryujinx --params "/DesktopShortcut"
-```
+1.  Download the build for your OS and architecture from the Ryubing website.
+2.  Extract the archive to a location of your choice.
+3.  Launch the emulator and install your dumped Switch firmware, then point it at your `prod.keys`.
+4.  Add your game directory through the settings, select a title, and play.
 
-This will have the application installed and you can run it from your desktop! 
-See how easy this was! Makes it so much faster!
+The emulator does not ship firmware or keys — you dump both from your own hackable Switch using tools like Atmosphère and Lockpick_RCM, per the official setup guide.
+Treat any third-party site bundling "Ryujinx keys" or firmware as unofficial and unsafe.
 
 ### Windows
 
-We really recommend that you install the software via `choco` as it will save you time, effort and energy! If you need help check, come to our Discord or IRC.
+Windows x64 and ARM64 builds are provided.
+The old Chocolatey `ryujinx` package tracked the discontinued original and is stale, so grab the archive from the Ryubing site directly and keep it current through the built-in updater.
+Keep your GPU drivers updated — Vulkan is the preferred backend.
 
-Here are the steps you would take to setup and install RyuJinx directly for Windows:
+### Linux
 
-1.  Download the Ryujinx emulator from the Ryujinx website.
-	1. (a) You can choose to download the software from the Github repo as well! 
-	2. (b) Make sure you have your drivers updated!
-2.  Extract the files to a location of your choice.
-3.  Open Ryujinx.
-4.  Click on the "File" menu and select "Add Game."
-5.  Browse to the location of your Switch game files and select them.
-6.  Click on the "Open" button.
-7.  Your game will now start playing in Ryujinx.
-
-After you get the software installed, double check it by running it and seeing if there are any errors.
+x64 and ARM64 archives are available, and community packaging exists (for example the AUR on Arch).
+The same firmware and key steps apply.
 
 ### Mac
 
-We do not have any notes yet on the Mac install for this time. I will have to spend some time setting that up on my `m1`, however I been told that it is a pain and is not really worth the amount of time to invest.
+The macOS build is a universal binary and runs well on Apple Silicon, where the hypervisor executes ARMv8 code near-natively and a Metal backend is available.
+This is a far better story than the original Ryujinx-era Mac experience previously noted on this page.
 
 </BentoProse>
 
 <BentoProse id="setup" eyebrow="Configure" heading="Setup">
 
-After installing the software, you will have to look into setting up the `RyuJinx` and for that we recommend using `RyuSAK`, which can be found [here at the RyuSAK repo](https://github.com/Ecks1337/RyuSAK/release).
+RyuSAK, the setup companion we used to recommend here, targeted the original Ryujinx and is no longer maintained.
+For a current install, the [official Ryubing setup guide](https://docs.ryujinx.app/guides/setup-guide/) covers everything post-install: firmware installation from an XCI or ZIP, key placement, and per-game configuration.
+For compatibility questions, the project maintains a public [compatibility tracker](https://github.com/Ryubing) on GitHub and a Discord bot that answers lookups directly.
 
 </BentoProse>
 
