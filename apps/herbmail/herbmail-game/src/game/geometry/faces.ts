@@ -50,6 +50,10 @@ export function exposedFaces(grid: Grid): Face[] {
 }
 
 export function isBay(grid: Grid, face: Face, variant = 0): boolean {
+	// Never carve a niche into a doorway jamb: the face's open tile being an
+	// arch means we're inside the door threshold, and a recess there reads as
+	// a random hole behind the leaf.
+	if ((gridTile(grid, face.col, face.row) & DOORWAY) !== 0) return false;
 	const c = worldCol(grid, face);
 	const r = worldRow(grid, face);
 	return (((c * 11 + r * 17 + face.di * 3 + variant * 23) % 5) + 5) % 5 === 0;
