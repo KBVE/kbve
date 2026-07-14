@@ -2,7 +2,7 @@ name: CI - Forgejo Mirror
 
 on:
     push:
-        branches: [main, dev]
+        branches: [main]
         tags: ['**']
     workflow_dispatch:
 
@@ -41,8 +41,8 @@ jobs:
 
                   echo "::notice::Mirroring ${REF_TYPE} '${REF_NAME}' to Forgejo (pointers only, non-destructive)"
 
-                  if [ "${REF_TYPE}" = "branch" ]; then
-                      git push "${REMOTE}" "HEAD:refs/heads/${REF_NAME}"
+                  if [ "${REF_TYPE}" = "branch" ] && [ "${REF_NAME}" = "main" ]; then
+                      git push "${REMOTE}" "HEAD:refs/heads/main"
                   fi
 
                   git push "${REMOTE}" --tags
