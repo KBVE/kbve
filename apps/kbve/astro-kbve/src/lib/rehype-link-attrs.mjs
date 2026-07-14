@@ -3,8 +3,8 @@
  *
  * Rehype plugin that enriches <a> elements produced from markdown/MDX:
  *  - Internal links: adds `data-astro-prefetch`, `aria-label`, `title`
- *  - External links: adds `rel="noopener noreferrer"`, `target="_blank"`,
- *    `aria-label`, `title`
+ *  - External links: adds `rel="nofollow noopener noreferrer"`,
+ *    `target="_blank"`, `aria-label`, `title`
  *
  * An internal link is any href that starts with "/" or is relative (no protocol).
  */
@@ -61,7 +61,7 @@ export default function rehypeLinkAttrs() {
 
 			if (isExternal(href)) {
 				// External link enrichment
-				props.rel = 'noopener noreferrer';
+				props.rel = 'nofollow noopener noreferrer';
 				props.target = '_blank';
 
 				if (!props.title) {
