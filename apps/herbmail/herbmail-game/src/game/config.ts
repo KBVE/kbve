@@ -9,7 +9,11 @@ export const TEXEL = 1 / 256;
 export const UV_INSET = TEXEL * 0.5;
 export const ANISOTROPY = 8;
 
-export const FOG = { color: '#000000', near: 24, far: 72 } as const;
+export const BG_COLOR = '#000000';
+// Streaming/light-culling horizon. Darkness comes from torch attenuation, so
+// this bounds how far sectors mount and which emitters feed the shader — not
+// a fog wall.
+export const VIEW_RANGE = 30;
 
 export const TINT = {
 	wall: [1, 1, 1],

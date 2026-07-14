@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { TILE, FOG } from '../config';
+import { TILE, VIEW_RANGE } from '../config';
 import {
 	DungeonWorld,
 	sectorAtWorld,
@@ -27,7 +27,7 @@ import {
 export const DUNGEON_SEED = 1337;
 
 const SECTOR_SPAN = SECTOR_TILES * TILE;
-export const MOUNT_MARGIN = FOG.far + SECTOR_SPAN * 0.25;
+export const MOUNT_MARGIN = VIEW_RANGE + SECTOR_SPAN * 0.25;
 
 let dw = new DungeonWorld(DUNGEON_SEED);
 let active: ActiveRoom[] = [];

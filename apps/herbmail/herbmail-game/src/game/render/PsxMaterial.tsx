@@ -7,7 +7,7 @@ import {
 	POM_SELF_SHADOW,
 	SPOM_SILHOUETTE,
 } from '@kbve/laser';
-import { FOG, TILE } from '../config';
+import { TILE } from '../config';
 
 const blankTex = new THREE.DataTexture(
 	new Uint8Array(1),
@@ -19,6 +19,11 @@ blankTex.needsUpdate = true;
 
 export const MAX_LIGHTS = 24;
 export const LIGHT_RANGE = 13.5;
+// POM relief LOD band. Darkness comes from light attenuation, so relief detail
+// past the torch glow is invisible — full strength inside RELIEF_NEAR, faded
+// to flat by RELIEF_FAR (just past LIGHT_RANGE where surfaces read black).
+export const RELIEF_NEAR = 6;
+export const RELIEF_FAR = 16;
 
 const vertex = /* glsl */ `
 	uniform float uSnap;
@@ -77,9 +82,8 @@ const fragment = /* glsl */ `
 	uniform vec2 uGridOrigin;
 	uniform vec2 uGridSize;
 	uniform vec3 uTint;
-	uniform vec3 uFogColor;
-	uniform float uFogNear;
-	uniform float uFogFar;
+	uniform float uReliefNear;
+	uniform float uReliefFar;
 	uniform float uAffine;
 	uniform float uAmbient;
 	uniform float uPom;
@@ -140,8 +144,12 @@ const fragment = /* glsl */ `
 		float pomLod = 0.0;
 		float pomHit = 0.0;
 		if (uPom > 0.5) {
-			// Distance-LOD: fade relief to flat as fog swallows the surface.
-			pomLod = 1.0 - clamp((vW - uFogNear) / (uFogFar - uFogNear), 0.0, 1.0);
+			// Distance-LOD: fade relief to flat past the torch glow; those
+			// surfaces are attenuation-black, so marching them is wasted work.
+			pomLod = 1.0 - clamp((vW - uReliefNear) / (uReliefFar - uReliefNear), 0.0, 1.0);
+			if (pomLod <= 0.0) {
+				uv = vUvCorrect;
+			} else {
 			float hitDepth;
 			// POM runs on perspective-correct UV — affine warp would swim.
 			uv = pomMarch(
@@ -151,6 +159,7 @@ const fragment = /* glsl */ `
 			);
 			pomHit = hitDepth;
 			if (uSilhouette > 0.5 && pomSilhouetteClip(uv, vec4(0.0, 0.0, 1.0, 1.0))) discard;
+			}
 		} else {
 			uv = mix(vUvCorrect, vUvAffine / vW, uAffine);
 		}
@@ -207,8 +216,7 @@ const fragment = /* glsl */ `
 		}
 
 		// No distance fog — darkness comes from light attenuation alone
-		// (everything beyond LIGHT_RANGE falls to black on its own). The
-		// uFogNear/uFogFar band still drives the POM relief LOD above.
+		// (everything beyond LIGHT_RANGE falls to black on its own).
 		vec3 rgb = tex.rgb * uTint * light;
 		// Output linear: the AO composer's OutputPass applies the single sRGB
 		// encode, round-tripping back to the tuned display values.
@@ -226,9 +234,8 @@ const PsxMaterialBase = shaderMaterial(
 		uRes: new THREE.Vector2(1, 1),
 		uAffine: 0.3,
 		uTint: new THREE.Color(1, 1, 1),
-		uFogColor: new THREE.Color(FOG.color),
-		uFogNear: FOG.near,
-		uFogFar: FOG.far,
+		uReliefNear: RELIEF_NEAR,
+		uReliefFar: RELIEF_FAR,
 		uAmbient: 0.12,
 		uPom: 0,
 		uPomScale: 0.06,
@@ -261,6 +268,14 @@ export const psxMaterialRegistry = new Set<THREE.ShaderMaterial>();
 export class PsxMaterialImpl extends PsxMaterialBase {
 	constructor() {
 		super();
+		psxMaterialRegistry.add(this);
+	}
+	// Re-register on every draw: StrictMode's mount→unmount→remount replay
+	// disposes the material (unregistering it) and reattaches the SAME
+	// instance without re-running the constructor, which left live walls
+	// permanently unlit. Set.add is idempotent, so this is a cheap no-op on
+	// the happy path.
+	onBeforeRender(): void {
 		psxMaterialRegistry.add(this);
 	}
 	dispose(): void {
