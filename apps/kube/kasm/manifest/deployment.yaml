@@ -186,6 +186,8 @@ spec:
                   env:
                       - name: KASM_PORT
                         value: '6901'
+                      - name: KASM_SVC_SMARTCARD
+                        value: '0'
                       - name: VNC_PW
                         valueFrom:
                             secretKeyRef:
