@@ -39,7 +39,7 @@ pub use forum::{
 pub use kv_cache::{get_kv_cache, init_kv_cache};
 pub use mc::{extract_texture_hash, get_mc_service, init_mc_service};
 pub use mc_lot::{get_lot_client, init_lot_client};
-pub use osrs::{get_osrs_cache, init_osrs_cache};
+pub use osrs::{get_osrs_cache, init_osrs_cache, osrs_ready};
 pub use pg_cluster::{get_pg_cluster, init_pg_cluster};
 pub use profile::{
     DiscordInfo, GithubInfo, TwitchInfo, UserProfile, UserProvider, get_profile_service,
