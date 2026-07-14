@@ -21,12 +21,15 @@ export const GOBLIN_RADIUS = PLAYER_RADIUS * GOBLIN_SCALE;
 // Bald: goblins reuse the human head but drop the hairstyle mesh.
 const HIDE = new Set(['HAIR']);
 
-// Zombie set doubles as a goblin shamble — hunched idle, dragging walk. One
-// walk clip only, so run reuses it (Character skips the blend when equal) and
-// speedRef retimes it: authored stride ≈0.9 m/s × 0.6 scale ≈ 0.55, so chasing
-// at 1.8 plays a frantic ~2.6× scramble instead of ice-skating.
+// Zombie set doubles as a goblin shamble. Its clips are retargeted from other
+// proportions though — the leg rotations swing the feet on this rig — so idle
+// is the native (foot-stable) Idle_Loop with the zombie hunch masked onto the
+// upper body only. Walk stays full zombie: motion hides the drift and speedRef
+// retimes the stride (≈0.9 m/s × 0.6 scale) so chasing plays a frantic ~2.6×
+// scramble instead of ice-skating.
 const LOCOMOTION: LocomotionClips = {
-	idle: 'Zombie_Idle_Loop',
+	idle: 'Idle_Loop',
+	idleOverlay: 'Zombie_Idle_Loop',
 	walk: 'Zombie_Walk_Fwd_Loop',
 	run: 'Zombie_Walk_Fwd_Loop',
 	speedRef: 0.55,

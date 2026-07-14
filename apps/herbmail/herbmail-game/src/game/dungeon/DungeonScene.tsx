@@ -64,7 +64,10 @@ export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 
 			<mesh geometry={archGeo} userData={{ kind: 'archway' }}>
 				<psxMaterial
-					uMap={tex.arch}
+					uMap={tex.arch.color}
+					uNormalMap={tex.arch.normal}
+					uHarMap={tex.arch.har}
+					uUseMaps={1}
 					uSnap={snap}
 					uAffine={0}
 					uRes={res}
@@ -128,7 +131,7 @@ export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 
 			<mesh geometry={bays.frames} userData={{ kind: 'wall niche' }}>
 				<psxMaterial
-					uMap={tex.arch}
+					uMap={tex.arch.color}
 					uSnap={snap}
 					uAffine={0}
 					uRes={res}
@@ -142,7 +145,7 @@ export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 
 			<mesh geometry={bays.backs} userData={{ kind: 'niche recess' }}>
 				<psxMaterial
-					uMap={tex.arch}
+					uMap={tex.arch.color}
 					uSnap={snap}
 					uAffine={0}
 					uRes={res}

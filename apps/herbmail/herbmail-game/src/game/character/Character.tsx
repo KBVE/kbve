@@ -161,6 +161,11 @@ export interface LocomotionClips {
 	 *  scale). When set, the walk loop's timeScale tracks actual speed so feet
 	 *  stop skating at speeds the clip wasn't authored for. */
 	speedRef?: number;
+	/** Looping clip masked to the upper body and held over the idle stance.
+	 *  Lets a retargeted character clip (zombie hunch) style the torso while
+	 *  the native idle keeps the feet planted — retargeted leg rotations swing
+	 *  the feet on this rig's proportions. */
+	idleOverlay?: string;
 }
 
 const DEFAULT_LOCOMOTION: LocomotionClips = {
@@ -172,16 +177,26 @@ const DEFAULT_LOCOMOTION: LocomotionClips = {
 const WALK_TS_MIN = 0.6;
 const WALK_TS_MAX = 2.6;
 
-// The Zombie_* clips animate pelvis translation at a different rest height
-// than this rig (1.02 vs 0.91), which floats + bobs the whole body ~10cm —
-// there's no foot IK to pin the feet. Drop the pelvis position track once
-// (shared GLTF cache): the hunch comes from rotations and survives intact.
-const GROUNDED_CLIPS = new WeakSet<THREE.AnimationClip>();
-function groundPelvis(clips: THREE.AnimationClip[]): void {
+// The retargeted clip batch (Zombie_*, Crouch_*, …) animates pelvis
+// translation in the SOURCE skeleton's space — rest height ~1.02-1.14 vs this
+// rig's ~0.91 — so the whole body floats ~10cm with no foot IK to pin it.
+// Deleting the track is wrong too: the leg rotations are authored against the
+// pelvis curve, so without it the feet swing. Rebase instead: shift the Y
+// curve so its mean sits at the rig's bind pelvis height, keeping the
+// authored bob the rotations compensate for. Mutates the shared GLTF cache
+// once per clip.
+const REBASED_CLIPS = new WeakSet<THREE.AnimationClip>();
+function rebasePelvis(clips: THREE.AnimationClip[], restY: number): void {
 	for (const c of clips) {
-		if (!c.name.startsWith('Zombie_') || GROUNDED_CLIPS.has(c)) continue;
-		c.tracks = c.tracks.filter((t) => t.name !== 'pelvis.position');
-		GROUNDED_CLIPS.add(c);
+		if (!c.name.startsWith('Zombie_') || REBASED_CLIPS.has(c)) continue;
+		REBASED_CLIPS.add(c);
+		const track = c.tracks.find((t) => t.name === 'pelvis.position');
+		if (!track) continue;
+		const v = track.values;
+		let sum = 0;
+		for (let i = 1; i < v.length; i += 3) sum += v[i];
+		const delta = sum / (v.length / 3) - restY;
+		for (let i = 1; i < v.length; i += 3) v[i] -= delta;
 	}
 }
 
@@ -414,7 +429,8 @@ export function Character({
 	);
 
 	const rig = useMemo(() => {
-		groundPelvis(gltf.animations);
+		const pelvis = scene.getObjectByName('pelvis');
+		rebasePelvis(gltf.animations, pelvis?.position.y ?? 0.91);
 		const animator = new CharacterAnimator(scene, gltf.animations);
 		const motor = new CharacterMotor(motorConfig);
 		const pose = new ProceduralPose(scene);
@@ -451,6 +467,12 @@ export function Character({
 		for (const clip of BLOCK_CLIPS)
 			if (animator.has(clip))
 				animator.registerMasked(`${clip}_B`, clip, isUpperBone);
+		if (locomotion.idleOverlay && animator.has(locomotion.idleOverlay))
+			animator.registerMasked(
+				'Idle_Overlay',
+				locomotion.idleOverlay,
+				isUpperBone,
+			);
 		const handle: CharacterHandle = {
 			motor,
 			animator,
@@ -558,6 +580,8 @@ export function Character({
 			const on = blockRef.current.on && bp.clip === clip;
 			animator.holdMasked(`${clip}_B`, on, bp.loop, bp.frac ?? 0.5);
 		}
+		if (locomotion.idleOverlay)
+			animator.holdMasked('Idle_Overlay', gait === 'idle' && !jumping);
 
 		animator.update(dt);
 		const flexDeg =
