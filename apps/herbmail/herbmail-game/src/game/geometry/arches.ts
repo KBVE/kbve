@@ -63,13 +63,16 @@ export function buildArches(grid: Grid, variant = 0): THREE.BufferGeometry {
 
 const TRIM_W = TILE * 0.06;
 const TRIM_DEPTH_MULT = 1.3;
+const TRIM_INSET = 0.025;
 
 // Molding ring hugging the arch hole: outer contour = hole offset by TRIM_W,
-// inner hole = the arch hole itself. Extruded deeper than the arch panel so
-// the trim sits proud of both faces.
+// inner edge lips TRIM_INSET into the opening — sharing the arch's exact
+// reveal surface would z-fight through the panel thickness. Extruded deeper
+// than the arch panel so the trim sits proud of both faces.
 function trimShape(openHW: number, spring: number): THREE.Shape {
 	const sink = TILE * 0.3;
 	const o = openHW + TRIM_W;
+	const i = openHW - TRIM_INSET;
 	const s = new THREE.Shape();
 	s.moveTo(-o, -sink);
 	s.lineTo(o, -sink);
@@ -77,11 +80,11 @@ function trimShape(openHW: number, spring: number): THREE.Shape {
 	s.absarc(0, spring, o, 0, Math.PI, false);
 	s.lineTo(-o, -sink);
 	const hole = new THREE.Path();
-	hole.moveTo(-openHW, -sink);
-	hole.lineTo(openHW, -sink);
-	hole.lineTo(openHW, spring);
-	hole.absarc(0, spring, openHW, 0, Math.PI, false);
-	hole.lineTo(-openHW, -sink);
+	hole.moveTo(-i, -sink);
+	hole.lineTo(i, -sink);
+	hole.lineTo(i, spring);
+	hole.absarc(0, spring, i, 0, Math.PI, false);
+	hole.lineTo(-i, -sink);
 	s.holes.push(hole);
 	return s;
 }
