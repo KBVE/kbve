@@ -69,6 +69,7 @@ export function RoomView({ desc, snap, affine, mats }: Props) {
 			))}
 
 			<ChunkGroup geos={set.arch} kind="archway" material={mats.arch} />
+			<ChunkGroup geos={set.trim} kind="door trim" material={mats.trim} />
 			<ChunkGroup geos={set.floor} kind="floor" material={mats.floor} />
 			<ChunkGroup
 				geos={set.ceiling}

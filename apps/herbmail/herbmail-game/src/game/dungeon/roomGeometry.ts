@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {
 	buildArches,
+	buildTrims,
 	buildBays,
 	buildCeiling,
 	buildCornerCoves,
@@ -20,6 +21,7 @@ export interface RoomGeoSet {
 	floor: THREE.BufferGeometry[];
 	ceiling: THREE.BufferGeometry[];
 	arch: THREE.BufferGeometry[];
+	trim: THREE.BufferGeometry[];
 	cove: THREE.BufferGeometry[];
 	corner: THREE.BufferGeometry[];
 	bays: { frames: THREE.BufferGeometry[]; backs: THREE.BufferGeometry[] };
@@ -65,6 +67,7 @@ function buildSet(desc: RoomDesc): RoomGeoSet {
 		floor: floorGeo(desc),
 		ceiling: ceilingGeo(desc),
 		arch: dice(buildArches(g, v)),
+		trim: dice(buildTrims(g, v)),
 		cove: dice(buildCoves(g)),
 		corner: dice(buildCornerCoves(g, v)),
 		bays: { frames: dice(bays.frames), backs: dice(bays.backs) },
@@ -80,6 +83,7 @@ function disposeSet(set: RoomGeoSet): void {
 	for (const w of set.walls) for (const c of w) drop(c);
 	for (const w of set.columns) for (const c of w) drop(c);
 	for (const c of set.arch) drop(c);
+	for (const c of set.trim) drop(c);
 	for (const c of set.cove) drop(c);
 	for (const c of set.corner) drop(c);
 	for (const c of set.bays.frames) drop(c);
