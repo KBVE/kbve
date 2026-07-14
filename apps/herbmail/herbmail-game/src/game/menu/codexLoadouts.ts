@@ -7,17 +7,14 @@ const KNIGHT = bySet('KNGT');
 const SCIFI = bySet('SCFI09');
 
 // Starter_03 variant: the civilian outfit with the armored helmet, shoulders
-// and utility pouches from SCFI_CIVL_10 swapped in.
+// and hardcase pouches from SCFI_CIVL_10 swapped in.
 const SCIFI_VARIANT = [
 	...SCIFI.filter(
 		(id) =>
 			![
-				'scifi09Visor',
-				'scifi09ShoulderL',
-				'scifi09ShoulderR',
-				'scifi09PouchB',
-				'scifi09PouchL',
-				'scifi09PouchR',
+				'scifi09-visor',
+				'scifi09-shoulder-pads',
+				'scifi09-pouch-set',
 			].includes(id),
 	),
 	...bySet('SCFI10'),
@@ -26,14 +23,11 @@ const SCIFI_VARIANT = [
 // The clothed starter kit every player gets for free: the outfit's body meshes
 // (torso, hips, legs, hands, feet) with none of the knight plate on top.
 const FREE = [
-	'chest',
-	'hips',
-	'legL',
-	'legR',
-	'gauntletL',
-	'gauntletR',
-	'bootL',
-	'bootR',
+	'kngt-chest',
+	'kngt-hips',
+	'kngt-legs',
+	'kngt-gauntlets',
+	'kngt-boots',
 ];
 
 export interface CodexLoadout {
@@ -54,8 +48,8 @@ export const CODEX_LOADOUTS: CodexLoadout[] = [
 		id: 'villain',
 		label: 'Villain',
 		equipped: new Set([
-			...FREE.filter((id) => id !== 'chest'),
-			'horr01Helmet',
+			...FREE.filter((id) => id !== 'kngt-chest'),
+			'horr01-villain-helm',
 		]),
 	},
 	{ id: 'free', label: 'Free / Standard', equipped: new Set(FREE) },
@@ -63,6 +57,6 @@ export const CODEX_LOADOUTS: CodexLoadout[] = [
 	{
 		id: 'helmetOff',
 		label: 'Helmet Off',
-		equipped: new Set(KNIGHT.filter((id) => id !== 'helmet')),
+		equipped: new Set(KNIGHT.filter((id) => id !== 'kngt-helmet')),
 	},
 ];

@@ -21,24 +21,26 @@ describe('armor inventory bridge', () => {
 	});
 
 	it('equipping a piece removes it from the grid', () => {
-		setArmor('helmet', true);
-		expect(inGrid('helmet')).toBe(false);
-		expect(getEquipped().has('helmet')).toBe(true);
+		setArmor('kngt-helmet', true);
+		expect(inGrid('kngt-helmet')).toBe(false);
+		expect(getEquipped().has('kngt-helmet')).toBe(true);
 	});
 
 	it('unequipping refits the piece back into the grid', () => {
-		setArmor('helmet', true);
-		setArmor('helmet', false);
-		expect(inGrid('helmet')).toBe(true);
-		expect(getEquipped().has('helmet')).toBe(false);
+		setArmor('kngt-helmet', true);
+		setArmor('kngt-helmet', false);
+		expect(inGrid('kngt-helmet')).toBe(true);
+		expect(getEquipped().has('kngt-helmet')).toBe(false);
 	});
 
 	it('never duplicates a piece across equip/unequip cycles', () => {
 		for (let i = 0; i < 3; i++) {
-			setArmor('bracerL', true);
-			setArmor('bracerL', false);
+			setArmor('kngt-bracers', true);
+			setArmor('kngt-bracers', false);
 		}
-		const count = getItems().filter((p) => p.itemId === 'bracerL').length;
+		const count = getItems().filter(
+			(p) => p.itemId === 'kngt-bracers',
+		).length;
 		expect(count).toBe(1);
 	});
 });

@@ -1,5 +1,5 @@
 import type { Footprint } from './grid';
-import { ARMOR_PIECES } from '../character/armor';
+import { ARMOR_PIECES, pieceLabel } from '../character/armor';
 
 // One inventory item kind. Footprint is the upright (rot=0) WxH in grid cells.
 // `equipId` links an item to a LOADOUT entry so double-clicking it equips.
@@ -9,6 +9,7 @@ export interface ItemDef {
 	label: string;
 	fp: Footprint;
 	color: string;
+	icon?: string;
 	equipId?: string;
 	armor?: boolean;
 }
@@ -45,68 +46,53 @@ export const ITEMS: Record<string, ItemDef> = {
 	},
 };
 
-// Footprint + color for each armor piece, keyed by ARMOR_PIECES id. The grid item
-// and the paperdoll slot share this look so a piece reads the same in both places.
+// Footprint + color for each armor set item, keyed by itemdb ref. The grid item
+// and the paperdoll slot share this look; `icon` is the Blender-rendered
+// 64x64 png under public/icons/items/.
 const ARMOR_META: Record<string, { fp: Footprint; color: string }> = {
-	helmet: { fp: { w: 2, h: 2 }, color: '#9aa0ac' },
-	eyePatch: { fp: { w: 1, h: 1 }, color: '#6a5a4a' },
-	backpack: { fp: { w: 2, h: 2 }, color: '#7a6a4a' },
-	pauldronL: { fp: { w: 1, h: 1 }, color: '#8a90a0' },
-	pauldronR: { fp: { w: 1, h: 1 }, color: '#8a90a0' },
-	upperArmL: { fp: { w: 1, h: 2 }, color: '#7e8494' },
-	upperArmR: { fp: { w: 1, h: 2 }, color: '#7e8494' },
-	elbowL: { fp: { w: 1, h: 1 }, color: '#767c8c' },
-	elbowR: { fp: { w: 1, h: 1 }, color: '#767c8c' },
-	bracerL: { fp: { w: 1, h: 2 }, color: '#6e7484' },
-	bracerR: { fp: { w: 1, h: 2 }, color: '#6e7484' },
-	fauldFront: { fp: { w: 1, h: 1 }, color: '#88807a' },
-	fauldBack: { fp: { w: 1, h: 1 }, color: '#88807a' },
-	fauldLeft: { fp: { w: 1, h: 1 }, color: '#88807a' },
-	fauldRight: { fp: { w: 1, h: 1 }, color: '#88807a' },
-	kneeL: { fp: { w: 1, h: 1 }, color: '#808898' },
-	kneeR: { fp: { w: 1, h: 1 }, color: '#808898' },
-	scifi09Hair: { fp: { w: 1, h: 1 }, color: '#b08a5a' },
-	scifi09Visor: { fp: { w: 2, h: 1 }, color: '#4aa8c0' },
-	scifi09Mask: { fp: { w: 1, h: 1 }, color: '#3a7a8a' },
-	scifi09Pack: { fp: { w: 2, h: 2 }, color: '#4a6a7a' },
-	scifi09Jacket: { fp: { w: 2, h: 2 }, color: '#3a8a9a' },
-	scifi09SleeveL: { fp: { w: 1, h: 2 }, color: '#48929e' },
-	scifi09SleeveR: { fp: { w: 1, h: 2 }, color: '#48929e' },
-	scifi09CuffL: { fp: { w: 1, h: 1 }, color: '#569aa6' },
-	scifi09CuffR: { fp: { w: 1, h: 1 }, color: '#569aa6' },
-	scifi09GloveL: { fp: { w: 1, h: 1 }, color: '#5aa2ae' },
-	scifi09GloveR: { fp: { w: 1, h: 1 }, color: '#5aa2ae' },
-	scifi09Pants: { fp: { w: 2, h: 2 }, color: '#3a6a86' },
-	scifi09PantLegL: { fp: { w: 1, h: 2 }, color: '#427292' },
-	scifi09PantLegR: { fp: { w: 1, h: 2 }, color: '#427292' },
-	scifi09SneakerL: { fp: { w: 1, h: 1 }, color: '#7a92a2' },
-	scifi09SneakerR: { fp: { w: 1, h: 1 }, color: '#7a92a2' },
-	scifi09PouchF: { fp: { w: 1, h: 1 }, color: '#5a7a6a' },
-	scifi09PouchB: { fp: { w: 1, h: 1 }, color: '#5a7a6a' },
-	scifi09PouchL: { fp: { w: 1, h: 1 }, color: '#5a7a6a' },
-	scifi09PouchR: { fp: { w: 1, h: 1 }, color: '#5a7a6a' },
-	scifi09ShoulderL: { fp: { w: 1, h: 1 }, color: '#4a92b2' },
-	scifi09ShoulderR: { fp: { w: 1, h: 1 }, color: '#4a92b2' },
-	scifi09ElbowL: { fp: { w: 1, h: 1 }, color: '#4a8aa2' },
-	scifi09ElbowR: { fp: { w: 1, h: 1 }, color: '#4a8aa2' },
-	scifi09KneeL: { fp: { w: 1, h: 1 }, color: '#4a82aa' },
-	scifi09KneeR: { fp: { w: 1, h: 1 }, color: '#4a82aa' },
-	scifi10Helmet: { fp: { w: 2, h: 2 }, color: '#c07a3a' },
-	scifi10PouchB: { fp: { w: 1, h: 1 }, color: '#a2743a' },
-	scifi10PouchL: { fp: { w: 1, h: 1 }, color: '#a2743a' },
-	scifi10PouchR: { fp: { w: 1, h: 1 }, color: '#a2743a' },
-	scifi10ShoulderL: { fp: { w: 1, h: 1 }, color: '#b2823a' },
-	scifi10ShoulderR: { fp: { w: 1, h: 1 }, color: '#b2823a' },
-	horr01Helmet: { fp: { w: 2, h: 2 }, color: '#7a3a42' },
+	'kngt-helmet': { fp: { w: 2, h: 2 }, color: '#9aa0ac' },
+	'kngt-eye-patch': { fp: { w: 1, h: 1 }, color: '#6a5a4a' },
+	'kngt-backpack': { fp: { w: 2, h: 2 }, color: '#7a6a4a' },
+	'kngt-chest': { fp: { w: 2, h: 2 }, color: '#8a90a0' },
+	'kngt-pauldrons': { fp: { w: 2, h: 1 }, color: '#8a90a0' },
+	'kngt-upper-arms': { fp: { w: 1, h: 2 }, color: '#7e8494' },
+	'kngt-elbow-guards': { fp: { w: 1, h: 1 }, color: '#767c8c' },
+	'kngt-bracers': { fp: { w: 1, h: 2 }, color: '#6e7484' },
+	'kngt-gauntlets': { fp: { w: 2, h: 1 }, color: '#7e8494' },
+	'kngt-hips': { fp: { w: 2, h: 1 }, color: '#88807a' },
+	'kngt-fauld-set': { fp: { w: 2, h: 2 }, color: '#88807a' },
+	'kngt-legs': { fp: { w: 2, h: 2 }, color: '#808898' },
+	'kngt-knee-guards': { fp: { w: 1, h: 1 }, color: '#808898' },
+	'kngt-boots': { fp: { w: 2, h: 1 }, color: '#6e7484' },
+	'scifi09-hair': { fp: { w: 1, h: 1 }, color: '#4a8ab2' },
+	'scifi09-visor': { fp: { w: 2, h: 1 }, color: '#4aa8c0' },
+	'scifi09-mask': { fp: { w: 1, h: 1 }, color: '#3a7a8a' },
+	'scifi09-tech-pack': { fp: { w: 2, h: 2 }, color: '#4a6a7a' },
+	'scifi09-jacket': { fp: { w: 2, h: 2 }, color: '#3a8a9a' },
+	'scifi09-sleeves': { fp: { w: 1, h: 2 }, color: '#48929e' },
+	'scifi09-cuffs': { fp: { w: 1, h: 1 }, color: '#569aa6' },
+	'scifi09-gloves': { fp: { w: 2, h: 1 }, color: '#5aa2ae' },
+	'scifi09-pants': { fp: { w: 2, h: 2 }, color: '#3a6a86' },
+	'scifi09-pant-legs': { fp: { w: 1, h: 2 }, color: '#427292' },
+	'scifi09-sneakers': { fp: { w: 2, h: 1 }, color: '#7a92a2' },
+	'scifi09-pouch-set': { fp: { w: 2, h: 2 }, color: '#5a7a6a' },
+	'scifi09-shoulder-pads': { fp: { w: 2, h: 1 }, color: '#4a92b2' },
+	'scifi09-elbow-pads': { fp: { w: 1, h: 1 }, color: '#4a8aa2' },
+	'scifi09-knee-pads': { fp: { w: 1, h: 1 }, color: '#4a82aa' },
+	'scifi10-helmet': { fp: { w: 2, h: 2 }, color: '#c07a3a' },
+	'scifi10-pouch-set': { fp: { w: 2, h: 2 }, color: '#a2743a' },
+	'scifi10-shoulders': { fp: { w: 2, h: 1 }, color: '#b2823a' },
+	'horr01-villain-helm': { fp: { w: 2, h: 2 }, color: '#7a3a42' },
 };
 
 for (const p of ARMOR_PIECES) {
 	const meta = ARMOR_META[p.id] ?? { fp: { w: 1, h: 1 }, color: '#8a8a92' };
 	ITEMS[p.id] = {
 		id: p.id,
-		label: p.label,
+		label: pieceLabel(p.id),
 		fp: meta.fp,
 		color: meta.color,
+		icon: `/icons/items/${p.id}.png`,
 		equipId: p.id,
 		armor: true,
 	};

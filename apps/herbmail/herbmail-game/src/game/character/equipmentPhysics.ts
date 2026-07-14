@@ -106,7 +106,7 @@ export const EQUIPMENT_PARTS: PartCfg[] = [
 		maxAngle: 1.4,
 		minAngle: -1.4,
 		restBias: 0.02,
-		restBiasByPiece: { hips: 0.06 },
+		restBiasByPiece: { 'kngt-hips': 0.06 },
 		motionGain: 0.5,
 		gravity: 0.9,
 		pitchStandoff: 0.6,
@@ -135,7 +135,7 @@ export const EQUIPMENT_PARTS: PartCfg[] = [
 		maxAngle: 0.55,
 		minAngle: 0,
 		restBias: 0.05,
-		restBiasByPiece: { hips: 0.1 },
+		restBiasByPiece: { 'kngt-hips': 0.1 },
 		motionGain: 0.06,
 		flexDeadzone: 0.5,
 		colliders: [
@@ -156,7 +156,7 @@ export const EQUIPMENT_PARTS: PartCfg[] = [
 		maxAngle: 0.55,
 		minAngle: 0,
 		restBias: 0.05,
-		restBiasByPiece: { hips: 0.1 },
+		restBiasByPiece: { 'kngt-hips': 0.1 },
 		motionGain: 0.06,
 		flexDeadzone: 0.5,
 		colliders: [

@@ -3,7 +3,7 @@ import { CLIPS, CLIP_CATEGORIES, type ClipInfo } from './clips';
 import { bindingOf } from './controls';
 import { CodexViewer, REST_POSE } from './CodexViewer';
 import { CODEX_LOADOUTS } from './codexLoadouts';
-import { ARMOR_PIECES } from '../character/armor';
+import { ARMOR_PIECES, pieceLabel } from '../character/armor';
 import { setScreen } from './store';
 
 const REST: ClipInfo = { name: REST_POSE, duration: 0, category: 'Other' };
@@ -217,7 +217,7 @@ export function Codex() {
 												: '#c77a7a66',
 										}}>
 										{on ? '● ' : '○ '}
-										{p.label}
+										{pieceLabel(p.id)}
 									</button>
 								);
 							})}

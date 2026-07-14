@@ -1,24 +1,22 @@
 import { useSyncExternalStore } from 'react';
+import { itemLabel, itemStat } from '../data/itemdb';
 
 export type PartSet = 'KNGT' | 'SCFI09' | 'SCFI10' | 'HORR01';
 
-export interface ArmorStats {
-	armor?: number;
-	weight?: number;
-}
-
 export interface ArmorPiece {
+	/** itemdb ref — identity, label, stats and prices all resolve from MDX. */
 	id: string;
-	label: string;
-	/** Mesh node names this piece owns (hidden together when removed). */
+	/** Mesh node names this piece owns (hidden together when removed). Kept
+	 *  per-limb even for set items so future limb damage / prosthetics can
+	 *  hide or replace one side. */
 	slots: string[];
-	/** Body location for mutual exclusion — one equipped piece per slotKey. */
-	slotKey: string;
+	/** Body locations occupied — one equipped piece per key; a set item holds
+	 *  several (both shoulders, all four faulds). */
+	slotKeys: string[];
 	set: PartSet;
 	/** Extra base meshes this piece fully encloses (hidden while worn), on top
-	 *  of the slotKey's own coverage — e.g. full helms swallow the HAIR. */
+	 *  of the slotKeys' own coverage — e.g. full helms swallow the HAIR. */
 	covers?: string[];
-	stats?: ArmorStats;
 }
 
 // The naked body: the human-species skin (SKIN_* nodes baked in by
@@ -53,487 +51,79 @@ export const BODY_BASE = new Set([
 	'TONG',
 ]);
 
+const HELM_COVERS = ['HAIR', 'SCFI09_HAIR'];
+
+function kngt(id: string, keys: string[], covers?: string[]): ArmorPiece {
+	return { id, slots: keys, slotKeys: keys, set: 'KNGT', covers };
+}
+
+function pref(
+	id: string,
+	set: 'SCFI09' | 'SCFI10' | 'HORR01',
+	keys: string[],
+	covers?: string[],
+): ArmorPiece {
+	return {
+		id,
+		slots: keys.map((k) => `${set}_${k}`),
+		slotKeys: keys,
+		set,
+		covers,
+	};
+}
+
 /**
- * Removable outfit layers over the permanent {@link BODY_BASE}. Knight pieces
- * live in character-anim.glb; SCFI09/SCFI10/HORR01 pieces are lazy-loaded from
- * public/models/parts/ and rebound onto the rig (partsLoader.ts). Pieces sharing
- * a slotKey are mutually exclusive — equipping one evicts the other.
+ * Removable outfit layers over the permanent {@link BODY_BASE}. One piece per
+ * equipment SET (pairs and quads are a single item — see the itemdb design
+ * spec); its meshes stay individually named for limb-level systems. Knight
+ * meshes live in character-anim.glb; the other sets lazy-load from
+ * public/models/parts/ (partsLoader.ts). Pieces sharing any slotKey are
+ * mutually exclusive — equipping one evicts the overlapping occupants.
  */
 export const ARMOR_PIECES: ArmorPiece[] = [
-	{
-		id: 'helmet',
-		label: 'Helmet',
-		slots: ['AHED'],
-		slotKey: 'AHED',
-		set: 'KNGT',
-		covers: ['HAIR', 'SCFI09_HAIR'],
-		stats: { armor: 3, weight: 4 },
-	},
-	{
-		id: 'eyePatch',
-		label: 'Eye Patch',
-		slots: ['AFAC'],
-		slotKey: 'AFAC',
-		set: 'KNGT',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'backpack',
-		label: 'Backpack',
-		slots: ['ABAC'],
-		slotKey: 'ABAC',
-		set: 'KNGT',
-		stats: { weight: 3 },
-	},
-	{
-		id: 'chest',
-		label: 'Chest',
-		slots: ['TORS'],
-		slotKey: 'TORS',
-		set: 'KNGT',
-		stats: { armor: 4, weight: 6 },
-	},
-	{
-		id: 'pauldronL',
-		label: 'Pauldron (L)',
-		slots: ['ASHL'],
-		slotKey: 'ASHL',
-		set: 'KNGT',
-		stats: { armor: 2, weight: 2 },
-	},
-	{
-		id: 'pauldronR',
-		label: 'Pauldron (R)',
-		slots: ['ASHR'],
-		slotKey: 'ASHR',
-		set: 'KNGT',
-		stats: { armor: 2, weight: 2 },
-	},
-	{
-		id: 'upperArmL',
-		label: 'Upper Arm (L)',
-		slots: ['AUPL'],
-		slotKey: 'AUPL',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'upperArmR',
-		label: 'Upper Arm (R)',
-		slots: ['AUPR'],
-		slotKey: 'AUPR',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'elbowL',
-		label: 'Elbow Guard (L)',
-		slots: ['AEBL'],
-		slotKey: 'AEBL',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'elbowR',
-		label: 'Elbow Guard (R)',
-		slots: ['AEBR'],
-		slotKey: 'AEBR',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'bracerL',
-		label: 'Bracer (L)',
-		slots: ['ALWL'],
-		slotKey: 'ALWL',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'bracerR',
-		label: 'Bracer (R)',
-		slots: ['ALWR'],
-		slotKey: 'ALWR',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'gauntletL',
-		label: 'Gauntlet (L)',
-		slots: ['HNDL'],
-		slotKey: 'HNDL',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'gauntletR',
-		label: 'Gauntlet (R)',
-		slots: ['HNDR'],
-		slotKey: 'HNDR',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'hips',
-		label: 'Hips',
-		slots: ['HIPS'],
-		slotKey: 'HIPS',
-		set: 'KNGT',
-		stats: { armor: 2, weight: 3 },
-	},
-	{
-		id: 'fauldFront',
-		label: 'Fauld (Front)',
-		slots: ['AHPF'],
-		slotKey: 'AHPF',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'fauldBack',
-		label: 'Fauld (Back)',
-		slots: ['AHPB'],
-		slotKey: 'AHPB',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'fauldLeft',
-		label: 'Fauld (Left)',
-		slots: ['AHPL'],
-		slotKey: 'AHPL',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'fauldRight',
-		label: 'Fauld (Right)',
-		slots: ['AHPR'],
-		slotKey: 'AHPR',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'legL',
-		label: 'Leg (L)',
-		slots: ['LEGL'],
-		slotKey: 'LEGL',
-		set: 'KNGT',
-		stats: { armor: 2, weight: 2 },
-	},
-	{
-		id: 'legR',
-		label: 'Leg (R)',
-		slots: ['LEGR'],
-		slotKey: 'LEGR',
-		set: 'KNGT',
-		stats: { armor: 2, weight: 2 },
-	},
-	{
-		id: 'kneeL',
-		label: 'Knee Guard (L)',
-		slots: ['AKNL'],
-		slotKey: 'AKNL',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'kneeR',
-		label: 'Knee Guard (R)',
-		slots: ['AKNR'],
-		slotKey: 'AKNR',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'bootL',
-		label: 'Boot (L)',
-		slots: ['FOTL'],
-		slotKey: 'FOTL',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 2 },
-	},
-	{
-		id: 'bootR',
-		label: 'Boot (R)',
-		slots: ['FOTR'],
-		slotKey: 'FOTR',
-		set: 'KNGT',
-		stats: { armor: 1, weight: 2 },
-	},
+	kngt('kngt-helmet', ['AHED'], HELM_COVERS),
+	kngt('kngt-eye-patch', ['AFAC']),
+	kngt('kngt-backpack', ['ABAC']),
+	kngt('kngt-chest', ['TORS']),
+	kngt('kngt-pauldrons', ['ASHL', 'ASHR']),
+	kngt('kngt-upper-arms', ['AUPL', 'AUPR']),
+	kngt('kngt-elbow-guards', ['AEBL', 'AEBR']),
+	kngt('kngt-bracers', ['ALWL', 'ALWR']),
+	kngt('kngt-gauntlets', ['HNDL', 'HNDR']),
+	kngt('kngt-hips', ['HIPS']),
+	kngt('kngt-fauld-set', ['AHPF', 'AHPB', 'AHPL', 'AHPR']),
+	kngt('kngt-legs', ['LEGL', 'LEGR']),
+	kngt('kngt-knee-guards', ['AKNL', 'AKNR']),
+	kngt('kngt-boots', ['FOTL', 'FOTR']),
 
-	{
-		id: 'scifi09Hair',
-		label: 'Hair (Sci-fi)',
-		slots: ['SCFI09_HAIR'],
-		slotKey: 'HAIR',
-		set: 'SCFI09',
-		stats: {},
-	},
-	{
-		id: 'scifi09Visor',
-		label: 'Visor',
-		slots: ['SCFI09_AHED'],
-		slotKey: 'AHED',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'scifi09Mask',
-		label: 'Face Mask',
-		slots: ['SCFI09_AFAC'],
-		slotKey: 'AFAC',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09Pack',
-		label: 'Tech Pack',
-		slots: ['SCFI09_ABAC'],
-		slotKey: 'ABAC',
-		set: 'SCFI09',
-		stats: { weight: 2 },
-	},
-	{
-		id: 'scifi09Jacket',
-		label: 'Jacket',
-		slots: ['SCFI09_TORS'],
-		slotKey: 'TORS',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 2 },
-	},
-	{
-		id: 'scifi09SleeveL',
-		label: 'Sleeve (L)',
-		slots: ['SCFI09_AUPL'],
-		slotKey: 'AUPL',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09SleeveR',
-		label: 'Sleeve (R)',
-		slots: ['SCFI09_AUPR'],
-		slotKey: 'AUPR',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09CuffL',
-		label: 'Cuff (L)',
-		slots: ['SCFI09_ALWL'],
-		slotKey: 'ALWL',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09CuffR',
-		label: 'Cuff (R)',
-		slots: ['SCFI09_ALWR'],
-		slotKey: 'ALWR',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09GloveL',
-		label: 'Glove (L)',
-		slots: ['SCFI09_HNDL'],
-		slotKey: 'HNDL',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'scifi09GloveR',
-		label: 'Glove (R)',
-		slots: ['SCFI09_HNDR'],
-		slotKey: 'HNDR',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'scifi09Pants',
-		label: 'Pants',
-		slots: ['SCFI09_HIPS'],
-		slotKey: 'HIPS',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'scifi09PantLegL',
-		label: 'Pant Leg (L)',
-		slots: ['SCFI09_LEGL'],
-		slotKey: 'LEGL',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09PantLegR',
-		label: 'Pant Leg (R)',
-		slots: ['SCFI09_LEGR'],
-		slotKey: 'LEGR',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09SneakerL',
-		label: 'Sneaker (L)',
-		slots: ['SCFI09_FOTL'],
-		slotKey: 'FOTL',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09SneakerR',
-		label: 'Sneaker (R)',
-		slots: ['SCFI09_FOTR'],
-		slotKey: 'FOTR',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09PouchF',
-		label: 'Pouch (Front)',
-		slots: ['SCFI09_AHPF'],
-		slotKey: 'AHPF',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09PouchB',
-		label: 'Pouch (Back)',
-		slots: ['SCFI09_AHPB'],
-		slotKey: 'AHPB',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09PouchL',
-		label: 'Pouch (Left)',
-		slots: ['SCFI09_AHPL'],
-		slotKey: 'AHPL',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09PouchR',
-		label: 'Pouch (Right)',
-		slots: ['SCFI09_AHPR'],
-		slotKey: 'AHPR',
-		set: 'SCFI09',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi09ShoulderL',
-		label: 'Shoulder Pad (L)',
-		slots: ['SCFI09_ASHL'],
-		slotKey: 'ASHL',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'scifi09ShoulderR',
-		label: 'Shoulder Pad (R)',
-		slots: ['SCFI09_ASHR'],
-		slotKey: 'ASHR',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'scifi09ElbowL',
-		label: 'Elbow Pad (L)',
-		slots: ['SCFI09_AEBL'],
-		slotKey: 'AEBL',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'scifi09ElbowR',
-		label: 'Elbow Pad (R)',
-		slots: ['SCFI09_AEBR'],
-		slotKey: 'AEBR',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'scifi09KneeL',
-		label: 'Knee Pad (L)',
-		slots: ['SCFI09_AKNL'],
-		slotKey: 'AKNL',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
-	{
-		id: 'scifi09KneeR',
-		label: 'Knee Pad (R)',
-		slots: ['SCFI09_AKNR'],
-		slotKey: 'AKNR',
-		set: 'SCFI09',
-		stats: { armor: 1, weight: 1 },
-	},
+	pref('scifi09-hair', 'SCFI09', ['HAIR']),
+	pref('scifi09-visor', 'SCFI09', ['AHED']),
+	pref('scifi09-mask', 'SCFI09', ['AFAC']),
+	pref('scifi09-tech-pack', 'SCFI09', ['ABAC']),
+	pref('scifi09-jacket', 'SCFI09', ['TORS']),
+	pref('scifi09-sleeves', 'SCFI09', ['AUPL', 'AUPR']),
+	pref('scifi09-cuffs', 'SCFI09', ['ALWL', 'ALWR']),
+	pref('scifi09-gloves', 'SCFI09', ['HNDL', 'HNDR']),
+	pref('scifi09-pants', 'SCFI09', ['HIPS']),
+	pref('scifi09-pant-legs', 'SCFI09', ['LEGL', 'LEGR']),
+	pref('scifi09-sneakers', 'SCFI09', ['FOTL', 'FOTR']),
+	pref('scifi09-pouch-set', 'SCFI09', ['AHPF', 'AHPB', 'AHPL', 'AHPR']),
+	pref('scifi09-shoulder-pads', 'SCFI09', ['ASHL', 'ASHR']),
+	pref('scifi09-elbow-pads', 'SCFI09', ['AEBL', 'AEBR']),
+	pref('scifi09-knee-pads', 'SCFI09', ['AKNL', 'AKNR']),
 
-	{
-		id: 'scifi10Helmet',
-		label: 'Sci-fi Helmet',
-		slots: ['SCFI10_AHED'],
-		slotKey: 'AHED',
-		set: 'SCFI10',
-		covers: ['HAIR', 'SCFI09_HAIR'],
-		stats: { armor: 2, weight: 2 },
-	},
-	{
-		id: 'scifi10PouchB',
-		label: 'Utility Pouch (Back)',
-		slots: ['SCFI10_AHPB'],
-		slotKey: 'AHPB',
-		set: 'SCFI10',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi10PouchL',
-		label: 'Utility Pouch (Left)',
-		slots: ['SCFI10_AHPL'],
-		slotKey: 'AHPL',
-		set: 'SCFI10',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi10PouchR',
-		label: 'Utility Pouch (Right)',
-		slots: ['SCFI10_AHPR'],
-		slotKey: 'AHPR',
-		set: 'SCFI10',
-		stats: { weight: 1 },
-	},
-	{
-		id: 'scifi10ShoulderL',
-		label: 'Armored Shoulder (L)',
-		slots: ['SCFI10_ASHL'],
-		slotKey: 'ASHL',
-		set: 'SCFI10',
-		stats: { armor: 2, weight: 2 },
-	},
-	{
-		id: 'scifi10ShoulderR',
-		label: 'Armored Shoulder (R)',
-		slots: ['SCFI10_ASHR'],
-		slotKey: 'ASHR',
-		set: 'SCFI10',
-		stats: { armor: 2, weight: 2 },
-	},
+	pref('scifi10-helmet', 'SCFI10', ['AHED'], HELM_COVERS),
+	pref('scifi10-pouch-set', 'SCFI10', ['AHPB', 'AHPL', 'AHPR']),
+	pref('scifi10-shoulders', 'SCFI10', ['ASHL', 'ASHR']),
 
-	{
-		id: 'horr01Helmet',
-		label: 'Villain Helm',
-		slots: ['HORR01_AHED'],
-		slotKey: 'AHED',
-		set: 'HORR01',
-		covers: ['HAIR', 'SCFI09_HAIR'],
-		stats: { armor: 2, weight: 3 },
-	},
+	pref('horr01-villain-helm', 'HORR01', ['AHED'], HELM_COVERS),
 ];
 
 export const PIECE_BY_ID = new Map(ARMOR_PIECES.map((p) => [p.id, p]));
-const SLOT_BY_PIECE = new Map(ARMOR_PIECES.map((p) => [p.id, p.slots]));
+
+export function pieceLabel(id: string): string {
+	return itemLabel(id);
+}
 
 // Base meshes fully enclosed by an equipped piece in the given slotKey — hidden
 // while covered so the two skinned meshes don't z-fight, restored on unequip.
@@ -557,11 +147,13 @@ function emit() {
 	for (const l of listeners) l();
 }
 
-// One piece per slotKey: equipping into an occupied location takes the current
-// occupant off first (it falls back into the grid via reconcileArmor).
-function evictSlotKey(key: string) {
+// One piece per body location: equipping into occupied locations takes every
+// overlapping occupant off first (they fall back into the grid via
+// reconcileArmor).
+function evictSlotKeys(keys: string[]) {
 	for (const id of [...equipped]) {
-		if (PIECE_BY_ID.get(id)?.slotKey === key) equipped.delete(id);
+		const p = PIECE_BY_ID.get(id);
+		if (p && p.slotKeys.some((k) => keys.includes(k))) equipped.delete(id);
 	}
 }
 
@@ -574,7 +166,7 @@ export function setArmor(id: string, on: boolean) {
 	if (on) {
 		const piece = PIECE_BY_ID.get(id);
 		if (!piece) return;
-		evictSlotKey(piece.slotKey);
+		evictSlotKeys(piece.slotKeys);
 		equipped.add(id);
 	} else {
 		equipped.delete(id);
@@ -593,15 +185,11 @@ export function getEquipped() {
 	return equipped;
 }
 
-/** Sum of a stat over the equipped pieces — combat reads gear from here. */
-export function equippedStat(
-	key: keyof ArmorStats,
-	set: Set<string> = equipped,
-): number {
+/** Sum of an itemdb bonus stat over the equipped pieces — combat reads gear
+ *  from here (armor, weight, …). */
+export function equippedStat(key: string, set: Set<string> = equipped): number {
 	let total = 0;
-	for (const id of set) {
-		total += PIECE_BY_ID.get(id)?.stats?.[key] ?? 0;
-	}
+	for (const id of set) total += itemStat(id, key);
 	return total;
 }
 
@@ -624,9 +212,11 @@ for (const p of ARMOR_PIECES)
 // that has vanished.
 const PIECE_BY_SKIN = new Map<string, string>();
 for (const p of ARMOR_PIECES) {
-	const base = BASE_COVERED_BY_KEY.get(p.slotKey);
-	if (base && base !== 'HAIR' && !PIECE_BY_SKIN.has(base))
-		PIECE_BY_SKIN.set(base, p.id);
+	for (const key of p.slotKeys) {
+		const base = BASE_COVERED_BY_KEY.get(key);
+		if (base && base !== 'HAIR' && !PIECE_BY_SKIN.has(base))
+			PIECE_BY_SKIN.set(base, p.id);
+	}
 }
 
 /** Armor piece id a hovered/clicked mesh belongs to (its slot, or the skin it
@@ -642,12 +232,14 @@ export function hiddenSlotsFor(equippedSet: Set<string>): Set<string> {
 	const hidden = new Set<string>();
 	for (const p of ARMOR_PIECES) {
 		if (!equippedSet.has(p.id)) {
-			for (const s of SLOT_BY_PIECE.get(p.id)!) {
+			for (const s of p.slots) {
 				if (!BODY_BASE.has(s)) hidden.add(s);
 			}
 		} else {
-			const base = BASE_COVERED_BY_KEY.get(p.slotKey);
-			if (base) hidden.add(base);
+			for (const key of p.slotKeys) {
+				const base = BASE_COVERED_BY_KEY.get(key);
+				if (base) hidden.add(base);
+			}
 			for (const c of p.covers ?? []) hidden.add(c);
 		}
 	}

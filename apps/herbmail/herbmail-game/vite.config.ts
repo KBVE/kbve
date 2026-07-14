@@ -5,6 +5,19 @@ import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
 const laserSrc = path.resolve(__dirname, '../../../packages/npm/laser/src');
+const generated = path.resolve(
+	__dirname,
+	'../../../packages/data/codegen/generated',
+);
+
+const itemdbDataAlias = {
+	find: /^@kbve\/itemdb-data$/,
+	replacement: path.join(generated, 'itemdb.json'),
+};
+const itemdbSchemaAlias = {
+	find: /^@kbve\/itemdb-schema$/,
+	replacement: path.join(generated, 'itemdb-schema.ts'),
+};
 
 // Cross-origin isolation enables SharedArrayBuffer (worker/GPU shared memory).
 // Dev + preview set the headers directly; the built bundle relies on
@@ -18,6 +31,9 @@ export default defineConfig({
 	root: __dirname,
 	base: './',
 	plugins: [react(), nxViteTsPaths()],
+	resolve: {
+		alias: [itemdbDataAlias, itemdbSchemaAlias],
+	},
 	server: {
 		port: 4310,
 		headers: coiHeaders,
@@ -41,10 +57,18 @@ export default defineConfig({
 		// vitest's node resolver doesn't pick up the @kbve/laser/* tsconfig-path
 		// aliases (nxViteTsPaths only wires them for build/dev), so map the subpaths to
 		// source here and inline the package for transform.
-		alias: {
-			'@kbve/laser/mecs': path.join(laserSrc, 'mecs.ts'),
-			'@kbve/laser/ecs': path.join(laserSrc, 'ecs.ts'),
-		},
+		alias: [
+			{
+				find: '@kbve/laser/mecs',
+				replacement: path.join(laserSrc, 'mecs.ts'),
+			},
+			{
+				find: '@kbve/laser/ecs',
+				replacement: path.join(laserSrc, 'ecs.ts'),
+			},
+			itemdbDataAlias,
+			itemdbSchemaAlias,
+		],
 		server: { deps: { inline: [/@kbve\/laser/] } },
 	},
 });

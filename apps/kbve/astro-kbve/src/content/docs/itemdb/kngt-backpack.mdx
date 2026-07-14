@@ -1,0 +1,31 @@
+---
+title: 'Knight Backpack'
+template: splash
+sidebar:
+    label: 'Knight Backpack'
+    hidden: true
+description: |
+    A campaign pack of oiled canvas and brass buckles, rigged to sit above the sword arm. Rattles only when empty.
+ref: 'kngt-backpack'
+key: 603
+id: '01KXFBEGM0FHS9EVQTRM0V955G'
+name: 'Knight Backpack'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 45
+emoji: '🎒'
+action: 'equip'
+equipment:
+  slot: 'back'
+  bonuses:
+    extra:
+      weight: 3
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
