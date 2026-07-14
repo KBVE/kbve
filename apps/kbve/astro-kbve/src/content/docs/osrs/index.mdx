@@ -3,16 +3,25 @@ title: OSRS Item Database
 description: |
   Browse all Old School RuneScape items tracked by KBVE — search by name or item id,
   filter by equipment, food, potions, quest items and more.
+template: splash
+tableOfContents: false
 sidebar:
   label: OSRS
   order: 1
 tags:
   - osrs
   - gaming
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 ---
 
+import BentoShell from '@/components/hero/BentoShell.astro';
 import OSRSItemBrowser from '@/components/osrs/OSRSItemBrowser.tsx';
 import OSRSDisclaimer from '@/components/osrs/OSRSDisclaimer.astro';
+
+<BentoShell eyebrow="Old School RuneScape" heading="Item database">
 
 The KBVE OSRS database tracks every tradeable Old School RuneScape item with
 live Grand Exchange pricing, equipment stats, drop sources, recipes, and more.
@@ -20,12 +29,16 @@ Use the browser below to find an item, then click through to its full page.
 
 <OSRSItemBrowser client:only="react" />
 
-## Tips
+</BentoShell>
+
+<BentoShell id="tips" eyebrow="How to search" heading="Tips">
 
 - Search by **name** (`abyssal whip`) or **item id** (`4151`).
 - Toggle **Members / Free** to limit by world type.
 - Filter by **Equipment**, **Food**, **Potions**, **Quest**, **Drops**, **Farming**,
   **Gathering**, **Teleport**, **Ammunition**, or **Prayer**.
 - The browser shows item id, GE limit, high alch, and base value at a glance.
+
+</BentoShell>
 
 <OSRSDisclaimer />

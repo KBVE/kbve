@@ -34,11 +34,11 @@ const isApplication =
 	pathname.startsWith('/application/') && pathname !== '/application/';
 const isJournal = pathname.startsWith('/journal/') && pathname !== '/journal/';
 const isTheory = pathname.startsWith('/theory/');
-// Game sections that live at their own top-level URL but belong under Gaming.
-const isGaming =
-	pathname.startsWith('/gaming/') ||
-	pathname.startsWith('/osrs/') ||
-	pathname.startsWith('/arcade/');
+// Gaming guides live under /gaming/. The OSRS and Arcade *landing* pages also
+// belong under Gaming, but their subpages (item DB entries, individual games)
+// keep their own layouts — match those two roots exactly, not by prefix.
+const isGamingRoot = (p: string) => p === '/osrs/' || p === '/arcade/';
+const isGaming = pathname.startsWith('/gaming/') || isGamingRoot(pathname);
 const isMc = pathname.startsWith('/mc/');
 const isNpcdb = pathname.startsWith('/npcdb/');
 const isItemdb = pathname.startsWith('/itemdb/');
