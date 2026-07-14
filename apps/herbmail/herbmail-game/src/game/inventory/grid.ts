@@ -1,5 +1,5 @@
-export const COLS = 10;
-export const ROWS = 6;
+export const COLS = 12;
+export const ROWS = 10;
 
 export type Rot = 0 | 1;
 

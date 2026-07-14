@@ -1,54 +1,72 @@
-import { setArmor, useEquippedArmor } from '../character/armor';
+import { PIECE_BY_ID, setArmor, useEquippedArmor } from '../character/armor';
 import { itemDef } from './items';
 import { kbve } from './tags';
 
 interface SlotPos {
-	id: string;
+	key: string;
 	col: number;
 	row: number;
 }
 
-// Humanoid arrangement over a 3-column grid. Faulds (4) and knees (2) sit in
-// their own sub-clusters so the center column reads as hips/legs.
+// Humanoid arrangement over a 3-column grid, one cell per body location
+// (armor.ts slotKey). Faulds (4) and knees (2) sit in their own sub-clusters so
+// the center column reads as head/torso/hips/legs.
 const SLOTS: SlotPos[] = [
-	{ id: 'helmet', col: 2, row: 1 },
-	{ id: 'eyePatch', col: 2, row: 2 },
-	{ id: 'pauldronL', col: 1, row: 3 },
-	{ id: 'backpack', col: 2, row: 3 },
-	{ id: 'pauldronR', col: 3, row: 3 },
-	{ id: 'upperArmL', col: 1, row: 4 },
-	{ id: 'upperArmR', col: 3, row: 4 },
-	{ id: 'elbowL', col: 1, row: 5 },
-	{ id: 'elbowR', col: 3, row: 5 },
-	{ id: 'bracerL', col: 1, row: 6 },
-	{ id: 'bracerR', col: 3, row: 6 },
+	{ key: 'HAIR', col: 1, row: 1 },
+	{ key: 'AHED', col: 2, row: 1 },
+	{ key: 'AFAC', col: 2, row: 2 },
+	{ key: 'ASHL', col: 1, row: 3 },
+	{ key: 'ABAC', col: 2, row: 3 },
+	{ key: 'ASHR', col: 3, row: 3 },
+	{ key: 'AUPL', col: 1, row: 4 },
+	{ key: 'TORS', col: 2, row: 4 },
+	{ key: 'AUPR', col: 3, row: 4 },
+	{ key: 'AEBL', col: 1, row: 5 },
+	{ key: 'AEBR', col: 3, row: 5 },
+	{ key: 'ALWL', col: 1, row: 6 },
+	{ key: 'ALWR', col: 3, row: 6 },
+	{ key: 'HNDL', col: 1, row: 7 },
+	{ key: 'HIPS', col: 2, row: 7 },
+	{ key: 'HNDR', col: 3, row: 7 },
+	{ key: 'LEGL', col: 1, row: 8 },
+	{ key: 'LEGR', col: 3, row: 8 },
+	{ key: 'FOTL', col: 1, row: 9 },
+	{ key: 'FOTR', col: 3, row: 9 },
 ];
 
-const FAULDS = ['fauldFront', 'fauldRight', 'fauldLeft', 'fauldBack'];
-const KNEES = ['kneeL', 'kneeR'];
+const FAULDS = ['AHPF', 'AHPR', 'AHPL', 'AHPB'];
+const KNEES = ['AKNL', 'AKNR'];
 
 const SIZE = 34;
 const SUB = 15;
 
+function wornPiece(key: string, equipped: Set<string>): string | null {
+	for (const id of equipped) {
+		if (PIECE_BY_ID.get(id)?.slotKey === key) return id;
+	}
+	return null;
+}
+
 function Slot({
-	id,
+	slotKey,
 	equipped,
 	size = SIZE,
 }: {
-	id: string;
+	slotKey: string;
 	equipped: Set<string>;
 	size?: number;
 }) {
-	const def = itemDef(id);
-	const on = equipped.has(id);
+	const id = wornPiece(slotKey, equipped);
+	const def = id ? itemDef(id) : undefined;
+	const on = id !== null;
 	return (
 		<div
-			id={`pd-slot-${id}`}
-			data-armor-slot={id}
-			data-x-kbve={kbve('slot', { id, on: on ? 1 : 0 })}
-			title={def?.label ?? id}
+			id={`pd-slot-${slotKey}`}
+			data-armor-slot={slotKey}
+			data-x-kbve={kbve('slot', { id: slotKey, worn: id ?? '' })}
+			title={def?.label ?? slotKey}
 			onClick={() => {
-				if (on) setArmor(id, false);
+				if (id) setArmor(id, false);
 			}}
 			style={{
 				width: size,
@@ -72,7 +90,7 @@ function Slot({
 				cursor: on ? 'pointer' : 'default',
 				userSelect: 'none',
 			}}>
-			{(def?.label ?? id).replace(/ ?\(([LR])\)/, '$1')}
+			{(def?.label ?? '').replace(/ ?\(([LR])\)/, '$1')}
 		</div>
 	);
 }
@@ -96,9 +114,9 @@ export function Paperdoll() {
 				}}>
 				{SLOTS.map((s) => (
 					<div
-						key={s.id}
+						key={s.key}
 						style={{ gridColumn: s.col, gridRow: s.row }}>
-						<Slot id={s.id} equipped={equipped} />
+						<Slot slotKey={s.key} equipped={equipped} />
 					</div>
 				))}
 				<div
@@ -111,20 +129,32 @@ export function Paperdoll() {
 						alignContent: 'center',
 						justifyContent: 'center',
 					}}>
-					{FAULDS.map((id) => (
-						<Slot key={id} id={id} equipped={equipped} size={SUB} />
+					{FAULDS.map((key) => (
+						<Slot
+							key={key}
+							slotKey={key}
+							equipped={equipped}
+							size={SUB}
+						/>
 					))}
 				</div>
 				<div
 					style={{
 						gridColumn: 2,
-						gridRow: 7,
-						display: 'flex',
+						gridRow: 8,
+						display: 'grid',
+						gridTemplateColumns: `repeat(2, ${SUB}px)`,
 						gap: 4,
+						alignContent: 'center',
 						justifyContent: 'center',
 					}}>
-					{KNEES.map((id) => (
-						<Slot key={id} id={id} equipped={equipped} size={SUB} />
+					{KNEES.map((key) => (
+						<Slot
+							key={key}
+							slotKey={key}
+							equipped={equipped}
+							size={SUB}
+						/>
 					))}
 				</div>
 			</div>
