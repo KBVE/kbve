@@ -104,15 +104,45 @@ def render_icon(ref, prefix, slots, tex_path, parts_dir, out_dir):
             elif o.type == "MESH":
                 bpy.data.objects.remove(o, do_unlink=True)
 
-    deps = bpy.context.evaluated_depsgraph_get()
+    def mesh_bounds():
+        deps = bpy.context.evaluated_depsgraph_get()
+        out = []
+        for m in meshes:
+            ev = m.evaluated_get(deps)
+            mlo = Vector((1e9, 1e9, 1e9))
+            mhi = Vector((-1e9, -1e9, -1e9))
+            for c in ev.bound_box:
+                w = ev.matrix_world @ Vector(c)
+                mlo = Vector(map(min, mlo, w))
+                mhi = Vector(map(max, mhi, w))
+            out.append((m, mlo, mhi))
+        return out
+
+    # Paired parts rest a full arm-span apart in the T-pose, which makes each
+    # piece a speck in the shared frame — pull spread parts into a tight
+    # side-by-side cluster before framing.
+    bounds = mesh_bounds()
+    if len(bounds) > 1:
+        sizes = [max(mhi - mlo) for _, mlo, mhi in bounds]
+        centers = [(mlo + mhi) / 2 for _, mlo, mhi in bounds]
+        spread = max(
+            (a - b).length for a in centers for b in centers)
+        if spread > 1.5 * max(sizes):
+            anchor = centers[0]
+            x = 0.0
+            for (m, mlo, mhi), c in zip(bounds, centers):
+                width = (mhi - mlo).x
+                target = anchor + Vector((x, 0, 0))
+                m.matrix_world.translation += target - c
+                x += width * 1.1
+            bpy.context.view_layer.update()
+            bounds = mesh_bounds()
+
     lo = Vector((1e9, 1e9, 1e9))
     hi = Vector((-1e9, -1e9, -1e9))
-    for m in meshes:
-        ev = m.evaluated_get(deps)
-        for c in ev.bound_box:
-            w = ev.matrix_world @ Vector(c)
-            lo = Vector(map(min, lo, w))
-            hi = Vector(map(max, hi, w))
+    for _, mlo, mhi in bounds:
+        lo = Vector(map(min, lo, mlo))
+        hi = Vector(map(max, hi, mhi))
     center = (lo + hi) / 2
     extent = max(hi - lo)
 
