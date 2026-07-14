@@ -71,7 +71,53 @@ export function addComponent(_w: World, eid: number, comp: Comp): void {
 	world.add(eid, nameOf(comp));
 }
 export function removeEntity(_w: World, eid: number): void {
+	unregisterOwner(eid);
 	world.despawn(eid);
+}
+
+// Sector-scoped membership: every prop registers under its owning sector eid at
+// spawn, so per-frame systems iterate only mounted sectors' buckets instead of
+// scanning the whole world.
+const ownerIndex = new Map<number, Set<number>>();
+const NO_MEMBERS: ReadonlySet<number> = new Set();
+
+export function registerOwner(eid: number, ownerEid: number): void {
+	let set = ownerIndex.get(ownerEid);
+	if (!set) {
+		set = new Set();
+		ownerIndex.set(ownerEid, set);
+	}
+	set.add(eid);
+}
+
+function unregisterOwner(eid: number): void {
+	if (!world.has(eid, 'Prop')) return;
+	const set = ownerIndex.get(Prop.ownerEid[eid]);
+	if (!set) return;
+	set.delete(eid);
+	if (set.size === 0) ownerIndex.delete(Prop.ownerEid[eid]);
+}
+
+export function membersOf(ownerEid: number): ReadonlySet<number> {
+	return ownerIndex.get(ownerEid) ?? NO_MEMBERS;
+}
+
+export function eachOwned(
+	ownerEid: number,
+	terms: readonly Comp[],
+	fn: (eid: number) => void,
+): void {
+	const set = ownerIndex.get(ownerEid);
+	if (!set) return;
+	let names = namesCache.get(terms);
+	if (!names) {
+		names = terms.map(nameOf);
+		namesCache.set(terms, names);
+	}
+	outer: for (const eid of set) {
+		for (const n of names) if (!world.has(eid, n)) continue outer;
+		fn(eid);
+	}
 }
 export function removeComponent(_w: World, eid: number, comp: Comp): void {
 	world.remove(eid, nameOf(comp));
@@ -117,7 +163,10 @@ export function despawnWhere(
 	for (const eid of world.query([name])) {
 		if (arr[eid] === value) doomed.push(eid);
 	}
-	for (const eid of doomed) world.despawn(eid);
+	for (const eid of doomed) {
+		unregisterOwner(eid);
+		world.despawn(eid);
+	}
 	return doomed.length;
 }
 
@@ -140,5 +189,6 @@ export function applyStats(_w: World, eid: number, s: StatBlock): void {
 // resetDungeon rebuilds the lattice from a new seed; wipe the shared world instead
 // of reallocating it, so the accessor exports above stay bound.
 export function resetPropsWorld(): void {
+	ownerIndex.clear();
 	world.clear();
 }

@@ -1,7 +1,7 @@
 import {
 	addComponent,
 	LightEmitter,
-	each,
+	eachOwned,
 	Transform3,
 	type World,
 } from '../mecs/props';
@@ -48,59 +48,68 @@ export function spawnFirefly(
 // lissajous bob, darts away when the player enters FLEE_RADIUS, and springs back
 // to its drift target once the player leaves.
 export class FireflySystem {
-	tick(world: World, time: number, dt: number): void {
+	tick(
+		_world: World,
+		mounted: readonly number[],
+		time: number,
+		dt: number,
+	): void {
 		const step = Math.min(dt, 0.05);
-		each(world, FLY_TERMS, (eid) => {
-			const s = FireflyFx.seed[eid];
-			const tx = FireflyFx.homeX[eid] + Math.sin(time * 0.9 + s) * BOB_R;
-			const ty =
-				FireflyFx.homeY[eid] + Math.sin(time * 1.3 + s * 2.1) * BOB_Y;
-			const tz =
-				FireflyFx.homeZ[eid] + Math.cos(time * 0.75 + s * 1.7) * BOB_R;
+		for (const sector of mounted)
+			eachOwned(sector, FLY_TERMS, (eid) => {
+				const s = FireflyFx.seed[eid];
+				const tx =
+					FireflyFx.homeX[eid] + Math.sin(time * 0.9 + s) * BOB_R;
+				const ty =
+					FireflyFx.homeY[eid] +
+					Math.sin(time * 1.3 + s * 2.1) * BOB_Y;
+				const tz =
+					FireflyFx.homeZ[eid] +
+					Math.cos(time * 0.75 + s * 1.7) * BOB_R;
 
-			const px = Transform3.px[eid];
-			const py = Transform3.py[eid];
-			const pz = Transform3.pz[eid];
+				const px = Transform3.px[eid];
+				const py = Transform3.py[eid];
+				const pz = Transform3.pz[eid];
 
-			let ax: number;
-			let ay: number;
-			let az: number;
+				let ax: number;
+				let ay: number;
+				let az: number;
 
-			const fdx = px - playerAnchor.pos.x;
-			const fdz = pz - playerAnchor.pos.z;
-			const fd = Math.hypot(fdx, fdz);
+				const fdx = px - playerAnchor.pos.x;
+				const fdz = pz - playerAnchor.pos.z;
+				const fd = Math.hypot(fdx, fdz);
 
-			if (playerAnchor.on && fd < FLEE_RADIUS) {
-				const k = (1 - fd / FLEE_RADIUS) * FLEE_ACCEL;
-				const inv = fd > 0.001 ? 1 / fd : 0;
-				ax = fdx * inv * k;
-				az = fdz * inv * k;
-				ay = k * 0.35;
-			} else {
-				ax = (tx - px) * SPRING;
-				ay = (ty - py) * SPRING;
-				az = (tz - pz) * SPRING;
-			}
+				if (playerAnchor.on && fd < FLEE_RADIUS) {
+					const k = (1 - fd / FLEE_RADIUS) * FLEE_ACCEL;
+					const inv = fd > 0.001 ? 1 / fd : 0;
+					ax = fdx * inv * k;
+					az = fdz * inv * k;
+					ay = k * 0.35;
+				} else {
+					ax = (tx - px) * SPRING;
+					ay = (ty - py) * SPRING;
+					az = (tz - pz) * SPRING;
+				}
 
-			let vx = (FireflyFx.vx[eid] + ax * step) * (1 - DAMP * step);
-			let vy = (FireflyFx.vy[eid] + ay * step) * (1 - DAMP * step);
-			let vz = (FireflyFx.vz[eid] + az * step) * (1 - DAMP * step);
+				let vx = (FireflyFx.vx[eid] + ax * step) * (1 - DAMP * step);
+				let vy = (FireflyFx.vy[eid] + ay * step) * (1 - DAMP * step);
+				let vz = (FireflyFx.vz[eid] + az * step) * (1 - DAMP * step);
 
-			const sp = Math.hypot(vx, vy, vz);
-			if (sp > MAX_SPEED) {
-				const c = MAX_SPEED / sp;
-				vx *= c;
-				vy *= c;
-				vz *= c;
-			}
+				const sp = Math.hypot(vx, vy, vz);
+				if (sp > MAX_SPEED) {
+					const c = MAX_SPEED / sp;
+					vx *= c;
+					vy *= c;
+					vz *= c;
+				}
 
-			FireflyFx.vx[eid] = vx;
-			FireflyFx.vy[eid] = vy;
-			FireflyFx.vz[eid] = vz;
+				FireflyFx.vx[eid] = vx;
+				FireflyFx.vy[eid] = vy;
+				FireflyFx.vz[eid] = vz;
 
-			Transform3.px[eid] = px + vx * step;
-			Transform3.py[eid] = py + vy * step;
-			Transform3.pz[eid] = pz + vz * step;
-		});
+				Transform3.px[eid] = px + vx * step;
+				Transform3.py[eid] = py + vy * step;
+				Transform3.pz[eid] = pz + vz * step;
+			});
 	}
 }

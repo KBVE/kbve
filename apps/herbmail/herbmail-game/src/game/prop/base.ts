@@ -1,6 +1,7 @@
 import {
 	addEntity,
 	addComponent,
+	registerOwner,
 	Prop,
 	Transform3,
 	type World,
@@ -28,5 +29,6 @@ export function spawnPropBase(
 	Transform3.dz[eid] = dir[2];
 	addComponent(world, eid, Prop);
 	addComponent(world, eid, Transform3);
+	registerOwner(eid, ownerEid);
 	return eid;
 }

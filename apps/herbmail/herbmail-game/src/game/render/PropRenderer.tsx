@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { getDungeon, usePropGen } from '../dungeon/store';
+import { getDungeon, getMountedEids, usePropGen } from '../dungeon/store';
 import { useOcclusionField } from '../dungeon/occlusion';
 import {
 	MODEL_URLS,
@@ -70,9 +70,11 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 	useFrame((state, delta) => {
 		const world = getDungeon().world;
 		npcSystem(world, state.clock.elapsedTime, Math.min(delta, 0.05));
-		fireflySystem.tick(world, state.clock.elapsedTime, delta);
+		const mounted = getMountedEids();
+		fireflySystem.tick(world, mounted, state.clock.elapsedTime, delta);
 		lightSystem.tick(
 			world,
+			mounted,
 			state.camera,
 			state.clock.elapsedTime,
 			occRef.current,
