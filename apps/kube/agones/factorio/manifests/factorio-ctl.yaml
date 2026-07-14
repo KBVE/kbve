@@ -127,7 +127,7 @@ spec:
                                 key: password
                                 optional: true
                       - name: RUST_LOG
-                        value: factorio_ctl=info,tower_http=info
+                        value: factorio_ctl=info,tower_http=warn
                   livenessProbe:
                       httpGet:
                           path: /health

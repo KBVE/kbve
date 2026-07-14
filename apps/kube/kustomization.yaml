@@ -91,7 +91,7 @@ resources:
     - gateway-api/application.yaml
     # Cilium CNI + WireGuard + Gateway API
     - cilium/application.yaml
-    # Cilium LB IPAM — IP pools + L2 announcements (replaces MetalLB)
+    # Cilium LB IPAM — IP pools + L2 announcements
     - cilium/lb-application.yaml
 
     # ECK (Elastic Cloud on Kubernetes) fully retired — ES + Kibana were

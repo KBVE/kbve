@@ -327,7 +327,7 @@ export default defineConfig({
 						{ label: 'Titanfall', link: '/gaming/titanfall/' },
 						{ label: 'World of Warcraft', link: '/gaming/wow/' },
 						{ label: 'OSRS', link: '/osrs/' },
-						
+
 					],
 				},
 				{

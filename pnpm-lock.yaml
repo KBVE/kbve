@@ -232,6 +232,9 @@ importers:
       mermaid:
         specifier: ^11.15.0
         version: 11.15.0
+      n8ao:
+        specifier: ^2.0.0
+        version: 2.0.0(postprocessing@6.39.2(three@0.184.0))(three@0.184.0)
       openapi-fetch:
         specifier: ^0.17.0
         version: 0.17.0
@@ -244,6 +247,9 @@ importers:
       pngjs:
         specifier: ^7.0.0
         version: 7.0.0
+      postprocessing:
+        specifier: ^6.39.2
+        version: 6.39.2(three@0.184.0)
       react-helmet-async:
         specifier: ^2.0.5
         version: 2.0.5(react@19.2.3)
@@ -316,6 +322,9 @@ importers:
       three-csg-ts:
         specifier: ^3.2.0
         version: 3.2.0(@types/three@0.176.0)(three@0.184.0)
+      three-mesh-bvh:
+        specifier: ^0.9.11
+        version: 0.9.11(three@0.184.0)
       three-spritetext:
         specifier: ^1.9.6
         version: 1.9.6(three@0.184.0)
@@ -584,6 +593,9 @@ importers:
       fast-check:
         specifier: ^4.9.0
         version: 4.9.0
+      gltfpack:
+        specifier: 1.2.0
+        version: 1.2.0
       grpc-tools:
         specifier: ^1.13.1
         version: 1.13.1(encoding@0.1.13)
@@ -10218,6 +10230,11 @@ packages:
   glsl-noise@0.0.0:
     resolution: {integrity: sha512-b/ZCF6amfAUb7dJM/MxRs7AetQEahYzJ8PtgfrmEdtw6uyGOr+ZSGtgjFm6mfsBkxJ4d2W7kg+Nlqzqvn3Bc0w==}
 
+  gltfpack@1.2.0:
+    resolution: {integrity: sha512-Wb65Jqc/8yWXeugZvwQO5PWL5oVI0o0TEM7/lu66mMc3HJ7QSuQ/YJyRphUyQNRFzzHZbnrKtdq1/GcWuUbFEA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   google-protobuf@3.15.8:
     resolution: {integrity: sha512-2jtfdqTaSxk0cuBJBtTTWsot4WtR9RVr2rXg7x7OoqiuOKopPrwXpM1G4dXIkLcUNRh3RKzz76C8IOkksZSeOw==}
 
@@ -12446,6 +12463,12 @@ packages:
     resolution: {integrity: sha512-dkEJPVvun4FryqBmZ5KhDo0K9iDXAwn08tMLDinNdRBNPcYEDiWYysLcc6k3mjTMlbP9KyylvRpd4wFtwrT9rw==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
+  n8ao@2.0.0:
+    resolution: {integrity: sha512-7oajUGXk10jJIcjGxOgjRY2X/gy5wiLOY4eOiAfFJ51ljN6Djmsg+j8HMOip+SpqV7OkwzF9VCkDRLluxVlySA==}
+    peerDependencies:
+      postprocessing: '>=6.30.0'
+      three: '>=0.137'
+
   nanoid@3.3.12:
     resolution: {integrity: sha512-ZB9RH/39qpq5Vu6Y+NmUaFhQR6pp+M2Xt76XBnEwDaGcVAqhlvxrl3B2bKS5D3NH3QR76v3aSrKaF/Kiy7lEtQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -13314,6 +13337,11 @@ packages:
   postcss@8.5.15:
     resolution: {integrity: sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==}
     engines: {node: ^10 || ^12 || >=14}
+
+  postprocessing@6.39.2:
+    resolution: {integrity: sha512-AxPY+xFyVOsz+8bbHSyQBoOK4AUqSQspTXXIsNcKhmGJRm/afHRAwZ8bKC02AeSPII0PW6lbCN84SgAoWFsKKA==}
+    peerDependencies:
+      three: '>= 0.168.0 < 0.186.0'
 
   potpack@1.0.2:
     resolution: {integrity: sha512-choctRBIV9EMT9WGAZHn3V7t0Z2pMQyl0EZE6pFc/6ml3ssw7Dlf/oAOvFwjm1HVsqfQN8GfeFyJ+d8tRzqueQ==}
@@ -15060,6 +15088,11 @@ packages:
 
   three-mesh-bvh@0.8.3:
     resolution: {integrity: sha512-4G5lBaF+g2auKX3P0yqx+MJC6oVt6sB5k+CchS6Ob0qvH0YIhuUk1eYr7ktsIpY+albCqE80/FVQGV190PmiAg==}
+    peerDependencies:
+      three: '>= 0.159.0'
+
+  three-mesh-bvh@0.9.11:
+    resolution: {integrity: sha512-PtGT02vWRQiP6szrcorR1GEClhHSr/+O45pyH/cQ8sY+UOlicecuUVjAHmIsbIri3ZO/8WTWBq3h7227F/TVBw==}
     peerDependencies:
       three: '>= 0.159.0'
 
@@ -29044,6 +29077,8 @@ snapshots:
 
   glsl-noise@0.0.0: {}
 
+  gltfpack@1.2.0: {}
+
   google-protobuf@3.15.8: {}
 
   gopd@1.2.0: {}
@@ -32038,6 +32073,11 @@ snapshots:
 
   mute-stream@3.0.0: {}
 
+  n8ao@2.0.0(postprocessing@6.39.2(three@0.184.0))(three@0.184.0):
+    dependencies:
+      postprocessing: 6.39.2(three@0.184.0)
+      three: 0.184.0
+
   nanoid@3.3.12: {}
 
   nanoid@3.3.15: {}
@@ -33185,6 +33225,10 @@ snapshots:
       nanoid: 3.3.15
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  postprocessing@6.39.2(three@0.184.0):
+    dependencies:
+      three: 0.184.0
 
   potpack@1.0.2: {}
 
@@ -35300,6 +35344,10 @@ snapshots:
       three: 0.184.0
 
   three-mesh-bvh@0.8.3(three@0.184.0):
+    dependencies:
+      three: 0.184.0
+
+  three-mesh-bvh@0.9.11(three@0.184.0):
     dependencies:
       three: 0.184.0
 

@@ -1,9 +1,11 @@
 import { BODY_SLIDERS, setBodyMorph, useBodyMorph } from '../character/body';
+import { SKIN_TONES, setSkinTone, useSkinTone } from '../character/skin';
 import { kbve } from './tags';
 
 // Body-shape morph sliders. Dev-only, mounted behind the Backquote debug toggle.
 export function BodyMorphPanel() {
 	const morph = useBodyMorph();
+	const tone = useSkinTone();
 	return (
 		<div
 			id="body-morph-panel"
@@ -50,6 +52,32 @@ export function BodyMorphPanel() {
 							style={{ flex: 1 }}
 						/>
 					</label>
+				))}
+			</div>
+			<div style={{ opacity: 0.55, margin: '10px 0 6px' }}>skin</div>
+			<div style={{ display: 'flex', gap: 6 }}>
+				{SKIN_TONES.map((t) => (
+					<button
+						key={t.id}
+						id={`skin-${t.id}`}
+						title={t.label}
+						data-x-kbve={kbve('skin', {
+							id: t.id,
+							on: t.id === tone.id,
+						})}
+						onClick={() => setSkinTone(t.id)}
+						style={{
+							width: 22,
+							height: 22,
+							borderRadius: 4,
+							cursor: 'pointer',
+							background: t.tint,
+							border:
+								t.id === tone.id
+									? '2px solid #fff'
+									: '1px solid #444',
+						}}
+					/>
 				))}
 			</div>
 		</div>

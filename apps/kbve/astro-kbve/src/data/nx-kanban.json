@@ -1,9 +1,9 @@
 {
-	"generated_at": "2026-07-13T11:14:53.910Z",
+	"generated_at": "2026-07-14T10:01:11.504Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 294
+		"total_items": 320
 	},
 	"summary": {
 		"Theory": 73,
@@ -14,7 +14,7 @@
 		"Support": 0,
 		"Staging": 2,
 		"Review": 3,
-		"Done": 159
+		"Done": 185
 	},
 	"columns": {
 		"Theory": [
@@ -2003,21 +2003,6 @@
 		"Review": [
 			{
 				"type": "PULL_REQUEST",
-				"number": 13275,
-				"title": "Atomic: valkey harden",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/pull/13275",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
 				"number": 13278,
 				"title": "Atomic: ue ramdisk spec",
 				"state": "OPEN",
@@ -2041,6 +2026,21 @@
 				"labels": [
 					"auto-pr",
 					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14098,
+				"title": "Release: 8 features, 2 fixes, 2 docs, 1 perf, 2 chores → Main",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/pull/14098",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
 				],
 				"matrix": null,
 				"date": null,
@@ -2123,14 +2123,14 @@
 			},
 			{
 				"type": "PULL_REQUEST",
-				"number": 13574,
-				"title": "Release: 16 features, 8 fixes, 9 docs, 1 CI, 6 perfs, 6 chores → Main",
+				"number": 13275,
+				"title": "Atomic: valkey harden",
 				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/13574",
+				"url": "https://github.com/KBVE/kbve/pull/13275",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
-					"dev→main"
+					"atomic"
 				],
 				"matrix": null,
 				"date": null,
@@ -4404,6 +4404,384 @@
 				"labels": [
 					"auto-pr",
 					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14038,
+				"title": "chore(dashboard): daily sync — 2026-07-13",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14038",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14039,
+				"title": "Release: 4 features, 3 fixes, 1 doc, 5 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14039",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14044,
+				"title": "Release: 1 feature, 2 fixes, 1 CI, 4 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14044",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14054,
+				"title": "Release: 5 features, 7 fixes, 2 docs, 1 CI, 5 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14054",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14055,
+				"title": "chore(bevy_chat): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14055",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14057,
+				"title": "chore(bevy_db): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14057",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14060,
+				"title": "chore(bevy_kbve_net): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14060",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14061,
+				"title": "deploy(isometric): update WASM build",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14061",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14068,
+				"title": "Atomic: herbmail-game v0.1.2 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14068",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14070,
+				"title": "chore(bevy_supa): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14070",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14071,
+				"title": "chore(bevy_statemachine): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14071",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14072,
+				"title": "chore(bevy_player): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14072",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14073,
+				"title": "Release: 1 feature, 2 fixes, 8 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14073",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14075,
+				"title": "chore(bevy_cam): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14075",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14078,
+				"title": "Atomic: herbmail-game v0.1.3 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14078",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14079,
+				"title": "Release: 2 features, 2 fixes, 4 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14079",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14080,
+				"title": "chore(bevy_quests): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14080",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14081,
+				"title": "chore(bevy_items): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14081",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14085,
+				"title": "Release: 1 feature, 2 fixes, 1 refactor, 4 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14085",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14086,
+				"title": "chore(bevy_spells): update version.toml to 0.1.0",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14086",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14087,
+				"title": "Atomic: axum-kbve v1.0.232 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14087",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14090,
+				"title": "Release: 7 features, 1 fix, 3 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14090",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14093,
+				"title": "Atomic: herbmail-game v0.1.5 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14093",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14094,
+				"title": "Release: 4 features, 1 fix, 2 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14094",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14097,
+				"title": "Atomic: herbmail-game v0.1.6 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14097",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 14099,
+				"title": "Atomic: axum-kbve v1.0.233 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/14099",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
 				],
 				"matrix": null,
 				"date": null,

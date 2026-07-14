@@ -324,10 +324,10 @@ export {
 export type { DiscordExternalSdk } from './lib/embed/discord-external';
 
 // Ads — framework-agnostic cross-promo model + boot-screen card + rotation pool
-export { AdCard } from './lib/ads/AdCard';
-export type { AdCardProps } from './lib/ads/AdCard';
-export { pickAd, AdRegistry, laserAds } from './lib/ads/registry';
-export type { AdCreative } from './lib/ads/types';
+export { AdCard } from './lib/promo/PromoCard';
+export type { AdCardProps } from './lib/promo/PromoCard';
+export { pickAd, AdRegistry, laserAds } from './lib/promo/registry';
+export type { AdCreative } from './lib/promo/types';
 
 // i18n — framework-agnostic translation store + React provider/hook
 export {

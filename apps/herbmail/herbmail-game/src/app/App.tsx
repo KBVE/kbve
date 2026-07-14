@@ -8,10 +8,13 @@ import { PropRenderer } from '../game/render/PropRenderer';
 import { Hud } from '../game/hud/Hud';
 import { PlayerBars } from '../game/hud/PlayerBars';
 import { InteractPrompt } from '../game/interact/InteractPrompt';
-import { PSX_DEFAULTS } from '../game/config';
+import { BG_COLOR, PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
+import { Goblins } from '../game/npc/Goblins';
 import { PhysicsBodies } from '../game/sab/PhysicsBodies';
+import { AOComposer } from '../game/render/AOComposer';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
+import { DebugStats, StatsProbe } from '../game/hud/DebugStats';
 import { LOADOUT } from '../game/viewmodel/equipment';
 import { setEquipped, useEquippedId } from '../game/viewmodel/store';
 import { InventoryPanel } from '../game/inventory/InventoryPanel';
@@ -67,6 +70,7 @@ export function App() {
 	return (
 		<>
 			<Canvas
+				flat
 				shadows="percentage"
 				dpr={psx.dpr}
 				gl={{ antialias: true, powerPreference: 'high-performance' }}
@@ -86,8 +90,10 @@ export function App() {
 						false,
 					);
 				}}
-				style={{ imageRendering: 'pixelated' }}>
-				<color attach="background" args={['#0a0a0e']} />
+				style={{
+					imageRendering: psx.dpr < 1 ? 'pixelated' : 'auto',
+				}}>
+				<color attach="background" args={[BG_COLOR]} />
 				<ambientLight intensity={0.05} />
 				<Suspense fallback={null}>
 					<Dungeon snap={psx.snap} affine={psx.affine} />
@@ -96,9 +102,14 @@ export function App() {
 					<ThirdPersonPlayer url={CHARACTER_URL} />
 				</Suspense>
 				<Suspense fallback={null}>
+					<Goblins />
+				</Suspense>
+				<Suspense fallback={null}>
 					<PropRenderer ambient={0.04} />
 				</Suspense>
 				<PhysicsBodies />
+				<AOComposer />
+				{debug && <StatsProbe />}
 				<TorchPlacer />
 				<CratePlacer />
 				<AimReticle onAim={setAim} />
@@ -111,6 +122,7 @@ export function App() {
 					<InventoryPanel />
 					{debug && <HeldGripDebug />}
 					{debug && <BodyMorphPanel />}
+					{debug && <DebugStats />}
 					<div
 						style={{
 							position: 'fixed',

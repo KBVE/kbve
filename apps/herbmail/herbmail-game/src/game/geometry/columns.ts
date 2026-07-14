@@ -89,10 +89,11 @@ const STYLES: Style[] = [
 	},
 ];
 
-const MAX_SEG = 0.5;
+const MAX_SEG = 4;
 
-// Insert interpolated rings so no vertical run is longer than MAX_SEG — long thin
-// quads read as streaks under the affine PSX warp; smaller ones stay crisp.
+// Insert interpolated rings so no vertical run is longer than MAX_SEG. The old
+// 0.5 cap existed for the affine PSX warp (long thin quads streaked); with
+// affine retired only a coarse cap remains for normal quality on tall shafts.
 function densify(pts: THREE.Vector2[]): THREE.Vector2[] {
 	const out: THREE.Vector2[] = [pts[0]];
 	for (let i = 1; i < pts.length; i++) {

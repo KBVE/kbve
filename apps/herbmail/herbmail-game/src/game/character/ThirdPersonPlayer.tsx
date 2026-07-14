@@ -1,7 +1,12 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
-import { solidAtWorld, dungeonSpawn } from '../dungeon/collision';
+import {
+	solidAtWorld,
+	dungeonSpawn,
+	makeMover,
+	registerBody,
+} from '../dungeon/collision';
 import { refreshPrompt, triggerActive } from '../interact/registry';
 import { TILE } from '../config';
 import { Character, type CharacterHandle, type BlockPose } from './Character';
@@ -26,6 +31,20 @@ const SHOULDER = 0.62;
 const SHOULDER_LERP = 0.15;
 const CAM_FOLLOW = 12;
 const LOOK_SENS = 0.002;
+// Chromium reports pointer-lock movementX/Y in physical pixels (Retina = 2x
+// what the spec's CSS px say); WebKit reports CSS px. Normalize by DPR on
+// Chromium so look speed matches across browsers.
+const isChromium =
+	typeof navigator !== 'undefined' &&
+	((
+		navigator as Navigator & {
+			userAgentData?: { brands: { brand: string }[] };
+		}
+	).userAgentData?.brands.some((b) => b.brand === 'Chromium') ??
+		/Chrome\//.test(navigator.userAgent));
+function lookScale(): number {
+	return isChromium ? LOOK_SENS / (window.devicePixelRatio || 1) : LOOK_SENS;
+}
 const LOOK_FOLLOW = 14;
 const PITCH_MAX = 1.4;
 const RUN_EP_COST = 25;
@@ -78,23 +97,6 @@ function clampBoom(
 	return max;
 }
 
-function moveAxis(pos: THREE.Vector3, dx: number, dz: number): void {
-	if (dx !== 0 && !solidAtWorld(pos.x + dx + Math.sign(dx) * RADIUS, pos.z))
-		pos.x += dx;
-	if (dz !== 0 && !solidAtWorld(pos.x, pos.z + dz + Math.sign(dz) * RADIUS))
-		pos.z += dz;
-}
-
-// Sub-step so a single frame never advances more than RADIUS (< one tile): a long
-// frame or fast move would otherwise sample past a thin wall and tunnel through it.
-function tryMove(pos: THREE.Vector3, dx: number, dz: number): void {
-	const dist = Math.hypot(dx, dz);
-	const steps = Math.min(64, Math.max(1, Math.ceil(dist / RADIUS)));
-	const sx = dx / steps;
-	const sz = dz / steps;
-	for (let i = 0; i < steps; i++) moveAxis(pos, sx, sz);
-}
-
 interface Props {
 	url: string;
 	scale?: number;
@@ -121,6 +123,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				: { clip: 'Sword_Block', loop: false, frac: 0.5 };
 	}, [hands]);
 	const handleRef = useRef<CharacterHandle | null>(null);
+	const bodyUnreg = useRef<(() => void) | null>(null);
 	useMelee();
 	useCrateBreak();
 	useStoneMine();
@@ -199,8 +202,9 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		const lock = () => dom.requestPointerLock();
 		const move = (e: MouseEvent) => {
 			if (document.pointerLockElement !== dom) return;
-			targetYaw.current -= e.movementX * LOOK_SENS;
-			targetPitch.current -= e.movementY * LOOK_SENS;
+			const sens = lookScale();
+			targetYaw.current -= e.movementX * sens;
+			targetPitch.current -= e.movementY * sens;
 			targetPitch.current = Math.max(
 				-PITCH_MAX,
 				Math.min(PITCH_MAX, targetPitch.current),
@@ -319,7 +323,10 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				leftId={hands.left}
 				position={[sx, 0, sz]}
 				onReady={(h) => {
-					h.motor.mover = tryMove;
+					const body = { pos: h.motor.position, radius: RADIUS };
+					bodyUnreg.current?.();
+					bodyUnreg.current = registerBody(body);
+					h.motor.mover = makeMover(RADIUS, body);
 					handleRef.current = h;
 					(window as unknown as Record<string, unknown>).__coll = {
 						solid: solidAtWorld,

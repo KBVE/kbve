@@ -1,0 +1,107 @@
+---
+import { INpcSchema } from '@/data/schema';
+
+const { data } = Astro.props;
+const npc = INpcSchema.parse(data);
+
+const triggerLabels: Record<string, string> = {
+	greeting: 'Greeting',
+	buy: 'On Purchase',
+	sell: 'On Sale',
+	empty_pocket: 'Insufficient Coin',
+	deposit: 'On Deposit',
+	farewell: 'Farewell',
+	idle: 'Idle Chatter',
+	quest_offer: 'Quest Offered',
+	quest_complete: 'Quest Complete',
+	hostile: 'Hostile',
+	defeated: 'Defeated',
+};
+
+const triggerIcons: Record<string, string> = {
+	greeting: '👋',
+	buy: '💰',
+	sell: '📦',
+	empty_pocket: '🪙',
+	deposit: '🏦',
+	farewell: '🚪',
+	idle: '💭',
+	quest_offer: '❗',
+	quest_complete: '✅',
+	hostile: '⚔️',
+	defeated: '💀',
+};
+
+function formatTrigger(trigger: string): string {
+	return (
+		triggerLabels[trigger] ??
+		trigger.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+	);
+}
+
+const dialogue = npc.dialogue ?? [];
+const hasDialogue = dialogue.length > 0;
+---
+
+{
+	hasDialogue && (
+		<section class="px-6 pb-6 sm:px-8 lg:px-12">
+			<div class="max-w-3xl mx-auto">
+				<div
+					class="rounded-2xl p-6 border transition duration-300 space-y-4
+					backdrop-blur-md bg-white/5 dark:bg-white/10
+					border-white/10 dark:border-white/10
+					shadow-[inset_0_0_0.5px_rgba(255,255,255,0.1)]
+					hover:shadow-cyan-400/30 dark:hover:shadow-cyan-300/30">
+					<div class="flex items-center gap-2">
+						<strong class="text-cyan-400">Dialogue</strong>
+						<span class="text-xs text-zinc-500">
+							{dialogue.length} trigger
+							{dialogue.length === 1 ? '' : 's'}
+						</span>
+					</div>
+
+					<div class="space-y-4">
+						{dialogue.map(
+							(entry: {
+								trigger: string;
+								lines?: string[];
+								condition?: string;
+							}) => (
+								<div class="border-l-2 border-cyan-400/40 pl-3">
+									<div class="flex items-center gap-2 mb-1">
+										<span class="text-base">
+											{triggerIcons[entry.trigger] ??
+												'💬'}
+										</span>
+										<span class="text-xs font-medium uppercase text-cyan-300">
+											{formatTrigger(entry.trigger)}
+										</span>
+										{entry.condition && (
+											<span class="text-[0.65rem] text-zinc-500 font-mono">
+												[if {entry.condition}]
+											</span>
+										)}
+									</div>
+									{entry.lines && entry.lines.length > 0 ? (
+										<ul class="space-y-1 ml-1">
+											{entry.lines.map((line: string) => (
+												<li class="text-zinc-300 text-sm italic">
+													“{line}”
+												</li>
+											))}
+										</ul>
+									) : (
+										<p class="text-zinc-600 text-xs italic">
+											no lines defined
+										</p>
+									)}
+								</div>
+							),
+						)}
+					</div>
+				</div>
+			</div>
+		</section>
+	)
+}

@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-07-13T11:14:53.910Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-07-14T10:01:11.504Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **3** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **159** items
+    **185** items
   </Card>
 </CardGrid>
 
@@ -62,7 +62,7 @@ pie showData
     "Error" : 25
     "Staging" : 2
     "Review" : 3
-    "Done" : 159
+    "Done" : 185
 ```
 
 ```mermaid
@@ -70,7 +70,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 27
     "Blocked (Error+Support)" : 25
-    "Done" : 159
+    "Done" : 185
     "Planning (Theory+AI+Backlog)" : 80
 ```
 
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>3</strong>"]
     Review --> Done
-    Done["Done<br/><strong>159</strong>"]
+    Done["Done<br/><strong>185</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,7 +116,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 149
+    "Pull Request" : 175
     "Issue" : 142
 ```
 
@@ -124,10 +124,10 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 149 |
+| auto-pr | 175 |
 | enhancement | 93 |
-| dev→main | 70 |
-| atomic | 60 |
+| dev→main | 78 |
+| atomic | 66 |
 | bug | 32 |
 | todo | 30 |
 | 0 | 15 |
@@ -301,11 +301,11 @@ pie showData
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#13275](https://github.com/KBVE/kbve/pull/13275) | Atomic: valkey harden | — | — | auto-pr, atomic |
 | [#13278](https://github.com/KBVE/kbve/pull/13278) | Atomic: ue ramdisk spec | — | — | auto-pr, atomic |
 | [#13572](https://github.com/KBVE/kbve/pull/13572) | Atomic: bump mdx spec | — | — | auto-pr, atomic |
+| [#14098](https://github.com/KBVE/kbve/pull/14098) | Release: 8 features, 2 fixes, 2 docs, 1 perf, 2 chores → Main | — | — | auto-pr, dev→main |
 
-### Done (159)
+### Done (185)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -314,7 +314,7 @@ pie showData
 | [#13083](https://github.com/KBVE/kbve/issues/13083) | [CRITICAL] nd-server Agones fleet dead on arrival — wrong SecretStore ref | — | — | bug |
 | [#13100](https://github.com/KBVE/kbve/issues/13100) | [HIGH] VM idle-shutdown fails OPEN on transient API error | — | — | bug |
 | [#13110](https://github.com/KBVE/kbve/issues/13110) | [MEDIUM] Wildcard cert kbve-wt-tls has no explicit Certificate object | — | — | bug |
-| [#13574](https://github.com/KBVE/kbve/pull/13574) | Release: 16 features, 8 fixes, 9 docs, 1 CI, 6 perfs, 6 chores → Main | — | — | auto-pr, dev→main |
+| [#13275](https://github.com/KBVE/kbve/pull/13275) | Atomic: valkey harden | — | — | auto-pr, atomic |
 | [#13575](https://github.com/KBVE/kbve/pull/13575) | Atomic: rows drain fleet plan fix | — | — | auto-pr, atomic |
 | [#13617](https://github.com/KBVE/kbve/pull/13617) | Atomic: rows ci test | — | — | auto-pr, atomic |
 | [#13618](https://github.com/KBVE/kbve/pull/13618) | Release: 1 commit → Main | — | — | auto-pr, dev→main |
@@ -468,6 +468,32 @@ pie showData
 | [#14030](https://github.com/KBVE/kbve/pull/14030) | chore(dashboard): daily sync — 2026-07-12 | — | — | auto-pr |
 | [#14031](https://github.com/KBVE/kbve/pull/14031) | Release: 3 features, 2 fixes, 1 doc, 1 perf, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#14032](https://github.com/KBVE/kbve/pull/14032) | Release: 1 fix, 1 perf, 1 test, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14038](https://github.com/KBVE/kbve/pull/14038) | chore(dashboard): daily sync — 2026-07-13 | — | — | auto-pr |
+| [#14039](https://github.com/KBVE/kbve/pull/14039) | Release: 4 features, 3 fixes, 1 doc, 5 chores → Main | — | — | auto-pr, dev→main |
+| [#14044](https://github.com/KBVE/kbve/pull/14044) | Release: 1 feature, 2 fixes, 1 CI, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#14054](https://github.com/KBVE/kbve/pull/14054) | Release: 5 features, 7 fixes, 2 docs, 1 CI, 5 chores → Main | — | — | auto-pr, dev→main |
+| [#14055](https://github.com/KBVE/kbve/pull/14055) | chore(bevy_chat): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14057](https://github.com/KBVE/kbve/pull/14057) | chore(bevy_db): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14060](https://github.com/KBVE/kbve/pull/14060) | chore(bevy_kbve_net): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14061](https://github.com/KBVE/kbve/pull/14061) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#14068](https://github.com/KBVE/kbve/pull/14068) | Atomic: herbmail-game v0.1.2 post-publish sync | — | — | auto-pr, atomic |
+| [#14070](https://github.com/KBVE/kbve/pull/14070) | chore(bevy_supa): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14071](https://github.com/KBVE/kbve/pull/14071) | chore(bevy_statemachine): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14072](https://github.com/KBVE/kbve/pull/14072) | chore(bevy_player): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14073](https://github.com/KBVE/kbve/pull/14073) | Release: 1 feature, 2 fixes, 8 chores → Main | — | — | auto-pr, dev→main |
+| [#14075](https://github.com/KBVE/kbve/pull/14075) | chore(bevy_cam): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14078](https://github.com/KBVE/kbve/pull/14078) | Atomic: herbmail-game v0.1.3 post-publish sync | — | — | auto-pr, atomic |
+| [#14079](https://github.com/KBVE/kbve/pull/14079) | Release: 2 features, 2 fixes, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#14080](https://github.com/KBVE/kbve/pull/14080) | chore(bevy_quests): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14081](https://github.com/KBVE/kbve/pull/14081) | chore(bevy_items): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14085](https://github.com/KBVE/kbve/pull/14085) | Release: 1 feature, 2 fixes, 1 refactor, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#14086](https://github.com/KBVE/kbve/pull/14086) | chore(bevy_spells): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14087](https://github.com/KBVE/kbve/pull/14087) | Atomic: axum-kbve v1.0.232 post-publish sync | — | — | auto-pr, atomic |
+| [#14090](https://github.com/KBVE/kbve/pull/14090) | Release: 7 features, 1 fix, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14093](https://github.com/KBVE/kbve/pull/14093) | Atomic: herbmail-game v0.1.5 post-publish sync | — | — | auto-pr, atomic |
+| [#14094](https://github.com/KBVE/kbve/pull/14094) | Release: 4 features, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14097](https://github.com/KBVE/kbve/pull/14097) | Atomic: herbmail-game v0.1.6 post-publish sync | — | — | auto-pr, atomic |
+| [#14099](https://github.com/KBVE/kbve/pull/14099) | Atomic: axum-kbve v1.0.233 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 

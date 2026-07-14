@@ -442,11 +442,12 @@ function seamKept(
 	);
 }
 
-// Punch doorways on a hash-selected subset of passage seams — the boundary between
-// two adjacent owned cells with different owners where at least one is a room.
-// The 6-wide open seam is walled to a single centre ARCH tile (a real 1-wide
-// doorway a leaf can seat in); connectivity survives through the gap. Runs before
-// genColumns so columns never land on a fresh doorway wall.
+// Seal every passage seam — the boundary between two adjacent owned cells with
+// different owners where at least one is a room. The 6-wide open seam is walled
+// to a single centre ARCH tile (a real 1-wide doorway), so rooms are fully
+// enclosed and can't be walked around; connectivity survives through the gap.
+// The seam hash now only picks which arches get a door leaf (DoorSlot). Runs
+// before genColumns so columns never land on a fresh doorway wall.
 function genDoorways(
 	tiles: Uint8Array,
 	cols: number,
@@ -472,33 +473,25 @@ function genDoorways(
 				cx + 1 < SECTOR
 					? cellOwner.get(sectorCellIndex(cx + 1, cy))
 					: undefined;
-			if (
-				oe &&
-				diff(o, oe) &&
-				(isRoom(o) || isRoom(oe)) &&
-				seamKept(seed, wcx + cx, wcy + cy, wcx + cx + 1, wcy + cy)
-			) {
+			if (oe && diff(o, oe) && (isRoom(o) || isRoom(oe))) {
 				const bc = (cx + 1) * CELL;
 				for (let k = 0; k < CELL; k++)
 					tiles[(cy * CELL + k) * cols + bc] =
 						k === mid ? ARCH : WALL;
-				out.push({ lc: bc, lr: cy * CELL + mid, axis: 'x' });
+				if (seamKept(seed, wcx + cx, wcy + cy, wcx + cx + 1, wcy + cy))
+					out.push({ lc: bc, lr: cy * CELL + mid, axis: 'x' });
 			}
 
 			const os =
 				cy + 1 < SECTOR
 					? cellOwner.get(sectorCellIndex(cx, cy + 1))
 					: undefined;
-			if (
-				os &&
-				diff(o, os) &&
-				(isRoom(o) || isRoom(os)) &&
-				seamKept(seed, wcx + cx, wcy + cy, wcx + cx, wcy + cy + 1)
-			) {
+			if (os && diff(o, os) && (isRoom(o) || isRoom(os))) {
 				const br = (cy + 1) * CELL;
 				for (let k = 0; k < CELL; k++)
 					tiles[br * cols + cx * CELL + k] = k === mid ? ARCH : WALL;
-				out.push({ lc: cx * CELL + mid, lr: br, axis: 'z' });
+				if (seamKept(seed, wcx + cx, wcy + cy, wcx + cx, wcy + cy + 1))
+					out.push({ lc: cx * CELL + mid, lr: br, axis: 'z' });
 			}
 		}
 	}
@@ -520,21 +513,31 @@ function genConnectorDoors(
 	const out: DoorSlot[] = [];
 	const mid = Math.floor(CELL / 2);
 	for (const c of connectors) {
-		if (c.side !== SIDE_E && c.side !== SIDE_S) continue;
-		if (hash01(sx, sy, ((seed | 0) ^ 0xc0d) + c.side) >= DOOR_KEEP)
+		// The E/S sector owns the leaf; W/N mirrors must still narrow their side
+		// of the gate, or the flank walls have no outward face (nobody generates
+		// it: the owner's grid ends at the border and the mirror's ARCH tiles
+		// skip their OOB faces) and the seam reads as a hole from the hall.
+		// Both sides derive the same verdict from the owner's hash.
+		const osx = c.side === SIDE_W ? sx - 1 : sx;
+		const osy = c.side === SIDE_N ? sy - 1 : sy;
+		const oside =
+			c.side === SIDE_W ? SIDE_E : c.side === SIDE_N ? SIDE_S : c.side;
+		if (hash01(osx, osy, ((seed | 0) ^ 0xc0d) + oside) >= DOOR_KEEP)
 			continue;
 		const baseCol = c.lx * CELL;
 		const baseRow = c.ly * CELL;
-		if (c.side === SIDE_E) {
-			const tc = baseCol + CELL - 1;
+		if (c.side === SIDE_E || c.side === SIDE_W) {
+			const tc = c.side === SIDE_E ? baseCol + CELL - 1 : baseCol;
 			for (let k = -GATE_HALF; k <= GATE_HALF; k++)
 				tiles[(baseRow + mid + k) * cols + tc] = k === 0 ? ARCH : WALL;
-			out.push({ lc: tc, lr: baseRow + mid, axis: 'x' });
+			if (c.side === SIDE_E)
+				out.push({ lc: tc, lr: baseRow + mid, axis: 'x' });
 		} else {
-			const tr = baseRow + CELL - 1;
+			const tr = c.side === SIDE_S ? baseRow + CELL - 1 : baseRow;
 			for (let k = -GATE_HALF; k <= GATE_HALF; k++)
 				tiles[tr * cols + baseCol + mid + k] = k === 0 ? ARCH : WALL;
-			out.push({ lc: baseCol + mid, lr: tr, axis: 'z' });
+			if (c.side === SIDE_S)
+				out.push({ lc: baseCol + mid, lr: tr, axis: 'z' });
 		}
 	}
 	return out;

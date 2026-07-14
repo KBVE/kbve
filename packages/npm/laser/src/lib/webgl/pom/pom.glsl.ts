@@ -27,6 +27,9 @@ export const POM_MARCH = /* glsl */ `
 #ifndef POM_MAX_STEPS
 #define POM_MAX_STEPS ${POM_MAX_STEPS}
 #endif
+#ifndef POM_REFINE_STEPS
+#define POM_REFINE_STEPS 5
+#endif
 
 // Consumer MUST define: float pomSampleDepth(vec2 uv);
 //   returns 0.0 at the top surface, 1.0 at the deepest recess.
@@ -58,13 +61,30 @@ vec2 pomMarch(
 		curDepth += layerDepth;
 	}
 
+	// Binary refinement (SSDM-style): halve the bracket [prev, cur] where the
+	// ray crossed the heightfield, then secant-interpolate inside it.
 	vec2 prevUV = curUV + dUV;
-	float afterD = sampled - curDepth;
-	float beforeD = pomSampleDepth(prevUV) - (curDepth - layerDepth);
+	float prevDepth = curDepth - layerDepth;
+	float t0 = 0.0;
+	float t1 = 1.0;
+	for (int j = 0; j < POM_REFINE_STEPS; j++) {
+		float tm = 0.5 * (t0 + t1);
+		vec2 uvm = mix(prevUV, curUV, tm);
+		float dm = mix(prevDepth, curDepth, tm);
+		if (dm < pomSampleDepth(uvm)) t0 = tm;
+		else t1 = tm;
+	}
+
+	vec2 uv0 = mix(prevUV, curUV, t0);
+	vec2 uv1 = mix(prevUV, curUV, t1);
+	float d0 = mix(prevDepth, curDepth, t0);
+	float d1 = mix(prevDepth, curDepth, t1);
+	float afterD = pomSampleDepth(uv1) - d1;
+	float beforeD = pomSampleDepth(uv0) - d0;
 	float denom = afterD - beforeD;
 	float w = abs(denom) < 1e-5 ? 0.0 : afterD / denom;
-	hitDepth = curDepth - layerDepth * (1.0 - w);
-	return mix(curUV, prevUV, w);
+	hitDepth = mix(d1, d0, w);
+	return mix(uv1, uv0, w);
 }
 `;
 

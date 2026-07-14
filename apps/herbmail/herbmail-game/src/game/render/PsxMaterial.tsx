@@ -1,7 +1,13 @@
 import * as THREE from 'three';
 import { shaderMaterial } from '@react-three/drei';
 import { extend, type ThreeElement } from '@react-three/fiber';
-import { FOG, TILE } from '../config';
+import {
+	HEIGHT_HELPERS,
+	POM_MARCH,
+	POM_SELF_SHADOW,
+	SPOM_SILHOUETTE,
+} from '@kbve/laser';
+import { TILE } from '../config';
 
 const blankTex = new THREE.DataTexture(
 	new Uint8Array(1),
@@ -13,6 +19,11 @@ blankTex.needsUpdate = true;
 
 export const MAX_LIGHTS = 24;
 export const LIGHT_RANGE = 13.5;
+// POM relief LOD band. Darkness comes from light attenuation, so relief detail
+// past the torch glow is invisible — full strength inside RELIEF_NEAR, faded
+// to flat by RELIEF_FAR (just past LIGHT_RANGE where surfaces read black).
+export const RELIEF_NEAR = 6;
+export const RELIEF_FAR = 16;
 
 const vertex = /* glsl */ `
 	uniform float uSnap;
@@ -22,16 +33,22 @@ const vertex = /* glsl */ `
 	varying float vW;
 	varying vec3 vWorld;
 	varying vec3 vNormal;
+	varying vec3 vPomView;
+	varying vec3 vTangent;
+	varying vec3 vBitangent;
 
 	void main() {
 		vec4 pos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
-		// PSX vertex snapping: aspect-correct grid, round for steadiness
-		vec3 ndc = pos.xyz / pos.w;
-		float aspect = uRes.x / max(uRes.y, 1.0);
-		vec2 grid = vec2(uSnap * aspect, uSnap);
-		ndc.xy = floor(ndc.xy * grid + 0.5) / grid;
-		pos.xyz = ndc * pos.w;
+		// PSX vertex snapping: aspect-correct grid, round for steadiness.
+		// uSnap <= 0 disables it entirely (modern mode).
+		if (uSnap > 0.5) {
+			vec3 ndc = pos.xyz / pos.w;
+			float aspect = uRes.x / max(uRes.y, 1.0);
+			vec2 grid = vec2(uSnap * aspect, uSnap);
+			ndc.xy = floor(ndc.xy * grid + 0.5) / grid;
+			pos.xyz = ndc * pos.w;
+		}
 
 		// perspective-correct (standard varying) vs affine (pre-multiplied by w)
 		vUvCorrect = uv;
@@ -39,6 +56,14 @@ const vertex = /* glsl */ `
 		vW = pos.w;
 		vWorld = (modelMatrix * vec4(position, 1.0)).xyz;
 			vNormal = mat3(modelMatrix) * normal;
+
+		vec3 Nw = normalize(vNormal);
+		vec3 up = abs(Nw.y) > 0.999 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 1.0, 0.0);
+		vec3 Tw = normalize(cross(up, Nw));
+		vec3 Bw = cross(Nw, Tw);
+		vPomView = (cameraPosition - vWorld) * mat3(Tw, Bw, Nw);
+		vTangent = Tw;
+		vBitangent = Bw;
 
 		gl_Position = pos;
 	}
@@ -50,15 +75,22 @@ const fragment = /* glsl */ `
 	#define OCC_STEPS 34
 	#define GRID_TILE ${TILE.toFixed(1)}
 	uniform sampler2D uMap;
+	uniform sampler2D uNormalMap;
+	uniform sampler2D uHarMap;
+	uniform float uUseMaps;
 	uniform sampler2D uMapTex;
 	uniform vec2 uGridOrigin;
 	uniform vec2 uGridSize;
 	uniform vec3 uTint;
-	uniform vec3 uFogColor;
-	uniform float uFogNear;
-	uniform float uFogFar;
+	uniform float uReliefNear;
+	uniform float uReliefFar;
 	uniform float uAffine;
 	uniform float uAmbient;
+	uniform float uPom;
+	uniform float uPomScale;
+	uniform float uPomMin;
+	uniform float uPomMax;
+	uniform float uSilhouette;
 		uniform float uOcclude;
 	uniform int uLightCount;
 	uniform vec3 uLightPos[MAX_LIGHTS];
@@ -68,6 +100,20 @@ const fragment = /* glsl */ `
 	varying float vW;
 	varying vec3 vWorld;
 	varying vec3 vNormal;
+	varying vec3 vPomView;
+	varying vec3 vTangent;
+	varying vec3 vBitangent;
+
+	${HEIGHT_HELPERS}
+
+	float pomSampleDepth(vec2 uv) {
+		if (uUseMaps > 0.5) return 1.0 - texture2D(uHarMap, uv).r;
+		return pomDepthFromLuma(uMap, uv);
+	}
+
+	${POM_MARCH}
+	${SPOM_SILHOUETTE}
+	${POM_SELF_SHADOW}
 
 	float tileAtWorld(vec2 p) {
 		vec2 local = (p - uGridOrigin) / GRID_TILE;
@@ -94,12 +140,46 @@ const fragment = /* glsl */ `
 
 
 	void main() {
-		vec2 uv = mix(vUvCorrect, vUvAffine / vW, uAffine);
+		vec2 uv;
+		float pomLod = 0.0;
+		float pomHit = 0.0;
+		if (uPom > 0.5) {
+			// Distance-LOD: fade relief to flat past the torch glow; those
+			// surfaces are attenuation-black, so marching them is wasted work.
+			pomLod = 1.0 - clamp((vW - uReliefNear) / (uReliefFar - uReliefNear), 0.0, 1.0);
+			if (pomLod <= 0.0) {
+				uv = vUvCorrect;
+			} else {
+			float hitDepth;
+			// POM runs on perspective-correct UV — affine warp would swim.
+			uv = pomMarch(
+				vUvCorrect, vPomView,
+				uPomScale * pomLod, uPomMin, mix(uPomMin, uPomMax, pomLod),
+				hitDepth
+			);
+			pomHit = hitDepth;
+			if (uSilhouette > 0.5 && pomSilhouetteClip(uv, vec4(0.0, 0.0, 1.0, 1.0))) discard;
+			}
+		} else {
+			uv = mix(vUvCorrect, vUvAffine / vW, uAffine);
+		}
 		vec4 tex = texture2D(uMap, uv);
 
-		vec3 light = vec3(uAmbient);
 		vec3 N = normalize(vNormal);
 		if (!gl_FrontFacing) N = -N;
+		float ao = 1.0;
+		float rough = 1.0;
+		if (uUseMaps > 0.5) {
+			vec3 nTex = texture2D(uNormalMap, uv).rgb * 2.0 - 1.0;
+			N = normalize(mat3(normalize(vTangent), normalize(vBitangent), N) * nTex);
+			vec3 har = texture2D(uHarMap, uv).rgb;
+			ao = har.g;
+			rough = har.b;
+		}
+		vec3 light = vec3(uAmbient * ao);
+		vec3 Veye = normalize(cameraPosition - vWorld);
+		float shin = mix(96.0, 8.0, rough);
+		float specGain = (1.0 - rough) * 0.6;
 		for (int i = 0; i < MAX_LIGHTS; i++) {
 			if (i >= uLightCount) break;
 			vec3 toL = uLightPos[i] - vWorld;
@@ -111,28 +191,57 @@ const fragment = /* glsl */ `
 			float lambert = max(ndl * 0.75 + 0.25, 0.0);
 			lambert *= lambert;
 			float att = 1.0 / max(0.4 + 0.15 * d + 0.12 * d * d, 0.05);
+			float spec = 0.0;
+			if (specGain > 0.0 && ndl > 0.0) {
+				vec3 H = normalize(L + Veye);
+				spec = pow(max(dot(N, H), 0.0), shin) * specGain;
+			}
+			float base = att * win * win * (lambert + spec);
+			// Occlusion march (up to 34 map taps) only pays off when the light
+			// still contributes visibly; sub-threshold lights skip it.
+			if (base < 0.004) continue;
 			float vis = uOcclude > 0.5 ? visibility(vWorld.xz, uLightPos[i].xz) : 1.0;
-			light += uLightColor[i] * att * win * win * vis * lambert;
+			// Relief self-shadow from the nearest light only (lights arrive
+			// sorted by distance): bricks shade their own mortar.
+			if (i == 0 && uPom > 0.5 && uUseMaps > 0.5 && pomLod > 0.0) {
+				vec3 lTS = toL * mat3(
+					normalize(vTangent),
+					normalize(vBitangent),
+					normalize(vNormal)
+				);
+				float selfSh = pomSelfShadow(uv, pomHit, lTS, uPomScale * pomLod, 8.0);
+				vis *= mix(1.0, selfSh, pomLod);
+			}
+			light += uLightColor[i] * base * vis;
 		}
 
-		vec3 lit = tex.rgb * uTint * light;
-		float fog = clamp((vW - uFogNear) / (uFogFar - uFogNear), 0.0, 1.0);
-		vec3 rgb = mix(lit, uFogColor, fog);
-		gl_FragColor = vec4(rgb, tex.a);
+		// No distance fog — darkness comes from light attenuation alone
+		// (everything beyond LIGHT_RANGE falls to black on its own).
+		vec3 rgb = tex.rgb * uTint * light;
+		// Output linear: the AO composer's OutputPass applies the single sRGB
+		// encode, round-tripping back to the tuned display values.
+		gl_FragColor = vec4(pow(rgb, vec3(2.2)), tex.a);
 	}
 `;
 
 const PsxMaterialBase = shaderMaterial(
 	{
 		uMap: null as THREE.Texture | null,
+		uNormalMap: blankTex as THREE.Texture,
+		uHarMap: blankTex as THREE.Texture,
+		uUseMaps: 0,
 		uSnap: 80,
 		uRes: new THREE.Vector2(1, 1),
 		uAffine: 0.3,
 		uTint: new THREE.Color(1, 1, 1),
-		uFogColor: new THREE.Color(FOG.color),
-		uFogNear: FOG.near,
-		uFogFar: FOG.far,
+		uReliefNear: RELIEF_NEAR,
+		uReliefFar: RELIEF_FAR,
 		uAmbient: 0.12,
+		uPom: 0,
+		uPomScale: 0.06,
+		uPomMin: 6,
+		uPomMax: 12,
+		uSilhouette: 0,
 		uOcclude: 1,
 		uMapTex: blankTex,
 		uGridOrigin: new THREE.Vector2(0, 0),
@@ -156,9 +265,17 @@ const PsxMaterialBase = shaderMaterial(
 // whole scene graph (thousands of chunk meshes) every frame to find them.
 export const psxMaterialRegistry = new Set<THREE.ShaderMaterial>();
 
-class PsxMaterialImpl extends PsxMaterialBase {
+export class PsxMaterialImpl extends PsxMaterialBase {
 	constructor() {
 		super();
+		psxMaterialRegistry.add(this);
+	}
+	// Re-register on every draw: StrictMode's mount→unmount→remount replay
+	// disposes the material (unregistering it) and reattaches the SAME
+	// instance without re-running the constructor, which left live walls
+	// permanently unlit. Set.add is idempotent, so this is a cheap no-op on
+	// the happy path.
+	onBeforeRender(): void {
 		psxMaterialRegistry.add(this);
 	}
 	dispose(): void {

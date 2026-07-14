@@ -21,24 +21,26 @@ describe('armor inventory bridge', () => {
 	});
 
 	it('equipping a piece removes it from the grid', () => {
-		setArmor('helmet', true);
-		expect(inGrid('helmet')).toBe(false);
-		expect(getEquipped().has('helmet')).toBe(true);
+		setArmor('vanguard-helm', true);
+		expect(inGrid('vanguard-helm')).toBe(false);
+		expect(getEquipped().has('vanguard-helm')).toBe(true);
 	});
 
 	it('unequipping refits the piece back into the grid', () => {
-		setArmor('helmet', true);
-		setArmor('helmet', false);
-		expect(inGrid('helmet')).toBe(true);
-		expect(getEquipped().has('helmet')).toBe(false);
+		setArmor('vanguard-helm', true);
+		setArmor('vanguard-helm', false);
+		expect(inGrid('vanguard-helm')).toBe(true);
+		expect(getEquipped().has('vanguard-helm')).toBe(false);
 	});
 
 	it('never duplicates a piece across equip/unequip cycles', () => {
 		for (let i = 0; i < 3; i++) {
-			setArmor('bracerL', true);
-			setArmor('bracerL', false);
+			setArmor('vanguard-bracers', true);
+			setArmor('vanguard-bracers', false);
 		}
-		const count = getItems().filter((p) => p.itemId === 'bracerL').length;
+		const count = getItems().filter(
+			(p) => p.itemId === 'vanguard-bracers',
+		).length;
 		expect(count).toBe(1);
 	});
 });

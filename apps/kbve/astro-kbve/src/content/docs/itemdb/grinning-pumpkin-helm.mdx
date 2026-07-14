@@ -1,0 +1,43 @@
+---
+title: 'Grinning Pumpkin Helm'
+template: splash
+sidebar:
+    label: 'Grinning Pumpkin Helm'
+    hidden: true
+description: |
+    A carved pumpkin helm with a grin that does not move and eyes that seem to. Smells of candle smoke that nobody lit.
+ref: 'grinning-pumpkin-helm'
+key: 633
+id: '01KXFBEGM39HQA0JPZMWDT98YN'
+name: 'Grinning Pumpkin Helm'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'rare'
+buy_price: 175
+emoji: '🎃'
+img: '/assets/items/equipment/grinning-pumpkin-helm.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'HORR01'
+  nodes:
+    - 'HORR01_AHED'
+  slot_keys:
+    - 'AHED'
+  covers:
+    - 'HAIR'
+    - 'SCFI09_HAIR'
+equipment:
+  slot: 'head'
+  bonuses:
+    armor: 2
+    extra:
+      weight: 3
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

@@ -2,75 +2,76 @@ import { PIECE_BY_ID, setArmor, useEquippedArmor } from '../character/armor';
 import { itemDef } from './items';
 import { kbve } from './tags';
 
-interface SlotPos {
-	key: string;
+interface DisplaySlot {
+	id: string;
+	/** Body slotKeys this cell represents; a set item occupying any shows here. */
+	keys: string[];
 	col: number;
 	row: number;
 }
 
-// Humanoid arrangement over a 3-column grid, one cell per body location
-// (armor.ts slotKey). Faulds (4) and knees (2) sit in their own sub-clusters so
-// the center column reads as head/torso/hips/legs.
-const SLOTS: SlotPos[] = [
-	{ key: 'HAIR', col: 1, row: 1 },
-	{ key: 'AHED', col: 2, row: 1 },
-	{ key: 'AFAC', col: 2, row: 2 },
-	{ key: 'ASHL', col: 1, row: 3 },
-	{ key: 'ABAC', col: 2, row: 3 },
-	{ key: 'ASHR', col: 3, row: 3 },
-	{ key: 'AUPL', col: 1, row: 4 },
-	{ key: 'TORS', col: 2, row: 4 },
-	{ key: 'AUPR', col: 3, row: 4 },
-	{ key: 'AEBL', col: 1, row: 5 },
-	{ key: 'AEBR', col: 3, row: 5 },
-	{ key: 'ALWL', col: 1, row: 6 },
-	{ key: 'ALWR', col: 3, row: 6 },
-	{ key: 'HNDL', col: 1, row: 7 },
-	{ key: 'HIPS', col: 2, row: 7 },
-	{ key: 'HNDR', col: 3, row: 7 },
-	{ key: 'LEGL', col: 1, row: 8 },
-	{ key: 'LEGR', col: 3, row: 8 },
-	{ key: 'FOTL', col: 1, row: 9 },
-	{ key: 'FOTR', col: 3, row: 9 },
+// Humanoid arrangement over a 3-column grid, one cell per equipment SET
+// location (pairs and quads share a cell — items are sets now).
+const SLOTS: DisplaySlot[] = [
+	{ id: 'hair', keys: ['HAIR'], col: 1, row: 1 },
+	{ id: 'head', keys: ['AHED'], col: 2, row: 1 },
+	{ id: 'face', keys: ['AFAC'], col: 2, row: 2 },
+	{ id: 'shoulders', keys: ['ASHL', 'ASHR'], col: 1, row: 3 },
+	{ id: 'back', keys: ['ABAC'], col: 3, row: 3 },
+	{ id: 'chest', keys: ['TORS'], col: 2, row: 3 },
+	{ id: 'upperArms', keys: ['AUPL', 'AUPR'], col: 1, row: 4 },
+	{ id: 'elbows', keys: ['AEBL', 'AEBR'], col: 3, row: 4 },
+	{ id: 'bracers', keys: ['ALWL', 'ALWR'], col: 1, row: 5 },
+	{ id: 'hands', keys: ['HNDL', 'HNDR'], col: 3, row: 5 },
+	{ id: 'hips', keys: ['HIPS'], col: 2, row: 4 },
+	{ id: 'faulds', keys: ['AHPF', 'AHPB', 'AHPL', 'AHPR'], col: 2, row: 5 },
+	{ id: 'legs', keys: ['LEGL', 'LEGR'], col: 1, row: 6 },
+	{ id: 'knees', keys: ['AKNL', 'AKNR'], col: 3, row: 6 },
+	{ id: 'feet', keys: ['FOTL', 'FOTR'], col: 2, row: 6 },
 ];
 
-const FAULDS = ['AHPF', 'AHPR', 'AHPL', 'AHPB'];
-const KNEES = ['AKNL', 'AKNR'];
+const SIZE = 44;
 
-const SIZE = 34;
-const SUB = 15;
-
-function wornPiece(key: string, equipped: Set<string>): string | null {
+function wornPiece(keys: string[], equipped: Set<string>): string | null {
 	for (const id of equipped) {
-		if (PIECE_BY_ID.get(id)?.slotKey === key) return id;
+		const p = PIECE_BY_ID.get(id);
+		if (p && p.slotKeys.some((k) => keys.includes(k))) return id;
+	}
+	return null;
+}
+
+/** Display-slot id a piece belongs on (first cell sharing a slotKey). */
+export function displaySlotFor(pieceId: string): string | null {
+	const p = PIECE_BY_ID.get(pieceId);
+	if (!p) return null;
+	for (const s of SLOTS) {
+		if (p.slotKeys.some((k) => s.keys.includes(k))) return s.id;
 	}
 	return null;
 }
 
 function Slot({
-	slotKey,
+	slot,
 	equipped,
-	size = SIZE,
 }: {
-	slotKey: string;
+	slot: DisplaySlot;
 	equipped: Set<string>;
-	size?: number;
 }) {
-	const id = wornPiece(slotKey, equipped);
+	const id = wornPiece(slot.keys, equipped);
 	const def = id ? itemDef(id) : undefined;
 	const on = id !== null;
 	return (
 		<div
-			id={`pd-slot-${slotKey}`}
-			data-armor-slot={slotKey}
-			data-x-kbve={kbve('slot', { id: slotKey, worn: id ?? '' })}
-			title={def?.label ?? slotKey}
+			id={`pd-slot-${slot.id}`}
+			data-armor-slot={slot.id}
+			data-x-kbve={kbve('slot', { id: slot.id, worn: id ?? '' })}
+			title={def?.label ?? slot.id}
 			onClick={() => {
 				if (id) setArmor(id, false);
 			}}
 			style={{
-				width: size,
-				height: size,
+				width: SIZE,
+				height: SIZE,
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center',
@@ -90,7 +91,17 @@ function Slot({
 				cursor: on ? 'pointer' : 'default',
 				userSelect: 'none',
 			}}>
-			{(def?.label ?? '').replace(/ ?\(([LR])\)/, '$1')}
+			{on && def?.icon ? (
+				<img
+					src={def.icon}
+					alt={def.label}
+					width={SIZE - 6}
+					height={SIZE - 6}
+					style={{ imageRendering: 'pixelated' }}
+				/>
+			) : (
+				(def?.label ?? '')
+			)}
 		</div>
 	);
 }
@@ -114,49 +125,11 @@ export function Paperdoll() {
 				}}>
 				{SLOTS.map((s) => (
 					<div
-						key={s.key}
+						key={s.id}
 						style={{ gridColumn: s.col, gridRow: s.row }}>
-						<Slot slotKey={s.key} equipped={equipped} />
+						<Slot slot={s} equipped={equipped} />
 					</div>
 				))}
-				<div
-					style={{
-						gridColumn: 2,
-						gridRow: '5 / span 2',
-						display: 'grid',
-						gridTemplateColumns: `repeat(2, ${SUB}px)`,
-						gap: 4,
-						alignContent: 'center',
-						justifyContent: 'center',
-					}}>
-					{FAULDS.map((key) => (
-						<Slot
-							key={key}
-							slotKey={key}
-							equipped={equipped}
-							size={SUB}
-						/>
-					))}
-				</div>
-				<div
-					style={{
-						gridColumn: 2,
-						gridRow: 8,
-						display: 'grid',
-						gridTemplateColumns: `repeat(2, ${SUB}px)`,
-						gap: 4,
-						alignContent: 'center',
-						justifyContent: 'center',
-					}}>
-					{KNEES.map((key) => (
-						<Slot
-							key={key}
-							slotKey={key}
-							equipped={equipped}
-							size={SUB}
-						/>
-					))}
-				</div>
 			</div>
 		</div>
 	);

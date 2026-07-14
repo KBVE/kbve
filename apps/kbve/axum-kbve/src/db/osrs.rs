@@ -7,8 +7,18 @@ use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio::sync::{mpsc, oneshot};
+
+/// True once the item mapping has loaded — lets request handlers answer 503
+/// "warming up" instead of a misleading 404 before the cache is populated.
+static OSRS_READY: AtomicBool = AtomicBool::new(false);
+
+/// Whether the OSRS cache has finished its initial mapping load.
+pub fn osrs_ready() -> bool {
+    OSRS_READY.load(Ordering::Relaxed)
+}
 
 /// Cache configuration
 const PRICE_REFRESH_INTERVAL: Duration = Duration::from_secs(60);
@@ -158,6 +168,11 @@ pub enum OSRSCacheCommand {
     },
     /// Force refresh prices now
     RefreshPrices, // used by price_refresh_loop
+    /// Apply a freshly fetched item mapping (delivered by a spawned fetch task
+    /// so the actor loop never blocks on the network)
+    ApplyItems(Vec<OSRSItem>),
+    /// Apply freshly fetched prices (delivered by a spawned fetch task)
+    ApplyPrices(HashMap<String, OSRSPrice>),
 }
 
 /// Cache statistics
@@ -315,8 +330,8 @@ impl OSRSCacheActor {
 async fn fetch_item_mapping() -> Result<Vec<OSRSItem>, reqwest::Error> {
     let client = reqwest::Client::builder()
         .user_agent(USER_AGENT)
-        .connect_timeout(std::time::Duration::from_secs(5))
-        .timeout(std::time::Duration::from_secs(15))
+        .connect_timeout(std::time::Duration::from_secs(3))
+        .timeout(std::time::Duration::from_secs(8))
         .build()?;
 
     let items: Vec<OSRSItem> = client
@@ -333,8 +348,8 @@ async fn fetch_item_mapping() -> Result<Vec<OSRSItem>, reqwest::Error> {
 async fn fetch_latest_prices() -> Result<HashMap<String, OSRSPrice>, reqwest::Error> {
     let client = reqwest::Client::builder()
         .user_agent(USER_AGENT)
-        .connect_timeout(std::time::Duration::from_secs(5))
-        .timeout(std::time::Duration::from_secs(15))
+        .connect_timeout(std::time::Duration::from_secs(3))
+        .timeout(std::time::Duration::from_secs(8))
         .build()?;
 
     #[derive(Deserialize)]
@@ -352,13 +367,37 @@ async fn fetch_latest_prices() -> Result<HashMap<String, OSRSPrice>, reqwest::Er
     Ok(response.data)
 }
 
+/// Fetch the item mapping off the actor loop and deliver it back as a command.
+fn spawn_fetch_mapping(tx: mpsc::Sender<OSRSCacheCommand>) {
+    tokio::spawn(async move {
+        match fetch_item_mapping().await {
+            Ok(items) => {
+                let _ = tx.send(OSRSCacheCommand::ApplyItems(items)).await;
+            }
+            Err(e) => tracing::error!("Failed to load OSRS item mapping: {}", e),
+        }
+    });
+}
+
+/// Fetch latest prices off the actor loop and deliver them back as a command.
+fn spawn_fetch_prices(tx: mpsc::Sender<OSRSCacheCommand>) {
+    tokio::spawn(async move {
+        match fetch_latest_prices().await {
+            Ok(prices) => {
+                let _ = tx.send(OSRSCacheCommand::ApplyPrices(prices)).await;
+            }
+            Err(e) => tracing::warn!("Failed to refresh OSRS prices: {}", e),
+        }
+    });
+}
+
 /// Spawn the OSRS cache actor and return a handle
 pub async fn spawn_osrs_cache_actor() -> OSRSCache {
     let (tx, rx) = mpsc::channel(CHANNEL_BUFFER);
     let cache = OSRSCache { tx: tx.clone() };
 
     // Spawn the main actor loop
-    tokio::spawn(osrs_cache_actor_loop(rx));
+    tokio::spawn(osrs_cache_actor_loop(rx, tx.clone()));
 
     // Spawn the price refresh background task (60s)
     tokio::spawn(price_refresh_loop(tx));
@@ -367,39 +406,25 @@ pub async fn spawn_osrs_cache_actor() -> OSRSCache {
 }
 
 /// The OSRS cache actor event loop
-async fn osrs_cache_actor_loop(mut rx: mpsc::Receiver<OSRSCacheCommand>) {
+async fn osrs_cache_actor_loop(
+    mut rx: mpsc::Receiver<OSRSCacheCommand>,
+    tx: mpsc::Sender<OSRSCacheCommand>,
+) {
     let mut actor = OSRSCacheActor::new();
 
-    // Load item mapping on startup
-    tracing::info!("OSRS cache actor starting - loading item mapping...");
-    match fetch_item_mapping().await {
-        Ok(items) => {
-            let count = items.len();
-            actor.load_items(items);
-            tracing::info!("Loaded {} OSRS items into cache", count);
-        }
-        Err(e) => {
-            tracing::error!("Failed to load OSRS item mapping: {}", e);
-        }
-    }
-
-    // Load initial prices
-    tracing::info!("Loading initial OSRS prices...");
-    match fetch_latest_prices().await {
-        Ok(prices) => {
-            let count = prices.len();
-            actor.load_prices(prices);
-            tracing::info!("Loaded {} OSRS prices into cache", count);
-        }
-        Err(e) => {
-            tracing::error!("Failed to load OSRS prices: {}", e);
-        }
-    }
+    // Kick off the initial mapping + price loads OFF the command loop. The loop
+    // starts serving reads immediately (503 "warming" until ApplyItems lands)
+    // instead of parking every request behind a slow upstream fetch and tripping
+    // the 10s request timeout into a 408.
+    tracing::info!("OSRS cache actor starting - fetching mapping + prices off-loop...");
+    spawn_fetch_mapping(tx.clone());
+    spawn_fetch_prices(tx.clone());
 
     // Note: Volume data is now calculated client-side from the timeseries API
     // This provides more accurate cumulative volumes and reduces server load
 
-    // Process commands
+    // Process commands. No arm awaits the network — refreshes are spawned, and
+    // their results arrive as ApplyItems/ApplyPrices, keeping reads unblocked.
     while let Some(cmd) = rx.recv().await {
         match cmd {
             OSRSCacheCommand::GetByName { name, reply } => {
@@ -426,16 +451,20 @@ async fn osrs_cache_actor_loop(mut rx: mpsc::Receiver<OSRSCacheCommand>) {
                 let _ = reply.send(actor.stats.clone());
             }
 
-            OSRSCacheCommand::RefreshPrices => match fetch_latest_prices().await {
-                Ok(prices) => {
-                    let count = prices.len();
-                    actor.load_prices(prices);
-                    tracing::debug!("Refreshed {} OSRS prices", count);
-                }
-                Err(e) => {
-                    tracing::warn!("Failed to refresh OSRS prices: {}", e);
-                }
-            },
+            OSRSCacheCommand::RefreshPrices => spawn_fetch_prices(tx.clone()),
+
+            OSRSCacheCommand::ApplyItems(items) => {
+                let count = items.len();
+                actor.load_items(items);
+                OSRS_READY.store(true, Ordering::Relaxed);
+                tracing::info!("Loaded {} OSRS items into cache", count);
+            }
+
+            OSRSCacheCommand::ApplyPrices(prices) => {
+                let count = prices.len();
+                actor.load_prices(prices);
+                tracing::debug!("Applied {} OSRS prices", count);
+            }
         }
     }
 

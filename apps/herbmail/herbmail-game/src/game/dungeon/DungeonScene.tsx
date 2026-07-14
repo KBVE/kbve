@@ -51,7 +51,10 @@ export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 			{wallGeo.map((geo, i) => (
 				<mesh key={i} geometry={geo} userData={{ kind: 'wall' }}>
 					<psxMaterial
-						uMap={tex.walls[i]}
+						uMap={tex.walls[i].color}
+						uNormalMap={tex.walls[i].normal}
+						uHarMap={tex.walls[i].har}
+						uUseMaps={1}
 						uSnap={snap}
 						uAffine={affine}
 						uRes={res}
@@ -61,7 +64,10 @@ export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 
 			<mesh geometry={archGeo} userData={{ kind: 'archway' }}>
 				<psxMaterial
-					uMap={tex.arch}
+					uMap={tex.arch.color}
+					uNormalMap={tex.arch.normal}
+					uHarMap={tex.arch.har}
+					uUseMaps={1}
 					uSnap={snap}
 					uAffine={0}
 					uRes={res}
@@ -91,7 +97,10 @@ export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 
 			<mesh geometry={coveGeo} userData={{ kind: 'vaulted cove' }}>
 				<psxMaterial
-					uMap={tex.walls[2]}
+					uMap={tex.walls[2].color}
+					uNormalMap={tex.walls[2].normal}
+					uHarMap={tex.walls[2].har}
+					uUseMaps={1}
 					uSnap={snap}
 					uAffine={affine}
 					uRes={res}
@@ -105,7 +114,10 @@ export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 
 			<mesh geometry={cornerGeo} userData={{ kind: 'corner vault' }}>
 				<psxMaterial
-					uMap={tex.walls[2]}
+					uMap={tex.walls[2].color}
+					uNormalMap={tex.walls[2].normal}
+					uHarMap={tex.walls[2].har}
+					uUseMaps={1}
 					uSnap={snap}
 					uAffine={affine}
 					uRes={res}
@@ -119,7 +131,7 @@ export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 
 			<mesh geometry={bays.frames} userData={{ kind: 'wall niche' }}>
 				<psxMaterial
-					uMap={tex.arch}
+					uMap={tex.arch.color}
 					uSnap={snap}
 					uAffine={0}
 					uRes={res}
@@ -133,7 +145,7 @@ export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
 
 			<mesh geometry={bays.backs} userData={{ kind: 'niche recess' }}>
 				<psxMaterial
-					uMap={tex.arch}
+					uMap={tex.arch.color}
 					uSnap={snap}
 					uAffine={0}
 					uRes={res}

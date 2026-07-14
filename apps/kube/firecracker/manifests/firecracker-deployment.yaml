@@ -66,6 +66,8 @@ spec:
                         value: '10001'
                       - name: FC_JAILER_GID
                         value: '10001'
+                      - name: RUST_LOG
+                        value: 'info,tower_http=warn'
                   securityContext:
                       seccompProfile:
                           type: Unconfined

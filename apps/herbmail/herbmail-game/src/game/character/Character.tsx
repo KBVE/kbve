@@ -15,6 +15,7 @@ import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
 import { getEquipped, useEquippedArmor } from './armor';
 import { useBodySkinMorph } from './body';
+import { useSkinTint } from './skin';
 import { triggerSwing } from './melee';
 import { makeFlameMaterial } from '../render/flameMaterial';
 import { buildEmbers } from '../render/emberParticles';
@@ -144,8 +145,59 @@ interface Props {
 	armed?: boolean;
 	rightId?: string | null;
 	leftId?: string | null;
+	tint?: string;
+	armor?: Set<string>;
+	hide?: Set<string>;
+	locomotion?: LocomotionClips;
 	onReady?: (h: CharacterHandle) => void;
 	drive?: (motor: CharacterMotor, t: number) => void;
+}
+
+export interface LocomotionClips {
+	idle: string;
+	walk: string;
+	run: string;
+	/** World m/s the walk clip's stride matches at timeScale 1 (incl. model
+	 *  scale). When set, the walk loop's timeScale tracks actual speed so feet
+	 *  stop skating at speeds the clip wasn't authored for. */
+	speedRef?: number;
+	/** Looping clip masked to the upper body and held over the idle stance.
+	 *  Lets a retargeted character clip (zombie hunch) style the torso while
+	 *  the native idle keeps the feet planted — retargeted leg rotations swing
+	 *  the feet on this rig's proportions. */
+	idleOverlay?: string;
+}
+
+const DEFAULT_LOCOMOTION: LocomotionClips = {
+	idle: 'Idle_Loop',
+	walk: 'Walk_Loop',
+	run: 'Jog_Fwd_Loop',
+};
+
+const WALK_TS_MIN = 0.6;
+const WALK_TS_MAX = 2.6;
+
+// The retargeted clip batch (Zombie_*, Crouch_*, …) animates pelvis
+// translation in the SOURCE skeleton's space — rest height ~1.02-1.14 vs this
+// rig's ~0.91 — so the whole body floats ~10cm with no foot IK to pin it.
+// Deleting the track is wrong too: the leg rotations are authored against the
+// pelvis curve, so without it the feet swing. Rebase instead: shift the Y
+// curve so its mean sits at the rig's bind pelvis height, keeping the
+// authored bob the rotations compensate for. Mutates the shared GLTF cache
+// once per clip.
+const REBASED_CLIPS = new WeakSet<THREE.AnimationClip>();
+function rebasePelvis(clips: THREE.AnimationClip[], restY: number): void {
+	for (const c of clips) {
+		if (!c.name.startsWith('Zombie_') || REBASED_CLIPS.has(c)) continue;
+		REBASED_CLIPS.add(c);
+		const track = c.tracks.find((t) => t.name === 'pelvis.position');
+		if (!track) continue;
+		const v = track.values;
+		let sum = 0;
+		for (let i = 1; i < v.length; i += 3) sum += v[i];
+		const delta = sum / (v.length / 3) - restY;
+		for (let i = 1; i < v.length; i += 3) v[i] -= delta;
+	}
 }
 
 export function Character({
@@ -157,6 +209,10 @@ export function Character({
 	armed = false,
 	rightId = null,
 	leftId = null,
+	tint,
+	armor,
+	hide,
+	locomotion = DEFAULT_LOCOMOTION,
 	onReady,
 	drive,
 }: Props) {
@@ -204,8 +260,9 @@ export function Character({
 		});
 		return s;
 	}, [gltf]);
-	useCharacterParts(scene);
+	useCharacterParts(scene, armor, hide);
 	useBodySkinMorph(scene);
+	useSkinTint(scene, tint);
 	const spineBones = useMemo(
 		() =>
 			SPINE_FLEX.map((s) => ({
@@ -372,6 +429,8 @@ export function Character({
 	);
 
 	const rig = useMemo(() => {
+		const pelvis = scene.getObjectByName('pelvis');
+		rebasePelvis(gltf.animations, pelvis?.position.y ?? 0.91);
 		const animator = new CharacterAnimator(scene, gltf.animations);
 		const motor = new CharacterMotor(motorConfig);
 		const pose = new ProceduralPose(scene);
@@ -382,12 +441,13 @@ export function Character({
 
 	const equippedArmor = useEquippedArmor();
 	useEffect(() => {
-		rig.equipment.setEquipped(equippedArmor);
-	}, [rig, equippedArmor]);
+		rig.equipment.setEquipped(armor ?? equippedArmor);
+	}, [rig, equippedArmor, armor]);
 
 	useEffect(() => {
 		const { animator, motor, pose } = rig;
-		if (animator.has('Idle_Loop')) animator.play('Idle_Loop', { fade: 0 });
+		if (animator.has(locomotion.idle))
+			animator.play(locomotion.idle, { fade: 0 });
 		const attackClip = animator.has('Sword_Attack')
 			? 'Sword_Attack'
 			: 'Punch_Cross';
@@ -407,6 +467,12 @@ export function Character({
 		for (const clip of BLOCK_CLIPS)
 			if (animator.has(clip))
 				animator.registerMasked(`${clip}_B`, clip, isUpperBone);
+		if (locomotion.idleOverlay && animator.has(locomotion.idleOverlay))
+			animator.registerMasked(
+				'Idle_Overlay',
+				locomotion.idleOverlay,
+				isUpperBone,
+			);
 		const handle: CharacterHandle = {
 			motor,
 			animator,
@@ -488,15 +554,25 @@ export function Character({
 		if (jumping) {
 			// jump state already selected
 		} else if (gait === 'idle') {
-			const idle = 'Idle_Loop';
 			// Snap out of the landing pose fast; the drawn-out default
 			// crossfade is what read as a laggy tail.
-			animator.play(idle, j.recover ? { fade: 0.14 } : {});
+			animator.play(locomotion.idle, j.recover ? { fade: 0.14 } : {});
 			j.recover = false;
-		} else if (motor.runBlend <= 0.001) {
-			animator.play('Walk_Loop');
+		} else if (
+			motor.runBlend <= 0.001 ||
+			locomotion.walk === locomotion.run
+		) {
+			animator.play(locomotion.walk);
+			if (locomotion.speedRef)
+				animator.setBaseTimeScale(
+					THREE.MathUtils.clamp(
+						motor.speed / locomotion.speedRef,
+						WALK_TS_MIN,
+						WALK_TS_MAX,
+					),
+				);
 		} else {
-			animator.blend('Walk_Loop', 'Jog_Fwd_Loop', motor.runBlend);
+			animator.blend(locomotion.walk, locomotion.run, motor.runBlend);
 		}
 
 		const bp = blockRef.current.pose;
@@ -504,6 +580,8 @@ export function Character({
 			const on = blockRef.current.on && bp.clip === clip;
 			animator.holdMasked(`${clip}_B`, on, bp.loop, bp.frac ?? 0.5);
 		}
+		if (locomotion.idleOverlay)
+			animator.holdMasked('Idle_Overlay', gait === 'idle' && !jumping);
 
 		animator.update(dt);
 		const flexDeg =

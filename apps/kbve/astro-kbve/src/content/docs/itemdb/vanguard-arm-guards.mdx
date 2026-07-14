@@ -1,0 +1,42 @@
+---
+title: 'Vanguard Arm Guards'
+template: splash
+sidebar:
+    label: 'Vanguard Arm Guards'
+    hidden: true
+description: |
+    Curved plates strapped over both upper arms, hinged to let the shoulders keep their full swing.
+ref: 'vanguard-arm-guards'
+key: 606
+id: '01KXFBEGM1GHQKTS3KR8FXEE4J'
+name: 'Vanguard Arm Guards'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 40
+emoji: '💪'
+img: '/assets/items/equipment/vanguard-arm-guards.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'KNGT'
+  nodes:
+    - 'AUPL'
+    - 'AUPR'
+  slot_keys:
+    - 'AUPL'
+    - 'AUPR'
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 2
+    extra:
+      weight: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

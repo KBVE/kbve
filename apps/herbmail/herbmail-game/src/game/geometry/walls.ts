@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { COVE_R, TILE, WALL_H, WALL_FLAT_SEG } from '../config';
+import { COVE_R, TILE, WALL_H } from '../config';
 import { insetUV } from './uv';
 import { exposedFaces, faceMatrix, isBay, worldCol, worldRow } from './faces';
 import { ARCH, gridTile, type Grid } from './grid';
@@ -15,8 +15,13 @@ function flipU(g: THREE.BufferGeometry): void {
 export const WALL_TEX_COUNT = 3;
 
 const CAP_H = WALL_H - COVE_R;
-const V_SEGMENTS = Math.max(1, Math.round(CAP_H / TILE));
-const SEG_H = CAP_H / V_SEGMENTS;
+const V_REPEAT = CAP_H / TILE;
+
+function tileV(g: THREE.BufferGeometry): void {
+	const uv = g.attributes.uv as THREE.BufferAttribute;
+	for (let i = 0; i < uv.count; i++) uv.setY(i, uv.getY(i) * V_REPEAT);
+	uv.needsUpdate = true;
+}
 
 function texBucket(col: number, row: number, variant: number): number {
 	return (
@@ -48,19 +53,14 @@ export function buildWalls(grid: Grid, variant = 0): THREE.BufferGeometry[] {
 		const nc = wc + face.dir.dc;
 		const nr = wr + face.dir.dr;
 		const flip = hash01(wc, wr, face.di + variant * 17) > 0.5;
-		for (let seg = 0; seg < V_SEGMENTS; seg++) {
-			const cy = seg * SEG_H + SEG_H / 2;
-			const quad = new THREE.PlaneGeometry(
-				TILE,
-				SEG_H,
-				WALL_FLAT_SEG,
-				WALL_FLAT_SEG,
-			);
-			insetUV(quad);
-			if (flip) flipU(quad);
-			quad.applyMatrix4(faceMatrix(grid, face, cy));
-			buckets[texBucket(nc, nr, variant)].push(quad);
-		}
+		// One quad per face; vertical texture tiling comes from UV repeat
+		// (walls no longer stack a quad per TILE of height).
+		const quad = new THREE.PlaneGeometry(TILE, CAP_H, 1, 1);
+		insetUV(quad);
+		tileV(quad);
+		if (flip) flipU(quad);
+		quad.applyMatrix4(faceMatrix(grid, face, CAP_H / 2));
+		buckets[texBucket(nc, nr, variant)].push(quad);
 	}
 
 	return buckets.map((geos) =>

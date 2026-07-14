@@ -388,18 +388,22 @@ pub async fn init_discord_client() -> bool {
     // Cache guild roles if client is available
     if client_available {
         if let Some(client) = get_discord_client() {
-            GUILD_ROLES_CACHE
-                .get_or_init(|| async {
+            // `get_or_try_init` so a transient failure leaves the cell
+            // uninitialized (retryable) instead of caching an empty role map
+            // permanently, which would make every `get_role_names` return `[]`
+            // for the whole process lifetime.
+            let _ = GUILD_ROLES_CACHE
+                .get_or_try_init(|| async {
                     match client.get_guild_roles().await {
                         Ok(roles) => {
                             let role_map: std::collections::HashMap<String, String> =
                                 roles.into_iter().map(|r| (r.id, r.name)).collect();
                             tracing::info!("Cached {} Discord guild roles", role_map.len());
-                            role_map
+                            Ok(role_map)
                         }
                         Err(e) => {
                             tracing::error!("Failed to fetch guild roles: {}", e);
-                            std::collections::HashMap::new()
+                            Err(e)
                         }
                     }
                 })

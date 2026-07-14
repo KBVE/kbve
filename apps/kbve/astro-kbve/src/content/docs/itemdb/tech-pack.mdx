@@ -1,0 +1,39 @@
+---
+title: 'Tech Pack'
+template: splash
+sidebar:
+    label: 'Tech Pack'
+    hidden: true
+description: |
+    A hard-shell backpack humming with a power cell of undocumented provenance. Warm against the spine on cold nights.
+ref: 'tech-pack'
+key: 618
+id: '01KXFBEGM2284DFA2YCTMCHWWW'
+name: 'Tech Pack'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'uncommon'
+buy_price: 85
+emoji: '🔋'
+img: '/assets/items/equipment/tech-pack.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_ABAC'
+  slot_keys:
+    - 'ABAC'
+equipment:
+  slot: 'back'
+  bonuses:
+    extra:
+      weight: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

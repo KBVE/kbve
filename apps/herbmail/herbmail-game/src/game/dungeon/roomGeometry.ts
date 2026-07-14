@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {
 	buildArches,
+	buildTrims,
 	buildBays,
 	buildCeiling,
 	buildCornerCoves,
@@ -20,6 +21,7 @@ export interface RoomGeoSet {
 	floor: THREE.BufferGeometry[];
 	ceiling: THREE.BufferGeometry[];
 	arch: THREE.BufferGeometry[];
+	trim: THREE.BufferGeometry[];
 	cove: THREE.BufferGeometry[];
 	corner: THREE.BufferGeometry[];
 	bays: { frames: THREE.BufferGeometry[]; backs: THREE.BufferGeometry[] };
@@ -30,6 +32,7 @@ export interface RoomGeoSet {
 function dice(merged: THREE.BufferGeometry): THREE.BufferGeometry[] {
 	const chunks = chunkGeometry(merged);
 	merged.dispose();
+	for (const c of chunks) c.computeBoundsTree();
 	return chunks;
 }
 
@@ -40,11 +43,17 @@ let sharedFloor: THREE.BufferGeometry[] | null = null;
 let sharedCeiling: THREE.BufferGeometry[] | null = null;
 
 function floorGeo(desc: RoomDesc): THREE.BufferGeometry[] {
-	if (!sharedFloor) sharedFloor = [buildFloor(makeLocalGrid(desc))];
+	if (!sharedFloor) {
+		sharedFloor = [buildFloor(makeLocalGrid(desc))];
+		sharedFloor[0].computeBoundsTree();
+	}
 	return sharedFloor;
 }
 function ceilingGeo(desc: RoomDesc): THREE.BufferGeometry[] {
-	if (!sharedCeiling) sharedCeiling = [buildCeiling(makeLocalGrid(desc))];
+	if (!sharedCeiling) {
+		sharedCeiling = [buildCeiling(makeLocalGrid(desc))];
+		sharedCeiling[0].computeBoundsTree();
+	}
 	return sharedCeiling;
 }
 
@@ -58,20 +67,27 @@ function buildSet(desc: RoomDesc): RoomGeoSet {
 		floor: floorGeo(desc),
 		ceiling: ceilingGeo(desc),
 		arch: dice(buildArches(g, v)),
+		trim: dice(buildTrims(g, v)),
 		cove: dice(buildCoves(g)),
 		corner: dice(buildCornerCoves(g, v)),
 		bays: { frames: dice(bays.frames), backs: dice(bays.backs) },
 	};
 }
 
+function drop(c: THREE.BufferGeometry): void {
+	c.disposeBoundsTree();
+	c.dispose();
+}
+
 function disposeSet(set: RoomGeoSet): void {
-	for (const w of set.walls) for (const c of w) c.dispose();
-	for (const w of set.columns) for (const c of w) c.dispose();
-	for (const c of set.arch) c.dispose();
-	for (const c of set.cove) c.dispose();
-	for (const c of set.corner) c.dispose();
-	for (const c of set.bays.frames) c.dispose();
-	for (const c of set.bays.backs) c.dispose();
+	for (const w of set.walls) for (const c of w) drop(c);
+	for (const w of set.columns) for (const c of w) drop(c);
+	for (const c of set.arch) drop(c);
+	for (const c of set.trim) drop(c);
+	for (const c of set.cove) drop(c);
+	for (const c of set.corner) drop(c);
+	for (const c of set.bays.frames) drop(c);
+	for (const c of set.bays.backs) drop(c);
 	// floor/ceiling are shared singletons — never disposed here.
 }
 

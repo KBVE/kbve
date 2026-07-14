@@ -9,7 +9,7 @@ const ROWS: {
 	step: number;
 }[] = [
 	{ key: 'dpr', label: 'Resolution', min: 0.5, max: 2, step: 0.1 },
-	{ key: 'snap', label: 'Vertex snap', min: 60, max: 800, step: 10 },
+	{ key: 'snap', label: 'Vertex snap', min: 0, max: 800, step: 10 },
 	{ key: 'affine', label: 'Texture warp', min: 0, max: 0.5, step: 0.01 },
 	{ key: 'fov', label: 'Field of view', min: 50, max: 100, step: 1 },
 ];

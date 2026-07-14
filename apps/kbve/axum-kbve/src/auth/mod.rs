@@ -178,16 +178,15 @@ pub fn validate_token(token: &str, jwt_secret: &str) -> Result<TokenData<Claims>
 
     // Pin the expected issuer when `SUPABASE_JWT_ISSUER` is set so a token
     // from a different GoTrue instance can't authenticate against this
-    // gameserver. Defaults to no constraint to keep dev/test working when
-    // the env var isn't wired.
+    // gameserver. When unset, leave `validation.iss` as `None` (no constraint) —
+    // `set_issuer(&[])` sets an *empty* allow-set, which rejects every token
+    // that carries an `iss` claim (all real Supabase tokens do), breaking the
+    // no-JWKS dev/test fallback this branch is meant to keep working.
     if let Ok(issuer) = std::env::var("SUPABASE_JWT_ISSUER") {
-        if !issuer.trim().is_empty() {
+        let issuer = issuer.trim();
+        if !issuer.is_empty() {
             validation.set_issuer(&[issuer]);
-        } else {
-            validation.set_issuer::<String>(&[]);
         }
-    } else {
-        validation.set_issuer::<String>(&[]);
     }
 
     decode::<Claims>(token, &key, &validation).map_err(|e| match e.kind() {
@@ -297,5 +296,5 @@ pub fn extract_request_token(headers: &axum::http::HeaderMap) -> Option<String> 
 #[allow(dead_code)]
 pub fn is_token_expired(claims: &Claims, grace_seconds: i64) -> bool {
     let now = chrono::Utc::now().timestamp();
-    claims.exp + grace_seconds < now
+    claims.exp.saturating_add(grace_seconds) < now
 }

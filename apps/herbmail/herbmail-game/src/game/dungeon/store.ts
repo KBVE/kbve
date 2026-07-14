@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { TILE, FOG } from '../config';
+import { TILE, VIEW_RANGE } from '../config';
 import {
 	DungeonWorld,
 	sectorAtWorld,
@@ -27,13 +27,12 @@ import {
 export const DUNGEON_SEED = 1337;
 
 const SECTOR_SPAN = SECTOR_TILES * TILE;
-const MOUNT_MARGIN = FOG.far + SECTOR_SPAN * 0.25;
+export const MOUNT_MARGIN = VIEW_RANGE + SECTOR_SPAN * 0.25;
 
 let dw = new DungeonWorld(DUNGEON_SEED);
 let active: ActiveRoom[] = [];
 let prevMounted = new Set<number>();
-let lastSx = NaN;
-let lastSy = NaN;
+let lastMountKey = '';
 const listeners = new Set<() => void>();
 let propGen = 0;
 const propListeners = new Set<() => void>();
@@ -60,13 +59,15 @@ function axisGap(p: number, lo: number, hi: number): number {
 	return 0;
 }
 
-function mountedSectors(
+// Pure: which sector coords should be mounted for a player at (x,z). Center
+// always; neighbors when the player stands within MOUNT_MARGIN of their span.
+function mountedSectorCoords(
 	x: number,
 	z: number,
 	sx: number,
 	sy: number,
-): number[] {
-	const out: number[] = [];
+): [number, number][] {
+	const out: [number, number][] = [];
 	for (let dy = -1; dy <= 1; dy++) {
 		for (let dx = -1; dx <= 1; dx++) {
 			const csx = sx + dx;
@@ -75,15 +76,15 @@ function mountedSectors(
 			const z0 = csy * SECTOR_SPAN;
 			const gx = axisGap(x, x0, x0 + SECTOR_SPAN);
 			const gz = axisGap(z, z0, z0 + SECTOR_SPAN);
-			if (dx === 0 && dy === 0) {
-				out.push(dw.ensureSector(csx, csy));
-				continue;
-			}
-			if (Math.hypot(gx, gz) <= MOUNT_MARGIN)
-				out.push(dw.ensureSector(csx, csy));
+			if ((dx === 0 && dy === 0) || Math.hypot(gx, gz) <= MOUNT_MARGIN)
+				out.push([csx, csy]);
 		}
 	}
 	return out;
+}
+
+function mountKeyOf(coords: [number, number][]): string {
+	return coords.map(([cx, cy]) => `${cx},${cy}`).join(';');
 }
 
 // Cap the resident room set. Rooms stay generated after unmount so revisits are
@@ -111,7 +112,9 @@ function evictFarRooms(sx: number, sy: number, mset: Set<number>): void {
 }
 
 function rebuild(x: number, z: number, sx: number, sy: number): void {
-	const mounted = mountedSectors(x, z, sx, sy);
+	const coords = mountedSectorCoords(x, z, sx, sy);
+	lastMountKey = mountKeyOf(coords);
+	const mounted = coords.map(([cx, cy]) => dw.ensureSector(cx, cy));
 	const mset = new Set(mounted);
 	for (const eid of dw.all())
 		dw.setPhase(eid, mset.has(eid) ? PHASE_MOUNTED : PHASE_GENERATED);
@@ -139,11 +142,14 @@ function rebuild(x: number, z: number, sx: number, sy: number): void {
 	bumpProps();
 }
 
+// Rebuild whenever the mount SET changes, not just the player's sector — the
+// margin check depends on exact position, and gating on sector index alone
+// meant a neighbor never mounted while walking up to its border (doors spawned
+// only after crossing, so leaves were missing and locks never blocked).
 export function updatePlayerWorld(x: number, z: number): void {
 	const { sx, sy } = sectorAtWorld(x, z, TILE);
-	if (sx === lastSx && sy === lastSy) return;
-	lastSx = sx;
-	lastSy = sy;
+	const key = mountKeyOf(mountedSectorCoords(x, z, sx, sy));
+	if (key === lastMountKey) return;
 	rebuild(x, z, sx, sy);
 }
 
@@ -205,11 +211,7 @@ export function resetDungeon(seed = DUNGEON_SEED): void {
 	prevMounted = new Set();
 	clearPlaced();
 	resetDoors();
-	lastSx = NaN;
-	lastSy = NaN;
 	rebuild(SECTOR_SPAN / 2, SECTOR_SPAN / 2, 0, 0);
-	lastSx = 0;
-	lastSy = 0;
 }
 
 let seeded = false;
@@ -217,8 +219,6 @@ function ensureSeeded(): void {
 	if (seeded) return;
 	seeded = true;
 	rebuild(SECTOR_SPAN / 2, SECTOR_SPAN / 2, 0, 0);
-	lastSx = 0;
-	lastSy = 0;
 }
 
 export function getDungeon(): DungeonWorld {

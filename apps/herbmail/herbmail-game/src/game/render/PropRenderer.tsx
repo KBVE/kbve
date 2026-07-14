@@ -20,6 +20,7 @@ import { getDebrisPool } from './DebrisPool';
 import { applyCrateDamage } from './crateDecal';
 import { applyStoneMine } from './stoneMine';
 import { burnTick } from '../prop/burn';
+import { npcSystem } from '../npc/goblinSim';
 
 const TORCH_URL = MODEL_URLS[MODEL_TORCH];
 const CRATE_URL = MODEL_URLS[MODEL_CRATE];
@@ -68,6 +69,7 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 
 	useFrame((state, delta) => {
 		const world = getDungeon().world;
+		npcSystem(world, state.clock.elapsedTime, Math.min(delta, 0.05));
 		fireflySystem.tick(world, state.clock.elapsedTime, delta);
 		lightSystem.tick(
 			world,

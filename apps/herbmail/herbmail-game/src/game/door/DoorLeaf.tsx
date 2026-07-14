@@ -39,14 +39,13 @@ function makeLeaf(openHW: number, spring: number): THREE.BufferGeometry {
 interface Props {
 	door: DoorInfo;
 	snap: number;
-	affine: number;
 	res: THREE.Vector2;
 }
 
 // Renders the wood leaf for a door tile. The list is deterministic (roomDoors),
 // but the mutable state — locked + swing amount — lives on the Door ECS entity;
 // this only reads it each frame and eases the hinge toward Door.open.
-export function DoorLeaf({ door, snap, affine, res }: Props) {
+export function DoorLeaf({ door, snap, res }: Props) {
 	const tex = useDungeonTextures();
 	const pivot = useRef<THREE.Group>(null);
 
@@ -56,7 +55,6 @@ export function DoorLeaf({ door, snap, affine, res }: Props) {
 
 	const geo = useMemo(() => makeLeaf(openHW, spring), [openHW, spring]);
 	const tint = useMemo(() => new THREE.Color(...TINT.door), []);
-	const wood = (door.wc + door.wr) & 1 ? tex.doorAlt : tex.door;
 
 	useFrame((_, dt) => {
 		if (!pivot.current) return;
@@ -77,9 +75,13 @@ export function DoorLeaf({ door, snap, affine, res }: Props) {
 			<group ref={pivot} position={[-openHW, 0, 0]}>
 				<mesh geometry={geo} userData={{ kind: 'door' }}>
 					<psxMaterial
-						uMap={wood}
+						uMap={tex.door.color}
+						uNormalMap={tex.door.normal}
+						uHarMap={tex.door.har}
+						uUseMaps={1}
+						uPom={1}
 						uSnap={snap}
-						uAffine={affine}
+						uAffine={0}
 						uRes={res}
 						uTint={tint}
 						uOcclude={0}

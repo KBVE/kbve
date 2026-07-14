@@ -13,10 +13,6 @@ function App() {
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState('');
 
-	useEffect(() => {
-		loadGameStatus();
-	}, []);
-
 	const loadGameStatus = async () => {
 		try {
 			const status = await invoke<GameStatus>('get_game_status');
@@ -26,6 +22,21 @@ function App() {
 			setMessage('Failed to load game status');
 		}
 	};
+
+	useEffect(() => {
+		let active = true;
+		invoke<GameStatus>('get_game_status')
+			.then((status) => {
+				if (active) setGameStatus(status);
+			})
+			.catch((error) => {
+				console.error('Failed to load game status:', error);
+				if (active) setMessage('Failed to load game status');
+			});
+		return () => {
+			active = false;
+		};
+	}, []);
 
 	const handleCheckUpdates = async () => {
 		setLoading(true);

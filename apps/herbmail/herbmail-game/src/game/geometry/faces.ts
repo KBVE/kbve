@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TILE } from '../config';
-import { ARCH, gridSolid, gridTile, type Grid } from './grid';
+import { ARCH, DOORWAY, gridSolid, gridTile, type Grid } from './grid';
 
 const HALF = TILE / 2;
 
@@ -50,6 +50,10 @@ export function exposedFaces(grid: Grid): Face[] {
 }
 
 export function isBay(grid: Grid, face: Face, variant = 0): boolean {
+	// Never carve a niche into a doorway jamb: the face's open tile being an
+	// arch means we're inside the door threshold, and a recess there reads as
+	// a random hole behind the leaf.
+	if ((gridTile(grid, face.col, face.row) & DOORWAY) !== 0) return false;
 	const c = worldCol(grid, face);
 	const r = worldRow(grid, face);
 	return (((c * 11 + r * 17 + face.di * 3 + variant * 23) % 5) + 5) % 5 === 0;
@@ -71,17 +75,29 @@ export interface ArchTile {
 	axis: ArchAxis;
 }
 
+// A neighbor continues the wall line when it is solid rock OR another doorway
+// tile — 3-wide connector gates are runs of ARCH tiles, and without counting
+// them the middle tiles read as free-standing and their panels rotate 90°.
+function wallish(grid: Grid, col: number, row: number): boolean {
+	return (
+		gridSolid(grid, col, row) || (gridTile(grid, col, row) & DOORWAY) !== 0
+	);
+}
+
+export function archAxis(grid: Grid, col: number, row: number): ArchAxis {
+	const ns = wallish(grid, col, row - 1) && wallish(grid, col, row + 1);
+	return ns ? 'x' : 'z';
+}
+
 export function archTiles(grid: Grid): ArchTile[] {
 	const out: ArchTile[] = [];
 	for (let row = 0; row < grid.rows; row++) {
 		for (let col = 0; col < grid.cols; col++) {
 			if (gridTile(grid, col, row) !== ARCH) continue;
-			const nsWall =
-				gridSolid(grid, col, row - 1) && gridSolid(grid, col, row + 1);
 			out.push({
 				col: grid.originCol + col,
 				row: grid.originRow + row,
-				axis: nsWall ? 'x' : 'z',
+				axis: archAxis(grid, col, row),
 			});
 		}
 	}

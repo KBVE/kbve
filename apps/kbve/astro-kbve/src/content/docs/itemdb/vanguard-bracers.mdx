@@ -1,0 +1,42 @@
+---
+title: 'Vanguard Bracers'
+template: splash
+sidebar:
+    label: 'Vanguard Bracers'
+    hidden: true
+description: |
+    Forearm steel worn in pairs, scarred by every parry that would otherwise be a scar of your own.
+ref: 'vanguard-bracers'
+key: 608
+id: '01KXFBEGM16KN4CNGK1PC2278A'
+name: 'Vanguard Bracers'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 40
+emoji: '🦾'
+img: '/assets/items/equipment/vanguard-bracers.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'KNGT'
+  nodes:
+    - 'ALWL'
+    - 'ALWR'
+  slot_keys:
+    - 'ALWL'
+    - 'ALWR'
+equipment:
+  slot: 'hands'
+  bonuses:
+    armor: 2
+    extra:
+      weight: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

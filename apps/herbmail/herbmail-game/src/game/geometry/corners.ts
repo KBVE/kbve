@@ -4,8 +4,8 @@ import { COVE_R, TILE, WALL_H } from '../config';
 import { DIRS, isBay } from './faces';
 import { ARCH, gridSolid, gridTile, type Grid } from './grid';
 
-const ARC_SEG = 6;
-const H_SEG = 4;
+const ARC_SEG = 4;
+const H_SEG = 1;
 const CAP_H = WALL_H - COVE_R;
 const INSET = 0.09;
 
