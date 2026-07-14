@@ -12,7 +12,7 @@ Cluster: Talos Linux, Kubernetes 1.33.2, dual /32 external IPs
 | Phase 1 | Cilium as CNI + WireGuard                     | DONE (2026-03-19)                                               |
 | Phase 2 | Replace ingress-nginx with Cilium Gateway API | DONE in PR #11551; residual cluster cleanup pending — see below |
 | Phase 3 | WebTransport / QUIC validation                | Pending                                                         |
-| Phase 4 | MetalLB replacement                           | N/A — MetalLB never adopted on this cluster after Phase 1       |
+| Phase 4 | MetalLB replacement                           | DONE (2026-07-14) — stale controller/speaker removed from cluster; Cilium LB IPAM owns all VIPs |
 | Phase 5 | Gateway API modernization                     | DONE — all live routes are HTTPRoute via `kbve-gateway`         |
 
 **Residual Phase 2 cleanup (operational, not repo):**

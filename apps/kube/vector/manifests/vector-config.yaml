@@ -47,12 +47,12 @@ data:
         \ }\n          if exists(parsed.msg) { .event_message = string(parsed.msg) ??\
         \ .event_message }\n          .metadata = parsed\n      }\n  # Drop info/debug\
         \ from noisy infra namespaces; keep warn+/error+ from\n  # them and everything\
-        \ from app namespaces. Cost discipline — these\n  # 13 namespaces emit massive\
+        \ from app namespaces. Cost discipline — these\n  # 12 namespaces emit massive\
         \ low-signal chatter.\n  noise_filter:\n    type: filter\n    inputs:\n      -\
         \ project_logs\n    condition:\n      type: vrl\n      source: |-\n        noisy\
         \ = [\"argocd\", \"clickhouse\", \"arc-systems\", \"arc-runners\", \"monitoring\"\
         ,\n                 \"kube-system\", \"kube-node-lease\", \"kube-public\",\n \
-        \                \"longhorn-system\", \"metallb-system\", \"cnpg-system\",\n \
+        \                \"longhorn-system\", \"cnpg-system\",\n \
         \                \"cert-manager\", \"external-secrets-system\"]\n        ns =\
         \ string(.pod_namespace) ?? \"\"\n        if !includes(noisy, ns) {\n        \
         \    true\n        } else {\n            msg = string(.event_message) ?? \"\"\n\
