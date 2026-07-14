@@ -3,9 +3,15 @@ import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
 import { ANISOTROPY, TEXTURES } from './config';
 
-export function psxify(tex: THREE.Texture, tiling: boolean): THREE.Texture {
-	tex.magFilter = THREE.NearestFilter;
-	tex.minFilter = THREE.NearestMipmapNearestFilter;
+export function psxify(
+	tex: THREE.Texture,
+	tiling: boolean,
+	smooth = false,
+): THREE.Texture {
+	tex.magFilter = smooth ? THREE.LinearFilter : THREE.NearestFilter;
+	tex.minFilter = smooth
+		? THREE.LinearMipmapLinearFilter
+		: THREE.NearestMipmapNearestFilter;
 	tex.generateMipmaps = true;
 	tex.anisotropy = ANISOTROPY;
 	const wrap = tiling ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
@@ -16,8 +22,26 @@ export function psxify(tex: THREE.Texture, tiling: boolean): THREE.Texture {
 	return tex;
 }
 
+export function dataify(tex: THREE.Texture, anisotropy = 1): THREE.Texture {
+	tex.magFilter = THREE.LinearFilter;
+	tex.minFilter = THREE.LinearMipmapLinearFilter;
+	tex.generateMipmaps = true;
+	tex.anisotropy = anisotropy;
+	tex.wrapS = THREE.RepeatWrapping;
+	tex.wrapT = THREE.RepeatWrapping;
+	tex.colorSpace = THREE.NoColorSpace;
+	tex.needsUpdate = true;
+	return tex;
+}
+
+export interface WallMaps {
+	color: THREE.Texture;
+	normal: THREE.Texture;
+	har: THREE.Texture;
+}
+
 export interface DungeonTextures {
-	walls: THREE.Texture[];
+	walls: WallMaps[];
 	floor: THREE.Texture;
 	ceiling: THREE.Texture;
 	arch: THREE.Texture;
@@ -27,7 +51,7 @@ export interface DungeonTextures {
 
 export function useDungeonTextures(): DungeonTextures {
 	const loaded = useTexture([
-		...TEXTURES.walls,
+		...TEXTURES.walls.flatMap((w) => [w.color, w.normal, w.har]),
 		TEXTURES.floor,
 		TEXTURES.ceiling,
 		TEXTURES.arch,
@@ -37,12 +61,17 @@ export function useDungeonTextures(): DungeonTextures {
 
 	return useMemo(() => {
 		const wallCount = TEXTURES.walls.length;
-		const walls = loaded.slice(0, wallCount).map((t) => psxify(t, true));
-		const floor = psxify(loaded[wallCount], true);
-		const ceiling = psxify(loaded[wallCount + 1], true);
-		const arch = psxify(loaded[wallCount + 2], true);
-		const door = psxify(loaded[wallCount + 3], true);
-		const doorAlt = psxify(loaded[wallCount + 4], true);
+		const walls = TEXTURES.walls.map((_, i) => ({
+			color: psxify(loaded[i * 3], true, true),
+			normal: dataify(loaded[i * 3 + 1], 4),
+			har: dataify(loaded[i * 3 + 2]),
+		}));
+		const rest = wallCount * 3;
+		const floor = psxify(loaded[rest], true);
+		const ceiling = psxify(loaded[rest + 1], true);
+		const arch = psxify(loaded[rest + 2], true);
+		const door = psxify(loaded[rest + 3], true);
+		const doorAlt = psxify(loaded[rest + 4], true);
 		return { walls, floor, ceiling, arch, door, doorAlt };
 	}, [loaded]);
 }

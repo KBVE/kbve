@@ -1,5 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { RoomView } from './RoomView';
+import { useDungeonMaterials } from './dungeonMaterials';
 import { updatePlayerWorld, useActiveRooms } from './store';
 
 function Streamer() {
@@ -17,6 +18,7 @@ interface Props {
 
 export function Dungeon({ snap, affine }: Props) {
 	const rooms = useActiveRooms();
+	const mats = useDungeonMaterials(snap, affine);
 	return (
 		<>
 			<Streamer />
@@ -26,6 +28,7 @@ export function Dungeon({ snap, affine }: Props) {
 					desc={r.desc}
 					snap={snap}
 					affine={affine}
+					mats={mats}
 				/>
 			))}
 		</>

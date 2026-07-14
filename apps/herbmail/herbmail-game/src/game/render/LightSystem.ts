@@ -60,6 +60,7 @@ export class LightSystem {
 	private readonly pool: Ranked[] = [];
 	private active: Ranked[] = [];
 	private casters: (Ranked | null)[] = [null, null];
+	private frame = 0;
 
 	private take(): Ranked {
 		let r = this.pool[this.active.length];
@@ -92,6 +93,7 @@ export class LightSystem {
 			const sl = new THREE.PointLight(0xffffff, 0, LIGHT_RANGE, 2);
 			sl.castShadow = true;
 			sl.visible = false;
+			sl.shadow.autoUpdate = false;
 			sl.shadow.mapSize.set(512, 512);
 			sl.shadow.camera.near = 0.2;
 			sl.shadow.camera.far = LIGHT_RANGE;
@@ -238,11 +240,23 @@ export class LightSystem {
 				this.casters[1] = l;
 			}
 		}
+		// Flicker is intensity-only and torches are static, so cube shadow maps
+		// (6 scene passes each) only re-render every 3rd frame or when the caster
+		// actually moves.
+		this.frame++;
+		const refresh = this.frame % 3 === 0;
 		for (let i = 0; i < SHADOW_CASTERS; i++) {
 			const sl = this.shadowLights[i];
 			const l = this.casters[i];
 			if (l) {
+				const moved =
+					sl.position.x !== l.x ||
+					sl.position.y !== l.y ||
+					sl.position.z !== l.z;
 				sl.position.set(l.x, l.y, l.z);
+				if (!sl.visible || moved || refresh) {
+					sl.shadow.needsUpdate = true;
+				}
 				sl.visible = true;
 			} else {
 				sl.visible = false;

@@ -26,9 +26,21 @@ export const TINT = {
 
 export const TEXTURES = {
 	walls: [
-		'/textures/Horror_Brick_01-256x256.png',
-		'/textures/Horror_Brick_05-256x256.png',
-		'/textures/Horror_Brick_08-256x256.png',
+		{
+			color: '/textures/brickwall/brick15_color.png',
+			normal: '/textures/brickwall/brick15_normal.png',
+			har: '/textures/brickwall/brick15_har.png',
+		},
+		{
+			color: '/textures/brickwall/brick1_color.png',
+			normal: '/textures/brickwall/brick1_normal.png',
+			har: '/textures/brickwall/brick1_har.png',
+		},
+		{
+			color: '/textures/brickwall/brick12_color.png',
+			normal: '/textures/brickwall/brick12_normal.png',
+			har: '/textures/brickwall/brick12_har.png',
+		},
 	],
 	floor: '/textures/Horror_Floor_01-256x256.png',
 	ceiling: '/textures/Horror_Metal_01-256x256.png',
@@ -38,9 +50,9 @@ export const TEXTURES = {
 } as const;
 
 export const PSX_DEFAULTS = {
-	dpr: 1,
-	snap: 420,
-	affine: 0.18,
+	dpr: 2,
+	snap: 0,
+	affine: 0,
 	eye: EYE_H,
 	fov: 72,
 } as const;
