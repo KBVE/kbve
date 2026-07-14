@@ -527,6 +527,20 @@ fn parse_source_kind(s: &str) -> Result<SourceKind, Response> {
     })
 }
 
+/// Reject non-positive amounts at the handler. The SQL functions enforce this
+/// too, but a negative credit read as a disguised debit (or vice versa) is bad
+/// enough to guard against before the value ever reaches the DB.
+fn require_positive_amount(amount: i64) -> Result<(), Response> {
+    if amount > 0 {
+        return Ok(());
+    }
+    Err((
+        StatusCode::BAD_REQUEST,
+        Json(json!({"error": "invalid amount", "message": "amount must be > 0"})),
+    )
+        .into_response())
+}
+
 pub(crate) fn wallet_error_response(err: WalletError) -> Response {
     let (status, code) = match &err {
         WalletError::InsufficientFunds => (StatusCode::PAYMENT_REQUIRED, "insufficient_funds"),
@@ -632,6 +646,9 @@ pub(crate) async fn service_credit(
         Ok(s) => s,
         Err(r) => return r,
     };
+    if let Err(r) = require_positive_amount(body.amount) {
+        return r;
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),
@@ -689,6 +706,9 @@ pub(crate) async fn service_debit(
         Ok(s) => s,
         Err(r) => return r,
     };
+    if let Err(r) = require_positive_amount(body.amount) {
+        return r;
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),
@@ -746,6 +766,9 @@ pub(crate) async fn service_transfer(
         Ok(s) => s,
         Err(r) => return r,
     };
+    if let Err(r) = require_positive_amount(body.amount) {
+        return r;
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),
@@ -934,6 +957,9 @@ pub(crate) async fn service_credit_user(
         Ok(s) => s,
         Err(r) => return r,
     };
+    if let Err(r) = require_positive_amount(body.amount) {
+        return r;
+    }
     let client = match get_wallet_client() {
         Some(c) => c,
         None => return service_unavailable(),

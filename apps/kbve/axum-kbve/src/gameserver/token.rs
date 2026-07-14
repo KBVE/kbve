@@ -104,7 +104,9 @@ pub async fn game_token_handler(
         c
     };
 
-    let (final_host, ws_addr) = resolve_first_valid(&resolve_candidates, ws_port).map_err(|e| {
+    let (final_host, ws_addr) = resolve_first_valid(&resolve_candidates, ws_port)
+        .await
+        .map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             format!(
@@ -129,7 +131,7 @@ pub async fn game_token_handler(
     let mut server_addrs = vec![ws_addr];
     if super::is_wt_enabled() {
         // Use the same final_host that resolved successfully for WS
-        let wt_addr: SocketAddr = resolve_ipv4(&final_host, wt_port).map_err(|e| {
+        let wt_addr: SocketAddr = resolve_ipv4(&final_host, wt_port).await.map_err(|e| {
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("cannot resolve game address {final_host}:{wt_port}: {e}"),
@@ -254,10 +256,13 @@ fn extract_hostname(headers: &HeaderMap) -> String {
 
 /// Try each candidate hostname in order, returning the first that resolves to
 /// a valid IPv4 address. Returns `(winning_host, resolved_addr)`.
-fn resolve_first_valid(candidates: &[String], port: u16) -> Result<(String, SocketAddr), String> {
+async fn resolve_first_valid(
+    candidates: &[String],
+    port: u16,
+) -> Result<(String, SocketAddr), String> {
     let mut last_err = String::new();
     for host in candidates {
-        match resolve_ipv4(host, port) {
+        match resolve_ipv4(host, port).await {
             Ok(addr) => return Ok((host.clone(), addr)),
             Err(e) => {
                 tracing::debug!("[game-token] resolve candidate '{host}:{port}' failed: {e}");
@@ -272,8 +277,8 @@ fn resolve_first_valid(candidates: &[String], port: u16) -> Result<(String, Sock
 /// The game server binds on 0.0.0.0 (IPv4 only), so the ConnectToken must
 /// embed an IPv4 address. macOS resolves "localhost" to [::1] (IPv6) first,
 /// which would cause ERR_CONNECTION_REFUSED.
-fn resolve_ipv4(host: &str, port: u16) -> Result<SocketAddr, String> {
-    use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs};
+async fn resolve_ipv4(host: &str, port: u16) -> Result<SocketAddr, String> {
+    use std::net::{IpAddr, Ipv4Addr};
 
     // Fast path: already an IPv4 address (e.g. "127.0.0.1")
     if let Ok(addr) = format!("{host}:{port}").parse::<SocketAddr>() {
@@ -282,15 +287,14 @@ fn resolve_ipv4(host: &str, port: u16) -> Result<SocketAddr, String> {
         }
     }
 
-    // Resolve and pick the first IPv4 result
-    let addrs = format!("{host}:{port}")
-        .to_socket_addrs()
+    // Resolve off the runtime worker (blocking `to_socket_addrs` would stall the
+    // tokio thread on slow DNS); pick the first IPv4 result.
+    let mut addrs = tokio::net::lookup_host(format!("{host}:{port}"))
+        .await
         .map_err(|e| format!("DNS resolution failed: {e}"))?;
 
-    for addr in addrs {
-        if addr.is_ipv4() {
-            return Ok(addr);
-        }
+    if let Some(addr) = addrs.find(SocketAddr::is_ipv4) {
+        return Ok(addr);
     }
 
     // Fallback: if hostname is "localhost" and no IPv4 found, use 127.0.0.1

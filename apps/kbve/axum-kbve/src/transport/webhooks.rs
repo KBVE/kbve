@@ -112,7 +112,12 @@ pub async fn github_webhook(
     };
 
     let full_name = format!("{}/{}", owner, repo).to_lowercase();
-    let allowlist = fetch_allowlist(&cluster, &guild_id).await;
+    let Some(allowlist) = fetch_allowlist(&cluster, &guild_id).await else {
+        return json_status(
+            StatusCode::OK,
+            json!({ "ok": true, "skipped": "allowlist lookup failed", "guild": guild_id }),
+        );
+    };
     if !allowlist.is_empty() && !allowlist.contains(&full_name) {
         return json_status(
             StatusCode::OK,
@@ -127,7 +132,16 @@ pub async fn github_webhook(
         );
     };
 
-    let number = issue.get("number").and_then(Value::as_i64).unwrap_or(0) as i32;
+    let Some(number) = issue
+        .get("number")
+        .and_then(Value::as_i64)
+        .and_then(|n| i32::try_from(n).ok())
+    else {
+        return json_status(
+            StatusCode::OK,
+            json!({ "ok": true, "skipped": "issue missing number", "guild": guild_id }),
+        );
+    };
     let upsert = UpsertIssue {
         owner: owner.clone(),
         repo: repo.clone(),
@@ -256,25 +270,40 @@ async fn token_query(
     Ok(row.and_then(|r| r.get::<_, Option<String>>(0)))
 }
 
-async fn fetch_allowlist(cluster: &PgCluster, guild: &str) -> std::collections::HashSet<String> {
+/// Returns `Some(set)` on a successful lookup — an empty set means no
+/// allowlist is configured (allow all). Returns `None` when the lookup or
+/// parse fails, so the caller can fail closed instead of allowing all repos.
+async fn fetch_allowlist(
+    cluster: &PgCluster,
+    guild: &str,
+) -> Option<std::collections::HashSet<String>> {
     let raw = match fetch_token(cluster, guild, REPOS_SERVICE).await {
         Ok(Some(s)) => s,
-        _ => return std::collections::HashSet::new(),
+        Ok(None) => return Some(std::collections::HashSet::new()),
+        Err(e) => {
+            tracing::error!(guild = %guild, error = %e, "gh-webhook: allowlist lookup failed");
+            return None;
+        }
     };
     let parsed: Value = match serde_json::from_str(&raw) {
         Ok(v) => v,
-        Err(_) => return std::collections::HashSet::new(),
+        Err(e) => {
+            tracing::error!(guild = %guild, error = %e, "gh-webhook: allowlist parse failed");
+            return None;
+        }
     };
-    parsed
-        .get("repos")
-        .and_then(Value::as_array)
-        .map(|arr| {
-            arr.iter()
-                .filter_map(Value::as_str)
-                .map(|s| s.trim().to_lowercase())
-                .collect()
-        })
-        .unwrap_or_default()
+    Some(
+        parsed
+            .get("repos")
+            .and_then(Value::as_array)
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(Value::as_str)
+                    .map(|s| s.trim().to_lowercase())
+                    .collect()
+            })
+            .unwrap_or_default(),
+    )
 }
 
 async fn persist(

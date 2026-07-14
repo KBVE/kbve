@@ -761,15 +761,23 @@ fn lookup_username_cached(user_id: &str) -> Option<String> {
     None
 }
 
+const USERNAME_CACHE_SWEEP_AT: usize = 4096;
+
 fn store_username_cache(user_id: &str, username: &str) {
     if user_id.is_empty() {
         return;
     }
     if let Ok(mut guard) = USERNAME_CACHE.lock() {
-        guard.insert(
-            user_id.to_string(),
-            (username.to_string(), std::time::Instant::now()),
-        );
+        let now = std::time::Instant::now();
+        // Entries are otherwise only evicted when the same user_id is looked up
+        // again after TTL, so ids never queried again leak. Sweep expired
+        // entries once the map crosses a threshold to bound growth.
+        if guard.len() >= USERNAME_CACHE_SWEEP_AT {
+            guard.retain(|_, (_, inserted)| {
+                now.duration_since(*inserted).as_secs() < USERNAME_CACHE_TTL_SECS
+            });
+        }
+        guard.insert(user_id.to_string(), (username.to_string(), now));
     }
 }
 
@@ -881,15 +889,19 @@ fn run_bevy_app(
     app.add_observer(handle_new_link);
     app.add_observer(handle_new_connection);
 
+    // Per-connection cleanup — MUST run in production. Despawns the player
+    // entity and evicts auth/inventory/equipment/cooldown state on disconnect;
+    // the only place those maps shrink. Not a diagnostic — never gate this.
+    app.add_observer(on_server_disconnected);
+
     // Verbose netcode diagnostics — gated behind GAME_NET_DEBUG. These observers
     // and per-tick systems trace the transport/handshake path (connection
     // lifecycle, link/packet flow, orphaned links) and iterate every Link every
     // tick, so they stay off in production.
     if gameserver_debug_enabled() {
-        // Connection lifecycle
+        // Connection lifecycle (logging only)
         app.add_observer(on_server_connecting);
         app.add_observer(on_server_connected);
-        app.add_observer(on_server_disconnected);
 
         // Link/transport lifecycle — WebSocket accept → per-client Link → Linked
         app.add_observer(debug_on_linking_added);
@@ -1341,10 +1353,12 @@ fn on_server_disconnected(
     mut inventories: ResMut<PlayerInventories>,
     mut equipment: ResMut<PlayerEquipment>,
     mut cooldowns: ResMut<ConsumableCooldowns>,
+    mut set_username_attempts: ResMut<SetUsernameLastAttempt>,
 ) {
     let client_entity = trigger.entity;
     let user_id = authenticated.0.remove(&client_entity);
     let player_entity = client_player_map.0.remove(&client_entity);
+    set_username_attempts.0.remove(&client_entity);
     if let Some(pe) = player_entity {
         inventories.0.remove(&pe);
         equipment.0.remove(&pe);

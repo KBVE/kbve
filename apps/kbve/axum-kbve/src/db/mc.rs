@@ -302,8 +302,11 @@ impl McService {
                         _ => Vec::new(),
                     };
 
-                    for name in names {
-                        let cached = self.resolve_player(&name).await;
+                    // Resolve all players for this server concurrently — a
+                    // cold-cache resolve_player does two blocking Mojang round
+                    // trips, so serial awaits here can blow past REFRESH_INTERVAL.
+                    let resolved = join_all(names.iter().map(|n| self.resolve_player(n))).await;
+                    for (name, cached) in names.into_iter().zip(resolved) {
                         let position = positions
                             .iter()
                             .find(|(n, _)| n.eq_ignore_ascii_case(&name))
