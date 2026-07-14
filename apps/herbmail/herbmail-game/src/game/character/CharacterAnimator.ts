@@ -91,6 +91,12 @@ export class CharacterAnimator {
 		return this.baseName;
 	}
 
+	/** Per-frame playback rate on the current base loop (foot-skate matching
+	 *  when one clip covers a speed range). play() resets it to its own value. */
+	setBaseTimeScale(ts: number): void {
+		this.base?.setEffectiveTimeScale(ts);
+	}
+
 	/** Play a one-shot clip over the base; resolves when it finishes. */
 	playOnce(
 		name: string,

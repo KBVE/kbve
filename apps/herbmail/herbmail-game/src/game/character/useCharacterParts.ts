@@ -14,6 +14,7 @@ import { attachPartSet } from './partsLoader';
 export function useCharacterParts(
 	scene: THREE.Object3D,
 	override?: Set<string>,
+	hide?: Set<string>,
 ): void {
 	const global = useEquippedArmor();
 	const equipped = override ?? global;
@@ -34,7 +35,8 @@ export function useCharacterParts(
 		scene.traverse((o) => {
 			// SKIN_WRAP (the bra) is owned by the body-morph gate, not armor.
 			if (o.name === 'SKIN_WRAP') return;
-			if ((o as THREE.Mesh).isMesh) o.visible = !hidden.has(o.name);
+			if ((o as THREE.Mesh).isMesh)
+				o.visible = !hidden.has(o.name) && !hide?.has(o.name);
 		});
-	}, [scene, equipped, attached]);
+	}, [scene, equipped, attached, hide]);
 }

@@ -15,6 +15,7 @@ import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
 import { getEquipped, useEquippedArmor } from './armor';
 import { useBodySkinMorph } from './body';
+import { useSkinTint } from './skin';
 import { triggerSwing } from './melee';
 import { makeFlameMaterial } from '../render/flameMaterial';
 import { buildEmbers } from '../render/emberParticles';
@@ -144,8 +145,44 @@ interface Props {
 	armed?: boolean;
 	rightId?: string | null;
 	leftId?: string | null;
+	tint?: string;
+	armor?: Set<string>;
+	hide?: Set<string>;
+	locomotion?: LocomotionClips;
 	onReady?: (h: CharacterHandle) => void;
 	drive?: (motor: CharacterMotor, t: number) => void;
+}
+
+export interface LocomotionClips {
+	idle: string;
+	walk: string;
+	run: string;
+	/** World m/s the walk clip's stride matches at timeScale 1 (incl. model
+	 *  scale). When set, the walk loop's timeScale tracks actual speed so feet
+	 *  stop skating at speeds the clip wasn't authored for. */
+	speedRef?: number;
+}
+
+const DEFAULT_LOCOMOTION: LocomotionClips = {
+	idle: 'Idle_Loop',
+	walk: 'Walk_Loop',
+	run: 'Jog_Fwd_Loop',
+};
+
+const WALK_TS_MIN = 0.6;
+const WALK_TS_MAX = 2.6;
+
+// The Zombie_* clips animate pelvis translation at a different rest height
+// than this rig (1.02 vs 0.91), which floats + bobs the whole body ~10cm —
+// there's no foot IK to pin the feet. Drop the pelvis position track once
+// (shared GLTF cache): the hunch comes from rotations and survives intact.
+const GROUNDED_CLIPS = new WeakSet<THREE.AnimationClip>();
+function groundPelvis(clips: THREE.AnimationClip[]): void {
+	for (const c of clips) {
+		if (!c.name.startsWith('Zombie_') || GROUNDED_CLIPS.has(c)) continue;
+		c.tracks = c.tracks.filter((t) => t.name !== 'pelvis.position');
+		GROUNDED_CLIPS.add(c);
+	}
 }
 
 export function Character({
@@ -157,6 +194,10 @@ export function Character({
 	armed = false,
 	rightId = null,
 	leftId = null,
+	tint,
+	armor,
+	hide,
+	locomotion = DEFAULT_LOCOMOTION,
 	onReady,
 	drive,
 }: Props) {
@@ -204,8 +245,9 @@ export function Character({
 		});
 		return s;
 	}, [gltf]);
-	useCharacterParts(scene);
+	useCharacterParts(scene, armor, hide);
 	useBodySkinMorph(scene);
+	useSkinTint(scene, tint);
 	const spineBones = useMemo(
 		() =>
 			SPINE_FLEX.map((s) => ({
@@ -372,6 +414,7 @@ export function Character({
 	);
 
 	const rig = useMemo(() => {
+		groundPelvis(gltf.animations);
 		const animator = new CharacterAnimator(scene, gltf.animations);
 		const motor = new CharacterMotor(motorConfig);
 		const pose = new ProceduralPose(scene);
@@ -382,12 +425,13 @@ export function Character({
 
 	const equippedArmor = useEquippedArmor();
 	useEffect(() => {
-		rig.equipment.setEquipped(equippedArmor);
-	}, [rig, equippedArmor]);
+		rig.equipment.setEquipped(armor ?? equippedArmor);
+	}, [rig, equippedArmor, armor]);
 
 	useEffect(() => {
 		const { animator, motor, pose } = rig;
-		if (animator.has('Idle_Loop')) animator.play('Idle_Loop', { fade: 0 });
+		if (animator.has(locomotion.idle))
+			animator.play(locomotion.idle, { fade: 0 });
 		const attackClip = animator.has('Sword_Attack')
 			? 'Sword_Attack'
 			: 'Punch_Cross';
@@ -488,15 +532,25 @@ export function Character({
 		if (jumping) {
 			// jump state already selected
 		} else if (gait === 'idle') {
-			const idle = 'Idle_Loop';
 			// Snap out of the landing pose fast; the drawn-out default
 			// crossfade is what read as a laggy tail.
-			animator.play(idle, j.recover ? { fade: 0.14 } : {});
+			animator.play(locomotion.idle, j.recover ? { fade: 0.14 } : {});
 			j.recover = false;
-		} else if (motor.runBlend <= 0.001) {
-			animator.play('Walk_Loop');
+		} else if (
+			motor.runBlend <= 0.001 ||
+			locomotion.walk === locomotion.run
+		) {
+			animator.play(locomotion.walk);
+			if (locomotion.speedRef)
+				animator.setBaseTimeScale(
+					THREE.MathUtils.clamp(
+						motor.speed / locomotion.speedRef,
+						WALK_TS_MIN,
+						WALK_TS_MAX,
+					),
+				);
 		} else {
-			animator.blend('Walk_Loop', 'Jog_Fwd_Loop', motor.runBlend);
+			animator.blend(locomotion.walk, locomotion.run, motor.runBlend);
 		}
 
 		const bp = blockRef.current.pose;
