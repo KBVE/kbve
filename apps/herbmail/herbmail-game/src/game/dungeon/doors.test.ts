@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { genSectorDesc } from './generate';
+import { genSectorDesc, SECTOR_TILES } from './generate';
 import { DOORWAY } from '../geometry/grid';
+import { WALL, ARCH } from '../geometry/grid';
 
 const SEED = 1337;
 
@@ -49,6 +50,29 @@ describe('door generation', () => {
 		for (const w of d.doorways) {
 			expect(w.axis === 'x' || w.axis === 'z').toBe(true);
 		}
+	});
+
+	it('mirror gate narrows when the owner sector doors a border connector', () => {
+		const edge = SECTOR_TILES - 1;
+		for (let sy = -2; sy <= 2; sy++)
+			for (let sx = -2; sx <= 2; sx++) {
+				const d = genSectorDesc(SEED, sx, sy);
+				const tile = (c: number, r: number) => d.tiles[r * d.cols + c];
+
+				const north = genSectorDesc(SEED, sx, sy - 1);
+				for (const w of north.doorways.filter((x) => x.lr === edge)) {
+					expect(tile(w.lc, 0)).toBe(ARCH);
+					expect(tile(w.lc - 1, 0)).toBe(WALL);
+					expect(tile(w.lc + 1, 0)).toBe(WALL);
+				}
+
+				const west = genSectorDesc(SEED, sx - 1, sy);
+				for (const w of west.doorways.filter((x) => x.lc === edge)) {
+					expect(tile(0, w.lr)).toBe(ARCH);
+					expect(tile(0, w.lr - 1)).toBe(WALL);
+					expect(tile(0, w.lr + 1)).toBe(WALL);
+				}
+			}
 	});
 
 	it('no duplicate doorway tiles within a sector', () => {

@@ -520,21 +520,31 @@ function genConnectorDoors(
 	const out: DoorSlot[] = [];
 	const mid = Math.floor(CELL / 2);
 	for (const c of connectors) {
-		if (c.side !== SIDE_E && c.side !== SIDE_S) continue;
-		if (hash01(sx, sy, ((seed | 0) ^ 0xc0d) + c.side) >= DOOR_KEEP)
+		// The E/S sector owns the leaf; W/N mirrors must still narrow their side
+		// of the gate, or the flank walls have no outward face (nobody generates
+		// it: the owner's grid ends at the border and the mirror's ARCH tiles
+		// skip their OOB faces) and the seam reads as a hole from the hall.
+		// Both sides derive the same verdict from the owner's hash.
+		const osx = c.side === SIDE_W ? sx - 1 : sx;
+		const osy = c.side === SIDE_N ? sy - 1 : sy;
+		const oside =
+			c.side === SIDE_W ? SIDE_E : c.side === SIDE_N ? SIDE_S : c.side;
+		if (hash01(osx, osy, ((seed | 0) ^ 0xc0d) + oside) >= DOOR_KEEP)
 			continue;
 		const baseCol = c.lx * CELL;
 		const baseRow = c.ly * CELL;
-		if (c.side === SIDE_E) {
-			const tc = baseCol + CELL - 1;
+		if (c.side === SIDE_E || c.side === SIDE_W) {
+			const tc = c.side === SIDE_E ? baseCol + CELL - 1 : baseCol;
 			for (let k = -GATE_HALF; k <= GATE_HALF; k++)
 				tiles[(baseRow + mid + k) * cols + tc] = k === 0 ? ARCH : WALL;
-			out.push({ lc: tc, lr: baseRow + mid, axis: 'x' });
+			if (c.side === SIDE_E)
+				out.push({ lc: tc, lr: baseRow + mid, axis: 'x' });
 		} else {
-			const tr = baseRow + CELL - 1;
+			const tr = c.side === SIDE_S ? baseRow + CELL - 1 : baseRow;
 			for (let k = -GATE_HALF; k <= GATE_HALF; k++)
 				tiles[tr * cols + baseCol + mid + k] = k === 0 ? ARCH : WALL;
-			out.push({ lc: baseCol + mid, lr: tr, axis: 'z' });
+			if (c.side === SIDE_S)
+				out.push({ lc: baseCol + mid, lr: tr, axis: 'z' });
 		}
 	}
 	return out;
