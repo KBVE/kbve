@@ -1,4 +1,4 @@
-import { ARMOR_PIECES } from '../character/armor';
+import { ARMOR_PIECES, pieceLabel } from '../character/armor';
 
 // Bare-body mesh names → friendly labels. Armor slot labels are derived from
 // ARMOR_PIECES below so the codex hover matches the equip UI wording.
@@ -30,7 +30,8 @@ const BODY: Record<string, string> = {
 };
 
 const SLOT_LABEL: Record<string, string> = {};
-for (const p of ARMOR_PIECES) for (const s of p.slots) SLOT_LABEL[s] = p.label;
+for (const p of ARMOR_PIECES)
+	for (const s of p.slots) SLOT_LABEL[s] = pieceLabel(p.id);
 
 /** Friendly label for a SIDEKICK slot mesh (armor piece wins over bare body). */
 export function partLabel(name: string | undefined): string | null {

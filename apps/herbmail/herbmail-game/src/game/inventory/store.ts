@@ -216,13 +216,13 @@ export function autoEquip(): void {
 	const wornKeys = new Set<string>();
 	for (const id of getEquipped()) {
 		const piece = PIECE_BY_ID.get(id);
-		if (piece) wornKeys.add(piece.slotKey);
+		for (const k of piece?.slotKeys ?? []) wornKeys.add(k);
 	}
 	for (const p of [...items]) {
 		if (isArmorItem(p.itemId)) {
 			const piece = PIECE_BY_ID.get(p.itemId);
-			if (piece && !wornKeys.has(piece.slotKey)) {
-				wornKeys.add(piece.slotKey);
+			if (piece && !piece.slotKeys.some((k) => wornKeys.has(k))) {
+				for (const k of piece.slotKeys) wornKeys.add(k);
 				setArmor(p.itemId, true);
 			}
 			continue;

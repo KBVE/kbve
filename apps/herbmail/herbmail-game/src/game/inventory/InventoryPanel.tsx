@@ -11,9 +11,9 @@ import {
 	type PlacedItem,
 } from './store';
 import { setEquipped } from '../viewmodel/store';
-import { PIECE_BY_ID, setArmor } from '../character/armor';
+import { setArmor } from '../character/armor';
 import { isArmorItem } from './items';
-import { Paperdoll } from './Paperdoll';
+import { Paperdoll, displaySlotFor } from './Paperdoll';
 import { kbve } from './tags';
 
 const CELL = 42;
@@ -62,7 +62,7 @@ export function InventoryPanel() {
 				) as HTMLElement | null
 			)?.closest('[data-armor-slot]') as HTMLElement | null;
 			const slotId = slot?.dataset.armorSlot;
-			if (slotId && PIECE_BY_ID.get(drag.itemId)?.slotKey === slotId) {
+			if (slotId && displaySlotFor(drag.itemId) === slotId) {
 				setArmor(drag.itemId, true);
 				setDrag(null);
 				return;
@@ -301,7 +301,20 @@ export function InventoryPanel() {
 										userSelect: 'none',
 										touchAction: 'none',
 									}}>
-									{def?.label ?? p.itemId}
+									{def?.icon ? (
+										<img
+											src={def.icon}
+											alt={def.label}
+											style={{
+												maxWidth: '90%',
+												maxHeight: '80%',
+												imageRendering: 'pixelated',
+												pointerEvents: 'none',
+											}}
+										/>
+									) : (
+										(def?.label ?? p.itemId)
+									)}
 								</div>
 							);
 						})}

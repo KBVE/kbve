@@ -1,0 +1,39 @@
+---
+title: 'Campaign Pack'
+template: splash
+sidebar:
+    label: 'Campaign Pack'
+    hidden: true
+description: |
+    A campaign pack of oiled canvas and brass buckles, rigged to sit above the sword arm. Rattles only when empty.
+ref: 'campaign-pack'
+key: 603
+id: '01KXFBEGM0FHS9EVQTRM0V955G'
+name: 'Campaign Pack'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 45
+emoji: '🎒'
+img: '/assets/items/equipment/campaign-pack.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'KNGT'
+  nodes:
+    - 'ABAC'
+  slot_keys:
+    - 'ABAC'
+equipment:
+  slot: 'back'
+  bonuses:
+    extra:
+      weight: 3
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
