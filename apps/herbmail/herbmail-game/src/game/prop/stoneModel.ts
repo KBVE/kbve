@@ -148,7 +148,7 @@ export function stoneGeometry(
 		size,
 		shape.detail,
 	);
-	if (shape.faceted) geo = geo.toNonIndexed();
+	if (shape.faceted && geo.index) geo = geo.toNonIndexed();
 	const pos = geo.attributes.position as THREE.BufferAttribute;
 	const amp = shape.amp * size;
 	const noiseFreq = 2.4 / Math.max(size, 1e-4);
