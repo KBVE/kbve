@@ -92,7 +92,7 @@ export function App() {
 				style={{
 					imageRendering: psx.dpr < 1 ? 'pixelated' : 'auto',
 				}}>
-				<color attach="background" args={['#0a0a0e']} />
+				<color attach="background" args={['#000000']} />
 				<ambientLight intensity={0.05} />
 				<Suspense fallback={null}>
 					<Dungeon snap={psx.snap} affine={psx.affine} />

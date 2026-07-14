@@ -21,6 +21,11 @@ const CULL_RADIUS = FOG.far + LIGHT_RANGE;
 const CULL_SQ = CULL_RADIUS * CULL_RADIUS;
 const POINT_LIGHTS = 6;
 const POINT_SCALE = 3.0;
+// Caster handoff: challenger torch must be this fraction of the current
+// caster's squared player distance to steal the role (hysteresis), and the
+// shadow fades out/in over FADE_TIME on each swap instead of popping.
+const SWAP_RATIO = 0.55;
+const FADE_TIME = 0.18;
 const SHADOW_CASTERS = 2;
 // Hoisted so the mecs `each` name-map is cached (zero per-frame allocation).
 const LIGHT_TERMS = [LightEmitter, Transform3];
@@ -42,10 +47,20 @@ interface Ranked {
 // feeds the nearest MAX_LIGHTS into the PSX shader uniforms plus the nearest
 // POINT_LIGHTS real point lights (for standard-material meshes the shader misses).
 // Ported from the retired TorchLighting component.
+interface ShadowSlot {
+	light: THREE.PointLight;
+	pos: THREE.Vector3 | null;
+	pending: THREE.Vector3;
+	hasPending: boolean;
+	fade: number;
+}
+
 export class LightSystem {
 	readonly root = new THREE.Group();
 	private readonly lights: THREE.PointLight[] = [];
-	private readonly shadowLights: THREE.PointLight[] = [];
+	private readonly slots: ShadowSlot[] = [];
+	private lastTime = 0;
+	private frame = 0;
 	private readonly pos = Array.from(
 		{ length: MAX_LIGHTS },
 		() => new THREE.Vector3(),
@@ -59,8 +74,6 @@ export class LightSystem {
 	// reused 2-slot buffer for the nearest-to-player shadow lights.
 	private readonly pool: Ranked[] = [];
 	private active: Ranked[] = [];
-	private casters: (Ranked | null)[] = [null, null];
-	private frame = 0;
 
 	private take(): Ranked {
 		let r = this.pool[this.active.length];
@@ -99,7 +112,13 @@ export class LightSystem {
 			sl.shadow.camera.far = LIGHT_RANGE;
 			sl.shadow.bias = -0.005;
 			sl.shadow.radius = 4;
-			this.shadowLights.push(sl);
+			this.slots.push({
+				light: sl,
+				pos: null,
+				pending: new THREE.Vector3(),
+				hasPending: false,
+				fade: 0,
+			});
 			this.root.add(sl);
 		}
 	}
@@ -218,57 +237,116 @@ export class LightSystem {
 			}
 		}
 
-		// Nearest-to-player SHADOW_CASTERS (2), linear-scanned into a reused buffer —
-		// no slice/sort. Ordered by tier then player distance.
-		this.casters[0] = null;
-		this.casters[1] = null;
+		const dt = Math.min(Math.max(time - this.lastTime, 0), 0.1);
+		this.lastTime = time;
+		this.updateShadowCasters(dt);
+	}
+
+	// The two nearest torches own the cube shadow casters. A slot keeps its
+	// torch until it clearly loses the ranking (SWAP_RATIO hysteresis), and
+	// every handoff crossfades shadow.intensity so shadows tween between
+	// torches instead of popping as the player walks.
+	private updateShadowCasters(dt: number): void {
+		let a: Ranked | null = null;
+		let b: Ranked | null = null;
 		for (const l of this.active) {
-			const c0 = this.casters[0];
-			const c1 = this.casters[1];
-			if (
-				!c0 ||
-				l.tier < c0.tier ||
-				(l.tier === c0.tier && l.pdist < c0.pdist)
-			) {
-				this.casters[1] = c0;
-				this.casters[0] = l;
-			} else if (
-				!c1 ||
-				l.tier < c1.tier ||
-				(l.tier === c1.tier && l.pdist < c1.pdist)
-			) {
-				this.casters[1] = l;
+			if (l.tier !== 0) continue;
+			if (!a || l.pdist < a.pdist) {
+				b = a;
+				a = l;
+			} else if (!b || l.pdist < b.pdist) {
+				b = l;
 			}
 		}
-		// Flicker is intensity-only and torches are static, so cube shadow maps
-		// (6 scene passes each) only re-render every 3rd frame or when the caster
-		// actually moves.
+		const top: Ranked[] = [];
+		if (a) top.push(a);
+		if (b) top.push(b);
+
+		const claimed = new Set<Ranked>();
+		for (const slot of this.slots) {
+			if (!slot.pos) continue;
+			const match = top.find(
+				(t) =>
+					!claimed.has(t) &&
+					t.x === slot.pos!.x &&
+					t.y === slot.pos!.y &&
+					t.z === slot.pos!.z,
+			);
+			if (match) claimed.add(match);
+		}
+
 		this.frame++;
 		const refresh = this.frame % 3 === 0;
-		for (let i = 0; i < SHADOW_CASTERS; i++) {
-			const sl = this.shadowLights[i];
-			const l = this.casters[i];
-			if (l) {
-				const moved =
-					sl.position.x !== l.x ||
-					sl.position.y !== l.y ||
-					sl.position.z !== l.z;
-				sl.position.set(l.x, l.y, l.z);
-				if (!sl.visible || moved || refresh) {
-					sl.shadow.needsUpdate = true;
+
+		for (const slot of this.slots) {
+			const cur = slot.pos;
+			const held = cur
+				? top.find(
+						(t) => t.x === cur.x && t.y === cur.y && t.z === cur.z,
+					)
+				: undefined;
+			if (!held) {
+				const free = top.find((t) => !claimed.has(t));
+				if (free) {
+					claimed.add(free);
+					if (!cur) {
+						slot.pos = new THREE.Vector3(free.x, free.y, free.z);
+						slot.fade = 0;
+						slot.hasPending = false;
+					} else {
+						const cx = cur.x - playerAnchor.pos.x;
+						const cz = cur.z - playerAnchor.pos.z;
+						const curDist = cx * cx + cz * cz;
+						if (free.pdist < curDist * SWAP_RATIO) {
+							slot.pending.set(free.x, free.y, free.z);
+							slot.hasPending = true;
+						}
+					}
+				} else if (cur) {
+					slot.hasPending = false;
+					slot.fade = Math.max(0, slot.fade - dt / FADE_TIME);
+					if (slot.fade === 0) slot.pos = null;
 				}
-				sl.visible = true;
-			} else {
-				sl.visible = false;
 			}
+
+			const sl = slot.light;
+			if (!slot.pos) {
+				sl.shadow.intensity = 0;
+				sl.visible = false;
+				continue;
+			}
+			if (slot.hasPending) {
+				slot.fade -= dt / FADE_TIME;
+				if (slot.fade <= 0) {
+					slot.fade = 0;
+					slot.pos.copy(slot.pending);
+					slot.hasPending = false;
+				}
+			} else if (!held && slot.fade > 0) {
+				// fading out handled above
+			} else {
+				slot.fade = Math.min(1, slot.fade + dt / FADE_TIME);
+			}
+
+			const moved =
+				sl.position.x !== slot.pos.x ||
+				sl.position.y !== slot.pos.y ||
+				sl.position.z !== slot.pos.z;
+			sl.position.copy(slot.pos);
+			sl.shadow.intensity = slot.fade;
+			const show = slot.fade > 0;
+			if (show && (!sl.visible || moved || refresh)) {
+				sl.shadow.needsUpdate = true;
+			}
+			sl.visible = show;
 		}
 	}
 
 	dispose(): void {
 		for (const pl of this.lights) this.root.remove(pl);
-		for (const sl of this.shadowLights) {
-			sl.shadow.map?.dispose();
-			this.root.remove(sl);
+		for (const slot of this.slots) {
+			slot.light.shadow.map?.dispose();
+			this.root.remove(slot.light);
 		}
 	}
 }

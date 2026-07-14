@@ -9,7 +9,7 @@ export const TEXEL = 1 / 256;
 export const UV_INSET = TEXEL * 0.5;
 export const ANISOTROPY = 8;
 
-export const FOG = { color: '#0a0a0e', near: 5, far: 30 } as const;
+export const FOG = { color: '#000000', near: 24, far: 72 } as const;
 
 export const TINT = {
 	wall: [1, 1, 1],

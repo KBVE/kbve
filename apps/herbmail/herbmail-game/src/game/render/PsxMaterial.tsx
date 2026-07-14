@@ -206,9 +206,10 @@ const fragment = /* glsl */ `
 			light += uLightColor[i] * base * vis;
 		}
 
-		vec3 lit = tex.rgb * uTint * light;
-		float fog = clamp((vW - uFogNear) / (uFogFar - uFogNear), 0.0, 1.0);
-		vec3 rgb = mix(lit, uFogColor, fog);
+		// No distance fog — darkness comes from light attenuation alone
+		// (everything beyond LIGHT_RANGE falls to black on its own). The
+		// uFogNear/uFogFar band still drives the POM relief LOD above.
+		vec3 rgb = tex.rgb * uTint * light;
 		// Output linear: the AO composer's OutputPass applies the single sRGB
 		// encode, round-tripping back to the tuned display values.
 		gl_FragColor = vec4(pow(rgb, vec3(2.2)), tex.a);
