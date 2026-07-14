@@ -49,6 +49,8 @@ export const PROPS_SCHEMA = {
 		variant: 'u8',
 		axis: 'u8',
 	},
+	Npc: { kind: 'u8', radius: 'f32' },
+	Wander: { vx: 'f32', vz: 'f32', until: 'f32' },
 } satisfies Schema;
 
 export const PROPS_CAP = 8192;

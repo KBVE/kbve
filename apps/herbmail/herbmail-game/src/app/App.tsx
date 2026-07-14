@@ -8,8 +8,9 @@ import { PropRenderer } from '../game/render/PropRenderer';
 import { Hud } from '../game/hud/Hud';
 import { PlayerBars } from '../game/hud/PlayerBars';
 import { InteractPrompt } from '../game/interact/InteractPrompt';
-import { PSX_DEFAULTS } from '../game/config';
+import { BG_COLOR, PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
+import { Goblins } from '../game/npc/Goblins';
 import { PhysicsBodies } from '../game/sab/PhysicsBodies';
 import { AOComposer } from '../game/render/AOComposer';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
@@ -92,13 +93,16 @@ export function App() {
 				style={{
 					imageRendering: psx.dpr < 1 ? 'pixelated' : 'auto',
 				}}>
-				<color attach="background" args={['#000000']} />
+				<color attach="background" args={[BG_COLOR]} />
 				<ambientLight intensity={0.05} />
 				<Suspense fallback={null}>
 					<Dungeon snap={psx.snap} affine={psx.affine} />
 				</Suspense>
 				<Suspense fallback={null}>
 					<ThirdPersonPlayer url={CHARACTER_URL} />
+				</Suspense>
+				<Suspense fallback={null}>
+					<Goblins />
 				</Suspense>
 				<Suspense fallback={null}>
 					<PropRenderer ambient={0.04} />
