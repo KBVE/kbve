@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { itemLabel, itemStat } from '../data/itemdb';
+import { itemLabel, itemStat, sidekickModels } from '../data/itemdb';
 
 export type PartSet = 'KNGT' | 'SCFI09' | 'SCFI10' | 'HORR01';
 
@@ -51,73 +51,22 @@ export const BODY_BASE = new Set([
 	'TONG',
 ]);
 
-const HELM_COVERS = ['HAIR', 'SCFI09_HAIR'];
-
-function kngt(id: string, keys: string[], covers?: string[]): ArmorPiece {
-	return { id, slots: keys, slotKeys: keys, set: 'KNGT', covers };
-}
-
-function pref(
-	id: string,
-	set: 'SCFI09' | 'SCFI10' | 'HORR01',
-	keys: string[],
-	covers?: string[],
-): ArmorPiece {
-	return {
-		id,
-		slots: keys.map((k) => `${set}_${k}`),
-		slotKeys: keys,
-		set,
-		covers,
-	};
-}
-
 /**
- * Removable outfit layers over the permanent {@link BODY_BASE}. One piece per
- * equipment SET (pairs and quads are a single item — see the itemdb design
- * spec); its meshes stay individually named for limb-level systems. Knight
- * meshes live in character-anim.glb; the other sets lazy-load from
- * public/models/parts/ (partsLoader.ts). Pieces sharing any slotKey are
- * mutually exclusive — equipping one evicts the overlapping occupants.
+ * Removable outfit layers over the permanent {@link BODY_BASE}, built from the
+ * itemdb bundle: every item whose `model.pack` is SIDEKICK is a wardrobe
+ * piece — one per equipment SET (pairs/quads are single items; meshes stay
+ * individually named for limb-level systems). Knight meshes live in
+ * character-anim.glb; the other sets lazy-load from public/models/parts/
+ * (partsLoader.ts). Pieces sharing any slotKey are mutually exclusive.
+ * Adding an item = author its MDX (with a model block) and regen the bundle.
  */
-export const ARMOR_PIECES: ArmorPiece[] = [
-	kngt('vanguard-helm', ['AHED'], HELM_COVERS),
-	kngt('worn-eye-patch', ['AFAC']),
-	kngt('campaign-pack', ['ABAC']),
-	kngt('vanguard-breastplate', ['TORS']),
-	kngt('vanguard-pauldrons', ['ASHL', 'ASHR']),
-	kngt('vanguard-arm-guards', ['AUPL', 'AUPR']),
-	kngt('vanguard-elbow-guards', ['AEBL', 'AEBR']),
-	kngt('vanguard-bracers', ['ALWL', 'ALWR']),
-	kngt('vanguard-gauntlets', ['HNDL', 'HNDR']),
-	kngt('vanguard-tassets', ['HIPS']),
-	kngt('vanguard-faulds', ['AHPF', 'AHPB', 'AHPL', 'AHPR']),
-	kngt('vanguard-greaves', ['LEGL', 'LEGR']),
-	kngt('vanguard-knee-guards', ['AKNL', 'AKNR']),
-	kngt('vanguard-sabatons', ['FOTL', 'FOTR']),
-
-	pref('ion-blue-hair', 'SCFI09', ['HAIR']),
-	pref('optic-visor', 'SCFI09', ['AHED']),
-	pref('filter-mask', 'SCFI09', ['AFAC']),
-	pref('tech-pack', 'SCFI09', ['ABAC']),
-	pref('circuit-jacket', 'SCFI09', ['TORS']),
-	pref('padded-sleeves', 'SCFI09', ['AUPL', 'AUPR']),
-	pref('utility-cuffs', 'SCFI09', ['ALWL', 'ALWR']),
-	pref('grip-gloves', 'SCFI09', ['HNDL', 'HNDR']),
-	pref('cargo-slacks', 'SCFI09', ['HIPS']),
-	pref('shin-wraps', 'SCFI09', ['LEGL', 'LEGR']),
-	pref('mag-sneakers', 'SCFI09', ['FOTL', 'FOTR']),
-	pref('pouch-rig', 'SCFI09', ['AHPF', 'AHPB', 'AHPL', 'AHPR']),
-	pref('impact-shoulder-pads', 'SCFI09', ['ASHL', 'ASHR']),
-	pref('impact-elbow-pads', 'SCFI09', ['AEBL', 'AEBR']),
-	pref('impact-knee-pads', 'SCFI09', ['AKNL', 'AKNR']),
-
-	pref('crest-helmet', 'SCFI10', ['AHED'], HELM_COVERS),
-	pref('hardcase-pouches', 'SCFI10', ['AHPB', 'AHPL', 'AHPR']),
-	pref('hardpoint-shoulders', 'SCFI10', ['ASHL', 'ASHR']),
-
-	pref('grinning-pumpkin-helm', 'HORR01', ['AHED'], HELM_COVERS),
-];
+export const ARMOR_PIECES: ArmorPiece[] = sidekickModels().map((m) => ({
+	id: m.ref,
+	slots: m.nodes,
+	slotKeys: m.slot_keys,
+	set: m.set,
+	covers: m.covers,
+}));
 
 export const PIECE_BY_ID = new Map(ARMOR_PIECES.map((p) => [p.id, p]));
 

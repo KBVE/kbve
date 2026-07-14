@@ -869,6 +869,16 @@
       "buy_price": 45,
       "emoji": "🎒",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "ABAC"
+        ],
+        "slot_keys": [
+          "ABAC"
+        ]
+      },
       "equipment": {
         "slot": "back",
         "bonuses": {
@@ -987,6 +997,16 @@
       "buy_price": 45,
       "emoji": "👖",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_HIPS"
+        ],
+        "slot_keys": [
+          "HIPS"
+        ]
+      },
       "equipment": {
         "slot": "legs",
         "bonuses": {
@@ -1205,6 +1225,16 @@
       "buy_price": 95,
       "emoji": "🧥",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_TORS"
+        ],
+        "slot_keys": [
+          "TORS"
+        ]
+      },
       "equipment": {
         "slot": "chest",
         "bonuses": {
@@ -1486,6 +1516,20 @@
       "buy_price": 160,
       "emoji": "⛑️",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI10",
+        "nodes": [
+          "SCFI10_AHED"
+        ],
+        "slot_keys": [
+          "AHED"
+        ],
+        "covers": [
+          "HAIR",
+          "SCFI09_HAIR"
+        ]
+      },
       "equipment": {
         "slot": "head",
         "bonuses": {
@@ -1925,6 +1969,16 @@
       "buy_price": 25,
       "emoji": "😷",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_AFAC"
+        ],
+        "slot_keys": [
+          "AFAC"
+        ]
+      },
       "equipment": {
         "slot": "head",
         "bonuses": {
@@ -2510,6 +2564,20 @@
       "buy_price": 175,
       "emoji": "🎃",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "HORR01",
+        "nodes": [
+          "HORR01_AHED"
+        ],
+        "slot_keys": [
+          "AHED"
+        ],
+        "covers": [
+          "HAIR",
+          "SCFI09_HAIR"
+        ]
+      },
       "equipment": {
         "slot": "head",
         "bonuses": {
@@ -2539,6 +2607,18 @@
       "buy_price": 35,
       "emoji": "🧤",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_HNDL",
+          "SCFI09_HNDR"
+        ],
+        "slot_keys": [
+          "HNDL",
+          "HNDR"
+        ]
+      },
       "equipment": {
         "slot": "hands",
         "bonuses": {
@@ -2568,6 +2648,20 @@
       "buy_price": 65,
       "emoji": "🧰",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI10",
+        "nodes": [
+          "SCFI10_AHPB",
+          "SCFI10_AHPL",
+          "SCFI10_AHPR"
+        ],
+        "slot_keys": [
+          "AHPB",
+          "AHPL",
+          "AHPR"
+        ]
+      },
       "equipment": {
         "slot": "legs",
         "bonuses": {
@@ -2596,6 +2690,18 @@
       "buy_price": 120,
       "emoji": "🛡️",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI10",
+        "nodes": [
+          "SCFI10_ASHL",
+          "SCFI10_ASHR"
+        ],
+        "slot_keys": [
+          "ASHL",
+          "ASHR"
+        ]
+      },
       "equipment": {
         "slot": "chest",
         "bonuses": {
@@ -2748,6 +2854,18 @@
       "buy_price": 25,
       "emoji": "🦾",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_AEBL",
+          "SCFI09_AEBR"
+        ],
+        "slot_keys": [
+          "AEBL",
+          "AEBR"
+        ]
+      },
       "equipment": {
         "slot": "hands",
         "bonuses": {
@@ -2777,6 +2895,18 @@
       "buy_price": 25,
       "emoji": "🦵",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_AKNL",
+          "SCFI09_AKNR"
+        ],
+        "slot_keys": [
+          "AKNL",
+          "AKNR"
+        ]
+      },
       "equipment": {
         "slot": "legs",
         "bonuses": {
@@ -2806,6 +2936,18 @@
       "buy_price": 40,
       "emoji": "🛡️",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_ASHL",
+          "SCFI09_ASHR"
+        ],
+        "slot_keys": [
+          "ASHL",
+          "ASHR"
+        ]
+      },
       "equipment": {
         "slot": "chest",
         "bonuses": {
@@ -2873,6 +3015,16 @@
       "buy_price": 15,
       "emoji": "💇",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_HAIR"
+        ],
+        "slot_keys": [
+          "HAIR"
+        ]
+      },
       "equipment": {
         "slot": "head"
       },
@@ -3601,6 +3753,18 @@
       "buy_price": 50,
       "emoji": "👟",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_FOTL",
+          "SCFI09_FOTR"
+        ],
+        "slot_keys": [
+          "FOTL",
+          "FOTR"
+        ]
+      },
       "equipment": {
         "slot": "feet",
         "bonuses": {
@@ -4024,6 +4188,16 @@
       "buy_price": 55,
       "emoji": "🥽",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_AHED"
+        ],
+        "slot_keys": [
+          "AHED"
+        ]
+      },
       "equipment": {
         "slot": "head",
         "bonuses": {
@@ -4074,6 +4248,18 @@
       "buy_price": 30,
       "emoji": "💪",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_AUPL",
+          "SCFI09_AUPR"
+        ],
+        "slot_keys": [
+          "AUPL",
+          "AUPR"
+        ]
+      },
       "equipment": {
         "slot": "chest",
         "bonuses": {
@@ -4382,6 +4568,22 @@
       "buy_price": 40,
       "emoji": "👝",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_AHPF",
+          "SCFI09_AHPB",
+          "SCFI09_AHPL",
+          "SCFI09_AHPR"
+        ],
+        "slot_keys": [
+          "AHPF",
+          "AHPB",
+          "AHPL",
+          "AHPR"
+        ]
+      },
       "equipment": {
         "slot": "legs",
         "bonuses": {
@@ -5345,6 +5547,18 @@
       "buy_price": 20,
       "emoji": "🦵",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_LEGL",
+          "SCFI09_LEGR"
+        ],
+        "slot_keys": [
+          "LEGL",
+          "LEGR"
+        ]
+      },
       "equipment": {
         "slot": "legs",
         "bonuses": {
@@ -5875,6 +6089,16 @@
       "buy_price": 85,
       "emoji": "🔋",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_ABAC"
+        ],
+        "slot_keys": [
+          "ABAC"
+        ]
+      },
       "equipment": {
         "slot": "back",
         "bonuses": {
@@ -6250,6 +6474,18 @@
       "buy_price": 25,
       "emoji": "⌚",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "SCFI09",
+        "nodes": [
+          "SCFI09_ALWL",
+          "SCFI09_ALWR"
+        ],
+        "slot_keys": [
+          "ALWL",
+          "ALWR"
+        ]
+      },
       "equipment": {
         "slot": "hands",
         "bonuses": {
@@ -6385,6 +6621,18 @@
       "buy_price": 40,
       "emoji": "💪",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "AUPL",
+          "AUPR"
+        ],
+        "slot_keys": [
+          "AUPL",
+          "AUPR"
+        ]
+      },
       "equipment": {
         "slot": "chest",
         "bonuses": {
@@ -6414,6 +6662,18 @@
       "buy_price": 40,
       "emoji": "🦾",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "ALWL",
+          "ALWR"
+        ],
+        "slot_keys": [
+          "ALWL",
+          "ALWR"
+        ]
+      },
       "equipment": {
         "slot": "hands",
         "bonuses": {
@@ -6443,6 +6703,16 @@
       "buy_price": 140,
       "emoji": "🛡️",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "TORS"
+        ],
+        "slot_keys": [
+          "TORS"
+        ]
+      },
       "equipment": {
         "slot": "chest",
         "bonuses": {
@@ -6473,6 +6743,18 @@
       "buy_price": 30,
       "emoji": "🦾",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "AEBL",
+          "AEBR"
+        ],
+        "slot_keys": [
+          "AEBL",
+          "AEBR"
+        ]
+      },
       "equipment": {
         "slot": "hands",
         "bonuses": {
@@ -6502,6 +6784,22 @@
       "buy_price": 80,
       "emoji": "🛡️",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "AHPF",
+          "AHPB",
+          "AHPL",
+          "AHPR"
+        ],
+        "slot_keys": [
+          "AHPF",
+          "AHPB",
+          "AHPL",
+          "AHPR"
+        ]
+      },
       "equipment": {
         "slot": "legs",
         "bonuses": {
@@ -6531,6 +6829,18 @@
       "buy_price": 60,
       "emoji": "🧤",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "HNDL",
+          "HNDR"
+        ],
+        "slot_keys": [
+          "HNDL",
+          "HNDR"
+        ]
+      },
       "equipment": {
         "slot": "hands",
         "bonuses": {
@@ -6560,6 +6870,18 @@
       "buy_price": 75,
       "emoji": "🦵",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "LEGL",
+          "LEGR"
+        ],
+        "slot_keys": [
+          "LEGL",
+          "LEGR"
+        ]
+      },
       "equipment": {
         "slot": "legs",
         "bonuses": {
@@ -6589,6 +6911,20 @@
       "buy_price": 90,
       "emoji": "🪖",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "AHED"
+        ],
+        "slot_keys": [
+          "AHED"
+        ],
+        "covers": [
+          "HAIR",
+          "SCFI09_HAIR"
+        ]
+      },
       "equipment": {
         "slot": "head",
         "bonuses": {
@@ -6618,6 +6954,18 @@
       "buy_price": 30,
       "emoji": "🦵",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "AKNL",
+          "AKNR"
+        ],
+        "slot_keys": [
+          "AKNL",
+          "AKNR"
+        ]
+      },
       "equipment": {
         "slot": "legs",
         "bonuses": {
@@ -6647,6 +6995,18 @@
       "buy_price": 70,
       "emoji": "🛡️",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "ASHL",
+          "ASHR"
+        ],
+        "slot_keys": [
+          "ASHL",
+          "ASHR"
+        ]
+      },
       "equipment": {
         "slot": "chest",
         "bonuses": {
@@ -6676,6 +7036,18 @@
       "buy_price": 70,
       "emoji": "🥾",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "FOTL",
+          "FOTR"
+        ],
+        "slot_keys": [
+          "FOTL",
+          "FOTR"
+        ]
+      },
       "equipment": {
         "slot": "feet",
         "bonuses": {
@@ -6705,6 +7077,16 @@
       "buy_price": 65,
       "emoji": "🛡️",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "HIPS"
+        ],
+        "slot_keys": [
+          "HIPS"
+        ]
+      },
       "equipment": {
         "slot": "legs",
         "bonuses": {
@@ -7134,6 +7516,16 @@
       "buy_price": 10,
       "emoji": "🏴‍☠️",
       "action": "equip",
+      "model": {
+        "pack": "SIDEKICK",
+        "set": "KNGT",
+        "nodes": [
+          "AFAC"
+        ],
+        "slot_keys": [
+          "AFAC"
+        ]
+      },
       "equipment": {
         "slot": "head",
         "bonuses": {
