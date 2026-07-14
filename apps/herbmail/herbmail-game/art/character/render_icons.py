@@ -68,7 +68,7 @@ SETS = [
      ["26AHPB", "27AHPL", "28AHPR"], "T_Starter_02ColorMap.png"),
     ("hardpoint-shoulders", SC10, ["29ASHL",
      "30ASHR"], "T_Starter_02ColorMap.png"),
-    ("grinning-gourd-helm", HORR, ["22AHED"], "T_Starter_04ColorMap.png"),
+    ("grinning-pumpkin-helm", HORR, ["22AHED"], "T_Starter_04ColorMap.png"),
 ]
 
 

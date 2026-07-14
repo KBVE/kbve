@@ -116,7 +116,7 @@ export const ARMOR_PIECES: ArmorPiece[] = [
 	pref('hardcase-pouches', 'SCFI10', ['AHPB', 'AHPL', 'AHPR']),
 	pref('hardpoint-shoulders', 'SCFI10', ['ASHL', 'ASHR']),
 
-	pref('grinning-gourd-helm', 'HORR01', ['AHED'], HELM_COVERS),
+	pref('grinning-pumpkin-helm', 'HORR01', ['AHED'], HELM_COVERS),
 ];
 
 export const PIECE_BY_ID = new Map(ARMOR_PIECES.map((p) => [p.id, p]));

@@ -45,7 +45,7 @@ export const CODEX_LOADOUTS: CodexLoadout[] = [
 		label: 'Villain',
 		equipped: new Set([
 			...FREE.filter((id) => id !== 'vanguard-breastplate'),
-			'grinning-gourd-helm',
+			'grinning-pumpkin-helm',
 		]),
 	},
 	{ id: 'free', label: 'Free / Standard', equipped: new Set(FREE) },

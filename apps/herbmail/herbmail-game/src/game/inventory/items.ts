@@ -82,7 +82,7 @@ const ARMOR_META: Record<string, { fp: Footprint; color: string }> = {
 	'crest-helmet': { fp: { w: 2, h: 2 }, color: '#c07a3a' },
 	'hardcase-pouches': { fp: { w: 2, h: 2 }, color: '#a2743a' },
 	'hardpoint-shoulders': { fp: { w: 2, h: 1 }, color: '#b2823a' },
-	'grinning-gourd-helm': { fp: { w: 2, h: 2 }, color: '#7a3a42' },
+	'grinning-pumpkin-helm': { fp: { w: 2, h: 2 }, color: '#7a3a42' },
 };
 
 for (const p of ARMOR_PIECES) {

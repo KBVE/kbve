@@ -225,7 +225,7 @@ namespace RareIcon
             { "crest-helmet", ItemId.CrestHelmet },
             { "hardcase-pouches", ItemId.HardcasePouches },
             { "hardpoint-shoulders", ItemId.HardpointShoulders },
-            { "grinning-gourd-helm", ItemId.GrinningGourdHelm },
+            { "grinning-pumpkin-helm", ItemId.GrinningPumpkinHelm },
         };
     }
 }

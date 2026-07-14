@@ -221,6 +221,6 @@ namespace RareIcon
         CrestHelmet = 630,  // crest-helmet
         HardcasePouches = 631,  // hardcase-pouches
         HardpointShoulders = 632,  // hardpoint-shoulders
-        GrinningGourdHelm = 633,  // grinning-gourd-helm
+        GrinningPumpkinHelm = 633,  // grinning-pumpkin-helm
     }
 }
