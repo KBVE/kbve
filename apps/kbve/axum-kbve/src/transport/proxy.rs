@@ -116,17 +116,17 @@ impl ServiceProxy {
         req: Request<Body>,
         upstream_auth_override: Option<String>,
     ) -> Response {
-        let req_headers = req.headers().clone();
         let suffix = path.map(|Path(p)| p).unwrap_or_default();
-        let query = req
-            .uri()
-            .query()
-            .map(|q| format!("?{q}"))
-            .unwrap_or_default();
-        let upstream_url = format!("{}/{}{}", self.upstream, suffix, query);
+        let (parts, body) = req.into_parts();
 
-        let method = req.method().clone();
-        let mut headers = req_headers;
+        let mut upstream_url = format!("{}/{}", self.upstream, suffix);
+        if let Some(q) = parts.uri.query() {
+            upstream_url.push('?');
+            upstream_url.push_str(q);
+        }
+
+        let method = parts.method;
+        let mut headers = parts.headers;
 
         // RFC 7230 §6.1: hop-by-hop headers must not cross proxy boundaries.
         // accept-encoding is also removed so upstream never compresses — we
@@ -159,7 +159,7 @@ impl ServiceProxy {
             headers.insert(name.clone(), value.clone());
         }
 
-        let body_bytes = match axum::body::to_bytes(req.into_body(), 10 * 1024 * 1024).await {
+        let body_bytes = match axum::body::to_bytes(body, 10 * 1024 * 1024).await {
             Ok(b) => b,
             Err(_) => {
                 return (
@@ -341,11 +341,11 @@ impl ServiceProxy {
 
 /// Extract Bearer token from Authorization header, `?access_token=` query,
 /// or `kasm_session` / `dashboard_session` cookie.
-fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String> {
+fn extract_auth_token<'a>(headers: &'a HeaderMap, query: Option<&'a str>) -> Option<&'a str> {
     if let Some(h) = headers.get(header::AUTHORIZATION) {
         if let Ok(s) = h.to_str() {
             if let Some(t) = extract_bearer_token(s) {
-                return Some(t.to_string());
+                return Some(t);
             }
         }
     }
@@ -353,7 +353,7 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
         for pair in qs.split('&') {
             if let Some(val) = pair.strip_prefix("access_token=") {
                 if !val.is_empty() {
-                    return Some(val.to_string());
+                    return Some(val);
                 }
             }
         }
@@ -368,7 +368,7 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
                     .or_else(|| pair.strip_prefix("sb-access-token="))
                 {
                     if !val.is_empty() {
-                        return Some(val.to_string());
+                        return Some(val);
                     }
                 }
             }
@@ -420,7 +420,7 @@ pub(crate) async fn require_dashboard_manage_with_query(
         }
     };
 
-    let token_info = match jwt_cache.verify_and_cache(&auth_token).await {
+    let token_info = match jwt_cache.verify_and_cache(auth_token).await {
         Ok(info) => info,
         Err(e) => {
             warn!("{service_name} proxy JWT rejected: {e}");
@@ -473,8 +473,6 @@ async fn require_dashboard_view_with_query(
         }
     };
 
-    let token = auth_token;
-
     let jwt_cache = match get_jwt_cache() {
         Some(c) => c,
         None => {
@@ -486,7 +484,7 @@ async fn require_dashboard_view_with_query(
         }
     };
 
-    let token_info = match jwt_cache.verify_and_cache(&token).await {
+    let token_info = match jwt_cache.verify_and_cache(auth_token).await {
         Ok(info) => info,
         Err(e) => {
             warn!("{service_name} proxy JWT rejected: {e}");
@@ -3027,7 +3025,7 @@ mod tests {
     #[test]
     fn extract_auth_token_prefers_authorization_header() {
         let h = hdrs(&[(header::AUTHORIZATION.as_str(), "Bearer abc123")]);
-        assert_eq!(extract_auth_token(&h, None), Some("abc123".to_string()));
+        assert_eq!(extract_auth_token(&h, None), Some("abc123"));
     }
 
     #[test]
@@ -3035,20 +3033,20 @@ mod tests {
         let h = HeaderMap::new();
         assert_eq!(
             extract_auth_token(&h, Some("foo=1&access_token=xyz&bar=2")),
-            Some("xyz".to_string())
+            Some("xyz")
         );
     }
 
     #[test]
     fn extract_auth_token_accepts_kasm_session_cookie() {
         let h = hdrs(&[("cookie", "other=1; kasm_session=ksm-token")]);
-        assert_eq!(extract_auth_token(&h, None), Some("ksm-token".to_string()));
+        assert_eq!(extract_auth_token(&h, None), Some("ksm-token"));
     }
 
     #[test]
     fn extract_auth_token_accepts_dashboard_session_cookie() {
         let h = hdrs(&[("cookie", "dashboard_session=dash-token; foo=bar")]);
-        assert_eq!(extract_auth_token(&h, None), Some("dash-token".to_string()));
+        assert_eq!(extract_auth_token(&h, None), Some("dash-token"));
     }
 
     #[test]

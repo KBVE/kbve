@@ -89,7 +89,7 @@ pub async fn exec_handler(
     };
 
     let endpoint = match registry.endpoint(game, &server_raw) {
-        Some(ep) => ep.clone(),
+        Some(ep) => ep,
         None => {
             return error(
                 StatusCode::NOT_FOUND,
@@ -99,7 +99,7 @@ pub async fn exec_handler(
     };
 
     let spec = match registry.command(game, &body.command) {
-        Some(s) => s.clone(),
+        Some(s) => s,
         None => {
             return error(
                 StatusCode::BAD_REQUEST,

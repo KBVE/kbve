@@ -482,7 +482,7 @@ impl ProfileService {
         if deduped.len() > 100 {
             deduped.truncate(100);
         }
-        let in_list = format!("({})", deduped.join(","));
+        let in_filter = format!("in.({})", deduped.join(","));
 
         let url = format!("{}/username", self.client.config().rest_url());
         let headers = self.client.rpc_headers("profile")?;
@@ -494,7 +494,7 @@ impl ProfileService {
             .headers(headers)
             .query(&[
                 ("select", "user_id,username"),
-                ("user_id", format!("in.{}", in_list).as_str()),
+                ("user_id", in_filter.as_str()),
             ])
             .send()
             .await

@@ -877,9 +877,10 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
                 fetch_enriched_profile(&u).await
             })
             .await
-            .map(|arc| (*arc).clone())
     } else {
-        fetch_profile_from_db(&validated_username).await
+        fetch_profile_from_db(&validated_username)
+            .await
+            .map(std::sync::Arc::new)
     };
 
     match profile {
@@ -1804,9 +1805,10 @@ pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl In
                 fetch_enriched_profile(&u).await
             })
             .await
-            .map(|arc| (*arc).clone())
     } else {
-        fetch_profile_from_db(&validated_username).await
+        fetch_profile_from_db(&validated_username)
+            .await
+            .map(std::sync::Arc::new)
     };
 
     match profile {

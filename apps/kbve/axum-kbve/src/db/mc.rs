@@ -213,7 +213,11 @@ impl McService {
     /// online-player cache first and falling back to Mojang sessionserver.
     /// Returns None when Mojang has no profile or the player has no skin.
     pub async fn resolve_skin_by_uuid(&self, uuid: &str) -> Option<String> {
-        let target = uuid.replace('-', "").to_lowercase();
+        let target: String = uuid
+            .chars()
+            .filter(|c| *c != '-')
+            .map(|c| c.to_ascii_lowercase())
+            .collect();
 
         for entry in self.players.iter() {
             if entry.uuid.eq_ignore_ascii_case(&target) && !entry.is_expired() {
@@ -265,12 +269,9 @@ impl McService {
     /// Poll every configured endpoint in parallel so one unreachable backend
     /// (e.g. an Agones fleet with 0 Fabric pods) doesn't sink the others.
     async fn refresh_player_list(&self) {
-        let polls = self.endpoints.iter().map(|ep| {
-            let ep = ep.clone();
-            async move {
-                let result = Self::rcon_list(&ep).await;
-                (ep.name, result)
-            }
+        let polls = self.endpoints.iter().map(|ep| async move {
+            let result = Self::rcon_list(ep).await;
+            (ep.name.clone(), result)
         });
         let results: Vec<RconPollResult> = join_all(polls).await;
 
@@ -290,12 +291,8 @@ impl McService {
                         max,
                         reachable: true,
                     });
-                    let endpoint = self
-                        .endpoints
-                        .iter()
-                        .find(|e| e.name == server_name)
-                        .cloned();
-                    let positions = match endpoint.as_ref() {
+                    let endpoint = self.endpoints.iter().find(|e| e.name == server_name);
+                    let positions = match endpoint {
                         Some(ep) if server_name == "survival" => {
                             Self::rcon_positions(ep, &names).await
                         }
