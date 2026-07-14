@@ -4,6 +4,12 @@ import { useFrame, useThree } from '@react-three/fiber';
 
 const CENTER = new THREE.Vector2(0, 0.26);
 
+function makeRaycaster(): THREE.Raycaster {
+	const r = new THREE.Raycaster();
+	r.firstHitOnly = true;
+	return r;
+}
+
 interface Props {
 	onAim: (kind: string | null) => void;
 }
@@ -11,15 +17,15 @@ interface Props {
 export function AimReticle({ onAim }: Props) {
 	const camera = useThree((s) => s.camera);
 	const scene = useThree((s) => s.scene);
-	const ray = useRef(new THREE.Raycaster());
+	const ray = useRef(makeRaycaster());
 	const last = useRef<string | null | undefined>(undefined);
 	const acc = useRef(0);
 
 	useFrame((_, dt) => {
-		// The aim label is a coarse UI cue; a full recursive scene raycast every frame
-		// is wasteful. Sample at ~10 Hz.
+		// BVH-accelerated firstHitOnly raycast is cheap; 20 Hz keeps the label
+		// snappy without paying per-frame.
 		acc.current += dt;
-		if (acc.current < 0.1) return;
+		if (acc.current < 0.05) return;
 		acc.current = 0;
 		ray.current.setFromCamera(CENTER, camera);
 		const hits = ray.current.intersectObjects(scene.children, true);
