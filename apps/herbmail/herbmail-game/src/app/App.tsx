@@ -14,8 +14,10 @@ import { InteractPrompt } from '../game/interact/InteractPrompt';
 import { BG_COLOR, PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
 import { Goblins } from '../game/npc/Goblins';
+import { KurenaiNpc } from '../game/npc/KurenaiNpc';
 import { PhysicsBodies } from '../game/sab/PhysicsBodies';
 import { AOComposer } from '../game/render/AOComposer';
+import { AdaptiveQuality } from '../game/render/AdaptiveQuality';
 import { EagleEye } from '../game/render/EagleEye';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { DebugStats, StatsProbe } from '../game/hud/DebugStats';
@@ -130,10 +132,14 @@ export function App() {
 					<Goblins />
 				</Suspense>
 				<Suspense fallback={null}>
+					<KurenaiNpc />
+				</Suspense>
+				<Suspense fallback={null}>
 					<PropRenderer ambient={0.04} />
 				</Suspense>
 				<PhysicsBodies />
 				<AOComposer />
+				<AdaptiveQuality />
 				<EagleEye />
 				{debug && <StatsProbe />}
 				{debug && <PoolLevelsDebug />}

@@ -24,6 +24,7 @@ import { CastPhase, abilityById, castDuration } from '../combat/ability';
 import { EquipmentPhysics } from './equipmentPhysics';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
+import type { PartSet } from './armor';
 import { getEquipped, useEquippedArmor } from './armor';
 import { useBodySkinMorph } from './body';
 import { useSkinTint } from './skin';
@@ -178,6 +179,7 @@ interface Props {
 	tint?: string;
 	armor?: Set<string>;
 	hide?: Set<string>;
+	bodySet?: Exclude<PartSet, 'KNGT'>;
 	locomotion?: LocomotionClips;
 	onReady?: (h: CharacterHandle) => void;
 	drive?: (motor: CharacterMotor, t: number) => void;
@@ -231,6 +233,7 @@ export function Character({
 	tint,
 	armor,
 	hide,
+	bodySet,
 	locomotion = DEFAULT_LOCOMOTION,
 	onReady,
 	drive,
@@ -285,7 +288,7 @@ export function Character({
 		});
 		return s;
 	}, [gltf]);
-	useCharacterParts(scene, armor, hide);
+	useCharacterParts(scene, armor, hide, bodySet);
 	useBodySkinMorph(scene);
 	useSkinTint(scene, tint);
 	const spineBones = useMemo(
