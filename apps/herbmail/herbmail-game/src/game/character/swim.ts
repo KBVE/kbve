@@ -138,8 +138,20 @@ export function tickSwim(dt: number, forwardHeld: boolean): void {
 	if (m.mode === 'climb' && climb) {
 		climb.t += dt;
 		const a = Math.min(1, climb.t / climb.total);
-		const e = a * a * (3 - 2 * a);
-		m.position.lerpVectors(climb.from, climb.to, e);
+		// Split axes so the path hugs the rim instead of cutting the corner
+		// through the basin wall: climbing OUT rises flush against the wall
+		// first, then translates forward once the body clears the lip;
+		// climbing IN walks forward over the edge first, then sinks.
+		const s = (v: number) => v * v * (3 - 2 * v);
+		const va = climb.out
+			? Math.min(1, a / 0.6)
+			: Math.max(0, (a - 0.4) / 0.6);
+		const ha = climb.out
+			? Math.max(0, (a - 0.55) / 0.45)
+			: Math.min(1, a / 0.55);
+		m.position.y = THREE.MathUtils.lerp(climb.from.y, climb.to.y, s(va));
+		m.position.x = THREE.MathUtils.lerp(climb.from.x, climb.to.x, s(ha));
+		m.position.z = THREE.MathUtils.lerp(climb.from.z, climb.to.z, s(ha));
 		m.yaw = climb.yaw;
 		if (a >= 1) {
 			if (climb.out) {
