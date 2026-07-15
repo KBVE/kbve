@@ -20,30 +20,23 @@ export const NPC_GOBLIN = 1;
 const WANDER_MIN = 1.5;
 const WANDER_MAX = 4;
 const IDLE_CHANCE = 0.35;
-// Aggro by flow-field cost (real path length in tiles, so walls block aggro —
-// no chasing through rock), with hysteresis so goblins don't strobe at the rim.
+
 const AGGRO_COST = 7;
 const DEAGGRO_COST = 11;
 const BEELINE_COST = 2;
-// Near the player the goblin falls into a gravity-well orbit instead of
-// pressing into melee range (they're curious, not hostile yet): a radial
-// spring toward ORBIT_R plus a tangential drift that occasionally reverses.
+
 const APPROACH_DIST = 3.4;
 const ORBIT_R = 2.1;
 const RADIAL_GAIN = 1.1;
 const TANGENT_FRAC = 0.75;
 const ORBIT_FLIP_MIN = 2.5;
 const ORBIT_FLIP_MAX = 6;
-// Desired velocity is low-passed before integrating — raw steering flips
-// (orbit reversal, separation sign changes) otherwise read as jitter.
+
 const VEL_SMOOTH = 5;
-// Separation steering: soft repulsion between bodies before the hard pushout,
-// so goblins flow around each other instead of grinding circle-to-circle.
+
 const SEP_RADIUS = 0.9;
 const SEP_GAIN = 1.4;
 
-// Movement + body registration live outside the SAB (function/object refs can't
-// be components); keyed by eid and torn down with the entity.
 interface NpcRuntime {
 	body: Body;
 	mover: (pos: { x: number; z: number }, dx: number, dz: number) => void;
@@ -85,7 +78,7 @@ export function spawnGoblin(
 	const body = { pos: { x, z }, radius };
 	runtime.set(eid, {
 		body,
-		mover: makeMover(radius, body),
+		mover: makeMover(radius, body, false, true),
 		unreg: registerBody(body),
 		walkSpeed,
 		chaseSpeed,
@@ -102,9 +95,6 @@ export function despawnGoblin(world: World, eid: number): void {
 	removeEntity(world, eid);
 }
 
-// Soft separation: repulsion from every other npc body (and the player) inside
-// SEP_RADIUS, strongest at contact. Steers headings apart before the hard
-// circle pushout ever engages.
 function separation(self: NpcRuntime, out: { x: number; z: number }): void {
 	out.x = 0;
 	out.z = 0;
@@ -135,11 +125,6 @@ function accumSep(
 
 const sep = { x: 0, z: 0 };
 
-// NPC brain + movement integration. One shared flow field (BFS from the player
-// tile) gives every goblin its chase direction; out of aggro range they wander.
-// Separation steering plus the wall-sliding, body-pushing mover keep them from
-// stacking. Resolved positions write back to Transform3 — the Character view is
-// a pure puppet reading it.
 export function npcSystem(world: World, t: number, dt: number): void {
 	if (playerAnchor.on)
 		updateFlowField(playerAnchor.pos.x, playerAnchor.pos.z);
@@ -165,9 +150,6 @@ export function npcSystem(world: World, t: number, dt: number): void {
 			const tz = playerAnchor.pos.z - p.z;
 			const pd = Math.hypot(tx, tz);
 			if (pd <= APPROACH_DIST) {
-				// Gravity-well orbit: spring toward the preferred ring (in
-				// when far, out when crowding) plus a tangential drift that
-				// occasionally reverses — a curious circling, not an attack.
 				if (t >= rt.orbitUntil) {
 					rt.orbitUntil =
 						t +
@@ -185,8 +167,6 @@ export function npcSystem(world: World, t: number, dt: number): void {
 				vx = nx * radial - nz * tang;
 				vz = nz * radial + nx * tang;
 			} else if (flow.cost <= BEELINE_COST) {
-				// Same/adjacent tile: steer straight at the player instead of
-				// the field's staircase quantization.
 				vx = (tx / pd) * rt.chaseSpeed;
 				vz = (tz / pd) * rt.chaseSpeed;
 			} else {
@@ -210,8 +190,6 @@ export function npcSystem(world: World, t: number, dt: number): void {
 			vz = Wander.vz[eid];
 		}
 
-		// Blend separation into the heading, capped at the active speed so
-		// crowding changes direction, not velocity.
 		separation(rt, sep);
 		if (sep.x !== 0 || sep.z !== 0) {
 			const speed = rt.aggro ? rt.chaseSpeed : rt.walkSpeed;
@@ -223,8 +201,7 @@ export function npcSystem(world: World, t: number, dt: number): void {
 				vz = (vz / len) * speed;
 			}
 		}
-		// Low-pass the commanded velocity so steering flips ease instead of
-		// snapping (the visible jitter when several forces disagree).
+
 		const k = 1 - Math.exp(-VEL_SMOOTH * dt);
 		vx = Wander.vx[eid] + (vx - Wander.vx[eid]) * k;
 		vz = Wander.vz[eid] + (vz - Wander.vz[eid]) * k;

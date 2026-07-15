@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import {
 	solidAtWorld,
+	floorYAtWorld,
 	dungeonSpawn,
 	makeMover,
 	registerBody,
@@ -12,13 +13,14 @@ import { TILE } from '../config';
 import { Character, type CharacterHandle, type BlockPose } from './Character';
 import { useHands } from '../viewmodel/store';
 import { equipmentById } from '../viewmodel/equipment';
-import { SWING, triggerSwing } from './melee';
+import { triggerSwing } from './melee';
 import { useMelee } from './useMelee';
 import { useCrateBreak } from './useCrateBreak';
 import { useStoneMine } from './useStoneMine';
 import { PlayerStats, spend, tickPlayerStats } from './playerStats';
 import { isOpen as isInventoryOpen } from '../inventory/store';
 import { isPlaying } from '../menu/store';
+import { isEagle } from '../menu/eagleStore';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
 import { CharacterShadow } from './CharacterShadow';
 import {
@@ -31,9 +33,12 @@ import {
 } from '../combat/targeting';
 import { losBlockedAt } from '../combat/los';
 import { TargetMarker } from '../combat/TargetMarker';
-import { Transform3 } from '../mecs/props';
+import { Transform3, Caster } from '../mecs/props';
 import { playerEid, playerBits, writePlayerBits } from './playerEntity';
 import { CS, canBlockBits } from './charState';
+import { requestCast } from '../combat/castSystem';
+import { BASIC_ID, CastPhase, abilityById } from '../combat/ability';
+import { bindSwimHandle, registerSwimEntry, tickSwim, swimSpeed } from './swim';
 
 const RADIUS = 0.35;
 const CAM_DIST = 2.2;
@@ -44,9 +49,7 @@ const SHOULDER = 0.62;
 const SHOULDER_LERP = 0.15;
 const CAM_FOLLOW = 12;
 const LOOK_SENS = 0.002;
-// Chromium reports pointer-lock movementX/Y in physical pixels (Retina = 2x
-// what the spec's CSS px say); WebKit reports CSS px. Normalize by DPR on
-// Chromium so look speed matches across browsers.
+
 const isChromium =
 	typeof navigator !== 'undefined' &&
 	((
@@ -69,14 +72,10 @@ function wrapPi(a: number): number {
 }
 const RUN_EP_COST = 18;
 const RUN_EP_RECOVER = 30;
-// Always-on EP regen means the pool never reads exactly 0 mid-sprint (it hovers at
-// one frame of regen). Latch exhaustion at a small floor above that.
+
 const RUN_EP_EMPTY = 1;
-const ATTACK_EP_WEAPON = 8;
 const ATTACK_EP_PUNCH = 4;
 
-// Exact first-wall distance along the camera boom via grid DDA (tile-by-tile),
-// ~1-2 tile checks vs a fixed 0.1 march — and no stair-step camera pop.
 function clampBoom(
 	px: number,
 	pz: number,
@@ -109,7 +108,7 @@ function clampBoom(
 			cellZ += stepZ;
 			tMaxZ += tDeltaZ;
 		}
-		// sample just inside the entered cell (honors arch openings)
+
 		if (solidAtWorld(px + dx * (t + 1e-3), pz + dz * (t + 1e-3))) {
 			return Math.max(CAM_MIN, t - CAM_MARGIN);
 		}
@@ -141,15 +140,20 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		blockPoseRef.current = shield
 			? { clip: 'Idle_Shield_Loop', loop: true }
 			: { clip: 'Sword_Block', loop: false, frac: 0.5 };
-		// Unequipping mid-block would freeze the pose with empty hands.
-		// Capability bits (HAS_WEAPON/HAS_SHIELD) sync from the hands store.
+
 		if (!canBlockBits(playerBits())) handleRef.current?.setBlocking(false);
 	}, [hands, armed]);
 	const handleRef = useRef<CharacterHandle | null>(null);
 	const bodyUnreg = useRef<(() => void) | null>(null);
+	// Two movers: the normal one collides with walls + actor bodies; the terrain
+	// mover collides with walls only, used while lunging so a combo slides on
+	// walls but passes through enemies instead of being deflected off them.
+	const bodyMover = useRef<ReturnType<typeof makeMover> | null>(null);
+	const terrainMover = useRef<ReturnType<typeof makeMover> | null>(null);
 	useMelee();
 	useCrateBreak();
 	useStoneMine();
+	useEffect(() => registerSwimEntry(), []);
 	const keys = useRef<Record<string, boolean>>({});
 	const fwd = useRef(new THREE.Vector3());
 	const right = useRef(new THREE.Vector3());
@@ -177,8 +181,6 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			}
 			if (e.code === 'KeyF') triggerActive();
 			if (e.code === 'Tab') {
-				// Keep browser focus traversal out of the game; tap decides on
-				// keyup (cycle) vs hold (hard lock, engaged from useFrame).
 				e.preventDefault();
 				if (!e.repeat) {
 					tabDownAt.current = performance.now();
@@ -211,14 +213,14 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		const attack = (e: MouseEvent) => {
 			if (!document.pointerLockElement) return;
 			const h = handleRef.current;
-			if (!h) return;
+			if (!h || h.motor.mode !== 'ground') return;
 			if (e.button === 2) {
 				if (canBlockBits(playerBits()))
 					h.setBlocking(true, blockPoseRef.current);
 				return;
 			}
 			if (e.button !== 0 || h.isBlocking()) return;
-			// Soft-lock aim assist: swings face the locked target.
+
 			const locked = getTarget();
 			if (locked !== null) {
 				h.motor.yaw = Math.atan2(
@@ -227,18 +229,12 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				);
 			}
 			if (armedRef.current) {
-				if (PlayerStats.ep.value[PlayerStats.eid] < ATTACK_EP_WEAPON)
-					return;
-				spend(PlayerStats.ep, ATTACK_EP_WEAPON);
-				// step-in: forward impulse -> legs walk (no slide); masked swing
-				// plays over the stepping legs.
-				const m = h.motor;
-				m.velocity.set(
-					Math.sin(m.yaw) * SWING.stepSpeed,
-					0,
-					Math.cos(m.yaw) * SWING.stepSpeed,
-				);
-				void h.animator.playMaskedOnce('Attack_Upper');
+				// Armed basic attack routes through the cast system (ability 0):
+				// castSystem drives the phases + goblin damage, Character plays the
+				// clip, and the lunge is applied per-frame from the cast phase below.
+				// triggerSwing still fires so the mesh-hitbox path keeps breaking
+				// crates/stones (props carry Health but no Targetable).
+				requestCast(playerEid(), BASIC_ID);
 				triggerSwing();
 			} else {
 				if (PlayerStats.ep.value[PlayerStats.eid] < ATTACK_EP_PUNCH)
@@ -251,8 +247,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			if (e.button === 2) handleRef.current?.setBlocking(false);
 		};
 		const noContext = (e: Event) => e.preventDefault();
-		// Losing focus / pointer lock never fires keyup or mouseup, so held keys and
-		// the RMB block would stay stuck (walk forever, permablock). Clear them.
+
 		const reset = () => {
 			keys.current = {};
 			handleRef.current?.setBlocking(false);
@@ -260,13 +255,15 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		const onLockChange = () => {
 			if (document.pointerLockElement !== dom) reset();
 		};
-		// Mouse look drives a TARGET yaw/pitch; the camera eases toward it each
-		// frame (see useFrame) so the crosshair glides instead of snapping 1:1.
+
 		const dom = gl.domElement;
-		const lock = () => dom.requestPointerLock();
+		const lock = () => {
+			if (isEagle()) return;
+			dom.requestPointerLock();
+		};
 		const move = (e: MouseEvent) => {
 			if (document.pointerLockElement !== dom) return;
-			// Hard lock owns the camera; mouse look resumes on release.
+
 			if (isHardLock()) return;
 			const sens = lookScale();
 			targetYaw.current -= e.movementX * sens;
@@ -299,13 +296,11 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	}, [gl]);
 
 	useFrame((_, dtRaw) => {
-		// A backgrounded tab balloons dt to multiple seconds on return; a single huge
-		// step defeats the sub-stepped collision (tunnels through walls). Clamp it.
 		const dt = Math.min(dtRaw, 0.05);
 		tickPlayerStats(dt);
 		const h = handleRef.current;
 		if (!h) return;
-		if (!isPlaying()) {
+		if (!isPlaying() || isEagle()) {
 			h.motor.setDesiredVelocity(0, 0);
 			return;
 		}
@@ -315,9 +310,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		const s = menu ? 0 : (k['KeyD'] ? 1 : 0) - (k['KeyA'] ? 1 : 0);
 		const moving = f !== 0 || s !== 0;
 		const wantRun = !menu && (k['ShiftLeft'] || k['ShiftRight']);
-		// Exhaustion hysteresis: emptying EP locks out sprint until it climbs
-		// back past RUN_EP_RECOVER — otherwise the always-on regen would let a
-		// one-frame sliver re-trigger running every tick.
+
 		const ep = PlayerStats.ep.value[PlayerStats.eid];
 		if (ep <= RUN_EP_EMPTY) exhausted.current = true;
 		else if (ep >= RUN_EP_RECOVER) exhausted.current = false;
@@ -336,7 +329,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		Transform3.dz[pe] = Math.cos(h.motor.yaw);
 
 		tickTargeting(h.motor.position.x, h.motor.position.z);
-		// Tab held past the tap threshold engages hard lock (released in keyup).
+
 		if (
 			k['Tab'] &&
 			!tabHardEngaged.current &&
@@ -346,8 +339,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			setHardLock(true);
 			tabHardEngaged.current = true;
 		}
-		// Hard lock steers the look target at the enemy; the existing ease below
-		// smooths both engage and release.
+
 		const hardEid = isHardLock() ? getTarget() : null;
 		if (hardEid !== null) {
 			const tx = Transform3.px[hardEid] - h.motor.position.x;
@@ -363,34 +355,62 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				-PITCH_MAX,
 				Math.min(PITCH_MAX, Math.atan2(ty, planar)),
 			);
-			// Combat stance: the character squares up to the target while locked,
-			// so movement strafes around it instead of turning the body away.
+
 			h.motor.yawLock = Math.atan2(tx, tz);
 		} else {
 			h.motor.yawLock = null;
 		}
 
-		// Ease camera orientation toward the mouse target (frame-rate independent).
 		const look = 1 - Math.exp(-LOOK_FOLLOW * dt);
 		curYaw.current += (targetYaw.current - curYaw.current) * look;
 		curPitch.current += (targetPitch.current - curPitch.current) * look;
 		eul.current.set(curPitch.current, curYaw.current, 0);
 		camera.quaternion.setFromEuler(eul.current);
 
+		const swimming = h.motor.mode === 'swim';
 		camera.getWorldDirection(fwd.current);
-		fwd.current.y = 0;
+		// Swimming steers along the full camera direction (dive by looking
+		// down); on foot movement stays planar.
+		if (!swimming) fwd.current.y = 0;
 		fwd.current.normalize();
 		right.current.crossVectors(fwd.current, camera.up).normalize();
+		right.current.y = 0;
 
 		dir.current
 			.set(0, 0, 0)
 			.addScaledVector(fwd.current, f)
 			.addScaledVector(right.current, s);
-		const speed = (running ? 4.5 : 1.8) * (h.isBlocking() ? 0.55 : 1);
+		if (swimming && !menu && k['Space']) dir.current.y += 0.8;
+		const speed = swimming
+			? swimSpeed()
+			: (running ? 4.5 : 1.8) * (h.isBlocking() ? 0.55 : 1);
 		if (dir.current.lengthSq() > 0) {
 			dir.current.normalize().multiplyScalar(speed);
 		}
-		h.motor.setDesiredVelocity(dir.current.x, dir.current.z);
+		h.motor.setDesiredVelocity(
+			dir.current.x,
+			dir.current.z,
+			swimming ? dir.current.y : 0,
+		);
+		tickSwim(dt, f > 0);
+		// During an ability cast's windup/active, drive a forward lunge along
+		// facing (dash abilities push harder), overriding WASD; recover releases.
+		const cphase = Caster.phase[pe];
+		const castAb =
+			cphase === CastPhase.Windup || cphase === CastPhase.Active
+				? abilityById(Caster.ability[pe])
+				: undefined;
+		if (castAb && (castAb.lunge > 0 || castAb.dash)) {
+			const push = castAb.dash ? castAb.lunge * 2 : castAb.lunge;
+			h.motor.setDesiredVelocity(
+				Math.sin(h.motor.yaw) * push,
+				Math.cos(h.motor.yaw) * push,
+			);
+			// Slide on terrain only for the lunge — pass through enemies.
+			if (terrainMover.current) h.motor.mover = terrainMover.current;
+		} else if (bodyMover.current && h.motor.mover !== bodyMover.current) {
+			h.motor.mover = bodyMover.current;
+		}
 		refreshPrompt(h.motor.position.x, h.motor.position.z);
 
 		pivot.current.copy(h.motor.position);
@@ -405,9 +425,6 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		);
 		desired.current.copy(pivot.current).addScaledVector(dir.current, -dist);
 
-		// Fixed right-shoulder offset. Only dynamic edge case: if the full offset
-		// would clip a wall, ease the shoulder back in toward center, then ease
-		// back out once clear — no side switching, no movement coupling.
 		const blocked = solidAtWorld(
 			desired.current.x + right.current.x * SHOULDER,
 			desired.current.z + right.current.z * SHOULDER,
@@ -419,8 +436,6 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			SHOULDER * shoulder.current,
 		);
 
-		// Frame-rate independent critically-damped follow so the camera trails the
-		// player smoothly instead of hard-snapping each frame.
 		const a = 1 - Math.exp(-CAM_FOLLOW * dt);
 		camera.position.lerp(desired.current, a);
 	});
@@ -439,7 +454,11 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 					const body = { pos: h.motor.position, radius: RADIUS };
 					bodyUnreg.current?.();
 					bodyUnreg.current = registerBody(body);
-					h.motor.mover = makeMover(RADIUS, body);
+					bodyMover.current = makeMover(RADIUS, body);
+					terrainMover.current = makeMover(RADIUS, body, true);
+					h.motor.mover = bodyMover.current;
+					h.motor.floorAt = floorYAtWorld;
+					bindSwimHandle(h);
 					handleRef.current = h;
 					(window as unknown as Record<string, unknown>).__coll = {
 						solid: solidAtWorld,

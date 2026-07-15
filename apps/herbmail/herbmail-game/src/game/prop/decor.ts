@@ -7,8 +7,6 @@ import { PROP_CRATE, PROP_STONE } from './kinds';
 import { hash01 } from '../geometry/rng';
 import { FLOOR, isSolidTile } from '../geometry/grid';
 
-// One scatter rule: spawn between min..max of `kind` on interior floor tiles,
-// rolled deterministically off the room cell + `salt` so it streams identically.
 export interface ScatterRule {
 	kind: number;
 	min: number;
@@ -16,9 +14,6 @@ export interface ScatterRule {
 	salt: number;
 }
 
-// Per-room-variant decor mix, indexed by RoomDesc.variant (VARIANTS === 6). Plain
-// editable table: most rooms get a light crate + stone scatter; variant 2 is a
-// mine-ish room (more stones), variant 4 leans crates. Tune freely.
 const DECOR_POLICY: ScatterRule[][] = [
 	[
 		{ kind: PROP_CRATE, min: 0, max: 2, salt: 0x0c7a7e },
@@ -80,9 +75,6 @@ function scatterCornerStones(
 	}
 }
 
-// Room mounted -> scatter its deterministic decor props (crates + stones) on
-// interior floor tiles, driven by the variant's policy. Skips suppressed tiles so
-// a mined/broken prop stays gone across room streaming.
 export function scatterDecor(
 	world: DungeonWorld['world'],
 	roomEid: number,

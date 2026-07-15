@@ -11,6 +11,7 @@ import { MAX_LIGHTS, LIGHT_RANGE, psxMaterialRegistry } from './PsxMaterial';
 import type { OcclusionField } from '../dungeon/occlusion';
 import { heldLight } from './heldLight';
 import { playerAnchor } from './playerAnchor';
+import { bodyMotionSig } from '../dungeon/collision';
 import { VIEW_RANGE } from '../config';
 
 const HEAD_REACH = 1.122;
@@ -27,6 +28,7 @@ const POINT_SCALE = 3.0;
 const SWAP_RATIO = 0.55;
 const FADE_TIME = 0.18;
 const SHADOW_CASTERS = 2;
+const SHADOW_MOVE_EPS = 0.02;
 // Hoisted so the mecs `each` name-map is cached (zero per-frame allocation).
 const LIGHT_TERMS = [LightEmitter, Transform3];
 
@@ -61,6 +63,7 @@ export class LightSystem {
 	private readonly slots: ShadowSlot[] = [];
 	private lastTime = 0;
 	private frame = 0;
+	private lastShadowSig = 0;
 	private readonly pos = Array.from(
 		{ length: MAX_LIGHTS },
 		() => new THREE.Vector3(),
@@ -98,16 +101,20 @@ export class LightSystem {
 	constructor() {
 		for (let i = 0; i < POINT_LIGHTS; i++) {
 			const pl = new THREE.PointLight(0xff8a3c, 0, LIGHT_RANGE, 2);
-			pl.visible = false;
+			// Stay visible for the shader's whole life: toggling light.visible (or
+			// count) re-hashes the renderer's lights and recompiles every
+			// light-using program. Inactive lights sit at intensity 0 instead.
+			pl.visible = true;
 			this.lights.push(pl);
 			this.root.add(pl);
 		}
 		for (let i = 0; i < SHADOW_CASTERS; i++) {
 			const sl = new THREE.PointLight(0xffffff, 0, LIGHT_RANGE, 2);
 			sl.castShadow = true;
-			sl.visible = false;
+			sl.visible = true;
+			sl.shadow.intensity = 0;
 			sl.shadow.autoUpdate = false;
-			sl.shadow.mapSize.set(512, 512);
+			sl.shadow.mapSize.set(256, 256);
 			sl.shadow.camera.near = 0.2;
 			sl.shadow.camera.far = LIGHT_RANGE;
 			sl.shadow.bias = -0.005;
@@ -233,9 +240,8 @@ export class LightSystem {
 				pl.position.set(l.x, l.y, l.z);
 				pl.color.setRGB(l.r, l.g, l.b);
 				pl.intensity = l.intensity * POINT_SCALE;
-				pl.visible = true;
 			} else {
-				pl.visible = false;
+				pl.intensity = 0;
 			}
 		}
 
@@ -278,7 +284,15 @@ export class LightSystem {
 		}
 
 		this.frame++;
-		const refresh = this.frame % 3 === 0;
+		// Only re-render shadow maps when a dynamic occluder actually moved
+		// (player/goblins/props). A static scene skips the six-face cube render
+		// entirely instead of paying it every third frame. A rare safety tick
+		// covers anything that mutates geometry without touching a Body.
+		const sig = bodyMotionSig();
+		const occluderMoved =
+			Math.abs(sig - this.lastShadowSig) > SHADOW_MOVE_EPS;
+		if (occluderMoved) this.lastShadowSig = sig;
+		const refresh = occluderMoved || this.frame % 90 === 0;
 
 		for (const slot of this.slots) {
 			const cur = slot.pos;
@@ -314,7 +328,6 @@ export class LightSystem {
 			const sl = slot.light;
 			if (!slot.pos) {
 				sl.shadow.intensity = 0;
-				sl.visible = false;
 				continue;
 			}
 			if (slot.hasPending) {
@@ -335,12 +348,12 @@ export class LightSystem {
 				sl.position.y !== slot.pos.y ||
 				sl.position.z !== slot.pos.z;
 			sl.position.copy(slot.pos);
+			const wasDark = sl.shadow.intensity === 0;
 			sl.shadow.intensity = slot.fade;
 			const show = slot.fade > 0;
-			if (show && (!sl.visible || moved || refresh)) {
+			if (show && (wasDark || moved || refresh)) {
 				sl.shadow.needsUpdate = true;
 			}
-			sl.visible = show;
 		}
 	}
 

@@ -1,17 +1,13 @@
 import * as THREE from 'three';
 import { TILE } from '../config';
 
-export const CHUNK_TILES = 12;
+export const CHUNK_TILES = 8;
 export const CHUNK_WORLD = CHUNK_TILES * TILE;
 
 interface Bucket {
 	arrays: Map<string, number[]>;
 }
 
-// Split one merged sector BufferGeometry into a grid of per-chunk geometries in
-// the same local space, bucketing each triangle by its centroid. Each chunk mesh
-// gets a tight bounding sphere, so three's frustum culling drops the chunks the
-// camera can't see instead of drawing the whole 144u sector to show a 30u slice.
 export function chunkGeometry(
 	geo: THREE.BufferGeometry,
 	chunkWorld = CHUNK_WORLD,

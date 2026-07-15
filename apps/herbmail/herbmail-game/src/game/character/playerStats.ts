@@ -12,9 +12,6 @@ import {
 	type World,
 } from '@kbve/laser/ecs';
 
-// The player's four pools live in their OWN bitecs world, deliberately separate
-// from the dungeon world: dungeon streaming + resetDungeon rebuild that world, and
-// the player must not get swept up in it. One entity, ticked each frame.
 const world: World = createWorld();
 const eid = addEntity(world);
 
@@ -33,8 +30,6 @@ applyStats(world, eid, {
 	spRegen: 8,
 });
 
-// Handles for gameplay to spend/restore against (drain mana on cast, sp on sprint)
-// without re-reading the world.
 export const PlayerStats = {
 	world,
 	eid,
@@ -86,9 +81,6 @@ function changed(a: PoolSnapshot, b: PoolSnapshot): boolean {
 	);
 }
 
-// Advance regen and, at most ~12x/second, publish a fresh snapshot to the HUD —
-// only when something actually moved, so an idle full-bar player triggers zero
-// React renders.
 export function tickPlayerStats(dt: number): void {
 	regenPools(world, dt);
 	accum += dt;
@@ -100,8 +92,6 @@ export function tickPlayerStats(dt: number): void {
 	for (const l of listeners) l();
 }
 
-// Spend from a pool immediately (cost gating lives with the caller); publishes on
-// the next tick like regen.
 export function spend(pool: Pool, amount: number): number {
 	const taken = Math.min(pool.value[eid], amount);
 	pool.value[eid] -= taken;

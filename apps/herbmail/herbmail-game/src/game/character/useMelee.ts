@@ -18,7 +18,7 @@ export function useMelee(): void {
 		p: new THREE.Vector3(),
 		box: new THREE.Box3(),
 	});
-	// resolved once per swing — no per-frame scene traversal (that hitched).
+
 	const pivotRef = useRef<THREE.Object3D | null>(null);
 	const targets = useRef<THREE.Object3D[]>([]);
 	const boxes = useRef<THREE.Box3[]>([]);
@@ -45,7 +45,7 @@ export function useMelee(): void {
 		});
 		pivotRef.current = pivot;
 		targets.current = found;
-		// static AABBs captured once (targets don't move mid-swing)
+
 		boxes.current = found.map((o) => new THREE.Box3().setFromObject(o));
 	}
 
@@ -96,9 +96,9 @@ export function useMelee(): void {
 		const inner = pivot.children[0];
 		if (!inner) return;
 
-		pivot.getWorldPosition(st.base); // grip / hand
-		inner.localToWorld(st.tip.set(0, 0, 0)); // blade tip
-		// extend past the visual tip so slightly-far targets still connect
+		pivot.getWorldPosition(st.base);
+		inner.localToWorld(st.tip.set(0, 0, 0));
+
 		st.tipExt.subVectors(st.tip, st.base);
 		const len = st.tipExt.length() || 1;
 		st.tipExt.multiplyScalar((len + SWING.hitReach) / len).add(st.base);

@@ -1,10 +1,6 @@
 import { Collider, Prop, query, Transform3, type World } from '../mecs/props';
 import { TILE } from '../config';
 
-// Broadphase index of solid props: maps the world tile a Collider prop stands on
-// to its entity id, so movement collision resolves the exact box (Transform3 +
-// Collider) rather than special-casing prop kinds. Rebuilt from the ECS after any
-// prop change (spawn, room stream, break) so it never drifts from the entities.
 const byTile = new Map<number, number>();
 const COLS = 1 << 16;
 
@@ -21,7 +17,6 @@ export function rebuildCrateGrid(world: World): void {
 	}
 }
 
-// Entity id of the solid prop on this tile, or -1 if none.
 export function colliderAt(worldCol: number, worldRow: number): number {
 	return byTile.get(key(worldCol, worldRow)) ?? -1;
 }

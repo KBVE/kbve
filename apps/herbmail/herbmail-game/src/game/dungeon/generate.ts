@@ -1,4 +1,4 @@
-import { ARCH, FLOOR, WALL, COLUMN, type Grid } from '../geometry/grid';
+import { ARCH, FLOOR, WALL, COLUMN, POOL, type Grid } from '../geometry/grid';
 import { WALL_TEX_COUNT } from '../geometry/walls';
 import { hash01 } from '../geometry/rng';
 import {
@@ -26,9 +26,6 @@ const DOOR_THRESHOLD = 0.62;
 const TORCH_KEEP = 0.28;
 const TORCH_GAP = 3;
 
-// Per-cell layout style, folded into the signature so cached geometry stays
-// correct (bounded: 16 doors x VARIANTS x STYLES). 0 = open room, 1 = room with
-// deeper door tunnels, 2 = narrow corridor cell.
 export const STYLE_ROOM = 0;
 export const STYLE_TUNNEL = 1;
 export const STYLE_CORRIDOR = 2;
@@ -41,10 +38,6 @@ function cellStyle(seed: number, cx: number, cy: number): number {
 	return STYLE_CORRIDOR;
 }
 
-// Cosmetic variety pool. Geometry + torches depend only on (doors, variant),
-// so at most 16 doors x VARIANTS distinct rooms ever get built — everything
-// else is a cache hit. Bump for more visual variety at the cost of more cached
-// geometry sets.
 export const VARIANTS = 6;
 
 export interface TorchSlot {
@@ -60,9 +53,6 @@ export interface SpawnSlot {
 	row: number;
 }
 
-// A structural pillar between floor and ceiling. style = which of COLUMN_STYLES
-// shapes (chosen per owning room, never mixed); tex = which wall atlas it shares
-// with that room's walls; torch = carries a mid-shaft sconce light.
 export interface ColumnSlot {
 	col: number;
 	row: number;
@@ -71,13 +61,17 @@ export interface ColumnSlot {
 	torch: boolean;
 }
 
-// A door threshold: a 1-wide arch gap punched through a cell-boundary wall. lc/lr
-// are sector-local tile coords of the gap; axis is the passage direction ('x' =
-// east-west, 'z' = north-south).
 export interface DoorSlot {
 	lc: number;
 	lr: number;
 	axis: 'x' | 'z';
+}
+
+export interface PoolSlot {
+	col: number;
+	row: number;
+	w: number;
+	h: number;
 }
 
 export interface RoomDesc {
@@ -95,9 +89,9 @@ export interface RoomDesc {
 	columns: ColumnSlot[];
 	spawnSlots: SpawnSlot[];
 	doorways: DoorSlot[];
+	pools: PoolSlot[];
 }
 
-// Neighbour directions matching geometry DIRS order: N, S, W, E.
 const NEIGHBORS: { di: number; bit: number; dc: number; dr: number }[] = [
 	{ di: 0, bit: DOOR_N, dc: 0, dr: -1 },
 	{ di: 1, bit: DOOR_S, dc: 0, dr: 1 },
@@ -105,9 +99,6 @@ const NEIGHBORS: { di: number; bit: number; dc: number; dr: number }[] = [
 	{ di: 3, bit: DOOR_E, dc: 1, dr: 0 },
 ];
 
-// Symmetric per-edge hash: the door between cells A and B is decided by the
-// unordered pair, so both rooms compute the identical answer regardless of which
-// is generated first.
 function edgeOpen(
 	seed: number,
 	ax: number,
@@ -131,7 +122,6 @@ function idx(col: number, row: number): number {
 	return row * CELL + col;
 }
 
-// Only interior tiles (never the perimeter/doors) are carveable.
 function setInterior(
 	tiles: Uint8Array,
 	col: number,
@@ -142,9 +132,6 @@ function setInterior(
 		tiles[idx(col, row)] = v;
 }
 
-// Room style: flank each door's entry column with wall for a few tiles, making a
-// short 1-wide tunnel before the room opens up. Flanks sit at mid±1 near the
-// perimeter, never on another door's mid-line, so nothing gets disconnected.
 function carveTunnels(tiles: Uint8Array, doors: number, mid: number): void {
 	const w = (c: number, r: number) => setInterior(tiles, c, r, WALL);
 	for (let d = 1; d <= TUNNEL_DEPTH; d++) {
@@ -167,8 +154,6 @@ function carveTunnels(tiles: Uint8Array, doors: number, mid: number): void {
 	}
 }
 
-// Corridor style: wall the whole interior, then carve a 1-wide cross from every
-// door to the centre, so the cell reads as connecting hallways instead of a room.
 function carveCorridor(tiles: Uint8Array, doors: number, mid: number): void {
 	for (let r = 1; r < CELL - 1; r++)
 		for (let c = 1; c < CELL - 1; c++) tiles[idx(c, r)] = WALL;
@@ -230,6 +215,7 @@ export function genRoom(seed: number, cx: number, cy: number): RoomDesc {
 		columns: [],
 		spawnSlots: [],
 		doorways: [],
+		pools: [],
 	};
 }
 
@@ -417,6 +403,52 @@ function genColumns(
 	return out;
 }
 
+const POOL_KEEP = 0.3;
+const POOL_MAX = 6;
+const POOL_MIN = 3;
+const POOL_MARGIN = 2;
+
+// Sink a water basin into big rooms: a POOL-tile rect centered in the room,
+// inset so a walkable ring always survives between rim and walls/doorways.
+// Runs before genColumns (isFloor rejects POOL) and only converts plain FLOOR,
+// so seam walls / arches carved by genDoorways are never eaten.
+function genPools(
+	sector: ReturnType<typeof genSector>,
+	tiles: Uint8Array,
+	cols: number,
+	seed: number,
+): PoolSlot[] {
+	const out: PoolSlot[] = [];
+	for (const r of sector.rooms) {
+		if (r.w < 2 || r.h < 2) continue;
+		const h = hash01(
+			r.id,
+			Math.imul(sector.sx, 73856093) ^ Math.imul(sector.sy, 19349663),
+			(seed | 0) ^ 0x9001,
+		);
+		if (h >= POOL_KEEP) continue;
+		const tw = r.w * CELL;
+		const th = r.h * CELL;
+		const w = Math.min(POOL_MAX, tw - POOL_MARGIN * 2);
+		const ph = Math.min(POOL_MAX, th - POOL_MARGIN * 2);
+		if (w < POOL_MIN || ph < POOL_MIN) continue;
+		const col = r.col0 * CELL + ((tw - w) >> 1);
+		const row = r.row0 * CELL + ((th - ph) >> 1);
+		let clear = true;
+		for (let tr = row; tr < row + ph && clear; tr++)
+			for (let tc = col; tc < col + w; tc++)
+				if (tiles[tr * cols + tc] !== FLOOR) {
+					clear = false;
+					break;
+				}
+		if (!clear) continue;
+		for (let tr = row; tr < row + ph; tr++)
+			for (let tc = col; tc < col + w; tc++) tiles[tr * cols + tc] = POOL;
+		out.push({ col, row, w, h: ph });
+	}
+	return out;
+}
+
 const DOOR_KEEP = 0.5;
 
 // Symmetric keep-hash over an unordered world-cell pair, so a seam gets the same
@@ -583,6 +615,7 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		...genConnectorDoors(tiles, cols, sector.connectors, seed, sx, sy),
 	);
 
+	const pools = genPools(sector, tiles, cols, seed);
 	const variant = Math.floor(hash01(sx, sy, seed | 0) * VARIANTS);
 	const torches = genTorchesGrid(tiles, cols, rows, variant);
 	const columns = genColumns(sector, tiles, cols, rows, variant);
@@ -602,5 +635,6 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		columns,
 		spawnSlots: [],
 		doorways,
+		pools,
 	};
 }

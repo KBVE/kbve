@@ -19,30 +19,32 @@ export const DEFAULT_MOTOR: MotorConfig = {
 };
 
 export type Gait = 'idle' | 'walk' | 'run';
+export type MotorMode = 'ground' | 'swim' | 'climb';
 
-/**
- * Authoritative planar movement. Game code sets a desired velocity; the motor
- * integrates position, faces travel direction, and reports the gait + a
- * walk↔run blend factor for the animator to visualize. Movement drives
- * animation, never the reverse.
- */
 export class CharacterMotor {
 	readonly position = new THREE.Vector3();
 	readonly velocity = new THREE.Vector3();
 	yaw = 0;
-	/** Combat stance: when set, facing tracks this yaw instead of travel direction. */
+
 	yawLock: number | null = null;
 	vy = 0;
 	grounded = true;
-	/** Optional collision resolver; mutates pos by (dx,dz) honoring walls. */
+	mode: MotorMode = 'ground';
+	// Water line the body settles to while swimming.
+	swimY = 0;
+	// Lowest allowed body height while diving (basin floor clearance).
+	swimFloor = 0;
+	// Visual body pitch while swimming (radians, set by the swim controller).
+	swimPitch = 0;
+
 	mover: ((pos: THREE.Vector3, dx: number, dz: number) => void) | null = null;
+	floorAt: ((x: number, z: number) => number) | null = null;
 	private readonly desired = new THREE.Vector3();
 
 	constructor(private cfg: MotorConfig = DEFAULT_MOTOR) {}
 
-	/** Launch upward if standing on the ground; no double-jump. */
 	jump(): void {
-		if (!this.grounded) return;
+		if (!this.grounded || this.mode !== 'ground') return;
 		this.vy = this.cfg.jumpSpeed;
 		this.grounded = false;
 	}
@@ -51,8 +53,8 @@ export class CharacterMotor {
 		return !this.grounded;
 	}
 
-	setDesiredVelocity(x: number, z: number): void {
-		this.desired.set(x, 0, z);
+	setDesiredVelocity(x: number, z: number, y = 0): void {
+		this.desired.set(x, y, z);
 	}
 
 	get speed(): number {
@@ -67,7 +69,6 @@ export class CharacterMotor {
 			: 'run';
 	}
 
-	/** 0 at walk speed, 1 at run speed — for animator.blend('Walk','Jog', x). */
 	get runBlend(): number {
 		return THREE.MathUtils.clamp(
 			(this.speed - this.cfg.walkSpeed) /
@@ -78,6 +79,7 @@ export class CharacterMotor {
 	}
 
 	update(dt: number): void {
+		if (this.mode === 'climb') return;
 		const k = 1 - Math.exp(-this.cfg.accel * dt);
 		this.velocity.lerp(this.desired, k);
 		const dx = this.velocity.x * dt;
@@ -95,11 +97,38 @@ export class CharacterMotor {
 			const tk = 1 - Math.exp(-this.cfg.turnLerp * dt);
 			this.yaw = lerpAngle(this.yaw, targetYaw, tk);
 		}
+		if (this.mode === 'swim') {
+			this.vy = 0;
+			this.grounded = false;
+			// Diving: vertical input steers directly; with no input the body
+			// drifts buoyantly back up to the swim line.
+			if (Math.abs(this.velocity.y) > 0.05) {
+				this.position.y += this.velocity.y * dt;
+			} else if (this.position.y < this.swimY) {
+				const sk = 1 - Math.exp(-1.6 * dt);
+				this.position.y += (this.swimY - this.position.y) * sk;
+			} else {
+				const sk = 1 - Math.exp(-8 * dt);
+				this.position.y += (this.swimY - this.position.y) * sk;
+			}
+			this.position.y = THREE.MathUtils.clamp(
+				this.position.y,
+				this.swimFloor,
+				this.swimY,
+			);
+			return;
+		}
+		const floorY = this.floorAt
+			? this.floorAt(this.position.x, this.position.z)
+			: 0;
+		// Ground dropped out from under us (walked off a pool rim) — start falling.
+		if (this.grounded && this.position.y > floorY + 1e-3)
+			this.grounded = false;
 		if (!this.grounded || this.vy !== 0) {
 			this.vy -= this.cfg.gravity * dt;
 			this.position.y += this.vy * dt;
-			if (this.position.y <= 0) {
-				this.position.y = 0;
+			if (this.position.y <= floorY) {
+				this.position.y = floorY;
 				this.vy = 0;
 				this.grounded = true;
 			}

@@ -11,11 +11,13 @@ export const SOLID = 1 << 0; // blocks movement
 export const OCCLUDES = 1 << 1; // rock: blocks light + grows wall geometry
 export const DOORWAY = 1 << 2; // arch opening
 export const PILLAR = 1 << 3; // column: solid but sub-tile (radius collision), no occlude
+export const PIT = 1 << 4; // recessed floor: open to walk into (you fall), no floor slab
 
 export const FLOOR = 0;
 export const WALL = SOLID | OCCLUDES;
 export const ARCH = DOORWAY;
 export const COLUMN = SOLID | PILLAR;
+export const POOL = PIT;
 
 export interface Grid {
 	cols: number;

@@ -1,9 +1,6 @@
 import { addComponent, LightEmitter, type World } from '../mecs/props';
 import { spawnPropBase } from './base';
 
-// A light source is pure ECS: any entity with LightEmitter + Transform3 is picked
-// up by LightSystem, regardless of what it is. Presets are just data, so torches,
-// candles, fireflies, etc. differ only by these numbers — no per-source code.
 export interface LightPreset {
 	r: number;
 	g: number;
@@ -40,7 +37,6 @@ export const LIGHT_PRESETS: Record<string, LightPreset> = {
 	},
 };
 
-// Write LightEmitter fields from a preset. `id` seeds the deterministic flicker.
 export function applyLight(eid: number, preset: LightPreset, id: number): void {
 	LightEmitter.r[eid] = preset.r;
 	LightEmitter.g[eid] = preset.g;
@@ -51,8 +47,6 @@ export function applyLight(eid: number, preset: LightPreset, id: number): void {
 	LightEmitter.flickerAmp[eid] = preset.flickerAmp;
 }
 
-// Spawn a bare light entity (no mesh) — a candle, firefly, etc. Owned by a room
-// so it despawns with it. `dir` offsets the emitted point toward the room.
 export function spawnLight(
 	world: World,
 	ownerEid: number,

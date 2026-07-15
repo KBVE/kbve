@@ -54,6 +54,20 @@ export const PROPS_SCHEMA = {
 	Targetable: { radius: 'f32', priority: 'u8' },
 	CharState: { bits: 'u32' },
 	HeldItems: { right: 'u16', left: 'u16' },
+	// Ability cast state (player and, later, NPCs). ability = active ability id,
+	// phase = CastPhase, t = seconds elapsed in the whole cast, target = locked
+	// victim eid (-1 none), hasHit = damage already applied this cast.
+	Caster: {
+		ability: 'i32',
+		phase: 'u8',
+		t: 'f32',
+		target: 'i32',
+		hasHit: 'u8',
+	},
+	// Per-slot cooldown remaining (seconds) for the four special abilities.
+	Cooldowns: { s1: 'f32', s2: 'f32', s3: 'f32', s4: 'f32' },
+	// Water basin volume: center rides Transform3, extents/surface here.
+	Pool: { halfW: 'f32', halfL: 'f32', surfaceY: 'f32', ownerEid: 'i32' },
 } satisfies Schema;
 
 export const PROPS_CAP = 8192;

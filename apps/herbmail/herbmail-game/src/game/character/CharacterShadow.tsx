@@ -4,10 +4,6 @@ import { useFrame } from '@react-three/fiber';
 import { setPlayerAnchor } from '../render/playerAnchor';
 import type { CharacterHandle } from './Character';
 
-// Shadow catcher: a transparent ShadowMaterial plane parked under the character.
-// The real torch point lights in LightSystem cast the character's cube-map shadow
-// onto it, so the shadow direction/length derives from actual light geometry
-// instead of the old fake directional-light rig.
 export function CharacterShadow({
 	target,
 }: {
@@ -20,7 +16,11 @@ export function CharacterShadow({
 		if (!h || !catcherRef.current) return;
 		const p = h.motor.position;
 		setPlayerAnchor(p.x, p.y, p.z);
-		catcherRef.current.position.set(p.x, 0.02, p.z);
+		// Ride the motor's ground height (pool basins sit below y=0) and hide
+		// in water — a fixed-height catcher floats around the swimmer as a
+		// phantom ring.
+		catcherRef.current.visible = h.motor.mode === 'ground';
+		catcherRef.current.position.set(p.x, p.y + 0.02, p.z);
 	});
 
 	return (

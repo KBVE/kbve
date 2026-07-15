@@ -21,6 +21,8 @@ import { applyCrateDamage } from './crateDecal';
 import { applyStoneMine } from './stoneMine';
 import { burnTick } from '../prop/burn';
 import { npcSystem } from '../npc/goblinSim';
+import { castSystem } from '../combat/castSystem';
+import { isEagle } from '../menu/eagleStore';
 
 const TORCH_URL = MODEL_URLS[MODEL_TORCH];
 const CRATE_URL = MODEL_URLS[MODEL_CRATE];
@@ -68,8 +70,13 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 	useEffect(() => () => lightSystem.dispose(), [lightSystem]);
 
 	useFrame((state, delta) => {
+		// Eagle snapshot freezes the whole sim (flames, goblins, lights, pools)
+		// so the captured draw set stays static while the inspection camera flies.
+		if (isEagle()) return;
 		const world = getDungeon().world;
-		npcSystem(world, state.clock.elapsedTime, Math.min(delta, 0.05));
+		const cdt = Math.min(delta, 0.05);
+		npcSystem(world, state.clock.elapsedTime, cdt);
+		castSystem(world, cdt);
 		const mounted = getMountedEids();
 		fireflySystem.tick(world, mounted, state.clock.elapsedTime, delta);
 		lightSystem.tick(

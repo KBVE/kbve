@@ -40,17 +40,14 @@ export class CharacterAnimator {
 		return [...this.actions.keys()];
 	}
 
-	/** Clip duration in seconds, or 0 if unknown. */
 	duration(name: string): number {
 		return this.actions.get(name)?.getClip().duration ?? 0;
 	}
 
-	/** Crossfade the base (locomotion/stance) layer to a looping clip. */
 	play(name: string, opts: PlayOptions = {}): void {
 		const next = this.actions.get(name);
 		if (!next) return;
-		// Already the sole running base? nothing to do (also self-heals a
-		// StrictMode remount that stopped the action).
+
 		if (
 			next === this.base &&
 			next.isRunning() &&
@@ -60,14 +57,9 @@ export class CharacterAnimator {
 		const fade = opts.fade ?? 0.2;
 		const once = opts.loop === false;
 		const loop = once ? THREE.LoopOnce : THREE.LoopRepeat;
-		// A LoopOnce base clip (Jump_Start/Jump_Land) must clamp on its last
-		// frame; without it Three snaps to the bind pose at clip end and pops
-		// through any crossfade still draining it (e.g. land → idle).
+
 		next.clampWhenFinished = once;
 		if (next.isRunning() && this.activeBase.has(next)) {
-			// Already contributing (a blend partner). Keep its phase and take it
-			// to full weight — resetting + fadeIn would drop weight to 0 first
-			// and flash the bind (T) pose while the total weight is < 1.
 			next.setEffectiveTimeScale(opts.timeScale ?? 1)
 				.setLoop(loop, Infinity)
 				.stopFading();
@@ -91,14 +83,10 @@ export class CharacterAnimator {
 		return this.baseName;
 	}
 
-	/** Per-frame playback rate on the current base loop (foot-skate matching
-	 *  when one clip covers a speed range). play() resets it to its own value. */
 	setBaseTimeScale(ts: number): void {
 		this.base?.setEffectiveTimeScale(ts);
 	}
 
-	/** Flip locomotion playback direction (backpedal) across every active base
-	 *  action, preserving each action's speed magnitude. Idempotent per frame. */
 	setLocomotionReverse(reverse: boolean): void {
 		const sign = reverse ? -1 : 1;
 		for (const a of this.activeBase) {
@@ -108,7 +96,6 @@ export class CharacterAnimator {
 		}
 	}
 
-	/** Play a one-shot clip over the base; resolves when it finishes. */
 	playOnce(
 		name: string,
 		fade = 0.12,
@@ -135,7 +122,6 @@ export class CharacterAnimator {
 		});
 	}
 
-	/** Continuous blend between two looping clips (e.g. walk↔run), phase-synced. */
 	blend(a: string, b: string, alpha: number): void {
 		const wa = this.actions.get(a);
 		const wb = this.actions.get(b);
@@ -158,12 +144,6 @@ export class CharacterAnimator {
 		this.baseName = alpha > 0.5 ? b : a;
 	}
 
-	/**
-	 * Register a body-masked one-shot: a copy of `srcName` keeping only the
-	 * tracks whose bone passes `keepBone`. Played on top of the base at full
-	 * weight, it overwrites just those bones (e.g. upper body) while the base
-	 * clip keeps driving the rest (e.g. running legs).
-	 */
 	registerMasked(
 		name: string,
 		srcName: string,
@@ -182,11 +162,6 @@ export class CharacterAnimator {
 		return true;
 	}
 
-	/**
-	 * Hold a masked overlay on/off (a guard the legs keep walking under). `loop`
-	 * plays a seamless guard clip; otherwise it freezes at `frac`. Idempotent —
-	 * safe to call every frame.
-	 */
 	holdMasked(
 		name: string,
 		on: boolean,
@@ -215,7 +190,6 @@ export class CharacterAnimator {
 		}
 	}
 
-	/** Fire a masked one-shot over the base; resolves when it finishes. */
 	playMaskedOnce(
 		name: string,
 		fade = 0.12,
@@ -242,7 +216,6 @@ export class CharacterAnimator {
 		});
 	}
 
-	/** Register an additive overlay clip (recoil/breathing/flinch). */
 	registerAdditive(name: string, reference?: THREE.AnimationClip): void {
 		const src = this.actions.get(name);
 		if (!src || this.additive.has(name)) return;
@@ -259,7 +232,6 @@ export class CharacterAnimator {
 		this.additive.set(name, action);
 	}
 
-	/** Fire a one-shot additive overlay on top of whatever the base is doing. */
 	pulseAdditive(name: string, weight = 1): void {
 		const action = this.additive.get(name);
 		if (!action) return;

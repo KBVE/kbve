@@ -1,5 +1,5 @@
 export { buildWalls, WALL_TEX_COUNT } from './walls';
-export { buildFloor, buildCeiling } from './slabs';
+export { buildFloor, buildFloorWithHoles, buildCeiling } from './slabs';
 export { buildArches, buildTrims } from './arches';
 export { buildCoves } from './coves';
 export { buildCornerCoves } from './corners';

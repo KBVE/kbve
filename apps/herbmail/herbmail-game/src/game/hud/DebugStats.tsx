@@ -3,8 +3,9 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { psxMaterialRegistry } from '../render/PsxMaterial';
 import { usePsx } from '../menu/settingsStore';
 import { getDungeon } from '../dungeon/store';
+import { qualityTier } from '../render/qualityStore';
 import { SECTOR_TILES } from '../dungeon/generate';
-import { SOLID, DOORWAY, PILLAR } from '../geometry/grid';
+import { SOLID, DOORWAY, PILLAR, PIT } from '../geometry/grid';
 import { doorClosedAt } from '../door/doors';
 import { TILE } from '../config';
 
@@ -48,6 +49,10 @@ const snapshot: StatsSnapshot = {
 
 export function StatsProbe() {
 	const gl = useThree((s) => s.gl);
+	const acc = useRef(0);
+	const worst = useRef(0);
+	const peakTris = useRef(0);
+	const peakCalls = useRef(0);
 	useEffect(() => {
 		gl.info.autoReset = false;
 		return () => {
@@ -64,6 +69,22 @@ export function StatsProbe() {
 		snapshot.textures = gl.info.memory.textures;
 		snapshot.programs = gl.info.programs?.length ?? 0;
 		snapshot.psxMats = psxMaterialRegistry.size;
+		if (ms > worst.current) worst.current = ms;
+		if (snapshot.triangles > peakTris.current)
+			peakTris.current = snapshot.triangles;
+		if (snapshot.calls > peakCalls.current)
+			peakCalls.current = snapshot.calls;
+		acc.current += delta;
+		if (acc.current >= 1) {
+			acc.current = 0;
+			const s = snapshot;
+			console.warn(
+				`PERF fps=${s.fps.toFixed(0)} avgMs=${s.ms.toFixed(1)} worstMs=${worst.current.toFixed(1)} calls=${s.calls} peakCalls=${peakCalls.current} tris=${s.triangles} peakTris=${peakTris.current} geos=${s.geometries} tex=${s.textures} progs=${s.programs} psxMats=${s.psxMats} lights=${s.lights} tier=${qualityTier()} sector=${Math.floor(s.camX / SPAN)},${Math.floor(s.camZ / SPAN)}`,
+			);
+			worst.current = 0;
+			peakTris.current = 0;
+			peakCalls.current = 0;
+		}
 		const first = psxMaterialRegistry.values().next().value;
 		if (first) {
 			snapshot.lights = first.uniforms.uLightCount.value as number;
@@ -113,6 +134,8 @@ function DebugMinimap() {
 							)
 								? '#c0392b'
 								: '#d98e2b';
+						} else if (t & PIT) {
+							ctx.fillStyle = '#1d4e6b';
 						} else if (t & SOLID && !(t & PILLAR)) {
 							ctx.fillStyle = '#3a3a44';
 						} else if (t & PILLAR) {

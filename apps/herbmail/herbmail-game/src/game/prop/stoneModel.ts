@@ -1,11 +1,6 @@
 import * as THREE from 'three';
 import { hash01 } from '../geometry/rng';
 
-// Procedural natural rock for the PSX dungeon. Pure geometry: an icosphere pushed
-// outward by seeded 3D value-noise so every stone is a unique lump, then the bottom
-// is flattened and dropped so min-y == 0 (origin sits at the floor contact point).
-// Deterministic in (seed, size, lumpiness) for room streaming.
-
 const SEED_SPREAD = 8192;
 
 function smooth(t: number): number {

@@ -1,5 +1,6 @@
 import { TILE } from '../config';
-import { SOLID, PILLAR, DOORWAY, OCCLUDES } from '../geometry/grid';
+import { SOLID, PILLAR, DOORWAY, OCCLUDES, PIT } from '../geometry/grid';
+import { POOL_DEPTH } from '../water/constants';
 import { ARCH_SALT } from '../geometry/arches';
 import { jitter } from '../geometry/rng';
 import { doorClosedAt } from '../door/doors';
@@ -12,9 +13,6 @@ import { colliderAt } from '../prop/crateGrid';
 
 const COLUMN_R = 0.55;
 
-// Last resolved sector, cached so the movement hot path (up to 128 solidAtWorld
-// calls per fast-move frame) skips cellAtWorld's object + the sector-map string key
-// while the player stays inside one sector. Cleared when the dungeon is reseeded.
 let cDesc: RoomDesc | null = null;
 let cOC = 0;
 let cOR = 0;
@@ -47,10 +45,7 @@ export function solidAtWorld(x: number, z: number): boolean {
 	if (lc < 0 || lc >= desc.cols || lr < 0 || lr >= desc.rows) return true;
 
 	const t = desc.tiles[lr * desc.cols + lc];
-	// A doorway tile blocks while its door is spawned + locked; when open (or a
-	// doorless connector gate) only the arch OPENING is passable — the jambs the
-	// arch panel draws beside it are solid, mirroring buildArches/DoorLeaf
-	// (same jitter, same wall-line axis as archAxis).
+
 	if (t & DOORWAY) {
 		if (doorClosedAt(wc, wr)) return true;
 		const wallish = (c: number, r: number): boolean => {
@@ -69,8 +64,7 @@ export function solidAtWorld(x: number, z: number): boolean {
 		const lat = ns ? z - (wr + 0.5) * TILE : x - (wc + 0.5) * TILE;
 		return Math.abs(lat) > openHW;
 	}
-	// Sub-tile solids (pillars) block only within their radius; full-tile solids
-	// (walls) block the whole cell.
+
 	if (t & PILLAR) {
 		const ccx = (wc + 0.5) * TILE;
 		const ccz = (wr + 0.5) * TILE;
@@ -79,8 +73,7 @@ export function solidAtWorld(x: number, z: number): boolean {
 		return ex * ex + ez * ez < COLUMN_R * COLUMN_R;
 	}
 	if (t & SOLID) return true;
-	// Solid props block only their own AABB footprint about the entity centre,
-	// not the whole 3m cell — the player can hug their edges.
+
 	const propEid = colliderAt(wc, wr);
 	if (propEid >= 0) {
 		return (
@@ -91,8 +84,24 @@ export function solidAtWorld(x: number, z: number): boolean {
 	return false;
 }
 
-// Live character bodies (player + NPCs) as flat circles; every mover resolves
-// against the set, so player↔goblin and goblin↔goblin can't interpenetrate.
+// Ground height at a world position: 0 everywhere except pool basins.
+export function floorYAtWorld(x: number, z: number): number {
+	const wc = Math.floor(x / TILE);
+	const wr = Math.floor(z / TILE);
+	const dw = getDungeon();
+	const { cx, cy } = cellAtWorld(x, z, TILE);
+	const desc = dw.desc(dw.ensureSectorAtCell(cx, cy));
+	if (!desc) return 0;
+	const lc = wc - desc.originCol;
+	const lr = wr - desc.originRow;
+	if (lc < 0 || lc >= desc.cols || lr < 0 || lr >= desc.rows) return 0;
+	return desc.tiles[lr * desc.cols + lc] & PIT ? -POOL_DEPTH : 0;
+}
+
+export function pitAtWorld(x: number, z: number): boolean {
+	return floorYAtWorld(x, z) < 0;
+}
+
 export interface Body {
 	pos: { x: number; z: number };
 	radius: number;
@@ -105,28 +114,32 @@ export function registerBody(b: Body): () => void {
 	return () => bodies.delete(b);
 }
 
-// Axis-separated slide-along-walls mover for any body radius (player 0.35,
-// small goblin ~0.2). Sub-stepped so one frame never advances more than the
-// radius — a long frame would otherwise sample past a thin wall and tunnel.
-// Pass the mover's own body so it skips itself when pushing out of others.
+// Weighted sum of every dynamic occluder position. A stable value means the
+// player, goblins and moving props all held still — nothing casts a new
+// shadow, so shadow maps can skip their re-render. Register/unregister shifts
+// it too, so a spawned/despawned body forces one refresh.
+export function bodyMotionSig(): number {
+	let s = 0;
+	for (const b of bodies) s += b.pos.x * 2.3 + b.pos.z * 1.7;
+	return s;
+}
+
 export function makeMover(
 	radius: number,
 	self?: Body,
+	skipBodies = false,
+	blockPits = false,
 ): (pos: { x: number; z: number }, dx: number, dz: number) => void {
+	const blocked = (x: number, z: number): boolean =>
+		solidAtWorld(x, z) || (blockPits && pitAtWorld(x, z));
 	const moveAxis = (
 		pos: { x: number; z: number },
 		dx: number,
 		dz: number,
 	): void => {
-		if (
-			dx !== 0 &&
-			!solidAtWorld(pos.x + dx + Math.sign(dx) * radius, pos.z)
-		)
+		if (dx !== 0 && !blocked(pos.x + dx + Math.sign(dx) * radius, pos.z))
 			pos.x += dx;
-		if (
-			dz !== 0 &&
-			!solidAtWorld(pos.x, pos.z + dz + Math.sign(dz) * radius)
-		)
+		if (dz !== 0 && !blocked(pos.x, pos.z + dz + Math.sign(dz) * radius))
 			pos.z += dz;
 	};
 	return (pos, dx, dz) => {
@@ -135,8 +148,10 @@ export function makeMover(
 		const sx = dx / steps;
 		const sz = dz / steps;
 		for (let i = 0; i < steps; i++) moveAxis(pos, sx, sz);
-		// Circle-circle pushout, wall-respecting: overlap resolves through
-		// moveAxis so a body can't be shoved into rock.
+
+		// Terrain-only movers (e.g. a lunging combo) slide on walls but pass
+		// through actor bodies instead of being deflected off enemies.
+		if (skipBodies) return;
 		for (const b of bodies) {
 			if (b === self) continue;
 			const bx = pos.x - b.pos.x;
@@ -157,8 +172,6 @@ export function makeMover(
 
 let spawnCache: [number, number, number] | null = null;
 
-// Entrance-room centre. Memoized — genSector is a full BSP+corridor+lock build, and
-// this is read from component bodies (ThirdPersonPlayer, PhysicsBodies) on any render.
 export function dungeonSpawn(): [number, number, number] {
 	if (spawnCache) return spawnCache;
 	const s = genSector(DUNGEON_SEED, 0, 0);

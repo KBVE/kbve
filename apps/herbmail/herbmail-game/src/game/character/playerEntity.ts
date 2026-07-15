@@ -2,7 +2,9 @@ import {
 	addComponent,
 	addEntity,
 	createWorld,
+	Caster,
 	CharState,
+	Cooldowns,
 	HeldItems,
 	Transform3,
 } from '../mecs/props';
@@ -10,8 +12,6 @@ import { CS } from './charState';
 import { equipmentById } from '../viewmodel/equipment';
 import { getHands, subscribeHeld } from '../viewmodel/store';
 
-// Stable numeric codes for held item ids (u16 in the HeldItems component).
-// Order is append-only — codes are wire/persistence identity.
 const HELD_CODES = ['', 'sword', 'torch', 'crate', 'flashlight'];
 
 export function heldCode(id: string | null): number {
@@ -32,6 +32,10 @@ export function playerEid(): number {
 		addComponent(world, eid, Transform3);
 		addComponent(world, eid, CharState);
 		addComponent(world, eid, HeldItems);
+		addComponent(world, eid, Caster);
+		addComponent(world, eid, Cooldowns);
+		Caster.ability[eid] = -1;
+		Caster.phase[eid] = 0;
 		syncHands();
 	}
 	return eid;
@@ -41,7 +45,6 @@ export function playerBits(): number {
 	return eid < 0 ? 0 : CharState.bits[eid];
 }
 
-/** Clear then set bit masks on the player state word. */
 export function writePlayerBits(clear: number, set: number): void {
 	const e = playerEid();
 	CharState.bits[e] = (CharState.bits[e] & ~clear) | set;
@@ -49,8 +52,6 @@ export function writePlayerBits(clear: number, set: number): void {
 
 const EQUIP_BITS = CS.HAS_WEAPON | CS.HAS_SHIELD | CS.HAS_LIGHT;
 
-// Equipment lives in components: hands-store changes write HeldItems codes and
-// the HAS_* capability bits, so gameplay checks read the entity, not React.
 function syncHands(): void {
 	if (eid < 0) return;
 	const hands = getHands();

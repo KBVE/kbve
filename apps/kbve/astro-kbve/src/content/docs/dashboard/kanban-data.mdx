@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-07-14T10:01:11.504Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-07-15T10:05:37.473Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -33,7 +33,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **6** items
   </Card>
   <Card title="Error" icon="warning">
-    **25** items
+    **24** items
   </Card>
   <Card title="Support" icon="information">
     **0** items
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **3** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **185** items
+    **186** items
   </Card>
 </CardGrid>
 
@@ -59,18 +59,18 @@ pie showData
     "AI" : 1
     "Todo" : 22
     "Backlog" : 6
-    "Error" : 25
+    "Error" : 24
     "Staging" : 2
     "Review" : 3
-    "Done" : 185
+    "Done" : 186
 ```
 
 ```mermaid
 pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 27
-    "Blocked (Error+Support)" : 25
-    "Done" : 185
+    "Blocked (Error+Support)" : 24
+    "Done" : 186
     "Planning (Theory+AI+Backlog)" : 80
 ```
 
@@ -91,7 +91,7 @@ flowchart LR
     Todo --> Backlog
     Backlog["Backlog<br/><strong>6</strong>"]
     Backlog --> Error
-    Error["Error<br/><strong>25</strong>"]
+    Error["Error<br/><strong>24</strong>"]
     Error --> Support
     Support["Support<br/><strong>0</strong>"]
     Support --> Staging
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>3</strong>"]
     Review --> Done
-    Done["Done<br/><strong>185</strong>"]
+    Done["Done<br/><strong>186</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -260,7 +260,7 @@ pie showData
 | [#11250](https://github.com/KBVE/kbve/issues/11250) | feat(ci-dbmate-deploy): bake migrations into OCI image for cap-free deploys | — | — | enhancement, backlog |
 | [#13556](https://github.com/KBVE/kbve/issues/13556) | ROWS: server-authoritative zone travel + anti-teleport (client-supplied zone hon | — | — | security, backlog |
 
-### Error (25)
+### Error (24)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -281,7 +281,6 @@ pie showData
 | [#13098](https://github.com/KBVE/kbve/issues/13098) | [HIGH] Valkey metrics scrape will be dead — monitoring ns not in allowlist | — | — | bug |
 | [#13102](https://github.com/KBVE/kbve/issues/13102) | [MEDIUM] n8n PDB blocks node drains (minAvailable:1 on replicas:1) | — | — | bug |
 | [#13105](https://github.com/KBVE/kbve/issues/13105) | [MEDIUM] --appendonly yes on emptyDir (rows valkey) | — | — | bug |
-| [#13109](https://github.com/KBVE/kbve/issues/13109) | [MEDIUM] LB VIP 142.132.206.74 dropped from the pool | — | — | bug |
 | [#13112](https://github.com/KBVE/kbve/issues/13112) | [MEDIUM] agones rows-tenants secret-name prefix drift (ows- vs rows-) | — | — | bug |
 | [#13108](https://github.com/KBVE/kbve/issues/13108) | [MEDIUM] supabase-service-key property-name conflict (hash vs key) | — | — | bug |
 | [#13104](https://github.com/KBVE/kbve/issues/13104) | [MEDIUM] Factorio rotation cronjob deletes server every 2 minutes | — | — | bug |
@@ -303,9 +302,9 @@ pie showData
 |---|-------|----------|-----------|--------|
 | [#13278](https://github.com/KBVE/kbve/pull/13278) | Atomic: ue ramdisk spec | — | — | auto-pr, atomic |
 | [#13572](https://github.com/KBVE/kbve/pull/13572) | Atomic: bump mdx spec | — | — | auto-pr, atomic |
-| [#14098](https://github.com/KBVE/kbve/pull/14098) | Release: 8 features, 2 fixes, 2 docs, 1 perf, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14121](https://github.com/KBVE/kbve/pull/14121) | Release: 3 features, 3 fixes, 2 perfs, 4 chores → Main | — | — | auto-pr, dev→main |
 
-### Done (185)
+### Done (186)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -313,18 +312,11 @@ pie showData
 | [#12702](https://github.com/KBVE/kbve/issues/12702) | [Cryptothrone] Internal coin economy (coin / gold-bar) — design &amp; isolation  | — | — | enhancement |
 | [#13083](https://github.com/KBVE/kbve/issues/13083) | [CRITICAL] nd-server Agones fleet dead on arrival — wrong SecretStore ref | — | — | bug |
 | [#13100](https://github.com/KBVE/kbve/issues/13100) | [HIGH] VM idle-shutdown fails OPEN on transient API error | — | — | bug |
+| [#13109](https://github.com/KBVE/kbve/issues/13109) | [MEDIUM] LB VIP 142.132.206.74 dropped from the pool | — | — | bug |
 | [#13110](https://github.com/KBVE/kbve/issues/13110) | [MEDIUM] Wildcard cert kbve-wt-tls has no explicit Certificate object | — | — | bug |
 | [#13275](https://github.com/KBVE/kbve/pull/13275) | Atomic: valkey harden | — | — | auto-pr, atomic |
 | [#13575](https://github.com/KBVE/kbve/pull/13575) | Atomic: rows drain fleet plan fix | — | — | auto-pr, atomic |
-| [#13617](https://github.com/KBVE/kbve/pull/13617) | Atomic: rows ci test | — | — | auto-pr, atomic |
-| [#13618](https://github.com/KBVE/kbve/pull/13618) | Release: 1 commit → Main | — | — | auto-pr, dev→main |
-| [#13619](https://github.com/KBVE/kbve/pull/13619) | Atomic: kbve-gate v0.1.7 post-publish sync | — | — | auto-pr, atomic |
-| [#13620](https://github.com/KBVE/kbve/pull/13620) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13621](https://github.com/KBVE/kbve/pull/13621) | Atomic: rows v0.1.37 post-publish sync | — | — | auto-pr, atomic |
-| [#13622](https://github.com/KBVE/kbve/pull/13622) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
-| [#13623](https://github.com/KBVE/kbve/pull/13623) | Atomic: axum-kbve v1.0.219 post-publish sync | — | — | auto-pr, atomic |
 | [#13624](https://github.com/KBVE/kbve/pull/13624) | Release: 16 features, 9 fixes, 13 docs, 5 chores → Main | — | — | auto-pr, dev→main |
-| [#13628](https://github.com/KBVE/kbve/pull/13628) | chore(dashboard): daily sync — 2026-06-30 | — | — | auto-pr |
 | [#13647](https://github.com/KBVE/kbve/pull/13647) | chore(dashboard): daily sync — 2026-07-01 | — | — | auto-pr |
 | [#13660](https://github.com/KBVE/kbve/pull/13660) | Release: 2 features, 4 fixes, 2 docs, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#13662](https://github.com/KBVE/kbve/pull/13662) | Atomic: metrics v0.1.5 post-publish sync | — | — | auto-pr, atomic |
@@ -493,7 +485,15 @@ pie showData
 | [#14093](https://github.com/KBVE/kbve/pull/14093) | Atomic: herbmail-game v0.1.5 post-publish sync | — | — | auto-pr, atomic |
 | [#14094](https://github.com/KBVE/kbve/pull/14094) | Release: 4 features, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#14097](https://github.com/KBVE/kbve/pull/14097) | Atomic: herbmail-game v0.1.6 post-publish sync | — | — | auto-pr, atomic |
+| [#14098](https://github.com/KBVE/kbve/pull/14098) | Release: 24 features, 14 fixes, 6 docs, 2 perfs, 5 chores → Main | — | — | auto-pr, dev→main |
 | [#14099](https://github.com/KBVE/kbve/pull/14099) | Atomic: axum-kbve v1.0.233 post-publish sync | — | — | auto-pr, atomic |
+| [#14104](https://github.com/KBVE/kbve/pull/14104) | chore(dashboard): daily sync — 2026-07-14 | — | — | auto-pr |
+| [#14114](https://github.com/KBVE/kbve/pull/14114) | Release: 2 features, 1 doc, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14115](https://github.com/KBVE/kbve/pull/14115) | Atomic: herbmail-game v0.1.7 post-publish sync | — | — | auto-pr, atomic |
+| [#14118](https://github.com/KBVE/kbve/pull/14118) | Atomic: axum-kbve v1.0.234 post-publish sync | — | — | auto-pr, atomic |
+| [#14119](https://github.com/KBVE/kbve/pull/14119) | Release: 2 features, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14120](https://github.com/KBVE/kbve/pull/14120) | Atomic: herbmail-game v0.1.8 post-publish sync | — | — | auto-pr, atomic |
+| [#14122](https://github.com/KBVE/kbve/pull/14122) | Atomic: aria2-proxy v0.1.1 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 

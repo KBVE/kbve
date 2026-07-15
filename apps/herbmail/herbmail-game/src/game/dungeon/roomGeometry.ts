@@ -7,14 +7,14 @@ import {
 	buildCornerCoves,
 	buildCoves,
 	buildFloor,
+	buildFloorWithHoles,
 	buildWalls,
 	buildColumns,
 } from '../geometry';
 import { makeLocalGrid, type RoomDesc } from './generate';
 import { chunkGeometry } from './chunkGeometry';
+import { queueBVH, cancelBVH } from '../render/bvh';
 
-// Each category is a flat list of per-chunk geometries (see chunkGeometry): the
-// merged sector mesh is diced into a grid so offscreen chunks frustum-cull out.
 export interface RoomGeoSet {
 	walls: THREE.BufferGeometry[][];
 	columns: THREE.BufferGeometry[][];
@@ -27,33 +27,26 @@ export interface RoomGeoSet {
 	bays: { frames: THREE.BufferGeometry[]; backs: THREE.BufferGeometry[] };
 }
 
-// Chunk a freshly-built merged geometry, then free the merged original — only the
-// diced chunks stay resident.
 function dice(merged: THREE.BufferGeometry): THREE.BufferGeometry[] {
 	const chunks = chunkGeometry(merged);
 	merged.dispose();
-	for (const c of chunks) c.computeBoundsTree();
+	for (const c of chunks) queueBVH(c);
 	return chunks;
 }
 
-// Floor + ceiling are flat horizontal planes: chunking them is wasted draw calls
-// (no overdraw to cull, always in view). Keep each as ONE shared mesh, built once
-// and reused across every sector via the group transform.
 let sharedFloor: THREE.BufferGeometry[] | null = null;
 let sharedCeiling: THREE.BufferGeometry[] | null = null;
 
 function floorGeo(desc: RoomDesc): THREE.BufferGeometry[] {
-	if (!sharedFloor) {
-		sharedFloor = [buildFloor(makeLocalGrid(desc))];
-		sharedFloor[0].computeBoundsTree();
-	}
+	// Pool sectors punch holes in the slab, so they can't share the singleton;
+	// their floor lives in the per-signature cache and disposes with the set.
+	if (desc.pools.length)
+		return dice(buildFloorWithHoles(makeLocalGrid(desc)));
+	if (!sharedFloor) sharedFloor = dice(buildFloor(makeLocalGrid(desc)));
 	return sharedFloor;
 }
 function ceilingGeo(desc: RoomDesc): THREE.BufferGeometry[] {
-	if (!sharedCeiling) {
-		sharedCeiling = [buildCeiling(makeLocalGrid(desc))];
-		sharedCeiling[0].computeBoundsTree();
-	}
+	if (!sharedCeiling) sharedCeiling = dice(buildCeiling(makeLocalGrid(desc)));
 	return sharedCeiling;
 }
 
@@ -75,11 +68,13 @@ function buildSet(desc: RoomDesc): RoomGeoSet {
 }
 
 function drop(c: THREE.BufferGeometry): void {
+	cancelBVH(c);
 	c.disposeBoundsTree();
 	c.dispose();
 }
 
 function disposeSet(set: RoomGeoSet): void {
+	if (set.floor !== sharedFloor) for (const c of set.floor) drop(c);
 	for (const w of set.walls) for (const c of w) drop(c);
 	for (const w of set.columns) for (const c of w) drop(c);
 	for (const c of set.arch) drop(c);
@@ -88,13 +83,8 @@ function disposeSet(set: RoomGeoSet): void {
 	for (const c of set.corner) drop(c);
 	for (const c of set.bays.frames) drop(c);
 	for (const c of set.bays.backs) drop(c);
-	// floor/ceiling are shared singletons — never disposed here.
 }
 
-// Signature cache = the geometry pool. Rooms sharing a signature
-// (doors:variant) reuse the exact same BufferGeometry objects — built once,
-// uploaded to the GPU once, positioned per-room via a group transform. At most
-// 16 doors x VARIANTS signatures exist; the LRU cap is a safety backstop.
 const CACHE_CAP = 96;
 const cache = new Map<string, RoomGeoSet>();
 

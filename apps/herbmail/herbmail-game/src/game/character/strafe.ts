@@ -2,9 +2,8 @@ export const LEG_TWIST_MAX = (55 * Math.PI) / 180;
 const BACKPEDAL_FROM = Math.PI / 2;
 
 export interface StrafeState {
-	/** Play the locomotion clip backwards (backpedal). */
 	reverse: boolean;
-	/** Post-mixer yaw to rotate the legs toward travel, radians, clamped. */
+
 	legTwist: number;
 }
 
@@ -26,8 +25,6 @@ export type StrafeBin =
 
 const BINS: StrafeBin[] = ['Fwd', 'FwdL', 'L', 'BwdL', 'Bwd'];
 
-// Quantize travel-vs-facing into 8 directional locomotion bins (45° each,
-// centered on the axes). Positive offset = travel to the character's left.
 export function strafeBin(travelOffset: number): StrafeBin {
 	const off = wrapPi(travelOffset);
 	const idx = Math.min(
@@ -40,10 +37,6 @@ export function strafeBin(travelOffset: number): StrafeBin {
 	return bin;
 }
 
-// While combat-locked the body faces the target; legs cheat toward the travel
-// direction instead. Past 90° off-facing the walk plays reversed and the twist
-// is measured from the rear axis, so a 150° diagonal reads as "backpedal with
-// legs cheated 30° left" rather than a 150° pretzel.
 export function classifyStrafe(travelOffset: number): StrafeState {
 	const off = wrapPi(travelOffset);
 	const reverse = Math.abs(off) > BACKPEDAL_FROM;

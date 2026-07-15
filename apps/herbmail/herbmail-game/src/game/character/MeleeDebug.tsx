@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { onContact } from './melee';
 
-/** A stand-in target with a hitbox so melee contact can be tested pre-enemies. */
 export function TargetDummy({
 	position = [9.9, 1.3, 8.3],
 }: {
@@ -17,7 +16,6 @@ export function TargetDummy({
 	);
 }
 
-/** Brief flash at the last melee contact point + a console line. */
 export function MeleeSpark() {
 	const ref = useRef<THREE.Mesh>(null);
 	const life = useRef(0);

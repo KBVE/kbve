@@ -17,12 +17,14 @@ import {
 	type StrafeState,
 } from './strafe';
 import { CS, resolveBase, resolveOverlays } from './charState';
-import { CharState } from '../mecs/props';
+import { CharState, Caster } from '../mecs/props';
 import { getTarget } from '../combat/targeting';
 import { Transform3 } from '../mecs/props';
+import { CastPhase, abilityById, castDuration } from '../combat/ability';
 import { EquipmentPhysics } from './equipmentPhysics';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
+import type { PartSet } from './armor';
 import { getEquipped, useEquippedArmor } from './armor';
 import { useBodySkinMorph } from './body';
 import { useSkinTint } from './skin';
@@ -39,14 +41,12 @@ import {
 } from './heldItems';
 
 const UP = new THREE.Vector3(0, 1, 0);
-const LAND_SPEED = 1.8;
-// Air time before the airborne pose engages. A standard hop is ~0.55s
-// (jumpSpeed 6 / gravity 22), so only longer falls swap the animation.
+const LAND_SPEED = 2.4;
+const LAND_HOLD_FRAC = 0.3;
+
 const AIR_ANIM_DELAY = 0.65;
 const GROUND_Y = -0.037;
-// Character-relative override axes, rebuilt each frame from motor yaw. A fixed
-// world axis flips the spine flex into a backward arch (or sideways roll) the
-// moment the character faces away from +Z.
+
 const _flexAxis = new THREE.Vector3(1, 0, 0);
 const _hangAxis = new THREE.Vector3(0, 0, 1);
 const TWIST_Y = new THREE.Vector3(0, 1, 0);
@@ -89,14 +89,7 @@ const PUNCH_CHAIN = [
 const PUNCH_WINDOW = 0.35;
 const PUNCH_REACH = 0.45;
 
-// The world is lit by LightSystem's PSX uniforms, but the character keeps its GLB
-// standard material, so it needs a real light to catch the same torch. This point
-// light mirrors heldLight (the held-torch flame) so the body is lit by the exact
-// source lighting the walls. Tune gain/reach/decay to match the wall falloff.
-// Held-torch character light: low gain + long gentle falloff. The source sits
-// half a meter from the body, so gain dominates perceived brightness — keep it
-// low and let reach/decay carry the ambience instead of blowing out the skin.
-const TORCH_LIGHT_GAIN = 1.6;
+const TORCH_LIGHT_GAIN = 1.0;
 const TORCH_LIGHT_REACH = 13;
 const TORCH_LIGHT_DECAY = 1.1;
 
@@ -104,11 +97,7 @@ useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
 
 const HELD_FLAME_SCALE = 0.24;
-// Reactive flame lean: the held flame is world-upright, but a fast hand motion
-// (thrust, swing) should make the fire drag behind and whip. We spring a tilt
-// toward the anchor's horizontal world velocity, negated so +Y bends away from
-// the motion. GAIN maps m/s → radians; K/D are the spring stiffness/damping
-// (under-damped for overshoot = whip); MAX clamps the tilt so it never inverts.
+
 const FLAME_LEAN_GAIN = 0.09;
 const FLAME_LEAN_K = 90;
 const FLAME_LEAN_D = 13;
@@ -131,7 +120,7 @@ function buildFlame(gripScale: number): {
 		mesh.renderOrder = 10;
 		flame.add(mesh);
 	}
-	// Embers share the flame's uTime so the existing frame loop animates them too.
+
 	const embers = buildEmbers();
 	flame.add(embers.points);
 	mats.push(embers.mat);
@@ -143,6 +132,22 @@ const UPPER_BONE =
 
 function isUpperBone(name: string): boolean {
 	return UPPER_BONE.test(name);
+}
+
+const LOWER_BONE = /pelvis|thigh|calf|foot|ball|hipAttach|kneeAttach/i;
+
+const CLAMPED_CLIPS = new WeakSet<THREE.AnimationClip>();
+function clampIdleLegs(clips: THREE.AnimationClip[]): void {
+	for (const c of clips) {
+		if (c.name !== 'Idle_Loop' || CLAMPED_CLIPS.has(c)) continue;
+		CLAMPED_CLIPS.add(c);
+		for (const t of c.tracks) {
+			if (!LOWER_BONE.test(t.name.split('.')[0])) continue;
+			const size = t.getValueSize();
+			t.times = t.times.slice(0, 1);
+			t.values = t.values.slice(0, size);
+		}
+	}
 }
 
 export interface BlockPose {
@@ -159,6 +164,7 @@ export interface CharacterHandle {
 	punch: () => void;
 	setBlocking: (b: boolean, pose?: BlockPose) => void;
 	isBlocking: () => boolean;
+	bone: (name: string) => THREE.Object3D | null;
 }
 
 interface Props {
@@ -173,11 +179,11 @@ interface Props {
 	tint?: string;
 	armor?: Set<string>;
 	hide?: Set<string>;
+	bodySet?: Exclude<PartSet, 'KNGT'>;
 	locomotion?: LocomotionClips;
 	onReady?: (h: CharacterHandle) => void;
 	drive?: (motor: CharacterMotor, t: number) => void;
-	/** Entity carrying this character's CharState word (getter — eids can be
-	 *  reassigned on respawn). Absent (Codex viewer) = local-only state. */
+
 	stateEid?: () => number;
 }
 
@@ -185,14 +191,9 @@ export interface LocomotionClips {
 	idle: string;
 	walk: string;
 	run: string;
-	/** World m/s the walk clip's stride matches at timeScale 1 (incl. model
-	 *  scale). When set, the walk loop's timeScale tracks actual speed so feet
-	 *  stop skating at speeds the clip wasn't authored for. */
+
 	speedRef?: number;
-	/** Looping clip masked to the upper body and held over the idle stance.
-	 *  Lets a retargeted character clip (zombie hunch) style the torso while
-	 *  the native idle keeps the feet planted — retargeted leg rotations swing
-	 *  the feet on this rig's proportions. */
+
 	idleOverlay?: string;
 }
 
@@ -205,14 +206,6 @@ const DEFAULT_LOCOMOTION: LocomotionClips = {
 const WALK_TS_MIN = 0.6;
 const WALK_TS_MAX = 2.6;
 
-// The retargeted clip batch (Zombie_*, Crouch_*, …) animates pelvis
-// translation in the SOURCE skeleton's space — rest height ~1.02-1.14 vs this
-// rig's ~0.91 — so the whole body floats ~10cm with no foot IK to pin it.
-// Deleting the track is wrong too: the leg rotations are authored against the
-// pelvis curve, so without it the feet swing. Rebase instead: shift the Y
-// curve so its mean sits at the rig's bind pelvis height, keeping the
-// authored bob the rotations compensate for. Mutates the shared GLTF cache
-// once per clip.
 const REBASED_CLIPS = new WeakSet<THREE.AnimationClip>();
 function rebasePelvis(clips: THREE.AnimationClip[], restY: number): void {
 	for (const c of clips) {
@@ -240,6 +233,7 @@ export function Character({
 	tint,
 	armor,
 	hide,
+	bodySet,
 	locomotion = DEFAULT_LOCOMOTION,
 	onReady,
 	drive,
@@ -253,14 +247,12 @@ export function Character({
 	const heldMats = useRef<THREE.ShaderMaterial[] | null>(null);
 	const heldPos = useRef(new THREE.Vector3());
 	const heldQuat = useRef(new THREE.Quaternion());
-	// Flame-lean physics: last anchor world pos, spring tilt state (rad) + its
-	// velocity, and scratch objects reused per frame to avoid per-frame allocs.
+
 	const flamePrev = useRef<THREE.Vector3 | null>(null);
 	const leanRef = useRef({ x: 0, z: 0, vx: 0, vz: 0 });
 	const leanTilt = useRef(new THREE.Quaternion());
 	const leanEuler = useRef(new THREE.Euler());
-	// Smoothed flame world-velocity, fed to the ember shader so sparks streak
-	// (drag opposite the motion) when the torch is moved quickly.
+
 	const flameVel = useRef(new THREE.Vector3());
 	const heldLightCfg = useRef<{
 		intensity: number;
@@ -268,8 +260,7 @@ export function Character({
 	} | null>(null);
 	const groupRef = useRef<THREE.Group>(null);
 	const torchLight = useRef<THREE.PointLight>(null);
-	// One persistent flame reused across equips: built lazily, reparented to the
-	// live hand's anchor on equip, detached on unequip, disposed only on unmount.
+
 	const flamePool = useRef<{
 		flame: THREE.Group;
 		mats: THREE.ShaderMaterial[];
@@ -283,6 +274,7 @@ export function Character({
 		rose: false,
 	});
 	const comboRef = useRef({ step: -1, until: 0 });
+	const castPhaseRef = useRef(0);
 	const localBits = useRef(0);
 	const blockRef = useRef<{ on: boolean; pose: BlockPose }>({
 		on: false,
@@ -296,7 +288,7 @@ export function Character({
 		});
 		return s;
 	}, [gltf]);
-	useCharacterParts(scene, armor, hide);
+	useCharacterParts(scene, armor, hide, bodySet);
 	useBodySkinMorph(scene);
 	useSkinTint(scene, tint);
 	const spineBones = useMemo(
@@ -351,9 +343,6 @@ export function Character({
 		return out;
 	}, [scene, gltf]);
 
-	// Generic held-item attach: everything is driven by the HELD_ITEMS registry, so
-	// a new object is a config entry, not new code. Grips the handle end, applies
-	// the authored pos/rot/scale, and wires optional flame/light attachments.
 	useEffect(() => {
 		const srcByUrl: Record<string, THREE.Object3D> = {
 			[SWORD_URL]: sword.scene,
@@ -361,9 +350,6 @@ export function Character({
 		};
 		const cleanups: Array<() => void> = [];
 
-		// Attach one registry item to one hand bone with its authored grip. The
-		// flame/light of a lit item (torch) is captured into the shared refs so the
-		// frame loop drives it from whichever hand ends up holding it.
 		const attachOne = (
 			boneName: string,
 			grip: {
@@ -391,10 +377,6 @@ export function Character({
 				mesh.castShadow = true;
 			});
 
-			// Normalize any vertical item the same way: rotate its long axis to +Y
-			// (up) and shift so the grip point sits at the pivot origin (the fist).
-			// After this every item is "a vertical stick gripped at the bottom", so
-			// the shared grip poses them identically. Tip is +Y for the flame.
 			const axis = new THREE.Vector3(...cfg.axis).normalize();
 			inner.quaternion.setFromUnitVectors(axis, UP);
 			inner.updateMatrixWorld(true);
@@ -439,7 +421,6 @@ export function Character({
 				heldLightCfg.current = cfg.light ?? null;
 			}
 
-			// Detach only — the pooled flame is reused, so it is not disposed here.
 			cleanups.push(() => hand.remove(pivot));
 		};
 
@@ -460,7 +441,6 @@ export function Character({
 		};
 	}, [scene, rightId, leftId, sword, torch]);
 
-	// Dispose the pooled flame once, when the character unmounts.
 	useEffect(
 		() => () => {
 			const p = flamePool.current;
@@ -475,6 +455,7 @@ export function Character({
 	const rig = useMemo(() => {
 		const pelvis = scene.getObjectByName('pelvis');
 		rebasePelvis(gltf.animations, pelvis?.position.y ?? 0.91);
+		clampIdleLegs(gltf.animations);
 		const animator = new CharacterAnimator(scene, gltf.animations);
 		const motor = new CharacterMotor(motorConfig);
 		const pose = new ProceduralPose(scene);
@@ -563,6 +544,7 @@ export function Character({
 				}
 			},
 			isBlocking: () => blockRef.current.on,
+			bone: (name: string) => scene.getObjectByName(name) ?? null,
 		};
 		onReady?.(handle);
 		return () => animator.dispose();
@@ -589,9 +571,16 @@ export function Character({
 			CS.AIRBORNE |
 			CS.RISING |
 			CS.LANDING |
-			CS.COMBAT_LOCK
+			CS.COMBAT_LOCK |
+			CS.SWIMMING |
+			CS.CLIMBING
 		);
-		if (motor.airborne) {
+		if (motor.mode !== 'ground') {
+			bits |= motor.mode === 'swim' ? CS.SWIMMING : CS.CLIMBING;
+			// Suppress the jump state machine while in water / on a ledge.
+			j.wasGrounded = true;
+			j.landUntil = 0;
+		} else if (motor.airborne) {
 			if (j.wasGrounded) {
 				j.wasGrounded = false;
 				j.airStart = tRef.current;
@@ -617,7 +606,8 @@ export function Character({
 				j.landUntil =
 					gait === 'idle'
 						? tRef.current +
-							(animator.duration('Jump_Land') * 0.55) / LAND_SPEED
+							(animator.duration('Jump_Land') * LAND_HOLD_FRAC) /
+								LAND_SPEED
 						: 0;
 				if (gait === 'idle') j.recover = true;
 			}
@@ -628,6 +618,35 @@ export function Character({
 		if (motor.yawLock !== null) bits |= CS.COMBAT_LOCK;
 		if (eid >= 0) CharState.bits[eid] = bits;
 		else localBits.current = bits;
+
+		// Ability cast -> full-body one-shot. On the idle->windup edge, play the
+		// ability's clip time-scaled to fit the whole cast so the visual swing
+		// lines up with the active-phase hit window. Non-caster entities keep
+		// Caster.phase at 0 (never written), so this never fires for them. This
+		// replaces the old upper-body-masked attack, and puppet casters (future
+		// NPCs) animate through the very same path.
+		if (eid >= 0) {
+			const cphase = Caster.phase[eid];
+			if (
+				cphase !== CastPhase.Idle &&
+				castPhaseRef.current === CastPhase.Idle
+			) {
+				const ab = abilityById(Caster.ability[eid]);
+				if (ab) {
+					const clip = animator.has(ab.clip)
+						? ab.clip
+						: 'Sword_Attack';
+					const dur = animator.duration(clip);
+					const ts = THREE.MathUtils.clamp(
+						dur > 0 ? dur / castDuration(ab) : 1,
+						0.6,
+						1.8,
+					);
+					void animator.playOnce(clip, 0.1, ts);
+				}
+			}
+			castPhaseRef.current = cphase;
+		}
 
 		// --- Resolve the base layer from the state word.
 		let bin: StrafeBin = 'Fwd';
@@ -728,7 +747,9 @@ export function Character({
 		// Spine flex + arm hang style grounded locomotion; jump clips are
 		// full-body authored poses, so airborne/landing frames get the clip
 		// untouched.
-		const inJump = (bits & (CS.AIRBORNE | CS.LANDING)) !== 0;
+		const inJump =
+			(bits & (CS.AIRBORNE | CS.LANDING | CS.SWIMMING | CS.CLIMBING)) !==
+			0;
 		const flexDeg = inJump
 			? 0
 			: (SPINE_FLEX_BY_CLIP[animator.current()] ?? SPINE_FLEX_DEFAULT);
@@ -787,6 +808,9 @@ export function Character({
 			g.position.copy(motor.position);
 			g.position.y += GROUND_Y;
 			g.rotation.y = motor.yaw;
+			// Dive pitch: nose-down when swimming toward the floor, nose-up
+			// when rising; zero everywhere else.
+			g.rotation.x = motor.mode === 'swim' ? -motor.swimPitch : 0;
 			g.updateMatrixWorld(true);
 		}
 		equipment.update(dt);

@@ -1,22 +1,30 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Dungeon } from '../game/dungeon/Dungeon';
+import { Pools, UnderwaterTint } from '../game/water/PoolsView';
+import { PoolLevelsDebug } from '../game/water/PoolLevelsDebug';
 import { AimReticle } from '../game/hud/AimReticle';
 import { TorchPlacer } from '../game/prop/TorchPlacer';
 import { CratePlacer } from '../game/prop/CratePlacer';
 import { PropRenderer } from '../game/render/PropRenderer';
 import { Hud } from '../game/hud/Hud';
 import { PlayerBars } from '../game/hud/PlayerBars';
+import { AbilityBar } from '../game/hud/AbilityBar';
 import { InteractPrompt } from '../game/interact/InteractPrompt';
 import { BG_COLOR, PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
 import { Goblins } from '../game/npc/Goblins';
+import { KurenaiNpc } from '../game/npc/KurenaiNpc';
 import { PhysicsBodies } from '../game/sab/PhysicsBodies';
 import { AOComposer } from '../game/render/AOComposer';
+import { AdaptiveQuality } from '../game/render/AdaptiveQuality';
+import { EagleEye } from '../game/render/EagleEye';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { DebugStats, StatsProbe } from '../game/hud/DebugStats';
-import { LOADOUT } from '../game/viewmodel/equipment';
-import { setEquipped, useEquippedId } from '../game/viewmodel/store';
+import { useEquippedId } from '../game/viewmodel/store';
+import { requestCast } from '../game/combat/castSystem';
+import { playerEid } from '../game/character/playerEntity';
+import { ABILITY_SLOTS } from '../game/combat/ability';
 import { InventoryPanel } from '../game/inventory/InventoryPanel';
 import { BodyMorphPanel } from '../game/inventory/BodyMorphPanel';
 import { toggleOpen, isOpen as isInventoryOpen } from '../game/inventory/store';
@@ -25,6 +33,12 @@ import { MainMenu } from '../game/menu/MainMenu';
 import { Codex } from '../game/menu/Codex';
 import { SettingsPanel } from '../game/menu/SettingsPanel';
 import { useScreen, setScreen, isPlaying } from '../game/menu/store';
+import {
+	toggleEagle,
+	setEagle,
+	isEagle,
+	useEagle,
+} from '../game/menu/eagleStore';
 import { usePsx } from '../game/menu/settingsStore';
 
 export function App() {
@@ -32,6 +46,7 @@ export function App() {
 	const screen = useScreen();
 	const [aim, setAim] = useState<string | null>(null);
 	const [debug, setDebug] = useState(false);
+	const eagle = useEagle();
 	const equippedId = useEquippedId();
 
 	useEffect(() => {
@@ -39,6 +54,10 @@ export function App() {
 			if (e.code === 'Escape') {
 				if (isInventoryOpen()) {
 					toggleOpen();
+					return;
+				}
+				if (isEagle()) {
+					setEagle(false);
 					return;
 				}
 				document.exitPointerLock();
@@ -51,6 +70,11 @@ export function App() {
 			if (el?.tagName === 'INPUT') return;
 			if (!isPlaying()) return;
 
+			if (e.code === 'KeyV') {
+				toggleEagle();
+				return;
+			}
+
 			if (e.code === 'KeyI') {
 				const open = toggleOpen();
 				if (open) document.exitPointerLock();
@@ -59,8 +83,9 @@ export function App() {
 
 			const digit = e.code.match(/^Digit([1-9])$/);
 			if (digit) {
-				const idx = Number(digit[1]) - 1;
-				if (idx < LOADOUT.length) setEquipped(LOADOUT[idx].id);
+				const slot = Number(digit[1]);
+				if (slot >= 1 && slot <= ABILITY_SLOTS)
+					requestCast(playerEid(), slot);
 			}
 		};
 		window.addEventListener('keydown', onKey);
@@ -70,10 +95,9 @@ export function App() {
 	return (
 		<>
 			<Canvas
-				flat
 				shadows="percentage"
 				dpr={psx.dpr}
-				gl={{ antialias: true, powerPreference: 'high-performance' }}
+				gl={{ antialias: false, powerPreference: 'high-performance' }}
 				camera={{ fov: psx.fov, near: 0.05, far: 34 }}
 				onCreated={({ camera, scene, gl }) => {
 					(window as unknown as Record<string, unknown>).__vm = {
@@ -94,9 +118,12 @@ export function App() {
 					imageRendering: psx.dpr < 1 ? 'pixelated' : 'auto',
 				}}>
 				<color attach="background" args={[BG_COLOR]} />
-				<ambientLight intensity={0.05} />
+				<ambientLight intensity={0.12} />
 				<Suspense fallback={null}>
 					<Dungeon snap={psx.snap} affine={psx.affine} />
+				</Suspense>
+				<Suspense fallback={null}>
+					<Pools />
 				</Suspense>
 				<Suspense fallback={null}>
 					<ThirdPersonPlayer url={CHARACTER_URL} />
@@ -105,19 +132,27 @@ export function App() {
 					<Goblins />
 				</Suspense>
 				<Suspense fallback={null}>
+					<KurenaiNpc />
+				</Suspense>
+				<Suspense fallback={null}>
 					<PropRenderer ambient={0.04} />
 				</Suspense>
 				<PhysicsBodies />
 				<AOComposer />
+				<AdaptiveQuality />
+				<EagleEye />
 				{debug && <StatsProbe />}
+				{debug && <PoolLevelsDebug />}
 				<TorchPlacer />
 				<CratePlacer />
 				<AimReticle onAim={setAim} />
 			</Canvas>
+			<UnderwaterTint />
 			{screen === 'playing' && (
 				<>
 					<Hud kind={aim} equippedId={equippedId} />
 					<PlayerBars />
+					<AbilityBar />
 					<InteractPrompt />
 					<InventoryPanel />
 					{debug && <HeldGripDebug />}
@@ -136,10 +171,27 @@ export function App() {
 							font: '13px monospace',
 							textShadow: '0 1px 2px #000',
 						}}>
-						click to look · WASD move · F unlock door · LMB mount
-						torch · R reload · 1-3 equip · I inventory · Esc menu
+						click to look · WASD move · F unlock door · LMB attack ·
+						1-4 abilities · I inventory · Esc menu
 					</div>
 				</>
+			)}
+			{eagle && (
+				<div
+					style={{
+						position: 'fixed',
+						top: '1rem',
+						left: '50%',
+						transform: 'translateX(-50%)',
+						pointerEvents: 'none',
+						color: '#ffd27f',
+						font: '12px monospace',
+						letterSpacing: '0.1em',
+						textShadow: '0 1px 2px #000',
+					}}>
+					SNAPSHOT · frozen player-view draw set · drag orbit · scroll
+					zoom · ` stats · V/Esc exit
+				</div>
 			)}
 			{screen === 'main' && <MainMenu />}
 			{screen === 'codex' && <Codex />}

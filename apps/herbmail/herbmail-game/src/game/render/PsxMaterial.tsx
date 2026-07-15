@@ -17,13 +17,13 @@ const blankTex = new THREE.DataTexture(
 );
 blankTex.needsUpdate = true;
 
-export const MAX_LIGHTS = 24;
+export const MAX_LIGHTS = 8;
 export const LIGHT_RANGE = 13.5;
 // POM relief LOD band. Darkness comes from light attenuation, so relief detail
 // past the torch glow is invisible — full strength inside RELIEF_NEAR, faded
 // to flat by RELIEF_FAR (just past LIGHT_RANGE where surfaces read black).
-export const RELIEF_NEAR = 6;
-export const RELIEF_FAR = 16;
+export const RELIEF_NEAR = 13;
+export const RELIEF_FAR = 18;
 
 const vertex = /* glsl */ `
 	uniform float uSnap;
@@ -171,6 +171,7 @@ const fragment = /* glsl */ `
 		float rough = 1.0;
 		if (uUseMaps > 0.5) {
 			vec3 nTex = texture2D(uNormalMap, uv).rgb * 2.0 - 1.0;
+			nTex.xy *= 1.7;
 			N = normalize(mat3(normalize(vTangent), normalize(vBitangent), N) * nTex);
 			vec3 har = texture2D(uHarMap, uv).rgb;
 			ao = har.g;
@@ -219,9 +220,16 @@ const fragment = /* glsl */ `
 			light += uLightColor[i] * base * vis;
 		}
 
+		// Break tiling repetition without touching UV continuity: two octaves of
+		// low-frequency world-space value noise darken the albedo in patches
+		// (reads as damp/soot/wear), so identical brick tiles stop reading as a
+		// grid at distance. Near-free next to the POM march.
+		float m1 = fract(sin(dot(floor(vWorld.xz * 0.55), vec2(12.9898, 78.233))) * 43758.5453);
+		float m2 = fract(sin(dot(floor(vWorld.xz * 1.7 + 9.1), vec2(39.3468, 11.135))) * 24634.6345);
+		float macro = mix(0.68, 1.0, m1) * mix(0.82, 1.0, m2);
 		// No distance fog — darkness comes from light attenuation alone
 		// (everything beyond LIGHT_RANGE falls to black on its own).
-		vec3 rgb = tex.rgb * uTint * light;
+		vec3 rgb = tex.rgb * uTint * light * macro;
 		// Output linear: the AO composer's OutputPass applies the single sRGB
 		// encode, round-tripping back to the tuned display values.
 		gl_FragColor = vec4(pow(rgb, vec3(2.2)), tex.a);
@@ -242,7 +250,7 @@ const PsxMaterialBase = shaderMaterial(
 		uReliefFar: RELIEF_FAR,
 		uAmbient: 0.12,
 		uPom: 0,
-		uPomScale: 0.06,
+		uPomScale: 0.14,
 		uPomMin: 6,
 		uPomMax: 12,
 		uSilhouette: 0,

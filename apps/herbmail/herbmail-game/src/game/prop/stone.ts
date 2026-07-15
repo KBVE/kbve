@@ -11,19 +11,14 @@ import { hash01, hashInt } from '../geometry/rng';
 import { MODEL_STONE, PROP_STONE } from './kinds';
 import { spawnPropBase } from './base';
 
-// Hits to break a stone, staged like a crate.
 export const STONE_MAX_HP = 3;
 
-// Default base radius (m); tune later.
 export const STONE_SIZE = 0.55;
 
-// Stable per-tile id so a mined stone's suppression + shape stays deterministic
-// across room streaming.
 export function stoneId(worldCol: number, worldRow: number): number {
 	return hashInt(worldCol, worldRow, 0x570e) >>> 0;
 }
 
-// World tile (col,row) -> centred stone mount transform, base resting on floor.
 export function stoneTransform(
 	worldCol: number,
 	worldRow: number,

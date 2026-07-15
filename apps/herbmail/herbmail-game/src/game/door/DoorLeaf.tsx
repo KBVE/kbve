@@ -79,7 +79,7 @@ export function DoorLeaf({ door, snap, res }: Props) {
 						uNormalMap={tex.door.normal}
 						uHarMap={tex.door.har}
 						uUseMaps={1}
-						uPom={1}
+						uPom={0}
 						uSnap={snap}
 						uAffine={0}
 						uRes={res}
