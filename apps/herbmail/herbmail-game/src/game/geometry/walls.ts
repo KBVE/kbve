@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { COVE_R, TILE, WALL_H } from '../config';
-import { insetUV } from './uv';
 import { exposedFaces, faceMatrix, isBay, worldCol, worldRow } from './faces';
 import { ARCH, gridTile, type Grid } from './grid';
 import { hash01 } from './rng';
@@ -16,10 +15,16 @@ export const WALL_TEX_COUNT = 3;
 
 const CAP_H = WALL_H - COVE_R;
 const V_REPEAT = CAP_H / TILE;
+// Bricks per face. 1 tiled the whole texture across a 3m tile (oversized
+// blocks); higher packs smaller, denser courses that read as masonry.
+const TEX_DENSITY = 2;
 
-function tileV(g: THREE.BufferGeometry): void {
+function tileUV(g: THREE.BufferGeometry): void {
 	const uv = g.attributes.uv as THREE.BufferAttribute;
-	for (let i = 0; i < uv.count; i++) uv.setY(i, uv.getY(i) * V_REPEAT);
+	for (let i = 0; i < uv.count; i++) {
+		uv.setX(i, uv.getX(i) * TEX_DENSITY);
+		uv.setY(i, uv.getY(i) * V_REPEAT * TEX_DENSITY);
+	}
 	uv.needsUpdate = true;
 }
 
@@ -56,9 +61,8 @@ export function buildWalls(grid: Grid, variant = 0): THREE.BufferGeometry[] {
 		// One quad per face; vertical texture tiling comes from UV repeat
 		// (walls no longer stack a quad per TILE of height).
 		const quad = new THREE.PlaneGeometry(TILE, CAP_H, 1, 1);
-		insetUV(quad);
-		tileV(quad);
 		if (flip) flipU(quad);
+		tileUV(quad);
 		quad.applyMatrix4(faceMatrix(grid, face, CAP_H / 2));
 		buckets[texBucket(nc, nr, variant)].push(quad);
 	}

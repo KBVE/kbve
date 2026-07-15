@@ -75,7 +75,7 @@ export function useDungeonMaterials(
 			}),
 			trim: makeMat({
 				...wallUniforms(tex.trim),
-				uPom: 1,
+				uPom: 0,
 				uTint: tint(TINT.trim),
 			}),
 			floor: makeMat({ uMap: tex.floor, uTint: tint(TINT.floor) }),

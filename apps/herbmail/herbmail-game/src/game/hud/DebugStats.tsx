@@ -50,6 +50,8 @@ export function StatsProbe() {
 	const gl = useThree((s) => s.gl);
 	const acc = useRef(0);
 	const worst = useRef(0);
+	const peakTris = useRef(0);
+	const peakCalls = useRef(0);
 	useEffect(() => {
 		gl.info.autoReset = false;
 		return () => {
@@ -67,14 +69,20 @@ export function StatsProbe() {
 		snapshot.programs = gl.info.programs?.length ?? 0;
 		snapshot.psxMats = psxMaterialRegistry.size;
 		if (ms > worst.current) worst.current = ms;
+		if (snapshot.triangles > peakTris.current)
+			peakTris.current = snapshot.triangles;
+		if (snapshot.calls > peakCalls.current)
+			peakCalls.current = snapshot.calls;
 		acc.current += delta;
 		if (acc.current >= 1) {
 			acc.current = 0;
 			const s = snapshot;
-			console.info(
-				`PERF fps=${s.fps.toFixed(0)} avgMs=${s.ms.toFixed(1)} worstMs=${worst.current.toFixed(1)} calls=${s.calls} tris=${s.triangles} geos=${s.geometries} tex=${s.textures} progs=${s.programs} psxMats=${s.psxMats} lights=${s.lights} sector=${Math.floor(s.camX / SPAN)},${Math.floor(s.camZ / SPAN)}`,
+			console.warn(
+				`PERF fps=${s.fps.toFixed(0)} avgMs=${s.ms.toFixed(1)} worstMs=${worst.current.toFixed(1)} calls=${s.calls} peakCalls=${peakCalls.current} tris=${s.triangles} peakTris=${peakTris.current} geos=${s.geometries} tex=${s.textures} progs=${s.programs} psxMats=${s.psxMats} lights=${s.lights} sector=${Math.floor(s.camX / SPAN)},${Math.floor(s.camZ / SPAN)}`,
 			);
 			worst.current = 0;
+			peakTris.current = 0;
+			peakCalls.current = 0;
 		}
 		const first = psxMaterialRegistry.values().next().value;
 		if (first) {
