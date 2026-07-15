@@ -139,9 +139,16 @@ export function castSystem(world: World, dt: number): void {
 
 		if (t >= wEnd && t < aEnd) {
 			Caster.phase[eid] = CastPhase.Active;
-			if (!Caster.hasHit[eid]) {
-				Caster.hasHit[eid] = 1;
+			// Spread `hits` damage ticks across the active window so combo swings
+			// each connect. hasHit counts ticks already applied this cast.
+			const per = ability.active / ability.hits;
+			const wanted = Math.min(
+				ability.hits,
+				Math.floor((t - wEnd) / per) + 1,
+			);
+			while (Caster.hasHit[eid] < wanted) {
 				applyDamage(eid, ability, world);
+				Caster.hasHit[eid]++;
 			}
 		} else if (t >= aEnd && t < rEnd) {
 			Caster.phase[eid] = CastPhase.Recover;

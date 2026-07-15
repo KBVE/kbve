@@ -143,6 +143,11 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	}, [hands, armed]);
 	const handleRef = useRef<CharacterHandle | null>(null);
 	const bodyUnreg = useRef<(() => void) | null>(null);
+	// Two movers: the normal one collides with walls + actor bodies; the terrain
+	// mover collides with walls only, used while lunging so a combo slides on
+	// walls but passes through enemies instead of being deflected off them.
+	const bodyMover = useRef<ReturnType<typeof makeMover> | null>(null);
+	const terrainMover = useRef<ReturnType<typeof makeMover> | null>(null);
 	useMelee();
 	useCrateBreak();
 	useStoneMine();
@@ -376,15 +381,20 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		// During an ability cast's windup/active, drive a forward lunge along
 		// facing (dash abilities push harder), overriding WASD; recover releases.
 		const cphase = Caster.phase[pe];
-		if (cphase === CastPhase.Windup || cphase === CastPhase.Active) {
-			const ab = abilityById(Caster.ability[pe]);
-			if (ab && (ab.lunge > 0 || ab.dash)) {
-				const push = ab.dash ? ab.lunge * 2 : ab.lunge;
-				h.motor.setDesiredVelocity(
-					Math.sin(h.motor.yaw) * push,
-					Math.cos(h.motor.yaw) * push,
-				);
-			}
+		const castAb =
+			cphase === CastPhase.Windup || cphase === CastPhase.Active
+				? abilityById(Caster.ability[pe])
+				: undefined;
+		if (castAb && (castAb.lunge > 0 || castAb.dash)) {
+			const push = castAb.dash ? castAb.lunge * 2 : castAb.lunge;
+			h.motor.setDesiredVelocity(
+				Math.sin(h.motor.yaw) * push,
+				Math.cos(h.motor.yaw) * push,
+			);
+			// Slide on terrain only for the lunge — pass through enemies.
+			if (terrainMover.current) h.motor.mover = terrainMover.current;
+		} else if (bodyMover.current && h.motor.mover !== bodyMover.current) {
+			h.motor.mover = bodyMover.current;
 		}
 		refreshPrompt(h.motor.position.x, h.motor.position.z);
 
@@ -429,7 +439,9 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 					const body = { pos: h.motor.position, radius: RADIUS };
 					bodyUnreg.current?.();
 					bodyUnreg.current = registerBody(body);
-					h.motor.mover = makeMover(RADIUS, body);
+					bodyMover.current = makeMover(RADIUS, body);
+					terrainMover.current = makeMover(RADIUS, body, true);
+					h.motor.mover = bodyMover.current;
 					handleRef.current = h;
 					(window as unknown as Record<string, unknown>).__coll = {
 						solid: solidAtWorld,

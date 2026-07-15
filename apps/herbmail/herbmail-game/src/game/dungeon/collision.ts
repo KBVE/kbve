@@ -98,6 +98,7 @@ export function registerBody(b: Body): () => void {
 export function makeMover(
 	radius: number,
 	self?: Body,
+	skipBodies = false,
 ): (pos: { x: number; z: number }, dx: number, dz: number) => void {
 	const moveAxis = (
 		pos: { x: number; z: number },
@@ -122,6 +123,9 @@ export function makeMover(
 		const sz = dz / steps;
 		for (let i = 0; i < steps; i++) moveAxis(pos, sx, sz);
 
+		// Terrain-only movers (e.g. a lunging combo) slide on walls but pass
+		// through actor bodies instead of being deflected off enemies.
+		if (skipBodies) return;
 		for (const b of bodies) {
 			if (b === self) continue;
 			const bx = pos.x - b.pos.x;
