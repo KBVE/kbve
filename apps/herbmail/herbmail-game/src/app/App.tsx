@@ -7,6 +7,7 @@ import { CratePlacer } from '../game/prop/CratePlacer';
 import { PropRenderer } from '../game/render/PropRenderer';
 import { Hud } from '../game/hud/Hud';
 import { PlayerBars } from '../game/hud/PlayerBars';
+import { AbilityBar } from '../game/hud/AbilityBar';
 import { InteractPrompt } from '../game/interact/InteractPrompt';
 import { BG_COLOR, PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
@@ -16,8 +17,10 @@ import { AOComposer } from '../game/render/AOComposer';
 import { EagleEye } from '../game/render/EagleEye';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { DebugStats, StatsProbe } from '../game/hud/DebugStats';
-import { LOADOUT } from '../game/viewmodel/equipment';
-import { setEquipped, useEquippedId } from '../game/viewmodel/store';
+import { useEquippedId } from '../game/viewmodel/store';
+import { requestCast } from '../game/combat/castSystem';
+import { playerEid } from '../game/character/playerEntity';
+import { ABILITY_SLOTS } from '../game/combat/ability';
 import { InventoryPanel } from '../game/inventory/InventoryPanel';
 import { BodyMorphPanel } from '../game/inventory/BodyMorphPanel';
 import { toggleOpen, isOpen as isInventoryOpen } from '../game/inventory/store';
@@ -76,8 +79,9 @@ export function App() {
 
 			const digit = e.code.match(/^Digit([1-9])$/);
 			if (digit) {
-				const idx = Number(digit[1]) - 1;
-				if (idx < LOADOUT.length) setEquipped(LOADOUT[idx].id);
+				const slot = Number(digit[1]);
+				if (slot >= 1 && slot <= ABILITY_SLOTS)
+					requestCast(playerEid(), slot);
 			}
 		};
 		window.addEventListener('keydown', onKey);
@@ -89,7 +93,7 @@ export function App() {
 			<Canvas
 				shadows="percentage"
 				dpr={psx.dpr}
-				gl={{ antialias: true, powerPreference: 'high-performance' }}
+				gl={{ antialias: false, powerPreference: 'high-performance' }}
 				camera={{ fov: psx.fov, near: 0.05, far: 34 }}
 				onCreated={({ camera, scene, gl }) => {
 					(window as unknown as Record<string, unknown>).__vm = {
@@ -135,6 +139,7 @@ export function App() {
 				<>
 					<Hud kind={aim} equippedId={equippedId} />
 					<PlayerBars />
+					<AbilityBar />
 					<InteractPrompt />
 					<InventoryPanel />
 					{debug && <HeldGripDebug />}
@@ -153,8 +158,8 @@ export function App() {
 							font: '13px monospace',
 							textShadow: '0 1px 2px #000',
 						}}>
-						click to look · WASD move · F unlock door · LMB mount
-						torch · R reload · 1-3 equip · I inventory · Esc menu
+						click to look · WASD move · F unlock door · LMB attack ·
+						1-4 abilities · I inventory · Esc menu
 					</div>
 				</>
 			)}

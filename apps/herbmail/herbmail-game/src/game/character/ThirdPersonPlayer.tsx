@@ -12,7 +12,7 @@ import { TILE } from '../config';
 import { Character, type CharacterHandle, type BlockPose } from './Character';
 import { useHands } from '../viewmodel/store';
 import { equipmentById } from '../viewmodel/equipment';
-import { SWING, triggerSwing } from './melee';
+import { triggerSwing } from './melee';
 import { useMelee } from './useMelee';
 import { useCrateBreak } from './useCrateBreak';
 import { useStoneMine } from './useStoneMine';
@@ -32,9 +32,11 @@ import {
 } from '../combat/targeting';
 import { losBlockedAt } from '../combat/los';
 import { TargetMarker } from '../combat/TargetMarker';
-import { Transform3 } from '../mecs/props';
+import { Transform3, Caster } from '../mecs/props';
 import { playerEid, playerBits, writePlayerBits } from './playerEntity';
 import { CS, canBlockBits } from './charState';
+import { requestCast } from '../combat/castSystem';
+import { BASIC_ID, CastPhase, abilityById } from '../combat/ability';
 
 const RADIUS = 0.35;
 const CAM_DIST = 2.2;
@@ -70,7 +72,6 @@ const RUN_EP_COST = 18;
 const RUN_EP_RECOVER = 30;
 
 const RUN_EP_EMPTY = 1;
-const ATTACK_EP_WEAPON = 8;
 const ATTACK_EP_PUNCH = 4;
 
 function clampBoom(
@@ -220,17 +221,12 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				);
 			}
 			if (armedRef.current) {
-				if (PlayerStats.ep.value[PlayerStats.eid] < ATTACK_EP_WEAPON)
-					return;
-				spend(PlayerStats.ep, ATTACK_EP_WEAPON);
-
-				const m = h.motor;
-				m.velocity.set(
-					Math.sin(m.yaw) * SWING.stepSpeed,
-					0,
-					Math.cos(m.yaw) * SWING.stepSpeed,
-				);
-				void h.animator.playMaskedOnce('Attack_Upper');
+				// Armed basic attack routes through the cast system (ability 0):
+				// castSystem drives the phases + goblin damage, Character plays the
+				// clip, and the lunge is applied per-frame from the cast phase below.
+				// triggerSwing still fires so the mesh-hitbox path keeps breaking
+				// crates/stones (props carry Health but no Targetable).
+				requestCast(playerEid(), BASIC_ID);
 				triggerSwing();
 			} else {
 				if (PlayerStats.ep.value[PlayerStats.eid] < ATTACK_EP_PUNCH)
@@ -377,6 +373,19 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			dir.current.normalize().multiplyScalar(speed);
 		}
 		h.motor.setDesiredVelocity(dir.current.x, dir.current.z);
+		// During an ability cast's windup/active, drive a forward lunge along
+		// facing (dash abilities push harder), overriding WASD; recover releases.
+		const cphase = Caster.phase[pe];
+		if (cphase === CastPhase.Windup || cphase === CastPhase.Active) {
+			const ab = abilityById(Caster.ability[pe]);
+			if (ab && (ab.lunge > 0 || ab.dash)) {
+				const push = ab.dash ? ab.lunge * 2 : ab.lunge;
+				h.motor.setDesiredVelocity(
+					Math.sin(h.motor.yaw) * push,
+					Math.cos(h.motor.yaw) * push,
+				);
+			}
+		}
 		refreshPrompt(h.motor.position.x, h.motor.position.z);
 
 		pivot.current.copy(h.motor.position);

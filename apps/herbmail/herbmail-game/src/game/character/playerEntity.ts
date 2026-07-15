@@ -2,7 +2,9 @@ import {
 	addComponent,
 	addEntity,
 	createWorld,
+	Caster,
 	CharState,
+	Cooldowns,
 	HeldItems,
 	Transform3,
 } from '../mecs/props';
@@ -30,6 +32,10 @@ export function playerEid(): number {
 		addComponent(world, eid, Transform3);
 		addComponent(world, eid, CharState);
 		addComponent(world, eid, HeldItems);
+		addComponent(world, eid, Caster);
+		addComponent(world, eid, Cooldowns);
+		Caster.ability[eid] = -1;
+		Caster.phase[eid] = 0;
 		syncHands();
 	}
 	return eid;

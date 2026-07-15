@@ -17,9 +17,10 @@ import {
 	type StrafeState,
 } from './strafe';
 import { CS, resolveBase, resolveOverlays } from './charState';
-import { CharState } from '../mecs/props';
+import { CharState, Caster } from '../mecs/props';
 import { getTarget } from '../combat/targeting';
 import { Transform3 } from '../mecs/props';
+import { CastPhase, abilityById, castDuration } from '../combat/ability';
 import { EquipmentPhysics } from './equipmentPhysics';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
@@ -269,6 +270,7 @@ export function Character({
 		rose: false,
 	});
 	const comboRef = useRef({ step: -1, until: 0 });
+	const castPhaseRef = useRef(0);
 	const localBits = useRef(0);
 	const blockRef = useRef<{ on: boolean; pose: BlockPose }>({
 		on: false,
@@ -604,6 +606,35 @@ export function Character({
 		if (motor.yawLock !== null) bits |= CS.COMBAT_LOCK;
 		if (eid >= 0) CharState.bits[eid] = bits;
 		else localBits.current = bits;
+
+		// Ability cast -> full-body one-shot. On the idle->windup edge, play the
+		// ability's clip time-scaled to fit the whole cast so the visual swing
+		// lines up with the active-phase hit window. Non-caster entities keep
+		// Caster.phase at 0 (never written), so this never fires for them. This
+		// replaces the old upper-body-masked attack, and puppet casters (future
+		// NPCs) animate through the very same path.
+		if (eid >= 0) {
+			const cphase = Caster.phase[eid];
+			if (
+				cphase !== CastPhase.Idle &&
+				castPhaseRef.current === CastPhase.Idle
+			) {
+				const ab = abilityById(Caster.ability[eid]);
+				if (ab) {
+					const clip = animator.has(ab.clip)
+						? ab.clip
+						: 'Sword_Attack';
+					const dur = animator.duration(clip);
+					const ts = THREE.MathUtils.clamp(
+						dur > 0 ? dur / castDuration(ab) : 1,
+						0.6,
+						1.8,
+					);
+					void animator.playOnce(clip, 0.1, ts);
+				}
+			}
+			castPhaseRef.current = cphase;
+		}
 
 		// --- Resolve the base layer from the state word.
 		let bin: StrafeBin = 'Fwd';
