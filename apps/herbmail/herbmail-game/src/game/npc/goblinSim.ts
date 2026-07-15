@@ -78,7 +78,7 @@ export function spawnGoblin(
 	const body = { pos: { x, z }, radius };
 	runtime.set(eid, {
 		body,
-		mover: makeMover(radius, body),
+		mover: makeMover(radius, body, false, true),
 		unreg: registerBody(body),
 		walkSpeed,
 		chaseSpeed,

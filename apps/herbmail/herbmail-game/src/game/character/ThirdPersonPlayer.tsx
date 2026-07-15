@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import {
 	solidAtWorld,
+	floorYAtWorld,
 	dungeonSpawn,
 	makeMover,
 	registerBody,
@@ -37,6 +38,7 @@ import { playerEid, playerBits, writePlayerBits } from './playerEntity';
 import { CS, canBlockBits } from './charState';
 import { requestCast } from '../combat/castSystem';
 import { BASIC_ID, CastPhase, abilityById } from '../combat/ability';
+import { bindSwimHandle, registerSwimEntry, tickSwim, swimSpeed } from './swim';
 
 const RADIUS = 0.35;
 const CAM_DIST = 2.2;
@@ -151,6 +153,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	useMelee();
 	useCrateBreak();
 	useStoneMine();
+	useEffect(() => registerSwimEntry(), []);
 	const keys = useRef<Record<string, boolean>>({});
 	const fwd = useRef(new THREE.Vector3());
 	const right = useRef(new THREE.Vector3());
@@ -210,7 +213,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		const attack = (e: MouseEvent) => {
 			if (!document.pointerLockElement) return;
 			const h = handleRef.current;
-			if (!h) return;
+			if (!h || h.motor.mode !== 'ground') return;
 			if (e.button === 2) {
 				if (canBlockBits(playerBits()))
 					h.setBlocking(true, blockPoseRef.current);
@@ -364,20 +367,32 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		eul.current.set(curPitch.current, curYaw.current, 0);
 		camera.quaternion.setFromEuler(eul.current);
 
+		const swimming = h.motor.mode === 'swim';
 		camera.getWorldDirection(fwd.current);
-		fwd.current.y = 0;
+		// Swimming steers along the full camera direction (dive by looking
+		// down); on foot movement stays planar.
+		if (!swimming) fwd.current.y = 0;
 		fwd.current.normalize();
 		right.current.crossVectors(fwd.current, camera.up).normalize();
+		right.current.y = 0;
 
 		dir.current
 			.set(0, 0, 0)
 			.addScaledVector(fwd.current, f)
 			.addScaledVector(right.current, s);
-		const speed = (running ? 4.5 : 1.8) * (h.isBlocking() ? 0.55 : 1);
+		if (swimming && !menu && k['Space']) dir.current.y += 0.8;
+		const speed = swimming
+			? swimSpeed()
+			: (running ? 4.5 : 1.8) * (h.isBlocking() ? 0.55 : 1);
 		if (dir.current.lengthSq() > 0) {
 			dir.current.normalize().multiplyScalar(speed);
 		}
-		h.motor.setDesiredVelocity(dir.current.x, dir.current.z);
+		h.motor.setDesiredVelocity(
+			dir.current.x,
+			dir.current.z,
+			swimming ? dir.current.y : 0,
+		);
+		tickSwim(dt, f > 0);
 		// During an ability cast's windup/active, drive a forward lunge along
 		// facing (dash abilities push harder), overriding WASD; recover releases.
 		const cphase = Caster.phase[pe];
@@ -442,6 +457,8 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 					bodyMover.current = makeMover(RADIUS, body);
 					terrainMover.current = makeMover(RADIUS, body, true);
 					h.motor.mover = bodyMover.current;
+					h.motor.floorAt = floorYAtWorld;
+					bindSwimHandle(h);
 					handleRef.current = h;
 					(window as unknown as Record<string, unknown>).__coll = {
 						solid: solidAtWorld,

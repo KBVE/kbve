@@ -1,4 +1,4 @@
-import { ARCH, FLOOR, WALL, COLUMN, type Grid } from '../geometry/grid';
+import { ARCH, FLOOR, WALL, COLUMN, POOL, type Grid } from '../geometry/grid';
 import { WALL_TEX_COUNT } from '../geometry/walls';
 import { hash01 } from '../geometry/rng';
 import {
@@ -67,6 +67,13 @@ export interface DoorSlot {
 	axis: 'x' | 'z';
 }
 
+export interface PoolSlot {
+	col: number;
+	row: number;
+	w: number;
+	h: number;
+}
+
 export interface RoomDesc {
 	cx: number;
 	cy: number;
@@ -82,6 +89,7 @@ export interface RoomDesc {
 	columns: ColumnSlot[];
 	spawnSlots: SpawnSlot[];
 	doorways: DoorSlot[];
+	pools: PoolSlot[];
 }
 
 const NEIGHBORS: { di: number; bit: number; dc: number; dr: number }[] = [
@@ -207,6 +215,7 @@ export function genRoom(seed: number, cx: number, cy: number): RoomDesc {
 		columns: [],
 		spawnSlots: [],
 		doorways: [],
+		pools: [],
 	};
 }
 
@@ -394,6 +403,52 @@ function genColumns(
 	return out;
 }
 
+const POOL_KEEP = 0.3;
+const POOL_MAX = 6;
+const POOL_MIN = 3;
+const POOL_MARGIN = 2;
+
+// Sink a water basin into big rooms: a POOL-tile rect centered in the room,
+// inset so a walkable ring always survives between rim and walls/doorways.
+// Runs before genColumns (isFloor rejects POOL) and only converts plain FLOOR,
+// so seam walls / arches carved by genDoorways are never eaten.
+function genPools(
+	sector: ReturnType<typeof genSector>,
+	tiles: Uint8Array,
+	cols: number,
+	seed: number,
+): PoolSlot[] {
+	const out: PoolSlot[] = [];
+	for (const r of sector.rooms) {
+		if (r.w < 2 || r.h < 2) continue;
+		const h = hash01(
+			r.id,
+			Math.imul(sector.sx, 73856093) ^ Math.imul(sector.sy, 19349663),
+			(seed | 0) ^ 0x9001,
+		);
+		if (h >= POOL_KEEP) continue;
+		const tw = r.w * CELL;
+		const th = r.h * CELL;
+		const w = Math.min(POOL_MAX, tw - POOL_MARGIN * 2);
+		const ph = Math.min(POOL_MAX, th - POOL_MARGIN * 2);
+		if (w < POOL_MIN || ph < POOL_MIN) continue;
+		const col = r.col0 * CELL + ((tw - w) >> 1);
+		const row = r.row0 * CELL + ((th - ph) >> 1);
+		let clear = true;
+		for (let tr = row; tr < row + ph && clear; tr++)
+			for (let tc = col; tc < col + w; tc++)
+				if (tiles[tr * cols + tc] !== FLOOR) {
+					clear = false;
+					break;
+				}
+		if (!clear) continue;
+		for (let tr = row; tr < row + ph; tr++)
+			for (let tc = col; tc < col + w; tc++) tiles[tr * cols + tc] = POOL;
+		out.push({ col, row, w, h: ph });
+	}
+	return out;
+}
+
 const DOOR_KEEP = 0.5;
 
 // Symmetric keep-hash over an unordered world-cell pair, so a seam gets the same
@@ -560,6 +615,7 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		...genConnectorDoors(tiles, cols, sector.connectors, seed, sx, sy),
 	);
 
+	const pools = genPools(sector, tiles, cols, seed);
 	const variant = Math.floor(hash01(sx, sy, seed | 0) * VARIANTS);
 	const torches = genTorchesGrid(tiles, cols, rows, variant);
 	const columns = genColumns(sector, tiles, cols, rows, variant);
@@ -579,5 +635,6 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		columns,
 		spawnSlots: [],
 		doorways,
+		pools,
 	};
 }

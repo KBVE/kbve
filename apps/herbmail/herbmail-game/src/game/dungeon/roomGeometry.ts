@@ -7,6 +7,7 @@ import {
 	buildCornerCoves,
 	buildCoves,
 	buildFloor,
+	buildFloorWithHoles,
 	buildWalls,
 	buildColumns,
 } from '../geometry';
@@ -37,6 +38,10 @@ let sharedFloor: THREE.BufferGeometry[] | null = null;
 let sharedCeiling: THREE.BufferGeometry[] | null = null;
 
 function floorGeo(desc: RoomDesc): THREE.BufferGeometry[] {
+	// Pool sectors punch holes in the slab, so they can't share the singleton;
+	// their floor lives in the per-signature cache and disposes with the set.
+	if (desc.pools.length)
+		return dice(buildFloorWithHoles(makeLocalGrid(desc)));
 	if (!sharedFloor) sharedFloor = dice(buildFloor(makeLocalGrid(desc)));
 	return sharedFloor;
 }
@@ -69,6 +74,7 @@ function drop(c: THREE.BufferGeometry): void {
 }
 
 function disposeSet(set: RoomGeoSet): void {
+	if (set.floor !== sharedFloor) for (const c of set.floor) drop(c);
 	for (const w of set.walls) for (const c of w) drop(c);
 	for (const w of set.columns) for (const c of w) drop(c);
 	for (const c of set.arch) drop(c);

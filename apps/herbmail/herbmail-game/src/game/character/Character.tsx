@@ -163,6 +163,7 @@ export interface CharacterHandle {
 	punch: () => void;
 	setBlocking: (b: boolean, pose?: BlockPose) => void;
 	isBlocking: () => boolean;
+	bone: (name: string) => THREE.Object3D | null;
 }
 
 interface Props {
@@ -540,6 +541,7 @@ export function Character({
 				}
 			},
 			isBlocking: () => blockRef.current.on,
+			bone: (name: string) => scene.getObjectByName(name) ?? null,
 		};
 		onReady?.(handle);
 		return () => animator.dispose();
@@ -566,9 +568,16 @@ export function Character({
 			CS.AIRBORNE |
 			CS.RISING |
 			CS.LANDING |
-			CS.COMBAT_LOCK
+			CS.COMBAT_LOCK |
+			CS.SWIMMING |
+			CS.CLIMBING
 		);
-		if (motor.airborne) {
+		if (motor.mode !== 'ground') {
+			bits |= motor.mode === 'swim' ? CS.SWIMMING : CS.CLIMBING;
+			// Suppress the jump state machine while in water / on a ledge.
+			j.wasGrounded = true;
+			j.landUntil = 0;
+		} else if (motor.airborne) {
 			if (j.wasGrounded) {
 				j.wasGrounded = false;
 				j.airStart = tRef.current;
@@ -735,7 +744,9 @@ export function Character({
 		// Spine flex + arm hang style grounded locomotion; jump clips are
 		// full-body authored poses, so airborne/landing frames get the clip
 		// untouched.
-		const inJump = (bits & (CS.AIRBORNE | CS.LANDING)) !== 0;
+		const inJump =
+			(bits & (CS.AIRBORNE | CS.LANDING | CS.SWIMMING | CS.CLIMBING)) !==
+			0;
 		const flexDeg = inJump
 			? 0
 			: (SPINE_FLEX_BY_CLIP[animator.current()] ?? SPINE_FLEX_DEFAULT);
@@ -794,6 +805,9 @@ export function Character({
 			g.position.copy(motor.position);
 			g.position.y += GROUND_Y;
 			g.rotation.y = motor.yaw;
+			// Dive pitch: nose-down when swimming toward the floor, nose-up
+			// when rising; zero everywhere else.
+			g.rotation.x = motor.mode === 'swim' ? -motor.swimPitch : 0;
 			g.updateMatrixWorld(true);
 		}
 		equipment.update(dt);

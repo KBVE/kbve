@@ -66,6 +66,8 @@ export const PROPS_SCHEMA = {
 	},
 	// Per-slot cooldown remaining (seconds) for the four special abilities.
 	Cooldowns: { s1: 'f32', s2: 'f32', s3: 'f32', s4: 'f32' },
+	// Water basin volume: center rides Transform3, extents/surface here.
+	Pool: { halfW: 'f32', halfL: 'f32', surfaceY: 'f32', ownerEid: 'i32' },
 } satisfies Schema;
 
 export const PROPS_CAP = 8192;

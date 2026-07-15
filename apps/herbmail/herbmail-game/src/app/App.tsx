@@ -1,6 +1,8 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Dungeon } from '../game/dungeon/Dungeon';
+import { Pools, UnderwaterTint } from '../game/water/PoolsView';
+import { PoolLevelsDebug } from '../game/water/PoolLevelsDebug';
 import { AimReticle } from '../game/hud/AimReticle';
 import { TorchPlacer } from '../game/prop/TorchPlacer';
 import { CratePlacer } from '../game/prop/CratePlacer';
@@ -119,6 +121,9 @@ export function App() {
 					<Dungeon snap={psx.snap} affine={psx.affine} />
 				</Suspense>
 				<Suspense fallback={null}>
+					<Pools />
+				</Suspense>
+				<Suspense fallback={null}>
 					<ThirdPersonPlayer url={CHARACTER_URL} />
 				</Suspense>
 				<Suspense fallback={null}>
@@ -131,10 +136,12 @@ export function App() {
 				<AOComposer />
 				<EagleEye />
 				{debug && <StatsProbe />}
+				{debug && <PoolLevelsDebug />}
 				<TorchPlacer />
 				<CratePlacer />
 				<AimReticle onAim={setAim} />
 			</Canvas>
+			<UnderwaterTint />
 			{screen === 'playing' && (
 				<>
 					<Hud kind={aim} equippedId={equippedId} />

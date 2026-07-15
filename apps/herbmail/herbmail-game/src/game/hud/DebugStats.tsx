@@ -4,7 +4,7 @@ import { psxMaterialRegistry } from '../render/PsxMaterial';
 import { usePsx } from '../menu/settingsStore';
 import { getDungeon } from '../dungeon/store';
 import { SECTOR_TILES } from '../dungeon/generate';
-import { SOLID, DOORWAY, PILLAR } from '../geometry/grid';
+import { SOLID, DOORWAY, PILLAR, PIT } from '../geometry/grid';
 import { doorClosedAt } from '../door/doors';
 import { TILE } from '../config';
 
@@ -133,6 +133,8 @@ function DebugMinimap() {
 							)
 								? '#c0392b'
 								: '#d98e2b';
+						} else if (t & PIT) {
+							ctx.fillStyle = '#1d4e6b';
 						} else if (t & SOLID && !(t & PILLAR)) {
 							ctx.fillStyle = '#3a3a44';
 						} else if (t & PILLAR) {

@@ -1,5 +1,6 @@
 import { TILE } from '../config';
-import { SOLID, PILLAR, DOORWAY, OCCLUDES } from '../geometry/grid';
+import { SOLID, PILLAR, DOORWAY, OCCLUDES, PIT } from '../geometry/grid';
+import { POOL_DEPTH } from '../water/constants';
 import { ARCH_SALT } from '../geometry/arches';
 import { jitter } from '../geometry/rng';
 import { doorClosedAt } from '../door/doors';
@@ -83,6 +84,24 @@ export function solidAtWorld(x: number, z: number): boolean {
 	return false;
 }
 
+// Ground height at a world position: 0 everywhere except pool basins.
+export function floorYAtWorld(x: number, z: number): number {
+	const wc = Math.floor(x / TILE);
+	const wr = Math.floor(z / TILE);
+	const dw = getDungeon();
+	const { cx, cy } = cellAtWorld(x, z, TILE);
+	const desc = dw.desc(dw.ensureSectorAtCell(cx, cy));
+	if (!desc) return 0;
+	const lc = wc - desc.originCol;
+	const lr = wr - desc.originRow;
+	if (lc < 0 || lc >= desc.cols || lr < 0 || lr >= desc.rows) return 0;
+	return desc.tiles[lr * desc.cols + lc] & PIT ? -POOL_DEPTH : 0;
+}
+
+export function pitAtWorld(x: number, z: number): boolean {
+	return floorYAtWorld(x, z) < 0;
+}
+
 export interface Body {
 	pos: { x: number; z: number };
 	radius: number;
@@ -95,25 +114,32 @@ export function registerBody(b: Body): () => void {
 	return () => bodies.delete(b);
 }
 
+// Weighted sum of every dynamic occluder position. A stable value means the
+// player, goblins and moving props all held still — nothing casts a new
+// shadow, so shadow maps can skip their re-render. Register/unregister shifts
+// it too, so a spawned/despawned body forces one refresh.
+export function bodyMotionSig(): number {
+	let s = 0;
+	for (const b of bodies) s += b.pos.x * 2.3 + b.pos.z * 1.7;
+	return s;
+}
+
 export function makeMover(
 	radius: number,
 	self?: Body,
 	skipBodies = false,
+	blockPits = false,
 ): (pos: { x: number; z: number }, dx: number, dz: number) => void {
+	const blocked = (x: number, z: number): boolean =>
+		solidAtWorld(x, z) || (blockPits && pitAtWorld(x, z));
 	const moveAxis = (
 		pos: { x: number; z: number },
 		dx: number,
 		dz: number,
 	): void => {
-		if (
-			dx !== 0 &&
-			!solidAtWorld(pos.x + dx + Math.sign(dx) * radius, pos.z)
-		)
+		if (dx !== 0 && !blocked(pos.x + dx + Math.sign(dx) * radius, pos.z))
 			pos.x += dx;
-		if (
-			dz !== 0 &&
-			!solidAtWorld(pos.x, pos.z + dz + Math.sign(dz) * radius)
-		)
+		if (dz !== 0 && !blocked(pos.x, pos.z + dz + Math.sign(dz) * radius))
 			pos.z += dz;
 	};
 	return (pos, dx, dz) => {

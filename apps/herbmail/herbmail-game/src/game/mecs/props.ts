@@ -48,6 +48,7 @@ export const CharState = world.stores.CharState;
 export const HeldItems = world.stores.HeldItems;
 export const Caster = world.stores.Caster;
 export const Cooldowns = world.stores.Cooldowns;
+export const Pool = world.stores.Pool;
 
 // Reverse map: component accessor object -> its schema name, so the bitecs-shaped
 // shim can translate `addComponent(world, eid, Transform3)` into `add(eid,'Transform3')`.

@@ -1,5 +1,5 @@
 import { TILE } from '../config';
-import { solidAtWorld } from '../dungeon/collision';
+import { solidAtWorld, pitAtWorld } from '../dungeon/collision';
 
 const R = 16;
 const SIZE = R * 2 + 1;
@@ -23,7 +23,9 @@ const STEPS: [number, number][] = [
 ];
 
 function walkable(wc: number, wr: number): boolean {
-	return !solidAtWorld((wc + 0.5) * TILE, (wr + 0.5) * TILE);
+	const x = (wc + 0.5) * TILE;
+	const z = (wr + 0.5) * TILE;
+	return !solidAtWorld(x, z) && !pitAtWorld(x, z);
 }
 
 export function invalidateFlowField(): void {

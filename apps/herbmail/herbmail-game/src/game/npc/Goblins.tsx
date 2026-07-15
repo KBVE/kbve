@@ -4,7 +4,7 @@ import { Character, type LocomotionClips } from '../character/Character';
 import type { CharacterMotor, MotorConfig } from '../character/CharacterMotor';
 import { CHARACTER_URL } from '../character/modelUrl';
 import { HUMAN_H, TILE } from '../config';
-import { dungeonSpawn, solidAtWorld } from '../dungeon/collision';
+import { dungeonSpawn, solidAtWorld, pitAtWorld } from '../dungeon/collision';
 import { getDungeon } from '../dungeon/store';
 import { Transform3, Wander, isAlive } from '../mecs/props';
 import { despawnGoblin, spawnGoblin } from './goblinSim';
@@ -49,7 +49,7 @@ function spawnPoints(count: number): [number, number][] {
 			const a = (i / 8) * Math.PI * 2 + ring * 0.7;
 			const x = cx + Math.cos(a) * TILE * ring;
 			const z = cz + Math.sin(a) * TILE * ring;
-			if (!solidAtWorld(x, z)) out.push([x, z]);
+			if (!solidAtWorld(x, z) && !pitAtWorld(x, z)) out.push([x, z]);
 		}
 	}
 	return out;
