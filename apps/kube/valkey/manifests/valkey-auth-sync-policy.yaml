@@ -21,22 +21,6 @@ spec:
               clone:
                   namespace: valkey
                   name: valkey-auth
-        - name: clone-valkey-auth-n8n
-          match:
-              resources:
-                  kinds:
-                      - Namespace
-                  names:
-                      - n8n
-          generate:
-              apiVersion: v1
-              kind: Secret
-              name: valkey-auth
-              namespace: n8n
-              synchronize: true
-              clone:
-                  namespace: valkey
-                  name: valkey-auth
         - name: clone-valkey-auth-discordsh
           match:
               resources:

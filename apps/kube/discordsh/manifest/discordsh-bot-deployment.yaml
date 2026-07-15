@@ -57,9 +57,6 @@ spec:
                   envFrom:
                       - configMapRef:
                             name: discordsh-config
-                      - secretRef:
-                            name: discordsh-n8n-hmac
-                            optional: true
                   env:
                       - name: RUST_LOG
                         value: discordsh_bot=debug,kbve=debug
