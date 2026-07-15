@@ -4,8 +4,8 @@ import fs from 'fs';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const ROOT = '/Users/alappatel/Documents/GitHub/kbve/apps/herbmail/herbmail-game';
-const TARGET = ROOT + '/public/models/character-anim.glb';
-const SOURCE = ROOT + '/public/models/m2m-character.glb';
+const TARGET = process.env.TARGET || ROOT + '/public/models/character-anim.glb';
+const SOURCE = process.env.SOURCE || ROOT + '/public/models/m2m-character.glb';
 const OUT = process.argv[2];
 const CLIPS = process.argv.slice(3);
 const FPS = 30;
@@ -24,7 +24,7 @@ function load(p) {
 function bonesOf(g) {
 	const m = {};
 	g.scene.traverse((o) => {
-		if (o.isBone) m[o.name] = o;
+		if (o.isBone) m[o.name === 'Head' ? 'head' : o.name] = o;
 	});
 	return m;
 }

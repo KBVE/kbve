@@ -392,6 +392,9 @@ importers:
       '@bufbuild/buf':
         specifier: ^1.71.0
         version: 1.71.0
+      '@gltf-transform/core':
+        specifier: ^4.4.1
+        version: 4.4.1
       '@monodon/rust':
         specifier: 3.0.0
         version: 3.0.0(@napi-rs/cli@3.5.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@18.19.17)(node-addon-api@7.1.1))(nx@23.0.2(@swc-node/register@1.11.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@swc/core@1.15.21(@swc/helpers@0.5.21))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.21(@swc/helpers@0.5.21)))
@@ -2746,6 +2749,9 @@ packages:
   '@fortawesome/fontawesome-free@6.7.2':
     resolution: {integrity: sha512-JUOtgFW6k9u4Y+xeIaEiLr3+cjoUPiAuLXoyKOJSia6Duzb7pq+A76P9ZdPDoAoxHdHzq6gE9/jKBGXlZT8FbA==}
     engines: {node: '>=6'}
+
+  '@gltf-transform/core@4.4.1':
+    resolution: {integrity: sha512-ygWWFOrj1HnfvBimHF1yHTY4abbeBjn3CvljijaWKoRLMRV/a8pWYQu9rfMFQhfpT5kYZTD5Mp+dizAXPbiTDQ==}
 
   '@gsap/react@2.1.2':
     resolution: {integrity: sha512-JqliybO1837UcgH2hVOM4VO+38APk3ECNrsuSM4MuXp+rbf+/2IG2K1YJiqfTcXQHH7XlA0m3ykniFYstfq0Iw==}
@@ -13435,6 +13441,9 @@ packages:
   properties-file@3.6.4:
     resolution: {integrity: sha512-oRVnENV7YP9aYRrjSmYptqFiDpbPy4SuTvW1mKvs4ZCi4QWhJSvOOHIWsyScFsfOwTQ2fynFZ3uG8un2Hm1XjA==}
 
+  property-graph@4.1.0:
+    resolution: {integrity: sha512-AvPcP7XECNWy4LGmFQ77k7un4lSKM4eS29PTvW4ck95uYeLxXPWJM7hLuBqK91FaHqCcgJvIUCuNJjjxKE7VKQ==}
+
   property-information@6.5.0:
     resolution: {integrity: sha512-PgTgs/BlvHxOu8QuEN7wi5A0OmXaBcHpmCSTehcs6Uuu9IkDIEo13Hy7n898RHfrQ49vKCoGeWZSaAK01nwVig==}
 
@@ -19537,6 +19546,10 @@ snapshots:
       - vue
 
   '@fortawesome/fontawesome-free@6.7.2': {}
+
+  '@gltf-transform/core@4.4.1':
+    dependencies:
+      property-graph: 4.1.0
 
   '@gsap/react@2.1.2(gsap@3.15.0)(react@19.2.3)':
     dependencies:
@@ -33317,6 +33330,8 @@ snapshots:
       react-is: 16.13.1
 
   properties-file@3.6.4: {}
+
+  property-graph@4.1.0: {}
 
   property-information@6.5.0: {}
 

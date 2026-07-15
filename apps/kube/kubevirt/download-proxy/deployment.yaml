@@ -48,7 +48,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: aria2
-                  image: ghcr.io/kbve/aria2-proxy:0.1.0
+                  image: ghcr.io/kbve/aria2-proxy:0.1.1
                   command:
                       - aria2c
                   args:
@@ -89,7 +89,7 @@ spec:
                           drop:
                               - ALL
                 - name: file-server
-                  image: ghcr.io/kbve/aria2-proxy:0.1.0
+                  image: ghcr.io/kbve/aria2-proxy:0.1.1
                   command:
                       [
                           'python3',

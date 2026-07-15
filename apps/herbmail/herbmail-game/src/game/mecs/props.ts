@@ -43,6 +43,9 @@ export const RoomTag = world.stores.RoomTag;
 export const Door = world.stores.Door;
 export const Npc = world.stores.Npc;
 export const Wander = world.stores.Wander;
+export const Targetable = world.stores.Targetable;
+export const CharState = world.stores.CharState;
+export const HeldItems = world.stores.HeldItems;
 
 // Reverse map: component accessor object -> its schema name, so the bitecs-shaped
 // shim can translate `addComponent(world, eid, Transform3)` into `add(eid,'Transform3')`.

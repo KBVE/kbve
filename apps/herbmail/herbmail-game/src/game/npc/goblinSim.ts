@@ -1,5 +1,7 @@
 import {
+	CharState,
 	Npc,
+	Targetable,
 	Transform3,
 	Wander,
 	addComponent,
@@ -75,6 +77,11 @@ export function spawnGoblin(
 	Npc.radius[eid] = radius;
 	Wander.until[eid] = 0;
 	applyStats(world, eid, { hp: 20, maxHp: 20 });
+	addComponent(world, eid, Targetable);
+	Targetable.radius[eid] = radius;
+	Targetable.priority[eid] = 1;
+	addComponent(world, eid, CharState);
+	CharState.bits[eid] = 0;
 	const body = { pos: { x, z }, radius };
 	runtime.set(eid, {
 		body,

@@ -1,4 +1,5 @@
 import { PIECE_BY_ID, setArmor, useEquippedArmor } from '../character/armor';
+import { unequip, useHands } from '../viewmodel/store';
 import { itemDef } from './items';
 import { kbve } from './tags';
 
@@ -106,8 +107,64 @@ function Slot({
 	);
 }
 
+// Held-item cell (right/left hand): shows what the hand carries, click puts it
+// back in the grid. Separate from armor slots — hands live in the viewmodel
+// store, not the paperdoll's slotKey system.
+function HandSlot({ side, id }: { side: 'right' | 'left'; id: string | null }) {
+	const def = id ? itemDef(id) : undefined;
+	const on = id !== null;
+	return (
+		<div
+			id={`pd-hand-${side}`}
+			data-x-kbve={kbve('hand', { side, held: id ?? '' })}
+			title={def?.label ?? `${side} hand`}
+			onClick={() => {
+				if (id) unequip(id);
+			}}
+			style={{
+				width: SIZE,
+				height: SIZE,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				textAlign: 'center',
+				fontSize: 7,
+				lineHeight: 1.05,
+				overflow: 'hidden',
+				borderRadius: 3,
+				background: on
+					? (def?.color ?? '#888')
+					: 'rgba(255,255,255,0.03)',
+				border: on
+					? '1px solid rgba(0,0,0,0.5)'
+					: '1px dashed rgba(120,182,255,0.3)',
+				color: on ? '#0a0a0e' : 'rgba(120,182,255,0.45)',
+				fontWeight: on ? 700 : 400,
+				cursor: on ? 'pointer' : 'default',
+				userSelect: 'none',
+			}}>
+			{on && def?.icon ? (
+				<img
+					src={def.icon}
+					alt={def.label}
+					width={SIZE - 6}
+					height={SIZE - 6}
+					style={{ imageRendering: 'pixelated' }}
+				/>
+			) : on ? (
+				(def?.label ?? '')
+			) : side === 'right' ? (
+				'R hand'
+			) : (
+				'L hand'
+			)}
+		</div>
+	);
+}
+
 export function Paperdoll() {
 	const equipped = useEquippedArmor();
+	const hands = useHands();
 	return (
 		<div
 			id="paperdoll"
@@ -130,6 +187,12 @@ export function Paperdoll() {
 						<Slot slot={s} equipped={equipped} />
 					</div>
 				))}
+				<div style={{ gridColumn: 1, gridRow: 7 }}>
+					<HandSlot side="right" id={hands.right} />
+				</div>
+				<div style={{ gridColumn: 3, gridRow: 7 }}>
+					<HandSlot side="left" id={hands.left} />
+				</div>
 			</div>
 		</div>
 	);

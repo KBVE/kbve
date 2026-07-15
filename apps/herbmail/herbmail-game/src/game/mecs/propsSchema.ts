@@ -51,6 +51,9 @@ export const PROPS_SCHEMA = {
 	},
 	Npc: { kind: 'u8', radius: 'f32' },
 	Wander: { vx: 'f32', vz: 'f32', until: 'f32' },
+	Targetable: { radius: 'f32', priority: 'u8' },
+	CharState: { bits: 'u32' },
+	HeldItems: { right: 'u16', left: 'u16' },
 } satisfies Schema;
 
 export const PROPS_CAP = 8192;

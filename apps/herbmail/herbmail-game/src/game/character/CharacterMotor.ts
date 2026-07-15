@@ -30,6 +30,8 @@ export class CharacterMotor {
 	readonly position = new THREE.Vector3();
 	readonly velocity = new THREE.Vector3();
 	yaw = 0;
+	/** Combat stance: when set, facing tracks this yaw instead of travel direction. */
+	yawLock: number | null = null;
 	vy = 0;
 	grounded = true;
 	/** Optional collision resolver; mutates pos by (dx,dz) honoring walls. */
@@ -85,7 +87,10 @@ export class CharacterMotor {
 			this.position.x += dx;
 			this.position.z += dz;
 		}
-		if (this.speed > 0.15) {
+		if (this.yawLock !== null) {
+			const tk = 1 - Math.exp(-this.cfg.turnLerp * dt);
+			this.yaw = lerpAngle(this.yaw, this.yawLock, tk);
+		} else if (this.speed > 0.15) {
 			const targetYaw = Math.atan2(this.velocity.x, this.velocity.z);
 			const tk = 1 - Math.exp(-this.cfg.turnLerp * dt);
 			this.yaw = lerpAngle(this.yaw, targetYaw, tk);

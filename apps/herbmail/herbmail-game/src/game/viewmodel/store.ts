@@ -30,6 +30,14 @@ export function equip(id: string) {
 	emit();
 }
 
+// Take a single held item off (back to the inventory grid via reconcileEquip).
+export function unequip(id: string) {
+	if (!held.includes(id)) return;
+	held = held.filter((h) => h !== id);
+	hands = resolveHands(held);
+	emit();
+}
+
 export function getHeld() {
 	return held;
 }
