@@ -113,7 +113,7 @@ def parse_cargo(raw) -> dict:
 
     vuln_list = raw.get("vulnerabilities", {}).get("list", [])
     for entry in vuln_list:
-        adv = entry.get("advisory", {})
+        adv = entry.get("advisory") or {}
         # Derive severity from informational flag or CVSS score
         if adv.get("informational"):
             sev = "info"
@@ -137,7 +137,7 @@ def parse_cargo(raw) -> dict:
             sev = "medium"
 
         severities[sev] = severities.get(sev, 0) + 1
-        pkg = entry.get("package", {})
+        pkg = entry.get("package") or {}
         advisories.append({
             "id": adv.get("id", ""),
             "title": adv.get("title", ""),
@@ -150,9 +150,9 @@ def parse_cargo(raw) -> dict:
     for warning in raw.get("warnings", {}).values():
         if isinstance(warning, list):
             for w in warning:
-                adv = w.get("advisory", {})
+                adv = w.get("advisory") or {}
                 severities["info"] = severities.get("info", 0) + 1
-                pkg = w.get("package", {})
+                pkg = w.get("package") or {}
                 advisories.append({
                     "id": adv.get("id", ""),
                     "title": adv.get("title", ""),
