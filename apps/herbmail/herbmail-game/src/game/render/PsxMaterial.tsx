@@ -220,9 +220,16 @@ const fragment = /* glsl */ `
 			light += uLightColor[i] * base * vis;
 		}
 
+		// Break tiling repetition without touching UV continuity: two octaves of
+		// low-frequency world-space value noise darken the albedo in patches
+		// (reads as damp/soot/wear), so identical brick tiles stop reading as a
+		// grid at distance. Near-free next to the POM march.
+		float m1 = fract(sin(dot(floor(vWorld.xz * 0.55), vec2(12.9898, 78.233))) * 43758.5453);
+		float m2 = fract(sin(dot(floor(vWorld.xz * 1.7 + 9.1), vec2(39.3468, 11.135))) * 24634.6345);
+		float macro = mix(0.68, 1.0, m1) * mix(0.82, 1.0, m2);
 		// No distance fog — darkness comes from light attenuation alone
 		// (everything beyond LIGHT_RANGE falls to black on its own).
-		vec3 rgb = tex.rgb * uTint * light;
+		vec3 rgb = tex.rgb * uTint * light * macro;
 		// Output linear: the AO composer's OutputPass applies the single sRGB
 		// encode, round-tripping back to the tuned display values.
 		gl_FragColor = vec4(pow(rgb, vec3(2.2)), tex.a);
@@ -243,9 +250,9 @@ const PsxMaterialBase = shaderMaterial(
 		uReliefFar: RELIEF_FAR,
 		uAmbient: 0.12,
 		uPom: 0,
-		uPomScale: 0.2,
+		uPomScale: 0.14,
 		uPomMin: 6,
-		uPomMax: 18,
+		uPomMax: 12,
 		uSilhouette: 0,
 		uOcclude: 1,
 		uMapTex: blankTex,
