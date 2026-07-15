@@ -4,6 +4,15 @@
 Usage:
     nx-security-to-mdx.py --input <raw.json> --timestamp <ISO>
                            [--mdx-out <path>] [--json-out <path>]
+
+MIGRATION (pending): this standalone script has been ported into the
+``kbve`` Python package as ``kbve.nx`` (parse: kbve/nx/security.py, render:
+kbve/nx/render.py, CLI: kbve/nx/cli.py). The console script
+``kbve-nx-security`` produces byte-identical JSON+MDX and is covered by
+tests/test_nx_render.py. This file remains the authoritative runner until
+ci-dashboard.yml flips from ``python3 scripts/nx-security-to-mdx.py`` to
+``uv run kbve-nx-security``. Keep the two parse layers in sync until then —
+any fix here must be mirrored in kbve/nx/security.py (and vice-versa).
 """
 import argparse
 import json

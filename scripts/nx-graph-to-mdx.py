@@ -2,6 +2,13 @@
 """Parse an NX graph JSON file into a Starlight MDX page.
 
 Usage: nx-graph-to-mdx.py <graph.json> <output.mdx> <timestamp>
+
+MIGRATION (pending): ported into the ``kbve`` Python package as ``kbve.nx``
+(parse: kbve/nx/graph.py, render: kbve/nx/render.py, CLI: kbve/nx/cli.py).
+The console script ``kbve-nx-graph`` produces byte-identical MDX and is
+covered by tests/test_nx_render.py. This file remains the authoritative
+runner until ci-dashboard.yml flips from ``python3 scripts/nx-graph-to-mdx.py``
+to ``uv run kbve-nx-graph``. Keep the two parse layers in sync until then.
 """
 import json
 import re

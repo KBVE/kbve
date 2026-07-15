@@ -13,6 +13,13 @@ Exit codes:
   0  success — JSON array of open alerts written to --out
   2  fetch failed (HTTP error, schema mismatch, etc.) — empty `[]`
      written so downstream aggregate step still succeeds
+
+MIGRATION (pending): ported into the ``kbve`` Python package as
+``kbve.nx.alerts`` (fetch/pagination/validation) with CLI
+``kbve-nx-alerts`` (kbve/nx/cli.py), same flags and exit codes, covered by
+tests/test_nx_alerts.py. This file remains the authoritative runner until
+ci-dashboard.yml flips from ``python3 scripts/fetch-github-alerts.py`` to
+``uv run kbve-nx-alerts``. Keep the two in sync until then.
 """
 from __future__ import annotations
 
