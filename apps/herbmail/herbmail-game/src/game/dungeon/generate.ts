@@ -1,4 +1,12 @@
-import { ARCH, FLOOR, WALL, COLUMN, POOL, type Grid } from '../geometry/grid';
+import {
+	ARCH,
+	FLOOR,
+	WALL,
+	COLUMN,
+	OASIS,
+	OPEN,
+	type Grid,
+} from '../geometry/grid';
 import { WALL_TEX_COUNT } from '../geometry/walls';
 import { hash01 } from '../geometry/rng';
 import {
@@ -403,10 +411,10 @@ function genColumns(
 	return out;
 }
 
-const POOL_KEEP = 0.3;
-const POOL_MAX = 6;
-const POOL_MIN = 3;
-const POOL_MARGIN = 2;
+const OASIS_KEEP = 0.3;
+const OASIS_MAX = 6;
+const OASIS_MIN = 3;
+const OASIS_MARGIN = 2;
 
 function genOases(
 	sector: ReturnType<typeof genSector>,
@@ -422,12 +430,12 @@ function genOases(
 			Math.imul(sector.sx, 73856093) ^ Math.imul(sector.sy, 19349663),
 			(seed | 0) ^ 0x9001,
 		);
-		if (h >= POOL_KEEP) continue;
+		if (h >= OASIS_KEEP) continue;
 		const tw = r.w * CELL;
 		const th = r.h * CELL;
-		const w = Math.min(POOL_MAX, tw - POOL_MARGIN * 2);
-		const ph = Math.min(POOL_MAX, th - POOL_MARGIN * 2);
-		if (w < POOL_MIN || ph < POOL_MIN) continue;
+		const w = Math.min(OASIS_MAX, tw - OASIS_MARGIN * 2);
+		const ph = Math.min(OASIS_MAX, th - OASIS_MARGIN * 2);
+		if (w < OASIS_MIN || ph < OASIS_MIN) continue;
 		const col = r.col0 * CELL + ((tw - w) >> 1);
 		const row = r.row0 * CELL + ((th - ph) >> 1);
 		let clear = true;
@@ -439,7 +447,19 @@ function genOases(
 				}
 		if (!clear) continue;
 		for (let tr = row; tr < row + ph; tr++)
-			for (let tc = col; tc < col + w; tc++) tiles[tr * cols + tc] = POOL;
+			for (let tc = col; tc < col + w; tc++)
+				tiles[tr * cols + tc] = OASIS;
+		// Open the whole room's interior (dry floor + water) to the sky, not just
+		// the pool: the ceiling slab is skipped over OPEN tiles and they take sky
+		// lighting. Walls/columns/doorways keep their tile flags untouched.
+		const rc0 = r.col0 * CELL;
+		const rr0 = r.row0 * CELL;
+		const rows = tiles.length / cols;
+		for (let tr = rr0; tr < rr0 + r.h * CELL && tr < rows; tr++)
+			for (let tc = rc0; tc < rc0 + r.w * CELL && tc < cols; tc++) {
+				const t = tiles[tr * cols + tc];
+				if (t === FLOOR || t & OASIS) tiles[tr * cols + tc] = t | OPEN;
+			}
 		out.push({ col, row, w, h: ph });
 	}
 	return out;

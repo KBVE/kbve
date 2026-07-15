@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { oasisAt, pushDisturb, type OasisDef } from '../water/pools';
-import { POOL_DEPTH, SWIM_SINK } from '../water/constants';
+import { oasisAt, pushDisturb, type OasisDef } from '../water/oasis';
+import { OASIS_DEPTH, SWIM_SINK } from '../water/constants';
 import { solidAtWorld, floorYAtWorld } from '../dungeon/collision';
 import { registerInteract } from '../interact/registry';
 import { equippedStat } from './armor';
@@ -53,7 +53,7 @@ function enterSwim(h: CharacterHandle, p: OasisDef): void {
 	pool = p;
 	h.motor.mode = 'swim';
 	h.motor.swimY = p.surfaceY - SWIM_SINK;
-	h.motor.swimFloor = -POOL_DEPTH + 0.45;
+	h.motor.swimFloor = -OASIS_DEPTH + 0.45;
 	h.motor.vy = 0;
 	h.setBlocking(false);
 	prevPos.copy(h.motor.position);
@@ -154,7 +154,7 @@ export function tickSwim(dt: number, forwardHeld: boolean): void {
 				m.mode = 'swim';
 				if (pool) {
 					m.swimY = pool.surfaceY - SWIM_SINK;
-					m.swimFloor = -POOL_DEPTH + 0.45;
+					m.swimFloor = -OASIS_DEPTH + 0.45;
 					pushDisturb(pool.id, {
 						kind: 'drop',
 						x: m.position.x,

@@ -6,8 +6,9 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 import { TILE } from '../config';
 import { dungeonSpawn, solidAtWorld, pitAtWorld } from '../dungeon/collision';
 import { getDungeon } from '../dungeon/store';
-import { Transform3, Wander, isAlive } from '../mecs/props';
-import { despawnGoblin, spawnGoblin } from './goblinSim';
+import { CharState, Transform3, Wander, isAlive } from '../mecs/props';
+import { CS } from '../character/charState';
+import { NPC_KURENAI, despawnGoblin, spawnGoblin } from './goblinSim';
 
 const KURENAI_URL = '/models/parts/kurenai.glb';
 useGLTF.preload(KURENAI_URL);
@@ -186,6 +187,24 @@ function KurenaiActor({ slot }: { slot: Slot }) {
 			Transform3.py[eid],
 			Transform3.pz[eid],
 		);
+		if (CharState.bits[eid] & CS.DEAD) {
+			if (current.current !== 'Death_D') {
+				const death = actions.get('Death_D');
+				const prev = actions.get(current.current);
+				if (death) {
+					death.reset();
+					death.clampWhenFinished = true;
+					death.setLoop(THREE.LoopOnce, 1);
+					death.play();
+					if (prev) prev.crossFadeTo(death, 0.12, false);
+					current.current = 'Death_D';
+				}
+			}
+			mixer.update(dt);
+			g.updateWorldMatrix(true, true);
+			updateSprings(springs, dt);
+			return;
+		}
 		const vx = Wander.vx[eid];
 		const vz = Wander.vz[eid];
 		const speed = Math.hypot(vx, vz);
@@ -261,6 +280,7 @@ export function KurenaiNpc() {
 				KURENAI_RADIUS,
 				WALK_SPEED,
 				RUN_SPEED,
+				NPC_KURENAI,
 			);
 		return () => {
 			for (const s of slots) {
@@ -292,6 +312,7 @@ export function KurenaiNpc() {
 					KURENAI_RADIUS,
 					WALK_SPEED,
 					RUN_SPEED,
+					NPC_KURENAI,
 				);
 				changed = true;
 			}

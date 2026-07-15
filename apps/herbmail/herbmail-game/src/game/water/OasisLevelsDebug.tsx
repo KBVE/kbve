@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { POOL_DEPTH } from './constants';
-import { useOases, type OasisDef } from './pools';
+import { OASIS_DEPTH } from './constants';
+import { useOases, type OasisDef } from './oasis';
 
 const LEVELS: { y: (p: OasisDef) => number; color: number; label: string }[] = [
 	{ y: () => 0, color: 0xffdd44, label: 'rim' },
 	{ y: (p) => p.surfaceY, color: 0x44ddff, label: 'surface' },
-	{ y: () => -POOL_DEPTH, color: 0xff4455, label: 'floor' },
+	{ y: () => -OASIS_DEPTH, color: 0xff4455, label: 'floor' },
 ];
 
 function rectGeo(p: OasisDef, y: number): THREE.BufferGeometry {
@@ -21,10 +21,10 @@ function rectGeo(p: OasisDef, y: number): THREE.BufferGeometry {
 }
 
 export function OasisLevelsDebug() {
-	const pools = useOases();
+	const oases = useOases();
 	const loops = useMemo(
 		() =>
-			pools.flatMap((p) =>
+			oases.flatMap((p) =>
 				LEVELS.map((l) => ({
 					key: `${p.id}:${l.label}`,
 					geo: rectGeo(p, l.y(p)),
@@ -34,7 +34,7 @@ export function OasisLevelsDebug() {
 					}),
 				})),
 			),
-		[pools],
+		[oases],
 	);
 	return (
 		<>

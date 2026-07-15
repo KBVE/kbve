@@ -4,6 +4,7 @@ import {
 	buildTrims,
 	buildBays,
 	buildCeiling,
+	buildCeilingWithHoles,
 	buildCornerCoves,
 	buildCoves,
 	buildFloor,
@@ -40,12 +41,16 @@ let sharedCeiling: THREE.BufferGeometry[] | null = null;
 function floorGeo(desc: RoomDesc): THREE.BufferGeometry[] {
 	// Pool sectors punch holes in the slab, so they can't share the singleton;
 	// their floor lives in the per-signature cache and disposes with the set.
-	if (desc.pools.length)
+	if (desc.oases.length)
 		return dice(buildFloorWithHoles(makeLocalGrid(desc)));
 	if (!sharedFloor) sharedFloor = dice(buildFloor(makeLocalGrid(desc)));
 	return sharedFloor;
 }
 function ceilingGeo(desc: RoomDesc): THREE.BufferGeometry[] {
+	// Oasis sectors open the ceiling over OPEN tiles, so they can't share the
+	// singleton — their ceiling lives in the per-signature cache like the floor.
+	if (desc.oases.length)
+		return dice(buildCeilingWithHoles(makeLocalGrid(desc)));
 	if (!sharedCeiling) sharedCeiling = dice(buildCeiling(makeLocalGrid(desc)));
 	return sharedCeiling;
 }
@@ -75,6 +80,7 @@ function drop(c: THREE.BufferGeometry): void {
 
 function disposeSet(set: RoomGeoSet): void {
 	if (set.floor !== sharedFloor) for (const c of set.floor) drop(c);
+	if (set.ceiling !== sharedCeiling) for (const c of set.ceiling) drop(c);
 	for (const w of set.walls) for (const c of w) drop(c);
 	for (const w of set.columns) for (const c of w) drop(c);
 	for (const c of set.arch) drop(c);

@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { POOL_ACTIVE_RADIUS, POOL_VISIBLE_RADIUS } from './constants';
-import { OasisInstance } from './PoolInstance';
+import { OASIS_ACTIVE_RADIUS, OASIS_VISIBLE_RADIUS } from './constants';
+import { OasisInstance } from './OasisInstance';
 import {
 	useOases,
 	oasisAt,
 	setCameraSubmerged,
 	useCameraSubmerged,
 	type OasisDef,
-} from './pools';
+} from './oasis';
 import { loadWaterAssets, type WaterAssets } from './assets';
 
 function SubmergeSensor() {
@@ -37,7 +37,7 @@ export function UnderwaterTint() {
 	);
 }
 
-function WaterPool({ def, assets }: { def: OasisDef; assets: WaterAssets }) {
+function WaterOasis({ def, assets }: { def: OasisDef; assets: WaterAssets }) {
 	const gl = useThree((s) => s.gl);
 	const scene = useThree((s) => s.scene);
 	const camera = useThree((s) => s.camera);
@@ -67,8 +67,8 @@ function WaterPool({ def, assets }: { def: OasisDef; assets: WaterAssets }) {
 			camera.position.x - def.cx,
 			camera.position.z - def.cz,
 		);
-		inst.setVisible(d < POOL_VISIBLE_RADIUS, camera.position.y);
-		const on = d < POOL_ACTIVE_RADIUS;
+		inst.setVisible(d < OASIS_VISIBLE_RADIUS, camera.position.y);
+		const on = d < OASIS_ACTIVE_RADIUS;
 		if (on) {
 			inst.update(camera);
 		} else if (active.current !== on) {
@@ -81,10 +81,10 @@ function WaterPool({ def, assets }: { def: OasisDef; assets: WaterAssets }) {
 }
 
 export function Oases() {
-	const pools = useOases();
+	const oases = useOases();
 	if (import.meta.env.DEV)
 		(globalThis as unknown as Record<string, unknown>).__oasesMounted =
-			pools.length;
+			oases.length;
 	const [assets, setAssets] = useState<WaterAssets | null>(null);
 	useEffect(() => {
 		let live = true;
@@ -95,12 +95,12 @@ export function Oases() {
 			live = false;
 		};
 	}, []);
-	if (!pools.length || !assets) return null;
+	if (!oases.length || !assets) return null;
 	return (
 		<>
 			<SubmergeSensor />
-			{pools.map((p) => (
-				<WaterPool key={p.id} def={p} assets={assets} />
+			{oases.map((p) => (
+				<WaterOasis key={p.id} def={p} assets={assets} />
 			))}
 		</>
 	);

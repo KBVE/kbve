@@ -5,8 +5,8 @@ import { PoolPass } from './vendor/PoolPass';
 import { WaterSurfacePass } from './vendor/WaterSurfacePass';
 import { WaterOpticsState } from './vendor/WaterOpticsState';
 import { ObjectTexturePass } from './vendor/ObjectTexturePass';
-import { POOL_CORNER_RADIUS, POOL_DEPTH, SURFACE_DROP } from './constants';
-import { drainDisturbs, type OasisDef } from './pools';
+import { OASIS_CORNER_RADIUS, OASIS_DEPTH, SURFACE_DROP } from './constants';
+import { drainDisturbs, type OasisDef } from './oasis';
 
 const LIGHT_DIR = new THREE.Vector3(1.4, 2, -0.8).normalize();
 const CAUSTICS_SIZE = 1024;
@@ -29,7 +29,7 @@ export class OasisInstance {
 	private readonly optics: WaterOpticsState;
 	private readonly otp: ObjectTexturePass;
 	private readonly localEye = new THREE.Vector3();
-	private readonly depth = POOL_DEPTH - SURFACE_DROP;
+	private readonly depth = OASIS_DEPTH - SURFACE_DROP;
 	private primed = false;
 
 	constructor(
@@ -63,7 +63,7 @@ export class OasisInstance {
 			this.otp.refractionTarget.texture,
 			this.optics,
 		);
-		const r = POOL_CORNER_RADIUS;
+		const r = OASIS_CORNER_RADIUS;
 		this.pool.setPoolShape('Rounded', r, def.halfW, this.depth, def.halfL);
 		this.caustics.setPoolShape(
 			'Rounded',

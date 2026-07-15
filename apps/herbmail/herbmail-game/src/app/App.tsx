@@ -1,8 +1,8 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Dungeon } from '../game/dungeon/Dungeon';
-import { Pools, UnderwaterTint } from '../game/water/PoolsView';
-import { PoolLevelsDebug } from '../game/water/PoolLevelsDebug';
+import { Oases, UnderwaterTint } from '../game/water/OasisView';
+import { OasisLevelsDebug } from '../game/water/OasisLevelsDebug';
 import { AimReticle } from '../game/hud/AimReticle';
 import { TorchPlacer } from '../game/prop/TorchPlacer';
 import { CratePlacer } from '../game/prop/CratePlacer';
@@ -15,9 +15,11 @@ import { BG_COLOR, PSX_DEFAULTS } from '../game/config';
 import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
 import { Goblins } from '../game/npc/Goblins';
 import { KurenaiNpc } from '../game/npc/KurenaiNpc';
+import { EnemyHealthBars } from '../game/npc/EnemyHealthBars';
 import { PhysicsBodies } from '../game/sab/PhysicsBodies';
 import { AOComposer } from '../game/render/AOComposer';
 import { AdaptiveQuality } from '../game/render/AdaptiveQuality';
+import { DungeonSky } from '../game/render/DungeonSky';
 import { EagleEye } from '../game/render/EagleEye';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { DebugStats, StatsProbe } from '../game/hud/DebugStats';
@@ -118,12 +120,13 @@ export function App() {
 					imageRendering: psx.dpr < 1 ? 'pixelated' : 'auto',
 				}}>
 				<color attach="background" args={[BG_COLOR]} />
+				<DungeonSky />
 				<ambientLight intensity={0.12} />
 				<Suspense fallback={null}>
 					<Dungeon snap={psx.snap} affine={psx.affine} />
 				</Suspense>
 				<Suspense fallback={null}>
-					<Pools />
+					<Oases />
 				</Suspense>
 				<Suspense fallback={null}>
 					<ThirdPersonPlayer url={CHARACTER_URL} />
@@ -134,6 +137,7 @@ export function App() {
 				<Suspense fallback={null}>
 					<KurenaiNpc />
 				</Suspense>
+				<EnemyHealthBars />
 				<Suspense fallback={null}>
 					<PropRenderer ambient={0.04} />
 				</Suspense>
@@ -142,7 +146,7 @@ export function App() {
 				<AdaptiveQuality />
 				<EagleEye />
 				{debug && <StatsProbe />}
-				{debug && <PoolLevelsDebug />}
+				{debug && <OasisLevelsDebug />}
 				<TorchPlacer />
 				<CratePlacer />
 				<AimReticle onAim={setAim} />

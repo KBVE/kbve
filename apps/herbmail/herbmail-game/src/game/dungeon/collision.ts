@@ -1,6 +1,6 @@
 import { TILE } from '../config';
 import { SOLID, PILLAR, DOORWAY, OCCLUDES, PIT } from '../geometry/grid';
-import { POOL_DEPTH } from '../water/constants';
+import { OASIS_DEPTH } from '../water/constants';
 import { ARCH_SALT } from '../geometry/arches';
 import { jitter } from '../geometry/rng';
 import { doorClosedAt } from '../door/doors';
@@ -94,7 +94,7 @@ export function floorYAtWorld(x: number, z: number): number {
 	const lc = wc - desc.originCol;
 	const lr = wr - desc.originRow;
 	if (lc < 0 || lc >= desc.cols || lr < 0 || lr >= desc.rows) return 0;
-	return desc.tiles[lr * desc.cols + lc] & PIT ? -POOL_DEPTH : 0;
+	return desc.tiles[lr * desc.cols + lc] & PIT ? -OASIS_DEPTH : 0;
 }
 
 export function pitAtWorld(x: number, z: number): boolean {
