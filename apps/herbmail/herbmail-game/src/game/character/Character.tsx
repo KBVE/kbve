@@ -39,7 +39,8 @@ import {
 } from './heldItems';
 
 const UP = new THREE.Vector3(0, 1, 0);
-const LAND_SPEED = 1.8;
+const LAND_SPEED = 2.4;
+const LAND_HOLD_FRAC = 0.3;
 // Air time before the airborne pose engages. A standard hop is ~0.55s
 // (jumpSpeed 6 / gravity 22), so only longer falls swap the animation.
 const AIR_ANIM_DELAY = 0.65;
@@ -145,6 +146,24 @@ function isUpperBone(name: string): boolean {
 	return UPPER_BONE.test(name);
 }
 
+// Idle feet clamp: lower chain pinned to the clip's first frame; torso
+// breathing keeps playing from the spine up.
+const LOWER_BONE = /pelvis|thigh|calf|foot|ball|hipAttach|kneeAttach/i;
+
+const CLAMPED_CLIPS = new WeakSet<THREE.AnimationClip>();
+function clampIdleLegs(clips: THREE.AnimationClip[]): void {
+	for (const c of clips) {
+		if (c.name !== 'Idle_Loop' || CLAMPED_CLIPS.has(c)) continue;
+		CLAMPED_CLIPS.add(c);
+		for (const t of c.tracks) {
+			if (!LOWER_BONE.test(t.name.split('.')[0])) continue;
+			const size = t.getValueSize();
+			t.times = t.times.slice(0, 1);
+			t.values = t.values.slice(0, size);
+		}
+	}
+}
+
 export interface BlockPose {
 	clip: string;
 	loop: boolean;
@@ -205,14 +224,9 @@ const DEFAULT_LOCOMOTION: LocomotionClips = {
 const WALK_TS_MIN = 0.6;
 const WALK_TS_MAX = 2.6;
 
-// The retargeted clip batch (Zombie_*, Crouch_*, …) animates pelvis
-// translation in the SOURCE skeleton's space — rest height ~1.02-1.14 vs this
-// rig's ~0.91 — so the whole body floats ~10cm with no foot IK to pin it.
-// Deleting the track is wrong too: the leg rotations are authored against the
-// pelvis curve, so without it the feet swing. Rebase instead: shift the Y
-// curve so its mean sits at the rig's bind pelvis height, keeping the
-// authored bob the rotations compensate for. Mutates the shared GLTF cache
-// once per clip.
+// Retargeted clips (Zombie_*) keep the source skeleton's pelvis height and
+// float the body; shift the Y curve to this rig's bind height, keeping the
+// authored bob. Mutates the shared GLTF cache once per clip.
 const REBASED_CLIPS = new WeakSet<THREE.AnimationClip>();
 function rebasePelvis(clips: THREE.AnimationClip[], restY: number): void {
 	for (const c of clips) {
@@ -475,6 +489,7 @@ export function Character({
 	const rig = useMemo(() => {
 		const pelvis = scene.getObjectByName('pelvis');
 		rebasePelvis(gltf.animations, pelvis?.position.y ?? 0.91);
+		clampIdleLegs(gltf.animations);
 		const animator = new CharacterAnimator(scene, gltf.animations);
 		const motor = new CharacterMotor(motorConfig);
 		const pose = new ProceduralPose(scene);
@@ -617,7 +632,8 @@ export function Character({
 				j.landUntil =
 					gait === 'idle'
 						? tRef.current +
-							(animator.duration('Jump_Land') * 0.55) / LAND_SPEED
+							(animator.duration('Jump_Land') * LAND_HOLD_FRAC) /
+								LAND_SPEED
 						: 0;
 				if (gait === 'idle') j.recover = true;
 			}

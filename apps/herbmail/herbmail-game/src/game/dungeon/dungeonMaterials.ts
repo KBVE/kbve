@@ -89,15 +89,11 @@ export function useDungeonMaterials(
 				{ doubleSide: true, polygonOffsetFactor: -4 },
 			),
 			bayFrame: makeMat(
-				{ uMap: tex.arch.color, uTint: tint(TINT.bay), uOcclude: 0 },
+				{ uMap: tex.arch.color, uTint: tint(TINT.bay) },
 				{ doubleSide: true, polygonOffsetFactor: -3 },
 			),
 			bayBack: makeMat(
-				{
-					uMap: tex.arch.color,
-					uTint: tint(TINT.bayBack),
-					uOcclude: 0,
-				},
+				{ uMap: tex.arch.color, uTint: tint(TINT.bayBack) },
 				{ doubleSide: true },
 			),
 		};
