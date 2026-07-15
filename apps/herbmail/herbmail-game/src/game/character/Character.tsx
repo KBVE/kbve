@@ -10,6 +10,16 @@ import {
 	type MotorConfig,
 } from './CharacterMotor';
 import { ProceduralPose } from './ProceduralPose';
+import {
+	classifyStrafe,
+	strafeBin,
+	type StrafeBin,
+	type StrafeState,
+} from './strafe';
+import { CS, resolveBase, resolveOverlays } from './charState';
+import { CharState } from '../mecs/props';
+import { getTarget } from '../combat/targeting';
+import { Transform3 } from '../mecs/props';
 import { EquipmentPhysics } from './equipmentPhysics';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
@@ -29,9 +39,22 @@ import {
 } from './heldItems';
 
 const UP = new THREE.Vector3(0, 1, 0);
-const LAND_SPEED = 1.35;
+const LAND_SPEED = 1.8;
+// Air time before the airborne pose engages. A standard hop is ~0.55s
+// (jumpSpeed 6 / gravity 22), so only longer falls swap the animation.
+const AIR_ANIM_DELAY = 0.65;
 const GROUND_Y = -0.037;
-const SPINE_X = new THREE.Vector3(1, 0, 0);
+// Character-relative override axes, rebuilt each frame from motor yaw. A fixed
+// world axis flips the spine flex into a backward arch (or sideways roll) the
+// moment the character faces away from +Z.
+const _flexAxis = new THREE.Vector3(1, 0, 0);
+const _hangAxis = new THREE.Vector3(0, 0, 1);
+const TWIST_Y = new THREE.Vector3(0, 1, 0);
+const COMBAT_LOOK_Y = 1.2;
+const COMBAT_LOOK_WEIGHT = 0.85;
+const WALK_SPEED_REF = 1.8;
+const _combatLook = new THREE.Vector3();
+const _bodyFwd = new THREE.Vector3();
 const SPINE_FLEX_DEFAULT = 4;
 const SPINE_FLEX_BY_CLIP: Record<string, number> = {
 	Idle_Loop: 4,
@@ -47,7 +70,6 @@ const SPINE_FLEX = [
 const FINGER_RE = /^(index|middle|ring|pinky|thumb)_0\d_(l|r)$/;
 const HAND_OPEN = 0.72;
 const HAND_GRIP = 0.9;
-const ARM_Z = new THREE.Vector3(0, 0, 1);
 const ARM_HANG_DEG = 11 as number;
 const _sf1 = new THREE.Quaternion();
 const _sf2 = new THREE.Quaternion();
@@ -71,9 +93,12 @@ const PUNCH_REACH = 0.45;
 // standard material, so it needs a real light to catch the same torch. This point
 // light mirrors heldLight (the held-torch flame) so the body is lit by the exact
 // source lighting the walls. Tune gain/reach/decay to match the wall falloff.
-const TORCH_LIGHT_GAIN = 4;
-const TORCH_LIGHT_REACH = 8;
-const TORCH_LIGHT_DECAY = 1.5;
+// Held-torch character light: low gain + long gentle falloff. The source sits
+// half a meter from the body, so gain dominates perceived brightness — keep it
+// low and let reach/decay carry the ambience instead of blowing out the skin.
+const TORCH_LIGHT_GAIN = 1.6;
+const TORCH_LIGHT_REACH = 13;
+const TORCH_LIGHT_DECAY = 1.1;
 
 useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
@@ -151,6 +176,9 @@ interface Props {
 	locomotion?: LocomotionClips;
 	onReady?: (h: CharacterHandle) => void;
 	drive?: (motor: CharacterMotor, t: number) => void;
+	/** Entity carrying this character's CharState word (getter — eids can be
+	 *  reassigned on respawn). Absent (Codex viewer) = local-only state. */
+	stateEid?: () => number;
 }
 
 export interface LocomotionClips {
@@ -215,6 +243,7 @@ export function Character({
 	locomotion = DEFAULT_LOCOMOTION,
 	onReady,
 	drive,
+	stateEid,
 }: Props) {
 	const gltf = useGLTF(url);
 	const sword = useGLTF(SWORD_URL);
@@ -246,8 +275,15 @@ export function Character({
 		mats: THREE.ShaderMaterial[];
 	} | null>(null);
 	const tRef = useRef(0);
-	const jumpRef = useRef({ wasGrounded: true, landUntil: 0, recover: false });
+	const jumpRef = useRef({
+		wasGrounded: true,
+		landUntil: 0,
+		recover: false,
+		airStart: 0,
+		rose: false,
+	});
 	const comboRef = useRef({ step: -1, until: 0 });
+	const localBits = useRef(0);
 	const blockRef = useRef<{ on: boolean; pose: BlockPose }>({
 		on: false,
 		pose: DEFAULT_BLOCK,
@@ -278,6 +314,14 @@ export function Character({
 		}),
 		[scene],
 	);
+	const strafeBones = useMemo(
+		() => ({
+			pelvis: scene.getObjectByName('pelvis') as THREE.Bone | null,
+			spine: scene.getObjectByName('spine_01') as THREE.Bone | null,
+		}),
+		[scene],
+	);
+	const legTwistCur = useRef(0);
 	const fingerBones = useMemo(() => {
 		const grip: Record<string, THREE.Quaternion> = {};
 		const idle = gltf.animations.find((a) => a.name === 'Idle_Loop');
@@ -504,6 +548,15 @@ export function Character({
 			},
 			setBlocking: (b: boolean, pose?: BlockPose) => {
 				blockRef.current.on = b;
+				const e = stateEid?.() ?? -1;
+				if (e >= 0)
+					CharState.bits[e] = b
+						? CharState.bits[e] | CS.BLOCKING
+						: CharState.bits[e] & ~CS.BLOCKING;
+				else
+					localBits.current = b
+						? localBits.current | CS.BLOCKING
+						: localBits.current & ~CS.BLOCKING;
 				if (b) {
 					blockRef.current.pose = pose ?? DEFAULT_BLOCK;
 					comboRef.current.step = -1;
@@ -524,101 +577,210 @@ export function Character({
 
 		const gait = motor.gait;
 		const j = jumpRef.current;
-		let jumping = false;
+		// --- Motor-derived state bits. Character is the single writer for the
+		// motion bits; controller-owned bits (BLOCKING, EXHAUSTED, HAS_*) pass
+		// through untouched. Entities share the word via CharState; instances
+		// without an entity (Codex viewer) fall back to a local ref.
+		const eid = stateEid?.() ?? -1;
+		let bits = eid >= 0 ? CharState.bits[eid] : localBits.current;
+		bits &= ~(
+			CS.MOVING |
+			CS.RUNNING |
+			CS.AIRBORNE |
+			CS.RISING |
+			CS.LANDING |
+			CS.COMBAT_LOCK
+		);
 		if (motor.airborne) {
-			j.wasGrounded = false;
-			// Rising → windup pose, then hang/fall → loop.
-			if (motor.vy > 0.2 && animator.has('Jump_Start')) {
-				animator.play('Jump_Start', { fade: 0.1, loop: false });
-			} else {
-				animator.play('Jump_Loop', { fade: 0.12 });
+			if (j.wasGrounded) {
+				j.wasGrounded = false;
+				j.airStart = tRef.current;
+				// Rising at liftoff = a jump; walking off a ledge starts
+				// falling and should skip the windup for the hang loop.
+				j.rose = motor.vy > 0.2;
 			}
-			jumping = true;
-		} else if (!j.wasGrounded) {
-			j.wasGrounded = true;
-			// Only play the landing recovery when touching down in place;
-			// landing while still moving would freeze the legs and slide.
-			j.landUntil =
-				gait === 'idle'
-					? tRef.current +
-						(animator.duration('Jump_Land') * 0.55) / LAND_SPEED
-					: 0;
-			if (gait === 'idle') j.recover = true;
+			bits |= CS.AIRBORNE;
+			// A standard hop (~0.55s of air) rides Jump_Start clamped on its
+			// last frame straight into the landing — the Jump_Loop hang pose
+			// only engages on real drops that outlast AIR_ANIM_DELAY.
+			if (
+				j.rose &&
+				tRef.current - j.airStart <= AIR_ANIM_DELAY &&
+				animator.has('Jump_Start')
+			)
+				bits |= CS.RISING;
+		} else {
+			if (!j.wasGrounded) {
+				j.wasGrounded = true;
+				// Landing recovery only when touching down in place; landing
+				// while moving would freeze the legs and slide.
+				j.landUntil =
+					gait === 'idle'
+						? tRef.current +
+							(animator.duration('Jump_Land') * 0.55) / LAND_SPEED
+						: 0;
+				if (gait === 'idle') j.recover = true;
+			}
+			if (tRef.current < j.landUntil) bits |= CS.LANDING;
 		}
-		// Hold the landing recovery briefly before locomotion resumes.
-		if (!jumping && tRef.current < j.landUntil) {
-			animator.play('Jump_Land', { loop: false, timeScale: LAND_SPEED });
-			jumping = true;
-		}
+		if (gait !== 'idle') bits |= CS.MOVING;
+		if (motor.runBlend > 0.001) bits |= CS.RUNNING;
+		if (motor.yawLock !== null) bits |= CS.COMBAT_LOCK;
+		if (eid >= 0) CharState.bits[eid] = bits;
+		else localBits.current = bits;
 
-		if (jumping) {
-			// jump state already selected
-		} else if (gait === 'idle') {
-			// Snap out of the landing pose fast; the drawn-out default
-			// crossfade is what read as a laggy tail.
-			animator.play(locomotion.idle, j.recover ? { fade: 0.14 } : {});
-			j.recover = false;
-		} else if (
-			motor.runBlend <= 0.001 ||
-			locomotion.walk === locomotion.run
-		) {
-			animator.play(locomotion.walk);
-			if (locomotion.speedRef)
-				animator.setBaseTimeScale(
-					THREE.MathUtils.clamp(
+		// --- Resolve the base layer from the state word.
+		let bin: StrafeBin = 'Fwd';
+		let strafeOffset = 0;
+		const strafing =
+			(bits & CS.COMBAT_LOCK) !== 0 &&
+			(bits & CS.MOVING) !== 0 &&
+			motor.speed > 0.15;
+		if (strafing) {
+			strafeOffset =
+				Math.atan2(motor.velocity.x, motor.velocity.z) - motor.yaw;
+			bin = strafeBin(strafeOffset);
+		}
+		const decision = resolveBase(bits, {
+			runBlend: motor.runBlend,
+			walkTs: locomotion.speedRef
+				? THREE.MathUtils.clamp(
 						motor.speed / locomotion.speedRef,
 						WALK_TS_MIN,
 						WALK_TS_MAX,
-					),
-				);
+					)
+				: 1,
+			strafeBin: bin,
+			landSpeed: LAND_SPEED,
+			loco: locomotion,
+		});
+
+		// --- Apply. Missing directional clip falls back to the procedural
+		// walk-twist strafe (pre-clip-library behavior).
+		let strafe: StrafeState | null = null;
+		if (decision.kind === 'blend') {
+			animator.blend(decision.a, decision.b, decision.alpha);
+		} else if (strafing && !animator.has(decision.clip)) {
+			strafe = classifyStrafe(strafeOffset);
+			animator.play(locomotion.walk);
+			animator.setBaseTimeScale(
+				THREE.MathUtils.clamp(
+					motor.speed / WALK_SPEED_REF,
+					WALK_TS_MIN,
+					WALK_TS_MAX,
+				),
+			);
 		} else {
-			animator.blend(locomotion.walk, locomotion.run, motor.runBlend);
+			const idleClip = decision.clip === locomotion.idle;
+			animator.play(decision.clip, {
+				loop: decision.loop,
+				timeScale: decision.timeScale,
+				// Snap out of the landing pose fast; the drawn-out default
+				// crossfade is what read as a laggy tail.
+				fade: idleClip && j.recover ? 0.14 : decision.fade,
+			});
+			if (idleClip) j.recover = false;
+			// play() early-returns on an already-running base without touching
+			// its rate — re-assert per frame so speed tracking stays live.
+			if (decision.timeScale !== undefined)
+				animator.setBaseTimeScale(decision.timeScale);
 		}
 
+		const legTwistGoal = strafe?.legTwist ?? 0;
+		animator.setLocomotionReverse(strafe?.reverse ?? false);
+
+		const ov = resolveOverlays(bits);
 		const bp = blockRef.current.pose;
 		for (const clip of BLOCK_CLIPS) {
-			const on = blockRef.current.on && bp.clip === clip;
+			const on = ov.block && bp.clip === clip;
 			animator.holdMasked(`${clip}_B`, on, bp.loop, bp.frac ?? 0.5);
 		}
 		if (locomotion.idleOverlay)
-			animator.holdMasked('Idle_Overlay', gait === 'idle' && !jumping);
+			animator.holdMasked(
+				'Idle_Overlay',
+				!(bits & (CS.MOVING | CS.AIRBORNE | CS.LANDING)),
+			);
 
 		animator.update(dt);
-		const flexDeg =
-			SPINE_FLEX_BY_CLIP[animator.current()] ?? SPINE_FLEX_DEFAULT;
+		// Ease the leg cheat and apply post-mixer: pelvis yaws toward travel,
+		// spine_01 counter-yaws so the chest stays squared on the target.
+		legTwistCur.current = THREE.MathUtils.damp(
+			legTwistCur.current,
+			legTwistGoal,
+			10,
+			dt,
+		);
+		if (Math.abs(legTwistCur.current) > 0.002) {
+			const twist = (bone: THREE.Bone | null, rad: number) => {
+				if (!bone) return;
+				bone.getWorldQuaternion(_sf1);
+				_sf2.setFromAxisAngle(TWIST_Y, rad);
+				_sf1.premultiply(_sf2);
+				bone.parent!.getWorldQuaternion(_sf3).invert();
+				bone.quaternion.copy(_sf3.multiply(_sf1));
+				bone.updateWorldMatrix(false, true);
+			};
+			twist(strafeBones.pelvis, legTwistCur.current);
+			twist(strafeBones.spine, -legTwistCur.current);
+		}
+		_flexAxis.set(Math.cos(motor.yaw), 0, -Math.sin(motor.yaw));
+		_hangAxis.set(Math.sin(motor.yaw), 0, Math.cos(motor.yaw));
+		// Spine flex + arm hang style grounded locomotion; jump clips are
+		// full-body authored poses, so airborne/landing frames get the clip
+		// untouched.
+		const inJump = (bits & (CS.AIRBORNE | CS.LANDING)) !== 0;
+		const flexDeg = inJump
+			? 0
+			: (SPINE_FLEX_BY_CLIP[animator.current()] ?? SPINE_FLEX_DEFAULT);
 		if (flexDeg !== 0) {
 			const rad = (flexDeg * Math.PI) / 180;
 			for (const s of spineBones) {
 				const bone = s.bone!;
 				bone.getWorldQuaternion(_sf1);
-				_sf2.setFromAxisAngle(SPINE_X, rad * s.frac);
+				_sf2.setFromAxisAngle(_flexAxis, rad * s.frac);
 				_sf1.premultiply(_sf2);
 				bone.parent!.getWorldQuaternion(_sf3).invert();
 				bone.quaternion.copy(_sf3.multiply(_sf1));
 				bone.updateWorldMatrix(false, false);
 			}
 		}
-		if (ARM_HANG_DEG !== 0) {
+		if (ARM_HANG_DEG !== 0 && !inJump) {
 			const rad = (ARM_HANG_DEG * Math.PI) / 180;
 			const hang = (bone: THREE.Bone | null, sign: number) => {
 				if (!bone) return;
 				bone.getWorldQuaternion(_sf1);
-				_sf2.setFromAxisAngle(ARM_Z, rad * sign);
+				_sf2.setFromAxisAngle(_hangAxis, rad * sign);
 				_sf1.premultiply(_sf2);
 				bone.parent!.getWorldQuaternion(_sf3).invert();
 				bone.quaternion.copy(_sf3.multiply(_sf1));
 				bone.updateWorldMatrix(false, true);
 			};
-			if (!rightId) hang(upperArms.r, 1);
-			if (!leftId) hang(upperArms.l, -1);
+			if (!rightId) hang(upperArms.r, -1);
+			if (!leftId) hang(upperArms.l, 1);
 		}
 		for (const f of fingerBones) {
 			const holds = f.side === 'r' ? !!rightId : !!leftId;
 			if (holds) f.bone.quaternion.slerp(f.grip, HAND_GRIP);
 			else f.bone.quaternion.slerp(f.rest, HAND_OPEN);
 		}
-		pose.lookAt(lookTarget);
-		pose.update(dt);
+		// Combat lock pins the head on the target (overrides the clip's head
+		// sway — most visible jog-strafing). yawLock is player-only state, so
+		// goblin puppets sharing this component never trigger it.
+		const combatEid = motor.yawLock !== null ? getTarget() : null;
+		if (combatEid !== null) {
+			_combatLook.set(
+				Transform3.px[combatEid],
+				Transform3.py[combatEid] + COMBAT_LOOK_Y,
+				Transform3.pz[combatEid],
+			);
+			pose.setStrength(COMBAT_LOOK_WEIGHT);
+			pose.lookAt(_combatLook);
+		} else {
+			pose.setStrength(0.6);
+			pose.lookAt(lookTarget);
+		}
+		_bodyFwd.set(Math.sin(motor.yaw), 0, Math.cos(motor.yaw));
+		pose.update(dt, _bodyFwd);
 
 		const g = groupRef.current;
 		if (g) {

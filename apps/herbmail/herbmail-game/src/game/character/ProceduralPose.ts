@@ -1,20 +1,30 @@
 import * as THREE from 'three';
 
+const IDENTITY = new THREE.Quaternion();
+
 /**
  * Procedural bone overrides applied AFTER mixer.update each frame. Ordering is
  * the contract: base clip → these overrides. Calling mixer.update afterward
  * would overwrite them.
+ *
+ * Head-look works in world-space deltas: the shortest arc rotating the body's
+ * forward axis onto the target direction, applied over the head's bind-pose
+ * orientation. No assumptions about the bone's local axes (UE rig heads are
+ * not -Z forward), and shortest-arc means no roll/tilt by construction.
  */
 export class ProceduralPose {
 	private head: THREE.Bone | null;
+	private bindLocal = new THREE.Quaternion();
 	private target = new THREE.Vector3();
 	private active = false;
 	private weight = 0;
+	private readonly delta = new THREE.Quaternion();
+	private readonly clampedDelta = new THREE.Quaternion();
 	private readonly desired = new THREE.Quaternion();
 	private readonly local = new THREE.Quaternion();
+	private readonly parentWorld = new THREE.Quaternion();
 	private readonly parentInv = new THREE.Quaternion();
-	private readonly m = new THREE.Matrix4();
-	private readonly up = new THREE.Vector3(0, 1, 0);
+	private readonly dir = new THREE.Vector3();
 	private readonly headWorld = new THREE.Vector3();
 
 	constructor(
@@ -22,8 +32,15 @@ export class ProceduralPose {
 		headBone = 'head',
 		private maxWeight = 0.6,
 		private lerp = 8,
+		private maxAngle = (75 * Math.PI) / 180,
 	) {
 		this.head = (root.getObjectByName(headBone) as THREE.Bone) ?? null;
+		if (this.head) this.bindLocal.copy(this.head.quaternion);
+	}
+
+	/** Override blend strength (e.g. harder pin while combat-locked). */
+	setStrength(w: number): void {
+		this.maxWeight = w;
 	}
 
 	lookAt(worldTarget: THREE.Vector3 | null): void {
@@ -35,7 +52,8 @@ export class ProceduralPose {
 		}
 	}
 
-	update(dt: number): void {
+	/** `bodyFwd`: the character's world forward (unit, from motor yaw). */
+	update(dt: number, bodyFwd: THREE.Vector3): void {
 		if (!this.head?.parent) return;
 		const targetWeight = this.active ? this.maxWeight : 0;
 		this.weight = THREE.MathUtils.damp(
@@ -47,13 +65,24 @@ export class ProceduralPose {
 		if (this.weight < 0.001) return;
 
 		this.head.getWorldPosition(this.headWorld);
-		// A look target coincident with the head yields a degenerate lookAt matrix →
-		// NaN quaternion that slerps into the bone and corrupts the pose for the rest
-		// of the session. Skip the frame instead.
-		if (this.headWorld.distanceToSquared(this.target) < 1e-6) return;
-		this.m.lookAt(this.headWorld, this.target, this.up);
-		this.desired.setFromRotationMatrix(this.m);
-		this.head.parent.getWorldQuaternion(this.parentInv).invert();
+		this.dir.copy(this.target).sub(this.headWorld);
+		// Degenerate when the look target sits on the head — a zero direction
+		// would NaN the quaternion and corrupt the pose. Skip the frame.
+		if (this.dir.lengthSq() < 1e-6) return;
+		this.dir.normalize();
+
+		this.delta.setFromUnitVectors(bodyFwd, this.dir);
+		// Clamp how far the head can turn away from the body.
+		this.clampedDelta
+			.copy(IDENTITY)
+			.rotateTowards(this.delta, this.maxAngle);
+
+		this.head.parent.getWorldQuaternion(this.parentWorld);
+		this.desired
+			.copy(this.clampedDelta)
+			.multiply(this.parentWorld)
+			.multiply(this.bindLocal);
+		this.parentInv.copy(this.parentWorld).invert();
 		this.local.copy(this.parentInv).multiply(this.desired);
 		this.head.quaternion.slerp(this.local, this.weight);
 	}

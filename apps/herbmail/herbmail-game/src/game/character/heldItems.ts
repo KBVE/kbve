@@ -52,7 +52,7 @@ export const HELD_ITEMS: Record<string, HeldItem> = {
 		gripFrac: 0.12,
 		scale: 0.55,
 		flame: true,
-		light: { intensity: 5, color: [1, 0.42, 0.13] },
+		light: { intensity: 3.2, color: [1, 0.45, 0.16] },
 	},
 };
 

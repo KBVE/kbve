@@ -178,8 +178,10 @@ const fragment = /* glsl */ `
 		}
 		vec3 light = vec3(uAmbient * ao);
 		vec3 Veye = normalize(cameraPosition - vWorld);
-		float shin = mix(96.0, 8.0, rough);
-		float specGain = (1.0 - rough) * 0.6;
+		// Firelight is diffuse: a soft broad lobe and weak gain, or torch light
+		// reads as a flashlight glare ring on the bricks.
+		float shin = mix(32.0, 6.0, rough);
+		float specGain = (1.0 - rough) * 0.28;
 		for (int i = 0; i < MAX_LIGHTS; i++) {
 			if (i >= uLightCount) break;
 			vec3 toL = uLightPos[i] - vWorld;
@@ -190,7 +192,9 @@ const fragment = /* glsl */ `
 			float ndl = dot(N, L);
 			float lambert = max(ndl * 0.75 + 0.25, 0.0);
 			lambert *= lambert;
-			float att = 1.0 / max(0.4 + 0.15 * d + 0.12 * d * d, 0.05);
+			// Cap the near-field so a light half a meter from a wall paints a
+			// warm pool instead of a blown-out hotspot (the flashlight look).
+			float att = min(1.0 / max(0.4 + 0.15 * d + 0.12 * d * d, 0.05), 1.1);
 			float spec = 0.0;
 			if (specGain > 0.0 && ndl > 0.0) {
 				vec3 H = normalize(L + Veye);

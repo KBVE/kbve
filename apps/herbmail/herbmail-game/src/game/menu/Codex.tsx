@@ -6,6 +6,7 @@ import { CODEX_LOADOUTS } from './codexLoadouts';
 import { ARMOR_PIECES, pieceLabel } from '../character/armor';
 import { setScreen } from './store';
 import { IconStudio } from './IconStudio';
+import { LiveRig } from './LiveRig';
 
 const REST: ClipInfo = { name: REST_POSE, duration: 0, category: 'Other' };
 const displayName = (c: ClipInfo) =>
@@ -26,7 +27,7 @@ const wrap: React.CSSProperties = {
 };
 
 export function Codex() {
-	const [mode, setMode] = useState<'anims' | 'icons'>('anims');
+	const [mode, setMode] = useState<'anims' | 'icons' | 'rig'>('anims');
 	const [sel, setSel] = useState<ClipInfo>(CLIPS[0]);
 	const [q, setQ] = useState('');
 	const [equipped, setEquipped] = useState<Set<string>>(
@@ -70,6 +71,7 @@ export function Codex() {
 				{(
 					[
 						['anims', 'Animations'],
+						['rig', 'Live Rig'],
 						['icons', 'Icon Studio'],
 					] as const
 				).map(([id, label]) => (
@@ -111,6 +113,8 @@ export function Codex() {
 
 			{mode === 'icons' ? (
 				<IconStudio />
+			) : mode === 'rig' ? (
+				<LiveRig />
 			) : (
 				<div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
 					<div

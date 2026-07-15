@@ -135,6 +135,7 @@ export function Goblins() {
 					motorConfig={GOBLIN_MOTOR}
 					position={[s.x, 0, s.z]}
 					drive={makePuppet(s)}
+					stateEid={() => s.eid}
 					onReady={(h) => {
 						h.motor.mover = NOOP_MOVER;
 					}}

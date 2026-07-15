@@ -21,6 +21,19 @@ import { isOpen as isInventoryOpen } from '../inventory/store';
 import { isPlaying } from '../menu/store';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
 import { CharacterShadow } from './CharacterShadow';
+import {
+	acquireOrCycle,
+	dropTarget,
+	getTarget,
+	isHardLock,
+	setHardLock,
+	tickTargeting,
+} from '../combat/targeting';
+import { losBlockedAt } from '../combat/los';
+import { TargetMarker } from '../combat/TargetMarker';
+import { Transform3 } from '../mecs/props';
+import { playerEid, playerBits, writePlayerBits } from './playerEntity';
+import { CS, canBlockBits } from './charState';
 
 const RADIUS = 0.35;
 const CAM_DIST = 2.2;
@@ -47,13 +60,20 @@ function lookScale(): number {
 }
 const LOOK_FOLLOW = 14;
 const PITCH_MAX = 1.4;
-const RUN_EP_COST = 25;
+const TAB_HOLD_MS = 250;
+
+function wrapPi(a: number): number {
+	let d = ((a + Math.PI) % (Math.PI * 2)) - Math.PI;
+	if (d < -Math.PI) d += Math.PI * 2;
+	return d;
+}
+const RUN_EP_COST = 18;
 const RUN_EP_RECOVER = 30;
 // Always-on EP regen means the pool never reads exactly 0 mid-sprint (it hovers at
 // one frame of regen). Latch exhaustion at a small floor above that.
 const RUN_EP_EMPTY = 1;
-const ATTACK_EP_WEAPON = 15;
-const ATTACK_EP_PUNCH = 8;
+const ATTACK_EP_WEAPON = 8;
+const ATTACK_EP_PUNCH = 4;
 
 // Exact first-wall distance along the camera boom via grid DDA (tile-by-tile),
 // ~1-2 tile checks vs a fixed 0.1 march — and no stair-step camera pop.
@@ -117,11 +137,14 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	});
 	useEffect(() => {
 		const left = hands.left ? equipmentById(hands.left) : null;
-		blockPoseRef.current =
-			left && left.kind === 'shield'
-				? { clip: 'Idle_Shield_Loop', loop: true }
-				: { clip: 'Sword_Block', loop: false, frac: 0.5 };
-	}, [hands]);
+		const shield = !!left && left.kind === 'shield';
+		blockPoseRef.current = shield
+			? { clip: 'Idle_Shield_Loop', loop: true }
+			: { clip: 'Sword_Block', loop: false, frac: 0.5 };
+		// Unequipping mid-block would freeze the pose with empty hands.
+		// Capability bits (HAS_WEAPON/HAS_SHIELD) sync from the hands store.
+		if (!canBlockBits(playerBits())) handleRef.current?.setBlocking(false);
+	}, [hands, armed]);
 	const handleRef = useRef<CharacterHandle | null>(null);
 	const bodyUnreg = useRef<(() => void) | null>(null);
 	useMelee();
@@ -139,6 +162,8 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	const targetPitch = useRef(0);
 	const curYaw = useRef(0);
 	const curPitch = useRef(0);
+	const tabDownAt = useRef(0);
+	const tabHardEngaged = useRef(false);
 	const eul = useRef(new THREE.Euler(0, 0, 0, 'YXZ'));
 	const [sx, , sz] = dungeonSpawn();
 
@@ -151,17 +176,56 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				handleRef.current?.motor.jump();
 			}
 			if (e.code === 'KeyF') triggerActive();
+			if (e.code === 'Tab') {
+				// Keep browser focus traversal out of the game; tap decides on
+				// keyup (cycle) vs hold (hard lock, engaged from useFrame).
+				e.preventDefault();
+				if (!e.repeat) {
+					tabDownAt.current = performance.now();
+					tabHardEngaged.current = false;
+				}
+			}
+			if (e.code === 'Escape') dropTarget();
 		};
-		const up = (e: KeyboardEvent) => (keys.current[e.code] = false);
+		const up = (e: KeyboardEvent) => {
+			keys.current[e.code] = false;
+			if (e.code === 'Tab') {
+				if (tabHardEngaged.current) {
+					setHardLock(false);
+					tabHardEngaged.current = false;
+				} else {
+					const h = handleRef.current;
+					if (h) {
+						camera.getWorldDirection(fwd.current);
+						acquireOrCycle(
+							h.motor.position.x,
+							h.motor.position.z,
+							fwd.current.x,
+							fwd.current.z,
+							losBlockedAt,
+						);
+					}
+				}
+			}
+		};
 		const attack = (e: MouseEvent) => {
 			if (!document.pointerLockElement) return;
 			const h = handleRef.current;
 			if (!h) return;
 			if (e.button === 2) {
-				h.setBlocking(true, blockPoseRef.current);
+				if (canBlockBits(playerBits()))
+					h.setBlocking(true, blockPoseRef.current);
 				return;
 			}
 			if (e.button !== 0 || h.isBlocking()) return;
+			// Soft-lock aim assist: swings face the locked target.
+			const locked = getTarget();
+			if (locked !== null) {
+				h.motor.yaw = Math.atan2(
+					Transform3.px[locked] - h.motor.position.x,
+					Transform3.pz[locked] - h.motor.position.z,
+				);
+			}
 			if (armedRef.current) {
 				if (PlayerStats.ep.value[PlayerStats.eid] < ATTACK_EP_WEAPON)
 					return;
@@ -202,6 +266,8 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		const lock = () => dom.requestPointerLock();
 		const move = (e: MouseEvent) => {
 			if (document.pointerLockElement !== dom) return;
+			// Hard lock owns the camera; mouse look resumes on release.
+			if (isHardLock()) return;
 			const sens = lookScale();
 			targetYaw.current -= e.movementX * sens;
 			targetPitch.current -= e.movementY * sens;
@@ -257,6 +323,52 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		else if (ep >= RUN_EP_RECOVER) exhausted.current = false;
 		const running = wantRun && moving && !exhausted.current;
 		if (running) spend(PlayerStats.ep, RUN_EP_COST * dt);
+		writePlayerBits(
+			CS.EXHAUSTED | CS.HARD_LOCK,
+			(exhausted.current ? CS.EXHAUSTED : 0) |
+				(isHardLock() ? CS.HARD_LOCK : 0),
+		);
+		const pe = playerEid();
+		Transform3.px[pe] = h.motor.position.x;
+		Transform3.py[pe] = h.motor.position.y;
+		Transform3.pz[pe] = h.motor.position.z;
+		Transform3.dx[pe] = Math.sin(h.motor.yaw);
+		Transform3.dz[pe] = Math.cos(h.motor.yaw);
+
+		tickTargeting(h.motor.position.x, h.motor.position.z);
+		// Tab held past the tap threshold engages hard lock (released in keyup).
+		if (
+			k['Tab'] &&
+			!tabHardEngaged.current &&
+			getTarget() !== null &&
+			performance.now() - tabDownAt.current > TAB_HOLD_MS
+		) {
+			setHardLock(true);
+			tabHardEngaged.current = true;
+		}
+		// Hard lock steers the look target at the enemy; the existing ease below
+		// smooths both engage and release.
+		const hardEid = isHardLock() ? getTarget() : null;
+		if (hardEid !== null) {
+			const tx = Transform3.px[hardEid] - h.motor.position.x;
+			const ty =
+				Transform3.py[hardEid] +
+				1.0 -
+				(h.motor.position.y + CAM_HEIGHT);
+			const tz = Transform3.pz[hardEid] - h.motor.position.z;
+			const planar = Math.hypot(tx, tz) || 1;
+			const yawTo = Math.atan2(-tx, -tz);
+			targetYaw.current = curYaw.current + wrapPi(yawTo - curYaw.current);
+			targetPitch.current = Math.max(
+				-PITCH_MAX,
+				Math.min(PITCH_MAX, Math.atan2(ty, planar)),
+			);
+			// Combat stance: the character squares up to the target while locked,
+			// so movement strafes around it instead of turning the body away.
+			h.motor.yawLock = Math.atan2(tx, tz);
+		} else {
+			h.motor.yawLock = null;
+		}
 
 		// Ease camera orientation toward the mouse target (frame-rate independent).
 		const look = 1 - Math.exp(-LOOK_FOLLOW * dt);
@@ -319,6 +431,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				url={url}
 				scale={scale}
 				armed={armed}
+				stateEid={playerEid}
 				rightId={hands.right}
 				leftId={hands.left}
 				position={[sx, 0, sz]}
@@ -336,6 +449,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			/>
 			<CharacterShadow target={handleRef} />
 			<TargetDummy />
+			<TargetMarker />
 			<MeleeSpark />
 		</>
 	);

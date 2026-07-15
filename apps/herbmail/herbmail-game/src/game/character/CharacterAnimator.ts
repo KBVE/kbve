@@ -97,6 +97,17 @@ export class CharacterAnimator {
 		this.base?.setEffectiveTimeScale(ts);
 	}
 
+	/** Flip locomotion playback direction (backpedal) across every active base
+	 *  action, preserving each action's speed magnitude. Idempotent per frame. */
+	setLocomotionReverse(reverse: boolean): void {
+		const sign = reverse ? -1 : 1;
+		for (const a of this.activeBase) {
+			const ts = a.getEffectiveTimeScale();
+			if (Math.sign(ts) !== sign)
+				a.setEffectiveTimeScale(Math.abs(ts) * sign || sign);
+		}
+	}
+
 	/** Play a one-shot clip over the base; resolves when it finishes. */
 	playOnce(
 		name: string,
