@@ -13,6 +13,7 @@ import { ThirdPersonPlayer } from '../game/character/ThirdPersonPlayer';
 import { Goblins } from '../game/npc/Goblins';
 import { PhysicsBodies } from '../game/sab/PhysicsBodies';
 import { AOComposer } from '../game/render/AOComposer';
+import { EagleEye } from '../game/render/EagleEye';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { DebugStats, StatsProbe } from '../game/hud/DebugStats';
 import { LOADOUT } from '../game/viewmodel/equipment';
@@ -25,6 +26,12 @@ import { MainMenu } from '../game/menu/MainMenu';
 import { Codex } from '../game/menu/Codex';
 import { SettingsPanel } from '../game/menu/SettingsPanel';
 import { useScreen, setScreen, isPlaying } from '../game/menu/store';
+import {
+	toggleEagle,
+	setEagle,
+	isEagle,
+	useEagle,
+} from '../game/menu/eagleStore';
 import { usePsx } from '../game/menu/settingsStore';
 
 export function App() {
@@ -32,6 +39,7 @@ export function App() {
 	const screen = useScreen();
 	const [aim, setAim] = useState<string | null>(null);
 	const [debug, setDebug] = useState(false);
+	const eagle = useEagle();
 	const equippedId = useEquippedId();
 
 	useEffect(() => {
@@ -39,6 +47,10 @@ export function App() {
 			if (e.code === 'Escape') {
 				if (isInventoryOpen()) {
 					toggleOpen();
+					return;
+				}
+				if (isEagle()) {
+					setEagle(false);
 					return;
 				}
 				document.exitPointerLock();
@@ -50,6 +62,11 @@ export function App() {
 			const el = e.target as HTMLElement;
 			if (el?.tagName === 'INPUT') return;
 			if (!isPlaying()) return;
+
+			if (e.code === 'KeyV') {
+				toggleEagle();
+				return;
+			}
 
 			if (e.code === 'KeyI') {
 				const open = toggleOpen();
@@ -108,6 +125,7 @@ export function App() {
 				</Suspense>
 				<PhysicsBodies />
 				<AOComposer />
+				<EagleEye />
 				{debug && <StatsProbe />}
 				<TorchPlacer />
 				<CratePlacer />
@@ -139,6 +157,23 @@ export function App() {
 						torch · R reload · 1-3 equip · I inventory · Esc menu
 					</div>
 				</>
+			)}
+			{eagle && (
+				<div
+					style={{
+						position: 'fixed',
+						top: '1rem',
+						left: '50%',
+						transform: 'translateX(-50%)',
+						pointerEvents: 'none',
+						color: '#ffd27f',
+						font: '12px monospace',
+						letterSpacing: '0.1em',
+						textShadow: '0 1px 2px #000',
+					}}>
+					SNAPSHOT · frozen player-view draw set · drag orbit · scroll
+					zoom · ` stats · V/Esc exit
+				</div>
 			)}
 			{screen === 'main' && <MainMenu />}
 			{screen === 'codex' && <Codex />}
