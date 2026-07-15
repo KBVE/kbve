@@ -61,7 +61,14 @@ export function applySkinTint(scene: THREE.Object3D, tint: string): void {
 	const clones = new Map<THREE.Material, THREE.MeshStandardMaterial>();
 	scene.traverse((o) => {
 		const mesh = o as THREE.Mesh;
-		if (!mesh.isMesh || !SKIN_TINT_MESHES.has(mesh.name)) return;
+		if (!mesh.isMesh) return;
+		// gltfpack (-kn) keeps the glTF node names on Object3D wrappers and
+		// renames the meshes to mesh_N, so the skin name lives on the parent
+		// in packed builds while the raw dev glb carries it on the mesh itself.
+		const named =
+			SKIN_TINT_MESHES.has(mesh.name) ||
+			(mesh.parent ? SKIN_TINT_MESHES.has(mesh.parent.name) : false);
+		if (!named) return;
 		let m = mesh.material as THREE.MeshStandardMaterial;
 		if (!m.userData.skinTint) {
 			const c =
