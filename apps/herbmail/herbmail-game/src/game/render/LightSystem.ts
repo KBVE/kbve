@@ -11,6 +11,7 @@ import { MAX_LIGHTS, LIGHT_RANGE, psxMaterialRegistry } from './PsxMaterial';
 import type { OcclusionField } from '../dungeon/occlusion';
 import { heldLight } from './heldLight';
 import { playerAnchor } from './playerAnchor';
+import { bodyMotionSig } from '../dungeon/collision';
 import { VIEW_RANGE } from '../config';
 
 const HEAD_REACH = 1.122;
@@ -27,6 +28,7 @@ const POINT_SCALE = 3.0;
 const SWAP_RATIO = 0.55;
 const FADE_TIME = 0.18;
 const SHADOW_CASTERS = 2;
+const SHADOW_MOVE_EPS = 0.02;
 // Hoisted so the mecs `each` name-map is cached (zero per-frame allocation).
 const LIGHT_TERMS = [LightEmitter, Transform3];
 
@@ -61,6 +63,7 @@ export class LightSystem {
 	private readonly slots: ShadowSlot[] = [];
 	private lastTime = 0;
 	private frame = 0;
+	private lastShadowSig = 0;
 	private readonly pos = Array.from(
 		{ length: MAX_LIGHTS },
 		() => new THREE.Vector3(),
@@ -281,7 +284,15 @@ export class LightSystem {
 		}
 
 		this.frame++;
-		const refresh = this.frame % 3 === 0;
+		// Only re-render shadow maps when a dynamic occluder actually moved
+		// (player/goblins/props). A static scene skips the six-face cube render
+		// entirely instead of paying it every third frame. A rare safety tick
+		// covers anything that mutates geometry without touching a Body.
+		const sig = bodyMotionSig();
+		const occluderMoved =
+			Math.abs(sig - this.lastShadowSig) > SHADOW_MOVE_EPS;
+		if (occluderMoved) this.lastShadowSig = sig;
+		const refresh = occluderMoved || this.frame % 90 === 0;
 
 		for (const slot of this.slots) {
 			const cur = slot.pos;

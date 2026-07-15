@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { psxMaterialRegistry } from '../render/PsxMaterial';
 import { usePsx } from '../menu/settingsStore';
 import { getDungeon } from '../dungeon/store';
+import { qualityTier } from '../render/qualityStore';
 import { SECTOR_TILES } from '../dungeon/generate';
 import { SOLID, DOORWAY, PILLAR, PIT } from '../geometry/grid';
 import { doorClosedAt } from '../door/doors';
@@ -78,7 +79,7 @@ export function StatsProbe() {
 			acc.current = 0;
 			const s = snapshot;
 			console.warn(
-				`PERF fps=${s.fps.toFixed(0)} avgMs=${s.ms.toFixed(1)} worstMs=${worst.current.toFixed(1)} calls=${s.calls} peakCalls=${peakCalls.current} tris=${s.triangles} peakTris=${peakTris.current} geos=${s.geometries} tex=${s.textures} progs=${s.programs} psxMats=${s.psxMats} lights=${s.lights} sector=${Math.floor(s.camX / SPAN)},${Math.floor(s.camZ / SPAN)}`,
+				`PERF fps=${s.fps.toFixed(0)} avgMs=${s.ms.toFixed(1)} worstMs=${worst.current.toFixed(1)} calls=${s.calls} peakCalls=${peakCalls.current} tris=${s.triangles} peakTris=${peakTris.current} geos=${s.geometries} tex=${s.textures} progs=${s.programs} psxMats=${s.psxMats} lights=${s.lights} tier=${qualityTier()} sector=${Math.floor(s.camX / SPAN)},${Math.floor(s.camZ / SPAN)}`,
 			);
 			worst.current = 0;
 			peakTris.current = 0;
