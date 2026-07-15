@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { TILE } from '../config';
 
-export const CHUNK_TILES = 12;
+export const CHUNK_TILES = 8;
 export const CHUNK_WORLD = CHUNK_TILES * TILE;
 
 interface Bucket {

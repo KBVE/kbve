@@ -17,13 +17,13 @@ const blankTex = new THREE.DataTexture(
 );
 blankTex.needsUpdate = true;
 
-export const MAX_LIGHTS = 24;
+export const MAX_LIGHTS = 8;
 export const LIGHT_RANGE = 13.5;
 // POM relief LOD band. Darkness comes from light attenuation, so relief detail
 // past the torch glow is invisible — full strength inside RELIEF_NEAR, faded
 // to flat by RELIEF_FAR (just past LIGHT_RANGE where surfaces read black).
-export const RELIEF_NEAR = 6;
-export const RELIEF_FAR = 16;
+export const RELIEF_NEAR = 13;
+export const RELIEF_FAR = 18;
 
 const vertex = /* glsl */ `
 	uniform float uSnap;
@@ -171,6 +171,7 @@ const fragment = /* glsl */ `
 		float rough = 1.0;
 		if (uUseMaps > 0.5) {
 			vec3 nTex = texture2D(uNormalMap, uv).rgb * 2.0 - 1.0;
+			nTex.xy *= 1.7;
 			N = normalize(mat3(normalize(vTangent), normalize(vBitangent), N) * nTex);
 			vec3 har = texture2D(uHarMap, uv).rgb;
 			ao = har.g;
@@ -242,9 +243,9 @@ const PsxMaterialBase = shaderMaterial(
 		uReliefFar: RELIEF_FAR,
 		uAmbient: 0.12,
 		uPom: 0,
-		uPomScale: 0.06,
+		uPomScale: 0.2,
 		uPomMin: 6,
-		uPomMax: 12,
+		uPomMax: 18,
 		uSilhouette: 0,
 		uOcclude: 1,
 		uMapTex: blankTex,

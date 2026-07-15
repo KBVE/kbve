@@ -12,6 +12,7 @@ import {
 } from '../geometry';
 import { makeLocalGrid, type RoomDesc } from './generate';
 import { chunkGeometry } from './chunkGeometry';
+import { queueBVH, cancelBVH } from '../render/bvh';
 
 export interface RoomGeoSet {
 	walls: THREE.BufferGeometry[][];
@@ -28,7 +29,7 @@ export interface RoomGeoSet {
 function dice(merged: THREE.BufferGeometry): THREE.BufferGeometry[] {
 	const chunks = chunkGeometry(merged);
 	merged.dispose();
-	for (const c of chunks) c.computeBoundsTree();
+	for (const c of chunks) queueBVH(c);
 	return chunks;
 }
 
@@ -36,17 +37,11 @@ let sharedFloor: THREE.BufferGeometry[] | null = null;
 let sharedCeiling: THREE.BufferGeometry[] | null = null;
 
 function floorGeo(desc: RoomDesc): THREE.BufferGeometry[] {
-	if (!sharedFloor) {
-		sharedFloor = [buildFloor(makeLocalGrid(desc))];
-		sharedFloor[0].computeBoundsTree();
-	}
+	if (!sharedFloor) sharedFloor = dice(buildFloor(makeLocalGrid(desc)));
 	return sharedFloor;
 }
 function ceilingGeo(desc: RoomDesc): THREE.BufferGeometry[] {
-	if (!sharedCeiling) {
-		sharedCeiling = [buildCeiling(makeLocalGrid(desc))];
-		sharedCeiling[0].computeBoundsTree();
-	}
+	if (!sharedCeiling) sharedCeiling = dice(buildCeiling(makeLocalGrid(desc)));
 	return sharedCeiling;
 }
 
@@ -68,6 +63,7 @@ function buildSet(desc: RoomDesc): RoomGeoSet {
 }
 
 function drop(c: THREE.BufferGeometry): void {
+	cancelBVH(c);
 	c.disposeBoundsTree();
 	c.dispose();
 }
