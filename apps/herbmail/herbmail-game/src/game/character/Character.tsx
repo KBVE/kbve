@@ -41,13 +41,10 @@ import {
 const UP = new THREE.Vector3(0, 1, 0);
 const LAND_SPEED = 2.4;
 const LAND_HOLD_FRAC = 0.3;
-// Air time before the airborne pose engages. A standard hop is ~0.55s
-// (jumpSpeed 6 / gravity 22), so only longer falls swap the animation.
+
 const AIR_ANIM_DELAY = 0.65;
 const GROUND_Y = -0.037;
-// Character-relative override axes, rebuilt each frame from motor yaw. A fixed
-// world axis flips the spine flex into a backward arch (or sideways roll) the
-// moment the character faces away from +Z.
+
 const _flexAxis = new THREE.Vector3(1, 0, 0);
 const _hangAxis = new THREE.Vector3(0, 0, 1);
 const TWIST_Y = new THREE.Vector3(0, 1, 0);
@@ -90,14 +87,7 @@ const PUNCH_CHAIN = [
 const PUNCH_WINDOW = 0.35;
 const PUNCH_REACH = 0.45;
 
-// The world is lit by LightSystem's PSX uniforms, but the character keeps its GLB
-// standard material, so it needs a real light to catch the same torch. This point
-// light mirrors heldLight (the held-torch flame) so the body is lit by the exact
-// source lighting the walls. Tune gain/reach/decay to match the wall falloff.
-// Held-torch character light: low gain + long gentle falloff. The source sits
-// half a meter from the body, so gain dominates perceived brightness — keep it
-// low and let reach/decay carry the ambience instead of blowing out the skin.
-const TORCH_LIGHT_GAIN = 1.6;
+const TORCH_LIGHT_GAIN = 1.0;
 const TORCH_LIGHT_REACH = 13;
 const TORCH_LIGHT_DECAY = 1.1;
 
@@ -105,11 +95,7 @@ useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
 
 const HELD_FLAME_SCALE = 0.24;
-// Reactive flame lean: the held flame is world-upright, but a fast hand motion
-// (thrust, swing) should make the fire drag behind and whip. We spring a tilt
-// toward the anchor's horizontal world velocity, negated so +Y bends away from
-// the motion. GAIN maps m/s → radians; K/D are the spring stiffness/damping
-// (under-damped for overshoot = whip); MAX clamps the tilt so it never inverts.
+
 const FLAME_LEAN_GAIN = 0.09;
 const FLAME_LEAN_K = 90;
 const FLAME_LEAN_D = 13;
@@ -132,7 +118,7 @@ function buildFlame(gripScale: number): {
 		mesh.renderOrder = 10;
 		flame.add(mesh);
 	}
-	// Embers share the flame's uTime so the existing frame loop animates them too.
+
 	const embers = buildEmbers();
 	flame.add(embers.points);
 	mats.push(embers.mat);
@@ -146,8 +132,6 @@ function isUpperBone(name: string): boolean {
 	return UPPER_BONE.test(name);
 }
 
-// Idle feet clamp: lower chain pinned to the clip's first frame; torso
-// breathing keeps playing from the spine up.
 const LOWER_BONE = /pelvis|thigh|calf|foot|ball|hipAttach|kneeAttach/i;
 
 const CLAMPED_CLIPS = new WeakSet<THREE.AnimationClip>();
@@ -195,8 +179,7 @@ interface Props {
 	locomotion?: LocomotionClips;
 	onReady?: (h: CharacterHandle) => void;
 	drive?: (motor: CharacterMotor, t: number) => void;
-	/** Entity carrying this character's CharState word (getter — eids can be
-	 *  reassigned on respawn). Absent (Codex viewer) = local-only state. */
+
 	stateEid?: () => number;
 }
 
@@ -204,14 +187,9 @@ export interface LocomotionClips {
 	idle: string;
 	walk: string;
 	run: string;
-	/** World m/s the walk clip's stride matches at timeScale 1 (incl. model
-	 *  scale). When set, the walk loop's timeScale tracks actual speed so feet
-	 *  stop skating at speeds the clip wasn't authored for. */
+
 	speedRef?: number;
-	/** Looping clip masked to the upper body and held over the idle stance.
-	 *  Lets a retargeted character clip (zombie hunch) style the torso while
-	 *  the native idle keeps the feet planted — retargeted leg rotations swing
-	 *  the feet on this rig's proportions. */
+
 	idleOverlay?: string;
 }
 
@@ -224,9 +202,6 @@ const DEFAULT_LOCOMOTION: LocomotionClips = {
 const WALK_TS_MIN = 0.6;
 const WALK_TS_MAX = 2.6;
 
-// Retargeted clips (Zombie_*) keep the source skeleton's pelvis height and
-// float the body; shift the Y curve to this rig's bind height, keeping the
-// authored bob. Mutates the shared GLTF cache once per clip.
 const REBASED_CLIPS = new WeakSet<THREE.AnimationClip>();
 function rebasePelvis(clips: THREE.AnimationClip[], restY: number): void {
 	for (const c of clips) {
@@ -267,14 +242,12 @@ export function Character({
 	const heldMats = useRef<THREE.ShaderMaterial[] | null>(null);
 	const heldPos = useRef(new THREE.Vector3());
 	const heldQuat = useRef(new THREE.Quaternion());
-	// Flame-lean physics: last anchor world pos, spring tilt state (rad) + its
-	// velocity, and scratch objects reused per frame to avoid per-frame allocs.
+
 	const flamePrev = useRef<THREE.Vector3 | null>(null);
 	const leanRef = useRef({ x: 0, z: 0, vx: 0, vz: 0 });
 	const leanTilt = useRef(new THREE.Quaternion());
 	const leanEuler = useRef(new THREE.Euler());
-	// Smoothed flame world-velocity, fed to the ember shader so sparks streak
-	// (drag opposite the motion) when the torch is moved quickly.
+
 	const flameVel = useRef(new THREE.Vector3());
 	const heldLightCfg = useRef<{
 		intensity: number;
@@ -282,8 +255,7 @@ export function Character({
 	} | null>(null);
 	const groupRef = useRef<THREE.Group>(null);
 	const torchLight = useRef<THREE.PointLight>(null);
-	// One persistent flame reused across equips: built lazily, reparented to the
-	// live hand's anchor on equip, detached on unequip, disposed only on unmount.
+
 	const flamePool = useRef<{
 		flame: THREE.Group;
 		mats: THREE.ShaderMaterial[];
@@ -365,9 +337,6 @@ export function Character({
 		return out;
 	}, [scene, gltf]);
 
-	// Generic held-item attach: everything is driven by the HELD_ITEMS registry, so
-	// a new object is a config entry, not new code. Grips the handle end, applies
-	// the authored pos/rot/scale, and wires optional flame/light attachments.
 	useEffect(() => {
 		const srcByUrl: Record<string, THREE.Object3D> = {
 			[SWORD_URL]: sword.scene,
@@ -375,9 +344,6 @@ export function Character({
 		};
 		const cleanups: Array<() => void> = [];
 
-		// Attach one registry item to one hand bone with its authored grip. The
-		// flame/light of a lit item (torch) is captured into the shared refs so the
-		// frame loop drives it from whichever hand ends up holding it.
 		const attachOne = (
 			boneName: string,
 			grip: {
@@ -405,10 +371,6 @@ export function Character({
 				mesh.castShadow = true;
 			});
 
-			// Normalize any vertical item the same way: rotate its long axis to +Y
-			// (up) and shift so the grip point sits at the pivot origin (the fist).
-			// After this every item is "a vertical stick gripped at the bottom", so
-			// the shared grip poses them identically. Tip is +Y for the flame.
 			const axis = new THREE.Vector3(...cfg.axis).normalize();
 			inner.quaternion.setFromUnitVectors(axis, UP);
 			inner.updateMatrixWorld(true);
@@ -453,7 +415,6 @@ export function Character({
 				heldLightCfg.current = cfg.light ?? null;
 			}
 
-			// Detach only — the pooled flame is reused, so it is not disposed here.
 			cleanups.push(() => hand.remove(pivot));
 		};
 
@@ -474,7 +435,6 @@ export function Character({
 		};
 	}, [scene, rightId, leftId, sword, torch]);
 
-	// Dispose the pooled flame once, when the character unmounts.
 	useEffect(
 		() => () => {
 			const p = flamePool.current;

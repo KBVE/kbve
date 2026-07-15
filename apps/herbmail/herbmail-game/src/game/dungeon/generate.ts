@@ -26,9 +26,6 @@ const DOOR_THRESHOLD = 0.62;
 const TORCH_KEEP = 0.28;
 const TORCH_GAP = 3;
 
-// Per-cell layout style, folded into the signature so cached geometry stays
-// correct (bounded: 16 doors x VARIANTS x STYLES). 0 = open room, 1 = room with
-// deeper door tunnels, 2 = narrow corridor cell.
 export const STYLE_ROOM = 0;
 export const STYLE_TUNNEL = 1;
 export const STYLE_CORRIDOR = 2;
@@ -41,10 +38,6 @@ function cellStyle(seed: number, cx: number, cy: number): number {
 	return STYLE_CORRIDOR;
 }
 
-// Cosmetic variety pool. Geometry + torches depend only on (doors, variant),
-// so at most 16 doors x VARIANTS distinct rooms ever get built — everything
-// else is a cache hit. Bump for more visual variety at the cost of more cached
-// geometry sets.
 export const VARIANTS = 6;
 
 export interface TorchSlot {
@@ -60,9 +53,6 @@ export interface SpawnSlot {
 	row: number;
 }
 
-// A structural pillar between floor and ceiling. style = which of COLUMN_STYLES
-// shapes (chosen per owning room, never mixed); tex = which wall atlas it shares
-// with that room's walls; torch = carries a mid-shaft sconce light.
 export interface ColumnSlot {
 	col: number;
 	row: number;
@@ -71,9 +61,6 @@ export interface ColumnSlot {
 	torch: boolean;
 }
 
-// A door threshold: a 1-wide arch gap punched through a cell-boundary wall. lc/lr
-// are sector-local tile coords of the gap; axis is the passage direction ('x' =
-// east-west, 'z' = north-south).
 export interface DoorSlot {
 	lc: number;
 	lr: number;
@@ -97,7 +84,6 @@ export interface RoomDesc {
 	doorways: DoorSlot[];
 }
 
-// Neighbour directions matching geometry DIRS order: N, S, W, E.
 const NEIGHBORS: { di: number; bit: number; dc: number; dr: number }[] = [
 	{ di: 0, bit: DOOR_N, dc: 0, dr: -1 },
 	{ di: 1, bit: DOOR_S, dc: 0, dr: 1 },
@@ -105,9 +91,6 @@ const NEIGHBORS: { di: number; bit: number; dc: number; dr: number }[] = [
 	{ di: 3, bit: DOOR_E, dc: 1, dr: 0 },
 ];
 
-// Symmetric per-edge hash: the door between cells A and B is decided by the
-// unordered pair, so both rooms compute the identical answer regardless of which
-// is generated first.
 function edgeOpen(
 	seed: number,
 	ax: number,
@@ -131,7 +114,6 @@ function idx(col: number, row: number): number {
 	return row * CELL + col;
 }
 
-// Only interior tiles (never the perimeter/doors) are carveable.
 function setInterior(
 	tiles: Uint8Array,
 	col: number,
@@ -142,9 +124,6 @@ function setInterior(
 		tiles[idx(col, row)] = v;
 }
 
-// Room style: flank each door's entry column with wall for a few tiles, making a
-// short 1-wide tunnel before the room opens up. Flanks sit at mid±1 near the
-// perimeter, never on another door's mid-line, so nothing gets disconnected.
 function carveTunnels(tiles: Uint8Array, doors: number, mid: number): void {
 	const w = (c: number, r: number) => setInterior(tiles, c, r, WALL);
 	for (let d = 1; d <= TUNNEL_DEPTH; d++) {
@@ -167,8 +146,6 @@ function carveTunnels(tiles: Uint8Array, doors: number, mid: number): void {
 	}
 }
 
-// Corridor style: wall the whole interior, then carve a 1-wide cross from every
-// door to the centre, so the cell reads as connecting hallways instead of a room.
 function carveCorridor(tiles: Uint8Array, doors: number, mid: number): void {
 	for (let r = 1; r < CELL - 1; r++)
 		for (let c = 1; c < CELL - 1; c++) tiles[idx(c, r)] = WALL;

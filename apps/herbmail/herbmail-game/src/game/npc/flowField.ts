@@ -1,11 +1,6 @@
 import { TILE } from '../config';
 import { solidAtWorld } from '../dungeon/collision';
 
-// Shared goblin navigation: one BFS flow field over the tile grid (the grid IS
-// the navmesh — solidAtWorld already encodes walls, closed doors, pillars),
-// seeded at the player's tile. Every NPC reads the same field, so pathing cost
-// is O(field) once per player tile change instead of a search per goblin.
-// Directions point downhill toward the player; cost is tile distance.
 const R = 16;
 const SIZE = R * 2 + 1;
 const AREA = SIZE * SIZE;
@@ -36,9 +31,6 @@ export function invalidateFlowField(): void {
 	centerR = Number.POSITIVE_INFINITY;
 }
 
-// Rebuild only when the player crosses a tile boundary (~1k walkable tiles,
-// well under a millisecond). Doors opening/closing between rebuilds are picked
-// up on the next player move; corner cases resolve via the hard mover anyway.
 export function updateFlowField(px: number, pz: number): void {
 	const pc = Math.floor(px / TILE);
 	const pr = Math.floor(pz / TILE);
@@ -86,8 +78,6 @@ export interface FlowSample {
 
 const sampleOut: FlowSample = { x: 0, z: 0, cost: 0 };
 
-// Direction toward the player from this position, or null when unreachable /
-// outside the field. Returned object is reused — consume before next call.
 export function sampleFlow(x: number, z: number): FlowSample | null {
 	const lc = Math.floor(x / TILE) - cornerC;
 	const lr = Math.floor(z / TILE) - cornerR;

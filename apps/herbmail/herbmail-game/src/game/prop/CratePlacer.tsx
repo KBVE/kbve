@@ -26,8 +26,6 @@ interface Placement {
 	valid: boolean;
 }
 
-// Screen-centre ray -> floor tile the crate would drop onto. Valid only when the
-// tile is empty floor (not a wall, not already holding a crate) and within reach.
 function floorTile(
 	ray: THREE.Raycaster,
 	camera: THREE.Camera,

@@ -6,14 +6,8 @@ import { registerInteract } from '../interact/registry';
 import { onPropContact } from './melee';
 import { mineHit } from './mine';
 
-// Striking distance from the player to a stone's SURFACE for the [F] prompt — a
-// swing's forward arm reach. Per-stone the gate is MELEE_REACH + the stone's
-// collider radius, so a bigger rock is mineable from proportionally farther.
 const MELEE_REACH = 1.2;
 
-// Stone mining has two triggers sharing mineHit(): a melee swing contact (quick)
-// and the [F] interaction on the nearest stone (deliberate). Also registers the
-// prompt provider that surfaces the closest live stone within reach.
 export function useStoneMine(): void {
 	useEffect(() => {
 		const off = onPropContact(PROP_STONE, (eid) => mineHit(eid));

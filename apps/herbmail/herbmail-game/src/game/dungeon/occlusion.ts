@@ -4,10 +4,6 @@ import { TILE } from '../config';
 import { OCCLUDES } from '../geometry/grid';
 import { useActiveRooms } from './store';
 
-// Wall-occlusion field for the currently-streamed rooms: a red-channel tilemap
-// over the bounding box of the active room window, plus its world origin and
-// size so the PSX shader can raymarch light visibility against real walls
-// instead of the retired static level map.
 export interface OcclusionField {
 	tex: THREE.DataTexture;
 	origin: THREE.Vector2;
@@ -71,8 +67,6 @@ export function useOcclusionField(): OcclusionField {
 		};
 	}, [rooms]);
 
-	// The DataTexture is GPU-resident (bound as a shader uniform); free the prior one
-	// when the room window changes, else each sector crossing leaks a texture.
 	useEffect(() => () => field.tex.dispose(), [field]);
 
 	return field;

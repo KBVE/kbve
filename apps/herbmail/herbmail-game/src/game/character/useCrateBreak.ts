@@ -11,15 +11,10 @@ import { getEquippedId } from '../viewmodel/store';
 
 const HIT_PUFF = 3;
 
-// Multi-hit crate damage: a melee contact on a crate takes 1 hp and puffs a few
-// shards, breaking (full burst) at 0. The crack decal follows Health via
-// syncCrateDamage — nothing to drive here.
 export function useCrateBreak(): void {
 	useEffect(
 		() =>
 			onPropContact(PROP_CRATE, (eid) => {
-				// A torch doesn't smash — it sets the crate alight (DoT) instead of
-				// chipping. Any other weapon deals the usual instant hit.
 				if (getEquippedId() === 'torch') {
 					applyBurn(eid);
 					return;

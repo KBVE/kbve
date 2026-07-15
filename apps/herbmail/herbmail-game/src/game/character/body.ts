@@ -57,14 +57,6 @@ export function useBodyMorph() {
 	return useSyncExternalStore(subscribe, getBodyMorph, getBodyMorph);
 }
 
-/**
- * Applies the body-type morph across every skin mesh that carries the SIDEKICK
- * blendshapes. Each `SKIN_*` mesh exposes the same four targets by name; a
- * single slider drives them all in lockstep so the body stays coherent.
- */
-// The 38WRAP chest wrap reads as a bra: show it only once the body is feminine
-// enough to need it; below this a masc/androgynous torso stays bare (the skin
-// colormap paints the boxers).
 export const WRAP_FEM_THRESHOLD = 0.5;
 
 export function useBodySkinMorph(scene: THREE.Object3D): void {

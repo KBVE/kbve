@@ -11,7 +11,6 @@ import { PROP_FIREFLY } from './kinds';
 import { spawnPropBase } from './base';
 import { applyLight, LIGHT_PRESETS } from './lights';
 
-// Hoisted so the mecs `each` name-map is cached (zero per-frame allocation).
 const FLY_TERMS = [FireflyFx, Transform3];
 
 const BOB_R = 0.35;
@@ -44,9 +43,6 @@ export function spawnFirefly(
 	return eid;
 }
 
-// Per-frame kinematics: each firefly drifts around its home anchor with a soft
-// lissajous bob, darts away when the player enters FLEE_RADIUS, and springs back
-// to its drift target once the player leaves.
 export class FireflySystem {
 	tick(
 		_world: World,

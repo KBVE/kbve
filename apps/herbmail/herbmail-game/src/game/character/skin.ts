@@ -1,9 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 
-// Meshes that show bare skin: the SIDEKICK body panels plus the face parts that
-// read as flesh. Eyes/teeth/tongue/hair keep their own materials so a goblin
-// still has white eyes and red tongue.
 const SKIN_TINT_MESHES = new Set([
 	'SKIN_TORS',
 	'SKIN_HIPS',
@@ -29,8 +26,6 @@ export interface SkinTone {
 	tint: string;
 }
 
-// Tints multiply the authored skin colormap (light tan), so they must sit
-// brighter than the target color reads on screen.
 export const SKIN_TONES: SkinTone[] = [
 	{ id: 'human', label: 'Human', tint: '#ffffff' },
 	{ id: 'goblin', label: 'Goblin', tint: '#7cb35a' },
@@ -62,9 +57,6 @@ export function useSkinTone(): SkinTone {
 	return useSyncExternalStore(subscribe, getSkinTone, getSkinTone);
 }
 
-// SkeletonUtils.clone shares materials with the cached GLTF, so the first tint
-// clones each skin material once per instance (marked via userData) before
-// touching color — other characters and the codex preview stay unaffected.
 export function applySkinTint(scene: THREE.Object3D, tint: string): void {
 	const clones = new Map<THREE.Material, THREE.MeshStandardMaterial>();
 	scene.traverse((o) => {
@@ -83,7 +75,6 @@ export function applySkinTint(scene: THREE.Object3D, tint: string): void {
 	});
 }
 
-// NPCs pass a fixed override; the player omits it and follows the tone store.
 export function useSkinTint(scene: THREE.Object3D, override?: string): void {
 	const t = useSkinTone();
 	const tint = override ?? t.tint;

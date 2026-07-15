@@ -19,23 +19,15 @@ import { getDebrisPool } from '../render/DebrisPool';
 import { getSimBridge } from '../sab/simBridge';
 import { addLoot } from '../inventory/store';
 
-// Fire damage-over-time. A torch strike ignites a target: it ticks HP down on an
-// interval, puffs embers, and drives the existing crack decal (which follows
-// Health), then breaks + drops loot at 0. A standalone FlameFx entity is spawned
-// over the victim as the "on fire" visual and swept when the burn ends — so the
-// same path works for any future entity that carries Health.
-
 export const BURN_DPS = 1.5;
 export const BURN_SECONDS = 5;
 const BURN_TICK = 0.5;
-// FlamePool renders a flame at Transform3 + dir * ~1.122; drop the flame entity so
-// it sits over the victim rather than floating a full torch-length above it.
+
 const BURN_FLAME_DROP = 0.82;
 const HIT_PUFF = 2;
 
 const BURN_TERMS = [Burn, Health] as const;
-// flame entity -> the victim it rides, so a burn that ends (extinguished, broken,
-// or streamed out with its room) can despawn its orphaned flame.
+
 const burnFlames = new Map<number, number>();
 let dirty = false;
 
@@ -58,8 +50,6 @@ function spawnBurnFlame(world: World, eid: number): number {
 	return fe;
 }
 
-// Ignite (or refresh) a burn on an entity that has Health. Idempotent: re-hitting a
-// burning target extends its duration and raises dps to the strongest source.
 export function applyBurn(
 	eid: number,
 	dps = BURN_DPS,
@@ -88,9 +78,6 @@ function killByBurn(world: World, eid: number): void {
 	breakCrate(eid);
 }
 
-// Advance every active burn one frame. Returns true when the FlameFx entity set
-// changed (spawn/despawn) so the caller can reconcile the flame pool. `query` takes
-// a snapshot array, so despawning victims mid-loop is safe.
 export function burnTick(delta: number): boolean {
 	const world = getDungeon().world;
 	const wasDirty = dirty;
@@ -111,7 +98,6 @@ export function burnTick(delta: number): boolean {
 		else if (Burn.remaining[eid] <= 0) removeComponent(world, eid, Burn);
 	}
 
-	// Sweep orphaned flames: victim broke, was extinguished, or streamed out.
 	for (const [fe, owner] of burnFlames) {
 		if (isAlive(world, owner) && hasComponent(world, owner, Burn)) continue;
 		if (isAlive(world, fe)) removeEntity(world, fe);
@@ -122,7 +108,6 @@ export function burnTick(delta: number): boolean {
 	return wasDirty || dirty;
 }
 
-// resetDungeon wipes the world; drop our tracking so stale eids aren't swept.
 export function resetBurn(): void {
 	burnFlames.clear();
 	dirty = false;

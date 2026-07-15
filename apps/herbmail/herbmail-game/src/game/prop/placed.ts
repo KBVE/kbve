@@ -3,9 +3,6 @@ import { SECTOR, floorDiv } from '../dungeon/sector';
 import { TILE } from '../config';
 import { PROP_TORCH } from './kinds';
 
-// Player-placed props persisted per cell, so they survive room streaming: a room
-// mount re-spawns any records for its cell. Bounded ring across all cells. `kind`
-// discriminates what to re-spawn (torch on a wall, crate on the floor, ...).
 export interface PlacedRecord {
 	id: number;
 	kind: number;
@@ -20,10 +17,6 @@ const CAP = 24;
 let records: PlacedRecord[] = [];
 let nextId = 1;
 
-// Removed-prop positions, so a despawned torch/crate/stone does not respawn when its
-// room streams back in. Keyed by rounded world position. FIFO-capped: on an endless
-// traverse the oldest entries (far-behind sectors you won't revisit soon) drop, so
-// this stays bounded — those sectors just reset their prop state if you return.
 const suppressed = new Set<string>();
 const SUPPRESS_CAP = 4096;
 

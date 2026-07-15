@@ -1,9 +1,5 @@
 import { type StrafeBin } from './strafe';
 
-// Character state bits — ONE u32 in the CharState component describes what a
-// character is doing. Systems (input, motor sync, targeting, melee) write
-// bits; the animation resolver below and any gameplay check read them.
-// Replication-friendly: sync the u32, remote characters animate identically.
 export const CS = {
 	MOVING: 1 << 0,
 	RUNNING: 1 << 1,
@@ -60,8 +56,6 @@ const JOG_STRAFE: Record<StrafeBin, string> = {
 	Bwd: 'Jog_Bwd_Loop',
 };
 
-// Priority-ordered animation brain. First matching rule wins; everything the
-// old Character.tsx if/else ladder decided lives in this one readable table.
 export function resolveBase(bits: number, p: ResolveParams): BaseDecision {
 	if (bits & CS.DEAD) return { kind: 'play', clip: 'Death01', loop: false };
 	if (bits & CS.AIRBORNE)

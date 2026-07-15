@@ -35,8 +35,6 @@ let prevMounted = new Set<number>();
 let mountedEids: number[] = [];
 let lastMountKey = '';
 
-// Sector eids currently mounted — per-frame systems scope their entity
-// iteration to these buckets via eachOwned instead of scanning the world.
 export function getMountedEids(): readonly number[] {
 	return mountedEids;
 }
@@ -66,8 +64,6 @@ function axisGap(p: number, lo: number, hi: number): number {
 	return 0;
 }
 
-// Pure: which sector coords should be mounted for a player at (x,z). Center
-// always; neighbors when the player stands within MOUNT_MARGIN of their span.
 function mountedSectorCoords(
 	x: number,
 	z: number,

@@ -2,16 +2,6 @@ import * as THREE from 'three';
 
 const IDENTITY = new THREE.Quaternion();
 
-/**
- * Procedural bone overrides applied AFTER mixer.update each frame. Ordering is
- * the contract: base clip → these overrides. Calling mixer.update afterward
- * would overwrite them.
- *
- * Head-look works in world-space deltas: the shortest arc rotating the body's
- * forward axis onto the target direction, applied over the head's bind-pose
- * orientation. No assumptions about the bone's local axes (UE rig heads are
- * not -Z forward), and shortest-arc means no roll/tilt by construction.
- */
 export class ProceduralPose {
 	private head: THREE.Bone | null;
 	private bindLocal = new THREE.Quaternion();
@@ -38,7 +28,6 @@ export class ProceduralPose {
 		if (this.head) this.bindLocal.copy(this.head.quaternion);
 	}
 
-	/** Override blend strength (e.g. harder pin while combat-locked). */
 	setStrength(w: number): void {
 		this.maxWeight = w;
 	}
@@ -52,7 +41,6 @@ export class ProceduralPose {
 		}
 	}
 
-	/** `bodyFwd`: the character's world forward (unit, from motor yaw). */
 	update(dt: number, bodyFwd: THREE.Vector3): void {
 		if (!this.head?.parent) return;
 		const targetWeight = this.active ? this.maxWeight : 0;
@@ -66,13 +54,12 @@ export class ProceduralPose {
 
 		this.head.getWorldPosition(this.headWorld);
 		this.dir.copy(this.target).sub(this.headWorld);
-		// Degenerate when the look target sits on the head — a zero direction
-		// would NaN the quaternion and corrupt the pose. Skip the frame.
+
 		if (this.dir.lengthSq() < 1e-6) return;
 		this.dir.normalize();
 
 		this.delta.setFromUnitVectors(bodyFwd, this.dir);
-		// Clamp how far the head can turn away from the body.
+
 		this.clampedDelta
 			.copy(IDENTITY)
 			.rotateTowards(this.delta, this.maxAngle);

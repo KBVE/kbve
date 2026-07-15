@@ -21,19 +21,11 @@ function loadSet(set: Exclude<PartSet, 'KNGT'>): Promise<THREE.Object3D> {
 	return p;
 }
 
-/** Warm the part-set cache during idle time so on-equip loads never hitch. */
 export function preloadPartSets(): void {
 	for (const set of Object.keys(SET_URL) as (keyof typeof SET_URL)[])
 		void loadSet(set);
 }
 
-/**
- * Attach a lazy part set onto an animated character. Every part carries the
- * same 88-bone UE rig as character-anim.glb (rest poses verified identical), so
- * each SkinnedMesh is cloned and rebound onto the character's own bones by
- * name — it then follows every baked clip with no retarget. Meshes arrive
- * hidden; useCharacterParts flips visibility from the equipped set.
- */
 export async function attachPartSet(
 	root: THREE.Object3D,
 	set: PartSet,
@@ -49,10 +41,7 @@ export async function attachPartSet(
 		if ((o as THREE.SkinnedMesh).isSkinnedMesh)
 			meshes.push(o as THREE.SkinnedMesh);
 	});
-	// Bones the main rig lacks — per-part dyn/dangle chains and the exporter's
-	// zero-weight neutral_bone — are adopted: cloned with their rest-local
-	// transform and hung off their mapped parent, so plates ride the rig
-	// rigidly exactly as they rest in the part glb.
+
 	const adopt = (b: THREE.Bone): THREE.Bone => {
 		const existing = bones.get(b.name);
 		if (existing) return existing;

@@ -20,27 +20,20 @@ export const DEFAULT_MOTOR: MotorConfig = {
 
 export type Gait = 'idle' | 'walk' | 'run';
 
-/**
- * Authoritative planar movement. Game code sets a desired velocity; the motor
- * integrates position, faces travel direction, and reports the gait + a
- * walk↔run blend factor for the animator to visualize. Movement drives
- * animation, never the reverse.
- */
 export class CharacterMotor {
 	readonly position = new THREE.Vector3();
 	readonly velocity = new THREE.Vector3();
 	yaw = 0;
-	/** Combat stance: when set, facing tracks this yaw instead of travel direction. */
+
 	yawLock: number | null = null;
 	vy = 0;
 	grounded = true;
-	/** Optional collision resolver; mutates pos by (dx,dz) honoring walls. */
+
 	mover: ((pos: THREE.Vector3, dx: number, dz: number) => void) | null = null;
 	private readonly desired = new THREE.Vector3();
 
 	constructor(private cfg: MotorConfig = DEFAULT_MOTOR) {}
 
-	/** Launch upward if standing on the ground; no double-jump. */
 	jump(): void {
 		if (!this.grounded) return;
 		this.vy = this.cfg.jumpSpeed;
@@ -67,7 +60,6 @@ export class CharacterMotor {
 			: 'run';
 	}
 
-	/** 0 at walk speed, 1 at run speed — for animator.blend('Walk','Jog', x). */
 	get runBlend(): number {
 		return THREE.MathUtils.clamp(
 			(this.speed - this.cfg.walkSpeed) /

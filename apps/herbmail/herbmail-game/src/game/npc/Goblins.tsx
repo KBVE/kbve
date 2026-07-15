@@ -8,25 +8,15 @@ import { getDungeon } from '../dungeon/store';
 import { Transform3, Wander } from '../mecs/props';
 import { despawnGoblin, spawnGoblin } from './goblinSim';
 
-// Goblin stands ~1.2m against the ~2m human model. Straight 1m read too small
-// in third person, and the hunched zombie gait shaves apparent height further.
 export const GOBLIN_HEIGHT = 1.2;
 export const GOBLIN_SCALE = GOBLIN_HEIGHT / HUMAN_H;
 export const GOBLIN_TINT = '#7cb35a';
-// Body radius shrinks with the model so a goblin fits gaps the player can't:
-// the collision probe, sub-step length and wall clearance all derive from it.
+
 const PLAYER_RADIUS = 0.35;
 export const GOBLIN_RADIUS = PLAYER_RADIUS * GOBLIN_SCALE;
 
-// Bald: goblins reuse the human head but drop the hairstyle mesh.
 const HIDE = new Set(['HAIR']);
 
-// Zombie set doubles as a goblin shamble. Its clips are retargeted from other
-// proportions though — the leg rotations swing the feet on this rig — so idle
-// is the native (foot-stable) Idle_Loop with the zombie hunch masked onto the
-// upper body only. Walk stays full zombie: motion hides the drift and speedRef
-// retimes the stride (≈0.9 m/s × 0.6 scale) so chasing plays a frantic ~2.6×
-// scramble instead of ice-skating.
 const LOCOMOTION: LocomotionClips = {
 	idle: 'Idle_Loop',
 	idleOverlay: 'Zombie_Idle_Loop',
@@ -35,11 +25,8 @@ const LOCOMOTION: LocomotionClips = {
 	speedRef: 0.55,
 };
 
-// Frozen loadout: goblins never mirror the player's armor store.
 const NAKED = new Set<string>();
 
-// Motor speeds are world-space (scale only shrinks the mesh), so a small body
-// needs a matching stride speed or the legs skate.
 const GOBLIN_MOTOR: MotorConfig = {
 	walkSpeed: 0.8,
 	runSpeed: 1.8,
@@ -51,8 +38,6 @@ const GOBLIN_MOTOR: MotorConfig = {
 
 const COUNT = 3;
 
-// Ring of candidate offsets around the entrance-room centre; first open tile
-// wins per goblin so nobody spawns inside a wall or column.
 function spawnPoints(count: number): [number, number][] {
 	const [cx, , cz] = dungeonSpawn();
 	const out: [number, number][] = [];
@@ -67,20 +52,12 @@ function spawnPoints(count: number): [number, number][] {
 	return out;
 }
 
-// A slot is the render-stable identity; the entity inside it is created and
-// destroyed by the spawn effect (StrictMode mounts twice, so the eid must be
-// re-fillable — a useMemo-spawned entity would stay dead after the first
-// cleanup despawns it).
 interface Slot {
 	x: number;
 	z: number;
 	eid: number;
 }
 
-// The ECS sim (goblinSim.npcSystem) owns AI + movement + collision; the motor
-// here is a render puppet. Position hard-syncs from Transform3 each frame, and
-// the wander velocity feeds the motor only so gait/facing animate — its own
-// integration is disabled via a no-op mover.
 function makePuppet(slot: Slot): (motor: CharacterMotor, t: number) => void {
 	return (motor) => {
 		const eid = slot.eid;

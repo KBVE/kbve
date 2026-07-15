@@ -4,10 +4,6 @@ import { useFrame } from '@react-three/fiber';
 import { setPlayerAnchor } from '../render/playerAnchor';
 import type { CharacterHandle } from './Character';
 
-// Shadow catcher: a transparent ShadowMaterial plane parked under the character.
-// The real torch point lights in LightSystem cast the character's cube-map shadow
-// onto it, so the shadow direction/length derives from actual light geometry
-// instead of the old fake directional-light rig.
 export function CharacterShadow({
 	target,
 }: {

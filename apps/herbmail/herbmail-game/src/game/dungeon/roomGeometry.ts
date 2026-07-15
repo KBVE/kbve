@@ -13,8 +13,6 @@ import {
 import { makeLocalGrid, type RoomDesc } from './generate';
 import { chunkGeometry } from './chunkGeometry';
 
-// Each category is a flat list of per-chunk geometries (see chunkGeometry): the
-// merged sector mesh is diced into a grid so offscreen chunks frustum-cull out.
 export interface RoomGeoSet {
 	walls: THREE.BufferGeometry[][];
 	columns: THREE.BufferGeometry[][];
@@ -27,8 +25,6 @@ export interface RoomGeoSet {
 	bays: { frames: THREE.BufferGeometry[]; backs: THREE.BufferGeometry[] };
 }
 
-// Chunk a freshly-built merged geometry, then free the merged original — only the
-// diced chunks stay resident.
 function dice(merged: THREE.BufferGeometry): THREE.BufferGeometry[] {
 	const chunks = chunkGeometry(merged);
 	merged.dispose();
@@ -36,9 +32,6 @@ function dice(merged: THREE.BufferGeometry): THREE.BufferGeometry[] {
 	return chunks;
 }
 
-// Floor + ceiling are flat horizontal planes: chunking them is wasted draw calls
-// (no overdraw to cull, always in view). Keep each as ONE shared mesh, built once
-// and reused across every sector via the group transform.
 let sharedFloor: THREE.BufferGeometry[] | null = null;
 let sharedCeiling: THREE.BufferGeometry[] | null = null;
 
@@ -88,13 +81,8 @@ function disposeSet(set: RoomGeoSet): void {
 	for (const c of set.corner) drop(c);
 	for (const c of set.bays.frames) drop(c);
 	for (const c of set.bays.backs) drop(c);
-	// floor/ceiling are shared singletons — never disposed here.
 }
 
-// Signature cache = the geometry pool. Rooms sharing a signature
-// (doors:variant) reuse the exact same BufferGeometry objects — built once,
-// uploaded to the GPU once, positioned per-room via a group transform. At most
-// 16 doors x VARIANTS signatures exist; the LRU cap is a safety backstop.
 const CACHE_CAP = 96;
 const cache = new Map<string, RoomGeoSet>();
 

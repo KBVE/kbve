@@ -22,7 +22,6 @@ export function headDir(nx: number, nz: number): [number, number, number] {
 	return [nx * c, Math.sin(PITCH), nz * c];
 }
 
-// World tile (col,row) + wall-direction index -> mounted torch transform.
 export function torchTransform(
 	worldCol: number,
 	worldRow: number,
@@ -31,13 +30,10 @@ export function torchTransform(
 	const [nx, nz] = DIRS[di];
 	const fx = (worldCol + 0.5) * TILE + nx * (TILE / 2 - OFF);
 	const fz = (worldRow + 0.5) * TILE + nz * (TILE / 2 - OFF);
-	// Mount sits against the wall (nx,nz points floor->wall); the head faces the
-	// opposite way, out into the room, so mesh/flame/light extend inward.
+
 	return { pos: [fx, MOUNT_H, fz], dir: headDir(-nx, -nz) };
 }
 
-// Niche candle: sits at the wall face at niche height, emitting horizontally into
-// the room (no upward pitch, so the light stays inside the recess).
 export function nicheTransform(
 	worldCol: number,
 	worldRow: number,
@@ -50,7 +46,6 @@ export function nicheTransform(
 	return { pos: [fx, y, fz], dir: [-nx, 0, -nz] };
 }
 
-// Stable per-tile id so flame seed + light flicker phase are deterministic.
 export function torchId(
 	worldCol: number,
 	worldRow: number,

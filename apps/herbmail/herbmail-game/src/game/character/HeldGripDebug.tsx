@@ -33,7 +33,6 @@ interface Vm {
 	scene: THREE.Object3D;
 }
 
-// The currently-held item's pivot, whatever it is (tagged userData.heldPivot).
 function findPivot(): THREE.Object3D | null {
 	const vm = (window as unknown as { __vm?: Vm }).__vm;
 	if (!vm) return null;
@@ -62,9 +61,6 @@ function apply(pivot: THREE.Object3D, g: Xform): void {
 	pivot.scale.setScalar(g.scale);
 }
 
-// Generic live grip tuner: edits the transform of whatever item is currently held
-// (sword, torch, …). Adopts the item's authored transform when the held item
-// changes, then applies slider edits live and logs the result.
 export function HeldGripDebug() {
 	const [g, setG] = useState<Xform>({
 		px: 0,
@@ -90,7 +86,6 @@ export function HeldGripDebug() {
 				return;
 			}
 			if (pivot !== pivotRef.current) {
-				// New item equipped — adopt its authored transform.
 				pivotRef.current = pivot;
 				setName(pivot.name || 'held');
 				setG(read(pivot));

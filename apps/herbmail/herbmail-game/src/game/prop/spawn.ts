@@ -35,8 +35,6 @@ const FIREFLY_MAX = 4;
 const FIREFLY_Y = 1.4;
 const FIREFLY_Y_VAR = 0.9;
 
-// Scatter a few lone fireflies on interior floor tiles, deterministically by the
-// room cell so they stream in identically each visit. Each gets its own drift home.
 function scatterFireflies(
 	world: DungeonWorld['world'],
 	roomEid: number,
@@ -73,8 +71,6 @@ function scatterFireflies(
 	}
 }
 
-// Room mounted -> spawn its deterministic decor props plus any player-placed
-// props recorded for its cell.
 export function spawnRoomProps(dw: DungeonWorld, roomEid: number): void {
 	const desc = dw.desc(roomEid);
 	if (!desc) return;
@@ -88,7 +84,6 @@ export function spawnRoomProps(dw: DungeonWorld, roomEid: number): void {
 		spawnTorch(world, roomEid, pos, dir, torchId(wc, wr, s.di));
 	}
 
-	// Sconce torch on the flagged columns, mounted mid-shaft facing a hashed side.
 	for (const c of desc.columns) {
 		if (!c.torch) continue;
 		const wc = desc.originCol + c.col;
@@ -111,8 +106,6 @@ export function spawnRoomProps(dw: DungeonWorld, roomEid: number): void {
 		);
 	}
 
-	// A candle light inside every wall niche, so recesses are lit by their own
-	// source. Niches are the isBay faces on the local grid (matches the geometry).
 	const local = makeLocalGrid(desc);
 	for (const f of exposedFaces(local)) {
 		if (!isBay(local, f, desc.variant)) continue;
@@ -141,7 +134,6 @@ export function spawnRoomProps(dw: DungeonWorld, roomEid: number): void {
 	}
 }
 
-// Room unmounted -> remove every prop it owns.
 export function despawnRoomProps(dw: DungeonWorld, roomEid: number): void {
 	despawnWhere(dw.world, Prop, 'ownerEid', roomEid);
 }

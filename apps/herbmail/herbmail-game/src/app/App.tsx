@@ -70,7 +70,6 @@ export function App() {
 	return (
 		<>
 			<Canvas
-				flat
 				shadows="percentage"
 				dpr={psx.dpr}
 				gl={{ antialias: true, powerPreference: 'high-performance' }}
@@ -94,7 +93,7 @@ export function App() {
 					imageRendering: psx.dpr < 1 ? 'pixelated' : 'auto',
 				}}>
 				<color attach="background" args={[BG_COLOR]} />
-				<ambientLight intensity={0.05} />
+				<ambientLight intensity={0.12} />
 				<Suspense fallback={null}>
 					<Dungeon snap={psx.snap} affine={psx.affine} />
 				</Suspense>
