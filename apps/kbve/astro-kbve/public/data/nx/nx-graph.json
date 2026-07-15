@@ -545,21 +545,26 @@
         "type": "app",
         "data": {
           "root": "apps/deathslayer/deathslayer-launcher",
-          "projectType": "application",
-          "metadata": {
-            "targetGroups": {
-              "NPM Scripts": [
-                "preview",
-                "tauri"
-              ]
-            },
-            "js": {
-              "packageName": "@kbve/deathslayer-launcher",
-              "packageVersion": "0.1.0",
-              "isInPackageManagerWorkspaces": false
-            }
-          },
           "targets": {
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {
+                "lintFilePatterns": [
+                  "apps/deathslayer/deathslayer-launcher/src/**/*.{ts,tsx}"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -703,25 +708,6 @@
               "configurations": {},
               "parallelism": true
             },
-            "lint": {
-              "inputs": [
-                "default",
-                "^default",
-                "{workspaceRoot}/.eslintrc.json",
-                "{workspaceRoot}/.eslintignore",
-                "{workspaceRoot}/eslint.config.js",
-                "{workspaceRoot}/tools/eslint-rules/**/*"
-              ],
-              "cache": true,
-              "executor": "@nx/eslint:lint",
-              "options": {
-                "lintFilePatterns": [
-                  "apps/deathslayer/deathslayer-launcher/src/**/*.{ts,tsx}"
-                ]
-              },
-              "configurations": {},
-              "parallelism": true
-            },
             "tauri": {
               "executor": "nx:run-script",
               "metadata": {
@@ -773,6 +759,20 @@
                 }
               },
               "parallelism": true
+            }
+          },
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {
+              "NPM Scripts": [
+                "preview",
+                "tauri"
+              ]
+            },
+            "js": {
+              "packageName": "@kbve/deathslayer-launcher",
+              "packageVersion": "0.1.0",
+              "isInPackageManagerWorkspaces": false
             }
           },
           "name": "deathslayer-launcher",
